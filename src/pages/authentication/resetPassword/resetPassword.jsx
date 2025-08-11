@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import './resetPassword.css';
 
 const ResetPassword = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
 
@@ -48,7 +48,7 @@ const ResetPassword = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setSuccess(true);
-    } catch (err) {
+    } catch {
       setError('Đặt lại mật khẩu thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);

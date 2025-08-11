@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import Modal from '../components/Modal';
+import { useAuth } from '../../../contexts/AuthContext';
+import Modal from '../../../components/Modal';
 import { PencilIcon, EyeIcon } from '@heroicons/react/24/outline';
+import './userProfile.css';
 
 const UserProfile = () => {
   const { user, updateUser } = useAuth();

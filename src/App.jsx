@@ -1,16 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
-import Homepage from './pages/Homepage';
-import Login from './pages/Login';
-import StaffLogin from './pages/StaffLogin';
-import Register from './pages/Register';
-import BusinessInfo from './pages/BusinessInfo';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import UserProfile from './pages/UserProfile';
-import Payment from './pages/Payment';
-import AdminDashboard from './pages/AdminDashboard';
+import Homepage from './pages/home/homepage/homepage';
+import Login from './pages/authentication/login/login';
+import StaffLogin from './pages/authentication/staffLogin/staffLogin';
+import Register from './pages/authentication/register/register';
+import BusinessInfo from './pages/business/businessInfo/businessInfo';
+import ForgotPassword from './pages/authentication/forgotPassword/forgotPassword';
+import ResetPassword from './pages/authentication/resetPassword/resetPassword';
+import UserProfile from './pages/user/userProfile/userProfile';
+import Payment from './pages/user/payment/payment';
+import AdminDashboard from './pages/dashboard/adminDashboard/adminDashboard';
 
 function App() {
   return (

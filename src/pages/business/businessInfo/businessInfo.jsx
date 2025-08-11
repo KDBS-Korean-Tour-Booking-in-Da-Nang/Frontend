@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import './businessInfo.css';
 
 const BusinessInfo = () => {
   const navigate = useNavigate();
