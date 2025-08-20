@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import './staffLogin.css';
 
 const StaffLogin = () => {
   const [email, setEmail] = useState('');

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { CreditCardIcon, ArrowUpIcon, ArrowDownIcon, ClockIcon } from '@heroicons/react/24/outline';
+import './payment.css';
 
 const Payment = () => {
   const { user } = useAuth();

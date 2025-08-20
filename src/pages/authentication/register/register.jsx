@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import './register.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -40,22 +42,41 @@ const Register = () => {
       return;
     }
 
-    try {
-      // Mock registration - in real app, this would be an API call
-      const mockUser = {
-        id: Date.now(),
-        email: formData.email,
-        role: formData.role,
-        name: formData.email.split('@')[0]
-      };
+    if (!formData.username.trim()) {
+      setError('Tên người dùng không được để trống');
+      setLoading(false);
+      return;
+    }
 
-      if (formData.role === 'business') {
-        // For business, redirect to business info page
-        navigate('/business-info', { state: { user: mockUser } });
+    try {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if ((data.code === 1000 || data.code === 0)) {
+        // Lưu email vào localStorage
+        localStorage.setItem('userEmail', formData.email);
+        
+        // Registration successful, redirect to verification page immediately
+        // Backend already sends OTP automatically during registration
+        navigate('/verify-email', { 
+          state: { 
+            email: formData.email,
+            role: formData.role 
+          } 
+        });
       } else {
-        // For user, login directly
-        login(mockUser);
-        navigate('/');
+        setError(data.message || 'Đăng ký thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
       setError('Đăng ký thất bại. Vui lòng thử lại.');
@@ -76,6 +97,25 @@ const Register = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Tên người dùng
+              </label>
+              <div className="mt-1">
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Nhập tên người dùng"
+                />
+              </div>
+            </div>
+
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
@@ -89,6 +129,7 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="user@example.com"
                 />
               </div>
             </div>
@@ -107,6 +148,7 @@ const Register = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="••••••••"
                 />
               </div>
             </div>
@@ -125,6 +167,7 @@ const Register = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="••••••••"
                 />
               </div>
             </div>

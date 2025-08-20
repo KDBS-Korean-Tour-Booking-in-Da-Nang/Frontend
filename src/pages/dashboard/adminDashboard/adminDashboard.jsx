@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import Modal from '../components/Modal';
+import { useAuth } from '../../../contexts/AuthContext';
+import Modal from '../../../components/Modal';
+import './adminDashboard.css';
 import { 
   ChartBarIcon, 
   UsersIcon, 

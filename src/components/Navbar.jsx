@@ -69,6 +69,13 @@ const Navbar = () => {
                   Thanh toán
                 </Link>
                 
+                <Link 
+                  to="/business-info" 
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Thông tin doanh nghiệp
+                </Link>
+                
                 {/* User Menu */}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
@@ -172,6 +179,14 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Thanh toán
+                </Link>
+                
+                <Link
+                  to="/business-info"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Thông tin doanh nghiệp
                 </Link>
                 
                 <div className="border-t border-gray-200 pt-4 pb-3">
