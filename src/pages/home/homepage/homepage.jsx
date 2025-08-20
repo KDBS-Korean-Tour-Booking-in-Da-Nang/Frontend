@@ -1,12 +1,92 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './homepage.css';
 
 const Homepage = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState('');
+  const timerRef = useRef(null);
+
+  // Close success message function
+  const closeSuccessMessage = useCallback(() => {
+    setSuccessMessage('');
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  // Check for success message from navigation state or localStorage
+  useEffect(() => {
+    // Check for OAuth success message in localStorage
+    const oauthMessage = localStorage.getItem('oauth_success_message');
+    if (oauthMessage) {
+      setSuccessMessage(oauthMessage);
+      localStorage.removeItem('oauth_success_message'); // Clear the message
+    }
+
+    // Check for success message from navigation state
+    if (location.state?.message && location.state?.type === 'success') {
+      setSuccessMessage(location.state.message);
+      // Clear the state to prevent showing message again on refresh
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  // Auto-hide success message after 5 seconds
+  useEffect(() => {
+    if (successMessage) {
+      console.log('Setting timer for success message:', successMessage);
+      
+      // Clear any existing timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      
+      // Set new timer
+      timerRef.current = setTimeout(() => {
+        console.log('Clearing success message');
+        setSuccessMessage('');
+        timerRef.current = null;
+      }, 5000);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (timerRef.current) {
+        console.log('Clearing timer on unmount');
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [successMessage]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Success Message */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>{successMessage}</span>
+            </div>
+            <button
+              onClick={closeSuccessMessage}
+              className="ml-4 text-green-400 hover:text-green-600 focus:outline-none"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto">

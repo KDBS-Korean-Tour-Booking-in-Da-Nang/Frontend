@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './resetPassword.css';
 
 const ResetPassword = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const email = location.state?.email;
+  const verified = location.state?.verified;
+  const otpCode = location.state?.otpCode; // Lấy OTP đã verify
 
   const [formData, setFormData] = useState({
     newPassword: '',
@@ -34,33 +37,46 @@ const ResetPassword = () => {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
+    if (formData.newPassword.length < 8) {
+      setError('Mật khẩu phải có ít nhất 8 ký tự');
       setLoading(false);
       return;
     }
 
     try {
-      // Mock API call - in real app, this would reset password
-      console.log('Resetting password for:', email);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSuccess(true);
-    } catch {
+      // Use the verified OTP from the previous step
+      const response = await fetch('/api/auth/forgot-password/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          otpCode: otpCode, // Use the verified OTP
+          newPassword: formData.newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if ((data.code === 1000 || data.code === 0)) {
+        setSuccess(true);
+      } else {
+        setError(data.message || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.');
+      }
+    } catch (err) {
       setError('Đặt lại mật khẩu thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!email) {
+  if (!email || !verified || !otpCode) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Không tìm thấy thông tin email
+            Bạn cần xác thực OTP trước khi đặt lại mật khẩu
           </h2>
           <Link
             to="/forgot-password"
@@ -156,7 +172,9 @@ const ResetPassword = () => {
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
             )}
 
             <div>

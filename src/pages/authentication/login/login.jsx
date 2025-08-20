@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { UserCircleIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import './login.css';
@@ -9,8 +9,37 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Check for success message from navigation state
+  useEffect(() => {
+    if (location.state?.message && location.state?.type === 'success') {
+      setSuccessMessage(location.state.message);
+      // Clear the state to prevent showing message again on refresh
+      navigate(location.pathname, { replace: true });
+      
+      // Auto clear success message after 5 seconds
+      const timer = setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  // Check for error from URL parameters (OAuth callback errors)
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam));
+      // Clear the error parameter from URL
+      navigate(location.pathname, { replace: true });
+    }
+  }, [searchParams, navigate, location.pathname]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,16 +47,56 @@ const Login = () => {
     setError('');
 
     try {
-      // Mock login - in real app, this would be an API call
-      const mockUser = {
-        id: Date.now(),
-        email,
-        role: 'user',
-        name: email.split('@')[0]
-      };
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-      login(mockUser);
-      navigate('/');
+      const data = await response.json();
+
+      if ((data.code === 1000 || data.code === 0) && data.result) {
+        // Store token in localStorage
+        localStorage.setItem('token', data.result.token);
+        
+        // Use user data from backend response
+        if (data.result.user) {
+          const user = {
+            id: data.result.user.userId,
+            email: data.result.user.email,
+            role: data.result.user.role,
+            name: data.result.user.username,
+            avatar: data.result.user.avatar,
+            isPremium: data.result.user.isPremium,
+            balance: data.result.user.balance
+          };
+
+          login(user);
+          navigate('/', { 
+            state: { 
+              message: 'Đăng nhập thành công!', 
+              type: 'success' 
+            } 
+          });
+        } else {
+          // Fallback to mock data if user info not available
+          const user = {
+            id: Date.now(),
+            email,
+            role: 'user',
+            name: email.split('@')[0]
+          };
+          login(user);
+          navigate('/');
+        }
+      } else {
+        setError(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+      }
     } catch (err) {
       setError('Đăng nhập thất bại. Vui lòng thử lại.');
     } finally {
@@ -35,16 +104,36 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Mock Google login
-    const mockUser = {
-      id: Date.now(),
-      email: 'google@example.com',
-      role: 'user',
-      name: 'Google User'
-    };
-    login(mockUser);
-    navigate('/');
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/google/login');
+      const data = await response.json();
+      
+      if ((data.code === 1000 || data.code === 0) && data.result) {
+        // Redirect to Google OAuth URL
+        window.location.href = data.result;
+      } else {
+        setError('Không thể kết nối với Google. Vui lòng thử lại.');
+      }
+    } catch (err) {
+      setError('Không thể kết nối với Google. Vui lòng thử lại.');
+    }
+  };
+
+  const handleNaverLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/naver/login');
+      const data = await response.json();
+      
+      if ((data.code === 1000 || data.code === 0) && data.result) {
+        // Redirect to Naver OAuth URL
+        window.location.href = data.result;
+      } else {
+        setError('Không thể kết nối với Naver. Vui lòng thử lại.');
+      }
+    } catch (err) {
+      setError('Không thể kết nối với Naver. Vui lòng thử lại.');
+    }
   };
 
   return (
@@ -104,6 +193,12 @@ const Login = () => {
               </div>
             </div>
 
+            {successMessage && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+                {successMessage}
+              </div>
+            )}
+            
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {error}
@@ -138,7 +233,7 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 space-y-3">
               <button
                 onClick={handleGoogleLogin}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
@@ -150,6 +245,16 @@ const Login = () => {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Đăng nhập bằng Google
+              </button>
+
+              <button
+                onClick={handleNaverLogin}
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              >
+                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <path fill="#03C75A" d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
+                </svg>
+                Đăng nhập bằng Naver
               </button>
             </div>
           </div>

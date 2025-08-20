@@ -9,11 +9,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/uploads': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       }
     }
