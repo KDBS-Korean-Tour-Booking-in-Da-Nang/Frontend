@@ -1,18 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const OAuthCallback = () => {
-  const { t } = useTranslation();
   const { login } = useAuth();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const processedRef = useRef(false);
 
   useEffect(() => {
-    if (processedRef.current) return;
-    processedRef.current = true;
     // Get URL parameters
     const error = searchParams.get('error');
     const token = searchParams.get('token');
@@ -26,35 +20,20 @@ const OAuthCallback = () => {
 
     // If there's an error, redirect to login with error
     if (error) {
-      navigate('/login?error=' + encodeURIComponent(error), { replace: true });
+      window.location.replace('/login?error=' + encodeURIComponent(error));
       return;
     }
 
     // If missing required parameters, redirect to login with error
     if (!token || !userId || !email) {
-      navigate('/login?error=' + encodeURIComponent(t('oauth.missingInfo')), { replace: true });
+      window.location.replace('/login?error=' + encodeURIComponent('Không nhận được thông tin xác thực đầy đủ'));
       return;
     }
 
     try {
-      const decodedToken = decodeURIComponent(token);
-      const rememberMe = localStorage.getItem('oauth_remember_me') === 'true';
-      // Clean temp flag
-      localStorage.removeItem('oauth_remember_me');
-
-      // Persist remember choice globally for future loads
-      localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
-
-      // Store token in appropriate storage
-      if (rememberMe) {
-        localStorage.setItem('token', decodedToken);
-        const expiryAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 14 days
-        localStorage.setItem('tokenExpiry', String(expiryAt));
-      } else {
-        sessionStorage.setItem('token', decodedToken);
-        localStorage.removeItem('tokenExpiry');
-      }
-
+      // Store token
+      localStorage.setItem('token', decodeURIComponent(token));
+      
       // Create user object from URL parameters
       const user = {
         id: parseInt(userId),
@@ -67,19 +46,19 @@ const OAuthCallback = () => {
       };
 
       // Login user
-      login(user, decodedToken, rememberMe);
+      login(user);
       
       // Store success message in localStorage
-      localStorage.setItem('oauth_success_message', t('oauth.successLogin'));
+      localStorage.setItem('oauth_success_message', 'Đăng nhập thành công!');
       
-      // Redirect nội bộ để tránh reload toàn bộ app
-      navigate('/', { replace: true });
+      // Immediately redirect to home page
+      window.location.replace('/');
       
     } catch (err) {
       // If there's an error, redirect to login with error
-      navigate('/login?error=' + encodeURIComponent(t('oauth.failed', { message: err.message })), { replace: true });
+      window.location.replace('/login?error=' + encodeURIComponent('Xác thực OAuth thất bại: ' + err.message));
     }
-  }, [searchParams, login, navigate]);
+  }, [searchParams, login]);
 
   // Return null to prevent any rendering
   return null;

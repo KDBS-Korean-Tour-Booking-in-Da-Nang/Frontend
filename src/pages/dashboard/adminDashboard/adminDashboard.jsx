@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import Modal from '../../../components/Modal';
 import './adminDashboard.css';
@@ -29,15 +28,14 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const AdminDashboard = () => {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const tabs = [
-    { id: 'dashboard', name: t('admin.tabs.dashboard'), icon: ChartBarIcon },
-    { id: 'users', name: t('admin.tabs.users'), icon: UsersIcon },
-    { id: 'companies', name: t('admin.tabs.companies'), icon: BuildingOfficeIcon },
-    { id: 'staff', name: t('admin.tabs.staff'), icon: UserGroupIcon }
+    { id: 'dashboard', name: 'Dashboard', icon: ChartBarIcon },
+    { id: 'users', name: 'All Users', icon: UsersIcon },
+    { id: 'companies', name: 'Approve Company', icon: BuildingOfficeIcon },
+    { id: 'staff', name: 'Staff Management', icon: UserGroupIcon }
   ];
 
   const renderTabContent = () => {
@@ -59,7 +57,9 @@ const AdminDashboard = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('admin.accessDenied')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Bạn không có quyền truy cập trang này
+          </h2>
         </div>
       </div>
     );
@@ -69,8 +69,10 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.heading')}</h1>
-          <p className="mt-2 text-gray-600">{t('admin.subtitle')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="mt-2 text-gray-600">
+            Quản lý hệ thống Tour du lịch Đà Nẵng - Korea
+          </p>
         </div>
 
         {/* Tab Navigation */}
@@ -105,7 +107,6 @@ const AdminDashboard = () => {
 
 // Dashboard Tab Component
 const DashboardTab = () => {
-  const { t } = useTranslation();
   const mockStats = {
     totalUsers: 1250,
     totalRevenue: 150000000,
@@ -126,7 +127,7 @@ const DashboardTab = () => {
   const revenueData = {
     labels: mockRevenueData.map(item => item.month),
     datasets: [{
-      label: t('admin.stats.revenue') + ' (VNĐ)',
+      label: 'Doanh thu (VNĐ)',
       data: mockRevenueData.map(item => item.revenue),
       borderColor: 'rgb(75, 192, 192)',
       backgroundColor: 'rgba(75, 192, 192, 0.5)',
@@ -206,7 +207,9 @@ const DashboardTab = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.stats.totalUsers')}</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Tổng số User
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {mockStats.totalUsers.toLocaleString()}
                   </dd>
@@ -224,7 +227,9 @@ const DashboardTab = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.stats.revenue')}</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Doanh thu
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {mockStats.totalRevenue.toLocaleString('vi-VN')} VNĐ
                   </dd>
@@ -242,7 +247,9 @@ const DashboardTab = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.stats.pendingCompanies')}</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Chờ duyệt
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {mockStats.pendingCompanies}
                   </dd>
@@ -260,7 +267,9 @@ const DashboardTab = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.stats.staff')}</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Staff
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {mockStats.totalStaff}
                   </dd>
@@ -273,13 +282,13 @@ const DashboardTab = () => {
 
       {/* Traffic Chart - Like your example */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.charts.traffic')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Biểu đồ truy cập</h3>
         <Line data={trafficData} options={chartOptions} height={80} />
       </div>
 
       {/* Revenue Chart */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.charts.revenue')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Biểu đồ doanh thu</h3>
         <Line data={revenueData} options={{
           responsive: true,
           plugins: {
@@ -288,7 +297,7 @@ const DashboardTab = () => {
             },
             title: {
               display: true,
-              text: t('admin.charts.revenueByMonth'),
+              text: 'Biểu đồ doanh thu theo tháng',
             },
             tooltip: {
               callbacks: {
@@ -313,7 +322,6 @@ const DashboardTab = () => {
 
 // Users Tab Component
 const UsersTab = () => {
-  const { t } = useTranslation();
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 
@@ -338,17 +346,27 @@ const UsersTab = () => {
     <div>
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.users.title')}</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Danh sách tất cả User</h3>
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.users.headers.user')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.users.headers.role')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.users.headers.status')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.users.headers.createdAt')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.users.headers.actions')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vai trò
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trạng thái
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ngày tạo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -376,7 +394,7 @@ const UsersTab = () => {
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {user.status === 'active' ? t('admin.users.status.active') : t('admin.users.status.inactive')}
+                        {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -402,46 +420,48 @@ const UsersTab = () => {
       <Modal
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
-        title={t('admin.users.detailTitle')}
+        title="Chi tiết User"
         size="lg"
       >
         {selectedUser && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.users.labels.fullName')}</label>
+                <label className="block text-sm font-medium text-gray-700">Họ tên</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedUser.name}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.users.labels.email')}</label>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedUser.email}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.users.labels.role')}</label>
+                <label className="block text-sm font-medium text-gray-700">Vai trò</label>
                 <p className="mt-1 text-sm text-gray-900 capitalize">{selectedUser.role}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.users.labels.status')}</label>
+                <label className="block text-sm font-medium text-gray-700">Trạng thái</label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {selectedUser.status === 'active' ? t('admin.users.status.active') : t('admin.users.status.inactive')}
+                  {selectedUser.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
                 </p>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.users.changeStatus')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Thay đổi trạng thái
+              </label>
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleStatusChange(selectedUser.id, 'active')}
                   className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
                 >
-                  {t('admin.users.activate')}
+                  Kích hoạt
                 </button>
                 <button
                   onClick={() => handleStatusChange(selectedUser.id, 'inactive')}
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
                 >
-                  {t('admin.users.deactivate')}
+                  Vô hiệu hóa
                 </button>
               </div>
             </div>
@@ -483,15 +503,14 @@ const CompaniesTab = () => {
     setIsCompanyModalOpen(true);
   };
 
-  const { t } = useTranslation();
   const handleApprove = (companyId, approved) => {
     if (approved) {
-      if (confirm(t('admin.companies.confirmApprove'))) {
+      if (confirm('Bạn có chắc chắn muốn duyệt doanh nghiệp này?')) {
         console.log(`Approving company ${companyId}`);
         setIsCompanyModalOpen(false);
       }
     } else {
-      if (confirm(t('admin.companies.confirmReject'))) {
+      if (confirm('Bạn có chắc chắn muốn từ chối doanh nghiệp này?')) {
         console.log(`Rejecting company ${companyId}`);
         setIsCompanyModalOpen(false);
       }
@@ -502,17 +521,27 @@ const CompaniesTab = () => {
     <div>
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.companies.title')}</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Danh sách doanh nghiệp chờ duyệt</h3>
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.companies.headers.companyName')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.companies.headers.email')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.companies.headers.phone')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.companies.headers.taxCode')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.companies.headers.actions')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tên công ty
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Số điện thoại
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mã số thuế
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -550,50 +579,52 @@ const CompaniesTab = () => {
       <Modal
         isOpen={isCompanyModalOpen}
         onClose={() => setIsCompanyModalOpen(false)}
-        title={t('admin.companies.detailTitle')}
+        title="Chi tiết doanh nghiệp"
         size="lg"
       >
         {selectedCompany && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.companies.labels.companyName')}</label>
+                <label className="block text-sm font-medium text-gray-700">Tên công ty</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedCompany.name}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.companies.labels.email')}</label>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedCompany.email}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.companies.labels.phone')}</label>
+                <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedCompany.phone}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">{t('admin.companies.labels.taxCode')}</label>
+                <label className="block text-sm font-medium text-gray-700">Mã số thuế</label>
                 <p className="mt-1 text-sm text-gray-900">{selectedCompany.taxCode}</p>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">{t('admin.companies.labels.address')}</label>
+              <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>
               <p className="mt-1 text-sm text-gray-900">{selectedCompany.address}</p>
             </div>
 
             <div className="border-t pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.companies.detailTitle')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phê duyệt
+              </label>
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleApprove(selectedCompany.id, true)}
                   className="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center"
                 >
                   <CheckIcon className="h-4 w-4 mr-1" />
-                  {t('admin.companies.approve')}
+                  Duyệt
                 </button>
                 <button
                   onClick={() => handleApprove(selectedCompany.id, false)}
                   className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 flex items-center"
                 >
                   <XMarkIcon className="h-4 w-4 mr-1" />
-                  {t('admin.companies.reject')}
+                  Từ chối
                 </button>
               </div>
             </div>

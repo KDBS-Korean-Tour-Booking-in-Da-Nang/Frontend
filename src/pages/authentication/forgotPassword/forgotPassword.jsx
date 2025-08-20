@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import './forgotPassword.css';
 
 const ForgotPassword = () => {
-  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,13 +23,13 @@ const ForgotPassword = () => {
 
     // Basic validation
     if (!email.trim()) {
-      setError(t('auth.forgot.error'));
+      setError('Vui lòng nhập email');
       setLoading(false);
       return;
     }
 
     if (!email.includes('@')) {
-      setError(t('auth.forgot.error'));
+      setError('Email không hợp lệ');
       setLoading(false);
       return;
     }
@@ -50,14 +48,14 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        setSuccessMessage(t('auth.forgot.success'));
+        setSuccessMessage('OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.');
         setSent(true);
         setCountdown(60);
       } else {
-        setError(data.message || t('auth.forgot.error'));
+        setError(data.message || 'Gửi OTP thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.forgot.error'));
+      setError('Gửi OTP thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -86,13 +84,13 @@ const ForgotPassword = () => {
     setSuccessMessage('');
 
     if (!otp.trim()) {
-      setError(t('auth.common.otp'));
+      setError('Vui lòng nhập mã OTP');
       setOtpLoading(false);
       return;
     }
 
     if (otp.length !== 6) {
-      setError(t('auth.common.otp'));
+      setError('Mã OTP phải có 6 ký tự');
       setOtpLoading(false);
       return;
     }
@@ -109,7 +107,7 @@ const ForgotPassword = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // OTP verified successfully, navigate to reset password
         setVerified(true);
-        setSuccessMessage(t('auth.verify.successBanner'));
+        setSuccessMessage('Xác thực OTP thành công! Đang chuyển đến trang đặt lại mật khẩu...');
         
         // Navigate to reset password after 2 seconds
         setTimeout(() => {
@@ -122,10 +120,10 @@ const ForgotPassword = () => {
           });
         }, 2000);
       } else {
-        setError(data.message || t('auth.verify.error'));
+        setError(data.message || 'Mã OTP không đúng. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      setError('Xác thực OTP thất bại. Vui lòng thử lại.');
     } finally {
       setOtpLoading(false);
     }
@@ -150,15 +148,15 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        setSuccessMessage(t('auth.forgot.success'));
+        setSuccessMessage('Mã OTP mới đã được gửi đến email của bạn.');
         
         // Reset countdown
         setCountdown(60);
       } else {
-        setError(data.message || t('auth.verify.failed'));
+        setError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      setError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
     } finally {
       setResendLoading(false);
     }
@@ -170,10 +168,10 @@ const ForgotPassword = () => {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {t('auth.verify.title')}
+            Xác thực OTP
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {t('auth.verify.subtitle', { email })}
+            Nhập mã OTP 6 ký tự được gửi đến {email}
           </p>
         </div>
 
@@ -182,7 +180,7 @@ const ForgotPassword = () => {
             <form className="space-y-6" onSubmit={handleVerifyOTP}>
               <div>
                 <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
-                  {t('auth.common.otp')}
+                  Mã OTP
                 </label>
                 <div className="mt-1">
                   <input
@@ -193,11 +191,13 @@ const ForgotPassword = () => {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
-                    placeholder={t('auth.common.otpPlaceholder')}
+                    placeholder="000000"
                     maxLength="6"
                   />
                 </div>
-                <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Mã OTP có hiệu lực trong 5 phút
+                </p>
               </div>
 
               {successMessage && (
@@ -218,17 +218,17 @@ const ForgotPassword = () => {
                   disabled={otpLoading}
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  {otpLoading ? t('auth.verify.submitting') : t('auth.verify.submit')}
+                  {otpLoading ? 'Đang xác thực...' : 'Xác thực OTP'}
                 </button>
               </div>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                {t('auth.common.notReceivedCode')}{' '}
+                Không nhận được mã?{' '}
                 {countdown > 0 ? (
                   <span className="text-gray-400">
-                    {t('auth.common.resendIn', { seconds: countdown })}
+                    Gửi lại sau {countdown}s
                   </span>
                 ) : (
                   <button
@@ -236,7 +236,7 @@ const ForgotPassword = () => {
                     disabled={resendLoading}
                     className="text-blue-600 hover:text-blue-500 disabled:opacity-50"
                   >
-                    {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
+                    {resendLoading ? 'Đang gửi...' : 'Gửi lại'}
                   </button>
                 )}
               </p>
@@ -253,7 +253,7 @@ const ForgotPassword = () => {
                 }}
                 className="text-sm text-gray-600 hover:text-gray-500"
               >
-                {t('auth.common.backToForgot')}
+                Quay lại quên mật khẩu
               </button>
             </div>
           </div>
@@ -266,10 +266,10 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {t('auth.forgot.title')}
+          Quên mật khẩu
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.forgot.subtitle')}
+          Nhập email của bạn để nhận mã OTP đặt lại mật khẩu
         </p>
       </div>
 
@@ -278,7 +278,7 @@ const ForgotPassword = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                {t('auth.common.email')}
+                Email
               </label>
               <div className="mt-1">
                 <input
@@ -312,7 +312,7 @@ const ForgotPassword = () => {
                 disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {loading ? t('auth.forgot.sending') : t('auth.forgot.submit')}
+                {loading ? 'Đang gửi...' : 'Gửi email'}
               </button>
             </div>
           </form>
@@ -322,7 +322,7 @@ const ForgotPassword = () => {
               to="/login"
               className="text-sm text-blue-600 hover:text-blue-500"
             >
-              {t('auth.common.backToLogin')}
+              Quay lại đăng nhập
             </Link>
           </div>
         </div>

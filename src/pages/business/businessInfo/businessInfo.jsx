@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
 import './businessInfo.css';
 
 const BusinessInfo = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading } = useAuth();
   const [userEmail, setUserEmail] = useState('');
 
   const [files, setFiles] = useState({
@@ -19,83 +15,29 @@ const BusinessInfo = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
-  const [submittedData, setSubmittedData] = useState({
-    businessLicenseName: '',
-    idCardFrontName: '',
-    idCardBackName: ''
-  });
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (authLoading) {
-      return; // Đợi auth khởi tạo xong để tránh redirect sớm khi login qua OAuth
-    }
-    // Ưu tiên email của người dùng đang đăng nhập; nếu không có thì dùng email lưu tạm sau bước đăng ký
-    let email = user?.email || null;
+    // Kiểm tra 2 trường hợp:
+    // 1. Từ đăng ký: lấy email từ localStorage
+    // 2. Từ navbar: lấy email từ user đã đăng nhập trong localStorage
+    let email = localStorage.getItem('userEmail');
+    
     if (!email) {
-      email = localStorage.getItem('userEmail');
+      // Nếu không có email trong localStorage, thử lấy từ user đã đăng nhập
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        email = user.email;
+      }
     }
     
     if (email) {
       setUserEmail(email);
-      // Kiểm tra trạng thái đã nộp hồ sơ trên thiết bị này
-      const statusKey = `businessUploadStatus:${email}`;
-      const status = localStorage.getItem(statusKey);
-      // Ưu tiên hỏi backend xem đã từng upload chưa
-      const fetchStatus = async () => {
-        try {
-          const headers = {};
-          const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-          if (token) headers['Authorization'] = `Bearer ${token}`;
-          const res = await fetch(`/api/users/business-upload-status?email=${encodeURIComponent(email)}`, { headers });
-          const data = await res.json();
-          if ((data.code === 1000 || data.code === 0) && data.result) {
-            // Chỉ coi là đã upload khi vai trò hiện tại là business hoặc backend có dữ liệu
-            if (data.result.uploaded) {
-              setAlreadySubmitted(true);
-              setSubmittedData({
-                businessLicenseName: data.result.businessLicenseFileName || '',
-                idCardFrontName: data.result.idCardFrontFileName || '',
-                idCardBackName: data.result.idCardBackFileName || ''
-              });
-              // Ghi xuống localStorage để tăng tốc lần sau (fallback)
-              localStorage.setItem(`businessUploadStatus:${email}`, 'submitted');
-              localStorage.setItem(
-                `businessUploadData:${email}`,
-                JSON.stringify({
-                  businessLicenseName: data.result.businessLicenseFileName || '',
-                  idCardFrontName: data.result.idCardFrontFileName || '',
-                  idCardBackName: data.result.idCardBackFileName || ''
-                })
-              );
-            }
-          }
-        } catch (e) {
-          // Fallback sang dữ liệu cục bộ nếu có
-          if (status === 'submitted') {
-            setAlreadySubmitted(true);
-            const dataKey = `businessUploadData:${email}`;
-            const raw = localStorage.getItem(dataKey);
-            if (raw) {
-              try {
-                const parsed = JSON.parse(raw);
-                setSubmittedData({
-                  businessLicenseName: parsed.businessLicenseName || '',
-                  idCardFrontName: parsed.idCardFrontName || '',
-                  idCardBackName: parsed.idCardBackName || ''
-                });
-              } catch {}
-            }
-          }
-        }
-      };
-      fetchStatus().finally(() => setInitialized(true));
     } else {
-      // Không điều hướng ngay; chờ auth hoàn tất và hiển thị UI phù hợp
-      setInitialized(true);
+      // Nếu không có email, chuyển về trang đăng ký
+      navigate('/register');
     }
-  }, [navigate, user, authLoading]);
+  }, [navigate]);
 
   const handleFileChange = (e, fileType) => {
     const file = e.target.files[0];
@@ -110,9 +52,6 @@ const BusinessInfo = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (alreadySubmitted) {
-      return; // Đã nộp rồi thì không cho nộp nữa
-    }
     setLoading(true);
     setError('');
     setSuccess('');
@@ -165,8 +104,8 @@ const BusinessInfo = () => {
       const headers = {};
       
       // Kiểm tra xem có user đã đăng nhập không
-      const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
       
       if (savedUser && token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -190,25 +129,6 @@ const BusinessInfo = () => {
 
       if (response.ok) {
         setSuccess('Thông tin doanh nghiệp đã được gửi thành công!');
-        // Ghi nhận đã nộp hồ sơ (theo email) trên thiết bị này để chặn nộp lại
-        const statusKey = `businessUploadStatus:${userEmail}`;
-        localStorage.setItem(statusKey, 'submitted');
-        setAlreadySubmitted(true);
-        // Lưu metadata để hiển thị lại tên file đã gửi
-        const dataKey = `businessUploadData:${userEmail}`;
-        localStorage.setItem(
-          dataKey,
-          JSON.stringify({
-            businessLicenseName: files.businessLicense?.name || '',
-            idCardFrontName: files.idCardFront?.name || '',
-            idCardBackName: files.idCardBack?.name || ''
-          })
-        );
-        setSubmittedData({
-          businessLicenseName: files.businessLicense?.name || '',
-          idCardFrontName: files.idCardFront?.name || '',
-          idCardBackName: files.idCardBack?.name || ''
-        });
         // Chuyển đến trang pending sau 2 giây
         setTimeout(() => {
           navigate('/pending-page');
@@ -242,97 +162,19 @@ const BusinessInfo = () => {
     }
   };
 
-  if (authLoading || !initialized) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-gray-600">{t('business.loading')}</div>
-      </div>
-    );
-  }
-
   if (!userEmail) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('business.notFoundTitle')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Không tìm thấy thông tin đăng ký
+          </h2>
           <button
             onClick={() => navigate('/register')}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            {t('business.backToRegister')}
+            Quay lại đăng ký
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Nếu người dùng đăng nhập là role user (chưa được nâng cấp business), vẫn cho phép upload
-  // nhưng chỉ hiển thị "đã upload" khi backend xác nhận uploaded=true. local fallback sẽ không kích hoạt
-  // đối với user thường để tránh false-positive từ email tạm trong localStorage.
-
-  // Nếu đã nộp hồ sơ trước đó, hiển thị lại các mục với dấu tick và tên file
-  if (alreadySubmitted) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('business.submittedTitle')}</h2>
-                <p className="text-gray-600">{t('business.submittedSubtitle')}</p>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('business.form.businessLicense')}</label>
-                  <div className="mt-2 flex items-center text-sm">
-                    <span className="inline-flex items-center text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-                      <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      {submittedData.businessLicenseName || t('business.submit')}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text.sm font-medium text-gray-700">{t('business.form.idFront')}</label>
-                  <div className="mt-2 flex items-center text-sm">
-                    <span className="inline-flex items-center text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-                      <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      {submittedData.idCardFrontName || t('business.submit')}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('business.form.idBack')}</label>
-                  <div className="mt-2 flex items-center text-sm">
-                    <span className="inline-flex items-center text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-                      <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      {submittedData.idCardBackName || t('business.submit')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 my-6">
-                <p className="text-blue-800 text-sm">{t('business.submittedSubtitle')}</p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => navigate('/pending-page')}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  {t('business.submittedViewPending')}
-                </button>
-                <button
-                  onClick={() => navigate('/')}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  {t('pending.btnHome')}
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -344,8 +186,12 @@ const BusinessInfo = () => {
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('business.heading')}</h2>
-              <p className="text-gray-600">{t('business.subtitle')}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Thông tin doanh nghiệp
+              </h2>
+              <p className="text-gray-600">
+                Vui lòng upload các tài liệu cần thiết để admin có thể duyệt tài khoản doanh nghiệp của bạn.
+              </p>
             </div>
 
             {success && (
@@ -362,7 +208,9 @@ const BusinessInfo = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="businessLicense" className="block text-sm font-medium text-gray-700">{t('business.form.businessLicense')}</label>
+                <label htmlFor="businessLicense" className="block text-sm font-medium text-gray-700">
+                  Giấy phép kinh doanh (PDF) *
+                </label>
                 <div className="mt-1">
                   <input
                     type="file"
@@ -373,12 +221,16 @@ const BusinessInfo = () => {
                   />
                 </div>
                 {files.businessLicense && (
-                  <p className="mt-2 text-sm text-green-600">{t('business.selectedPrefix')} {files.businessLicense.name}</p>
+                  <p className="mt-2 text-sm text-green-600">
+                    ✅ Đã chọn: {files.businessLicense.name}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="idCardFront" className="block text-sm font-medium text-gray-700">{t('business.form.idFront')}</label>
+                <label htmlFor="idCardFront" className="block text-sm font-medium text-gray-700">
+                  Mặt trước CCCD (JPG/PNG) *
+                </label>
                 <div className="mt-1">
                   <input
                     type="file"
@@ -389,12 +241,16 @@ const BusinessInfo = () => {
                   />
                 </div>
                 {files.idCardFront && (
-                  <p className="mt-2 text-sm text-green-600">{t('business.selectedPrefix')} {files.idCardFront.name}</p>
+                  <p className="mt-2 text-sm text-green-600">
+                    ✅ Đã chọn: {files.idCardFront.name}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="idCardBack" className="block text-sm font-medium text-gray-700">{t('business.form.idBack')}</label>
+                <label htmlFor="idCardBack" className="block text-sm font-medium text-gray-700">
+                  Mặt sau CCCD (JPG/PNG) *
+                </label>
                 <div className="mt-1">
                   <input
                     type="file"
@@ -405,19 +261,21 @@ const BusinessInfo = () => {
                   />
                 </div>
                 {files.idCardBack && (
-                  <p className="mt-2 text-sm text-green-600">{t('business.selectedPrefix')} {files.idCardBack.name}</p>
+                  <p className="mt-2 text-sm text-green-600">
+                    ✅ Đã chọn: {files.idCardBack.name}
+                  </p>
                 )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-900 mb-2">{t('business.important.title')}</h3>
+                <h3 className="text-sm font-medium text-blue-900 mb-2">Lưu ý quan trọng:</h3>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  <li>{t('business.important.i1')}</li>
-                  <li>{t('business.important.i2')}</li>
-                  <li>{t('business.important.i3')}</li>
-                  <li>{t('business.important.i4')}</li>
-                  <li>{t('business.important.i5')}</li>
-                  <li>{t('business.important.i6')}</li>
+                  <li>• Giấy phép kinh doanh phải là file PDF</li>
+                  <li>• CCCD phải rõ ràng, không bị mờ hoặc che khuất</li>
+                  <li>• CCCD phải là ảnh thật, không phải ảnh màn hình hoặc scan</li>
+                  <li>• Đảm bảo ánh sáng tốt khi chụp CCCD</li>
+                  <li>• Mỗi file không được vượt quá 25MB</li>
+                  <li>• Thời gian duyệt thường mất từ 1-3 ngày làm việc</li>
                 </ul>
               </div>
 
@@ -427,14 +285,14 @@ const BusinessInfo = () => {
                   onClick={() => navigate('/register')}
                   className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  {t('business.back')}
+                  Quay lại
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  {loading ? t('business.submitting') : t('business.submit')}
+                  {loading ? 'Đang gửi...' : 'Xác nhận và gửi'}
                 </button>
               </div>
             </form>

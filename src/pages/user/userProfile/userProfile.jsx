@@ -1,22 +1,17 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import Modal from '../../../components/Modal';
 import { PencilIcon, EyeIcon } from '@heroicons/react/24/outline';
 import './userProfile.css';
 
 const UserProfile = () => {
-  const { t } = useTranslation();
   const { user, updateUser } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: user?.username || user?.name || '',
+    name: user?.name || '',
     phone: user?.phone || '',
-    dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
-    gender: user?.gender || '',
-    cccd: user?.cccd || ''
+    address: user?.address || ''
   });
-  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
@@ -26,22 +21,11 @@ const UserProfile = () => {
     }));
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAvatarPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleEditSubmit = (e) => {
     e.preventDefault();
     const updatedUser = {
       ...user,
-      ...editForm,
-      avatar: avatarPreview
+      ...editForm
     };
     updateUser(updatedUser);
     setIsEditModalOpen(false);
@@ -55,7 +39,9 @@ const UserProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('profile.loginRequired')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Vui lòng đăng nhập để xem hồ sơ
+          </h2>
         </div>
       </div>
     );
@@ -81,16 +67,12 @@ const UserProfile = () => {
 
             <div className="flex items-center space-x-6 mb-8">
               <div className="flex-shrink-0">
-                {user.avatar ? (
-                  <img src={user.avatar} alt="avatar" className="h-20 w-20 rounded-full object-cover" />
-                ) : (
-                  <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
-                    {getInitials(user.username || user.name)}
-                  </div>
-                )}
+                <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                  {getInitials(user.name)}
+                </div>
               </div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{user.username || user.name}</h3>
+                <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
                 <p className="text-sm text-gray-500">{user.email}</p>
                 <p className="text-sm text-gray-500 capitalize">{user.role}</p>
               </div>
@@ -104,7 +86,7 @@ const UserProfile = () => {
                 <dl className="mt-4 space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Họ tên</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.username || user.name || 'Chưa cập nhật'}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{user.name || 'Chưa cập nhật'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Email</dt>
@@ -115,16 +97,8 @@ const UserProfile = () => {
                     <dd className="mt-1 text-sm text-gray-900">{user.phone || 'Chưa cập nhật'}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Ngày sinh</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.dob ? new Date(user.dob).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Giới tính</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.gender || 'Chưa cập nhật'}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">CCCD</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.cccd || 'Chưa cập nhật'}</dd>
+                    <dt className="text-sm font-medium text-gray-500">Địa chỉ</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{user.address || 'Chưa cập nhật'}</dd>
                   </div>
                 </dl>
               </div>
@@ -141,10 +115,6 @@ const UserProfile = () => {
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Vai trò</dt>
                     <dd className="mt-1 text-sm text-gray-900 capitalize">{user.role}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Premium</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.isPremium ? 'Đã nâng cấp' : 'Chưa nâng cấp'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Ngày tham gia</dt>
@@ -166,19 +136,6 @@ const UserProfile = () => {
         title="Chỉnh sửa thông tin"
       >
         <form onSubmit={handleEditSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
-            <div className="mt-1 flex items-center space-x-4">
-              {avatarPreview ? (
-                <img src={avatarPreview} alt="preview" className="h-16 w-16 rounded-full object-cover border" />
-              ) : (
-                <div className="h-16 w-16 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
-                  {getInitials(editForm.name)}
-                </div>
-              )}
-              <input type="file" accept="image/*" onChange={handleAvatarChange} className="text-sm text-gray-700" />
-            </div>
-          </div>
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               Họ tên
@@ -207,51 +164,18 @@ const UserProfile = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="dob" className="block text-sm font-medium text-gray-700">
-                Ngày sinh
-              </label>
-              <input
-                type="date"
-                id="dob"
-                name="dob"
-                value={editForm.dob}
-                onChange={handleEditChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
-                Giới tính
-              </label>
-              <select
-                id="gender"
-                name="gender"
-                value={editForm.gender}
-                onChange={handleEditChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white"
-              >
-                <option value="">Chưa cập nhật</option>
-                <option value="male">Nam</option>
-                <option value="female">Nữ</option>
-                <option value="other">Khác</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="cccd" className="block text-sm font-medium text-gray-700">
-                CCCD
-              </label>
-              <input
-                type="text"
-                id="cccd"
-                name="cccd"
-                maxLength={12}
-                value={editForm.cccd}
-                onChange={handleEditChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              Địa chỉ
+            </label>
+            <textarea
+              id="address"
+              name="address"
+              rows={3}
+              value={editForm.address}
+              onChange={handleEditChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

@@ -9,11 +9,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/uploads': {
-        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/api': {
-        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       }
     }

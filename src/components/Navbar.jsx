@@ -1,310 +1,240 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   UserCircleIcon, 
   Bars3Icon, 
   XMarkIcon,
   CogIcon,
-  ShieldCheckIcon,
-  ArrowRightOnRectangleIcon,
-  BellIcon,
-  ChatBubbleLeftRightIcon,
-  PlusIcon
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
-import styles from './Navbar.module.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-  const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
-
-  // Handle scroll behavior
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Show navbar when at top
-      if (currentScrollY < 10) {
-        setIsVisible(true);
-        setIsScrolled(false);
-      } else {
-        setIsScrolled(true);
-        
-        // Hide navbar when scrolling down, show when scrolling up
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          setIsVisible(false);
-        } else {
-          setIsVisible(true);
-        }
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
-  // Check if current path is active
-  const isActive = (path) => {
-    if (path === '/tour') {
-      // For tour, also check if we're on tour detail page
-      return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
-    }
-    return location.pathname === path;
-  };
-
   return (
-    <>
-      <nav className={`${styles.navbar} ${!isVisible ? styles.hidden : ''} ${isScrolled ? styles.scrolled : ''}`}>
-        <div className={styles['navbar-container']}>
-          {/* Logo Section */}
-          <div className={styles['logo-section']}>
-            <Link to="/" className={styles['logo-section']}>
-              <img 
-                src="/logo.jpg" 
-                alt="KDBS Logo" 
-                className={styles.logo}
-              />
-              <span className={styles['brand-name']}>{t('brand')}</span>
+    <nav className="bg-white shadow-lg border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">TK</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">Đà Nẵng - Korea Tour</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className={styles['nav-links']}>
+          <div className="hidden md:flex items-center space-x-8">
             <Link 
               to="/" 
-              className={`${styles['nav-link']} ${isActive('/') ? styles.active : ''}`}
+              className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              {t('nav.home')}
+              Trang chủ
             </Link>
             
-            <Link 
-              to="/forum" 
-              className={`${styles['nav-link']} ${isActive('/forum') ? styles.active : ''}`}
-            >
-              {t('nav.forum')}
-            </Link>
-            
-            <Link 
-              to="/tour" 
-              className={`${styles['nav-link']} ${isActive('/tour') ? styles.active : ''}`}
-            >
-              {t('nav.tours')}
-            </Link>
-            
-            <Link 
-              to="/news" 
-              className={`${styles['nav-link']} ${isActive('/news') ? styles.active : ''}`}
-            >
-              {t('nav.news')}
-            </Link>
-            
-            <Link 
-              to="/self-travel" 
-              className={`${styles['nav-link']} ${isActive('/self-travel') ? styles.active : ''}`}
-            >
-              {t('nav.selfTravel')}
-            </Link>
-            
-            <Link 
-              to="/contact" 
-              className={`${styles['nav-link']} ${isActive('/contact') ? styles.active : ''}`}
-            >
-              {t('nav.contact')}
-            </Link>
-          </div>
-
-          {/* Right Section */}
-          <div className={styles['right-section']}>
             {user ? (
               <>
-                {/* Notifications */}
-                <div className={styles['notification-icon']}>
-                  <BellIcon />
-                  <span className={styles['notification-badge']}>1</span>
-                </div>
+                {user.role === 'admin' && (
+                  <Link 
+                    to="/admin" 
+                    className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
                 
-                {/* Messages */}
-                <div className={styles['notification-icon']}>
-                  <ChatBubbleLeftRightIcon />
-                  <span className={styles['notification-badge']}>1</span>
-                </div>
+                {user.role === 'user' && (
+                  <Link 
+                    to="/profile" 
+                    className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Hồ sơ
+                  </Link>
+                )}
                 
-                {/* Balance */}
-                <div className={styles['balance-container']}>
-                  <span className={styles['balance-amount']}>10.000</span>
-                  <button className={styles['balance-add']}>
-                    <PlusIcon />
+                <Link 
+                  to="/payment" 
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Thanh toán
+                </Link>
+                
+                <Link 
+                  to="/business-info" 
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Thông tin doanh nghiệp
+                </Link>
+                
+                {/* User Menu */}
+                <div className="relative group">
+                  <button className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    <UserCircleIcon className="h-5 w-5" />
+                    <span>{user.email}</span>
                   </button>
-                </div>
-                
-                {/* User Profile */}
-                <div className={styles['user-profile']}>
-                  {user.avatar ? (
-                    <img src={user.avatar} alt="avatar" className={styles['user-avatar']} />
-                  ) : (
-                    <div className={styles['user-avatar-placeholder']}>
-                      {(user.name || user.email || 'U').charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className={styles['user-dropdown']}>▼</div>
                   
                   {/* Dropdown Menu */}
-                  <div className={styles['dropdown-menu']}>
-                    <div className={styles['dropdown-header']}>
-                      {user.avatar ? (
-                        <img src={user.avatar} alt="avatar" className={styles['dropdown-avatar']} />
-                      ) : (
-                        <div className={styles['dropdown-avatar-placeholder']}>
-                          {(user.name || user.email || 'U').charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <div className={styles['dropdown-user-info']}>
-                        <h4>{user.name || user.email}</h4>
-                        <p>{user.role}</p>
-                      </div>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                      <p className="font-medium">{user.name || user.email}</p>
+                      <p className="text-gray-500 capitalize">{user.role}</p>
                     </div>
-                    
-                    <Link to="/profile" className={styles['dropdown-item']}>
-                      {t('nav.profileFull')}
-                    </Link>
-                    <Link to="/business-info" className={styles['dropdown-item']}>
-                      {t('nav.businessInfo')}
-                    </Link>
-                    <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
-                      {t('nav.logout')}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Đăng xuất
                     </button>
                   </div>
                 </div>
               </>
             ) : (
-              <>
-                <Link to="/login" className={styles['nav-link']}>
-                  {t('nav.login')}
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Đăng nhập
                 </Link>
-                <Link to="/register" className={styles['nav-link']}>
-                  {t('nav.register')}
+                <Link
+                  to="/staff-login"
+                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+                >
+                  <ShieldCheckIcon className="h-4 w-4 mr-1" />
+                  Staff/Admin
                 </Link>
-              </>
-            )}
-
-            {/* Language Switcher */}
-            <div className={styles['language-switcher']}>
-              <button className={styles['language-button']}>
-                {i18n.language?.toUpperCase() || 'VI'}
-              </button>
-              <div className={styles['language-dropdown']}>
-                <button onClick={() => changeLanguage('vi')} className={styles['language-option']}>
-                  {t('lang.vi')}
-                </button>
-                <button onClick={() => changeLanguage('en')} className={styles['language-option']}>
-                  {t('lang.en')}
-                </button>
-                <button onClick={() => changeLanguage('ko')} className={styles['language-option']}>
-                  {t('lang.ko')}
-                </button>
+                <Link
+                  to="/register"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Đăng ký
+                </Link>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Mobile Menu Button */}
+          {/* Mobile menu button */}
+          <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={styles['mobile-menu-button']}
+              className="text-gray-700 hover:text-indigo-600 p-2 rounded-md"
             >
-              {isMenuOpen ? <XMarkIcon /> : <Bars3Icon />}
+              {isMenuOpen ? (
+                <XMarkIcon className="h-6 w-6" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
-      </nav>
+      </div>
 
       {/* Mobile Navigation */}
-      <div className={`${styles['mobile-menu']} ${isMenuOpen ? styles.open : ''}`}>
-        <div className={styles['mobile-nav-links']}>
-          <Link
-            to="/"
-            className={`${styles['mobile-nav-link']} ${isActive('/') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.home')}
-          </Link>
-          
-          <Link
-            to="/forum"
-            className={`${styles['mobile-nav-link']} ${isActive('/forum') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.forum')}
-          </Link>
-          
-          <Link
-            to="/tour"
-            className={`${styles['mobile-nav-link']} ${isActive('/tour') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.tours')}
-          </Link>
-          
-          <Link
-            to="/news"
-            className={`${styles['mobile-nav-link']} ${isActive('/news') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.news')}
-          </Link>
-          
-          <Link
-            to="/self-travel"
-            className={`${styles['mobile-nav-link']} ${isActive('/self-travel') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.selfTravel')}
-          </Link>
-          
-          <Link
-            to="/contact"
-            className={`${styles['mobile-nav-link']} ${isActive('/contact') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.contact')}
-          </Link>
-          
-          {user && (
-            <div className={styles['mobile-user-section']}>
-              <div className={styles['mobile-user-info']}>
-                <div className={styles['mobile-user-name']}>{user.name || user.email}</div>
-                <div className={styles['mobile-user-role']}>{user.role}</div>
-              </div>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                className={styles['mobile-logout']}
-              >
-                {t('nav.logout')}
-              </button>
-            </div>
-          )}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link
+              to="/"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Trang chủ
+            </Link>
+            
+            {user ? (
+              <>
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+                
+                {user.role === 'user' && (
+                  <Link
+                    to="/profile"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Hồ sơ
+                  </Link>
+                )}
+                
+                <Link
+                  to="/payment"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Thanh toán
+                </Link>
+                
+                <Link
+                  to="/business-info"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Thông tin doanh nghiệp
+                </Link>
+                
+                <div className="border-t border-gray-200 pt-4 pb-3">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-gray-700">{user.name || user.email}</p>
+                    <p className="text-sm text-gray-500 capitalize">{user.role}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  to="/staff-login"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50 flex items-center"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <ShieldCheckIcon className="h-4 w-4 mr-1" />
+                  Staff/Admin
+                </Link>
+                <Link
+                  to="/register"
+                  className="block px-3 py-2 rounded-md text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Đăng ký
+                </Link>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </>
+      )}
+    </nav>
   );
 };
 
