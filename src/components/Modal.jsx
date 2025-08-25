@@ -1,8 +1,10 @@
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+  const { t } = useTranslation();
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-lg',
@@ -48,7 +50,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
                       className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       onClick={onClose}
                     >
-                      <span className="sr-only">Close</span>
+                      <span className="sr-only">{t('common.close')}</span>
                       <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </div>

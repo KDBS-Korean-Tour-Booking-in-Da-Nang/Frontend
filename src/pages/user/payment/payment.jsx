@@ -1,16 +1,18 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { CreditCardIcon, ArrowUpIcon, ArrowDownIcon, ClockIcon } from '@heroicons/react/24/outline';
 import './payment.css';
 
 const Payment = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('deposit');
 
   const tabs = [
-    { id: 'deposit', name: 'Nạp tiền', icon: ArrowDownIcon },
-    { id: 'withdraw', name: 'Rút tiền', icon: ArrowUpIcon },
-    { id: 'history', name: 'Lịch sử', icon: ClockIcon }
+    { id: 'deposit', name: t('payment.tabs.deposit'), icon: ArrowDownIcon },
+    { id: 'withdraw', name: t('payment.tabs.withdraw'), icon: ArrowUpIcon },
+    { id: 'history', name: t('payment.tabs.history'), icon: ClockIcon }
   ];
 
   const renderTabContent = () => {
@@ -30,9 +32,7 @@ const Payment = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Vui lòng đăng nhập để sử dụng dịch vụ thanh toán
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('payment.loginRequired')}</h2>
         </div>
       </div>
     );
@@ -44,12 +44,8 @@ const Payment = () => {
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Quản lý thanh toán
-              </h2>
-              <p className="text-gray-600">
-                Nạp tiền, rút tiền và xem lịch sử giao dịch
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('payment.heading')}</h2>
+              <p className="text-gray-600">{t('payment.subtitle')}</p>
             </div>
 
             {/* Tab Navigation */}
@@ -86,6 +82,7 @@ const Payment = () => {
 
 // Deposit Tab Component
 const DepositTab = () => {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -97,7 +94,7 @@ const DepositTab = () => {
     
     const numValue = parseFloat(value);
     if (numValue < 10000) {
-      setError('Số tiền tối thiểu là 10,000 VNĐ');
+      setError(t('payment.deposit.minError'));
     } else {
       setError('');
     }
@@ -108,7 +105,7 @@ const DepositTab = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (parseFloat(amount) < 10000) {
-      setError('Số tiền tối thiểu là 10,000 VNĐ');
+      setError(t('payment.deposit.minError'));
       return;
     }
 
@@ -116,10 +113,10 @@ const DepositTab = () => {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Nạp tiền thành công!');
+      alert(t('payment.deposit.success'));
       setAmount('');
     } catch (err) {
-      setError('Nạp tiền thất bại. Vui lòng thử lại.');
+      setError(t('payment.deposit.failed'));
     } finally {
       setLoading(false);
     }
@@ -127,13 +124,11 @@ const DepositTab = () => {
 
   return (
     <div className="max-w-md">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Nạp tiền vào tài khoản</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-4">{t('payment.deposit.title')}</h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-            Số tiền (VNĐ)
-          </label>
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">{t('payment.deposit.amountLabel')}</label>
           <input
             type="number"
             id="amount"
@@ -143,18 +138,18 @@ const DepositTab = () => {
             step="1000"
             required
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Nhập số tiền (tối thiểu 10,000 VNĐ)"
+            placeholder={t('payment.deposit.placeholder')}
           />
           {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
         </div>
 
         <div className="bg-gray-50 p-4 rounded-md">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Thông tin thanh toán</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">{t('payment.deposit.paymentInfoTitle')}</h4>
           <div className="space-y-2 text-sm text-gray-600">
-            <p>• Ngân hàng: Vietcombank</p>
-            <p>• Số tài khoản: 1234567890</p>
-            <p>• Chủ tài khoản: CÔNG TY DU LỊCH ĐÀ NẴNG KOREA</p>
-            <p>• Nội dung: NAP_[SỐ ĐIỆN THOẠI]</p>
+            <p>{t('payment.deposit.bank')}</p>
+            <p>{t('payment.deposit.account')}</p>
+            <p>{t('payment.deposit.holder')}</p>
+            <p>{t('payment.deposit.content')}</p>
           </div>
         </div>
 
@@ -163,7 +158,7 @@ const DepositTab = () => {
           disabled={loading || parseFloat(amount) < 10000}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {loading ? 'Đang xử lý...' : 'Nạp tiền'}
+          {loading ? t('payment.deposit.submitting') : t('payment.deposit.submit')}
         </button>
       </form>
     </div>
@@ -172,6 +167,7 @@ const DepositTab = () => {
 
 // Withdraw Tab Component
 const WithdrawTab = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     amount: '',
     bankAccount: '',
@@ -194,10 +190,10 @@ const WithdrawTab = () => {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Yêu cầu rút tiền đã được gửi!');
+      alert(t('payment.withdraw.success'));
       setFormData({ amount: '', bankAccount: '', accountHolder: '' });
     } catch (err) {
-      setError('Rút tiền thất bại. Vui lòng thử lại.');
+      setError(t('payment.withdraw.failed'));
     } finally {
       setLoading(false);
     }
@@ -205,13 +201,11 @@ const WithdrawTab = () => {
 
   return (
     <div className="max-w-md">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Rút tiền từ tài khoản</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-4">{t('payment.withdraw.title')}</h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="withdrawAmount" className="block text-sm font-medium text-gray-700">
-            Số tiền (VNĐ)
-          </label>
+          <label htmlFor="withdrawAmount" className="block text-sm font-medium text-gray-700">{t('payment.withdraw.amountLabel')}</label>
           <input
             type="number"
             id="withdrawAmount"
@@ -221,14 +215,12 @@ const WithdrawTab = () => {
             min="50000"
             required
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Nhập số tiền (tối thiểu 50,000 VNĐ)"
+            placeholder={t('payment.withdraw.placeholderAmount')}
           />
         </div>
 
         <div>
-          <label htmlFor="bankAccount" className="block text-sm font-medium text-gray-700">
-            Số tài khoản ngân hàng
-          </label>
+          <label htmlFor="bankAccount" className="block text-sm font-medium text-gray-700">{t('payment.withdraw.accountNumber')}</label>
           <input
             type="text"
             id="bankAccount"
@@ -242,9 +234,7 @@ const WithdrawTab = () => {
         </div>
 
         <div>
-          <label htmlFor="accountHolder" className="block text-sm font-medium text-gray-700">
-            Tên chủ tài khoản
-          </label>
+          <label htmlFor="accountHolder" className="block text-sm font-medium text-gray-700">{t('payment.withdraw.accountHolder')}</label>
           <input
             type="text"
             id="accountHolder"
@@ -264,7 +254,7 @@ const WithdrawTab = () => {
           disabled={loading}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
         >
-          {loading ? 'Đang xử lý...' : 'Rút tiền'}
+          {loading ? t('payment.withdraw.submitting') : t('payment.withdraw.submit')}
         </button>
       </form>
     </div>
@@ -273,6 +263,7 @@ const WithdrawTab = () => {
 
 // History Tab Component
 const HistoryTab = () => {
+  const { t } = useTranslation();
   const mockHistory = [
     {
       id: 1,
@@ -305,47 +296,43 @@ const HistoryTab = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'completed': return 'Thành công';
-      case 'pending': return 'Đang xử lý';
-      case 'failed': return 'Thất bại';
-      default: return 'Không xác định';
+      case 'completed': return t('payment.history.status.completed');
+      case 'pending': return t('payment.history.status.pending');
+      case 'failed': return t('payment.history.status.failed');
+      default: return t('payment.history.status.unknown');
     }
   };
 
   return (
     <div className="w-full">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Lịch sử giao dịch</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-4">{t('payment.history.title')}</h3>
       
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('payment.history.headers.type')}</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Loại
+                {t('payment.history.headers.amount')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Số tiền
+                {t('payment.history.headers.status')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Trạng thái
+                {t('payment.history.headers.bank')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ngân hàng
+                {t('payment.history.headers.paymentId')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Payment ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ngày
+                {t('payment.history.headers.date')}
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {mockHistory.map((transaction) => (
               <tr key={transaction.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {transaction.type === 'deposit' ? 'Nạp tiền' : 'Rút tiền'}
-                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.type === 'deposit' ? t('payment.history.type.deposit') : t('payment.history.type.withdraw')}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {transaction.amount.toLocaleString('vi-VN')} VNĐ
                 </td>
