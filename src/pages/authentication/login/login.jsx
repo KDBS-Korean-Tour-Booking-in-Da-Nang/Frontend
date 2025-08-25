@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { UserCircleIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import './login.css';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,8 +64,7 @@ const Login = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0) && data.result) {
-        // Store token in localStorage
-        localStorage.setItem('token', data.result.token);
+        const token = data.result.token;
         
         // Use user data from backend response
         if (data.result.user) {
@@ -76,7 +78,7 @@ const Login = () => {
             balance: data.result.user.balance
           };
 
-          login(user);
+          login(user, token, rememberMe);
           navigate('/', { 
             state: { 
               message: 'Đăng nhập thành công!', 
@@ -91,14 +93,14 @@ const Login = () => {
             role: 'user',
             name: email.split('@')[0]
           };
-          login(user);
+          login(user, token, rememberMe);
           navigate('/');
         }
       } else {
         setError(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError('Đăng nhập thất bại. Vui lòng thử lại.');
+      setError(t('auth.login.error'));
     } finally {
       setLoading(false);
     }
@@ -111,12 +113,14 @@ const Login = () => {
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
         // Redirect to Google OAuth URL
+        // Persist remember-me preference for the callback handler
+        localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         window.location.href = data.result;
       } else {
         setError('Không thể kết nối với Google. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError('Không thể kết nối với Google. Vui lòng thử lại.');
+      setError(t('auth.login.oauthErrorGoogle'));
     }
   };
 
@@ -127,12 +131,14 @@ const Login = () => {
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
         // Redirect to Naver OAuth URL
+        // Persist remember-me preference for the callback handler
+        localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         window.location.href = data.result;
       } else {
         setError('Không thể kết nối với Naver. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError('Không thể kết nối với Naver. Vui lòng thử lại.');
+      setError(t('auth.login.oauthErrorNaver'));
     }
   };
 
@@ -145,10 +151,10 @@ const Login = () => {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Đăng nhập
+          {t('auth.login.title')}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Chào mừng bạn quay trở lại
+          {t('auth.login.subtitle')}
         </p>
       </div>
 
@@ -157,7 +163,7 @@ const Login = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
+                {t('auth.common.email')}
               </label>
               <div className="mt-1">
                 <input
@@ -176,7 +182,7 @@ const Login = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Mật khẩu
+                {t('auth.common.password')}
               </label>
               <div className="mt-1">
                 <input
@@ -191,6 +197,20 @@ const Login = () => {
                   placeholder="••••••••"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="rememberMe"
+                name="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                {t('auth.common.rememberMe')}
+              </label>
             </div>
 
             {successMessage && (
@@ -214,10 +234,10 @@ const Login = () => {
                 {loading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Đang đăng nhập...
+                    {t('auth.login.submitting')}
                   </div>
                 ) : (
-                  'Đăng nhập'
+                  t('auth.login.submit')
                 )}
               </button>
             </div>
@@ -229,7 +249,7 @@ const Login = () => {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Hoặc</span>
+                <span className="px-2 bg-white text-gray-500">{t('auth.common.or')}</span>
               </div>
             </div>
 
@@ -244,7 +264,7 @@ const Login = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Đăng nhập bằng Google
+                {t('auth.login.loginWithGoogle')}
               </button>
 
               <button
@@ -254,7 +274,7 @@ const Login = () => {
                 <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                   <path fill="#03C75A" d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
                 </svg>
-                Đăng nhập bằng Naver
+                {t('auth.login.loginWithNaver')}
               </button>
             </div>
           </div>
@@ -264,19 +284,19 @@ const Login = () => {
               to="/forgot-password"
               className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
             >
-              Quên mật khẩu?
+              {t('auth.login.forgotPassword')}
             </Link>
           </div>
 
           <div className="mt-4 text-center">
             <span className="text-sm text-gray-600">
-              Chưa có tài khoản?{' '}
+              {t('auth.login.noAccount')}{' '}
             </span>
             <Link
               to="/register"
               className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
             >
-              Đăng ký ngay
+              {t('auth.login.registerNow')}
             </Link>
           </div>
 
@@ -286,7 +306,7 @@ const Login = () => {
               className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
             >
               <ShieldCheckIcon className="h-4 w-4 mr-2" />
-              Đăng nhập Staff/Admin
+              {t('auth.login.staffAdminLogin')}
             </Link>
           </div>
         </div>
