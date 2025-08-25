@@ -1,0 +1,401 @@
+{
+	"brand": "Đà Nẵng - Korea Tour",
+	"nav": {
+		"home": "Trang chủ",
+		"admin": "Admin Dashboard",
+		"profile": "Hồ sơ",
+		"payment": "Thanh toán",
+		"businessInfo": "Thông tin doanh nghiệp",
+		"login": "Đăng nhập",
+		"logout": "Đăng xuất",
+		"register": "Đăng ký",
+		"staffAdmin": "Staff/Admin",
+		"profileFull": "Hồ sơ cá nhân"
+	},
+	"lang": {
+		"vi": "Tiếng Việt",
+		"en": "English",
+		"ko": "한국어"
+	},
+	"auth": {
+		"common": {
+			"email": "Email",
+			"password": "Mật khẩu",
+			"rememberMe": "Ghi nhớ đăng nhập",
+			"or": "Hoặc",
+			"otp": "Mã OTP",
+			"otpPlaceholder": "000000",
+			"notReceivedCode": "Không nhận được mã?",
+			"resend": "Gửi lại",
+			"resendIn": "Gửi lại sau {{seconds}}s",
+			"backToLogin": "Quay lại đăng nhập",
+			"backToRegister": "Quay lại đăng ký",
+			"backToForgot": "Quay lại quên mật khẩu",
+			"send": "Gửi",
+			"sending": "Đang gửi..."
+		},
+		"login": {
+			"title": "Đăng nhập",
+			"subtitle": "Chào mừng bạn quay trở lại",
+			"submit": "Đăng nhập",
+			"submitting": "Đang đăng nhập...",
+			"loginWithGoogle": "Đăng nhập bằng Google",
+			"loginWithNaver": "Đăng nhập bằng Naver",
+			"forgotPassword": "Quên mật khẩu?",
+			"noAccount": "Chưa có tài khoản?",
+			"registerNow": "Đăng ký ngay",
+			"staffAdminLogin": "Đăng nhập Staff/Admin",
+			"error": "Đăng nhập thất bại. Vui lòng thử lại.",
+			"oauthErrorGoogle": "Không thể kết nối với Google. Vui lòng thử lại.",
+			"oauthErrorNaver": "Không thể kết nối với Naver. Vui lòng thử lại.",
+			"successMessage": "Đăng nhập thành công!"
+		},
+		"register": {
+			"title": "Đăng ký tài khoản",
+			"username": "Tên người dùng",
+			"usernamePlaceholder": "Nhập tên người dùng",
+			"password": "Mật khẩu",
+			"confirmPassword": "Xác nhận mật khẩu",
+			"roleSelect": "Chọn vai trò",
+			"roleUserTitle": "Người dùng",
+			"roleUserDesc": "Đăng ký tour du lịch",
+			"roleBusinessTitle": "Doanh nghiệp",
+			"roleBusinessDesc": "Cung cấp dịch vụ",
+			"submit": "Đăng ký",
+			"submitting": "Đang đăng ký...",
+			"haveAccount": "Đã có tài khoản?",
+			"login": "Đăng nhập",
+			"errors": {
+				"passwordMismatch": "Mật khẩu xác nhận không khớp",
+				"passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+				"usernameRequired": "Tên người dùng không được để trống",
+				"registerFailed": "Đăng ký thất bại. Vui lòng thử lại."
+			}
+		},
+		"forgot": {
+			"title": "Quên mật khẩu",
+			"subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
+			"submit": "Gửi email",
+			"sending": "Đang gửi...",
+			"success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+			"error": "Gửi OTP thất bại. Vui lòng thử lại."
+		},
+		"verify": {
+			"title": "Xác thực Email",
+			"subtitle": "Chúng tôi đã gửi mã xác thực đến {{email}}",
+			"label": "Mã xác thực (OTP)",
+			"helper": "Nhập mã 6 chữ số được gửi đến email của bạn",
+			"submit": "Xác thực",
+			"submitting": "Đang xác thực...",
+			"resend": "Gửi lại",
+			"resending": "Đang gửi...",
+			"resendIn": "Gửi lại sau {{seconds}}s",
+			"backToRegister": "Quay lại đăng ký",
+			"successBanner": "✅ Xác thực email thành công! Đang chuyển hướng...",
+			"error": "Mã OTP không đúng. Vui lòng thử lại.",
+			"failed": "Xác thực thất bại. Vui lòng thử lại."
+		},
+		"reset": {
+			"title": "Đặt lại mật khẩu",
+			"subtitle": "Nhập mật khẩu mới cho tài khoản {{email}}",
+			"newPassword": "Mật khẩu mới",
+			"confirmNewPassword": "Xác nhận mật khẩu mới",
+			"submit": "Cập nhật mật khẩu",
+			"submitting": "Đang cập nhật...",
+			"preconditionTitle": "Bạn cần xác thực OTP trước khi đặt lại mật khẩu",
+			"backToForgot": "Quay lại quên mật khẩu",
+			"successTitle": "Đặt lại mật khẩu thành công",
+			"successSubtitle": "Mật khẩu của bạn đã được cập nhật thành công.",
+			"login": "Đăng nhập",
+			"errors": {
+				"passwordMismatch": "Mật khẩu xác nhận không khớp",
+				"passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+				"resetFailed": "Đặt lại mật khẩu thất bại. Vui lòng thử lại."
+			}
+		}
+	},
+	"home": {
+		"hero": {
+			"titleLead": "Tour du lịch",
+			"titleEmph": "Đà Nẵng - Korea",
+			"desc": "Khám phá vẻ đẹp của Đà Nẵng và trải nghiệm văn hóa Hàn Quốc với những tour du lịch chất lượng cao.",
+			"btnPayment": "Thanh toán",
+			"btnProfile": "Hồ sơ",
+			"btnRegister": "Đăng ký",
+			"btnLogin": "Đăng nhập"
+		},
+		"welcome": {
+			"heading": "Chào mừng đến với",
+			"subheading": "Tour du lịch Đà Nẵng - Korea"
+		},
+		"features": {
+			"sectionTitle": "Tính năng",
+			"headline": "Dịch vụ tốt nhất cho bạn",
+			"blurb": "Hệ thống quản lý tour du lịch hiện đại với nhiều tính năng hữu ích",
+			"securityTitle": "Bảo mật cao",
+			"securityDesc": "Hệ thống bảo mật đa lớp, đảm bảo thông tin cá nhân và thanh toán an toàn.",
+			"speedTitle": "Nhanh chóng",
+			"speedDesc": "Giao diện tối ưu, thao tác nhanh chóng, tiết kiệm thời gian.",
+			"reliableTitle": "Đáng tin cậy",
+			"reliableDesc": "Hệ thống được phát triển với công nghệ hiện đại, đáng tin cậy.",
+			"friendlyTitle": "Thân thiện",
+			"friendlyDesc": "Giao diện thân thiện, dễ sử dụng cho mọi đối tượng người dùng."
+		},
+		"cta": {
+			"title1": "Sẵn sàng bắt đầu?",
+			"title2": "Đăng ký ngay hôm nay.",
+			"desc": "Tham gia cùng chúng tôi để khám phá những điểm đến tuyệt vời.",
+			"btn": "Đăng ký miễn phí"
+		}
+	},
+	"pending": {
+		"title": "Đang chờ duyệt",
+		"submitted": "Yêu cầu đăng ký doanh nghiệp của bạn đã được gửi thành công!",
+		"infoTitle": "Thông tin đăng ký",
+		"email": "Email",
+		"status": "Trạng thái",
+		"statusPending": "Chờ duyệt",
+		"processTitle": "Quy trình duyệt",
+		"step1": "Đã gửi thông tin doanh nghiệp",
+		"step2": "Admin đang xem xét và duyệt",
+		"step3": "Tài khoản được kích hoạt",
+		"note1": "Thời gian duyệt thường mất từ 1-3 ngày làm việc.",
+		"note2": "Bạn sẽ nhận được email thông báo khi tài khoản được duyệt.",
+		"btnHome": "Về trang chủ",
+		"btnLogout": "Đăng xuất"
+	},
+	"business": {
+		"loading": "Đang tải...",
+		"notFoundTitle": "Không tìm thấy thông tin đăng ký",
+		"backToRegister": "Quay lại đăng ký",
+		"submittedTitle": "Thông tin doanh nghiệp",
+		"submittedSubtitle": "Bạn đã upload hồ sơ. Trạng thái: Đang chờ duyệt.",
+		"submittedViewPending": "Xem trang chờ duyệt",
+		"submittedBackHome": "Về trang chủ",
+		"heading": "Thông tin doanh nghiệp",
+		"subtitle": "Vui lòng upload các tài liệu cần thiết để admin có thể duyệt tài khoản doanh nghiệp của bạn.",
+		"form": {
+			"businessLicense": "Giấy phép kinh doanh (PDF) *",
+			"idFront": "Mặt trước CCCD (JPG/PNG) *",
+			"idBack": "Mặt sau CCCD (JPG/PNG) *"
+		},
+		"selectedPrefix": "✅ Đã chọn:",
+		"important": {
+			"title": "Lưu ý quan trọng:",
+			"i1": "• Giấy phép kinh doanh phải là file PDF",
+			"i2": "• CCCD phải rõ ràng, không bị mờ hoặc che khuất",
+			"i3": "• CCCD phải là ảnh thật, không phải ảnh màn hình hoặc scan",
+			"i4": "• Đảm bảo ánh sáng tốt khi chụp CCCD",
+			"i5": "• Mỗi file không được vượt quá 25MB",
+			"i6": "• Thời gian duyệt thường mất từ 1-3 ngày làm việc"
+		},
+		"back": "Quay lại",
+		"submit": "Xác nhận và gửi",
+		"submitting": "Đang gửi...",
+		"success": "Thông tin doanh nghiệp đã được gửi thành công!"
+	},
+	"admin": {
+		"accessDenied": "Bạn không có quyền truy cập trang này",
+		"heading": "Admin Dashboard",
+		"subtitle": "Quản lý hệ thống Tour du lịch Đà Nẵng - Korea",
+		"tabs": {
+			"dashboard": "Dashboard",
+			"users": "Tất cả User",
+			"companies": "Duyệt Doanh nghiệp",
+			"staff": "Quản lý Staff"
+		},
+		"stats": {
+			"totalUsers": "Tổng số User",
+			"revenue": "Doanh thu",
+			"pendingCompanies": "Chờ duyệt",
+			"staff": "Staff"
+		},
+		"charts": {
+			"traffic": "Biểu đồ truy cập",
+			"revenue": "Biểu đồ doanh thu",
+			"revenueByMonth": "Biểu đồ doanh thu theo tháng"
+		},
+		"users": {
+			"title": "Danh sách tất cả User",
+			"headers": {
+				"user": "User",
+				"role": "Vai trò",
+				"status": "Trạng thái",
+				"createdAt": "Ngày tạo",
+				"actions": "Hành động"
+			},
+			"status": {
+				"active": "Hoạt động",
+				"inactive": "Không hoạt động"
+			},
+			"detailTitle": "Chi tiết User",
+			"labels": {
+				"fullName": "Họ tên",
+				"email": "Email",
+				"role": "Vai trò",
+				"status": "Trạng thái"
+			},
+			"changeStatus": "Thay đổi trạng thái",
+			"activate": "Kích hoạt",
+			"deactivate": "Vô hiệu hóa"
+		},
+		"companies": {
+			"title": "Danh sách doanh nghiệp chờ duyệt",
+			"headers": {
+				"companyName": "Tên công ty",
+				"email": "Email",
+				"phone": "Số điện thoại",
+				"taxCode": "Mã số thuế",
+				"actions": "Hành động"
+			},
+			"detailTitle": "Chi tiết doanh nghiệp",
+			"labels": {
+				"companyName": "Tên công ty",
+				"email": "Email",
+				"phone": "Số điện thoại",
+				"taxCode": "Mã số thuế",
+				"address": "Địa chỉ"
+			},
+			"approve": "Duyệt",
+			"reject": "Từ chối",
+			"confirmApprove": "Bạn có chắc chắn muốn duyệt doanh nghiệp này?",
+			"confirmReject": "Bạn có chắc chắn muốn từ chối doanh nghiệp này?"
+		},
+		"staff": {
+			"title": "Quản lý Staff",
+			"add": "Thêm Staff",
+			"editTitle": "Chỉnh sửa Staff",
+			"addTitle": "Thêm Staff",
+			"headers": {
+				"name": "Tên",
+				"email": "Email",
+				"role": "Vai trò",
+				"actions": "Hành động"
+			},
+			"labels": {
+				"name": "Tên",
+				"email": "Email",
+				"role": "Vai trò"
+			},
+			"cancel": "Hủy",
+			"save": "Lưu",
+			"update": "Cập nhật"
+		}
+	},
+	"profile": {
+		"loginRequired": "Vui lòng đăng nhập để xem hồ sơ",
+		"heading": "Hồ sơ cá nhân",
+		"edit": "Chỉnh sửa",
+		"basicInfo": "Thông tin cơ bản",
+		"accountInfo": "Thông tin tài khoản",
+		"labels": {
+			"fullName": "Họ tên",
+			"email": "Email",
+			"phone": "Số điện thoại",
+			"dob": "Ngày sinh",
+			"gender": "Giới tính",
+			"cccd": "CCCD",
+			"id": "ID",
+			"role": "Vai trò",
+			"premium": "Premium",
+			"joinedAt": "Ngày tham gia"
+		},
+		"notUpdated": "Chưa cập nhật",
+		"premiumYes": "Đã nâng cấp",
+		"premiumNo": "Chưa nâng cấp",
+		"editModalTitle": "Chỉnh sửa thông tin",
+		"avatar": "Ảnh đại diện",
+		"genderOptions": {
+			"unknown": "Chưa cập nhật",
+			"male": "Nam",
+			"female": "Nữ",
+			"other": "Khác"
+		},
+		"cancel": "Hủy",
+		"saveChanges": "Lưu thay đổi"
+	},
+	"payment": {
+		"loginRequired": "Vui lòng đăng nhập để sử dụng dịch vụ thanh toán",
+		"heading": "Quản lý thanh toán",
+		"subtitle": "Nạp tiền, rút tiền và xem lịch sử giao dịch",
+		"tabs": {
+			"deposit": "Nạp tiền",
+			"withdraw": "Rút tiền",
+			"history": "Lịch sử"
+		},
+		"deposit": {
+			"title": "Nạp tiền vào tài khoản",
+			"amountLabel": "Số tiền (VNĐ)",
+			"placeholder": "Nhập số tiền (tối thiểu 10,000 VNĐ)",
+			"minError": "Số tiền tối thiểu là 10,000 VNĐ",
+			"paymentInfoTitle": "Thông tin thanh toán",
+			"bank": "• Ngân hàng: Vietcombank",
+			"account": "• Số tài khoản: 1234567890",
+			"holder": "• Chủ tài khoản: CÔNG TY DU LỊCH ĐÀ NẴNG KOREA",
+			"content": "• Nội dung: NAP_[SỐ ĐIỆN THOẠI]",
+			"submit": "Nạp tiền",
+			"submitting": "Đang xử lý...",
+			"success": "Nạp tiền thành công!",
+			"failed": "Nạp tiền thất bại. Vui lòng thử lại."
+		},
+		"withdraw": {
+			"title": "Rút tiền từ tài khoản",
+			"amountLabel": "Số tiền (VNĐ)",
+			"accountNumber": "Số tài khoản ngân hàng",
+			"accountHolder": "Tên chủ tài khoản",
+			"placeholderAmount": "Nhập số tiền (tối thiểu 50,000 VNĐ)",
+			"submit": "Rút tiền",
+			"submitting": "Đang xử lý...",
+			"success": "Yêu cầu rút tiền đã được gửi!",
+			"failed": "Rút tiền thất bại. Vui lòng thử lại."
+		},
+		"history": {
+			"title": "Lịch sử giao dịch",
+			"headers": {
+				"type": "Loại",
+				"amount": "Số tiền",
+				"status": "Trạng thái",
+				"bank": "Ngân hàng",
+				"paymentId": "Payment ID",
+				"date": "Ngày"
+			},
+			"type": {
+				"deposit": "Nạp tiền",
+				"withdraw": "Rút tiền"
+			},
+			"status": {
+				"completed": "Thành công",
+				"pending": "Đang xử lý",
+				"failed": "Thất bại",
+				"unknown": "Không xác định"
+			}
+		}
+	},
+	"oauth": {
+		"successLogin": "Đăng nhập thành công!",
+		"missingInfo": "Không nhận được thông tin xác thực đầy đủ",
+		"failed": "Xác thực OAuth thất bại: {{message}}"
+	},
+	"common": {
+		"close": "Đóng"
+	},
+	"staffLogin": {
+		"title": "Đăng nhập Staff/Admin",
+		"subtitle": "Truy cập hệ thống quản lý",
+		"email": "Email",
+		"password": "Mật khẩu",
+		"submit": "Đăng nhập",
+		"submitting": "Đang đăng nhập...",
+		"or": "Hoặc",
+		"loginUserBusiness": "Đăng nhập cho User/Business",
+		"error": "Đăng nhập thất bại. Vui lòng thử lại.",
+		"demo": {
+			"title": "Thông tin demo:",
+			"admin": "Admin:",
+			"staff": "Staff:",
+			"password": "Mật khẩu: (bất kỳ)"
+		}
+	}
+}
+
+

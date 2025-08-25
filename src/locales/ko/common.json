@@ -1,0 +1,401 @@
+{
+	"brand": "다낭 - 코리아 투어",
+	"nav": {
+		"home": "홈",
+		"admin": "관리자 대시보드",
+		"profile": "프로필",
+		"payment": "결제",
+		"businessInfo": "사업자 정보",
+		"login": "로그인",
+		"logout": "로그아웃",
+		"register": "회원가입",
+		"staffAdmin": "스태프/관리자",
+		"profileFull": "개인 프로필"
+	},
+	"lang": {
+		"vi": "베트남어",
+		"en": "영어",
+		"ko": "한국어"
+	},
+	"auth": {
+		"common": {
+			"email": "이메일",
+			"password": "비밀번호",
+			"rememberMe": "로그인 상태 유지",
+			"or": "또는",
+			"otp": "OTP 코드",
+			"otpPlaceholder": "000000",
+			"notReceivedCode": "코드를 받지 못하셨나요?",
+			"resend": "재전송",
+			"resendIn": "{{seconds}}초 후 재전송",
+			"backToLogin": "로그인으로 돌아가기",
+			"backToRegister": "회원가입으로 돌아가기",
+			"backToForgot": "비밀번호 찾기로 돌아가기",
+			"send": "보내기",
+			"sending": "전송 중..."
+		},
+		"login": {
+			"title": "로그인",
+			"subtitle": "다시 오신 것을 환영합니다",
+			"submit": "로그인",
+			"submitting": "로그인 중...",
+			"loginWithGoogle": "Google로 로그인",
+			"loginWithNaver": "Naver로 로그인",
+			"forgotPassword": "비밀번호를 잊으셨나요?",
+			"noAccount": "계정이 없으신가요?",
+			"registerNow": "지금 가입하기",
+			"staffAdminLogin": "스태프/관리자 로그인",
+			"error": "로그인에 실패했습니다. 다시 시도해주세요.",
+			"oauthErrorGoogle": "Google 연결 실패. 다시 시도해주세요.",
+			"oauthErrorNaver": "Naver 연결 실패. 다시 시도해주세요.",
+			"successMessage": "성공적으로 로그인되었습니다!"
+		},
+		"register": {
+			"title": "계정 만들기",
+			"username": "사용자 이름",
+			"usernamePlaceholder": "사용자 이름 입력",
+			"password": "비밀번호",
+			"confirmPassword": "비밀번호 확인",
+			"roleSelect": "역할 선택",
+			"roleUserTitle": "사용자",
+			"roleUserDesc": "투어 등록",
+			"roleBusinessTitle": "사업자",
+			"roleBusinessDesc": "서비스 제공",
+			"submit": "가입하기",
+			"submitting": "가입 중...",
+			"haveAccount": "이미 계정이 있으신가요?",
+			"login": "로그인",
+			"errors": {
+				"passwordMismatch": "비밀번호가 일치하지 않습니다",
+				"passwordMinLength": "비밀번호는 최소 6자 이상이어야 합니다",
+				"usernameRequired": "사용자 이름은 필수입니다",
+				"registerFailed": "가입에 실패했습니다. 다시 시도해주세요."
+			}
+		},
+		"forgot": {
+			"title": "비밀번호 찾기",
+			"subtitle": "비밀번호 재설정용 OTP를 받기 위해 이메일을 입력하세요",
+			"submit": "이메일 보내기",
+			"sending": "전송 중...",
+			"success": "OTP가 이메일로 전송되었습니다.",
+			"error": "OTP 전송 실패. 다시 시도해주세요."
+		},
+		"verify": {
+			"title": "이메일 인증",
+			"subtitle": "인증 코드를 {{email}}로 보냈습니다",
+			"label": "인증 코드 (OTP)",
+			"helper": "이메일로 전송된 6자리 코드를 입력하세요",
+			"submit": "인증",
+			"submitting": "인증 중...",
+			"resend": "재전송",
+			"resending": "재전송 중...",
+			"resendIn": "{{seconds}}초 후 재전송",
+			"backToRegister": "회원가입으로 돌아가기",
+			"successBanner": "✅ 이메일 인증 완료! 이동 중...",
+			"error": "OTP가 올바르지 않습니다. 다시 시도하세요.",
+			"failed": "인증 실패. 다시 시도하세요."
+		},
+		"reset": {
+			"title": "비밀번호 재설정",
+			"subtitle": "{{email}} 계정의 새 비밀번호를 입력하세요",
+			"newPassword": "새 비밀번호",
+			"confirmNewPassword": "새 비밀번호 확인",
+			"submit": "비밀번호 업데이트",
+			"submitting": "업데이트 중...",
+			"preconditionTitle": "비밀번호 재설정 전에 OTP 인증이 필요합니다",
+			"backToForgot": "비밀번호 찾기로 돌아가기",
+			"successTitle": "비밀번호가 업데이트되었습니다",
+			"successSubtitle": "비밀번호가 성공적으로 업데이트되었습니다.",
+			"login": "로그인",
+			"errors": {
+				"passwordMismatch": "비밀번호가 일치하지 않습니다",
+				"passwordMinLength": "비밀번호는 최소 8자 이상이어야 합니다",
+				"resetFailed": "재설정 실패. 다시 시도하세요."
+			}
+		}
+	},
+	"home": {
+		"hero": {
+			"titleLead": "투어",
+			"titleEmph": "다낭 - 코리아",
+			"desc": "다낭의 아름다움과 한국 문화를 고품질 투어로 경험하세요.",
+			"btnPayment": "결제",
+			"btnProfile": "프로필",
+			"btnRegister": "회원가입",
+			"btnLogin": "로그인"
+		},
+		"welcome": {
+			"heading": "환영합니다",
+			"subheading": "다낭 - 코리아 투어"
+		},
+		"features": {
+			"sectionTitle": "기능",
+			"headline": "최고의 서비스",
+			"blurb": "유용한 기능을 갖춘 현대적인 투어 관리 시스템",
+			"securityTitle": "보안",
+			"securityDesc": "개인 정보와 결제 정보를 안전하게 보호하는 다중 보안.",
+			"speedTitle": "신속",
+			"speedDesc": "최적화된 UI로 빠른 작업과 시간 절약.",
+			"reliableTitle": "신뢰성",
+			"reliableDesc": "최신 기술로 구축된 신뢰할 수 있는 시스템.",
+			"friendlyTitle": "친화적",
+			"friendlyDesc": "모두가 쉽게 사용할 수 있는 사용자 친화적 인터페이스."
+		},
+		"cta": {
+			"title1": "시작할 준비되셨나요?",
+			"title2": "지금 가입하세요.",
+			"desc": "놀라운 목적지를 함께 탐험해요.",
+			"btn": "무료로 가입"
+		}
+	},
+	"pending": {
+		"title": "승인 대기중",
+		"submitted": "사업자 등록 요청이 성공적으로 전송되었습니다!",
+		"infoTitle": "등록 정보",
+		"email": "이메일",
+		"status": "상태",
+		"statusPending": "대기중",
+		"processTitle": "승인 절차",
+		"step1": "사업자 정보 제출 완료",
+		"step2": "관리자 검토중",
+		"step3": "계정 활성화",
+		"note1": "승인은 보통 영업일 기준 1-3일 소요됩니다.",
+		"note2": "승인 시 이메일로 안내됩니다.",
+		"btnHome": "홈으로",
+		"btnLogout": "로그아웃"
+	},
+	"business": {
+		"loading": "로딩 중...",
+		"notFoundTitle": "등록 정보를 찾을 수 없습니다",
+		"backToRegister": "회원가입으로 돌아가기",
+		"submittedTitle": "사업자 정보",
+		"submittedSubtitle": "서류가 업로드되었습니다. 상태: 대기중.",
+		"submittedViewPending": "대기 페이지 보기",
+		"submittedBackHome": "홈으로",
+		"heading": "사업자 정보",
+		"subtitle": "사업자 계정 승인을 위해 필요한 서류를 업로드하세요.",
+		"form": {
+			"businessLicense": "사업자 등록증 (PDF) *",
+			"idFront": "신분증 앞면 (JPG/PNG) *",
+			"idBack": "신분증 뒷면 (JPG/PNG) *"
+		},
+		"selectedPrefix": "✅ 선택됨:",
+		"important": {
+			"title": "중요 안내:",
+			"i1": "• 사업자 등록증은 PDF여야 합니다",
+			"i2": "• 신분증은 선명해야 하며 가려지지 않아야 합니다",
+			"i3": "• 스크린샷/스캔이 아닌 실제 사진이어야 합니다",
+			"i4": "• 촬영 시 충분한 조명을 확보하세요",
+			"i5": "• 각 파일은 25MB를 초과할 수 없습니다",
+			"i6": "• 승인에는 보통 1-3 영업일이 소요됩니다"
+		},
+		"back": "뒤로",
+		"submit": "확인 및 제출",
+		"submitting": "제출 중...",
+		"success": "사업자 정보가 성공적으로 제출되었습니다!"
+	},
+	"admin": {
+		"accessDenied": "이 페이지에 접근 권한이 없습니다",
+		"heading": "관리자 대시보드",
+		"subtitle": "다낭 - 코리아 투어 시스템 관리",
+		"tabs": {
+			"dashboard": "대시보드",
+			"users": "모든 사용자",
+			"companies": "사업자 승인",
+			"staff": "스태프 관리"
+		},
+		"stats": {
+			"totalUsers": "총 사용자",
+			"revenue": "매출",
+			"pendingCompanies": "대기중",
+			"staff": "스태프"
+		},
+		"charts": {
+			"traffic": "트래픽 차트",
+			"revenue": "매출 차트",
+			"revenueByMonth": "월별 매출 차트"
+		},
+		"users": {
+			"title": "전체 사용자 목록",
+			"headers": {
+				"user": "사용자",
+				"role": "역할",
+				"status": "상태",
+				"createdAt": "생성일",
+				"actions": "작업"
+			},
+			"status": {
+				"active": "활동중",
+				"inactive": "비활동"
+			},
+			"detailTitle": "사용자 상세",
+			"labels": {
+				"fullName": "이름",
+				"email": "이메일",
+				"role": "역할",
+				"status": "상태"
+			},
+			"changeStatus": "상태 변경",
+			"activate": "활성화",
+			"deactivate": "비활성화"
+		},
+		"companies": {
+			"title": "승인 대기 기업",
+			"headers": {
+				"companyName": "회사명",
+				"email": "이메일",
+				"phone": "전화번호",
+				"taxCode": "세금 코드",
+				"actions": "작업"
+			},
+			"detailTitle": "기업 상세",
+			"labels": {
+				"companyName": "회사명",
+				"email": "이메일",
+				"phone": "전화번호",
+				"taxCode": "세금 코드",
+				"address": "주소"
+			},
+			"approve": "승인",
+			"reject": "거절",
+			"confirmApprove": "이 회사를 승인하시겠습니까?",
+			"confirmReject": "이 회사를 거절하시겠습니까?"
+		},
+		"staff": {
+			"title": "스태프 관리",
+			"add": "스태프 추가",
+			"editTitle": "스태프 수정",
+			"addTitle": "스태프 추가",
+			"headers": {
+				"name": "이름",
+				"email": "이메일",
+				"role": "역할",
+				"actions": "작업"
+			},
+			"labels": {
+				"name": "이름",
+				"email": "이메일",
+				"role": "역할"
+			},
+			"cancel": "취소",
+			"save": "저장",
+			"update": "업데이트"
+		}
+	},
+	"profile": {
+		"loginRequired": "프로필을 보려면 로그인하세요",
+		"heading": "개인 프로필",
+		"edit": "수정",
+		"basicInfo": "기본 정보",
+		"accountInfo": "계정 정보",
+		"labels": {
+			"fullName": "이름",
+			"email": "이메일",
+			"phone": "전화번호",
+			"dob": "생년월일",
+			"gender": "성별",
+			"cccd": "신분증 번호",
+			"id": "ID",
+			"role": "역할",
+			"premium": "프리미엄",
+			"joinedAt": "가입일"
+		},
+		"notUpdated": "미입력",
+		"premiumYes": "업그레이드됨",
+		"premiumNo": "업그레이드 안됨",
+		"editModalTitle": "정보 수정",
+		"avatar": "아바타",
+		"genderOptions": {
+			"unknown": "미설정",
+			"male": "남성",
+			"female": "여성",
+			"other": "기타"
+		},
+		"cancel": "취소",
+		"saveChanges": "변경 사항 저장"
+	},
+	"payment": {
+		"loginRequired": "결제 서비스를 이용하려면 로그인하세요",
+		"heading": "결제 관리",
+		"subtitle": "충전, 출금 및 내역 조회",
+		"tabs": {
+			"deposit": "충전",
+			"withdraw": "출금",
+			"history": "내역"
+		},
+		"deposit": {
+			"title": "계정에 충전",
+			"amountLabel": "금액 (VND)",
+			"placeholder": "금액 입력 (최소 10,000 VND)",
+			"minError": "최소 금액은 10,000 VND입니다",
+			"paymentInfoTitle": "결제 정보",
+			"bank": "• 은행: Vietcombank",
+			"account": "• 계좌번호: 1234567890",
+			"holder": "• 예금주: DA NANG KOREA TOURS",
+			"content": "• 내용: NAP_[전화번호]",
+			"submit": "충전",
+			"submitting": "처리 중...",
+			"success": "충전 성공!",
+			"failed": "충전 실패. 다시 시도하세요."
+		},
+		"withdraw": {
+			"title": "계정에서 출금",
+			"amountLabel": "금액 (VND)",
+			"accountNumber": "은행 계좌번호",
+			"accountHolder": "예금주",
+			"placeholderAmount": "금액 입력 (최소 50,000 VND)",
+			"submit": "출금",
+			"submitting": "처리 중...",
+			"success": "출금 요청이 제출되었습니다!",
+			"failed": "출금 실패. 다시 시도하세요."
+		},
+		"history": {
+			"title": "거래 내역",
+			"headers": {
+				"type": "유형",
+				"amount": "금액",
+				"status": "상태",
+				"bank": "은행",
+				"paymentId": "결제 ID",
+				"date": "날짜"
+			},
+			"type": {
+				"deposit": "충전",
+				"withdraw": "출금"
+			},
+			"status": {
+				"completed": "완료",
+				"pending": "처리 중",
+				"failed": "실패",
+				"unknown": "알 수 없음"
+			}
+		}
+	},
+	"oauth": {
+		"successLogin": "성공적으로 로그인되었습니다!",
+		"missingInfo": "필수 인증 정보를 받지 못했습니다",
+		"failed": "OAuth 인증 실패: {{message}}"
+	},
+	"common": {
+		"close": "닫기"
+	},
+	"staffLogin": {
+		"title": "스태프/관리자 로그인",
+		"subtitle": "관리 시스템에 접근",
+		"email": "이메일",
+		"password": "비밀번호",
+		"submit": "로그인",
+		"submitting": "로그인 중...",
+		"or": "또는",
+		"loginUserBusiness": "사용자/사업자 로그인",
+		"error": "로그인 실패. 다시 시도하세요.",
+		"demo": {
+			"title": "데모 계정:",
+			"admin": "관리자:",
+			"staff": "스태프:",
+			"password": "비밀번호: (아무거나)"
+		}
+	}
+}
+
+

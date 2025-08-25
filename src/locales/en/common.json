@@ -1,0 +1,401 @@
+{
+	"brand": "Da Nang - Korea Tour",
+	"nav": {
+		"home": "Home",
+		"admin": "Admin Dashboard",
+		"profile": "Profile",
+		"payment": "Payment",
+		"businessInfo": "Business Info",
+		"login": "Login",
+		"logout": "Logout",
+		"register": "Register",
+		"staffAdmin": "Staff/Admin",
+		"profileFull": "Personal Profile"
+	},
+	"lang": {
+		"vi": "Vietnamese",
+		"en": "English",
+		"ko": "Korean"
+	},
+	"auth": {
+		"common": {
+			"email": "Email",
+			"password": "Password",
+			"rememberMe": "Remember me",
+			"or": "Or",
+			"otp": "OTP Code",
+			"otpPlaceholder": "000000",
+			"notReceivedCode": "Didn't receive the code?",
+			"resend": "Resend",
+			"resendIn": "Resend in {{seconds}}s",
+			"backToLogin": "Back to login",
+			"backToRegister": "Back to register",
+			"backToForgot": "Back to forgot password",
+			"send": "Send",
+			"sending": "Sending..."
+		},
+		"login": {
+			"title": "Login",
+			"subtitle": "Welcome back",
+			"submit": "Login",
+			"submitting": "Logging in...",
+			"loginWithGoogle": "Sign in with Google",
+			"loginWithNaver": "Sign in with Naver",
+			"forgotPassword": "Forgot password?",
+			"noAccount": "Don't have an account?",
+			"registerNow": "Register now",
+			"staffAdminLogin": "Staff/Admin Login",
+			"error": "Login failed. Please try again.",
+			"oauthErrorGoogle": "Cannot connect to Google. Please try again.",
+			"oauthErrorNaver": "Cannot connect to Naver. Please try again.",
+			"successMessage": "Login successful!"
+		},
+		"register": {
+			"title": "Create account",
+			"username": "Username",
+			"usernamePlaceholder": "Enter username",
+			"password": "Password",
+			"confirmPassword": "Confirm password",
+			"roleSelect": "Choose role",
+			"roleUserTitle": "User",
+			"roleUserDesc": "Register for tours",
+			"roleBusinessTitle": "Business",
+			"roleBusinessDesc": "Provide services",
+			"submit": "Register",
+			"submitting": "Registering...",
+			"haveAccount": "Already have an account?",
+			"login": "Login",
+			"errors": {
+				"passwordMismatch": "Passwords do not match",
+				"passwordMinLength": "Password must be at least 6 characters",
+				"usernameRequired": "Username is required",
+				"registerFailed": "Registration failed. Please try again."
+			}
+		},
+		"forgot": {
+			"title": "Forgot password",
+			"subtitle": "Enter your email to receive OTP to reset password",
+			"submit": "Send email",
+			"sending": "Sending...",
+			"success": "OTP has been sent to your email.",
+			"error": "Failed to send OTP. Please try again."
+		},
+		"verify": {
+			"title": "Verify Email",
+			"subtitle": "We sent a verification code to {{email}}",
+			"label": "Verification code (OTP)",
+			"helper": "Enter the 6-digit code sent to your email",
+			"submit": "Verify",
+			"submitting": "Verifying...",
+			"resend": "Resend",
+			"resending": "Resending...",
+			"resendIn": "Resend in {{seconds}}s",
+			"backToRegister": "Back to register",
+			"successBanner": "✅ Email verified! Redirecting...",
+			"error": "Invalid OTP. Please try again.",
+			"failed": "Verification failed. Please try again."
+		},
+		"reset": {
+			"title": "Reset password",
+			"subtitle": "Enter a new password for {{email}}",
+			"newPassword": "New password",
+			"confirmNewPassword": "Confirm new password",
+			"submit": "Update password",
+			"submitting": "Updating...",
+			"preconditionTitle": "You must verify OTP before resetting password",
+			"backToForgot": "Back to forgot password",
+			"successTitle": "Password updated",
+			"successSubtitle": "Your password has been updated successfully.",
+			"login": "Login",
+			"errors": {
+				"passwordMismatch": "Passwords do not match",
+				"passwordMinLength": "Password must be at least 8 characters",
+				"resetFailed": "Password reset failed. Please try again."
+			}
+		}
+	},
+	"home": {
+		"hero": {
+			"titleLead": "Tours",
+			"titleEmph": "Da Nang - Korea",
+			"desc": "Explore Da Nang's beauty and Korean culture with high-quality tours.",
+			"btnPayment": "Payment",
+			"btnProfile": "Profile",
+			"btnRegister": "Register",
+			"btnLogin": "Login"
+		},
+		"welcome": {
+			"heading": "Welcome to",
+			"subheading": "Da Nang - Korea Tours"
+		},
+		"features": {
+			"sectionTitle": "Features",
+			"headline": "Best service for you",
+			"blurb": "Modern tour management with many useful features",
+			"securityTitle": "Secure",
+			"securityDesc": "Multi-layer security ensures safe personal and payment info.",
+			"speedTitle": "Fast",
+			"speedDesc": "Optimized UI for quick actions and time-saving.",
+			"reliableTitle": "Reliable",
+			"reliableDesc": "Built with modern, reliable technologies.",
+			"friendlyTitle": "Friendly",
+			"friendlyDesc": "User-friendly interface for everyone."
+		},
+		"cta": {
+			"title1": "Ready to start?",
+			"title2": "Sign up today.",
+			"desc": "Join us to explore amazing destinations.",
+			"btn": "Sign up for free"
+		}
+	},
+	"pending": {
+		"title": "Pending Approval",
+		"submitted": "Your business registration has been submitted successfully!",
+		"infoTitle": "Registration Info",
+		"email": "Email",
+		"status": "Status",
+		"statusPending": "Pending",
+		"processTitle": "Approval Process",
+		"step1": "Business info submitted",
+		"step2": "Admin reviewing",
+		"step3": "Account activated",
+		"note1": "Approval usually takes 1-3 business days.",
+		"note2": "You will receive an email once approved.",
+		"btnHome": "Go to Home",
+		"btnLogout": "Logout"
+	},
+	"business": {
+		"loading": "Loading...",
+		"notFoundTitle": "Registration information not found",
+		"backToRegister": "Back to register",
+		"submittedTitle": "Business Information",
+		"submittedSubtitle": "You have uploaded documents. Status: Pending.",
+		"submittedViewPending": "View pending page",
+		"submittedBackHome": "Back to home",
+		"heading": "Business Information",
+		"subtitle": "Upload required documents for admin approval of your business account.",
+		"form": {
+			"businessLicense": "Business License (PDF) *",
+			"idFront": "ID Front (JPG/PNG) *",
+			"idBack": "ID Back (JPG/PNG) *"
+		},
+		"selectedPrefix": "✅ Selected:",
+		"important": {
+			"title": "Important notes:",
+			"i1": "• Business license must be PDF",
+			"i2": "• ID must be clear, not blurry or obscured",
+			"i3": "• Real photo, not a screenshot or scan",
+			"i4": "• Ensure good lighting when taking ID photo",
+			"i5": "• Each file must not exceed 25MB",
+			"i6": "• Approval usually takes 1-3 business days"
+		},
+		"back": "Back",
+		"submit": "Confirm and submit",
+		"submitting": "Submitting...",
+		"success": "Business information submitted successfully!"
+	},
+	"admin": {
+		"accessDenied": "You do not have permission to access this page",
+		"heading": "Admin Dashboard",
+		"subtitle": "Manage Da Nang - Korea Tours system",
+		"tabs": {
+			"dashboard": "Dashboard",
+			"users": "All Users",
+			"companies": "Approve Company",
+			"staff": "Staff Management"
+		},
+		"stats": {
+			"totalUsers": "Total Users",
+			"revenue": "Revenue",
+			"pendingCompanies": "Pending",
+			"staff": "Staff"
+		},
+		"charts": {
+			"traffic": "Traffic chart",
+			"revenue": "Revenue chart",
+			"revenueByMonth": "Monthly revenue chart"
+		},
+		"users": {
+			"title": "All Users",
+			"headers": {
+				"user": "User",
+				"role": "Role",
+				"status": "Status",
+				"createdAt": "Created at",
+				"actions": "Actions"
+			},
+			"status": {
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"detailTitle": "User Detail",
+			"labels": {
+				"fullName": "Full name",
+				"email": "Email",
+				"role": "Role",
+				"status": "Status"
+			},
+			"changeStatus": "Change status",
+			"activate": "Activate",
+			"deactivate": "Deactivate"
+		},
+		"companies": {
+			"title": "Pending companies",
+			"headers": {
+				"companyName": "Company name",
+				"email": "Email",
+				"phone": "Phone",
+				"taxCode": "Tax code",
+				"actions": "Actions"
+			},
+			"detailTitle": "Company Detail",
+			"labels": {
+				"companyName": "Company name",
+				"email": "Email",
+				"phone": "Phone",
+				"taxCode": "Tax code",
+				"address": "Address"
+			},
+			"approve": "Approve",
+			"reject": "Reject",
+			"confirmApprove": "Are you sure you want to approve this company?",
+			"confirmReject": "Are you sure you want to reject this company?"
+		},
+		"staff": {
+			"title": "Staff Management",
+			"add": "Add Staff",
+			"editTitle": "Edit Staff",
+			"addTitle": "Add Staff",
+			"headers": {
+				"name": "Name",
+				"email": "Email",
+				"role": "Role",
+				"actions": "Actions"
+			},
+			"labels": {
+				"name": "Name",
+				"email": "Email",
+				"role": "Role"
+			},
+			"cancel": "Cancel",
+			"save": "Save",
+			"update": "Update"
+		}
+	},
+	"profile": {
+		"loginRequired": "Please login to view your profile",
+		"heading": "Personal Profile",
+		"edit": "Edit",
+		"basicInfo": "Basic information",
+		"accountInfo": "Account information",
+		"labels": {
+			"fullName": "Full name",
+			"email": "Email",
+			"phone": "Phone",
+			"dob": "Date of birth",
+			"gender": "Gender",
+			"cccd": "ID number",
+			"id": "ID",
+			"role": "Role",
+			"premium": "Premium",
+			"joinedAt": "Joined at"
+		},
+		"notUpdated": "Not updated",
+		"premiumYes": "Upgraded",
+		"premiumNo": "Not upgraded",
+		"editModalTitle": "Edit information",
+		"avatar": "Avatar",
+		"genderOptions": {
+			"unknown": "Not set",
+			"male": "Male",
+			"female": "Female",
+			"other": "Other"
+		},
+		"cancel": "Cancel",
+		"saveChanges": "Save changes"
+	},
+	"payment": {
+		"loginRequired": "Please login to use payment services",
+		"heading": "Payment Management",
+		"subtitle": "Deposit, withdraw and view history",
+		"tabs": {
+			"deposit": "Deposit",
+			"withdraw": "Withdraw",
+			"history": "History"
+		},
+		"deposit": {
+			"title": "Deposit to account",
+			"amountLabel": "Amount (VND)",
+			"placeholder": "Enter amount (min 10,000 VND)",
+			"minError": "Minimum amount is 10,000 VND",
+			"paymentInfoTitle": "Payment information",
+			"bank": "• Bank: Vietcombank",
+			"account": "• Account number: 1234567890",
+			"holder": "• Account holder: DA NANG KOREA TOURS",
+			"content": "• Content: NAP_[PHONE]",
+			"submit": "Deposit",
+			"submitting": "Processing...",
+			"success": "Deposit successful!",
+			"failed": "Deposit failed. Please try again."
+		},
+		"withdraw": {
+			"title": "Withdraw from account",
+			"amountLabel": "Amount (VND)",
+			"accountNumber": "Bank account number",
+			"accountHolder": "Account holder name",
+			"placeholderAmount": "Enter amount (min 50,000 VND)",
+			"submit": "Withdraw",
+			"submitting": "Processing...",
+			"success": "Withdrawal request submitted!",
+			"failed": "Withdrawal failed. Please try again."
+		},
+		"history": {
+			"title": "Transaction history",
+			"headers": {
+				"type": "Type",
+				"amount": "Amount",
+				"status": "Status",
+				"bank": "Bank",
+				"paymentId": "Payment ID",
+				"date": "Date"
+			},
+			"type": {
+				"deposit": "Deposit",
+				"withdraw": "Withdraw"
+			},
+			"status": {
+				"completed": "Completed",
+				"pending": "Pending",
+				"failed": "Failed",
+				"unknown": "Unknown"
+			}
+		}
+	},
+	"oauth": {
+		"successLogin": "Login successful!",
+		"missingInfo": "Missing required authentication info",
+		"failed": "OAuth verification failed: {{message}}"
+	},
+	"common": {
+		"close": "Close"
+	},
+	"staffLogin": {
+		"title": "Staff/Admin Login",
+		"subtitle": "Access the management system",
+		"email": "Email",
+		"password": "Password",
+		"submit": "Login",
+		"submitting": "Logging in...",
+		"or": "Or",
+		"loginUserBusiness": "Login for User/Business",
+		"error": "Login failed. Please try again.",
+		"demo": {
+			"title": "Demo Credentials:",
+			"admin": "Admin:",
+			"staff": "Staff:",
+			"password": "Password: (any)"
+		}
+	}
+}
+
+
