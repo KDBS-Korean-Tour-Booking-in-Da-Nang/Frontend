@@ -47,6 +47,16 @@ const Navbar = () => {
               className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {t('nav.home')}
+<<<<<<< HEAD
+=======
+            </Link>
+            
+            <Link 
+              to="/forum" 
+              className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Forum
+>>>>>>> 16b403a115eb4988b627b539db4391a7ad4e6ea7
             </Link>
             
             {user ? (
@@ -81,6 +91,7 @@ const Navbar = () => {
                   className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {t('nav.businessInfo')}
+<<<<<<< HEAD
                 </Link>
                 
                 <Link 
@@ -88,6 +99,8 @@ const Navbar = () => {
                   className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Thông tin doanh nghiệp
+=======
+>>>>>>> 16b403a115eb4988b627b539db4391a7ad4e6ea7
                 </Link>
                 
                 {/* User Menu */}
@@ -205,6 +218,17 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               {t('nav.home')}
+<<<<<<< HEAD
+=======
+            </Link>
+            
+            <Link
+              to="/forum"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Forum
+>>>>>>> 16b403a115eb4988b627b539db4391a7ad4e6ea7
             </Link>
             
             {user ? (
@@ -243,6 +267,7 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {t('nav.businessInfo')}
+<<<<<<< HEAD
                 </Link>
                 
                 <Link
@@ -251,6 +276,8 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Thông tin doanh nghiệp
+=======
+>>>>>>> 16b403a115eb4988b627b539db4391a7ad4e6ea7
                 </Link>
                 
                 <div className="border-t border-gray-200 pt-4 pb-3">

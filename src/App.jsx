@@ -14,6 +14,10 @@ import ResetPassword from './pages/authentication/resetPassword/resetPassword';
 import UserProfile from './pages/user/userProfile/userProfile';
 import Payment from './pages/user/payment/payment';
 import AdminDashboard from './pages/dashboard/adminDashboard/adminDashboard';
+<<<<<<< HEAD
+=======
+import Forum from './pages/home/forum/forum';
+>>>>>>> 16b403a115eb4988b627b539db4391a7ad4e6ea7
 
 function App() {
   return (
@@ -37,6 +41,7 @@ function App() {
               <Route path="/profile" element={<UserProfile />} />
               <Route path="/payment" element={<Payment />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/forum" element={<Forum />} />
             </Routes>
           </main>
       </div>
