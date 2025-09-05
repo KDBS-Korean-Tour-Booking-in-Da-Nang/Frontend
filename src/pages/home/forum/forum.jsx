@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import PostModal from './components/PostModal';
-import PostCard from './components/PostCard';
-import SearchSidebar from './components/SearchSidebar';
-import UserSidebar from './components/UserSidebar';
+import PostModal from './components/PostModal/PostModal';
+import PostCard from './components/PostCard/PostCard';
+import SearchSidebar from './components/SearchSidebar/SearchSidebar';
+import UserSidebar from './components/UserSidebar/UserSidebar';
+import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
+import ReactionsModal from './components/ReactionsModal/ReactionsModal';
 import './forum.css';
 
 const Forum = () => {
@@ -12,17 +14,53 @@ const Forum = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
+  const [showSavedPostsModal, setShowSavedPostsModal] = useState(false);
+  const [showReactionsModal, setShowReactionsModal] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [singlePost, setSinglePost] = useState(null);
+
+  const showSinglePost = async (postId) => {
+    setSelectedPostId(postId);
+    try {
+      const response = await fetch(`http://localhost:8080/api/posts/${postId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSinglePost(data);
+      } else {
+        console.error('Failed to fetch single post');
+        // Fallback: find post in current posts list
+        const post = posts.find(p => p.postId === postId);
+        if (post) {
+          setSinglePost(post);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching single post:', error);
+      // Fallback: find post in current posts list
+      const post = posts.find(p => p.postId === postId);
+      if (post) {
+        setSinglePost(post);
+      }
+    }
+  };
+
+  const backToAllPosts = () => {
+    setSelectedPostId(null);
+    setSinglePost(null);
+  };
 
   useEffect(() => {
+    console.log('Forum: useEffect triggered with:', { searchKeyword, selectedHashtags, currentPage }); // Debug log
     fetchPosts();
   }, [searchKeyword, selectedHashtags, currentPage]);
 
   const fetchPosts = async () => {
     try {
+      console.log('Forum: fetchPosts called with:', { searchKeyword, selectedHashtags, currentPage }); // Debug log
       setIsLoading(true);
       
       let url = `http://localhost:8080/api/posts/search?page=${currentPage}&size=10&sort=createdAt,desc`;
@@ -37,9 +75,11 @@ const Forum = () => {
         });
       }
 
+      console.log('Forum: Fetching URL:', url); // Debug log
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        console.log('Forum: Received data:', data); // Debug log
         
         if (currentPage === 0) {
           setPosts(data.content || []);
@@ -128,31 +168,40 @@ const Forum = () => {
     ];
   };
 
-  const handleCreatePost = (newPost) => {
-    setPosts(prev => [newPost, ...prev]);
+  const handleCreatePost = (post) => {
+    if (editingPost) {
+      // Update existing post
+      setPosts(prev => 
+        prev.map(p => 
+          p.forumPostId === post.forumPostId ? post : p
+        )
+      );
+      setEditingPost(null);
+    } else {
+      // Add new post
+      setPosts(prev => [post, ...prev]);
+    }
     // notify sidebar to refresh popular hashtags
     window.dispatchEvent(new Event('refresh-popular-hashtags'));
   };
 
-  const handlePostUpdated = (updatedPost) => {
-    setPosts(prev => 
-      prev.map(post => 
-        post.forumPostId === updatedPost.forumPostId ? updatedPost : post
-      )
-    );
-    setEditingPost(null);
-  };
 
   const handlePostDeleted = (postId) => {
     setPosts(prev => prev.filter(post => post.forumPostId !== postId));
   };
 
   const handleSearch = (keyword) => {
+    console.log('Forum: handleSearch called with:', keyword); // Debug log
+    // Clear hashtag filter first, then set search keyword
+    setSelectedHashtags([]);
     setSearchKeyword(keyword);
     setCurrentPage(0);
   };
 
   const handleHashtagFilter = (hashtags) => {
+    console.log('Forum: handleHashtagFilter called with:', hashtags); // Debug log
+    // Clear search keyword first, then set hashtag filter
+    setSearchKeyword('');
     setSelectedHashtags(hashtags);
     setCurrentPage(0);
   };
@@ -191,18 +240,41 @@ const Forum = () => {
 
   return (
     <div className="forum-container">
-      <div className="forum-header">
-        <div className="create-post-section">
-          <div className="create-post-input" onClick={() => setShowPostModal(true)}>
-            <img 
-              src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}`) : '/default-avatar.png'} 
-              alt={user?.username}
-              className="user-avatar-small"
-            />
-            <span className="create-post-text">Bạn đang nghĩ gì?</span>
+      {/* Only show create post section if user is logged in */}
+      {user ? (
+        <div className="forum-header">
+          <div className="create-post-section">
+            <div className="create-post-input" onClick={() => setShowPostModal(true)}>
+              <img 
+                src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}`) : '/default-avatar.png'} 
+                alt={user?.username}
+                className="user-avatar-small"
+              />
+              <span className="create-post-text">Bạn đang nghĩ gì?</span>
+            </div>
+            <div className="header-buttons">
+              <button 
+                className="saved-posts-btn"
+                onClick={() => setShowSavedPostsModal(true)}
+              >
+                📚 Bài viết đã lưu
+              </button>
+              <button 
+                className="reactions-btn"
+                onClick={() => setShowReactionsModal(true)}
+              >
+                👍 Bài viết đã tương tác
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="forum-header guest-notice">
+          <div className="guest-message">
+            <p>👋 Chào mừng bạn đến với diễn đàn! <a href="/login">Đăng nhập</a> để tham gia thảo luận và chia sẻ ý kiến.</p>
+          </div>
+        </div>
+      )}
 
       <div className="forum-content">
       {/* Left Sidebar - Search */}
@@ -224,28 +296,49 @@ const Forum = () => {
             <div className="no-posts">
               <h3>Không có bài viết nào</h3>
               <p>Hãy là người đầu tiên chia sẻ điều gì đó!</p>
-              <button 
-                onClick={() => setShowPostModal(true)}
-                className="create-first-post-btn"
-              >
-                Tạo bài viết đầu tiên
-              </button>
+              {user && (
+                <button 
+                  onClick={() => setShowPostModal(true)}
+                  className="create-first-post-btn"
+                >
+                  Tạo bài viết đầu tiên
+                </button>
+              )}
             </div>
         ) : (
           <>
-              <div className="posts-feed">
-                {posts.map((post) => (
-              <PostCard 
-                    key={post.forumPostId}
-                post={post}
-                    onPostUpdated={handlePostUpdated}
+            {selectedPostId && singlePost ? (
+              <div className="single-post-view">
+                <div className="back-button-container">
+                  <button className="back-button" onClick={backToAllPosts}>
+                    ← Quay lại danh sách
+                  </button>
+                </div>
+                <div className="posts-feed">
+                  <PostCard 
+                    key={singlePost.forumPostId}
+                    post={singlePost}
+                    onPostUpdated={handleCreatePost}
                     onPostDeleted={handlePostDeleted}
                     onEdit={openEditModal}
-              />
-            ))}
+                  />
+                </div>
               </div>
+            ) : (
+              <div className="posts-feed">
+                {posts.map((post) => (
+                  <PostCard 
+                    key={post.forumPostId}
+                    post={post}
+                    onPostUpdated={handleCreatePost}
+                    onPostDeleted={handlePostDeleted}
+                    onEdit={openEditModal}
+                  />
+                ))}
+              </div>
+            )}
             
-              {hasMorePosts && (
+            {!selectedPostId && hasMorePosts && (
               <div className="load-more-container">
                 <button 
                     onClick={handleLoadMore}
@@ -266,13 +359,33 @@ const Forum = () => {
         </div>
       </div>
 
-      {/* Post Modal */}
-      <PostModal 
-        isOpen={showPostModal}
-        onClose={closePostModal}
-        onPostCreated={handleCreatePost}
-        editPost={editingPost}
-      />
+      {/* Post Modal - Only show if user is logged in */}
+      {user && (
+        <PostModal 
+          isOpen={showPostModal}
+          onClose={closePostModal}
+          onPostCreated={handleCreatePost}
+          editPost={editingPost}
+        />
+      )}
+
+      {/* Saved Posts Modal - Only show if user is logged in */}
+      {user && (
+        <SavedPostsModal 
+          isOpen={showSavedPostsModal}
+          onClose={() => setShowSavedPostsModal(false)}
+          onPostClick={showSinglePost}
+        />
+      )}
+
+      {/* Reactions Modal - Only show if user is logged in */}
+      {user && (
+        <ReactionsModal 
+          isOpen={showReactionsModal}
+          onClose={() => setShowReactionsModal(false)}
+          onPostClick={showSinglePost}
+        />
+      )}
     </div>
   );
 };

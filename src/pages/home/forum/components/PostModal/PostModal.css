@@ -225,6 +225,25 @@
   object-fit: cover;
 }
 
+/* Existing images section for edit mode */
+.existing-images-section {
+  margin-top: 16px;
+}
+
+.existing-images-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1e21;
+}
+
+.image-note {
+  margin: 12px 0 0 0;
+  font-size: 12px;
+  color: #65676b;
+  font-style: italic;
+}
+
 .remove-image {
   position: absolute;
   top: 8px;

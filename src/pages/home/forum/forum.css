@@ -17,6 +17,7 @@
 .create-post-section {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
 
 .create-post-input {
@@ -50,6 +51,96 @@
   color: #65676b;
   font-size: 15px;
   font-weight: 500;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.saved-posts-btn, .reactions-btn {
+  background-color: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.saved-posts-btn:hover, .reactions-btn:hover {
+  background-color: #166fe5;
+  transform: translateY(-1px);
+}
+
+.reactions-btn {
+  background-color: #10b981;
+}
+
+.reactions-btn:hover {
+  background-color: #059669;
+}
+
+/* Single Post View Styles */
+.single-post-view {
+  width: 100%;
+}
+
+.back-button-container {
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.back-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Guest notice styles */
+.guest-notice {
+  text-align: center;
+}
+
+.guest-message {
+  padding: 20px;
+}
+
+.guest-message p {
+  color: #65676b;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.guest-message a {
+  color: #1877f2;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.guest-message a:hover {
+  color: #166fe5;
+  text-decoration: underline;
 }
 
 .forum-content {

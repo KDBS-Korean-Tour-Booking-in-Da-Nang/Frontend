@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuth } from '../../../../../contexts/AuthContext';
 import './PostModal.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const { user } = useAuth();
-  const [title, setTitle] = useState(editPost?.title || '');
-  const [content, setContent] = useState(editPost?.content || '');
-  const [hashtags, setHashtags] = useState(editPost?.hashtags?.map(h => h.content) || []);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [hashtags, setHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [showTagSuggest, setShowTagSuggest] = useState(false);
@@ -16,6 +16,35 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const choosingTagRef = useRef(false);
+
+  // Load edit data when editPost changes
+  useEffect(() => {
+    if (editPost) {
+      setTitle(editPost.title || '');
+      setContent(editPost.content || '');
+      setHashtags(editPost.hashtags?.map(h => h.content) || []);
+      
+      // Load existing images
+      if (editPost.images && editPost.images.length > 0) {
+        const existingImages = editPost.images.map(img => 
+          img.imgPath.startsWith('http') ? img.imgPath : `http://localhost:8080${img.imgPath}`
+        );
+        setImages(existingImages);
+        setImageFiles([]); // No new files when editing
+      } else {
+        setImages([]);
+        setImageFiles([]);
+      }
+    } else {
+      // Reset form for new post
+      setTitle('');
+      setContent('');
+      setHashtags([]);
+      setImages([]);
+      setImageFiles([]);
+    }
+    setHashtagInput('');
+  }, [editPost]);
 
   const commitTag = (raw) => {
     const cleaned = (raw || '')
@@ -123,9 +152,12 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         formData.append('hashtags', tag);
       });
       
-      imageFiles.forEach(file => {
-        formData.append('imageUrls', file);
-      });
+      // Only append new image files when creating new post
+      if (!editPost) {
+        imageFiles.forEach(file => {
+          formData.append('imageUrls', file);
+        });
+      }
 
       const url = editPost 
         ? `http://localhost:8080/api/posts/${editPost.forumPostId}`
@@ -147,15 +179,21 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
 
       if (response.ok) {
         const result = await response.json();
-        onPostCreated(result);
+        if (editPost) {
+          // Call onPostCreated with the updated post for edit mode
+          onPostCreated(result);
+        } else {
+          // Call onPostCreated with the new post for create mode
+          onPostCreated(result);
+        }
         onClose();
         resetForm();
       } else {
-        throw new Error('Failed to create post');
+        throw new Error(editPost ? 'Failed to update post' : 'Failed to create post');
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Có lỗi xảy ra khi đăng bài');
+      console.error('Error creating/updating post:', error);
+      alert(editPost ? 'Có lỗi xảy ra khi cập nhật bài viết' : 'Có lỗi xảy ra khi đăng bài');
     } finally {
       setIsLoading(false);
     }
@@ -250,25 +288,41 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           </div>
 
           <div className="form-group">
-            <div className="image-upload-section">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current.click()}
-                className="upload-btn"
-              >
-                📷 Thêm ảnh
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-            </div>
+            {!editPost && (
+              <div className="image-upload-section">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  className="upload-btn"
+                >
+                  📷 Thêm ảnh
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            )}
             
-            {images.length > 0 && (
+            {editPost && images.length > 0 && (
+              <div className="existing-images-section">
+                <h4>Hình ảnh hiện tại:</h4>
+                <div className="image-preview">
+                  {images.map((image, index) => (
+                    <div key={index} className="image-item">
+                      <img src={image} alt={`Current image ${index + 1}`} />
+                    </div>
+                  ))}
+                </div>
+                <p className="image-note">* Không thể thay đổi hình ảnh khi chỉnh sửa bài viết</p>
+              </div>
+            )}
+            
+            {!editPost && images.length > 0 && (
               <div className="image-preview">
                 {images.map((image, index) => (
                   <div key={index} className="image-item">

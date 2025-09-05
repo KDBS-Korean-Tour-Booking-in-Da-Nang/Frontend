@@ -8,10 +8,13 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggest, setShowSuggest] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const timerRef = useRef(null);
   const rootRef = useRef(null);
   const inputRef = useRef(null);
   const [suggestPos, setSuggestPos] = useState({ left: 0, top: 0, width: 0 });
+  const isClickingSuggestion = useRef(false);
+  const isUpdatingFromSuggestion = useRef(false);
 
   useEffect(() => {
     fetchPopularHashtags();
@@ -69,18 +72,21 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
     if (searchKeyword.trim()) {
       onSearch(searchKeyword.trim());
       setShowSuggest(false);
+      setSelectedIndex(-1);
     }
   };
 
   const handleHashtagClick = (hashtag) => {
     onHashtagFilter([hashtag.content]);
+    setSearchKeyword(''); // Clear search input when clicking hashtag
   };
 
   const handleClearSearch = () => {
     setSearchKeyword('');
-    onSearch('');
+    onSearch(''); // This will clear both search and hashtag filters
     setSuggestions([]);
     setShowSuggest(false);
+    setSelectedIndex(-1);
   };
 
   // Debounced live suggestions
@@ -88,8 +94,15 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
     if (!searchKeyword.trim()) {
       setSuggestions([]);
       setShowSuggest(false);
+      setSelectedIndex(-1);
       return;
     }
+    
+    // Don't fetch suggestions if we're currently clicking a suggestion or updating from suggestion
+    if (isClickingSuggestion.current || isUpdatingFromSuggestion.current) {
+      return;
+    }
+    
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       fetchSuggestions(searchKeyword.trim());
@@ -101,29 +114,116 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
   useEffect(() => {
     const onClick = (e) => {
       if (!rootRef.current) return;
-      if (!rootRef.current.contains(e.target)) {
+      if (!rootRef.current.contains(e.target) && !isClickingSuggestion.current) {
         setShowSuggest(false);
+        setSelectedIndex(-1);
       }
     };
-    if (showSuggest) document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    if (showSuggest) document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
   }, [showSuggest]);
+
+  // Keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!showSuggest || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          clickSuggestion(suggestions[selectedIndex], e);
+        } else if (searchKeyword.trim()) {
+          onSearch(searchKeyword.trim());
+          setShowSuggest(false);
+          setSelectedIndex(-1);
+        }
+        break;
+      case 'Escape':
+        setShowSuggest(false);
+        setSelectedIndex(-1);
+        break;
+    }
+  };
 
   const fetchSuggestions = async (q) => {
     try {
-      const url = `http://localhost:8080/api/posts/search?keyword=${encodeURIComponent(q)}&size=8&sort=createdAt,desc`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('suggest failed');
-      const data = await res.json();
-      const items = (data.content || []);
-      // Build mixed suggestions: title, content, user, hashtags
+      // Fetch both posts and hashtags suggestions in parallel
+      const [postsRes, hashtagsRes] = await Promise.all([
+        fetch(`http://localhost:8080/api/posts/search?keyword=${encodeURIComponent(q)}&size=5&sort=createdAt,desc`),
+        fetch(`http://localhost:8080/api/hashtags/search?keyword=${encodeURIComponent(q)}&limit=5`)
+      ]);
+
       const result = [];
-      items.forEach(p => {
-        if (p.title) result.push({ type: 'title', text: p.title });
-        if (p.content) result.push({ type: 'content', text: p.content.slice(0, 80) });
-        if (p.username) result.push({ type: 'user', text: p.username });
-        (p.hashtags || []).forEach(h => result.push({ type: 'hashtag', text: `#${h.content}` }));
-      });
+
+      // Process posts suggestions
+      if (postsRes.ok) {
+        const postsData = await postsRes.json();
+        const posts = postsData.content || [];
+        console.log('Fetched posts for suggestions:', posts); // Debug log
+        
+        posts.forEach(p => {
+          // Add post titles
+          if (p.title && p.title.toLowerCase().includes(q.toLowerCase())) {
+            result.push({ 
+              type: 'post', 
+              text: p.title, 
+              subtitle: `bởi ${p.username}`,
+              postId: p.forumPostId,
+              icon: '📝'
+            });
+          }
+          
+          // Add usernames
+          if (p.username && p.username.toLowerCase().includes(q.toLowerCase())) {
+            result.push({ 
+              type: 'user', 
+              text: p.username, 
+              subtitle: 'người dùng',
+              icon: '👤'
+            });
+          }
+        });
+      } else {
+        console.log('Posts API failed:', postsRes.status, postsRes.statusText); // Debug log
+      }
+
+      // Process hashtags suggestions
+      if (hashtagsRes.ok) {
+        const hashtags = await hashtagsRes.json();
+        hashtags.forEach(h => {
+          result.push({ 
+            type: 'hashtag', 
+            text: `#${h.content}`, 
+            subtitle: `${h.postCount || 0} bài viết`,
+            hashtag: h.content,
+            icon: '#'
+          });
+        });
+      }
+
+      // Add trending topics if query is short
+      if (q.length <= 2) {
+        const trendingTopics = [
+          { type: 'trending', text: 'Công nghệ AI mới nhất', icon: '🔥' },
+          { type: 'trending', text: 'Startup thành công', icon: '🚀' },
+          { type: 'trending', text: 'Marketing số', icon: '📈' },
+          { type: 'trending', text: 'Đầu tư tài chính', icon: '💰' }
+        ];
+        result.push(...trendingTopics);
+      }
+
       // Deduplicate by text
       const seen = new Set();
       const dedup = [];
@@ -134,24 +234,58 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
         seen.add(key);
         dedup.push(r);
       }
-      setSuggestions(dedup.slice(0, 10));
+
+      console.log('Final suggestions:', dedup.slice(0, 8)); // Debug log
+      setSuggestions(dedup.slice(0, 8));
       setShowSuggest(true);
+      setSelectedIndex(-1);
     } catch (e) {
+      console.error('Error fetching suggestions:', e);
       setSuggestions([]);
       setShowSuggest(false);
     }
   };
 
-  const clickSuggestion = (s) => {
-    if (s.type === 'hashtag') {
-      const tag = s.text.replace(/^#/, '');
-      onHashtagFilter([tag]);
-    } else if (s.type === 'user') {
-      onSearch(s.text);
-    } else {
-      onSearch(s.text);
-    }
+  const clickSuggestion = (s, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Clicking suggestion:', s); // Debug log
+    
+    // Close suggestions immediately to prevent re-opening
     setShowSuggest(false);
+    setSelectedIndex(-1);
+    setSuggestions([]); // Clear suggestions to prevent re-fetching
+    
+    // Set flag to prevent outside click from closing suggestions
+    isClickingSuggestion.current = true;
+    
+    // Perform the appropriate action
+    if (s.type === 'hashtag') {
+      const tag = s.hashtag || s.text.replace(/^#/, '');
+      console.log('Filtering by hashtag:', tag); // Debug log
+      onHashtagFilter([tag]);
+      setSearchKeyword(''); // Clear search input when filtering by hashtag
+    } else {
+      // For all other types (user, post, trending), perform search
+      console.log('Searching for:', s.text); // Debug log
+      console.log('Calling onSearch with:', s.text); // Debug log
+      onSearch(s.text);
+      console.log('Setting search keyword to:', s.text); // Debug log
+      
+      // Set flag to prevent re-fetching suggestions
+      isUpdatingFromSuggestion.current = true;
+      setSearchKeyword(s.text); // Update the search keyword in the input
+      
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingFromSuggestion.current = false;
+      }, 500);
+    }
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isClickingSuggestion.current = false;
+    }, 200);
   };
 
   // Position dropdown like YouTube (anchored to input, fixed on viewport)
@@ -181,6 +315,7 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
               placeholder="Tìm kiếm bài viết..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="search-input"
               onFocus={() => suggestions.length > 0 && setShowSuggest(true)}
               ref={inputRef}
@@ -195,11 +330,14 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
                 <button
                   key={idx}
                   type="button"
-                  className={`suggest-item ${s.type}`}
-                  onClick={() => clickSuggestion(s)}
+                  className={`suggest-item ${s.type} ${selectedIndex === idx ? 'selected' : ''}`}
+                  onClick={(e) => clickSuggestion(s, e)}
                 >
-                  <span className="icon">{s.type === 'hashtag' ? '#' : s.type === 'user' ? '👤' : '🔎'}</span>
-                  <span className="text">{s.text}</span>
+                  <span className="icon">{s.icon || (s.type === 'hashtag' ? '#' : s.type === 'user' ? '👤' : '🔎')}</span>
+                  <div className="suggest-content">
+                    <span className="text">{s.text}</span>
+                    {s.subtitle && <span className="subtitle">{s.subtitle}</span>}
+                  </div>
                 </button>
               ))}
             </div>, document.body)

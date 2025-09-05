@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../../../contexts/AuthContext';
-import CommentSection from './CommentSection';
-import ImageViewerModal from './ImageViewerModal';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import CommentSection from '../CommentSection/CommentSection';
+import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
+import ReportModal from '../ReportModal/ReportModal';
+import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
 import './PostCard.css';
 
 const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
@@ -13,13 +15,51 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
   const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
   const [openViewer, setOpenViewer] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showReportSuccess, setShowReportSuccess] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
 
   useEffect(() => {
     if (user) {
       checkUserReaction();
       fetchReactionCount();
+      checkIfSaved();
+      fetchSaveCount();
+      checkIfReported();
     }
   }, [user, post.forumPostId]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMenu && !event.target.closest('.post-menu')) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
+
+  // Listen for unsave events from SavedPostsModal
+  useEffect(() => {
+    const handlePostUnsaved = (event) => {
+      if (event.detail.postId === post.forumPostId) {
+        setIsSaved(false);
+        setSaveCount(prev => Math.max(0, prev - 1));
+      }
+    };
+
+    window.addEventListener('post-unsaved', handlePostUnsaved);
+    return () => window.removeEventListener('post-unsaved', handlePostUnsaved);
+  }, [post.forumPostId]);
 
   const isOwnPost = !!user && (
     (post.userEmail && user.email && post.userEmail.toLowerCase() === user.email.toLowerCase()) ||
@@ -156,6 +196,141 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
     }
   };
 
+  const checkIfSaved = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const email = user?.email || localStorage.getItem('email') || '';
+      
+      console.log('Checking if post is saved:', post.forumPostId, email);
+      const response = await fetch(`http://localhost:8080/api/saved-posts/check/${post.forumPostId}`, {
+        headers: {
+          'User-Email': email,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      console.log('Check saved response:', response.status, response.statusText);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Check saved data:', data);
+        setIsSaved(data.result || false);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to check if saved:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('Error checking if saved:', error);
+    }
+  };
+
+  const fetchSaveCount = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/saved-posts/count/${post.forumPostId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSaveCount(data.result || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching save count:', error);
+    }
+  };
+
+  const checkIfReported = async () => {
+    try {
+      const email = user?.email || localStorage.getItem('email') || '';
+      if (!email) return;
+
+      const response = await fetch(
+        `http://localhost:8080/api/reports/check?userEmail=${encodeURIComponent(email)}&targetType=POST&targetId=${post.forumPostId}`
+      );
+      
+      if (response.ok) {
+        const hasReportedResult = await response.json();
+        setHasReported(hasReportedResult);
+      }
+    } catch (error) {
+      console.error('Error checking if reported:', error);
+    }
+  };
+
+  const handleSavePost = async () => {
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
+    
+    // Get authentication token
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    const email = user?.email || localStorage.getItem('email') || '';
+    
+    console.log('Save button clicked:', {
+      postId: post.forumPostId,
+      isSaved,
+      userEmail: email,
+      hasToken: !!token,
+      token: token ? token.substring(0, 20) + '...' : 'none',
+      user: user
+    });
+    
+    if (!email) {
+      console.error('No user email found');
+      alert('Vui lòng đăng nhập để lưu bài viết!');
+      return;
+    }
+    
+    try {
+      if (isSaved) {
+        // Unsave post
+        console.log('Attempting to unsave post...');
+        const response = await fetch(`http://localhost:8080/api/saved-posts/unsave/${post.forumPostId}`, {
+          method: 'DELETE',
+          headers: {
+            'User-Email': email,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        
+        console.log('Unsave response:', response.status, response.statusText);
+        
+        if (response.ok) {
+          setIsSaved(false);
+          setSaveCount(prev => Math.max(0, prev - 1));
+          console.log('Post unsaved successfully');
+        } else {
+          const errorText = await response.text();
+          console.error('Failed to unsave post:', response.status, errorText);
+        }
+      } else {
+        // Save post
+        console.log('Attempting to save post...');
+        const response = await fetch('http://localhost:8080/api/saved-posts/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Email': email,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            postId: post.forumPostId,
+            note: ''
+          })
+        });
+        
+        console.log('Save response:', response.status, response.statusText);
+        
+        if (response.ok) {
+          setIsSaved(true);
+          setSaveCount(prev => prev + 1);
+          console.log('Post saved successfully');
+        } else {
+          const errorText = await response.text();
+          console.error('Failed to save post:', response.status, errorText);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving post:', error);
+    }
+  };
+
   const handleEdit = () => {
     onEdit && onEdit(post);
     setShowMenu(false);
@@ -188,9 +363,51 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
   };
 
   const handleReport = () => {
-    // TODO: Implement report functionality
-    alert('Tính năng báo cáo đang được phát triển');
+    if (hasReported) {
+      alert('Bạn đã báo cáo bài viết này rồi!');
+      setShowMenu(false);
+      return;
+    }
+    setShowReportModal(true);
     setShowMenu(false);
+  };
+
+  const handleReportSubmit = async (reportData) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const email = user?.email || localStorage.getItem('email') || '';
+      
+      if (!email) {
+        throw new Error('Vui lòng đăng nhập để báo cáo bài viết');
+      }
+
+      const response = await fetch(`http://localhost:8080/api/reports/create?userEmail=${encodeURIComponent(email)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(reportData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Lỗi báo cáo: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Report submitted successfully:', result);
+      
+      // Update reported status
+      setHasReported(true);
+      
+      // Show success modal
+      setShowReportSuccess(true);
+      
+    } catch (error) {
+      console.error('Error reporting post:', error);
+      throw error;
+    }
   };
 
   const formatTime = (dateString) => {
@@ -258,7 +475,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
 
   return (
     <>
-    <div className="post-card">
+    <div className="post-card" id={`post-${post.postId}`}>
       <div className="post-header">
         <div className="post-user-info">
           <img 
@@ -272,32 +489,57 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
           </div>
         </div>
         
-        <div className="post-menu">
-          <button 
-            className="menu-btn"
-            onClick={() => setShowMenu(!showMenu)}
-          >
-            ⋯
-          </button>
+        <div className="post-actions-header">
+          <div className="save-section">
+            <button 
+              onClick={handleSavePost} 
+              className={`save-btn ${isSaved ? 'saved' : ''}`}
+              title={isSaved ? 'Bỏ lưu bài viết' : 'Lưu bài viết'}
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="bookmark-icon"
+              >
+                <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+              </svg>
+            </button>
+            <span className="save-count">{saveCount}</span>
+          </div>
           
-          {showMenu && (
-            <div className="menu-dropdown">
-              {isOwnPost ? (
-                <>
-                  <button onClick={handleEdit} className="menu-item">
-                    ✏️ Chỉnh sửa
+          <div className="post-menu">
+            <button 
+              className="menu-btn"
+              onClick={() => setShowMenu(!showMenu)}
+            >
+              ⋯
+            </button>
+            
+            {showMenu && (
+              <div className="menu-dropdown">
+                {isOwnPost ? (
+                  <>
+                    <button onClick={handleEdit} className="menu-item">
+                      ✏️ Chỉnh sửa
+                    </button>
+                    <button onClick={handleDelete} className="menu-item delete">
+                      🗑️ Xóa
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={handleReport} 
+                    className={`menu-item ${hasReported ? 'reported' : ''}`}
+                    disabled={hasReported}
+                  >
+                    {hasReported ? '✅ Đã báo cáo' : '⚠️ Báo cáo'}
                   </button>
-                  <button onClick={handleDelete} className="menu-item delete">
-                    🗑️ Xóa
-                  </button>
-                </>
-              ) : (
-                <button onClick={handleReport} className="menu-item">
-                  ⚠️ Báo cáo
-                </button>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -326,6 +568,9 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
         </div>
         <div className="stat-item">
           <span className="stat-count">{commentCount} bình luận</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-count">{saveCount} lượt lưu</span>
         </div>
       </div>
 
@@ -361,6 +606,18 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
       />
     </div>
     <ImageViewerModal open={openViewer} onClose={() => setOpenViewer(false)} post={post} initialIndex={viewerIndex} />
+    
+    <ReportModal 
+      isOpen={showReportModal}
+      onClose={() => setShowReportModal(false)}
+      onReport={handleReportSubmit}
+      post={post}
+    />
+    
+    <ReportSuccessModal 
+      isOpen={showReportSuccess}
+      onClose={() => setShowReportSuccess(false)}
+    />
     </>
   );
 };

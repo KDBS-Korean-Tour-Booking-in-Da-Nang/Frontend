@@ -19,6 +19,50 @@
   border-bottom: 1px solid #f0f2f5;
 }
 
+.post-actions-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.save-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s;
+  color: #65676b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn:hover {
+  transform: scale(1.1);
+}
+
+.save-btn.saved {
+  color: #ffd700;
+}
+
+.bookmark-icon {
+  transition: all 0.2s;
+}
+
+.save-count {
+  font-size: 12px;
+  color: #65676b;
+  font-weight: 500;
+  min-width: 16px;
+  text-align: center;
+}
+
 .post-user-info {
   display: flex;
   align-items: center;
@@ -103,6 +147,30 @@
 
 .menu-item.delete {
   color: #e74c3c;
+}
+
+.menu-item.saved {
+  color: #f39c12;
+  background-color: #fef9e7;
+}
+
+.menu-item.saved:hover {
+  background-color: #fef3cd;
+}
+
+.menu-item.reported {
+  color: #27ae60;
+  background-color: #e8f5e8;
+  cursor: not-allowed;
+}
+
+.menu-item.reported:hover {
+  background-color: #e8f5e8;
+}
+
+.menu-item:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .post-content {
