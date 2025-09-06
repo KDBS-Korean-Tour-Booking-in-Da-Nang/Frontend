@@ -446,6 +446,7 @@
 			"createFirst": "Tạo bài viết đầu tiên",
 			"loadMore": "Tải thêm bài viết",
 			"loadingMore": "Đang tải...",
+			"noMorePosts": "Đã tải hết tất cả bài viết",
 			"backToList": "← Quay lại danh sách",
 			"edit": "Chỉnh sửa",
 			"delete": "Xóa",

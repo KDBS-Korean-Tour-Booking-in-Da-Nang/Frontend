@@ -446,6 +446,7 @@
 			"createFirst": "Create first post",
 			"loadMore": "Load more posts",
 			"loadingMore": "Loading...",
+			"noMorePosts": "No more posts to load",
 			"backToList": "← Back to list",
 			"edit": "Edit",
 			"delete": "Delete",

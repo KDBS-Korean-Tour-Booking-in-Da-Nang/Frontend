@@ -585,3 +585,40 @@
     font-size: 13px;
   }
 }
+
+/* Infinite Scroll Styles */
+.infinite-scroll-trigger {
+  height: 20px;
+  margin: 20px 0;
+}
+
+.loading-more-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #666;
+}
+
+.loading-more-container .loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+.no-more-posts {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}
+
+.no-more-posts p {
+  margin: 0;
+  font-size: 14px;
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import PostModal from './components/PostModal/PostModal';
@@ -25,6 +25,9 @@ const Forum = () => {
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [singlePost, setSinglePost] = useState(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef();
+  const lastPostElementRef = useRef();
 
   const showSinglePost = async (postId) => {
     console.log('showSinglePost called with postId:', postId, 'type:', typeof postId);
@@ -80,14 +83,26 @@ const Forum = () => {
   }, []);
 
   useEffect(() => {
-    console.log('Forum: useEffect triggered with:', { searchKeyword, selectedHashtags, currentPage }); // Debug log
     fetchPosts();
   }, [searchKeyword, selectedHashtags, currentPage]);
 
+  // Cleanup Intersection Observer on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
   const fetchPosts = async () => {
     try {
-      console.log('Forum: fetchPosts called with:', { searchKeyword, selectedHashtags, currentPage }); // Debug log
-      setIsLoading(true);
+      // Set loading state based on whether it's initial load or loading more
+      if (currentPage === 0) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
       
       let url = `http://localhost:8080/api/posts/search?page=${currentPage}&size=10&sort=createdAt,desc`;
       
@@ -101,11 +116,9 @@ const Forum = () => {
         });
       }
 
-      console.log('Forum: Fetching URL:', url); // Debug log
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        console.log('Forum: Received data:', data); // Debug log
         
         if (currentPage === 0) {
           setPosts(data.content || []);
@@ -125,6 +138,7 @@ const Forum = () => {
       }
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -217,7 +231,6 @@ const Forum = () => {
   };
 
   const handleSearch = (keyword) => {
-    console.log('Forum: handleSearch called with:', keyword); // Debug log
     // Clear hashtag filter first, then set search keyword
     setSelectedHashtags([]);
     setSearchKeyword(keyword);
@@ -231,7 +244,6 @@ const Forum = () => {
   };
 
   const handleHashtagFilter = (hashtags) => {
-    console.log('Forum: handleHashtagFilter called with:', hashtags); // Debug log
     // Clear search keyword first, then set hashtag filter
     setSearchKeyword('');
     // Handle both single hashtag (string) and array of hashtags
@@ -258,9 +270,24 @@ const Forum = () => {
     localStorage.removeItem('forum-search-mode');
   };
 
-  const handleLoadMore = () => {
-    setCurrentPage(prev => prev + 1);
-  };
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMorePosts) {
+      setIsLoadingMore(true);
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [isLoadingMore, hasMorePosts]);
+
+  // Intersection Observer for infinite scroll
+  const lastPostElementRefCallback = useCallback((node) => {
+    if (isLoadingMore) return;
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMorePosts && !isLoadingMore) {
+        handleLoadMore();
+      }
+    });
+    if (node) observerRef.current.observe(node);
+  }, [isLoadingMore, hasMorePosts, handleLoadMore]);
 
   const openEditModal = (post) => {
     setEditingPost(post);
@@ -445,15 +472,22 @@ const Forum = () => {
               </div>
             )}
             
+            {/* Infinite scroll trigger element */}
             {!selectedPostId && hasMorePosts && (
-              <div className="load-more-container">
-                <button 
-                    onClick={handleLoadMore}
-                  className="load-more-btn"
-                    disabled={isLoading}
-                >
-                    {isLoading ? t('forum.post.loadingMore') : t('forum.post.loadMore')}
-                </button>
+              <div ref={lastPostElementRefCallback} className="infinite-scroll-trigger">
+                {isLoadingMore && (
+                  <div className="loading-more-container">
+                    <div className="loading-spinner"></div>
+                    <p>{t('forum.post.loadingMore')}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Show message when no more posts */}
+            {!selectedPostId && !hasMorePosts && posts.length > 0 && (
+              <div className="no-more-posts">
+                <p>{t('forum.post.noMorePosts')}</p>
               </div>
             )}
           </>

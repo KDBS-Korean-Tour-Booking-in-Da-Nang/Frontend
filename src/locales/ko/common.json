@@ -446,6 +446,7 @@
 			"createFirst": "첫 게시물 작성",
 			"loadMore": "더 많은 게시물 보기",
 			"loadingMore": "로딩 중...",
+			"noMorePosts": "더 이상 로드할 게시물이 없습니다",
 			"backToList": "← 목록으로 돌아가기",
 			"edit": "수정",
 			"delete": "삭제",
