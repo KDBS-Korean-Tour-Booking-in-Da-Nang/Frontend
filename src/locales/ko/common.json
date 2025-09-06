@@ -395,7 +395,239 @@
 			"staff": "스태프:",
 			"password": "비밀번호: (아무거나)"
 		}
+	},
+	"forum": {
+		"title": "포럼",
+		"createPost": {
+			"placeholder": "무엇을 생각하고 계신가요?",
+			"title": "새 게시물 작성",
+			"editTitle": "게시물 수정",
+			"titleLabel": "제목",
+			"titlePlaceholder": "게시물 제목을 입력하세요...",
+			"contentLabel": "내용",
+			"contentPlaceholder": "생각을 공유해보세요...",
+			"hashtagsLabel": "해시태그",
+			"hashtagsPlaceholder": "해시태그를 입력하세요 (쉼표로 구분)...",
+			"imagesLabel": "이미지",
+			"addImages": "이미지 추가",
+			"removeImage": "이미지 제거",
+			"submit": "게시",
+			"submitting": "게시 중...",
+			"update": "업데이트",
+			"updating": "업데이트 중...",
+			"cancel": "취소",
+			"errors": {
+				"titleRequired": "제목을 입력해주세요",
+				"contentRequired": "내용을 입력해주세요",
+				"titleMinLength": "제목은 최소 5자 이상이어야 합니다",
+				"contentMinLength": "내용은 최소 10자 이상이어야 합니다",
+				"imageSize": "이미지 크기는 5MB를 초과할 수 없습니다",
+				"imageFormat": "JPG, PNG, GIF 형식만 지원됩니다",
+				"updateError": "게시물 업데이트 중 오류가 발생했습니다",
+				"submitError": "게시물 게시 중 오류가 발생했습니다",
+				"imageEditNote": "게시물 수정 시 이미지를 변경할 수 없습니다"
+			}
+		},
+		"post": {
+			"loading": "게시물 로딩 중...",
+			"noPosts": "게시물이 없습니다",
+			"noPostsDesc": "첫 번째로 무언가를 공유해보세요!",
+			"createFirst": "첫 게시물 작성",
+			"loadMore": "더 많은 게시물 보기",
+			"loadingMore": "로딩 중...",
+			"backToList": "← 목록으로 돌아가기",
+			"edit": "수정",
+			"delete": "삭제",
+			"report": "신고",
+			"save": "저장",
+			"unsave": "저장 취소",
+			"like": "좋아요",
+			"unlike": "좋아요 취소",
+			"comment": "댓글",
+			"comments": "댓글",
+			"reply": "답글",
+			"showReplies": "답글 보기",
+			"hideReplies": "답글 숨기기",
+			"ago": "전",
+			"justNow": "방금 전",
+			"minutes": "분",
+			"hours": "시간",
+			"days": "일",
+			"weeks": "주",
+			"months": "개월",
+			"years": "년",
+			"deleteConfirm": "이 게시물을 삭제하시겠습니까?",
+			"deleteSuccess": "게시물이 성공적으로 삭제되었습니다",
+			"deleteError": "게시물을 삭제할 수 없습니다. 다시 시도해주세요.",
+			"saveSuccess": "게시물이 저장되었습니다",
+			"unsaveSuccess": "게시물 저장이 취소되었습니다",
+			"likeSuccess": "게시물에 좋아요를 눌렀습니다",
+			"unlikeSuccess": "게시물 좋아요를 취소했습니다"
+		},
+		"comments": {
+			"placeholder": "댓글을 작성하세요...",
+			"submit": "댓글",
+			"submitting": "전송 중...",
+			"edit": "수정",
+			"delete": "삭제",
+			"reply": "답글",
+			"editPlaceholder": "댓글을 수정하세요...",
+			"replyPlaceholder": "답글을 작성하세요...",
+			"update": "업데이트",
+			"updating": "업데이트 중...",
+			"cancel": "취소",
+			"deleteConfirm": "이 댓글을 삭제하시겠습니까?",
+			"deleteSuccess": "댓글이 삭제되었습니다",
+			"deleteError": "댓글을 삭제할 수 없습니다. 다시 시도해주세요.",
+			"updateSuccess": "댓글이 업데이트되었습니다",
+			"updateError": "댓글을 업데이트할 수 없습니다. 다시 시도해주세요.",
+			"submitSuccess": "댓글이 추가되었습니다",
+			"submitError": "댓글을 추가할 수 없습니다. 다시 시도해주세요.",
+			"hideComments": "댓글 숨기기",
+			"showMore": "더 보기",
+			"noComments": "아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!"
+		},
+		"search": {
+			"title": "게시물 검색",
+			"placeholder": "게시물 검색...",
+			"searchButton": "검색",
+			"clearButton": "검색 지우기",
+			"noResults": "검색 결과가 없습니다",
+			"popularHashtags": "인기 해시태그",
+			"recentSearches": "최근 검색",
+			"clearRecent": "검색 기록 지우기",
+			"by": "작성자",
+			"user": "사용자",
+			"posts": "게시물"
+		},
+		"sidebar": {
+			"savedPosts": "📚 저장된 게시물",
+			"reactions": "👍 반응한 게시물",
+			"userSuggestions": "친구 추천",
+			"trendingTopics": "인기 주제",
+			"onlineUsers": "온라인 사용자",
+			"follow": "팔로우",
+			"unfollow": "언팔로우",
+			"viewProfile": "프로필 보기",
+			"people": "명",
+			"mutualFriends": "공통 친구",
+			"seeAllSuggestions": "모든 추천 보기",
+			"mockUsers": {
+				"user1": "김철수",
+				"user2": "이영희",
+				"user3": "박민수",
+				"user4": "정수진",
+				"user5": "최동현"
+			}
+		},
+		"trendingTopics": {
+			"ai": "최신 AI 기술",
+			"startup": "성공한 스타트업",
+			"marketing": "디지털 마케팅",
+			"finance": "금융 투자",
+			"design": "UX/UI 디자인"
+		},
+		"modals": {
+			"savedPosts": {
+				"title": "📚 저장된 게시물",
+				"noSavedPosts": "아직 저장한 게시물이 없습니다",
+				"noSavedPostsDesc": "흥미로운 게시물을 저장해서 나중에 다시 보세요!",
+				"close": "닫기",
+				"loadError": "저장된 게시물 목록을 불러올 수 없습니다",
+				"retry": "다시 시도",
+				"clickToView": "게시물 보려면 클릭",
+				"savedAt": "저장 시간",
+				"note": "메모",
+				"unsave": "저장 취소",
+				"previous": "이전",
+				"next": "다음",
+				"pageInfo": "페이지 {{current}} / {{total}} ({{count}}개 게시물)"
+			},
+			"reactions": {
+				"title": "👍 반응한 게시물",
+				"noReactions": "아직 반응한 게시물이 없습니다",
+				"noReactionsDesc": "좋아요와 댓글로 커뮤니티와 소통해보세요!",
+				"close": "닫기",
+				"all": "전체",
+				"liked": "좋아요",
+				"disliked": "싫어요",
+				"reacted": "반응",
+				"clickToView": "게시물 보려면 클릭",
+				"post": "게시물",
+				"comment": "댓글",
+				"removeReaction": "반응 제거"
+			},
+			"report": {
+				"title": "게시물 신고",
+				"reason": "신고 사유",
+				"selectReason": "신고 사유를 선택해주세요:",
+				"selectReasonError": "최소 하나의 신고 사유를 선택해주세요",
+				"additionalDescription": "추가 설명 (선택사항):",
+				"descriptionPlaceholder": "신고 사유를 자세히 설명해주세요...",
+				"submit": "신고 제출",
+				"submitting": "제출 중...",
+				"submitError": "게시물 신고 중 오류가 발생했습니다. 다시 시도해주세요.",
+				"cancel": "취소",
+				"success": "신고가 성공적으로 제출되었습니다",
+				"error": "신고를 제출할 수 없습니다. 다시 시도해주세요.",
+				"reasons": {
+					"spam": "스팸",
+					"spamDesc": "스팸 콘텐츠 또는 부적절한 광고",
+					"inappropriate": "부적절한 내용",
+					"inappropriateDesc": "불쾌하거나 부적절할 수 있는 내용",
+					"violence": "폭력",
+					"violenceDesc": "폭력이나 위협을 포함한 내용",
+					"harassment": "괴롭힘",
+					"harassmentDesc": "다른 사람을 괴롭히거나 따돌리는 행위",
+					"hateSpeech": "혐오 발언",
+					"hateSpeechDesc": "혐오 발언이나 차별",
+					"falseInfo": "거짓 정보",
+					"falseInfoDesc": "오해를 불러일으키거나 거짓 정보",
+					"copyright": "저작권 침해",
+					"copyrightDesc": "저작권이나 지적재산권 침해",
+					"other": "기타",
+					"otherDesc": "기타 사유"
+				}
+			},
+			"reportSuccess": {
+				"title": "신고가 성공적으로 제출되었습니다!",
+				"message": "신고해주셔서 감사합니다. 가능한 한 빨리 검토하고 처리하겠습니다.",
+				"adminNote": "관리자 검토를 기다려주세요!",
+				"autoClose": "{{seconds}}초 후 자동 닫기",
+				"understood": "이해했습니다"
+			}
+		},
+		"guest": {
+			"welcome": "👋 포럼에 오신 것을 환영합니다!",
+			"loginPrompt": "토론에 참여하고 생각을 공유하려면 로그인하세요.",
+			"loginLink": "로그인",
+			"loginToSave": "게시물을 저장하려면 로그인하세요",
+			"loginToReact": "반응하려면 로그인하세요",
+			"loginToComment": "댓글을 작성하려면 로그인하세요"
+		},
+		"errors": {
+			"loadPosts": "게시물을 불러올 수 없습니다. 다시 시도해주세요.",
+			"loadComments": "댓글을 불러올 수 없습니다. 다시 시도해주세요.",
+			"networkError": "연결 오류. 인터넷을 확인하고 다시 시도해주세요.",
+			"unauthorized": "이 작업을 수행하려면 로그인이 필요합니다.",
+			"forbidden": "이 작업을 수행할 권한이 없습니다.",
+			"notFound": "요청한 내용을 찾을 수 없습니다.",
+			"serverError": "서버 오류. 나중에 다시 시도해주세요."
+		},
+		"mockPosts": {
+			"ai": {
+				"title": "2025년 최신 AI 기술",
+				"content": "AI가 빠른 속도로 발전하고 있습니다. GPT-5, Claude 4와 같은 새로운 기술들이 우리가 일하고 학습하는 방식을 바꾸고 있습니다.",
+				"comment": "정말 좋은 글입니다! AI가 정말로 세상을 바꾸고 있네요."
+			},
+			"startup": {
+				"title": "스타트업 성공: 실패에서 배우는 교훈",
+				"content": "실패는 끝이 아니라 성공으로 가는 디딤돌입니다. 실패한 스타트업들로부터 소중한 교훈을 공유해봅시다."
+			},
+			"marketing": {
+				"title": "4.0 시대의 디지털 마케팅",
+				"content": "디지털 마케팅이 주요 트렌드가 되고 있습니다. 전통적인 마케팅 전략은 디지털 시대에 맞게 업데이트되어야 합니다."
+			}
+		}
 	}
 }
-
-

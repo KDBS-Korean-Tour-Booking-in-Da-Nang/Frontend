@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import './SearchSidebar.css';
 
 const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
+  const { t } = useTranslation();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [popularHashtags, setPopularHashtags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,12 +99,12 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
       setSelectedIndex(-1);
       return;
     }
-    
+
     // Don't fetch suggestions if we're currently clicking a suggestion or updating from suggestion
     if (isClickingSuggestion.current || isUpdatingFromSuggestion.current) {
       return;
     }
-    
+
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       fetchSuggestions(searchKeyword.trim());
@@ -130,13 +132,13 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < suggestions.length - 1 ? prev + 1 : 0
         );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev > 0 ? prev - 1 : suggestions.length - 1
         );
         break;
@@ -172,25 +174,25 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
         const postsData = await postsRes.json();
         const posts = postsData.content || [];
         console.log('Fetched posts for suggestions:', posts); // Debug log
-        
+
         posts.forEach(p => {
           // Add post titles
           if (p.title && p.title.toLowerCase().includes(q.toLowerCase())) {
-            result.push({ 
-              type: 'post', 
-              text: p.title, 
-              subtitle: `bởi ${p.username}`,
+            result.push({
+              type: 'post',
+              text: p.title,
+              subtitle: `${t('forum.search.by')} ${p.username}`,
               postId: p.forumPostId,
               icon: '📝'
             });
           }
-          
+
           // Add usernames
           if (p.username && p.username.toLowerCase().includes(q.toLowerCase())) {
-            result.push({ 
-              type: 'user', 
-              text: p.username, 
-              subtitle: 'người dùng',
+            result.push({
+              type: 'user',
+              text: p.username,
+              subtitle: t('forum.search.user'),
               icon: '👤'
             });
           }
@@ -203,10 +205,10 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
       if (hashtagsRes.ok) {
         const hashtags = await hashtagsRes.json();
         hashtags.forEach(h => {
-          result.push({ 
-            type: 'hashtag', 
-            text: `#${h.content}`, 
-            subtitle: `${h.postCount || 0} bài viết`,
+          result.push({
+            type: 'hashtag',
+            text: `#${h.content}`,
+            subtitle: `${h.postCount || 0} ${t('forum.search.posts')}`,
             hashtag: h.content,
             icon: '#'
           });
@@ -250,15 +252,15 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
     e.preventDefault();
     e.stopPropagation();
     console.log('Clicking suggestion:', s); // Debug log
-    
+
     // Close suggestions immediately to prevent re-opening
     setShowSuggest(false);
     setSelectedIndex(-1);
     setSuggestions([]); // Clear suggestions to prevent re-fetching
-    
+
     // Set flag to prevent outside click from closing suggestions
     isClickingSuggestion.current = true;
-    
+
     // Perform the appropriate action
     if (s.type === 'hashtag') {
       const tag = s.hashtag || s.text.replace(/^#/, '');
@@ -271,17 +273,17 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
       console.log('Calling onSearch with:', s.text); // Debug log
       onSearch(s.text);
       console.log('Setting search keyword to:', s.text); // Debug log
-      
+
       // Set flag to prevent re-fetching suggestions
       isUpdatingFromSuggestion.current = true;
       setSearchKeyword(s.text); // Update the search keyword in the input
-      
+
       // Reset flag after a short delay
       setTimeout(() => {
         isUpdatingFromSuggestion.current = false;
       }, 500);
     }
-    
+
     // Reset flag after a short delay
     setTimeout(() => {
       isClickingSuggestion.current = false;
@@ -307,12 +309,12 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
   return (
     <div className="search-sidebar" ref={rootRef}>
       <div className="search-section">
-        <h3 className="sidebar-title">Tìm kiếm bài viết</h3>
+        <h3 className="sidebar-title">{t('forum.search.title')}</h3>
         <form onSubmit={handleSearch} className="search-form">
           <div className="search-input-container">
             <input
               type="text"
-              placeholder="Tìm kiếm bài viết..."
+              placeholder={t('forum.search.placeholder')}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -348,14 +350,14 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
               onClick={handleClearSearch}
               className="clear-search-btn"
             >
-              Xóa tìm kiếm
+              {t('forum.search.clearButton')}
             </button>
           )}
         </form>
       </div>
 
       <div className="hashtags-section">
-        <h3 className="sidebar-title">Hashtags phổ biến</h3>
+        <h3 className="sidebar-title">{t('forum.search.popularHashtags')}</h3>
         <div className="hashtags-list">
           {popularHashtags.map((hashtag, index) => (
             <button
@@ -371,27 +373,27 @@ const SearchSidebar = ({ onSearch, onHashtagFilter }) => {
       </div>
 
       <div className="trending-section">
-        <h3 className="sidebar-title">Xu hướng</h3>
+        <h3 className="sidebar-title">{t('forum.sidebar.trendingTopics')}</h3>
         <div className="trending-topics">
           <div className="trending-topic">
             <span className="topic-number">1</span>
-            <span className="topic-text">Công nghệ AI mới nhất</span>
+            <span className="topic-text">{t('forum.trendingTopics.ai')}</span>
           </div>
           <div className="trending-topic">
             <span className="topic-number">2</span>
-            <span className="topic-text">Startup thành công</span>
+            <span className="topic-text">{t('forum.trendingTopics.startup')}</span>
           </div>
           <div className="trending-topic">
             <span className="topic-number">3</span>
-            <span className="topic-text">Marketing số</span>
+            <span className="topic-text">{t('forum.trendingTopics.marketing')}</span>
           </div>
           <div className="trending-topic">
             <span className="topic-number">4</span>
-            <span className="topic-text">Đầu tư tài chính</span>
+            <span className="topic-text">{t('forum.trendingTopics.finance')}</span>
           </div>
           <div className="trending-topic">
             <span className="topic-number">5</span>
-            <span className="topic-text">Thiết kế UX/UI</span>
+            <span className="topic-text">{t('forum.trendingTopics.design')}</span>
           </div>
         </div>
       </div>

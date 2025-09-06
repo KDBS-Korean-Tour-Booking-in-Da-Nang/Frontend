@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './ReportSuccessModal.css';
 
 const ReportSuccessModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [timeLeft, setTimeLeft] = useState(3);
 
   useEffect(() => {
@@ -38,50 +40,50 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
     <div className="report-success-overlay" onClick={onClose}>
       <div className="report-success-modal" onClick={(e) => e.stopPropagation()}>
         <div className="success-icon">
-          <svg 
-            width="48" 
-            height="48" 
-            viewBox="0 0 24 24" 
-            fill="none" 
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <circle cx="12" cy="12" r="10" fill="#10b981" />
-            <path 
-              d="M9 12l2 2 4-4" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <path
+              d="M9 12l2 2 4-4"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </div>
-        
+
         <div className="success-content">
-          <h3>Báo cáo đã được gửi thành công!</h3>
+          <h3>{t('forum.modals.reportSuccess.title')}</h3>
           <p>
-            Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét và xử lý báo cáo của bạn trong thời gian sớm nhất.
+            {t('forum.modals.reportSuccess.message')}
           </p>
           <p className="admin-note">
-            <strong>Vui lòng đợi admin xem xét!</strong>
+            <strong>{t('forum.modals.reportSuccess.adminNote')}</strong>
           </p>
         </div>
-        
+
         <div className="auto-close-progress">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ 
+            <div
+              className="progress-fill"
+              style={{
                 width: `${((3 - timeLeft) / 3) * 100}%`,
                 transition: 'width 1s linear'
               }}
             ></div>
           </div>
-          <div className="progress-text">Tự động đóng sau {timeLeft}s</div>
+          <div className="progress-text">{t('forum.modals.reportSuccess.autoClose', { seconds: timeLeft })}</div>
         </div>
-        
+
         <div className="success-actions">
           <button className="ok-btn" onClick={onClose}>
-            Đã hiểu
+            {t('forum.modals.reportSuccess.understood')}
           </button>
         </div>
       </div>

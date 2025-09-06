@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import PostModal from './components/PostModal/PostModal';
 import PostCard from './components/PostCard/PostCard';
@@ -9,6 +10,7 @@ import ReactionsModal from './components/ReactionsModal/ReactionsModal';
 import './forum.css';
 
 const Forum = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,13 +64,13 @@ const Forum = () => {
     try {
       console.log('Forum: fetchPosts called with:', { searchKeyword, selectedHashtags, currentPage }); // Debug log
       setIsLoading(true);
-      
+
       let url = `http://localhost:8080/api/posts/search?page=${currentPage}&size=10&sort=createdAt,desc`;
-      
+
       if (searchKeyword) {
         url += `&keyword=${encodeURIComponent(searchKeyword)}`;
       }
-      
+
       if (selectedHashtags.length > 0) {
         selectedHashtags.forEach(tag => {
           url += `&hashtags=${encodeURIComponent(tag)}`;
@@ -80,13 +82,13 @@ const Forum = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Forum: Received data:', data); // Debug log
-        
+
         if (currentPage === 0) {
           setPosts(data.content || []);
         } else {
           setPosts(prev => [...prev, ...(data.content || [])]);
         }
-        
+
         setHasMorePosts(!data.last);
       } else {
         throw new Error('Failed to fetch posts');
@@ -106,8 +108,8 @@ const Forum = () => {
     return [
       {
         forumPostId: 1,
-        title: 'Công nghệ AI mới nhất 2025',
-        content: 'AI đang phát triển với tốc độ chóng mặt. Các công nghệ mới như GPT-5, Claude 4 đang thay đổi cách chúng ta làm việc và học tập.',
+        title: t('forum.mockPosts.ai.title'),
+        content: t('forum.mockPosts.ai.content'),
         username: 'Nguyễn Văn A',
         userAvatar: '/default-avatar.png',
         createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
@@ -123,7 +125,7 @@ const Forum = () => {
         comments: [
           {
             forumCommentId: 1,
-            content: 'Bài viết rất hay! AI thực sự đang thay đổi thế giới.',
+            content: t('forum.mockPosts.ai.comment'),
             username: 'Trần Thị B',
             userAvatar: '/default-avatar.png',
             createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
@@ -132,8 +134,8 @@ const Forum = () => {
       },
       {
         forumPostId: 2,
-        title: 'Startup thành công: Bài học từ thất bại',
-        content: 'Thất bại không phải là kết thúc, mà là bước đệm để thành công. Hãy cùng chia sẻ những bài học quý giá từ những startup đã thất bại.',
+        title: t('forum.mockPosts.startup.title'),
+        content: t('forum.mockPosts.startup.content'),
         username: 'Lê Văn C',
         userAvatar: '/default-avatar.png',
         createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
@@ -148,8 +150,8 @@ const Forum = () => {
       },
       {
         forumPostId: 3,
-        title: 'Marketing số trong thời đại 4.0',
-        content: 'Digital marketing đang trở thành xu hướng chính. Các chiến lược marketing truyền thống cần được cập nhật để phù hợp với thời đại số.',
+        title: t('forum.mockPosts.marketing.title'),
+        content: t('forum.mockPosts.marketing.content'),
         username: 'Phạm Thị D',
         userAvatar: '/default-avatar.png',
         createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
@@ -171,8 +173,8 @@ const Forum = () => {
   const handleCreatePost = (post) => {
     if (editingPost) {
       // Update existing post
-      setPosts(prev => 
-        prev.map(p => 
+      setPosts(prev =>
+        prev.map(p =>
           p.forumPostId === post.forumPostId ? post : p
         )
       );
@@ -222,7 +224,7 @@ const Forum = () => {
 
   const handleCommentAdded = (comment) => {
     // Update comment count in the post
-    setPosts(prev => 
+    setPosts(prev =>
       prev.map(post => {
         if (post.forumPostId === comment.postId) {
           return {
@@ -231,11 +233,11 @@ const Forum = () => {
               ...post.reactions,
               commentCount: (post.reactions?.commentCount || 0) + 1
             }
-            };
-          }
-          return post;
-        })
-      );
+          };
+        }
+        return post;
+      })
+    );
   };
 
   return (
@@ -245,25 +247,25 @@ const Forum = () => {
         <div className="forum-header">
           <div className="create-post-section">
             <div className="create-post-input" onClick={() => setShowPostModal(true)}>
-              <img 
-                src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}`) : '/default-avatar.png'} 
+              <img
+                src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}`) : '/default-avatar.png'}
                 alt={user?.username}
                 className="user-avatar-small"
               />
-              <span className="create-post-text">Bạn đang nghĩ gì?</span>
+              <span className="create-post-text">{t('forum.createPost.placeholder')}</span>
             </div>
             <div className="header-buttons">
-              <button 
+              <button
                 className="saved-posts-btn"
                 onClick={() => setShowSavedPostsModal(true)}
               >
-                📚 Bài viết đã lưu
+                {t('forum.sidebar.savedPosts')}
               </button>
-              <button 
+              <button
                 className="reactions-btn"
                 onClick={() => setShowReactionsModal(true)}
               >
-                👍 Bài viết đã tương tác
+                {t('forum.sidebar.reactions')}
               </button>
             </div>
           </div>
@@ -271,15 +273,15 @@ const Forum = () => {
       ) : (
         <div className="forum-header guest-notice">
           <div className="guest-message">
-            <p>👋 Chào mừng bạn đến với diễn đàn! <a href="/login">Đăng nhập</a> để tham gia thảo luận và chia sẻ ý kiến.</p>
+            <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
           </div>
         </div>
       )}
 
       <div className="forum-content">
-      {/* Left Sidebar - Search */}
+        {/* Left Sidebar - Search */}
         <div className="forum-sidebar left">
-      <SearchSidebar 
+          <SearchSidebar
             onSearch={handleSearch}
             onHashtagFilter={handleHashtagFilter}
           />
@@ -290,78 +292,78 @@ const Forum = () => {
           {isLoading && currentPage === 0 ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>Đang tải bài viết...</p>
+              <p>{t('forum.post.loading')}</p>
             </div>
           ) : posts.length === 0 ? (
             <div className="no-posts">
-              <h3>Không có bài viết nào</h3>
-              <p>Hãy là người đầu tiên chia sẻ điều gì đó!</p>
+              <h3>{t('forum.post.noPosts')}</h3>
+              <p>{t('forum.post.noPostsDesc')}</p>
               {user && (
-                <button 
+                <button
                   onClick={() => setShowPostModal(true)}
                   className="create-first-post-btn"
                 >
-                  Tạo bài viết đầu tiên
+                  {t('forum.post.createFirst')}
                 </button>
               )}
             </div>
-        ) : (
-          <>
-            {selectedPostId && singlePost ? (
-              <div className="single-post-view">
-                <div className="back-button-container">
-                  <button className="back-button" onClick={backToAllPosts}>
-                    ← Quay lại danh sách
+          ) : (
+            <>
+              {selectedPostId && singlePost ? (
+                <div className="single-post-view">
+                  <div className="back-button-container">
+                    <button className="back-button" onClick={backToAllPosts}>
+                      {t('forum.post.backToList')}
+                    </button>
+                  </div>
+                  <div className="posts-feed">
+                    <PostCard
+                      key={singlePost.forumPostId}
+                      post={singlePost}
+                      onPostUpdated={handleCreatePost}
+                      onPostDeleted={handlePostDeleted}
+                      onEdit={openEditModal}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="posts-feed">
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.forumPostId}
+                      post={post}
+                      onPostUpdated={handleCreatePost}
+                      onPostDeleted={handlePostDeleted}
+                      onEdit={openEditModal}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!selectedPostId && hasMorePosts && (
+                <div className="load-more-container">
+                  <button
+                    onClick={handleLoadMore}
+                    className="load-more-btn"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? t('forum.post.loadingMore') : t('forum.post.loadMore')}
                   </button>
                 </div>
-                <div className="posts-feed">
-                  <PostCard 
-                    key={singlePost.forumPostId}
-                    post={singlePost}
-                    onPostUpdated={handleCreatePost}
-                    onPostDeleted={handlePostDeleted}
-                    onEdit={openEditModal}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="posts-feed">
-                {posts.map((post) => (
-                  <PostCard 
-                    key={post.forumPostId}
-                    post={post}
-                    onPostUpdated={handleCreatePost}
-                    onPostDeleted={handlePostDeleted}
-                    onEdit={openEditModal}
-                  />
-                ))}
-              </div>
-            )}
-            
-            {!selectedPostId && hasMorePosts && (
-              <div className="load-more-container">
-                <button 
-                    onClick={handleLoadMore}
-                  className="load-more-btn"
-                    disabled={isLoading}
-                >
-                    {isLoading ? 'Đang tải...' : 'Tải thêm bài viết'}
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Right Sidebar - User Suggestions */}
         <div className="forum-sidebar right">
-      <UserSidebar />
+          <UserSidebar />
         </div>
       </div>
 
       {/* Post Modal - Only show if user is logged in */}
       {user && (
-        <PostModal 
+        <PostModal
           isOpen={showPostModal}
           onClose={closePostModal}
           onPostCreated={handleCreatePost}
@@ -371,7 +373,7 @@ const Forum = () => {
 
       {/* Saved Posts Modal - Only show if user is logged in */}
       {user && (
-        <SavedPostsModal 
+        <SavedPostsModal
           isOpen={showSavedPostsModal}
           onClose={() => setShowSavedPostsModal(false)}
           onPostClick={showSinglePost}
@@ -380,7 +382,7 @@ const Forum = () => {
 
       {/* Reactions Modal - Only show if user is logged in */}
       {user && (
-        <ReactionsModal 
+        <ReactionsModal
           isOpen={showReactionsModal}
           onClose={() => setShowReactionsModal(false)}
           onPostClick={showSinglePost}

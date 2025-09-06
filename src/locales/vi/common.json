@@ -395,7 +395,239 @@
 			"staff": "Staff:",
 			"password": "Mật khẩu: (bất kỳ)"
 		}
+	},
+	"forum": {
+		"title": "Diễn đàn",
+		"createPost": {
+			"placeholder": "Bạn đang nghĩ gì?",
+			"title": "Tạo bài viết mới",
+			"editTitle": "Chỉnh sửa bài viết",
+			"titleLabel": "Tiêu đề",
+			"titlePlaceholder": "Nhập tiêu đề bài viết...",
+			"contentLabel": "Nội dung",
+			"contentPlaceholder": "Chia sẻ suy nghĩ của bạn...",
+			"hashtagsLabel": "Hashtags",
+			"hashtagsPlaceholder": "Nhập hashtags (cách nhau bằng dấu phẩy)...",
+			"imagesLabel": "Hình ảnh",
+			"addImages": "Thêm hình ảnh",
+			"removeImage": "Xóa hình ảnh",
+			"submit": "Đăng bài",
+			"submitting": "Đang đăng...",
+			"update": "Cập nhật",
+			"updating": "Đang cập nhật...",
+			"cancel": "Hủy",
+			"errors": {
+				"titleRequired": "Vui lòng nhập tiêu đề",
+				"contentRequired": "Vui lòng nhập nội dung",
+				"titleMinLength": "Tiêu đề phải có ít nhất 5 ký tự",
+				"contentMinLength": "Nội dung phải có ít nhất 10 ký tự",
+				"imageSize": "Kích thước hình ảnh không được vượt quá 5MB",
+				"imageFormat": "Chỉ hỗ trợ định dạng JPG, PNG, GIF",
+				"updateError": "Có lỗi xảy ra khi cập nhật bài viết",
+				"submitError": "Có lỗi xảy ra khi đăng bài",
+				"imageEditNote": "Không thể thay đổi hình ảnh khi chỉnh sửa bài viết"
+			}
+		},
+		"post": {
+			"loading": "Đang tải bài viết...",
+			"noPosts": "Không có bài viết nào",
+			"noPostsDesc": "Hãy là người đầu tiên chia sẻ điều gì đó!",
+			"createFirst": "Tạo bài viết đầu tiên",
+			"loadMore": "Tải thêm bài viết",
+			"loadingMore": "Đang tải...",
+			"backToList": "← Quay lại danh sách",
+			"edit": "Chỉnh sửa",
+			"delete": "Xóa",
+			"report": "Báo cáo",
+			"save": "Lưu",
+			"unsave": "Bỏ lưu",
+			"like": "Thích",
+			"unlike": "Bỏ thích",
+			"comment": "Bình luận",
+			"comments": "Bình luận",
+			"reply": "Trả lời",
+			"showReplies": "Xem trả lời",
+			"hideReplies": "Ẩn trả lời",
+			"ago": "trước",
+			"justNow": "Vừa xong",
+			"minutes": "phút",
+			"hours": "giờ",
+			"days": "ngày",
+			"weeks": "tuần",
+			"months": "tháng",
+			"years": "năm",
+			"deleteConfirm": "Bạn có chắc chắn muốn xóa bài viết này?",
+			"deleteSuccess": "Bài viết đã được xóa thành công",
+			"deleteError": "Không thể xóa bài viết. Vui lòng thử lại.",
+			"saveSuccess": "Bài viết đã được lưu",
+			"unsaveSuccess": "Đã bỏ lưu bài viết",
+			"likeSuccess": "Đã thích bài viết",
+			"unlikeSuccess": "Đã bỏ thích bài viết"
+		},
+		"comments": {
+			"placeholder": "Viết bình luận...",
+			"submit": "Bình luận",
+			"submitting": "Đang gửi...",
+			"edit": "Chỉnh sửa",
+			"delete": "Xóa",
+			"reply": "Trả lời",
+			"editPlaceholder": "Chỉnh sửa bình luận...",
+			"replyPlaceholder": "Viết trả lời...",
+			"update": "Cập nhật",
+			"updating": "Đang cập nhật...",
+			"cancel": "Hủy",
+			"deleteConfirm": "Bạn có chắc chắn muốn xóa bình luận này?",
+			"deleteSuccess": "Bình luận đã được xóa",
+			"deleteError": "Không thể xóa bình luận. Vui lòng thử lại.",
+			"updateSuccess": "Bình luận đã được cập nhật",
+			"updateError": "Không thể cập nhật bình luận. Vui lòng thử lại.",
+			"submitSuccess": "Bình luận đã được thêm",
+			"submitError": "Không thể thêm bình luận. Vui lòng thử lại.",
+			"hideComments": "Ẩn bớt bình luận",
+			"showMore": "Xem thêm",
+			"noComments": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!"
+		},
+		"search": {
+			"title": "Tìm kiếm bài viết",
+			"placeholder": "Tìm kiếm bài viết...",
+			"searchButton": "Tìm kiếm",
+			"clearButton": "Xóa tìm kiếm",
+			"noResults": "Không tìm thấy kết quả nào",
+			"popularHashtags": "Hashtags phổ biến",
+			"recentSearches": "Tìm kiếm gần đây",
+			"clearRecent": "Xóa lịch sử",
+			"by": "bởi",
+			"user": "người dùng",
+			"posts": "bài viết"
+		},
+		"sidebar": {
+			"savedPosts": "📚 Bài viết đã lưu",
+			"reactions": "👍 Bài viết đã tương tác",
+			"userSuggestions": "Gợi ý kết bạn",
+			"trendingTopics": "Chủ đề nổi bật",
+			"onlineUsers": "Người dùng trực tuyến",
+			"follow": "Theo dõi",
+			"unfollow": "Bỏ theo dõi",
+			"viewProfile": "Xem hồ sơ",
+			"people": "người",
+			"mutualFriends": "bạn chung",
+			"seeAllSuggestions": "Xem tất cả gợi ý",
+			"mockUsers": {
+				"user1": "Nguyễn Văn A",
+				"user2": "Trần Thị B",
+				"user3": "Lê Văn C",
+				"user4": "Phạm Thị D",
+				"user5": "Hoàng Văn E"
+			}
+		},
+		"trendingTopics": {
+			"ai": "Công nghệ AI mới nhất",
+			"startup": "Startup thành công",
+			"marketing": "Marketing số",
+			"finance": "Đầu tư tài chính",
+			"design": "Thiết kế UX/UI"
+		},
+		"modals": {
+			"savedPosts": {
+				"title": "📚 Bài viết đã lưu",
+				"noSavedPosts": "Bạn chưa lưu bài viết nào",
+				"noSavedPostsDesc": "Hãy lưu những bài viết hay để xem lại sau!",
+				"close": "Đóng",
+				"loadError": "Không thể tải danh sách bài viết đã lưu",
+				"retry": "Thử lại",
+				"clickToView": "Click để xem bài viết",
+				"savedAt": "Lưu lúc",
+				"note": "Ghi chú",
+				"unsave": "Bỏ lưu",
+				"previous": "Trước",
+				"next": "Sau",
+				"pageInfo": "Trang {{current}} / {{total}} ({{count}} bài viết)"
+			},
+			"reactions": {
+				"title": "👍 Bài viết đã tương tác",
+				"noReactions": "Bạn chưa tương tác với bài viết nào",
+				"noReactionsDesc": "Hãy thích và bình luận để tương tác với cộng đồng!",
+				"close": "Đóng",
+				"all": "Tất cả",
+				"liked": "Đã thích",
+				"disliked": "Đã không thích",
+				"reacted": "Phản ứng",
+				"clickToView": "Click để xem bài viết",
+				"post": "Bài viết",
+				"comment": "Bình luận",
+				"removeReaction": "Bỏ tương tác"
+			},
+			"report": {
+				"title": "Báo cáo bài viết",
+				"reason": "Lý do báo cáo",
+				"selectReason": "Vui lòng chọn lý do báo cáo:",
+				"selectReasonError": "Vui lòng chọn ít nhất một lý do báo cáo",
+				"additionalDescription": "Mô tả thêm (tùy chọn):",
+				"descriptionPlaceholder": "Mô tả chi tiết về lý do báo cáo...",
+				"submit": "Gửi báo cáo",
+				"submitting": "Đang gửi...",
+				"submitError": "Có lỗi xảy ra khi báo cáo bài viết. Vui lòng thử lại.",
+				"cancel": "Hủy",
+				"success": "Báo cáo đã được gửi thành công",
+				"error": "Không thể gửi báo cáo. Vui lòng thử lại.",
+				"reasons": {
+					"spam": "Spam",
+					"spamDesc": "Nội dung spam hoặc quảng cáo không phù hợp",
+					"inappropriate": "Nội dung không phù hợp",
+					"inappropriateDesc": "Nội dung có thể gây khó chịu hoặc không phù hợp",
+					"violence": "Bạo lực",
+					"violenceDesc": "Nội dung chứa bạo lực hoặc đe dọa",
+					"harassment": "Quấy rối",
+					"harassmentDesc": "Quấy rối hoặc bắt nạt người khác",
+					"hateSpeech": "Ngôn từ thù địch",
+					"hateSpeechDesc": "Ngôn từ thù địch hoặc phân biệt đối xử",
+					"falseInfo": "Thông tin sai lệch",
+					"falseInfoDesc": "Thông tin sai lệch hoặc gây hiểu lầm",
+					"copyright": "Vi phạm bản quyền",
+					"copyrightDesc": "Vi phạm bản quyền hoặc sở hữu trí tuệ",
+					"other": "Khác",
+					"otherDesc": "Lý do khác"
+				}
+			},
+			"reportSuccess": {
+				"title": "Báo cáo đã được gửi thành công!",
+				"message": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét và xử lý báo cáo của bạn trong thời gian sớm nhất.",
+				"adminNote": "Vui lòng đợi admin xem xét!",
+				"autoClose": "Tự động đóng sau {{seconds}}s",
+				"understood": "Đã hiểu"
+			}
+		},
+		"guest": {
+			"welcome": "👋 Chào mừng bạn đến với diễn đàn!",
+			"loginPrompt": "Đăng nhập để tham gia thảo luận và chia sẻ ý kiến.",
+			"loginLink": "Đăng nhập",
+			"loginToSave": "Đăng nhập để lưu bài viết",
+			"loginToReact": "Đăng nhập để tương tác",
+			"loginToComment": "Đăng nhập để bình luận"
+		},
+		"errors": {
+			"loadPosts": "Không thể tải bài viết. Vui lòng thử lại.",
+			"loadComments": "Không thể tải bình luận. Vui lòng thử lại.",
+			"networkError": "Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.",
+			"unauthorized": "Bạn cần đăng nhập để thực hiện hành động này.",
+			"forbidden": "Bạn không có quyền thực hiện hành động này.",
+			"notFound": "Không tìm thấy nội dung yêu cầu.",
+			"serverError": "Lỗi máy chủ. Vui lòng thử lại sau."
+		},
+		"mockPosts": {
+			"ai": {
+				"title": "Công nghệ AI mới nhất 2025",
+				"content": "AI đang phát triển với tốc độ chóng mặt. Các công nghệ mới như GPT-5, Claude 4 đang thay đổi cách chúng ta làm việc và học tập.",
+				"comment": "Bài viết rất hay! AI thực sự đang thay đổi thế giới."
+			},
+			"startup": {
+				"title": "Startup thành công: Bài học từ thất bại",
+				"content": "Thất bại không phải là kết thúc, mà là bước đệm để thành công. Hãy cùng chia sẻ những bài học quý giá từ những startup đã thất bại."
+			},
+			"marketing": {
+				"title": "Marketing số trong thời đại 4.0",
+				"content": "Digital marketing đang trở thành xu hướng chính. Các chiến lược marketing truyền thống cần được cập nhật để phù hợp với thời đại số."
+			}
+		}
 	}
 }
-
-
