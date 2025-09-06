@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import './CommentSection.css';
 
-const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
+const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [showAllComments, setShowAllComments] = useState(false);
@@ -111,6 +111,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
         });
         onCommentAdded(newComment);
         setCommentText('');
+        // Close comment input after successful submission
+        if (onCommentInputToggle) {
+          onCommentInputToggle(false);
+        }
       } else {
         const text = await response.text().catch(() => '');
         console.error('Add comment failed:', response.status, text);
@@ -161,6 +165,15 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   };
 
   const reactComment = async (commentId, type) => {
+    // Check if user is logged in
+    if (!user) {
+      // Show login required modal for guest users
+      if (onLoginRequired) {
+        onLoginRequired();
+      }
+      return;
+    }
+    
     const email = user?.email || localStorage.getItem('userEmail') || localStorage.getItem('email');
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
     if (!email) return alert(t('forum.errors.unauthorized'));
@@ -203,7 +216,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   const submitReply = async (parentId) => {
     const text = (replyText[parentId] || '').trim();
     if (!text) return;
-    if (!user) return alert(t('forum.errors.unauthorized'));
+    if (!user) {
+      if (onLoginRequired) {
+        onLoginRequired();
+      }
+      return;
+    }
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
     const body = {
       userEmail: user.email,
@@ -230,7 +248,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   return (
     <div className="comment-section">
       {/* Comment Input */}
-      {user && (
+      {user && showCommentInput && (
         <div className="comment-input-container">
           <img 
             src={user.avatar ? user.avatar : '/default-avatar.png'} 
@@ -274,19 +292,47 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
                 </div>
                 <div className="comment-text">{comment.content}</div>
                 <div className="comment-actions">
-                  <button 
-                    className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'LIKE' ? 'active' : ''}`}
-                    onClick={() => reactComment(comment.forumCommentId, 'LIKE')}
-                  >
-                    {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
-                  </button>
-                  <button 
-                    className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'DISLIKE' ? 'active' : ''}`}
-                    onClick={() => reactComment(comment.forumCommentId, 'DISLIKE')}
-                  >
-                    {t('forum.post.unlike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
-                  </button>
-                  <button className="comment-action-btn" onClick={() => handleToggleReply(comment.forumCommentId)}>{t('forum.post.reply')}</button>
+                  {user ? (
+                    <>
+                      <button 
+                        className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'LIKE' ? 'active' : ''}`}
+                        onClick={() => reactComment(comment.forumCommentId, 'LIKE')}
+                      >
+                        {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
+                      </button>
+                      <button 
+                        className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'DISLIKE' ? 'active' : ''}`}
+                        onClick={() => reactComment(comment.forumCommentId, 'DISLIKE')}
+                      >
+                        {t('forum.post.dislike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
+                      </button>
+                      <button className="comment-action-btn" onClick={() => handleToggleReply(comment.forumCommentId)}>{t('forum.post.reply')}</button>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className="comment-action-btn-disabled" 
+                        title={t('forum.guest.loginToReact')}
+                        onClick={() => onLoginRequired && onLoginRequired()}
+                      >
+                        {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
+                      </div>
+                      <div 
+                        className="comment-action-btn-disabled" 
+                        title={t('forum.guest.loginToReact')}
+                        onClick={() => onLoginRequired && onLoginRequired()}
+                      >
+                        {t('forum.post.dislike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
+                      </div>
+                      <div 
+                        className="comment-action-btn-disabled" 
+                        title={t('forum.guest.loginToComment')}
+                        onClick={() => onLoginRequired && onLoginRequired()}
+                      >
+                        {t('forum.post.reply')}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Replies toggle */}

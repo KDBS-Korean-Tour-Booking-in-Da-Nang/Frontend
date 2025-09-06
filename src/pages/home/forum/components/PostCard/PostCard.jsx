@@ -5,9 +5,11 @@ import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
+import DeleteConfirmModal from '../../../../../components/DeleteConfirmModal/DeleteConfirmModal';
+import LoginRequiredModal from '../../../../../components/LoginRequiredModal/LoginRequiredModal';
 import './PostCard.css';
 
-const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
+const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -22,6 +24,9 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
   const [hasReported, setHasReported] = useState(false);
+  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showCommentInput, setShowCommentInput] = useState(false);
 
   useEffect(() => {
     // Always fetch reaction count and save count for all users (including guests)
@@ -338,33 +343,42 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
     setShowMenu(false);
   };
 
-  const handleDelete = async () => {
-    if (window.confirm(t('forum.post.deleteConfirm'))) {
-      try {
-        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-        const response = await fetch(`http://localhost:8080/api/posts/${post.forumPostId}?userEmail=${encodeURIComponent(user.email)}`, {
-          method: 'DELETE',
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          }
-        });
-
-        if (response.ok) {
-          onPostDeleted(post.forumPostId);
-        } else {
-          const text = await response.text().catch(()=> '');
-          console.error('Delete post failed:', response.status, text);
-          throw new Error('Failed to delete post');
-        }
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        alert(t('forum.post.deleteError'));
-      }
-    }
+  const handleDelete = () => {
+    setShowDeleteConfirmModal(true);
     setShowMenu(false);
   };
 
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const response = await fetch(`http://localhost:8080/api/posts/${post.forumPostId}?userEmail=${encodeURIComponent(user.email)}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        }
+      });
+
+      if (response.ok) {
+        onPostDeleted(post.forumPostId);
+      } else {
+        const text = await response.text().catch(()=> '');
+        console.error('Delete post failed:', response.status, text);
+        throw new Error('Failed to delete post');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert(t('forum.post.deleteError'));
+    }
+  };
+
   const handleReport = () => {
+    // Check if user is logged in
+    if (!user) {
+      setShowLoginRequiredModal(true);
+      setShowMenu(false);
+      return;
+    }
+    
     if (hasReported) {
       alert(t('forum.modals.report.error'));
       setShowMenu(false);
@@ -510,7 +524,11 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
                 </svg>
               </button>
             ) : (
-              <div className="save-btn-disabled" title={t('forum.guest.loginToSave')}>
+              <div 
+                className="save-btn-disabled" 
+                title={t('forum.guest.loginToSave')}
+                onClick={() => setShowLoginRequiredModal(true)}
+              >
                 <svg 
                   width="16" 
                   height="16" 
@@ -568,7 +586,12 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
         {post.hashtags && post.hashtags.length > 0 && (
           <div className="post-hashtags">
             {post.hashtags.map((tag, index) => (
-              <span key={index} className="hashtag">
+              <span 
+                key={index} 
+                className="hashtag"
+                onClick={() => onHashtagClick && onHashtagClick(tag.content)}
+                title={t('forum.hashtag.clickToFilter')}
+              >
                 #{tag.content}
               </span>
             ))}
@@ -594,53 +617,114 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
         {user ? (
           <>
             <button 
-              className={`action-btn ${isLiked ? 'liked' : ''}`}
+              className={`action-btn like-btn ${isLiked ? 'active' : ''}`}
               onClick={handleLike}
             >
-              <span className="action-icon">👍</span>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="action-icon"
+              >
+                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
+              </svg>
               <span className="action-text">{t('forum.post.like')}</span>
             </button>
             <button 
-              className={`action-btn ${isDisliked ? 'liked' : ''}`}
+              className={`action-btn dislike-btn ${isDisliked ? 'active' : ''}`}
               onClick={handleDislike}
             >
-              <span className="action-icon">👎</span>
-              <span className="action-text">{t('forum.post.unlike')}</span>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="action-icon"
+              >
+                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
+              </svg>
+              <span className="action-text">{t('forum.post.dislike')}</span>
             </button>
             
             <button 
-              className="action-btn"
-              onClick={() => document.querySelector('.comment-input')?.focus()}
+              className="action-btn comment-btn"
+              onClick={() => setShowCommentInput(!showCommentInput)}
             >
-              <span className="action-icon">💬</span>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="action-icon"
+              >
+                <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
+              </svg>
               <span className="action-text">{t('forum.post.comment')}</span>
             </button>
           </>
         ) : (
           <div className="guest-actions">
-            <div className="action-btn-disabled" title={t('forum.guest.loginToReact')}>
-              <span className="action-icon">👍</span>
+            <div 
+              className="action-btn-disabled like-btn-disabled" 
+              title={t('forum.guest.loginToReact')}
+              onClick={() => setShowLoginRequiredModal(true)}
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="action-icon"
+              >
+                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
+              </svg>
               <span className="action-text">{t('forum.post.like')}</span>
             </div>
-            <div className="action-btn-disabled" title={t('forum.guest.loginToReact')}>
-              <span className="action-icon">👎</span>
-              <span className="action-text">{t('forum.post.unlike')}</span>
+            <div 
+              className="action-btn-disabled dislike-btn-disabled" 
+              title={t('forum.guest.loginToReact')}
+              onClick={() => setShowLoginRequiredModal(true)}
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="action-icon"
+              >
+                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
+              </svg>
+              <span className="action-text">{t('forum.post.dislike')}</span>
             </div>
-            <div className="action-btn-disabled" title={t('forum.guest.loginToComment')}>
-              <span className="action-icon">💬</span>
+            <div 
+              className="action-btn-disabled comment-btn-disabled" 
+              title={t('forum.guest.loginToComment')}
+              onClick={() => setShowLoginRequiredModal(true)}
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+                className="action-icon"
+              >
+                <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
+              </svg>
               <span className="action-text">{t('forum.post.comment')}</span>
             </div>
           </div>
         )}
       </div>
 
-      {user && (
-        <CommentSection 
-          post={post}
-          onCommentAdded={handleCommentAdded}
-          onCountChange={handleCommentCountChange}
-        />
-      )}
+      <CommentSection 
+        post={post}
+        onCommentAdded={handleCommentAdded}
+        onCountChange={handleCommentCountChange}
+        onLoginRequired={() => setShowLoginRequiredModal(true)}
+        showCommentInput={showCommentInput}
+        onCommentInputToggle={setShowCommentInput}
+      />
     </div>
     <ImageViewerModal open={openViewer} onClose={() => setOpenViewer(false)} post={post} initialIndex={viewerIndex} />
     
@@ -654,6 +738,21 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
     <ReportSuccessModal 
       isOpen={showReportSuccess}
       onClose={() => setShowReportSuccess(false)}
+    />
+    
+    <LoginRequiredModal 
+      isOpen={showLoginRequiredModal}
+      onClose={() => setShowLoginRequiredModal(false)}
+      title={t('auth.loginRequired.title')}
+      message={t('auth.loginRequired.message')}
+      returnTo="/forum"
+    />
+    
+    <DeleteConfirmModal 
+      isOpen={showDeleteConfirmModal}
+      onClose={() => setShowDeleteConfirmModal(false)}
+      onConfirm={confirmDelete}
+      itemName={t('forum.post.post')}
     />
     </>
   );

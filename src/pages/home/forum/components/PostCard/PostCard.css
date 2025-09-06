@@ -54,13 +54,19 @@
 .save-btn-disabled {
   background: none;
   border: none;
-  cursor: not-allowed;
+  cursor: pointer;
   padding: 4px;
   color: #bcc0c4;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.save-btn-disabled:hover {
+  opacity: 0.8;
+  color: #65676b;
 }
 
 .bookmark-icon {
@@ -367,15 +373,49 @@
   font-weight: 500;
   cursor: pointer;
   border-radius: 6px;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .action-btn:hover {
   background-color: #f2f3f5;
 }
 
-.action-btn.liked {
+/* Like button styles */
+.like-btn.active {
   color: #1877f2;
+  background-color: #e7f3ff;
+}
+
+.like-btn.active .action-icon {
+  color: #1877f2;
+}
+
+.like-btn:hover {
+  background-color: #e7f3ff;
+}
+
+/* Dislike button styles */
+.dislike-btn.active {
+  color: #e41e3f;
+  background-color: #ffe7eb;
+}
+
+.dislike-btn.active .action-icon {
+  color: #e41e3f;
+}
+
+.dislike-btn:hover {
+  background-color: #ffe7eb;
+}
+
+/* Rotate dislike icon 180 degrees to make it thumbs down */
+.dislike-btn .action-icon {
+  transform: rotate(180deg);
+}
+
+/* Comment button styles */
+.comment-btn:hover {
+  background-color: #f0f2f5;
 }
 
 .guest-actions {
@@ -395,9 +435,39 @@
   color: #bcc0c4;
   font-size: 15px;
   font-weight: 500;
-  cursor: not-allowed;
+  cursor: pointer;
   border-radius: 6px;
   opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.action-btn-disabled:hover {
+  opacity: 0.8;
+  color: #65676b;
+  background-color: #f0f2f5;
+}
+
+/* Guest like button styles */
+.like-btn-disabled:hover {
+  background-color: #e7f3ff;
+  color: #1877f2;
+}
+
+/* Guest dislike button styles */
+.dislike-btn-disabled:hover {
+  background-color: #ffe7eb;
+  color: #e41e3f;
+}
+
+/* Rotate guest dislike icon 180 degrees to make it thumbs down */
+.dislike-btn-disabled .action-icon {
+  transform: rotate(180deg);
+}
+
+/* Guest comment button styles */
+.comment-btn-disabled:hover {
+  background-color: #f0f2f5;
+  color: #65676b;
 }
 
 .action-icon {

@@ -144,6 +144,26 @@
   background-color: #e4e6eb;
 }
 
+.comment-action-btn-disabled {
+  background: none;
+  border: none;
+  color: #bcc0c4;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.comment-action-btn-disabled:hover {
+  background-color: #f0f2f5;
+  color: #65676b;
+}
+
 .show-more-comments {
   padding: 16px 20px;
   text-align: center;

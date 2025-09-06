@@ -2,6 +2,7 @@
 	"brand": "Đà Nẵng - Korea Tour",
 	"nav": {
 		"home": "Trang chủ",
+		"forum": "Diễn đàn",
 		"admin": "Admin Dashboard",
 		"profile": "Hồ sơ",
 		"payment": "Thanh toán",
@@ -17,7 +18,20 @@
 		"en": "English",
 		"ko": "한국어"
 	},
+	"common": {
+		"close": "Đóng",
+		"cancel": "Hủy",
+		"delete": "Xóa",
+		"deleteConfirm": {
+			"title": "Xác nhận xóa",
+			"message": "Bạn có chắc chắn muốn xóa {{item}} này không? Hành động này không thể hoàn tác."
+		}
+	},
 	"auth": {
+		"loginRequired": {
+			"title": "Vui lòng đăng nhập để thực hiện",
+			"message": "Vui lòng đăng nhập để thực hiện hành động này."
+		},
 		"common": {
 			"email": "Email",
 			"password": "Mật khẩu",
@@ -376,9 +390,6 @@
 		"missingInfo": "Không nhận được thông tin xác thực đầy đủ",
 		"failed": "Xác thực OAuth thất bại: {{message}}"
 	},
-	"common": {
-		"close": "Đóng"
-	},
 	"staffLogin": {
 		"title": "Đăng nhập Staff/Admin",
 		"subtitle": "Truy cập hệ thống quản lý",
@@ -442,7 +453,7 @@
 			"save": "Lưu",
 			"unsave": "Bỏ lưu",
 			"like": "Thích",
-			"unlike": "Bỏ thích",
+			"dislike": "Không thích",
 			"comment": "Bình luận",
 			"comments": "Bình luận",
 			"reply": "Trả lời",
@@ -493,16 +504,27 @@
 			"searchButton": "Tìm kiếm",
 			"clearButton": "Xóa tìm kiếm",
 			"noResults": "Không tìm thấy kết quả nào",
+			"noResultsDesc": "Không có bài viết nào chứa từ khóa \"{{keyword}}\". Hãy thử từ khóa khác hoặc quay lại trang chủ.",
+			"backToForum": "Quay lại diễn đàn",
 			"popularHashtags": "Hashtags phổ biến",
 			"recentSearches": "Tìm kiếm gần đây",
 			"clearRecent": "Xóa lịch sử",
+			"history": "Lịch sử",
+			"removeFromHistory": "Xóa khỏi lịch sử",
 			"by": "bởi",
 			"user": "người dùng",
 			"posts": "bài viết"
 		},
+		"filter": {
+			"clearAll": "Xóa tất cả bộ lọc",
+			"selected": "đã chọn"
+		},
+		"hashtag": {
+			"clickToFilter": "Nhấp để lọc bài viết theo hashtag này"
+		},
 		"sidebar": {
 			"savedPosts": "📚 Bài viết đã lưu",
-			"reactions": "👍 Bài viết đã tương tác",
+			"myPosts": "📝 Bài viết của tôi",
 			"userSuggestions": "Gợi ý kết bạn",
 			"trendingTopics": "Chủ đề nổi bật",
 			"onlineUsers": "Người dùng trực tuyến",
@@ -570,6 +592,7 @@
 				"cancel": "Hủy",
 				"success": "Báo cáo đã được gửi thành công",
 				"error": "Không thể gửi báo cáo. Vui lòng thử lại.",
+				"loginRequired": "Vui lòng đăng nhập để báo cáo bài viết",
 				"reasons": {
 					"spam": "Spam",
 					"spamDesc": "Nội dung spam hoặc quảng cáo không phù hợp",
@@ -603,7 +626,8 @@
 			"loginLink": "Đăng nhập",
 			"loginToSave": "Đăng nhập để lưu bài viết",
 			"loginToReact": "Đăng nhập để tương tác",
-			"loginToComment": "Đăng nhập để bình luận"
+			"loginToComment": "Đăng nhập để bình luận",
+			"searchAndFilter": "💡 Bạn có thể tìm kiếm bài viết và lọc theo hashtag mà không cần đăng nhập!"
 		},
 		"errors": {
 			"loadPosts": "Không thể tải bài viết. Vui lòng thử lại.",
@@ -628,6 +652,10 @@
 				"title": "Marketing số trong thời đại 4.0",
 				"content": "Digital marketing đang trở thành xu hướng chính. Các chiến lược marketing truyền thống cần được cập nhật để phù hợp với thời đại số."
 			}
+		},
+		"myPosts": {
+			"title": "Bài viết của tôi",
+			"empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!"
 		}
 	}
 }

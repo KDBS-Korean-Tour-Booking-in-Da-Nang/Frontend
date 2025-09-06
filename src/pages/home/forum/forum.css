@@ -59,7 +59,7 @@
   align-items: center;
 }
 
-.saved-posts-btn, .reactions-btn {
+.saved-posts-btn, .my-posts-btn {
   background-color: #1877f2;
   color: white;
   border: none;
@@ -72,16 +72,16 @@
   white-space: nowrap;
 }
 
-.saved-posts-btn:hover, .reactions-btn:hover {
+.saved-posts-btn:hover, .my-posts-btn:hover {
   background-color: #166fe5;
   transform: translateY(-1px);
 }
 
-.reactions-btn {
+.my-posts-btn {
   background-color: #10b981;
 }
 
-.reactions-btn:hover {
+.my-posts-btn:hover {
   background-color: #059669;
 }
 
@@ -141,6 +141,17 @@
 .guest-message a:hover {
   color: #166fe5;
   text-decoration: underline;
+}
+
+.guest-features {
+  color: #42b883 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin-top: 8px !important;
+  background-color: #f0f9ff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #42b883;
 }
 
 .forum-content {
@@ -391,5 +402,186 @@
   
   .posts-feed {
     gap: 12px;
+  }
+}
+
+/* Filter Status Bar Styles */
+.filter-status-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Search Results Header Styles */
+.search-results-header {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.search-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.search-icon {
+  font-size: 18px;
+}
+
+.search-text {
+  color: #1c1e21;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.search-text strong {
+  color: #1877f2;
+}
+
+.search-count {
+  color: #65676b;
+  font-size: 14px;
+  background-color: #f0f2f5;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.back-to-forum-btn {
+  background-color: #1877f2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.back-to-forum-btn:hover {
+  background-color: #166fe5;
+  transform: translateY(-1px);
+}
+
+.filter-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.search-tag {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+}
+
+.hashtag-tag {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #e1bee7;
+}
+
+.clear-filters-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+  background-color: #d32f2f;
+  transform: translateY(-1px);
+}
+
+/* Responsive for filter status bar and search results header */
+@media (max-width: 768px) {
+  .filter-status-bar,
+  .search-results-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .filter-info {
+    justify-content: center;
+  }
+  
+  .search-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .clear-filters-btn,
+  .back-to-forum-btn {
+    align-self: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-status-bar,
+  .search-results-header {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+  
+  .filter-tag {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+  
+  .search-text {
+    font-size: 14px;
+  }
+  
+  .search-count {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+  
+  .clear-filters-btn,
+  .back-to-forum-btn {
+    padding: 6px 12px;
+    font-size: 13px;
   }
 }

@@ -6,7 +6,7 @@ import PostCard from './components/PostCard/PostCard';
 import SearchSidebar from './components/SearchSidebar/SearchSidebar';
 import UserSidebar from './components/UserSidebar/UserSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
-import ReactionsModal from './components/ReactionsModal/ReactionsModal';
+import MyPostsModal from './components/MyPostsModal/MyPostsModal';
 import './forum.css';
 
 const Forum = () => {
@@ -17,15 +17,17 @@ const Forum = () => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [showSavedPostsModal, setShowSavedPostsModal] = useState(false);
-  const [showReactionsModal, setShowReactionsModal] = useState(false);
+  const [showMyPostsModal, setShowMyPostsModal] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [singlePost, setSinglePost] = useState(null);
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const showSinglePost = async (postId) => {
+    console.log('showSinglePost called with postId:', postId, 'type:', typeof postId);
     setSelectedPostId(postId);
     try {
       const response = await fetch(`http://localhost:8080/api/posts/${postId}`);
@@ -35,7 +37,7 @@ const Forum = () => {
       } else {
         console.error('Failed to fetch single post');
         // Fallback: find post in current posts list
-        const post = posts.find(p => p.postId === postId);
+        const post = posts.find(p => p.forumPostId === postId);
         if (post) {
           setSinglePost(post);
         }
@@ -43,7 +45,7 @@ const Forum = () => {
     } catch (error) {
       console.error('Error fetching single post:', error);
       // Fallback: find post in current posts list
-      const post = posts.find(p => p.postId === postId);
+      const post = posts.find(p => p.forumPostId === postId);
       if (post) {
         setSinglePost(post);
       }
@@ -54,6 +56,28 @@ const Forum = () => {
     setSelectedPostId(null);
     setSinglePost(null);
   };
+
+  // Load saved filters on component mount
+  useEffect(() => {
+    const savedHashtags = localStorage.getItem('forum-selected-hashtags');
+    const savedSearchKeyword = localStorage.getItem('forum-search-keyword');
+    const savedSearchMode = localStorage.getItem('forum-search-mode') === 'true';
+    
+    if (savedHashtags) {
+      try {
+        const parsedHashtags = JSON.parse(savedHashtags);
+        setSelectedHashtags(parsedHashtags);
+      } catch (error) {
+        console.error('Error parsing saved hashtags:', error);
+      }
+    }
+    
+    if (savedSearchKeyword) {
+      setSearchKeyword(savedSearchKeyword);
+    }
+    
+    setIsSearchMode(savedSearchMode);
+  }, []);
 
   useEffect(() => {
     console.log('Forum: useEffect triggered with:', { searchKeyword, selectedHashtags, currentPage }); // Debug log
@@ -198,14 +222,40 @@ const Forum = () => {
     setSelectedHashtags([]);
     setSearchKeyword(keyword);
     setCurrentPage(0);
+    setIsSearchMode(true); // Set search mode
+    
+    // Save to localStorage
+    localStorage.setItem('forum-selected-hashtags', JSON.stringify([]));
+    localStorage.setItem('forum-search-keyword', keyword);
+    localStorage.setItem('forum-search-mode', 'true');
   };
 
   const handleHashtagFilter = (hashtags) => {
     console.log('Forum: handleHashtagFilter called with:', hashtags); // Debug log
     // Clear search keyword first, then set hashtag filter
     setSearchKeyword('');
-    setSelectedHashtags(hashtags);
+    // Handle both single hashtag (string) and array of hashtags
+    const hashtagArray = Array.isArray(hashtags) ? hashtags : [hashtags];
+    setSelectedHashtags(hashtagArray);
     setCurrentPage(0);
+    setIsSearchMode(false); // Set filter mode
+    
+    // Save to localStorage
+    localStorage.setItem('forum-selected-hashtags', JSON.stringify(hashtagArray));
+    localStorage.setItem('forum-search-keyword', '');
+    localStorage.setItem('forum-search-mode', 'false');
+  };
+
+  const clearAllFilters = () => {
+    setSearchKeyword('');
+    setSelectedHashtags([]);
+    setCurrentPage(0);
+    setIsSearchMode(false); // Reset to normal mode
+    
+    // Clear localStorage
+    localStorage.removeItem('forum-selected-hashtags');
+    localStorage.removeItem('forum-search-keyword');
+    localStorage.removeItem('forum-search-mode');
   };
 
   const handleLoadMore = () => {
@@ -262,10 +312,10 @@ const Forum = () => {
                 {t('forum.sidebar.savedPosts')}
               </button>
               <button 
-                className="reactions-btn"
-                onClick={() => setShowReactionsModal(true)}
+                className="my-posts-btn"
+                onClick={() => setShowMyPostsModal(true)}
               >
-                {t('forum.sidebar.reactions')}
+                {t('forum.sidebar.myPosts')}
               </button>
             </div>
           </div>
@@ -274,6 +324,7 @@ const Forum = () => {
         <div className="forum-header guest-notice">
           <div className="guest-message">
             <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
+            <p className="guest-features">{t('forum.guest.searchAndFilter')}</p>
           </div>
         </div>
       )}
@@ -284,11 +335,54 @@ const Forum = () => {
       <SearchSidebar 
             onSearch={handleSearch}
             onHashtagFilter={handleHashtagFilter}
+            selectedHashtags={selectedHashtags}
           />
         </div>
 
         {/* Main Content - Posts Feed */}
         <div className="forum-main">
+          {/* Filter Status Bar - Only show for hashtag filters */}
+          {!isSearchMode && selectedHashtags.length > 0 && (
+            <div className="filter-status-bar">
+              <div className="filter-info">
+                {selectedHashtags.map((tag, index) => (
+                  <span key={index} className="filter-tag hashtag-tag">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+              <button 
+                className="clear-filters-btn"
+                onClick={clearAllFilters}
+                title={t('forum.filter.clearAll')}
+              >
+                ✕ {t('forum.filter.clearAll')}
+              </button>
+            </div>
+          )}
+
+          {/* Search Results Header - Only show for search mode */}
+          {isSearchMode && searchKeyword && (
+            <div className="search-results-header">
+              <div className="search-info">
+                <span className="search-icon">🔍</span>
+                <span className="search-text">
+                  Kết quả tìm kiếm cho: <strong>"{searchKeyword}"</strong>
+                </span>
+                <span className="search-count">
+                  ({posts.length} {posts.length === 1 ? 'bài viết' : 'bài viết'})
+                </span>
+              </div>
+              <button 
+                className="back-to-forum-btn"
+                onClick={clearAllFilters}
+                title={t('forum.search.backToForum')}
+              >
+                ← {t('forum.search.backToForum')}
+              </button>
+            </div>
+          )}
+          
           {isLoading && currentPage === 0 ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
@@ -296,15 +390,24 @@ const Forum = () => {
             </div>
           ) : posts.length === 0 ? (
             <div className="no-posts">
-              <h3>{t('forum.post.noPosts')}</h3>
-              <p>{t('forum.post.noPostsDesc')}</p>
-              {user && (
-                <button 
-                  onClick={() => setShowPostModal(true)}
-                  className="create-first-post-btn"
-                >
-                  {t('forum.post.createFirst')}
-                </button>
+              {isSearchMode ? (
+                <>
+                  <h3>🔍 {t('forum.search.noResults')}</h3>
+                  <p>{t('forum.search.noResultsDesc', { keyword: searchKeyword })}</p>
+                </>
+              ) : (
+                <>
+                  <h3>{t('forum.post.noPosts')}</h3>
+                  <p>{t('forum.post.noPostsDesc')}</p>
+                  {user && (
+                    <button 
+                      onClick={() => setShowPostModal(true)}
+                      className="create-first-post-btn"
+                    >
+                      {t('forum.post.createFirst')}
+                    </button>
+                  )}
+                </>
               )}
             </div>
         ) : (
@@ -323,6 +426,7 @@ const Forum = () => {
                     onPostUpdated={handleCreatePost}
                     onPostDeleted={handlePostDeleted}
                     onEdit={openEditModal}
+                    onHashtagClick={handleHashtagFilter}
                   />
                 </div>
               </div>
@@ -335,6 +439,7 @@ const Forum = () => {
                     onPostUpdated={handleCreatePost}
                     onPostDeleted={handlePostDeleted}
                     onEdit={openEditModal}
+                    onHashtagClick={handleHashtagFilter}
                   />
                 ))}
               </div>
@@ -380,11 +485,11 @@ const Forum = () => {
         />
       )}
 
-      {/* Reactions Modal - Only show if user is logged in */}
+      {/* My Posts Modal - Only show if user is logged in */}
       {user && (
-        <ReactionsModal 
-          isOpen={showReactionsModal}
-          onClose={() => setShowReactionsModal(false)}
+        <MyPostsModal 
+          isOpen={showMyPostsModal}
+          onClose={() => setShowMyPostsModal(false)}
           onPostClick={showSinglePost}
         />
       )}
