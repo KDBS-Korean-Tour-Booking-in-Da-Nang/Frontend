@@ -40,24 +40,24 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
     <div className="report-success-overlay" onClick={onClose}>
       <div className="report-success-modal" onClick={(e) => e.stopPropagation()}>
         <div className="success-icon">
-          <svg 
-            width="48" 
-            height="48" 
-            viewBox="0 0 24 24" 
-            fill="none" 
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <circle cx="12" cy="12" r="10" fill="#10b981" />
-            <path 
-              d="M9 12l2 2 4-4" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <path
+              d="M9 12l2 2 4-4"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </div>
-        
+
         <div className="success-content">
           <h3>{t('forum.modals.reportSuccess.title')}</h3>
           <p>
@@ -67,12 +67,12 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
             <strong>{t('forum.modals.reportSuccess.adminNote')}</strong>
           </p>
         </div>
-        
+
         <div className="auto-close-progress">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ 
+            <div
+              className="progress-fill"
+              style={{
                 width: `${((3 - timeLeft) / 3) * 100}%`,
                 transition: 'width 1s linear'
               }}
@@ -80,7 +80,7 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
           </div>
           <div className="progress-text">{t('forum.modals.reportSuccess.autoClose', { seconds: timeLeft })}</div>
         </div>
-        
+
         <div className="success-actions">
           <button className="ok-btn" onClick={onClose}>
             {t('forum.modals.reportSuccess.understood')}
