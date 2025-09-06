@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './UserSidebar.css';
 
 const UserSidebar = () => {
+  const { t } = useTranslation();
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,35 +36,35 @@ const UserSidebar = () => {
         const mockUsers = [
           {
             id: 1,
-            username: 'Nguyễn Văn A',
+            username: t('forum.sidebar.mockUsers.user1'),
             avatar: '/default-avatar.png',
             mutualFriends: 12,
             isOnline: true
           },
           {
             id: 2,
-            username: 'Trần Thị B',
+            username: t('forum.sidebar.mockUsers.user2'),
             avatar: '/default-avatar.png',
             mutualFriends: 8,
             isOnline: false
           },
           {
             id: 3,
-            username: 'Lê Văn C',
+            username: t('forum.sidebar.mockUsers.user3'),
             avatar: '/default-avatar.png',
             mutualFriends: 15,
             isOnline: true
           },
           {
             id: 4,
-            username: 'Phạm Thị D',
+            username: t('forum.sidebar.mockUsers.user4'),
             avatar: '/default-avatar.png',
             mutualFriends: 6,
             isOnline: false
           },
           {
             id: 5,
-            username: 'Hoàng Văn E',
+            username: t('forum.sidebar.mockUsers.user5'),
             avatar: '/default-avatar.png',
             mutualFriends: 9,
             isOnline: true
@@ -76,35 +78,35 @@ const UserSidebar = () => {
       const mockUsers = [
         {
           id: 1,
-          username: 'Nguyễn Văn A',
+          username: t('forum.sidebar.mockUsers.user1'),
           avatar: '/default-avatar.png',
           mutualFriends: 12,
           isOnline: true
         },
         {
           id: 2,
-          username: 'Trần Thị B',
+          username: t('forum.sidebar.mockUsers.user2'),
           avatar: '/default-avatar.png',
           mutualFriends: 8,
           isOnline: false
         },
         {
           id: 3,
-          username: 'Lê Văn C',
+          username: t('forum.sidebar.mockUsers.user3'),
           avatar: '/default-avatar.png',
           mutualFriends: 15,
           isOnline: true
         },
         {
           id: 4,
-          username: 'Phạm Thị D',
+          username: t('forum.sidebar.mockUsers.user4'),
           avatar: '/default-avatar.png',
           mutualFriends: 6,
           isOnline: false
         },
         {
           id: 5,
-          username: 'Hoàng Văn E',
+          username: t('forum.sidebar.mockUsers.user5'),
           avatar: '/default-avatar.png',
           mutualFriends: 9,
           isOnline: true
@@ -156,8 +158,8 @@ const UserSidebar = () => {
   return (
     <div className="user-sidebar">
       <div className="sidebar-header">
-        <h3 className="sidebar-title">Gợi ý kết bạn</h3>
-        <span className="user-count">{suggestedUsers.length} người</span>
+        <h3 className="sidebar-title">{t('forum.sidebar.userSuggestions')}</h3>
+        <span className="user-count">{suggestedUsers.length} {t('forum.sidebar.people')}</span>
       </div>
 
       <div className="users-list">
@@ -176,7 +178,7 @@ const UserSidebar = () => {
               <div className="user-details">
                 <div className="username">{user.username}</div>
                 <div className="mutual-friends">
-                  {user.mutualFriends} bạn chung
+                  {user.mutualFriends} {t('forum.sidebar.mutualFriends')}
                 </div>
               </div>
             </div>
@@ -187,14 +189,14 @@ const UserSidebar = () => {
                   onClick={() => handleUnfollow(user.id)}
                   className="action-btn unfollow-btn"
                 >
-                  Bỏ theo dõi
+                  {t('forum.sidebar.unfollow')}
                 </button>
               ) : (
                 <button
                   onClick={() => handleFollow(user.id)}
                   className="action-btn follow-btn"
                 >
-                  Theo dõi
+                  {t('forum.sidebar.follow')}
                 </button>
               )}
               
@@ -211,7 +213,7 @@ const UserSidebar = () => {
 
       <div className="sidebar-footer">
         <button className="see-all-btn">
-          Xem tất cả gợi ý
+          {t('forum.sidebar.seeAllSuggestions')}
         </button>
       </div>
     </div>

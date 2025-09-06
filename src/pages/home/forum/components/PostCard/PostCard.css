@@ -51,6 +51,18 @@
   color: #ffd700;
 }
 
+.save-btn-disabled {
+  background: none;
+  border: none;
+  cursor: not-allowed;
+  padding: 4px;
+  color: #bcc0c4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
 .bookmark-icon {
   transition: all 0.2s;
 }
@@ -364,6 +376,28 @@
 
 .action-btn.liked {
   color: #1877f2;
+}
+
+.guest-actions {
+  display: flex;
+  width: 100%;
+}
+
+.action-btn-disabled {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  background: none;
+  color: #bcc0c4;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: not-allowed;
+  border-radius: 6px;
+  opacity: 0.6;
 }
 
 .action-icon {

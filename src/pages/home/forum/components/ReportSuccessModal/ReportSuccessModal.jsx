@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './ReportSuccessModal.css';
 
 const ReportSuccessModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [timeLeft, setTimeLeft] = useState(3);
 
   useEffect(() => {
@@ -57,12 +59,12 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
         </div>
         
         <div className="success-content">
-          <h3>Báo cáo đã được gửi thành công!</h3>
+          <h3>{t('forum.modals.reportSuccess.title')}</h3>
           <p>
-            Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét và xử lý báo cáo của bạn trong thời gian sớm nhất.
+            {t('forum.modals.reportSuccess.message')}
           </p>
           <p className="admin-note">
-            <strong>Vui lòng đợi admin xem xét!</strong>
+            <strong>{t('forum.modals.reportSuccess.adminNote')}</strong>
           </p>
         </div>
         
@@ -76,12 +78,12 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
               }}
             ></div>
           </div>
-          <div className="progress-text">Tự động đóng sau {timeLeft}s</div>
+          <div className="progress-text">{t('forum.modals.reportSuccess.autoClose', { seconds: timeLeft })}</div>
         </div>
         
         <div className="success-actions">
           <button className="ok-btn" onClick={onClose}>
-            Đã hiểu
+            {t('forum.modals.reportSuccess.understood')}
           </button>
         </div>
       </div>

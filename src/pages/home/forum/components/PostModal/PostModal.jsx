@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import './PostModal.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -137,7 +139,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      alert('Vui lòng nhập title và content');
+      alert(t('forum.createPost.errors.titleRequired') + ' và ' + t('forum.createPost.errors.contentRequired'));
       return;
     }
 
@@ -193,7 +195,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       }
     } catch (error) {
       console.error('Error creating/updating post:', error);
-      alert(editPost ? 'Có lỗi xảy ra khi cập nhật bài viết' : 'Có lỗi xảy ra khi đăng bài');
+      alert(editPost ? t('forum.createPost.errors.updateError') : t('forum.createPost.errors.submitError'));
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +216,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     <div className="post-modal-overlay">
       <div className="post-modal">
         <div className="post-modal-header">
-          <h2>{editPost ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}</h2>
+          <h2>{editPost ? t('forum.createPost.editTitle') : t('forum.createPost.title')}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
         
@@ -222,7 +224,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           <div className="form-group">
             <input
               type="text"
-              placeholder="Tiêu đề bài viết..."
+              placeholder={t('forum.createPost.titlePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="title-input"
@@ -232,7 +234,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
 
           <div className="form-group">
             <textarea
-              placeholder="Bạn đang nghĩ gì?"
+              placeholder={t('forum.createPost.contentPlaceholder')}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="content-input"
@@ -245,7 +247,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             <div className="hashtag-input-container">
               <input
                 type="text"
-                placeholder="Nhập hashtag và nhấn Enter..."
+                placeholder={t('forum.createPost.hashtagsPlaceholder')}
                 value={hashtagInput}
                 onChange={(e) => setHashtagInput(e.target.value)}
                 onKeyDown={handleHashtagInput}
@@ -295,7 +297,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                   onClick={() => fileInputRef.current.click()}
                   className="upload-btn"
                 >
-                  📷 Thêm ảnh
+                  📷 {t('forum.createPost.addImages')}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -310,7 +312,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             
             {editPost && images.length > 0 && (
               <div className="existing-images-section">
-                <h4>Hình ảnh hiện tại:</h4>
+                <h4>{t('forum.createPost.imagesLabel')}:</h4>
                 <div className="image-preview">
                   {images.map((image, index) => (
                     <div key={index} className="image-item">
@@ -318,7 +320,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                     </div>
                   ))}
                 </div>
-                <p className="image-note">* Không thể thay đổi hình ảnh khi chỉnh sửa bài viết</p>
+                <p className="image-note">* {t('forum.createPost.errors.imageEditNote')}</p>
               </div>
             )}
             
@@ -347,14 +349,14 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
               className="cancel-btn"
               disabled={isLoading}
             >
-              Hủy
+              {t('forum.createPost.cancel')}
             </button>
             <button
               type="submit"
               className="submit-btn"
               disabled={isLoading}
             >
-              {isLoading ? 'Đang xử lý...' : (editPost ? 'Cập nhật' : 'Đăng bài')}
+              {isLoading ? (editPost ? t('forum.createPost.updating') : t('forum.createPost.submitting')) : (editPost ? t('forum.createPost.update') : t('forum.createPost.submit'))}
             </button>
           </div>
         </form>

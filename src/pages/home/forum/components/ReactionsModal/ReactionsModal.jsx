@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import './ReactionsModal.css';
 
 const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [reactions, setReactions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -69,10 +71,10 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'Vừa xong';
-    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
-    return `${Math.floor(diffInMinutes / 1440)} ngày trước`;
+    if (diffInMinutes < 1) return t('forum.post.justNow');
+    if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
+    return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
   const getReactionIcon = (reactionType) => {
@@ -85,9 +87,9 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
 
   const getReactionText = (reactionType) => {
     switch (reactionType) {
-      case 'LIKE': return 'Đã thích';
-      case 'DISLIKE': return 'Đã không thích';
-      default: return 'Phản ứng';
+      case 'LIKE': return t('forum.modals.reactions.liked');
+      case 'DISLIKE': return t('forum.modals.reactions.disliked');
+      default: return t('forum.modals.reactions.reacted');
     }
   };
 
@@ -97,7 +99,7 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
     <div className="reactions-modal-overlay" onClick={onClose}>
       <div className="reactions-modal" onClick={(e) => e.stopPropagation()}>
         <div className="reactions-modal-header">
-          <h3>Bài viết đã tương tác</h3>
+          <h3>{t('forum.modals.reactions.title')}</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
@@ -106,29 +108,29 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
             className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            Tất cả
+            {t('forum.modals.reactions.all')}
           </button>
           <button 
             className={`tab-btn ${activeTab === 'likes' ? 'active' : ''}`}
             onClick={() => setActiveTab('likes')}
           >
-            👍 Đã thích
+            👍 {t('forum.modals.reactions.liked')}
           </button>
           <button 
             className={`tab-btn ${activeTab === 'dislikes' ? 'active' : ''}`}
             onClick={() => setActiveTab('dislikes')}
           >
-            👎 Đã không thích
+            👎 {t('forum.modals.reactions.disliked')}
           </button>
         </div>
 
         <div className="reactions-content">
           {loading ? (
-            <div className="loading">Đang tải...</div>
+            <div className="loading">{t('forum.loading')}</div>
           ) : reactions.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">😴</div>
-              <p>Chưa có bài viết nào được tương tác</p>
+              <p>{t('forum.modals.reactions.noReactions')}</p>
             </div>
           ) : (
             <div className="reactions-list">
@@ -142,7 +144,7 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
                         onClose();
                       }
                     }}
-                    title={reaction.targetType === 'POST' ? "Click để xem bài viết" : ""}
+                    title={reaction.targetType === 'POST' ? t('forum.modals.reactions.clickToView') : ""}
                   >
                     <div className="reaction-type">
                       <span className="reaction-icon">{getReactionIcon(reaction.reactionType)}</span>
@@ -153,7 +155,7 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
                   
                   <div className="reaction-target">
                     <div className="target-type">
-                      {reaction.targetType === 'POST' ? '📝 Bài viết' : '💬 Bình luận'} #{reaction.targetId}
+                      {reaction.targetType === 'POST' ? `📝 ${t('forum.modals.reactions.post')}` : `💬 ${t('forum.modals.reactions.comment')}`} #{reaction.targetId}
                     </div>
                   </div>
 
@@ -164,7 +166,7 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
                         e.stopPropagation();
                         handleRemoveReaction(reaction.reactionId, reaction.targetId, reaction.targetType);
                       }}
-                      title="Bỏ tương tác"
+                      title={t('forum.modals.reactions.removeReaction')}
                     >
                       🗑️
                     </button>

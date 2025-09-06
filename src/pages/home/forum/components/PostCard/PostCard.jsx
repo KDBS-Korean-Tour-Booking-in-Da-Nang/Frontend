@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
@@ -7,6 +8,7 @@ import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
 import './PostCard.css';
 
 const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -22,11 +24,14 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
   const [hasReported, setHasReported] = useState(false);
 
   useEffect(() => {
+    // Always fetch reaction count and save count for all users (including guests)
+    fetchReactionCount();
+    fetchSaveCount();
+    
+    // Only check user-specific data if user is logged in
     if (user) {
       checkUserReaction();
-      fetchReactionCount();
       checkIfSaved();
-      fetchSaveCount();
       checkIfReported();
     }
   }, [user, post.forumPostId]);
@@ -181,12 +186,8 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
 
   const fetchReactionCount = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/reactions/post/${post.forumPostId}/count`, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        }
-      });
+      // No authentication required for public reaction count
+      const response = await fetch(`http://localhost:8080/api/reactions/post/${post.forumPostId}/count`);
       if (response.ok) {
         const count = await response.json();
         setLikeCount(count);
@@ -224,6 +225,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
 
   const fetchSaveCount = async () => {
     try {
+      // No authentication required for public save count
       const response = await fetch(`http://localhost:8080/api/saved-posts/count/${post.forumPostId}`);
       if (response.ok) {
         const data = await response.json();
@@ -273,7 +275,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
     
     if (!email) {
       console.error('No user email found');
-      alert('Vui lòng đăng nhập để lưu bài viết!');
+      alert(t('forum.errors.unauthorized'));
       return;
     }
     
@@ -337,7 +339,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
+    if (window.confirm(t('forum.post.deleteConfirm'))) {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
         const response = await fetch(`http://localhost:8080/api/posts/${post.forumPostId}?userEmail=${encodeURIComponent(user.email)}`, {
@@ -356,7 +358,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
         }
       } catch (error) {
         console.error('Error deleting post:', error);
-        alert('Có lỗi xảy ra khi xóa bài viết');
+        alert(t('forum.post.deleteError'));
       }
     }
     setShowMenu(false);
@@ -364,7 +366,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
 
   const handleReport = () => {
     if (hasReported) {
-      alert('Bạn đã báo cáo bài viết này rồi!');
+      alert(t('forum.modals.report.error'));
       setShowMenu(false);
       return;
     }
@@ -378,7 +380,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
       const email = user?.email || localStorage.getItem('email') || '';
       
       if (!email) {
-        throw new Error('Vui lòng đăng nhập để báo cáo bài viết');
+        throw new Error(t('forum.errors.unauthorized'));
       }
 
       const response = await fetch(`http://localhost:8080/api/reports/create?userEmail=${encodeURIComponent(email)}`, {
@@ -392,7 +394,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Lỗi báo cáo: ${response.status} - ${errorText}`);
+        throw new Error(`${t('forum.modals.report.error')}: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -415,10 +417,10 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'Vừa xong';
-    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
-    return `${Math.floor(diffInMinutes / 1440)} ngày trước`;
+    if (diffInMinutes < 1) return t('forum.post.justNow');
+    if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
+    return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
   const resolveImageUrl = (imgPath) => {
@@ -491,21 +493,35 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
         
         <div className="post-actions-header">
           <div className="save-section">
-            <button 
-              onClick={handleSavePost} 
-              className={`save-btn ${isSaved ? 'saved' : ''}`}
-              title={isSaved ? 'Bỏ lưu bài viết' : 'Lưu bài viết'}
-            >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className="bookmark-icon"
+            {user ? (
+              <button 
+                onClick={handleSavePost} 
+                className={`save-btn ${isSaved ? 'saved' : ''}`}
+                title={isSaved ? t('forum.post.unsave') : t('forum.post.save')}
               >
-                <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-              </svg>
-            </button>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor"
+                  className="bookmark-icon"
+                >
+                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                </svg>
+              </button>
+            ) : (
+              <div className="save-btn-disabled" title={t('forum.guest.loginToSave')}>
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor"
+                  className="bookmark-icon"
+                >
+                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                </svg>
+              </div>
+            )}
             <span className="save-count">{saveCount}</span>
           </div>
           
@@ -522,10 +538,10 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
                 {isOwnPost ? (
                   <>
                     <button onClick={handleEdit} className="menu-item">
-                      ✏️ Chỉnh sửa
+                      ✏️ {t('forum.post.edit')}
                     </button>
                     <button onClick={handleDelete} className="menu-item delete">
-                      🗑️ Xóa
+                      🗑️ {t('forum.post.delete')}
                     </button>
                   </>
                 ) : (
@@ -534,7 +550,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
                     className={`menu-item ${hasReported ? 'reported' : ''}`}
                     disabled={hasReported}
                   >
-                    {hasReported ? '✅ Đã báo cáo' : '⚠️ Báo cáo'}
+                    {hasReported ? `✅ ${t('forum.modals.report.success')}` : `⚠️ ${t('forum.post.report')}`}
                   </button>
                 )}
               </div>
@@ -564,46 +580,67 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit }) => {
 
       <div className="post-stats">
         <div className="stat-item">
-          <span className="stat-count">{likeCount} lượt thích</span>
+          <span className="stat-count">{likeCount} {t('forum.post.like')}</span>
         </div>
         <div className="stat-item">
-          <span className="stat-count">{commentCount} bình luận</span>
+          <span className="stat-count">{commentCount} {t('forum.post.comments')}</span>
         </div>
         <div className="stat-item">
-          <span className="stat-count">{saveCount} lượt lưu</span>
+          <span className="stat-count">{saveCount} {t('forum.post.save')}</span>
         </div>
       </div>
 
       <div className="post-actions">
-        <button 
-          className={`action-btn ${isLiked ? 'liked' : ''}`}
-          onClick={handleLike}
-        >
-          <span className="action-icon">👍</span>
-          <span className="action-text">Thích</span>
-        </button>
-        <button 
-          className={`action-btn ${isDisliked ? 'liked' : ''}`}
-          onClick={handleDislike}
-        >
-          <span className="action-icon">👎</span>
-          <span className="action-text">Không thích</span>
-        </button>
-        
-        <button 
-          className="action-btn"
-          onClick={() => document.querySelector('.comment-input')?.focus()}
-        >
-          <span className="action-icon">💬</span>
-          <span className="action-text">Bình luận</span>
-        </button>
+        {user ? (
+          <>
+            <button 
+              className={`action-btn ${isLiked ? 'liked' : ''}`}
+              onClick={handleLike}
+            >
+              <span className="action-icon">👍</span>
+              <span className="action-text">{t('forum.post.like')}</span>
+            </button>
+            <button 
+              className={`action-btn ${isDisliked ? 'liked' : ''}`}
+              onClick={handleDislike}
+            >
+              <span className="action-icon">👎</span>
+              <span className="action-text">{t('forum.post.unlike')}</span>
+            </button>
+            
+            <button 
+              className="action-btn"
+              onClick={() => document.querySelector('.comment-input')?.focus()}
+            >
+              <span className="action-icon">💬</span>
+              <span className="action-text">{t('forum.post.comment')}</span>
+            </button>
+          </>
+        ) : (
+          <div className="guest-actions">
+            <div className="action-btn-disabled" title={t('forum.guest.loginToReact')}>
+              <span className="action-icon">👍</span>
+              <span className="action-text">{t('forum.post.like')}</span>
+            </div>
+            <div className="action-btn-disabled" title={t('forum.guest.loginToReact')}>
+              <span className="action-icon">👎</span>
+              <span className="action-text">{t('forum.post.unlike')}</span>
+            </div>
+            <div className="action-btn-disabled" title={t('forum.guest.loginToComment')}>
+              <span className="action-icon">💬</span>
+              <span className="action-text">{t('forum.post.comment')}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      <CommentSection 
-        post={post}
-        onCommentAdded={handleCommentAdded}
-        onCountChange={handleCommentCountChange}
-      />
+      {user && (
+        <CommentSection 
+          post={post}
+          onCommentAdded={handleCommentAdded}
+          onCountChange={handleCommentCountChange}
+        />
+      )}
     </div>
     <ImageViewerModal open={openViewer} onClose={() => setOpenViewer(false)} post={post} initialIndex={viewerIndex} />
     

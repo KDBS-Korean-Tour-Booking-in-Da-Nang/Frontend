@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import './CommentSection.css';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [showAllComments, setShowAllComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -112,12 +114,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
       } else {
         const text = await response.text().catch(() => '');
         console.error('Add comment failed:', response.status, text);
-        alert('Không thể thêm bình luận. Vui lòng thử lại.');
+        alert(t('forum.comments.submitError'));
         return;
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('Có lỗi xảy ra khi thêm bình luận');
+      alert(t('forum.comments.submitError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -128,10 +130,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'Vừa xong';
-    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
-    return `${Math.floor(diffInMinutes / 1440)} ngày trước`;
+    if (diffInMinutes < 1) return t('forum.post.justNow');
+    if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
+    return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
   const displayedComments = showAllComments 
@@ -161,7 +163,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   const reactComment = async (commentId, type) => {
     const email = user?.email || localStorage.getItem('userEmail') || localStorage.getItem('email');
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-    if (!email) return alert('Bạn cần đăng nhập để thực hiện hành động này');
+    if (!email) return alert(t('forum.errors.unauthorized'));
 
     const current = commentReactions[commentId] || { likeCount: 0, dislikeCount: 0, userReaction: null };
     const headers = {
@@ -201,7 +203,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   const submitReply = async (parentId) => {
     const text = (replyText[parentId] || '').trim();
     if (!text) return;
-    if (!user) return alert('Bạn cần đăng nhập');
+    if (!user) return alert(t('forum.errors.unauthorized'));
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
     const body = {
       userEmail: user.email,
@@ -238,7 +240,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
           <form onSubmit={handleSubmitComment} className="comment-form">
             <input
               type="text"
-              placeholder="Viết bình luận..."
+              placeholder={t('forum.comments.placeholder')}
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               className="comment-input"
@@ -249,7 +251,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
               className="comment-submit-btn"
               disabled={isSubmitting || !commentText.trim()}
             >
-              {isSubmitting ? 'Đang gửi...' : 'Gửi'}
+              {isSubmitting ? t('forum.comments.submitting') : t('forum.comments.submit')}
             </button>
           </form>
         </div>
@@ -276,15 +278,15 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
                     className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'LIKE' ? 'active' : ''}`}
                     onClick={() => reactComment(comment.forumCommentId, 'LIKE')}
                   >
-                    Thích ({commentReactions[comment.forumCommentId]?.likeCount || 0})
+                    {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
                   </button>
                   <button 
                     className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'DISLIKE' ? 'active' : ''}`}
                     onClick={() => reactComment(comment.forumCommentId, 'DISLIKE')}
                   >
-                    Không thích ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
+                    {t('forum.post.unlike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
                   </button>
-                  <button className="comment-action-btn" onClick={() => handleToggleReply(comment.forumCommentId)}>Trả lời</button>
+                  <button className="comment-action-btn" onClick={() => handleToggleReply(comment.forumCommentId)}>{t('forum.post.reply')}</button>
                 </div>
 
                 {/* Replies toggle */}
@@ -292,11 +294,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
                   <div className="reply-toggle-row">
                     {!repliesExpanded[comment.forumCommentId] ? (
                       <button className="show-more-btn" onClick={() => toggleRepliesExpanded(comment.forumCommentId)}>
-                        Xem {repliesMap[comment.forumCommentId].length} phản hồi
+                        {t('forum.post.showReplies')} {repliesMap[comment.forumCommentId].length}
                       </button>
                     ) : (
                       <button className="show-more-btn" onClick={() => toggleRepliesExpanded(comment.forumCommentId)}>
-                        Ẩn bớt phản hồi
+                        {t('forum.post.hideReplies')}
                       </button>
                     )}
                   </div>
@@ -326,11 +328,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
                     <input
                       type="text"
                       value={replyText[comment.forumCommentId] || ''}
-                      placeholder="Viết trả lời..."
+                      placeholder={t('forum.comments.replyPlaceholder')}
                       onChange={(e) => setReplyText(prev => ({ ...prev, [comment.forumCommentId]: e.target.value }))}
                       className="comment-input"
                     />
-                    <button className="comment-submit-btn" onClick={() => submitReply(comment.forumCommentId)}>Gửi</button>
+                    <button className="comment-submit-btn" onClick={() => submitReply(comment.forumCommentId)}>{t('forum.comments.submit')}</button>
                   </div>
                 )}
               </div>
@@ -347,8 +349,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
             className="show-more-btn"
           >
             {showAllComments 
-              ? 'Ẩn bớt bình luận' 
-              : `Xem thêm ${comments.length - 3} bình luận`
+              ? t('forum.comments.hideComments') 
+              : `${t('forum.comments.showMore')} ${comments.length - 3} ${t('forum.post.comments')}`
             }
           </button>
         </div>
@@ -357,7 +359,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
       {/* No Comments Message */}
       {comments.length === 0 && (
         <div className="no-comments">
-          <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+          <p>{t('forum.comments.noComments')}</p>
         </div>
       )}
     </div>

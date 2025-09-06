@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import './SavedPostsModal.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [savedPosts, setSavedPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +44,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
       }
     } catch (error) {
       console.error('Error fetching saved posts:', error);
-      setError('Không thể tải danh sách bài viết đã lưu');
+      setError(t('forum.modals.savedPosts.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +105,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     <div className="saved-posts-overlay">
       <div className="saved-posts-modal">
         <div className="saved-posts-header">
-          <h2>📚 Bài viết đã lưu</h2>
+          <h2>{t('forum.modals.savedPosts.title')}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
         
@@ -111,18 +113,18 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
           {isLoading ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>Đang tải...</p>
+              <p>{t('forum.loading')}</p>
             </div>
           ) : error ? (
             <div className="error-container">
               <p>{error}</p>
               <button onClick={fetchSavedPosts} className="retry-btn">
-                Thử lại
+                {t('forum.modals.savedPosts.retry')}
               </button>
             </div>
           ) : savedPosts.length === 0 ? (
             <div className="empty-container">
-              <p>Bạn chưa lưu bài viết nào</p>
+              <p>{t('forum.modals.savedPosts.noSavedPosts')}</p>
             </div>
           ) : (
             <div className="saved-posts-list">
@@ -136,18 +138,18 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                         onClose();
                       }
                     }}
-                    title="Click để xem bài viết"
+                    title={t('forum.modals.savedPosts.clickToView')}
                   >
                     <h3 className="saved-post-title">{savedPost.postTitle}</h3>
                     <p className="saved-post-text">{savedPost.postContent}</p>
                     <div className="saved-post-meta">
                       <span className="saved-post-author">👤 {savedPost.postAuthor}</span>
                       <span className="saved-post-date">📅 {formatDate(savedPost.postCreatedAt)}</span>
-                      <span className="saved-at">💾 Lưu lúc: {formatDate(savedPost.savedAt)}</span>
+                      <span className="saved-at">💾 {t('forum.modals.savedPosts.savedAt')}: {formatDate(savedPost.savedAt)}</span>
                     </div>
                     {savedPost.note && (
                       <div className="saved-post-note">
-                        <strong>Ghi chú:</strong> {savedPost.note}
+                        <strong>{t('forum.modals.savedPosts.note')}:</strong> {savedPost.note}
                       </div>
                     )}
                   </div>
@@ -159,7 +161,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                       }}
                       className="unsave-btn"
                     >
-                      🗑️ Bỏ lưu
+                      🗑️ {t('forum.modals.savedPosts.unsave')}
                     </button>
                   </div>
                 </div>
@@ -176,7 +178,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  ← Trước
+                  ← {t('forum.modals.savedPosts.previous')}
                 </button>
                 
                 <div className="pagination-numbers">
@@ -196,12 +198,12 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
-                  Sau →
+                  {t('forum.modals.savedPosts.next')} →
                 </button>
               </div>
               
               <div className="pagination-info">
-                Trang {currentPage} / {totalPages} ({savedPosts.length} bài viết)
+                {t('forum.modals.savedPosts.pageInfo', { current: currentPage, total: totalPages, count: savedPosts.length })}
               </div>
             </div>
           )}

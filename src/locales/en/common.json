@@ -395,6 +395,240 @@
 			"staff": "Staff:",
 			"password": "Password: (any)"
 		}
+	},
+	"forum": {
+		"title": "Forum",
+		"createPost": {
+			"placeholder": "What's on your mind?",
+			"title": "Create New Post",
+			"editTitle": "Edit Post",
+			"titleLabel": "Title",
+			"titlePlaceholder": "Enter post title...",
+			"contentLabel": "Content",
+			"contentPlaceholder": "Share your thoughts...",
+			"hashtagsLabel": "Hashtags",
+			"hashtagsPlaceholder": "Enter hashtags (separated by commas)...",
+			"imagesLabel": "Images",
+			"addImages": "Add Images",
+			"removeImage": "Remove Image",
+			"submit": "Post",
+			"submitting": "Posting...",
+			"update": "Update",
+			"updating": "Updating...",
+			"cancel": "Cancel",
+			"errors": {
+				"titleRequired": "Please enter a title",
+				"contentRequired": "Please enter content",
+				"titleMinLength": "Title must be at least 5 characters",
+				"contentMinLength": "Content must be at least 10 characters",
+				"imageSize": "Image size must not exceed 5MB",
+				"imageFormat": "Only JPG, PNG, GIF formats are supported",
+				"updateError": "Error occurred while updating post",
+				"submitError": "Error occurred while posting",
+				"imageEditNote": "Cannot change images when editing post"
+			}
+		},
+		"post": {
+			"loading": "Loading posts...",
+			"noPosts": "No posts found",
+			"noPostsDesc": "Be the first to share something!",
+			"createFirst": "Create first post",
+			"loadMore": "Load more posts",
+			"loadingMore": "Loading...",
+			"backToList": "← Back to list",
+			"edit": "Edit",
+			"delete": "Delete",
+			"report": "Report",
+			"save": "Save",
+			"unsave": "Unsave",
+			"like": "Like",
+			"unlike": "Unlike",
+			"comment": "Comment",
+			"comments": "Comments",
+			"reply": "Reply",
+			"showReplies": "Show replies",
+			"hideReplies": "Hide replies",
+			"ago": "ago",
+			"justNow": "Just now",
+			"minutes": "minutes",
+			"hours": "hours",
+			"days": "days",
+			"weeks": "weeks",
+			"months": "months",
+			"years": "years",
+			"deleteConfirm": "Are you sure you want to delete this post?",
+			"deleteSuccess": "Post deleted successfully",
+			"deleteError": "Unable to delete post. Please try again.",
+			"saveSuccess": "Post saved",
+			"unsaveSuccess": "Post unsaved",
+			"likeSuccess": "Post liked",
+			"unlikeSuccess": "Post unliked"
+		},
+		"comments": {
+			"placeholder": "Write a comment...",
+			"submit": "Comment",
+			"submitting": "Submitting...",
+			"edit": "Edit",
+			"delete": "Delete",
+			"reply": "Reply",
+			"editPlaceholder": "Edit comment...",
+			"replyPlaceholder": "Write a reply...",
+			"update": "Update",
+			"updating": "Updating...",
+			"cancel": "Cancel",
+			"deleteConfirm": "Are you sure you want to delete this comment?",
+			"deleteSuccess": "Comment deleted",
+			"deleteError": "Unable to delete comment. Please try again.",
+			"updateSuccess": "Comment updated",
+			"updateError": "Unable to update comment. Please try again.",
+			"submitSuccess": "Comment added",
+			"submitError": "Unable to add comment. Please try again.",
+			"hideComments": "Hide comments",
+			"showMore": "Show more",
+			"noComments": "No comments yet. Be the first to comment!"
+		},
+		"search": {
+			"title": "Search Posts",
+			"placeholder": "Search posts...",
+			"searchButton": "Search",
+			"clearButton": "Clear search",
+			"noResults": "No results found",
+			"popularHashtags": "Popular Hashtags",
+			"recentSearches": "Recent Searches",
+			"clearRecent": "Clear History",
+			"by": "by",
+			"user": "user",
+			"posts": "posts"
+		},
+		"sidebar": {
+			"savedPosts": "📚 Saved Posts",
+			"reactions": "👍 Reacted Posts",
+			"userSuggestions": "Friend Suggestions",
+			"trendingTopics": "Trending Topics",
+			"onlineUsers": "Online Users",
+			"follow": "Follow",
+			"unfollow": "Unfollow",
+			"viewProfile": "View Profile",
+			"people": "people",
+			"mutualFriends": "mutual friends",
+			"seeAllSuggestions": "See all suggestions",
+			"mockUsers": {
+				"user1": "John Smith",
+				"user2": "Sarah Johnson",
+				"user3": "Mike Wilson",
+				"user4": "Emily Davis",
+				"user5": "David Brown"
+			}
+		},
+		"trendingTopics": {
+			"ai": "Latest AI Technology",
+			"startup": "Successful Startup",
+			"marketing": "Digital Marketing",
+			"finance": "Financial Investment",
+			"design": "UX/UI Design"
+		},
+		"modals": {
+			"savedPosts": {
+				"title": "📚 Saved Posts",
+				"noSavedPosts": "You haven't saved any posts yet",
+				"noSavedPostsDesc": "Save interesting posts to view them later!",
+				"close": "Close",
+				"loadError": "Unable to load saved posts list",
+				"retry": "Retry",
+				"clickToView": "Click to view post",
+				"savedAt": "Saved at",
+				"note": "Note",
+				"unsave": "Unsave",
+				"previous": "Previous",
+				"next": "Next",
+				"pageInfo": "Page {{current}} / {{total}} ({{count}} posts)"
+			},
+			"reactions": {
+				"title": "👍 Reacted Posts",
+				"noReactions": "You haven't reacted to any posts yet",
+				"noReactionsDesc": "Like and comment to interact with the community!",
+				"close": "Close",
+				"all": "All",
+				"liked": "Liked",
+				"disliked": "Disliked",
+				"reacted": "Reacted",
+				"clickToView": "Click to view post",
+				"post": "Post",
+				"comment": "Comment",
+				"removeReaction": "Remove reaction"
+			},
+			"report": {
+				"title": "Report Post",
+				"reason": "Report Reason",
+				"selectReason": "Please select a reason for reporting:",
+				"selectReasonError": "Please select at least one reason for reporting",
+				"additionalDescription": "Additional Description (Optional):",
+				"descriptionPlaceholder": "Describe the reason for reporting in detail...",
+				"submit": "Submit Report",
+				"submitting": "Submitting...",
+				"submitError": "An error occurred while reporting the post. Please try again.",
+				"cancel": "Cancel",
+				"success": "Report submitted successfully",
+				"error": "Unable to submit report. Please try again.",
+				"reasons": {
+					"spam": "Spam",
+					"spamDesc": "Spam content or inappropriate advertising",
+					"inappropriate": "Inappropriate Content",
+					"inappropriateDesc": "Content that may be offensive or inappropriate",
+					"violence": "Violence",
+					"violenceDesc": "Content containing violence or threats",
+					"harassment": "Harassment",
+					"harassmentDesc": "Harassment or bullying of others",
+					"hateSpeech": "Hate Speech",
+					"hateSpeechDesc": "Hate speech or discrimination",
+					"falseInfo": "False Information",
+					"falseInfoDesc": "Misleading or false information",
+					"copyright": "Copyright Violation",
+					"copyrightDesc": "Copyright or intellectual property violation",
+					"other": "Other",
+					"otherDesc": "Other reason"
+				}
+			},
+			"reportSuccess": {
+				"title": "Report submitted successfully!",
+				"message": "Thank you for reporting. We will review and process your report as soon as possible.",
+				"adminNote": "Please wait for admin review!",
+				"autoClose": "Auto close in {{seconds}}s",
+				"understood": "Understood"
+			}
+		},
+		"guest": {
+			"welcome": "👋 Welcome to the forum!",
+			"loginPrompt": "Login to join discussions and share your thoughts.",
+			"loginLink": "Login",
+			"loginToSave": "Login to save posts",
+			"loginToReact": "Login to react",
+			"loginToComment": "Login to comment"
+		},
+		"errors": {
+			"loadPosts": "Unable to load posts. Please try again.",
+			"loadComments": "Unable to load comments. Please try again.",
+			"networkError": "Connection error. Please check your internet and try again.",
+			"unauthorized": "You need to login to perform this action.",
+			"forbidden": "You don't have permission to perform this action.",
+			"notFound": "Requested content not found.",
+			"serverError": "Server error. Please try again later."
+		},
+		"mockPosts": {
+			"ai": {
+				"title": "Latest AI Technology 2025",
+				"content": "AI is developing at a rapid pace. New technologies like GPT-5, Claude 4 are changing how we work and learn.",
+				"comment": "Great post! AI is really changing the world."
+			},
+			"startup": {
+				"title": "Startup Success: Lessons from Failure",
+				"content": "Failure is not the end, but a stepping stone to success. Let's share valuable lessons from failed startups."
+			},
+			"marketing": {
+				"title": "Digital Marketing in the 4.0 Era",
+				"content": "Digital marketing is becoming the main trend. Traditional marketing strategies need to be updated to fit the digital age."
+			}
+		}
 	}
 }
 
