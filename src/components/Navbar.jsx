@@ -49,6 +49,13 @@ const Navbar = () => {
               {t('nav.home')}
             </Link>
             
+            <Link 
+              to="/forum" 
+              className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Forum
+            </Link>
+            
             {user ? (
               <>
                 {user.role === 'admin' && (
@@ -81,13 +88,6 @@ const Navbar = () => {
                   className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   {t('nav.businessInfo')}
-                </Link>
-                
-                <Link 
-                  to="/business-info" 
-                  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Thông tin doanh nghiệp
                 </Link>
                 
                 {/* User Menu */}
@@ -207,6 +207,14 @@ const Navbar = () => {
               {t('nav.home')}
             </Link>
             
+            <Link
+              to="/forum"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Forum
+            </Link>
+            
             {user ? (
               <>
                 {user.role === 'admin' && (
@@ -243,14 +251,6 @@ const Navbar = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {t('nav.businessInfo')}
-                </Link>
-                
-                <Link
-                  to="/business-info"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Thông tin doanh nghiệp
                 </Link>
                 
                 <div className="border-t border-gray-200 pt-4 pb-3">
