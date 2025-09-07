@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl, getImageUrl } from '../../../../../config/api';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
@@ -81,7 +82,6 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
       const reactionRequest = {
-        userEmail: email,
         targetId: post.forumPostId,
         targetType: 'POST',
         reactionType: 'LIKE'
@@ -89,7 +89,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
 
       if (isLiked) {
         // Remove reaction (legacy spec)
-        await fetch(`http://localhost:8080/api/reactions/POST/${post.forumPostId}`, {
+        await fetch(API_ENDPOINTS.REACTIONS_POST(post.forumPostId), {
           method: 'POST',
           headers: {
             'User-Email': email,
@@ -100,7 +100,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
         setLikeCount(prev => prev - 1);
       } else {
         // Add reaction (legacy spec)
-        const response = await fetch('http://localhost:8080/api/reactions/add', {
+        const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -126,14 +126,13 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
       const reactionRequest = {
-        userEmail: email,
         targetId: post.forumPostId,
         targetType: 'POST',
         reactionType: 'DISLIKE'
       };
 
       if (isDisliked) {
-        await fetch(`http://localhost:8080/api/reactions/POST/${post.forumPostId}`, {
+        await fetch(API_ENDPOINTS.REACTIONS_POST(post.forumPostId), {
           method: 'POST',
           headers: {
             'User-Email': email,
@@ -142,7 +141,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
         });
         setIsDisliked(false);
       } else {
-        const response = await fetch('http://localhost:8080/api/reactions/add', {
+        const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -175,7 +174,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
   const checkUserReaction = async () => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/reactions/post/${post.forumPostId}/user/${encodeURIComponent(user.email)}`, {
+      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_USER(post.forumPostId, user.email), {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         }
@@ -192,7 +191,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
   const fetchReactionCount = async () => {
     try {
       // No authentication required for public reaction count
-      const response = await fetch(`http://localhost:8080/api/reactions/post/${post.forumPostId}/count`);
+      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_COUNT(post.forumPostId));
       if (response.ok) {
         const count = await response.json();
         setLikeCount(count);
@@ -208,7 +207,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       const email = user?.email || localStorage.getItem('email') || '';
       
       console.log('Checking if post is saved:', post.forumPostId, email);
-      const response = await fetch(`http://localhost:8080/api/saved-posts/check/${post.forumPostId}`, {
+      const response = await fetch(API_ENDPOINTS.SAVED_POSTS_CHECK(post.forumPostId), {
         headers: {
           'User-Email': email,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -231,7 +230,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
   const fetchSaveCount = async () => {
     try {
       // No authentication required for public save count
-      const response = await fetch(`http://localhost:8080/api/saved-posts/count/${post.forumPostId}`);
+      const response = await fetch(API_ENDPOINTS.SAVED_POSTS_COUNT(post.forumPostId));
       if (response.ok) {
         const data = await response.json();
         setSaveCount(data.result || 0);
@@ -247,7 +246,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       if (!email) return;
 
       const response = await fetch(
-        `http://localhost:8080/api/reports/check?userEmail=${encodeURIComponent(email)}&targetType=POST&targetId=${post.forumPostId}`
+        `${API_ENDPOINTS.REPORTS_CHECK}?userEmail=${encodeURIComponent(email)}&targetType=POST&targetId=${post.forumPostId}`
       );
       
       if (response.ok) {
@@ -288,7 +287,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       if (isSaved) {
         // Unsave post
         console.log('Attempting to unsave post...');
-        const response = await fetch(`http://localhost:8080/api/saved-posts/unsave/${post.forumPostId}`, {
+        const response = await fetch(API_ENDPOINTS.SAVED_POSTS_UNSAVE(post.forumPostId), {
           method: 'DELETE',
           headers: {
             'User-Email': email,
@@ -309,7 +308,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       } else {
         // Save post
         console.log('Attempting to save post...');
-        const response = await fetch('http://localhost:8080/api/saved-posts/save', {
+        const response = await fetch(API_ENDPOINTS.SAVED_POSTS_SAVE, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -351,7 +350,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/posts/${post.forumPostId}?userEmail=${encodeURIComponent(user.email)}`, {
+      const response = await fetch(`${API_ENDPOINTS.POST_BY_ID(post.forumPostId)}?userEmail=${encodeURIComponent(user.email)}`, {
         method: 'DELETE',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -397,7 +396,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
         throw new Error(t('forum.errors.unauthorized'));
       }
 
-      const response = await fetch(`http://localhost:8080/api/reports/create?userEmail=${encodeURIComponent(email)}`, {
+      const response = await fetch(`${API_ENDPOINTS.REPORTS_CREATE}?userEmail=${encodeURIComponent(email)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -442,7 +441,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
     if (typeof imgPath !== 'string') return '';
     if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
     const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
-    return `http://localhost:8080${normalized}`;
+    return getImageUrl(normalized);
   };
 
   const defaultAvatar = '/default-avatar.png';

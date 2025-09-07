@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../../../../config/api';
 import './CommentSection.css';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
@@ -22,7 +23,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/comments/post/${post.forumPostId}`);
+      const response = await fetch(API_ENDPOINTS.COMMENTS_BY_POST(post.forumPostId));
       if (response.ok) {
         const fetched = await response.json();
         // Build top-level and replies map from flat list
@@ -55,7 +56,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         const summaries = await Promise.all(
           tops.map(async (c) => {
             try {
-              const r = await fetch(`http://localhost:8080/api/reactions/comment/${c.forumCommentId}/summary${email ? `?userEmail=${encodeURIComponent(email)}` : ''}`);
+              const r = await fetch(API_ENDPOINTS.REACTIONS_COMMENT_SUMMARY(c.forumCommentId, email));
               if (!r.ok) return null;
               const data = await r.json();
               return [c.forumCommentId, {
@@ -91,7 +92,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       };
 
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/comments', {
+      const response = await fetch(API_ENDPOINTS.COMMENTS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +152,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     // lazy load replies when opening first time
     if (!repliesMap[commentId]) {
       try {
-        const r = await fetch(`http://localhost:8080/api/comments/${commentId}/replies`);
+        const r = await fetch(API_ENDPOINTS.COMMENT_REPLIES(commentId));
         if (r.ok) {
           const data = await r.json();
           setRepliesMap(prev => ({ ...prev, [commentId]: data }));
@@ -187,7 +188,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
     // toggle off if same reaction
     if (current.userReaction === type) {
-      const resp = await fetch(`http://localhost:8080/api/reactions/COMMENT/${commentId}`, { method: 'POST', headers });
+      const resp = await fetch(API_ENDPOINTS.REACTIONS_COMMENT(commentId), { method: 'POST', headers });
       if (resp.ok) {
         const next = { ...current, userReaction: null };
         if (type === 'LIKE') next.likeCount = Math.max(0, next.likeCount - 1);
@@ -197,8 +198,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       return;
     }
 
-    const body = { targetId: commentId, targetType: 'COMMENT', reactionType: type, userEmail: email };
-    const res = await fetch('http://localhost:8080/api/reactions/add', { method: 'POST', headers, body: JSON.stringify(body) });
+    const body = { targetId: commentId, targetType: 'COMMENT', reactionType: type };
+    const res = await fetch(API_ENDPOINTS.REACTIONS_ADD, { method: 'POST', headers, body: JSON.stringify(body) });
     if (res.ok) {
       // adjust counts and selection
       const next = { ...current, userReaction: type };
@@ -230,7 +231,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       imgPath: null,
       parentCommentId: parentId
     };
-    const resp = await fetch('http://localhost:8080/api/comments', {
+    const resp = await fetch(API_ENDPOINTS.COMMENTS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify(body)
@@ -281,7 +282,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
           {displayedComments.map((comment, index) => (
             <div key={comment.forumCommentId || index} className="comment-item">
               <img 
-                src={(comment.userAvatar && (comment.userAvatar.startsWith('http') ? comment.userAvatar : `http://localhost:8080${comment.userAvatar.startsWith('/') ? '' : '/'}${comment.userAvatar}`)) || '/default-avatar.png'} 
+                src={getAvatarUrl(comment.userAvatar)} 
                 alt={comment.username}
                 className="comment-avatar"
               />
@@ -354,7 +355,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
                 {repliesExpanded[comment.forumCommentId] && (repliesMap[comment.forumCommentId] || []).map((rep) => (
                   <div key={rep.forumCommentId} className="comment-item reply-item">
                     <img 
-                      src={(rep.userAvatar && (rep.userAvatar.startsWith('http') ? rep.userAvatar : `http://localhost:8080${rep.userAvatar.startsWith('/') ? '' : '/'}${rep.userAvatar}`)) || '/default-avatar.png'} 
+                      src={getAvatarUrl(rep.userAvatar)} 
                       alt={rep.username}
                       className="comment-avatar"
                     />

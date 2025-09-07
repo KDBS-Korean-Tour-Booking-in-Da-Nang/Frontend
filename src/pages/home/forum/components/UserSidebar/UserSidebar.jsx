@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
 import './UserSidebar.css';
 
 const UserSidebar = () => {
@@ -13,7 +14,7 @@ const UserSidebar = () => {
 
   const fetchSuggestedUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/users/suggestions?limit=5', {
+      const response = await fetch(`${API_ENDPOINTS.USERS_SUGGESTIONS}?limit=5`, {
         headers: {
           // Suggestions may need auth depending on BE; add token if available
           ...(localStorage.getItem('token') || localStorage.getItem('accessToken')

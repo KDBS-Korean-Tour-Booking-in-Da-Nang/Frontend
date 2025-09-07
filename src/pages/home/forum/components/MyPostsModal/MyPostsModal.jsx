@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
 import DeleteConfirmModal from '../../../../../components/DeleteConfirmModal/DeleteConfirmModal';
 import './MyPostsModal.css';
 
@@ -29,7 +30,7 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const response = await fetch(
-        `http://localhost:8080/api/posts/my-posts?page=${currentPage}&size=${postsPerPage}`,
+        `${API_ENDPOINTS.MY_POSTS}?page=${currentPage}&size=${postsPerPage}`,
         {
           headers: {
             'User-Email': user.email,
@@ -72,7 +73,7 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const response = await fetch(
-        `http://localhost:8080/api/posts/${postToDelete.forumPostId}?userEmail=${encodeURIComponent(user.email)}`,
+        `${API_ENDPOINTS.POST_BY_ID(postToDelete.forumPostId)}?userEmail=${encodeURIComponent(user.email)}`,
         {
           method: 'DELETE',
           headers: {

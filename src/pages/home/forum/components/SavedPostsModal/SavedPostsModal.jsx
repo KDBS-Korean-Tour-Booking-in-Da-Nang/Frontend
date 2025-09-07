@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
 import './SavedPostsModal.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
@@ -27,7 +28,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
       
-      const response = await fetch('http://localhost:8080/api/saved-posts/my-saved', {
+      const response = await fetch(API_ENDPOINTS.SAVED_POSTS_MY_SAVED, {
         headers: {
           'User-Email': email,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -55,7 +56,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
       
-      const response = await fetch(`http://localhost:8080/api/saved-posts/unsave/${postId}`, {
+      const response = await fetch(API_ENDPOINTS.SAVED_POSTS_UNSAVE(postId), {
         method: 'DELETE',
         headers: {
           'User-Email': email,

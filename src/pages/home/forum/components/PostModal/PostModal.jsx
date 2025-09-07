@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
 import './PostModal.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
@@ -29,7 +30,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       // Load existing images
       if (editPost.images && editPost.images.length > 0) {
         const existingImages = editPost.images.map(img => 
-          img.imgPath.startsWith('http') ? img.imgPath : `http://localhost:8080${img.imgPath}`
+          getImageUrl(img.imgPath)
         );
         setImages(existingImages);
         setImageFiles([]); // No new files when editing
@@ -83,7 +84,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
     suggestTimerRef.current = setTimeout(async () => {
       try {
-        let res = await fetch(`http://localhost:8080/api/hashtags/search?keyword=${encodeURIComponent(q)}&limit=8`);
+        let res = await fetch(`${API_ENDPOINTS.HASHTAGS_SEARCH}?keyword=${encodeURIComponent(q)}&limit=8`);
         if (!res.ok) throw new Error('search fail');
         const data = await res.json();
         const items = (data || []).map(h => h.content || h);
@@ -162,8 +163,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       }
 
       const url = editPost 
-        ? `http://localhost:8080/api/posts/${editPost.forumPostId}`
-        : 'http://localhost:8080/api/posts';
+        ? API_ENDPOINTS.POST_BY_ID(editPost.forumPostId)
+        : API_ENDPOINTS.POSTS;
       
       const method = editPost ? 'PUT' : 'POST';
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../../config/api';
 import PostModal from './components/PostModal/PostModal';
 import PostCard from './components/PostCard/PostCard';
 import SearchSidebar from './components/SearchSidebar/SearchSidebar';
@@ -33,7 +34,7 @@ const Forum = () => {
     console.log('showSinglePost called with postId:', postId, 'type:', typeof postId);
     setSelectedPostId(postId);
     try {
-      const response = await fetch(`http://localhost:8080/api/posts/${postId}`);
+      const response = await fetch(API_ENDPOINTS.POST_BY_ID(postId));
       if (response.ok) {
         const data = await response.json();
         setSinglePost(data);
@@ -104,7 +105,7 @@ const Forum = () => {
         setIsLoadingMore(true);
       }
       
-      let url = `http://localhost:8080/api/posts/search?page=${currentPage}&size=10&sort=createdAt,desc`;
+      let url = `${API_ENDPOINTS.POST_SEARCH}?page=${currentPage}&size=10&sort=createdAt,desc`;
       
       if (searchKeyword) {
         url += `&keyword=${encodeURIComponent(searchKeyword)}`;
@@ -325,7 +326,7 @@ const Forum = () => {
           <div className="create-post-section">
             <div className="create-post-input" onClick={() => setShowPostModal(true)}>
               <img 
-                src={user?.avatar ? (user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}`) : '/default-avatar.png'} 
+                src={getAvatarUrl(user?.avatar)} 
                 alt={user?.username}
                 className="user-avatar-small"
               />

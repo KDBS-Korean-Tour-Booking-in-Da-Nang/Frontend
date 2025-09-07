@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
+import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
 import './SearchSidebar.css';
 
 const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
@@ -85,7 +86,7 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
 
   const fetchPopularHashtags = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/hashtags/popular?limit=8');
+      const response = await fetch(`${API_ENDPOINTS.HASHTAGS_POPULAR}?limit=8`);
       if (response.ok) {
         const hashtags = await response.json();
         setPopularHashtags(hashtags.map(h => ({
@@ -307,8 +308,8 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
     try {
       // Fetch both posts and hashtags suggestions in parallel
       const [postsRes, hashtagsRes] = await Promise.all([
-        fetch(`http://localhost:8080/api/posts/search?keyword=${encodeURIComponent(q)}&size=5&sort=createdAt,desc`),
-        fetch(`http://localhost:8080/api/hashtags/search?keyword=${encodeURIComponent(q)}&limit=5`)
+        fetch(`${API_ENDPOINTS.POST_SEARCH}?keyword=${encodeURIComponent(q)}&size=5&sort=createdAt,desc`),
+        fetch(`${API_ENDPOINTS.HASHTAGS_SEARCH}?keyword=${encodeURIComponent(q)}&limit=5`)
       ]);
 
       const result = [];
