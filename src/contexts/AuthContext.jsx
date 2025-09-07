@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const rememberRef = useRef(false);
 
   // Configurable timeouts
-  const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
+  const INACTIVITY_LIMIT_MS = 60 * 60 * 1000; // 60 minutes
   const REMEMBER_ME_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
   const getStorageByRemember = (remember) => (remember ? localStorage : sessionStorage);
@@ -114,6 +114,16 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
       } catch {}
       startInactivityTimer();
+    }
+
+    // Handle return after login
+    const returnAfterLogin = localStorage.getItem('returnAfterLogin');
+    if (returnAfterLogin) {
+      localStorage.removeItem('returnAfterLogin');
+      // Use setTimeout to ensure the login state is updated before navigation
+      setTimeout(() => {
+        window.location.href = returnAfterLogin;
+      }, 100);
     }
   };
 

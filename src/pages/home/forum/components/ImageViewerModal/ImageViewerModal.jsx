@@ -53,8 +53,8 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
               <img className="ivm-image" src={imgs[current]} alt={`image ${current + 1}`} />
               {imgs.length > 1 && (
                 <>
-                  <button className="ivm-nav ivm-prev" disabled={current===0} onClick={() => setCurrent(c => Math.max(0, c-1))}>‹</button>
-                  <button className="ivm-nav ivm-next" disabled={current===imgs.length-1} onClick={() => setCurrent(c => Math.min(imgs.length-1, c+1))}>›</button>
+                  <button className="ivm-nav ivm-prev" disabled={current === 0} onClick={() => setCurrent(c => Math.max(0, c - 1))}>‹</button>
+                  <button className="ivm-nav ivm-next" disabled={current === imgs.length - 1} onClick={() => setCurrent(c => Math.min(imgs.length - 1, c + 1))}>›</button>
                   <div className="ivm-counter">{current + 1}/{imgs.length}</div>
                 </>
               )}
