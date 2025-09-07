@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
 import './PostModal.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
@@ -25,11 +26,11 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       setTitle(editPost.title || '');
       setContent(editPost.content || '');
       setHashtags(editPost.hashtags?.map(h => h.content) || []);
-
+      
       // Load existing images
       if (editPost.images && editPost.images.length > 0) {
-        const existingImages = editPost.images.map(img =>
-          img.imgPath.startsWith('http') ? img.imgPath : `http://localhost:8080${img.imgPath}`
+        const existingImages = editPost.images.map(img => 
+          getImageUrl(img.imgPath)
         );
         setImages(existingImages);
         setImageFiles([]); // No new files when editing
@@ -83,7 +84,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
     suggestTimerRef.current = setTimeout(async () => {
       try {
-        let res = await fetch(`http://localhost:8080/api/hashtags/search?keyword=${encodeURIComponent(q)}&limit=8`);
+        let res = await fetch(`${API_ENDPOINTS.HASHTAGS_SEARCH}?keyword=${encodeURIComponent(q)}&limit=8`);
         if (!res.ok) throw new Error('search fail');
         const data = await res.json();
         const items = (data || []).map(h => h.content || h);
@@ -149,11 +150,11 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       formData.append('userEmail', user.email);
       formData.append('title', title.trim());
       formData.append('content', content.trim());
-
+      
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);
       });
-
+      
       // Only append new image files when creating new post
       if (!editPost) {
         imageFiles.forEach(file => {
@@ -161,10 +162,10 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         });
       }
 
-      const url = editPost
-        ? `http://localhost:8080/api/posts/${editPost.forumPostId}`
-        : 'http://localhost:8080/api/posts';
-
+      const url = editPost 
+        ? API_ENDPOINTS.POST_BY_ID(editPost.forumPostId)
+        : API_ENDPOINTS.POSTS;
+      
       const method = editPost ? 'PUT' : 'POST';
 
       const headers = {};
@@ -219,7 +220,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           <h2>{editPost ? t('forum.createPost.editTitle') : t('forum.createPost.title')}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
-
+        
         <form onSubmit={handleSubmit} className="post-form">
           <div className="form-group">
             <input
@@ -309,7 +310,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                 />
               </div>
             )}
-
+            
             {editPost && images.length > 0 && (
               <div className="existing-images-section">
                 <h4>{t('forum.createPost.imagesLabel')}:</h4>
@@ -323,7 +324,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                 <p className="image-note">* {t('forum.createPost.errors.imageEditNote')}</p>
               </div>
             )}
-
+            
             {!editPost && images.length > 0 && (
               <div className="image-preview">
                 {images.map((image, index) => (

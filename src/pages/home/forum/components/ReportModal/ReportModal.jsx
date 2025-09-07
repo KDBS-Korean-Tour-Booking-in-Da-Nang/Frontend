@@ -20,8 +20,8 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
   ];
 
   const handleReasonToggle = (reason) => {
-    setSelectedReasons(prev =>
-      prev.includes(reason)
+    setSelectedReasons(prev => 
+      prev.includes(reason) 
         ? prev.filter(r => r !== reason)
         : [...prev, reason]
     );
@@ -41,7 +41,7 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
         reasons: selectedReasons,
         description: description.trim() || null
       });
-
+      
       // Reset form
       setSelectedReasons([]);
       setDescription('');
@@ -69,8 +69,8 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
       <div className="report-modal" onClick={(e) => e.stopPropagation()}>
         <div className="report-modal-header">
           <h3>{t('forum.modals.report.title')}</h3>
-          <button
-            className="close-btn"
+          <button 
+            className="close-btn" 
             onClick={handleClose}
             disabled={isSubmitting}
           >
@@ -86,8 +86,8 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
             <div className="post-content-preview">
               {post.title && <div className="post-title">{post.title}</div>}
               <div className="post-text">
-                {post.content.length > 100
-                  ? `${post.content.substring(0, 100)}...`
+                {post.content.length > 100 
+                  ? `${post.content.substring(0, 100)}...` 
                   : post.content
                 }
               </div>
@@ -98,14 +98,14 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
             <h4>{t('forum.modals.report.selectReason')}</h4>
             <div className="reasons-list">
               {reportReasons.map((reason) => (
-                <div
+                <div 
                   key={reason.value}
                   className={`reason-item ${selectedReasons.includes(reason.value) ? 'selected' : ''}`}
                   onClick={() => handleReasonToggle(reason.value)}
                 >
                   <div className="reason-checkbox">
-                    <input
-                      type="checkbox"
+                    <input 
+                      type="checkbox" 
                       checked={selectedReasons.includes(reason.value)}
                       onChange={() => handleReasonToggle(reason.value)}
                     />
@@ -134,15 +134,15 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
         </div>
 
         <div className="report-modal-footer">
-          <button
-            className="cancel-btn"
+          <button 
+            className="cancel-btn" 
             onClick={handleClose}
             disabled={isSubmitting}
           >
             {t('forum.modals.report.cancel')}
           </button>
-          <button
-            className="submit-btn"
+          <button 
+            className="submit-btn" 
             onClick={handleSubmit}
             disabled={isSubmitting || selectedReasons.length === 0}
           >

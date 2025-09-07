@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../../../../config/api';
 import './CommentSection.css';
 
-const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
+const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [showAllComments, setShowAllComments] = useState(false);
@@ -22,7 +23,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/comments/post/${post.forumPostId}`);
+      const response = await fetch(API_ENDPOINTS.COMMENTS_BY_POST(post.forumPostId));
       if (response.ok) {
         const fetched = await response.json();
         // Build top-level and replies map from flat list
@@ -55,7 +56,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
         const summaries = await Promise.all(
           tops.map(async (c) => {
             try {
-              const r = await fetch(`http://localhost:8080/api/reactions/comment/${c.forumCommentId}/summary${email ? `?userEmail=${encodeURIComponent(email)}` : ''}`);
+              const r = await fetch(API_ENDPOINTS.REACTIONS_COMMENT_SUMMARY(c.forumCommentId, email));
               if (!r.ok) return null;
               const data = await r.json();
               return [c.forumCommentId, {
@@ -91,7 +92,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
       };
 
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/comments', {
+      const response = await fetch(API_ENDPOINTS.COMMENTS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +103,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
 
       if (response.ok) {
         const newComment = await response.json();
-
+        
         // Add comment to local state
         setComments(prev => {
           const next = [newComment, ...prev];
@@ -111,6 +112,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
         });
         onCommentAdded(newComment);
         setCommentText('');
+        // Close comment input after successful submission
+        if (onCommentInputToggle) {
+          onCommentInputToggle(false);
+        }
       } else {
         const text = await response.text().catch(() => '');
         console.error('Add comment failed:', response.status, text);
@@ -129,14 +134,14 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-
+    
     if (diffInMinutes < 1) return t('forum.post.justNow');
     if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
     return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
-  const displayedComments = showAllComments
+  const displayedComments = showAllComments 
     ? comments
     : comments.slice(0, 3);
 
@@ -147,7 +152,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
     // lazy load replies when opening first time
     if (!repliesMap[commentId]) {
       try {
-        const r = await fetch(`http://localhost:8080/api/comments/${commentId}/replies`);
+        const r = await fetch(API_ENDPOINTS.COMMENT_REPLIES(commentId));
         if (r.ok) {
           const data = await r.json();
           setRepliesMap(prev => ({ ...prev, [commentId]: data }));
@@ -161,6 +166,15 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   };
 
   const reactComment = async (commentId, type) => {
+    // Check if user is logged in
+    if (!user) {
+      // Show login required modal for guest users
+      if (onLoginRequired) {
+        onLoginRequired();
+      }
+      return;
+    }
+    
     const email = user?.email || localStorage.getItem('userEmail') || localStorage.getItem('email');
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
     if (!email) return alert(t('forum.errors.unauthorized'));
@@ -174,7 +188,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
 
     // toggle off if same reaction
     if (current.userReaction === type) {
-      const resp = await fetch(`http://localhost:8080/api/reactions/COMMENT/${commentId}`, { method: 'POST', headers });
+      const resp = await fetch(API_ENDPOINTS.REACTIONS_COMMENT(commentId), { method: 'POST', headers });
       if (resp.ok) {
         const next = { ...current, userReaction: null };
         if (type === 'LIKE') next.likeCount = Math.max(0, next.likeCount - 1);
@@ -184,8 +198,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
       return;
     }
 
-    const body = { targetId: commentId, targetType: 'COMMENT', reactionType: type, userEmail: email };
-    const res = await fetch('http://localhost:8080/api/reactions/add', { method: 'POST', headers, body: JSON.stringify(body) });
+    const body = { targetId: commentId, targetType: 'COMMENT', reactionType: type };
+    const res = await fetch(API_ENDPOINTS.REACTIONS_ADD, { method: 'POST', headers, body: JSON.stringify(body) });
     if (res.ok) {
       // adjust counts and selection
       const next = { ...current, userReaction: type };
@@ -203,7 +217,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   const submitReply = async (parentId) => {
     const text = (replyText[parentId] || '').trim();
     if (!text) return;
-    if (!user) return alert(t('forum.errors.unauthorized'));
+    if (!user) {
+      if (onLoginRequired) {
+        onLoginRequired();
+      }
+      return;
+    }
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
     const body = {
       userEmail: user.email,
@@ -212,7 +231,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
       imgPath: null,
       parentCommentId: parentId
     };
-    const resp = await fetch('http://localhost:8080/api/comments', {
+    const resp = await fetch(API_ENDPOINTS.COMMENTS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify(body)
@@ -230,10 +249,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
   return (
     <div className="comment-section">
       {/* Comment Input */}
-      {user && (
+      {user && showCommentInput && (
         <div className="comment-input-container">
-          <img
-            src={user.avatar ? user.avatar : '/default-avatar.png'}
+          <img 
+            src={user.avatar ? user.avatar : '/default-avatar.png'} 
             alt={user.username}
             className="comment-user-avatar"
           />
@@ -246,8 +265,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
               className="comment-input"
               disabled={isSubmitting}
             />
-            <button
-              type="submit"
+            <button 
+              type="submit" 
               className="comment-submit-btn"
               disabled={isSubmitting || !commentText.trim()}
             >
@@ -262,8 +281,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
         <div className="comments-list">
           {displayedComments.map((comment, index) => (
             <div key={comment.forumCommentId || index} className="comment-item">
-              <img
-                src={(comment.userAvatar && (comment.userAvatar.startsWith('http') ? comment.userAvatar : `http://localhost:8080${comment.userAvatar.startsWith('/') ? '' : '/'}${comment.userAvatar}`)) || '/default-avatar.png'}
+              <img 
+                src={getAvatarUrl(comment.userAvatar)} 
                 alt={comment.username}
                 className="comment-avatar"
               />
@@ -274,19 +293,47 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
                 </div>
                 <div className="comment-text">{comment.content}</div>
                 <div className="comment-actions">
-                  <button
-                    className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'LIKE' ? 'active' : ''}`}
-                    onClick={() => reactComment(comment.forumCommentId, 'LIKE')}
-                  >
-                    {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
-                  </button>
-                  <button
-                    className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'DISLIKE' ? 'active' : ''}`}
-                    onClick={() => reactComment(comment.forumCommentId, 'DISLIKE')}
-                  >
-                    {t('forum.post.unlike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
-                  </button>
-                  <button className="comment-action-btn" onClick={() => handleToggleReply(comment.forumCommentId)}>{t('forum.post.reply')}</button>
+                  {user ? (
+                    <>
+                      <button 
+                        className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'LIKE' ? 'active' : ''}`}
+                        onClick={() => reactComment(comment.forumCommentId, 'LIKE')}
+                      >
+                        {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
+                      </button>
+                      <button 
+                        className={`comment-action-btn ${commentReactions[comment.forumCommentId]?.userReaction === 'DISLIKE' ? 'active' : ''}`}
+                        onClick={() => reactComment(comment.forumCommentId, 'DISLIKE')}
+                      >
+                        {t('forum.post.dislike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
+                      </button>
+                      <button className="comment-action-btn" onClick={() => handleToggleReply(comment.forumCommentId)}>{t('forum.post.reply')}</button>
+                    </>
+                  ) : (
+                    <>
+                      <div 
+                        className="comment-action-btn-disabled" 
+                        title={t('forum.guest.loginToReact')}
+                        onClick={() => onLoginRequired && onLoginRequired()}
+                      >
+                        {t('forum.post.like')} ({commentReactions[comment.forumCommentId]?.likeCount || 0})
+                      </div>
+                      <div 
+                        className="comment-action-btn-disabled" 
+                        title={t('forum.guest.loginToReact')}
+                        onClick={() => onLoginRequired && onLoginRequired()}
+                      >
+                        {t('forum.post.dislike')} ({commentReactions[comment.forumCommentId]?.dislikeCount || 0})
+                      </div>
+                      <div 
+                        className="comment-action-btn-disabled" 
+                        title={t('forum.guest.loginToComment')}
+                        onClick={() => onLoginRequired && onLoginRequired()}
+                      >
+                        {t('forum.post.reply')}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Replies toggle */}
@@ -307,8 +354,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
                 {/* Show replies only when expanded */}
                 {repliesExpanded[comment.forumCommentId] && (repliesMap[comment.forumCommentId] || []).map((rep) => (
                   <div key={rep.forumCommentId} className="comment-item reply-item">
-                    <img
-                      src={(rep.userAvatar && (rep.userAvatar.startsWith('http') ? rep.userAvatar : `http://localhost:8080${rep.userAvatar.startsWith('/') ? '' : '/'}${rep.userAvatar}`)) || '/default-avatar.png'}
+                    <img 
+                      src={getAvatarUrl(rep.userAvatar)} 
                       alt={rep.username}
                       className="comment-avatar"
                     />
@@ -344,12 +391,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange }) => {
       {/* Show More Comments */}
       {hasMoreComments && (
         <div className="show-more-comments">
-          <button
+          <button 
             onClick={() => setShowAllComments(!showAllComments)}
             className="show-more-btn"
           >
-            {showAllComments
-              ? t('forum.comments.hideComments')
+            {showAllComments 
+              ? t('forum.comments.hideComments') 
               : `${t('forum.comments.showMore')} ${comments.length - 3} ${t('forum.post.comments')}`
             }
           </button>

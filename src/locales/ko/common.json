@@ -2,6 +2,7 @@
 	"brand": "다낭 - 코리아 투어",
 	"nav": {
 		"home": "홈",
+		"forum": "포럼",
 		"admin": "관리자 대시보드",
 		"profile": "프로필",
 		"payment": "결제",
@@ -17,7 +18,20 @@
 		"en": "영어",
 		"ko": "한국어"
 	},
+	"common": {
+		"close": "닫기",
+		"cancel": "취소",
+		"delete": "삭제",
+		"deleteConfirm": {
+			"title": "삭제 확인",
+			"message": "이 {{item}}을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+		}
+	},
 	"auth": {
+		"loginRequired": {
+			"title": "실행하려면 로그인해주세요",
+			"message": "이 작업을 수행하려면 로그인해주세요."
+		},
 		"common": {
 			"email": "이메일",
 			"password": "비밀번호",
@@ -376,9 +390,6 @@
 		"missingInfo": "필수 인증 정보를 받지 못했습니다",
 		"failed": "OAuth 인증 실패: {{message}}"
 	},
-	"common": {
-		"close": "닫기"
-	},
 	"staffLogin": {
 		"title": "스태프/관리자 로그인",
 		"subtitle": "관리 시스템에 접근",
@@ -435,6 +446,7 @@
 			"createFirst": "첫 게시물 작성",
 			"loadMore": "더 많은 게시물 보기",
 			"loadingMore": "로딩 중...",
+			"noMorePosts": "더 이상 로드할 게시물이 없습니다",
 			"backToList": "← 목록으로 돌아가기",
 			"edit": "수정",
 			"delete": "삭제",
@@ -442,7 +454,7 @@
 			"save": "저장",
 			"unsave": "저장 취소",
 			"like": "좋아요",
-			"unlike": "좋아요 취소",
+			"dislike": "싫어요",
 			"comment": "댓글",
 			"comments": "댓글",
 			"reply": "답글",
@@ -502,7 +514,7 @@
 		},
 		"sidebar": {
 			"savedPosts": "📚 저장된 게시물",
-			"reactions": "👍 반응한 게시물",
+			"myPosts": "📝 내 게시물",
 			"userSuggestions": "친구 추천",
 			"trendingTopics": "인기 주제",
 			"onlineUsers": "온라인 사용자",
@@ -570,6 +582,7 @@
 				"cancel": "취소",
 				"success": "신고가 성공적으로 제출되었습니다",
 				"error": "신고를 제출할 수 없습니다. 다시 시도해주세요.",
+				"loginRequired": "게시물을 신고하려면 로그인해주세요",
 				"reasons": {
 					"spam": "스팸",
 					"spamDesc": "스팸 콘텐츠 또는 부적절한 광고",
@@ -603,7 +616,15 @@
 			"loginLink": "로그인",
 			"loginToSave": "게시물을 저장하려면 로그인하세요",
 			"loginToReact": "반응하려면 로그인하세요",
-			"loginToComment": "댓글을 작성하려면 로그인하세요"
+			"loginToComment": "댓글을 작성하려면 로그인하세요",
+			"searchAndFilter": "💡 로그인 없이도 게시물을 검색하고 해시태그로 필터링할 수 있습니다!"
+		},
+		"filter": {
+			"clearAll": "모든 필터 지우기",
+			"selected": "선택됨"
+		},
+		"hashtag": {
+			"clickToFilter": "이 해시태그로 게시물 필터링하려면 클릭하세요"
 		},
 		"errors": {
 			"loadPosts": "게시물을 불러올 수 없습니다. 다시 시도해주세요.",
@@ -628,6 +649,12 @@
 				"title": "4.0 시대의 디지털 마케팅",
 				"content": "디지털 마케팅이 주요 트렌드가 되고 있습니다. 전통적인 마케팅 전략은 디지털 시대에 맞게 업데이트되어야 합니다."
 			}
+		},
+		"myPosts": {
+			"title": "내 게시물",
+			"empty": "아직 게시물이 없습니다. 첫 번째 게시물을 작성해보세요!"
 		}
 	}
 }
+
+

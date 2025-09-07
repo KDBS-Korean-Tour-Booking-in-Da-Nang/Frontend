@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
 import './SavedPostsModal.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
@@ -26,14 +27,14 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
-
-      const response = await fetch('http://localhost:8080/api/saved-posts/my-saved', {
+      
+      const response = await fetch(API_ENDPOINTS.SAVED_POSTS_MY_SAVED, {
         headers: {
           'User-Email': email,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
       });
-
+      
       if (response.ok) {
         const data = await response.json();
         const allPosts = data.result || [];
@@ -54,22 +55,22 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
-
-      const response = await fetch(`http://localhost:8080/api/saved-posts/unsave/${postId}`, {
+      
+      const response = await fetch(API_ENDPOINTS.SAVED_POSTS_UNSAVE(postId), {
         method: 'DELETE',
         headers: {
           'User-Email': email,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
       });
-
+      
       if (response.ok) {
         // Remove from local state
         setSavedPosts(prev => prev.filter(post => post.postId !== postId));
-
+        
         // Notify PostCard components to refresh their save status
-        window.dispatchEvent(new CustomEvent('post-unsaved', {
-          detail: { postId: postId }
+        window.dispatchEvent(new CustomEvent('post-unsaved', { 
+          detail: { postId: postId } 
         }));
       }
     } catch (error) {
@@ -108,7 +109,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
           <h2>{t('forum.modals.savedPosts.title')}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
-
+        
         <div className="saved-posts-content">
           {isLoading ? (
             <div className="loading-container">
@@ -130,7 +131,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
             <div className="saved-posts-list">
               {getCurrentPagePosts().map((savedPost) => (
                 <div key={savedPost.savedPostId} className="saved-post-item">
-                  <div
+                  <div 
                     className="saved-post-content clickable"
                     onClick={() => {
                       if (onPostClick) {
@@ -154,7 +155,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                     )}
                   </div>
                   <div className="saved-post-actions">
-                    <button
+                    <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         handleUnsavePost(savedPost.postId);
@@ -168,19 +169,19 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
               ))}
             </div>
           )}
-
+          
           {/* Pagination */}
           {savedPosts.length > 0 && totalPages > 1 && (
             <div className="pagination-container">
               <div className="pagination">
-                <button
+                <button 
                   className="pagination-btn"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
                   ← {t('forum.modals.savedPosts.previous')}
                 </button>
-
+                
                 <div className="pagination-numbers">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
@@ -192,8 +193,8 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                     </button>
                   ))}
                 </div>
-
-                <button
+                
+                <button 
                   className="pagination-btn"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -201,7 +202,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                   {t('forum.modals.savedPosts.next')} →
                 </button>
               </div>
-
+              
               <div className="pagination-info">
                 {t('forum.modals.savedPosts.pageInfo', { current: currentPage, total: totalPages, count: savedPosts.length })}
               </div>

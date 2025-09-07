@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
 import './UserSidebar.css';
 
 const UserSidebar = () => {
@@ -13,7 +14,7 @@ const UserSidebar = () => {
 
   const fetchSuggestedUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/users/suggestions?limit=5', {
+      const response = await fetch(`${API_ENDPOINTS.USERS_SUGGESTIONS}?limit=5`, {
         headers: {
           // Suggestions may need auth depending on BE; add token if available
           ...(localStorage.getItem('token') || localStorage.getItem('accessToken')
@@ -121,9 +122,9 @@ const UserSidebar = () => {
       // TODO: Implement follow API call
       console.log('Following user:', userId);
       // Update UI to show followed state
-      setSuggestedUsers(prev =>
-        prev.map(user =>
-          user.id === userId
+      setSuggestedUsers(prev => 
+        prev.map(user => 
+          user.id === userId 
             ? { ...user, isFollowed: true }
             : user
         )
@@ -138,9 +139,9 @@ const UserSidebar = () => {
       // TODO: Implement unfollow API call
       console.log('Unfollowing user:', userId);
       // Update UI to show unfollowed state
-      setSuggestedUsers(prev =>
-        prev.map(user =>
-          user.id === userId
+      setSuggestedUsers(prev => 
+        prev.map(user => 
+          user.id === userId 
             ? { ...user, isFollowed: false }
             : user
         )
@@ -167,14 +168,14 @@ const UserSidebar = () => {
           <div key={user.id} className="user-item">
             <div className="user-info">
               <div className="avatar-container">
-                <img
-                  src={user.avatar}
+                <img 
+                  src={user.avatar} 
                   alt={user.username}
                   className="user-avatar"
                 />
                 {user.isOnline && <div className="online-indicator"></div>}
               </div>
-
+              
               <div className="user-details">
                 <div className="username">{user.username}</div>
                 <div className="mutual-friends">
@@ -199,7 +200,7 @@ const UserSidebar = () => {
                   {t('forum.sidebar.follow')}
                 </button>
               )}
-
+              
               <button
                 onClick={() => handleMessage(user.id)}
                 className="action-btn message-btn"
