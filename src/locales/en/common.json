@@ -1,8 +1,12 @@
 {
-	"brand": "Da Nang - Korea Tour",
+	"brand": "Korea - Da Nang Booking System",
 	"nav": {
 		"home": "Home",
 		"forum": "Forum",
+		"tours": "Tours",
+		"news": "News",
+		"selfTravel": "Self-Travel",
+		"contact": "Contact",
 		"admin": "Admin Dashboard",
 		"profile": "Profile",
 		"payment": "Payment",
@@ -34,6 +38,11 @@
 		},
 		"common": {
 			"email": "Email",
+			"form": {
+				"email": {
+					"invalid": "Invalid email format"
+				}
+			},
 			"password": "Password",
 			"rememberMe": "Remember me",
 			"or": "Or",
@@ -51,6 +60,8 @@
 		"login": {
 			"title": "Login",
 			"subtitle": "Welcome back",
+			"illustrationTitle": "Welcome to KDBS",
+			"illustrationSubtitle": "Your gateway to amazing Korea - Da Nang tours",
 			"submit": "Login",
 			"submitting": "Logging in...",
 			"loginWithGoogle": "Sign in with Google",
@@ -66,6 +77,9 @@
 		},
 		"register": {
 			"title": "Create account",
+			"headerSubtitle": "Create a new account to get started",
+            "illustrationTitle": "Join KDBS Today",
+            "illustrationSubtitle": "Start your amazing Korea - Da Nang journey",
 			"username": "Username",
 			"usernamePlaceholder": "Enter username",
 			"password": "Password",
