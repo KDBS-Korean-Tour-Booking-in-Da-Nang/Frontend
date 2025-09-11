@@ -1,0 +1,487 @@
+/* Login Page Styles */
+
+/* Email validation error styles */
+.input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.field-error::before {
+  content: '⚠';
+  font-size: 0.75rem;
+}
+.login-container {
+  height: 100vh;
+  background: linear-gradient(135deg, #FF6F00 0%, #FF8F00 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 2rem 0;
+  box-sizing: border-box;
+}
+
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+  z-index: 1;
+}
+
+.login-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.login-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.login-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  min-height: auto;
+  max-height: calc(100vh - 6rem);
+}
+
+.login-form-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.login-form-section::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #FF6F00, #FF8F00);
+  border-radius: 22px;
+  z-index: -1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.login-logo {
+  width: 45px;
+  height: 45px;
+  background: #FF6F00;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.5rem;
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.login-subtitle {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: #f9fafb;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FF6F00;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.remember-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #FF6F00;
+  margin-right: 0.4rem;
+}
+
+.remember-label {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.login-button {
+  width: 100%;
+  background: #FF6F00;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 0;
+}
+
+.login-button:hover {
+  background: #E65100;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 111, 0, 0.3);
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-message {
+  background: #FF6F00;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.success-message {
+  background: #10b981;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 10px;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.divider-text {
+  padding: 0 1rem;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.oauth-button {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.oauth-button:hover {
+  border-color: #FF6F00;
+  background: #FF6F00;
+  color: white;
+}
+
+.oauth-button.google {
+  border-color: #e5e7eb;
+}
+
+.oauth-button.google:hover {
+  border-color: #FF6F00;
+  background: #FF6F00;
+  color: white;
+}
+
+.forgot-password {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.forgot-link {
+  color: #FF6F00;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.register-link {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.register-text {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.register-link-text {
+  color: #FF6F00;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-link-text:hover {
+  text-decoration: underline;
+}
+
+.staff-login {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.staff-button {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.staff-button:hover {
+  border-color: #FF6F00;
+  background: #fef7f0;
+  color: #FF6F00;
+}
+
+.illustration-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+}
+
+.illustration-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.illustration-subtitle {
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
+  opacity: 0.9;
+}
+
+.travel-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.travel-item {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.travel-item:hover {
+  transform: translateY(-5px);
+}
+
+.travel-item svg {
+  width: 30px;
+  height: 30px;
+  color: #FF6F00;
+}
+
+.character {
+  width: 90px;
+  height: 90px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.6rem;
+}
+
+.character svg {
+  width: 45px;
+  height: 45px;
+  color: #FF6F00;
+}
+
+/* Large screens optimization */
+@media (min-width: 1920px) {
+  .login-content {
+    max-width: 1200px;
+  }
+  
+  .login-grid {
+    gap: 3rem;
+  }
+  
+  .login-form-section {
+    padding: 2.5rem;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .illustration-section {
+    order: -1;
+    padding: 2rem 0;
+  }
+  
+  .illustration-title {
+    font-size: 2rem;
+  }
+  
+  .login-form-section {
+    padding: 2rem;
+  }
+  
+  .travel-items {
+    gap: 1rem;
+  }
+  
+  .travel-item {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .travel-item svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-content {
+    padding: 1rem;
+  }
+  
+  .login-form-section {
+    padding: 1.5rem;
+  }
+  
+  .login-title {
+    font-size: 1.5rem;
+  }
+  
+  .illustration-title {
+    font-size: 1.8rem;
+  }
+}

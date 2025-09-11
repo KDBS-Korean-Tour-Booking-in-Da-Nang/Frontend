@@ -1,8 +1,12 @@
 {
-	"brand": "다낭 - 코리아 투어",
+	"brand": "코리아 - 다낭 투어 예약 시스템",
 	"nav": {
 		"home": "홈",
 		"forum": "포럼",
+		"tours": "투어",
+		"news": "뉴스",
+		"selfTravel": "자유여행",
+		"contact": "연락처",
 		"admin": "관리자 대시보드",
 		"profile": "프로필",
 		"payment": "결제",
@@ -34,6 +38,11 @@
 		},
 		"common": {
 			"email": "이메일",
+			"form": {
+				"email": {
+					"invalid": "이메일 형식이 올바르지 않습니다"
+				}
+			},
 			"password": "비밀번호",
 			"rememberMe": "로그인 상태 유지",
 			"or": "또는",
@@ -51,6 +60,8 @@
 		"login": {
 			"title": "로그인",
 			"subtitle": "다시 오신 것을 환영합니다",
+			"illustrationTitle": "KDBS에 오신 것을 환영합니다",
+			"illustrationSubtitle": "멋진 코리아 - 다낭 투어의 관문",
 			"submit": "로그인",
 			"submitting": "로그인 중...",
 			"loginWithGoogle": "Google로 로그인",
@@ -66,6 +77,9 @@
 		},
 		"register": {
 			"title": "계정 만들기",
+			"headerSubtitle": "새 계정을 만들어 시작하세요",
+			"illustrationTitle": "지금 KDBS에 가입하세요",
+			"illustrationSubtitle": "멋진 코리아 - 다낭 여정을 시작하세요",
 			"username": "사용자 이름",
 			"usernamePlaceholder": "사용자 이름 입력",
 			"password": "비밀번호",
