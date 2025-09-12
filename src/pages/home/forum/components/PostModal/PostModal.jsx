@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders } from '../../../../../config/api';
 import './PostModal.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [hashtags, setHashtags] = useState([]);
@@ -168,11 +168,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       
       const method = editPost ? 'PUT' : 'POST';
 
-      const headers = {};
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      const token = getToken();
+      const headers = createAuthFormHeaders(token);
 
       const response = await fetch(url, {
         method: method,

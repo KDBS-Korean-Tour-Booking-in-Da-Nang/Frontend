@@ -24,7 +24,7 @@ export default function BusinessTourDetail() {
         <h1 className="text-2xl font-semibold">{tour.title}</h1>
         <div className="flex gap-2">
           <button onClick={() => navigate('/business/tours')} className="px-3 py-2 bg-gray-100 rounded">Danh sách</button>
-          <button onClick={() => navigate(`/business/tours/${tour.id}/edit`)} className="px-3 py-2 bg-yellow-500 text-white rounded">Sửa</button>
+          <button onClick={() => navigate(`/business/tours/${tour.id}/edit`)} className="px-3 py-2 bg-primary text-white rounded">Sửa</button>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ export default function BusinessTourDetail() {
         {Array.isArray(tour.itineraryDays) && tour.itineraryDays.length > 0 ? (
           tour.itineraryDays.map((html, i) => (
             <section key={i} className="mb-6">
-              <h3 className="font-semibold bg-orange-500 text-white px-3 py-2 rounded">Ngày {i + 1}</h3>
+              <h3 className="font-semibold bg-primary text-white px-3 py-2 rounded">Ngày {i + 1}</h3>
               <div className="mt-2" dangerouslySetInnerHTML={{ __html: html }} />
             </section>
           ))

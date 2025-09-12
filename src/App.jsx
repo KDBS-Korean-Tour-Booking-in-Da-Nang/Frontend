@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { AuthProvider } from './contexts/AuthContext';
-import Navbar from './components/Navbar';
+import { ConditionalNavbar } from './components';
 import Homepage from './pages/home/homepage/homepage';
 import Login from './pages/authentication/login/login';
 import StaffLogin from './pages/authentication/staffLogin/staffLogin';
@@ -22,6 +22,8 @@ import TourDetailPage from './pages/tour/TourDetailPage';
 import BusinessTourList from './pages/business/tours/BusinessTourList';
 import BusinessTourForm from './pages/business/tours/BusinessTourForm';
 import BusinessTourDetail from './pages/business/tours/BusinessTourDetail';
+import BusinessAnalytics from './pages/business/analytics/BusinessAnalytics';
+import BusinessOrders from './pages/business/orders/BusinessOrders';
 
 function App() {
   return (
@@ -29,7 +31,7 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="min-h-screen bg-gray-50">
-            <Navbar />
+            <ConditionalNavbar />
             <main className="pt-16">
               <Routes>
                 <Route path="/" element={<Homepage />} />
@@ -49,11 +51,13 @@ function App() {
                 <Route path="/forum" element={<Forum />} />
                 <Route path="/tour" element={<Tour />} />
                 <Route path="/tour/:id" element={<TourDetailPage />} />
-                {/* Business-only (no navbar link) */}
+                {/* Business-only routes */}
                 <Route path="/business/tours" element={<BusinessTourList />} />
                 <Route path="/business/tours/new" element={<BusinessTourForm />} />
                 <Route path="/business/tours/:id/edit" element={<BusinessTourForm />} />
                 <Route path="/business/tours/:id" element={<BusinessTourDetail />} />
+                <Route path="/business/analytics" element={<BusinessAnalytics />} />
+                <Route path="/business/orders" element={<BusinessOrders />} />
               </Routes>
             </main>
           </div>

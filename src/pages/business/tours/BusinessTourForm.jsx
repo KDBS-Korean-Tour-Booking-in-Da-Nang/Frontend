@@ -168,7 +168,7 @@ export default function BusinessTourForm() {
                 type="button"
                 key={i}
                 onClick={() => setActiveDay(i)}
-                className={`px-3 py-2 rounded border ${activeDay === i ? 'bg-orange-500 text-white border-orange-500' : 'bg-white'}`}
+                className={`px-3 py-2 rounded border ${activeDay === i ? 'bg-primary text-white border-primary' : 'bg-white'}`}
               >
                 Ngày {i + 1}
               </button>
@@ -192,7 +192,7 @@ export default function BusinessTourForm() {
 
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={() => navigate('/business/tours')} className="px-4 py-2 bg-gray-100 rounded">Hủy</button>
-          <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{editing ? 'Lưu thay đổi' : 'Tạo tour'}</button>
+          <button type="submit" className="px-4 py-2 bg-primary text-white rounded">{editing ? 'Lưu thay đổi' : 'Tạo tour'}</button>
         </div>
       </form>
     </div>

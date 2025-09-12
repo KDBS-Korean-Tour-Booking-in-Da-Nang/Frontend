@@ -257,7 +257,7 @@ const BusinessInfo = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('business.notFoundTitle')}</h2>
           <button
             onClick={() => navigate('/register')}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover"
           >
             {t('business.backToRegister')}
           </button>
@@ -314,13 +314,13 @@ const BusinessInfo = () => {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 my-6">
-                <p className="text-blue-800 text-sm">{t('business.submittedSubtitle')}</p>
+              <div className="bg-secondary border border-primary rounded-lg p-4 my-6">
+                <p className="text-primary text-sm">{t('business.submittedSubtitle')}</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => navigate('/pending-page')}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover"
                 >
                   {t('business.submittedViewPending')}
                 </button>
@@ -369,7 +369,7 @@ const BusinessInfo = () => {
                     id="businessLicense"
                     accept=".pdf"
                     onChange={(e) => handleFileChange(e, 'businessLicense')}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-primary hover:file:bg-primary"
                   />
                 </div>
                 {files.businessLicense && (
@@ -385,7 +385,7 @@ const BusinessInfo = () => {
                     id="idCardFront"
                     accept=".jpg,.jpeg,.png"
                     onChange={(e) => handleFileChange(e, 'idCardFront')}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-primary hover:file:bg-primary"
                   />
                 </div>
                 {files.idCardFront && (
@@ -401,7 +401,7 @@ const BusinessInfo = () => {
                     id="idCardBack"
                     accept=".jpg,.jpeg,.png"
                     onChange={(e) => handleFileChange(e, 'idCardBack')}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-primary hover:file:bg-primary"
                   />
                 </div>
                 {files.idCardBack && (
@@ -409,9 +409,9 @@ const BusinessInfo = () => {
                 )}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-900 mb-2">{t('business.important.title')}</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="bg-secondary border border-primary rounded-lg p-4">
+                <h3 className="text-sm font-medium text-primary mb-2">{t('business.important.title')}</h3>
+                <ul className="text-sm text-primary space-y-1">
                   <li>{t('business.important.i1')}</li>
                   <li>{t('business.important.i2')}</li>
                   <li>{t('business.important.i3')}</li>
@@ -425,14 +425,14 @@ const BusinessInfo = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 >
                   {t('business.back')}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
                 >
                   {loading ? t('business.submitting') : t('business.submit')}
                 </button>

@@ -48,7 +48,7 @@
 .brand-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #FF6F00;
+  color: #1a8eea;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   white-space: nowrap;
 }
@@ -58,10 +58,10 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: #FF6F00;
+  background: #1a8eea;
   border-radius: 30px;
   padding: 0.5rem 2rem;
-  box-shadow: 0 4px 15px rgba(255, 111, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(26, 142, 234, 0.3);
   justify-self: center;
   justify-content: center;
 }
@@ -84,7 +84,7 @@
 
 .nav-link:hover {
   background: white;
-  color: #FF6F00;
+  color: #1a8eea;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
@@ -92,7 +92,7 @@
 
 .nav-link.active {
   background: white;
-  color: #FF6F00;
+  color: #1a8eea;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -108,8 +108,8 @@
 
 .right-section .nav-link {
   color: white;
-  background: #FF6F00;
-  box-shadow: 0 2px 8px rgba(255, 111, 0, 0.3);
+  background: #1a8eea;
+  box-shadow: 0 2px 8px rgba(26, 142, 234, 0.3);
   border-radius: 20px;
   padding: 0.5rem 1rem;
   text-align: center;
@@ -124,8 +124,8 @@
 }
 
 .right-section .nav-link:hover {
-  background: #E65100;
-  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.4);
+  background: #1471c4;
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.4);
 }
 
 /* Notification Icons */
@@ -189,7 +189,7 @@
 }
 
 .balance-amount {
-  color: #FF6F00;
+  color: #1a8eea;
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -197,7 +197,7 @@
 .balance-add {
   width: 24px;
   height: 24px;
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -210,7 +210,7 @@
 }
 
 .balance-add:hover {
-  background: #E65100;
+  background: #1471c4;
   transform: scale(1.1);
 }
 
@@ -238,14 +238,14 @@
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #FF6F00;
+  border: 2px solid #1a8eea;
 }
 
 .user-avatar-placeholder {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   display: flex;
   align-items: center;
@@ -257,7 +257,7 @@
 .user-dropdown {
   width: 20px;
   height: 20px;
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -268,7 +268,7 @@
 }
 
 .user-profile:hover .user-dropdown {
-  background: #E65100;
+  background: #1471c4;
   transform: scale(1.1);
 }
 
@@ -315,7 +315,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   display: flex;
   align-items: center;
@@ -370,7 +370,7 @@
 }
 
 .language-button {
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -379,7 +379,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(255, 111, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(26, 142, 234, 0.3);
   min-width: 50px;
   display: flex;
   align-items: center;
@@ -387,9 +387,9 @@
 }
 
 .language-button:hover {
-  background: #E65100;
+  background: #1471c4;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.4);
 }
 
 .language-dropdown {
@@ -490,10 +490,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  background: #FF6F00;
+  background: #1a8eea;
   border-radius: 15px;
   padding: 1rem;
-  box-shadow: 0 4px 15px rgba(255, 111, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(26, 142, 234, 0.3);
 }
 
 .mobile-nav-link {
@@ -509,14 +509,14 @@
 
 .mobile-nav-link:hover {
   background: white;
-  color: #FF6F00;
+  color: #1a8eea;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateX(4px);
 }
 
 .mobile-nav-link.active {
   background: white;
-  color: #FF6F00;
+  color: #1a8eea;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 

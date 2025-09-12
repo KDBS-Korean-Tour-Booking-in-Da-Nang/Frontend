@@ -21,7 +21,7 @@
 }
 .register-container {
   height: 100vh;
-  background: linear-gradient(135deg, #FF6F00 0%, #FF8F00 100%);
+  background: linear-gradient(135deg, #1a8eea 0%, #3ba0f2 100%);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -88,7 +88,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(135deg, #FF6F00, #FF8F00);
+  background: linear-gradient(135deg, #1a8eea, #3ba0f2);
   border-radius: 22px;
   z-index: -1;
 }
@@ -101,7 +101,7 @@
 .register-logo {
   width: 45px;
   height: 45px;
-  background: #FF6F00;
+  background: #1a8eea;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -152,9 +152,9 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #FF6F00;
+  border-color: #1a8eea;
   background: white;
-  box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(26, 142, 234, 0.1);
 }
 
 .form-input::placeholder {
@@ -190,13 +190,13 @@
 }
 
 .role-button:hover {
-  border-color: #FF6F00;
+  border-color: #1a8eea;
   background: #fef7f0;
 }
 
 .role-button.selected {
-  border-color: #FF6F00;
-  background: #FF6F00;
+  border-color: #1a8eea;
+  background: #1a8eea;
   color: white;
 }
 
@@ -213,7 +213,7 @@
 
 .register-button {
   width: 100%;
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   border: none;
   padding: 0.75rem;
@@ -226,9 +226,9 @@
 }
 
 .register-button:hover {
-  background: #E65100;
+  background: #1471c4;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 111, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(26, 142, 234, 0.3);
 }
 
 .register-button:disabled {
@@ -239,7 +239,7 @@
 }
 
 .error-message {
-  background: #FF6F00;
+  background: #1a8eea;
   color: white;
   padding: 0.75rem;
   border-radius: 10px;
@@ -259,7 +259,7 @@
 }
 
 .login-link-text {
-  color: #FF6F00;
+  color: #1a8eea;
   text-decoration: none;
   font-weight: 600;
 }
@@ -317,7 +317,7 @@
 .travel-item svg {
   width: 30px;
   height: 30px;
-  color: #FF6F00;
+  color: #1a8eea;
 }
 
 .character {
@@ -335,7 +335,7 @@
 .character svg {
   width: 45px;
   height: 45px;
-  color: #FF6F00;
+  color: #1a8eea;
 }
 
 /* Responsive Design */

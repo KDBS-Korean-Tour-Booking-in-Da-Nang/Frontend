@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
 import './UserSidebar.css';
 
 const UserSidebar = () => {
   const { t } = useTranslation();
   const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchSuggestedUsers();
@@ -14,13 +13,9 @@ const UserSidebar = () => {
 
   const fetchSuggestedUsers = async () => {
     try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const response = await fetch(`${API_ENDPOINTS.USERS_SUGGESTIONS}?limit=5`, {
-        headers: {
-          // Suggestions may need auth depending on BE; add token if available
-          ...(localStorage.getItem('token') || localStorage.getItem('accessToken')
-            ? { Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('accessToken')}` }
-            : {})
-        }
+        headers: createAuthHeaders(token)
       });
       if (response.ok) {
         const data = await response.json();

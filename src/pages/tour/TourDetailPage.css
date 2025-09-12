@@ -80,7 +80,7 @@
 
 .hero-badge {
   display: inline-block;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #1a8eea, #1471c4);
   color: white;
   padding: 8px 20px;
   border-radius: 25px;
@@ -252,7 +252,7 @@
 }
 
 .itinerary-day-header {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #1a8eea, #1471c4);
   padding: 15px 30px;
   display: flex;
   align-items: center;

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../../../../config/api';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../../config/api';
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
 import './CommentSection.css';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   
   // Main states
   const [comments, setComments] = useState([]);
@@ -122,7 +122,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const body = {
         userEmail: user.email,
         forumPostId: post.forumPostId,
@@ -132,10 +132,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
       const response = await fetch(API_ENDPOINTS.COMMENTS, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify(body),
       });
 
@@ -206,14 +203,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     if (!user) return;
     
     try {
-    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    const token = getToken();
       const url = `${API_ENDPOINTS.REPORTS_CREATE}?userEmail=${encodeURIComponent(user.email)}`;
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify({
           targetType: reportData.targetType,
           targetId: reportData.targetId,
@@ -480,13 +474,9 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
     try {
       const email = user?.email || localStorage.getItem('userEmail') || localStorage.getItem('email');
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       
-      const headers = {
-        'Content-Type': 'application/json',
-        'User-Email': email,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
+      const headers = createAuthHeaders(token, { 'User-Email': email });
 
       // Toggle off if same reaction
       if (reaction.userReaction === type) {
@@ -551,7 +541,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
     setIsSubmittingReply(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const body = {
         userEmail: user.email,
         forumPostId: post.forumPostId,
@@ -562,10 +552,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
       const response = await fetch(API_ENDPOINTS.COMMENTS, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
-          ...(token ? { Authorization: `Bearer ${token}` } : {}) 
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify(body)
       });
 
@@ -603,13 +590,10 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     if (!editText.trim()) return;
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const response = await fetch(API_ENDPOINTS.COMMENTS + `/${comment.forumCommentId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify({
           content: editText.trim(),
           userEmail: user.email
@@ -638,12 +622,10 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     if (!confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const response = await fetch(API_ENDPOINTS.COMMENTS + `/${comment.forumCommentId}?userEmail=${user.email}`, {
         method: 'DELETE',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
       });
 
       if (response.ok) {

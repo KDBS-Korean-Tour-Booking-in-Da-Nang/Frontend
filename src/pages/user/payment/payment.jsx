@@ -59,7 +59,7 @@ const Payment = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
+                          ? 'border-primary text-primary'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
@@ -137,7 +137,7 @@ const DepositTab = () => {
             min="10000"
             step="1000"
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder={t('payment.deposit.placeholder')}
           />
           {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
@@ -156,7 +156,7 @@ const DepositTab = () => {
         <button
           type="submit"
           disabled={loading || parseFloat(amount) < 10000}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
           {loading ? t('payment.deposit.submitting') : t('payment.deposit.submit')}
         </button>
@@ -214,7 +214,7 @@ const WithdrawTab = () => {
             onChange={handleChange}
             min="50000"
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder={t('payment.withdraw.placeholderAmount')}
           />
         </div>
@@ -228,7 +228,7 @@ const WithdrawTab = () => {
             value={formData.bankAccount}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder="Nhập số tài khoản"
           />
         </div>
@@ -242,7 +242,7 @@ const WithdrawTab = () => {
             value={formData.accountHolder}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder="Nhập tên chủ tài khoản"
           />
         </div>
@@ -288,7 +288,7 @@ const HistoryTab = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'pending': return 'text-primary bg-secondary';
       case 'failed': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }

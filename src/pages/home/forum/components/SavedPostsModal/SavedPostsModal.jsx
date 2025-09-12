@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
 import './SavedPostsModal.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [savedPosts, setSavedPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,14 +25,11 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const email = user?.email || localStorage.getItem('email') || '';
       
       const response = await fetch(API_ENDPOINTS.SAVED_POSTS_MY_SAVED, {
-        headers: {
-          'User-Email': email,
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        }
+        headers: createAuthHeaders(token, { 'User-Email': email })
       });
       
       if (response.ok) {

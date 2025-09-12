@@ -1,10 +1,26 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
 import { listTours, deleteTour } from '../../../utils/businessToursStorage';
 
 export default function BusinessTourList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const tours = useMemo(() => listTours(), []);
+
+  // Check if user has business role
+  const isBusinessUser = user && (user.role === 'COMPANY' || user.role === 'company');
+  
+  if (!isBusinessUser) {
+    return (
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Truy cập bị từ chối</h1>
+          <p className="text-gray-600">Bạn cần có quyền business để truy cập trang này.</p>
+        </div>
+      </div>
+    );
+  }
 
   function handleCreate() {
     navigate('/business/tours/new');
@@ -31,7 +47,7 @@ export default function BusinessTourList() {
     <div className="max-w-6xl mx-auto p-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Business - Quản lý Tour</h1>
-        <button onClick={handleCreate} className="px-4 py-2 bg-blue-600 text-white rounded">+ Tạo tour</button>
+        <button onClick={handleCreate} className="px-4 py-2 bg-primary text-white rounded">+ Tạo tour</button>
       </div>
       {tours.length === 0 ? (
         <div className="text-gray-600">Chưa có tour nào. Hãy tạo tour mới.</div>
@@ -51,7 +67,7 @@ export default function BusinessTourList() {
               </div>
               <div className="flex gap-2 mt-4">
                 <button onClick={() => handleView(t.id)} className="px-3 py-2 bg-gray-100 rounded">Xem</button>
-                <button onClick={() => handleEdit(t.id)} className="px-3 py-2 bg-yellow-500 text-white rounded">Sửa</button>
+                <button onClick={() => handleEdit(t.id)} className="px-3 py-2 bg-primary text-white rounded">Sửa</button>
                 <button onClick={() => handleDelete(t.id)} className="px-3 py-2 bg-red-600 text-white rounded">Xóa</button>
               </div>
             </div>

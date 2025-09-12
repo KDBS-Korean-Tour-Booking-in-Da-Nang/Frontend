@@ -60,3 +60,31 @@ export const getImageUrl = (imagePath) => {
   if (imagePath.startsWith('http')) return imagePath;
   return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
 };
+
+// Helper function để tạo headers với auth token
+export const createAuthHeaders = (token, additionalHeaders = {}) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...additionalHeaders
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};
+
+// Helper function để tạo headers cho multipart/form-data với auth token
+export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
+  const headers = {
+    ...additionalHeaders
+    // Không set Content-Type cho FormData, browser sẽ tự động set với boundary
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};

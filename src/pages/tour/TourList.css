@@ -254,7 +254,7 @@
 .error-message h3 {
   font-size: 24px;
   font-weight: 700;
-  color: #dc2626;
+  color: #1a8eea;
   margin-bottom: 12px;
 }
 
@@ -264,7 +264,7 @@
 }
 
 .retry-btn {
-  background: #dc2626;
+  background: #1a8eea;
   color: white;
   border: none;
   padding: 12px 24px;
