@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { CreditCardIcon, ArrowUpIcon, ArrowDownIcon, ClockIcon } from '@heroicons/react/24/outline';
 import './payment.css';
 
 const Payment = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [activeTab, setActiveTab] = useState('deposit');
 
   const tabs = [
@@ -18,13 +20,13 @@ const Payment = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'deposit':
-        return <DepositTab />;
+        return <DepositTab showError={showError} showSuccess={showSuccess} />;
       case 'withdraw':
-        return <WithdrawTab />;
+        return <WithdrawTab showError={showError} showSuccess={showSuccess} />;
       case 'history':
         return <HistoryTab />;
       default:
-        return <DepositTab />;
+        return <DepositTab showError={showError} showSuccess={showSuccess} />;
     }
   };
 
@@ -81,7 +83,7 @@ const Payment = () => {
 };
 
 // Deposit Tab Component
-const DepositTab = () => {
+const DepositTab = ({ showError, showSuccess }) => {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -104,8 +106,22 @@ const DepositTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (parseFloat(amount) < 10000) {
-      setError(t('payment.deposit.minError'));
+    
+    // Collect all validation errors
+    const errors = [];
+    
+    if (!amount.trim()) {
+      errors.push('Vui lòng nhập số tiền');
+    } else if (parseFloat(amount) < 10000) {
+      errors.push('Số tiền tối thiểu là 10,000 VNĐ');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       return;
     }
 
@@ -113,10 +129,10 @@ const DepositTab = () => {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      alert(t('payment.deposit.success'));
+      showSuccess('Nạp tiền thành công!');
       setAmount('');
     } catch (err) {
-      setError(t('payment.deposit.failed'));
+      showError('Nạp tiền thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -166,7 +182,7 @@ const DepositTab = () => {
 };
 
 // Withdraw Tab Component
-const WithdrawTab = () => {
+const WithdrawTab = ({ showError, showSuccess }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     amount: '',
@@ -186,14 +202,41 @@ const WithdrawTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Collect all validation errors
+    const errors = [];
+    
+    if (!formData.amount.trim()) {
+      errors.push('Vui lòng nhập số tiền');
+    } else if (parseFloat(formData.amount) < 50000) {
+      errors.push('Số tiền rút tối thiểu là 50,000 VNĐ');
+    }
+    
+    if (!formData.bankAccount.trim()) {
+      errors.push('Vui lòng nhập số tài khoản ngân hàng');
+    }
+    
+    if (!formData.accountHolder.trim()) {
+      errors.push('Vui lòng nhập tên chủ tài khoản');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      alert(t('payment.withdraw.success'));
+      showSuccess('Yêu cầu rút tiền đã được gửi thành công!');
       setFormData({ amount: '', bankAccount: '', accountHolder: '' });
     } catch (err) {
-      setError(t('payment.withdraw.failed'));
+      showError('Rút tiền thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

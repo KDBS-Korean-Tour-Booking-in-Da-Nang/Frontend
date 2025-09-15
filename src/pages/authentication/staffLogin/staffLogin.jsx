@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import './staffLogin.css';
 
@@ -12,10 +13,34 @@ const StaffLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Collect all validation errors
+    const errors = [];
+
+    if (!email.trim()) {
+      errors.push('Email là bắt buộc');
+    } else if (!email.includes('@')) {
+      errors.push('Email không đúng định dạng');
+    }
+
+    if (!password.trim()) {
+      errors.push('Mật khẩu là bắt buộc');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -29,9 +54,10 @@ const StaffLogin = () => {
       };
 
       login(mockUser);
+      showSuccess('Đăng nhập thành công!');
       navigate('/admin');
     } catch (err) {
-      setError(t('staffLogin.error'));
+      showError('Đăng nhập thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

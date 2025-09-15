@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { useToast } from '../../../../../contexts/ToastContext';
 import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders } from '../../../../../config/api';
 import './PostModal.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [hashtags, setHashtags] = useState([]);
@@ -139,8 +141,24 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      alert(t('forum.createPost.errors.titleRequired') + ' và ' + t('forum.createPost.errors.contentRequired'));
+    
+    // Collect all validation errors
+    const errors = [];
+    
+    if (!title.trim()) {
+      errors.push('Tiêu đề bài viết là bắt buộc');
+    }
+    
+    if (!content.trim()) {
+      errors.push('Nội dung bài viết là bắt buộc');
+    }
+    
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       return;
     }
 
@@ -182,9 +200,11 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         if (editPost) {
           // Call onPostCreated with the updated post for edit mode
           onPostCreated(result);
+          showSuccess('Cập nhật bài viết thành công!');
         } else {
           // Call onPostCreated with the new post for create mode
           onPostCreated(result);
+          showSuccess('Tạo bài viết thành công!');
         }
         onClose();
         resetForm();
@@ -193,7 +213,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       }
     } catch (error) {
       console.error('Error creating/updating post:', error);
-      alert(editPost ? t('forum.createPost.errors.updateError') : t('forum.createPost.errors.submitError'));
+      showError(editPost ? 'Cập nhật bài viết thất bại. Vui lòng thử lại.' : 'Tạo bài viết thất bại. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -226,7 +246,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="title-input"
-              required
             />
           </div>
 
@@ -237,7 +256,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
               onChange={(e) => setContent(e.target.value)}
               className="content-input"
               rows="4"
-              required
             />
           </div>
 

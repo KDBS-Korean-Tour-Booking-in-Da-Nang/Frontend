@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import './verifyEmail.css';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +13,7 @@ const VerifyEmail = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -45,8 +47,21 @@ const VerifyEmail = () => {
     setLoading(true);
     setError('');
 
+    // Collect all validation errors
+    const errors = [];
+
     if (!otp.trim()) {
-      setError(t('auth.common.otp'));
+      errors.push('OTP là bắt buộc');
+    } else if (otp.length !== 6) {
+      errors.push('OTP phải có 6 chữ số');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setLoading(false);
       return;
     }
@@ -68,15 +83,7 @@ const VerifyEmail = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // Verification successful - show success message and redirect based on role
         setError(''); // Clear any previous errors
-        
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm mb-4';
-        successMessage.innerHTML = t('auth.verify.successBanner');
-        
-        // Insert success message before the form
-        const form = document.querySelector('form');
-        form.parentNode.insertBefore(successMessage, form);
+        showSuccess('Xác thực email thành công!');
         
         // Auto navigate based on role after 2 seconds
         setTimeout(() => {
@@ -87,10 +94,10 @@ const VerifyEmail = () => {
           }
         }, 2000);
       } else {
-        setError(data.message || t('auth.verify.error'));
+        showError(data.message || 'Xác thực email thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      showError('Xác thực email thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -125,11 +132,12 @@ const VerifyEmail = () => {
             return prev - 1;
           });
         }, 1000);
+        showSuccess('Mã OTP mới đã được gửi!');
       } else {
-        setError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
+        showError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
+      showError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
     } finally {
       setResendLoading(false);
     }

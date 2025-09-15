@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getTourById } from '../../../utils/businessToursStorage';
+import { getTourById } from '../../../../utils/businessToursStorage';
 
 export default function BusinessTourDetail() {
   const navigate = useNavigate();

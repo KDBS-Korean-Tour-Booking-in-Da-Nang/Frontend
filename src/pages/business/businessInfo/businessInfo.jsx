@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import './businessInfo.css';
 
 const BusinessInfo = () => {
@@ -9,6 +10,7 @@ const BusinessInfo = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [userEmail, setUserEmail] = useState('');
 
   const [files, setFiles] = useState({
@@ -117,11 +119,18 @@ const BusinessInfo = () => {
     setError('');
     setSuccess('');
 
+    // Collect all validation errors
+    const errors = [];
+
     // Validate files
-    if (!files.businessLicense || !files.idCardFront || !files.idCardBack) {
-      setError('Vui lòng upload đầy đủ 3 file: Giấy phép kinh doanh, Mặt trước CCCD, Mặt sau CCCD');
-      setLoading(false);
-      return;
+    if (!files.businessLicense) {
+      errors.push('Vui lòng upload giấy phép kinh doanh');
+    }
+    if (!files.idCardFront) {
+      errors.push('Vui lòng upload mặt trước CCCD');
+    }
+    if (!files.idCardBack) {
+      errors.push('Vui lòng upload mặt sau CCCD');
     }
 
     // Validate file types
@@ -131,25 +140,36 @@ const BusinessInfo = () => {
       idCardBack: ['image/jpeg', 'image/jpg', 'image/png']
     };
 
-    if (!allowedTypes.businessLicense.includes(files.businessLicense.type)) {
-      setError('File giấy phép kinh doanh phải là định dạng PDF');
-      setLoading(false);
-      return;
+    if (files.businessLicense && !allowedTypes.businessLicense.includes(files.businessLicense.type)) {
+      errors.push('File giấy phép kinh doanh phải là định dạng PDF');
     }
 
-    if (!allowedTypes.idCardFront.includes(files.idCardFront.type) || 
-        !allowedTypes.idCardBack.includes(files.idCardBack.type)) {
-      setError('File CCCD phải là định dạng JPG, JPEG hoặc PNG');
-      setLoading(false);
-      return;
+    if (files.idCardFront && !allowedTypes.idCardFront.includes(files.idCardFront.type)) {
+      errors.push('File mặt trước CCCD phải là định dạng JPG, JPEG hoặc PNG');
+    }
+
+    if (files.idCardBack && !allowedTypes.idCardBack.includes(files.idCardBack.type)) {
+      errors.push('File mặt sau CCCD phải là định dạng JPG, JPEG hoặc PNG');
     }
 
     // Validate file sizes (max 25MB each)
     const maxSize = 25 * 1024 * 1024; // 25MB
-    if (files.businessLicense.size > maxSize || 
-        files.idCardFront.size > maxSize || 
-        files.idCardBack.size > maxSize) {
-      setError('Mỗi file không được vượt quá 25MB');
+    if (files.businessLicense && files.businessLicense.size > maxSize) {
+      errors.push('File giấy phép kinh doanh không được vượt quá 25MB');
+    }
+    if (files.idCardFront && files.idCardFront.size > maxSize) {
+      errors.push('File mặt trước CCCD không được vượt quá 25MB');
+    }
+    if (files.idCardBack && files.idCardBack.size > maxSize) {
+      errors.push('File mặt sau CCCD không được vượt quá 25MB');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setLoading(false);
       return;
     }
@@ -189,7 +209,7 @@ const BusinessInfo = () => {
       console.log('Response status text:', response.statusText);
 
       if (response.ok) {
-        setSuccess('Thông tin doanh nghiệp đã được gửi thành công!');
+        showSuccess('Thông tin doanh nghiệp đã được gửi thành công!');
         // Ghi nhận đã nộp hồ sơ (theo email) trên thiết bị này để chặn nộp lại
         const statusKey = `businessUploadStatus:${userEmail}`;
         localStorage.setItem(statusKey, 'submitted');
@@ -232,11 +252,11 @@ const BusinessInfo = () => {
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         }
         
-        setError(errorMessage);
+        showError(errorMessage);
       }
     } catch (error) {
       console.error('Error uploading files:', error);
-      setError('Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại.');
+      showError('Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -261,6 +281,44 @@ const BusinessInfo = () => {
           >
             {t('business.backToRegister')}
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Nếu user đã có role Company, ẩn phần thông tin doanh nghiệp
+  const isCompanyRole = user && (user.role === 'COMPANY' || user.role === 'company');
+  if (isCompanyRole) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-white shadow rounded-lg p-8">
+            <div className="mb-6">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tài khoản doanh nghiệp</h2>
+              <p className="text-gray-600 mb-6">
+                Tài khoản của bạn đã được xác nhận là doanh nghiệp. Bạn có thể truy cập vào các tính năng dành cho doanh nghiệp.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => navigate('/business/dashboard')}
+                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Vào trang quản lý
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Về trang chủ
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
