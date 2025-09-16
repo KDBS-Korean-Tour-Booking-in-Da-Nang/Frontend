@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import {
-  UserCircleIcon,
   Bars3Icon,
   XMarkIcon,
-  CogIcon,
-  ShieldCheckIcon,
-  ArrowRightOnRectangleIcon,
+  BuildingOfficeIcon,
   BellIcon,
   ChatBubbleLeftRightIcon,
-  PlusIcon
+  PlusIcon,
+  MapIcon,
+  ClipboardDocumentListIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
-import styles from './Navbar.module.css';
+import styles from '../navbar-user/Navbar.module.css';
 
-const Navbar = () => {
+const BusinessNavbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,9 +63,8 @@ const Navbar = () => {
 
   // Check if current path is active
   const isActive = (path) => {
-    if (path === '/tour') {
-      // For tour, also check if we're on tour detail page
-      return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
+    if (path === '/business/tours') {
+      return location.pathname.startsWith('/business/tours');
     }
     return location.pathname === path;
   };
@@ -82,7 +81,7 @@ const Navbar = () => {
                 alt="KDBS Logo"
                 className={styles.logo}
               />
-              <span className={styles['brand-name']}>{t('brand')}</span>
+              <span className={styles['brand-name']}>{t('brand')} Business</span>
             </Link>
           </div>
 
@@ -108,6 +107,53 @@ const Navbar = () => {
             >
               {t('nav.tours')}
             </Link>
+
+            {/* Business Management Section */}
+            <div className="relative group">
+              <button className={`${styles['nav-link']} ${isActive('/business/tours') ? styles.active : ''} flex items-center gap-1`}>
+                <BuildingOfficeIcon className="w-4 h-4" />
+                Quản lý Business
+                <span className="text-xs">▼</span>
+              </button>
+              
+              {/* Business Dropdown Menu */}
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="py-2">
+                  <Link
+                    to="/business/tours"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <MapIcon className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Quản lý Tours</div>
+                      <div className="text-sm text-gray-500">Tạo và quản lý tours</div>
+                    </div>
+                  </Link>
+                  
+                  <Link
+                    to="/business/analytics"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <ChartBarIcon className="w-5 h-5 text-green-600" />
+                    <div>
+                      <div className="font-medium">Thống kê & Báo cáo</div>
+                      <div className="text-sm text-gray-500">Xem doanh thu và thống kê</div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/business/orders"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <ClipboardDocumentListIcon className="w-5 h-5 text-primary" />
+                    <div>
+                      <div className="font-medium">Quản lý Đơn hàng</div>
+                      <div className="text-sm text-gray-500">Xem và xử lý đơn hàng</div>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
 
             <Link
               to="/news"
@@ -178,7 +224,7 @@ const Navbar = () => {
                       )}
                       <div className={styles['dropdown-user-info']}>
                         <h4>{user.name || user.email}</h4>
-                        <p>{user.role}</p>
+                        <p className="text-primary font-medium">{user.role} - Business</p>
                       </div>
                     </div>
 
@@ -261,6 +307,37 @@ const Navbar = () => {
             {t('nav.tours')}
           </Link>
 
+          {/* Business Management Mobile */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <div className="text-sm font-medium text-gray-500 px-4 mb-2">Business Management</div>
+            <Link
+              to="/business/tours"
+              className={`${styles['mobile-nav-link']} ${isActive('/business/tours') ? styles.active : ''} flex items-center gap-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <MapIcon className="w-4 h-4" />
+              Quản lý Tours
+            </Link>
+            
+            <Link
+              to="/business/analytics"
+              className={`${styles['mobile-nav-link']} flex items-center gap-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <ChartBarIcon className="w-4 h-4" />
+              Thống kê & Báo cáo
+            </Link>
+
+            <Link
+              to="/business/orders"
+              className={`${styles['mobile-nav-link']} flex items-center gap-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <ClipboardDocumentListIcon className="w-4 h-4" />
+              Quản lý Đơn hàng
+            </Link>
+          </div>
+
           <Link
             to="/news"
             className={`${styles['mobile-nav-link']} ${isActive('/news') ? styles.active : ''}`}
@@ -289,7 +366,7 @@ const Navbar = () => {
             <div className={styles['mobile-user-section']}>
               <div className={styles['mobile-user-info']}>
                 <div className={styles['mobile-user-name']}>{user.name || user.email}</div>
-                <div className={styles['mobile-user-role']}>{user.role}</div>
+                <div className={styles['mobile-user-role']}>{user.role} - Business</div>
               </div>
               <button
                 onClick={() => {
@@ -308,4 +385,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default BusinessNavbar;

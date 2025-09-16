@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../../../../config/api';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../../config/api';
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
+import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import './CommentSection.css';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   
   // Main states
   const [comments, setComments] = useState([]);
@@ -21,6 +22,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
   const [showReportSuccessModal, setShowReportSuccessModal] = useState(false);
   const [reportTarget, setReportTarget] = useState(null);
   const [reportedComments, setReportedComments] = useState(new Set());
+
+  // Delete modal states
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Load comments on mount
   useEffect(() => {
@@ -91,21 +96,13 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       const response = await fetch(API_ENDPOINTS.COMMENTS_BY_POST(post.forumPostId));
       if (response.ok) {
         const data = await response.json();
-        console.log('All comments from API:', data);
-        console.log('Sample comment structure:', data[0]);
-        console.log('Comments with parentCommentId:', data.filter(comment => comment.parentCommentId));
-        console.log('Comments without parentCommentId:', data.filter(comment => !comment.parentCommentId));
-        
         // Only show top-level comments (no parentCommentId)
         const topLevelComments = data.filter(comment => !comment.parentCommentId);
-        console.log('Setting top-level comments:', topLevelComments);
         setComments(topLevelComments);
-        
         // Load reported status for these comments
         if (user && topLevelComments.length > 0) {
           loadReportedComments(topLevelComments);
         }
-        
         if (onCountChange) {
           onCountChange(data.length);
         }
@@ -122,7 +119,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const body = {
         userEmail: user.email,
         forumPostId: post.forumPostId,
@@ -132,10 +129,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
       const response = await fetch(API_ENDPOINTS.COMMENTS, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify(body),
       });
 
@@ -143,15 +137,9 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         const newComment = await response.json();
         setComments(prev => [newComment, ...prev]);
         setCommentText('');
-        if (onCommentAdded) {
-        onCommentAdded(newComment);
-        }
-        if (onCommentInputToggle) {
-          onCommentInputToggle(false);
-        }
-        if (onCountChange) {
-          onCountChange(comments.length + 1);
-        }
+        if (onCommentAdded) onCommentAdded(newComment);
+        if (onCommentInputToggle) onCommentInputToggle(false);
+        if (onCountChange) onCountChange(comments.length + 1);
       }
     } catch (error) {
       console.error('Error submitting comment:', error);
@@ -206,14 +194,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     if (!user) return;
     
     try {
-    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    const token = getToken();
       const url = `${API_ENDPOINTS.REPORTS_CREATE}?userEmail=${encodeURIComponent(user.email)}`;
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify({
           targetType: reportData.targetType,
           targetId: reportData.targetId,
@@ -264,6 +249,36 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
   const hasMoreComments = comments.length > 3;
 
+  const requestDeleteComment = (comment) => {
+    setDeleteTarget(comment);
+    setDeleteOpen(true);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!deleteTarget || !user) return;
+    try {
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.COMMENTS + `/${deleteTarget.forumCommentId}?userEmail=${user.email}`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(token),
+      });
+      if (response.ok) {
+        if (!deleteTarget.parentCommentId) {
+          setComments(prev => prev.filter(c => c.forumCommentId !== deleteTarget.forumCommentId));
+        }
+        if (onCountChange) onCountChange(prev => prev - 1);
+      } else {
+        alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
+    } finally {
+      setDeleteOpen(false);
+      setDeleteTarget(null);
+    }
+  };
+
   return (
     <div className="comment-section">
       {/* Comment Input */}
@@ -297,30 +312,33 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       {/* Comments List */}
       {displayedComments.length > 0 && (
         <div className="comments-list">
-          {displayedComments.map((comment, index) => {
-            console.log('Rendering comment:', comment.forumCommentId, 'Content:', comment.content, 'ParentCommentId:', comment.parentCommentId);
-            return (
-              <CommentItem 
-                key={comment.forumCommentId || index} 
-                comment={comment}
-                user={user}
-                t={t}
-                formatTime={formatTime}
-                isCommentOwner={isCommentOwner}
-                isCommentReported={isCommentReported}
-                onLoginRequired={onLoginRequired}
-                onCountChange={onCountChange}
-                post={post}
-                onCommentDeleted={handleCommentDeleted}
-                onReportComment={(comment) => {
-                  setReportTarget(comment);
-                  setShowReportModal(true);
-                }}
-                reportedComments={reportedComments}
-                setReportedComments={setReportedComments}
-              />
-            );
-          })}
+          {displayedComments.map((comment, index) => (
+            <CommentItem 
+              key={comment.forumCommentId || index} 
+              comment={comment}
+              user={user}
+              t={t}
+              formatTime={(d) => {
+                const date = new Date(d);
+                const now = new Date();
+                const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+                if (diffInMinutes < 1) return t('forum.post.justNow');
+                if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
+                if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
+                return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
+              }}
+              isCommentOwner={(c) => user && c && user.email === c.userEmail}
+              isCommentReported={(id) => reportedComments.has(id)}
+              onLoginRequired={onLoginRequired}
+              onCountChange={onCountChange}
+              post={post}
+              onCommentDeleted={(commentId) => setComments(prev => prev.filter(c => c.forumCommentId !== commentId))}
+              onReportComment={(c) => { setReportTarget(c); setShowReportModal(true); }}
+              onRequestDelete={requestDeleteComment}
+              reportedComments={reportedComments}
+              setReportedComments={setReportedComments}
+            />
+          ))}
         </div>
       )}
 
@@ -350,20 +368,31 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       <CommentReportModal
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
-        onReport={submitReport}
+        onReport={async (data) => { await submitReport(data); }}
         comment={reportTarget}
       />
-      
       <CommentReportSuccessModal
         isOpen={showReportSuccessModal}
         onClose={() => setShowReportSuccessModal(false)}
+      />
+
+      {/* Delete Confirm Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteOpen}
+        onClose={() => { setDeleteOpen(false); setDeleteTarget(null); }}
+        onConfirm={confirmDeleteComment}
+        title={"Xác nhận xóa bình luận"}
+        message={deleteTarget ? `Bạn có chắc chắn muốn xóa bình luận này?` : ''}
+        itemName={"bình luận này"}
+        confirmText={"Xóa"}
+        cancelText={"Hủy"}
       />
     </div>
   );
 };
 
 // Individual Comment Component
-const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentReported, onLoginRequired, onCountChange, post, isReply = false, onCommentDeleted, onReportComment, reportedComments, setReportedComments }) => {
+const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentReported, onLoginRequired, onCountChange, post, isReply = false, onCommentDeleted, onReportComment, onRequestDelete, reportedComments, setReportedComments }) => {
   const [replies, setReplies] = useState([]);
   const [showReplies, setShowReplies] = useState(false);
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -480,13 +509,9 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
     try {
       const email = user?.email || localStorage.getItem('userEmail') || localStorage.getItem('email');
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       
-      const headers = {
-        'Content-Type': 'application/json',
-        'User-Email': email,
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
+      const headers = createAuthHeaders(token, { 'User-Email': email });
 
       // Toggle off if same reaction
       if (reaction.userReaction === type) {
@@ -551,7 +576,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
     setIsSubmittingReply(true);
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const body = {
         userEmail: user.email,
         forumPostId: post.forumPostId,
@@ -562,10 +587,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
       const response = await fetch(API_ENDPOINTS.COMMENTS, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json', 
-          ...(token ? { Authorization: `Bearer ${token}` } : {}) 
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify(body)
       });
 
@@ -603,13 +625,10 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     if (!editText.trim()) return;
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const response = await fetch(API_ENDPOINTS.COMMENTS + `/${comment.forumCommentId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify({
           content: editText.trim(),
           userEmail: user.email
@@ -635,36 +654,10 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
   // Handle delete
   const handleDelete = async () => {
-    if (!confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
-
-    try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch(API_ENDPOINTS.COMMENTS + `/${comment.forumCommentId}?userEmail=${user.email}`, {
-        method: 'DELETE',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (response.ok) {
-        console.log('Comment deleted successfully:', comment.forumCommentId);
-        setShowDropdown(false);
-        
-        // Notify parent component to remove this comment
-        if (onCommentDeleted) {
-          onCommentDeleted(comment.forumCommentId);
-        }
-        
-        if (onCountChange) {
-          onCountChange(prev => prev - 1);
-        }
-      } else {
-        console.error('Failed to delete comment:', response.status);
-        alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
-      }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
+    if (onRequestDelete) {
+      onRequestDelete(comment);
+      setShowDropdown(false);
+      return;
     }
   };
 
@@ -867,6 +860,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                   setReplies(prev => prev.filter(reply => reply.forumCommentId !== commentId));
                 }}
                 onReportComment={onReportComment}
+                onRequestDelete={onRequestDelete}
                 reportedComments={reportedComments}
                 setReportedComments={setReportedComments}
               />

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { CreditCardIcon, ArrowUpIcon, ArrowDownIcon, ClockIcon } from '@heroicons/react/24/outline';
 import './payment.css';
 
 const Payment = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [activeTab, setActiveTab] = useState('deposit');
 
   const tabs = [
@@ -18,13 +20,13 @@ const Payment = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'deposit':
-        return <DepositTab />;
+        return <DepositTab showError={showError} showSuccess={showSuccess} />;
       case 'withdraw':
-        return <WithdrawTab />;
+        return <WithdrawTab showError={showError} showSuccess={showSuccess} />;
       case 'history':
         return <HistoryTab />;
       default:
-        return <DepositTab />;
+        return <DepositTab showError={showError} showSuccess={showSuccess} />;
     }
   };
 
@@ -59,7 +61,7 @@ const Payment = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
+                          ? 'border-primary text-primary'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
@@ -81,7 +83,7 @@ const Payment = () => {
 };
 
 // Deposit Tab Component
-const DepositTab = () => {
+const DepositTab = ({ showError, showSuccess }) => {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -104,8 +106,22 @@ const DepositTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (parseFloat(amount) < 10000) {
-      setError(t('payment.deposit.minError'));
+    
+    // Collect all validation errors
+    const errors = [];
+    
+    if (!amount.trim()) {
+      errors.push('Vui lòng nhập số tiền');
+    } else if (parseFloat(amount) < 10000) {
+      errors.push('Số tiền tối thiểu là 10,000 VNĐ');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       return;
     }
 
@@ -113,10 +129,10 @@ const DepositTab = () => {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      alert(t('payment.deposit.success'));
+      showSuccess('Nạp tiền thành công!');
       setAmount('');
     } catch (err) {
-      setError(t('payment.deposit.failed'));
+      showError('Nạp tiền thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -137,7 +153,7 @@ const DepositTab = () => {
             min="10000"
             step="1000"
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder={t('payment.deposit.placeholder')}
           />
           {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
@@ -156,7 +172,7 @@ const DepositTab = () => {
         <button
           type="submit"
           disabled={loading || parseFloat(amount) < 10000}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
           {loading ? t('payment.deposit.submitting') : t('payment.deposit.submit')}
         </button>
@@ -166,7 +182,7 @@ const DepositTab = () => {
 };
 
 // Withdraw Tab Component
-const WithdrawTab = () => {
+const WithdrawTab = ({ showError, showSuccess }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     amount: '',
@@ -186,14 +202,41 @@ const WithdrawTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Collect all validation errors
+    const errors = [];
+    
+    if (!formData.amount.trim()) {
+      errors.push('Vui lòng nhập số tiền');
+    } else if (parseFloat(formData.amount) < 50000) {
+      errors.push('Số tiền rút tối thiểu là 50,000 VNĐ');
+    }
+    
+    if (!formData.bankAccount.trim()) {
+      errors.push('Vui lòng nhập số tài khoản ngân hàng');
+    }
+    
+    if (!formData.accountHolder.trim()) {
+      errors.push('Vui lòng nhập tên chủ tài khoản');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      alert(t('payment.withdraw.success'));
+      showSuccess('Yêu cầu rút tiền đã được gửi thành công!');
       setFormData({ amount: '', bankAccount: '', accountHolder: '' });
     } catch (err) {
-      setError(t('payment.withdraw.failed'));
+      showError('Rút tiền thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -214,7 +257,7 @@ const WithdrawTab = () => {
             onChange={handleChange}
             min="50000"
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder={t('payment.withdraw.placeholderAmount')}
           />
         </div>
@@ -228,7 +271,7 @@ const WithdrawTab = () => {
             value={formData.bankAccount}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder="Nhập số tài khoản"
           />
         </div>
@@ -242,7 +285,7 @@ const WithdrawTab = () => {
             value={formData.accountHolder}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             placeholder="Nhập tên chủ tài khoản"
           />
         </div>
@@ -288,7 +331,7 @@ const HistoryTab = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'pending': return 'text-primary bg-secondary';
       case 'failed': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }

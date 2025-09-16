@@ -1,0 +1,193 @@
+import { useState, useEffect } from 'react';
+import { API_ENDPOINTS, getImageUrl } from '../config/api';
+
+// Helper function to strip HTML tags from text
+const stripHtmlTags = (html) => {
+  if (!html) return '';
+  // Remove HTML tags and decode HTML entities
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+    .replace(/&amp;/g, '&') // Replace &amp; with &
+    .replace(/&lt;/g, '<') // Replace &lt; with <
+    .replace(/&gt;/g, '>') // Replace &gt; with >
+    .replace(/&quot;/g, '"') // Replace &quot; with "
+    .replace(/&#39;/g, "'") // Replace &#39; with '
+    .trim(); // Remove leading/trailing whitespace
+};
+
+// Hook để fetch tour data từ backend API
+export const useToursAPI = () => {
+  const [tours, setTours] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch all tours from API
+  const fetchTours = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(API_ENDPOINTS.TOURS);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform backend data to match frontend format
+      const transformedTours = data.map(tour => ({
+        id: tour.id,
+        title: stripHtmlTags(tour.tourName),
+        duration: tour.tourDuration,
+        price: tour.adultPrice ? Number(tour.adultPrice) : 0,
+        image: getImageUrl(tour.tourImgPath),
+        description: stripHtmlTags(tour.tourDescription),
+        descriptionHtml: tour.tourDescription || '',
+        category: mapTourTypeToCategory(tour.tourType),
+        featured: tour.tourStatus === 'APPROVED', // Only approved tours are featured
+        // Additional fields from backend
+        tourDeparturePoint: stripHtmlTags(tour.tourDeparturePoint),
+        tourVehicle: stripHtmlTags(tour.tourVehicle),
+        tourSchedule: stripHtmlTags(tour.tourSchedule),
+        childrenPrice: tour.childrenPrice ? Number(tour.childrenPrice) : 0,
+        babyPrice: tour.babyPrice ? Number(tour.babyPrice) : 0,
+        amount: tour.amount,
+        tourStatus: tour.tourStatus,
+        createdAt: tour.createdAt,
+        contents: tour.contents || [],
+        // Customizable fields by company (optional)
+        availableDates: tour.availableDates || [],
+        bookingDeadline: tour.bookingDeadline || null,
+        surchargePolicy: tour.surchargePolicy || '',
+        cancellationPolicy: tour.cancellationPolicy || '',
+        surcharges: tour.surcharges || [],
+        gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
+        attachments: tour.attachments || []
+      }));
+      
+      setTours(transformedTours);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching tours:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch single tour by ID
+  const fetchTourById = async (id) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(id));
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const tour = await response.json();
+      
+      // Transform backend data to match frontend format
+      return {
+        id: tour.id,
+        title: stripHtmlTags(tour.tourName),
+        duration: tour.tourDuration,
+        price: tour.adultPrice ? Number(tour.adultPrice) : 0,
+        image: getImageUrl(tour.tourImgPath),
+        description: stripHtmlTags(tour.tourDescription),
+        descriptionHtml: tour.tourDescription || '',
+        category: mapTourTypeToCategory(tour.tourType),
+        featured: tour.tourStatus === 'APPROVED',
+        // Additional fields from backend
+        tourDeparturePoint: stripHtmlTags(tour.tourDeparturePoint),
+        tourVehicle: stripHtmlTags(tour.tourVehicle),
+        tourSchedule: tour.tourSchedule,
+        childrenPrice: tour.childrenPrice ? Number(tour.childrenPrice) : 0,
+        babyPrice: tour.babyPrice ? Number(tour.babyPrice) : 0,
+        amount: tour.amount,
+        tourStatus: tour.tourStatus,
+        createdAt: tour.createdAt,
+        contents: tour.contents || [],
+        // Customizable fields by company (optional)
+        availableDates: tour.availableDates || [],
+        bookingDeadline: tour.bookingDeadline || null,
+        surchargePolicy: tour.surchargePolicy || '',
+        cancellationPolicy: tour.cancellationPolicy || '',
+        surcharges: tour.surcharges || [],
+        gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
+        attachments: tour.attachments || []
+      };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching tour:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Map backend tour type to frontend category
+  const mapTourTypeToCategory = (tourType) => {
+    if (!tourType) return 'domestic';
+    
+    const type = tourType.toLowerCase();
+    if (type.includes('international') || type.includes('nước ngoài') || type.includes('quốc tế')) {
+      return 'international';
+    }
+    if (type.includes('day') || type.includes('ngày') || type.includes('1 ngày')) {
+      return 'day-tour';
+    }
+    return 'domestic';
+  };
+
+  // Filter tours by category
+  const getToursByCategory = (category) => {
+    if (category === 'all') return tours;
+    return tours.filter(tour => tour.category === category);
+  };
+
+  // Search tours
+  const searchTours = (query) => {
+    if (!query || query.trim() === '') return tours;
+    
+    const searchTerm = query.toLowerCase();
+    return tours.filter(tour => 
+      tour.title.toLowerCase().includes(searchTerm) ||
+      tour.description.toLowerCase().includes(searchTerm) ||
+      (tour.tourDeparturePoint && tour.tourDeparturePoint.toLowerCase().includes(searchTerm))
+    );
+  };
+
+  // Get featured tours
+  const getFeaturedTours = () => {
+    return tours.filter(tour => tour.featured);
+  };
+
+  // Get tour by ID
+  const getTourById = (id) => {
+    return tours.find(tour => tour.id === id);
+  };
+
+  return {
+    // State
+    tours,
+    loading,
+    error,
+    
+    // Actions
+    fetchTours,
+    fetchTourById,
+    
+    // Selectors
+    getToursByCategory,
+    searchTours,
+    getFeaturedTours,
+    getTourById,
+    
+    // Utilities
+    mapTourTypeToCategory
+  };
+};

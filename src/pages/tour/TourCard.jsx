@@ -43,8 +43,6 @@ const TourCard = ({ tour }) => {
           </div>
         </div>
         
-        <p className="tour-description">{tour.description}</p>
-        
         <button 
           className="tour-details-btn"
           onClick={handleViewDetails}

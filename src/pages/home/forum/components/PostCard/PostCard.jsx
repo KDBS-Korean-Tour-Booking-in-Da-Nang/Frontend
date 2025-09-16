@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl, getImageUrl } from '../../../../../config/api';
+import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders } from '../../../../../config/api';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
-import DeleteConfirmModal from '../../../../../components/DeleteConfirmModal/DeleteConfirmModal';
-import LoginRequiredModal from '../../../../../components/LoginRequiredModal/LoginRequiredModal';
+import { DeleteConfirmModal, LoginRequiredModal } from '../../../../../components';
 import './PostCard.css';
 
-const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }) => {
+const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
@@ -265,7 +264,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
     }
     
     // Get authentication token
-    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    const token = getToken();
     const email = user?.email || localStorage.getItem('email') || '';
     
     console.log('Save button clicked:', {
@@ -289,10 +288,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
         console.log('Attempting to unsave post...');
         const response = await fetch(API_ENDPOINTS.SAVED_POSTS_UNSAVE(post.forumPostId), {
           method: 'DELETE',
-          headers: {
-            'User-Email': email,
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          }
+          headers: createAuthHeaders(token, { 'User-Email': email })
         });
         
         console.log('Unsave response:', response.status, response.statusText);
@@ -310,11 +306,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
         console.log('Attempting to save post...');
         const response = await fetch(API_ENDPOINTS.SAVED_POSTS_SAVE, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Email': email,
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
+          headers: createAuthHeaders(token, { 'User-Email': email }),
           body: JSON.stringify({
             postId: post.forumPostId,
             note: ''
@@ -349,12 +341,10 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
 
   const confirmDelete = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const response = await fetch(`${API_ENDPOINTS.POST_BY_ID(post.forumPostId)}?userEmail=${encodeURIComponent(user.email)}`, {
         method: 'DELETE',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        }
+        headers: createAuthHeaders(token)
       });
 
       if (response.ok) {
@@ -389,7 +379,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
 
   const handleReportSubmit = async (reportData) => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const email = user?.email || localStorage.getItem('email') || '';
       
       if (!email) {
@@ -398,10 +388,7 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
 
       const response = await fetch(`${API_ENDPOINTS.REPORTS_CREATE}?userEmail=${encodeURIComponent(email)}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: createAuthHeaders(token),
         body: JSON.stringify(reportData),
       });
 
@@ -751,7 +738,8 @@ const PostCard = ({ post, onPostUpdated, onPostDeleted, onEdit, onHashtagClick }
       isOpen={showDeleteConfirmModal}
       onClose={() => setShowDeleteConfirmModal(false)}
       onConfirm={confirmDelete}
-      itemName={t('forum.post.post')}
+      title={"Xác nhận xóa bài viết"}
+      message={"Bạn có chắc chắn muốn xóa bài viết này?"}
     />
     </>
   );

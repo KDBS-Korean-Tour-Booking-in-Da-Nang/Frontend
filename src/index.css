@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS Variables for consistent color management */
+:root {
+  --color-primary: #1a8eea;
+  --color-primary-hover: #1471c4;
+  --color-primary-light: #3ba0f2;
+  --color-secondary: #D4E8FF;
+  --color-primary-rgba-10: rgba(26, 142, 234, 0.1);
+  --color-primary-rgba-30: rgba(26, 142, 234, 0.3);
+  --color-primary-rgba-40: rgba(26, 142, 234, 0.4);
+}
+
+/* Utility classes for primary colors */
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-primary-hover {
+  background-color: var(--color-primary-hover);
+}
+
+.bg-primary-light {
+  background-color: var(--color-primary-light);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-primary-hover {
+  color: var(--color-primary-hover);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-primary-hover {
+  border-color: var(--color-primary-hover);
+}
+
+/* Shadow utilities */
+.shadow-primary {
+  box-shadow: 0 4px 15px var(--color-primary-rgba-30);
+}
+
+.shadow-primary-hover {
+  box-shadow: 0 4px 12px var(--color-primary-rgba-40);
+}

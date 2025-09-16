@@ -1,27 +1,66 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTours } from '../../hooks/useTours';
+import { useToursAPI } from '../../hooks/useToursAPI';
 import './TourDetailPage.css';
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 const TourDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getTourById, tours } = useTours();
-  
-  const tour = getTourById(parseInt(id));
+  const { fetchTourById, loading, error } = useToursAPI();
+  const [tour, setTour] = useState(null);
+
+  // Build itinerary data from API (contents or tourSchedule from Step 2)
+  const getItineraryFromTour = (tourData) => {
+    if (!tourData) return [];
+    if (Array.isArray(tourData.contents) && tourData.contents.length > 0) {
+      return tourData.contents.map((item, index) => ({
+        dayTitle: item.tourContentTitle || `Ngày ${index + 1}`,
+        description: item.tourContentDescription || '',
+        images: item.images || []
+      }));
+    }
+    try {
+      const parsed = JSON.parse(tourData.tourSchedule || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  };
 
   useEffect(() => {
-    if (!tour && tours.length > 0) {
-      // Nếu không tìm thấy tour, redirect về trang tour list
-      navigate('/tour');
-    }
-  }, [tour, tours, navigate]);
+    const loadTour = async () => {
+      try {
+        const tourData = await fetchTourById(parseInt(id));
+        setTour(tourData);
+      } catch (err) {
+        console.error('Error loading tour:', err);
+        navigate('/tour');
+      }
+    };
 
-  if (!tour) {
+    if (id) {
+      loadTour();
+    }
+  }, [id, navigate]);
+
+  if (loading || !tour) {
     return (
       <div className="tour-detail-loading">
         <div className="loading-spinner"></div>
         <p>Đang tải thông tin tour...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="tour-detail-error">
+        <h3>Đã xảy ra lỗi</h3>
+        <p>{error}</p>
+        <button onClick={() => navigate('/tour')} className="back-btn">
+          Quay lại danh sách tour
+        </button>
       </div>
     );
   }
@@ -41,6 +80,8 @@ const TourDetailPage = () => {
   const handleBackToList = () => {
     navigate('/tour');
   };
+
+  const itinerary = getItineraryFromTour(tour);
 
   return (
     <div className="tour-detail-page">
@@ -86,7 +127,6 @@ const TourDetailPage = () => {
                   <span>4.8/5 (127 đánh giá)</span>
                 </div>
               </div>
-              <p className="hero-description">{tour.description}</p>
             </div>
           </div>
         </div>
@@ -101,16 +141,31 @@ const TourDetailPage = () => {
               {/* Tour Overview */}
               <div className="tour-overview">
                 <h2>Tổng quan tour</h2>
-                <p>
-                  {tour.title} là một trong những tour du lịch được yêu thích nhất của chúng tôi. 
-                  Với lịch trình được thiết kế cẩn thận và đội ngũ hướng dẫn viên chuyên nghiệp, 
-                  chúng tôi cam kết mang đến cho bạn những trải nghiệm tuyệt vời nhất.
-                </p>
-                <p>
-                  Tour này được thiết kế đặc biệt để phù hợp với mọi lứa tuổi và sở thích. 
-                  Từ những hoạt động thú vị đến những điểm tham quan nổi tiếng, 
-                  bạn sẽ có cơ hội khám phá và trải nghiệm những điều tuyệt vời nhất.
-                </p>
+                <div
+                  className="tour-description-html"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(tour.descriptionHtml || tour.description || '') }}
+                />
+                {(tour.tourDeparturePoint || tour.tourVehicle) && (
+                  <p>
+                    Khởi hành từ {tour.tourDeparturePoint || '...'} bằng {tour.tourVehicle || 'phương tiện phù hợp'}.
+                  </p>
+                )}
+                <div style={{marginTop: '10px'}}>
+                  <ul style={{color: '#6b7280', lineHeight: 1.8}}>
+                    {typeof tour.amount === 'number' && (
+                      <li>Số chỗ: {tour.amount}</li>
+                    )}
+                    {typeof tour.childrenPrice === 'number' && tour.childrenPrice > 0 && (
+                      <li>Giá trẻ em: {formatPrice(tour.childrenPrice)}</li>
+                    )}
+                    {typeof tour.babyPrice === 'number' && tour.babyPrice > 0 && (
+                      <li>Giá em bé: {formatPrice(tour.babyPrice)}</li>
+                    )}
+                    {Array.isArray(tour.availableDates) && tour.availableDates.length > 0 && (
+                      <li>Ngày khởi hành: {tour.availableDates.join(', ')}</li>
+                    )}
+                  </ul>
+                </div>
               </div>
 
               {/* Tour Highlights */}
@@ -146,121 +201,40 @@ const TourDetailPage = () => {
                   <h2>ĐIỂM ĐẾN VÀ HÀNH TRÌNH</h2>
                 </div>
                 <div className="itinerary-list">
-                  <div className="itinerary-item">
-                    <div className="itinerary-day-header">
-                      <span className="day-number">NGÀY 01</span>
-                      <span className="day-destination">Sân bay - Cố đô Huế</span>
-                    </div>
-                    <div className="itinerary-content">
-                      <div className="time-schedule">
-                        <div className="time-item">
-                          <span className="time">13h30:</span>
-                          <span className="activity">Đón khách tại sân bay Đà Nẵng hoặc Huế, khởi hành đi Huế.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">16h30:</span>
-                          <span className="activity">Đến Huế, nhận phòng khách sạn, nghỉ ngơi.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">18h00:</span>
-                          <span className="activity">Ăn tối với các món đặc sản Huế, dạo phố Huế về đêm, nghỉ đêm tại Huế.</span>
-                        </div>
+                  {itinerary.length === 0 ? (
+                    <div className="itinerary-item">
+                      <div className="itinerary-content">
+                        <p className="activity">Lịch trình đang được cập nhật.</p>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="itinerary-item">
-                    <div className="itinerary-day-header">
-                      <span className="day-number">NGÀY 02</span>
-                      <span className="day-destination">Tham quan Huế - Thành phố Đồng Hới</span>
-                    </div>
-                    <div className="itinerary-content">
-                      <div className="time-schedule">
-                        <div className="time-item">
-                          <span className="time">Sáng:</span>
-                          <span className="activity">Ăn sáng, khởi hành tham quan Lăng Khải Định (kiến trúc độc đáo nhất trong các lăng tẩm triều Nguyễn).</span>
+                  ) : (
+                    itinerary.map((day, index) => {
+                      const titleFromAPI = day.dayTitle || day.tourContentTitle || '';
+                      const headerTitle = titleFromAPI && titleFromAPI.trim().length > 0
+                        ? titleFromAPI
+                        : `Ngày ${index + 1}`;
+                      return (
+                      <div className="itinerary-item" key={index}>
+                        <div className="itinerary-day-header">
+                          <span className="day-destination">{headerTitle}</span>
                         </div>
-                        <div className="time-item">
-                          <span className="time">Sau Lăng Khải Định:</span>
-                          <span className="activity">Tham quan Kinh thành Huế (Ngọ Môn, Điện Thái Hòa, Cửu Đỉnh, v.v...).</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">11h00:</span>
-                          <span className="activity">Về khách sạn, trả phòng.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">12h00:</span>
-                          <span className="activity">Ăn trưa tại nhà hàng. Mua sắm đặc sản Huế (nếu có nhu cầu).</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">13h30:</span>
-                          <span className="activity">Khởi hành đi Thành phố Đồng Hới, nơi có những hang động đẹp nhất thế giới.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">17h00:</span>
-                          <span className="activity">Đến Đồng Hới, nhận phòng khách sạn, nghỉ ngơi.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">19h00:</span>
-                          <span className="activity">Hướng dẫn viên đưa đoàn đi ăn tối tại nhà hàng. Nghỉ đêm tại Đồng Hới.</span>
+                        <div className="itinerary-content">
+                          <div className="time-schedule">
+                            <div className="time-item">
+                              <span
+                                className="activity"
+                                dangerouslySetInnerHTML={{
+                                  __html: sanitizeHtml(
+                                    day.description || day.tourContentDescription || day.activities || ''
+                                  )
+                                }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="itinerary-item">
-                    <div className="itinerary-day-header">
-                      <span className="day-number">NGÀY 03</span>
-                      <span className="day-destination">Động Thiên Đường - Thành phố Đà Nẵng</span>
-                    </div>
-                    <div className="itinerary-content">
-                      <div className="time-schedule">
-                        <div className="time-item">
-                          <span className="time">Sáng:</span>
-                          <span className="activity">Ăn sáng, trả phòng khách sạn.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">07h45:</span>
-                          <span className="activity">Khởi hành tham quan Động Thiên Đường, nằm trong Vườn quốc gia Phong Nha - Kẻ Bàng, cách Đồng Hới 70km về phía Tây.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">09h00:</span>
-                          <span className="activity">Đến Động Thiên Đường. Hướng dẫn viên hỗ trợ làm thủ tục vào cửa. Động Thiên Đường có nhiều nhũ đá, măng đá đẹp tạo nên không gian huyền ảo.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">11h00:</span>
-                          <span className="activity">Ăn trưa tại nhà hàng. Nghỉ ngơi và khởi hành về Đà Nẵng.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">Tối:</span>
-                          <span className="activity">Ăn tối tại nhà hàng. Đến Đà Nẵng, nhận phòng khách sạn, nghỉ ngơi.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="itinerary-item">
-                    <div className="itinerary-day-header">
-                      <span className="day-number">NGÀY 04</span>
-                      <span className="day-destination">Đà Nẵng City tour - Sân bay</span>
-                    </div>
-                    <div className="itinerary-content">
-                      <div className="time-schedule">
-                        <div className="time-item">
-                          <span className="time">Sáng:</span>
-                          <span className="activity">Ăn sáng, tham quan thành phố Đà Nẵng.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">Trưa:</span>
-                          <span className="activity">Ăn trưa, mua sắm quà lưu niệm.</span>
-                        </div>
-                        <div className="time-item">
-                          <span className="time">Chiều:</span>
-                          <span className="activity">Đưa khách ra sân bay, kết thúc chương trình tour.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    );})
+                  )}
                 </div>
               </div>
 
@@ -268,38 +242,16 @@ const TourDetailPage = () => {
               <div className="tour-gallery">
                 <h2>Hình ảnh tour</h2>
                 <div className="gallery-grid">
-                  <div className="gallery-item">
-                    <img src={tour.image} alt="Gallery 1" />
-                    <div className="gallery-overlay">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
+                  {[tour.image, ...(tour.gallery || [])].filter(Boolean).slice(0,4).map((img, idx) => (
+                    <div className="gallery-item" key={idx}>
+                      <img src={img} alt={`Gallery ${idx+1}`} />
+                      <div className="gallery-overlay">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                  <div className="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop" alt="Gallery 2" />
-                    <div className="gallery-overlay">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&h=200&fit=crop" alt="Gallery 3" />
-                    <div className="gallery-overlay">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="gallery-item">
-                    <img src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=300&h=200&fit=crop" alt="Gallery 4" />
-                    <div className="gallery-overlay">
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>

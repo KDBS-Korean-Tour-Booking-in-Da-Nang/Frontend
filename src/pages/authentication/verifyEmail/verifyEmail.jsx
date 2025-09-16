@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import './verifyEmail.css';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +13,7 @@ const VerifyEmail = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -45,8 +47,21 @@ const VerifyEmail = () => {
     setLoading(true);
     setError('');
 
+    // Collect all validation errors
+    const errors = [];
+
     if (!otp.trim()) {
-      setError(t('auth.common.otp'));
+      errors.push('OTP là bắt buộc');
+    } else if (otp.length !== 6) {
+      errors.push('OTP phải có 6 chữ số');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setLoading(false);
       return;
     }
@@ -68,15 +83,7 @@ const VerifyEmail = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // Verification successful - show success message and redirect based on role
         setError(''); // Clear any previous errors
-        
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm mb-4';
-        successMessage.innerHTML = t('auth.verify.successBanner');
-        
-        // Insert success message before the form
-        const form = document.querySelector('form');
-        form.parentNode.insertBefore(successMessage, form);
+        showSuccess('Xác thực email thành công!');
         
         // Auto navigate based on role after 2 seconds
         setTimeout(() => {
@@ -87,10 +94,10 @@ const VerifyEmail = () => {
           }
         }, 2000);
       } else {
-        setError(data.message || t('auth.verify.error'));
+        showError(data.message || 'Xác thực email thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      showError('Xác thực email thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -125,11 +132,12 @@ const VerifyEmail = () => {
             return prev - 1;
           });
         }, 1000);
+        showSuccess('Mã OTP mới đã được gửi!');
       } else {
-        setError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
+        showError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
+      showError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
     } finally {
       setResendLoading(false);
     }
@@ -155,7 +163,7 @@ const VerifyEmail = () => {
                   required
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary text-center text-lg tracking-widest"
                   placeholder={t('auth.common.otpPlaceholder')}
                   maxLength="6"
                 />
@@ -171,7 +179,7 @@ const VerifyEmail = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {loading ? t('auth.verify.submitting') : t('auth.verify.submit')}
               </button>
@@ -184,7 +192,7 @@ const VerifyEmail = () => {
               {countdown > 0 ? (
                 <span className="text-gray-400">{t('auth.common.resendIn', { seconds: countdown })}</span>
               ) : (
-                <button onClick={handleResendOTP} disabled={resendLoading} className="text-blue-600 hover:text-blue-500 disabled:opacity-50">
+                <button onClick={handleResendOTP} disabled={resendLoading} className="text-primary hover:text-primary-hover disabled:opacity-50">
                   {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
                 </button>
               )}

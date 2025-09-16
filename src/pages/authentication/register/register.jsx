@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { validateEmail } from '../../../utils/emailValidator';
 import styles from './register.module.css';
@@ -16,11 +16,12 @@ const Register = () => {
     role: 'user'
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
-  const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,38 +50,44 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     setEmailError('');
+
+    // Collect all validation errors
+    const errors = [];
 
     // Email validation
     if (!formData.email.trim()) {
-      setEmailError('invalid');
-      setLoading(false);
-      return;
+      errors.push('Email là bắt buộc');
+    } else {
+      const emailValidation = validateEmail(formData.email);
+      if (!emailValidation.isValid) {
+        errors.push('Email không đúng định dạng');
+      }
     }
 
-    const emailValidation = validateEmail(formData.email);
-    if (!emailValidation.isValid) {
-      setEmailError('invalid');
-      setLoading(false);
-      return;
-    }
-
-    // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      setError(t('auth.register.errors.passwordMismatch'));
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError(t('auth.register.errors.passwordMinLength'));
-      setLoading(false);
-      return;
-    }
-
+    // Username validation
     if (!formData.username.trim()) {
-      setError(t('auth.register.errors.usernameRequired'));
+      errors.push('Tên người dùng là bắt buộc');
+    }
+
+    // Password validation
+    if (!formData.password.trim()) {
+      errors.push('Mật khẩu là bắt buộc');
+    } else if (formData.password.length < 6) {
+      errors.push('Mật khẩu phải có ít nhất 6 ký tự');
+    }
+
+    // Confirm password validation
+    if (formData.password !== formData.confirmPassword) {
+      errors.push('Mật khẩu xác nhận không khớp');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setLoading(false);
       return;
     }
@@ -104,6 +111,9 @@ const Register = () => {
         // Lưu email vào localStorage
         localStorage.setItem('userEmail', formData.email);
         
+        // Show success message
+        showSuccess('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
+        
         // Registration successful, redirect to verification page immediately
         // Backend already sends OTP automatically during registration
         navigate('/verify-email', { 
@@ -113,10 +123,17 @@ const Register = () => {
           } 
         });
       } else {
-        setError(data.message || t('auth.register.errors.registerFailed'));
+        // Check if it's an email already exists error
+        if (data.code === 1001 || data.message?.includes('Email has existed')) {
+          setEmailError('exists');
+          showError('Email này đã được đăng ký');
+        } else {
+          showError(data.message || t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
+        }
       }
-    } catch (err) {
-      setError(t('auth.register.errors.registerFailed'));
+    } catch (error) {
+      console.error('Registration error:', error);
+      showError(t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -188,7 +205,6 @@ const Register = () => {
                   name="username"
                   type="text"
                   autoComplete="username"
-                  required
                   value={formData.username}
                   onChange={handleChange}
                   className={styles['form-input']}
@@ -205,7 +221,6 @@ const Register = () => {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   value={formData.email}
                   onChange={handleChange}
                   onBlur={handleEmailBlur}
@@ -214,7 +229,15 @@ const Register = () => {
                 />
                 {emailError && (
                   <div className={styles['field-error']}>
-                    {emailError === 'invalid' ? (t('auth.common.form.email.invalid') || 'lỗi sai email không đúng định dạng') : ''}
+                    {(() => {
+                      if (emailError === 'invalid') {
+                        return t('auth.common.form.email.invalid') || 'Email không đúng định dạng';
+                      }
+                      if (emailError === 'exists') {
+                        return 'Email này đã được đăng ký';
+                      }
+                      return '';
+                    })()}
                   </div>
                 )}
               </div>
@@ -228,7 +251,6 @@ const Register = () => {
                   name="password"
                   type="password"
                   autoComplete="new-password"
-                  required
                   value={formData.password}
                   onChange={handleChange}
                   className={styles['form-input']}
@@ -245,7 +267,6 @@ const Register = () => {
                   name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
-                  required
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className={styles['form-input']}
@@ -277,11 +298,6 @@ const Register = () => {
                 </div>
               </div>
 
-              {error && (
-                <div className={styles['error-message']}>
-                  {error}
-                </div>
-              )}
 
               <button
                 type="submit"
@@ -290,6 +306,8 @@ const Register = () => {
               >
                 {loading ? t('auth.register.submitting') : t('auth.register.submit')}
               </button>
+
+
           </form>
 
             <div className={styles['login-link']}>

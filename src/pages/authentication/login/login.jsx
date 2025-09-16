@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { UserCircleIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { validateEmail } from '../../../utils/emailValidator';
 import styles from './login.module.css';
@@ -11,12 +12,11 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -24,28 +24,21 @@ const Login = () => {
   // Check for success message from navigation state
   useEffect(() => {
     if (location.state?.message && location.state?.type === 'success') {
-      setSuccessMessage(location.state.message);
+      showSuccess(location.state.message);
       // Clear the state to prevent showing message again on refresh
       navigate(location.pathname, { replace: true });
-      
-      // Auto clear success message after 5 seconds
-      const timer = setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
-      
-      return () => clearTimeout(timer);
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, showSuccess]);
 
   // Check for error from URL parameters (OAuth callback errors)
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      showError(decodeURIComponent(errorParam));
       // Clear the error parameter from URL
       navigate(location.pathname, { replace: true });
     }
-  }, [searchParams, navigate, location.pathname]);
+  }, [searchParams, navigate, location.pathname, showError]);
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -69,19 +62,32 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     setEmailError('');
+
+    // Collect all validation errors
+    const errors = [];
 
     // Email validation
     if (!email.trim()) {
-      setEmailError('invalid');
-      setLoading(false);
-      return;
+      errors.push('Email là bắt buộc');
+    } else {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        errors.push('Email không đúng định dạng');
+      }
     }
 
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.isValid) {
-      setEmailError('invalid');
+    // Password validation
+    if (!password.trim()) {
+      errors.push('Mật khẩu là bắt buộc');
+    }
+
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setLoading(false);
       return;
     }
@@ -116,12 +122,8 @@ const Login = () => {
           };
 
           login(user, token, rememberMe);
-          navigate('/', { 
-            state: { 
-              message: 'Đăng nhập thành công!', 
-              type: 'success' 
-            } 
-          });
+          showSuccess('Đăng nhập thành công!');
+          navigate('/');
         } else {
           // Fallback to mock data if user info not available
           const user = {
@@ -131,13 +133,14 @@ const Login = () => {
             name: email.split('@')[0]
           };
           login(user, token, rememberMe);
+          showSuccess('Đăng nhập thành công!');
           navigate('/');
         }
       } else {
-        setError(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+        showError(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.login.error'));
+      showError(t('auth.login.error') || 'Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -154,10 +157,10 @@ const Login = () => {
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         window.location.href = data.result;
       } else {
-        setError('Không thể kết nối với Google. Vui lòng thử lại.');
+        showError('Không thể kết nối với Google. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.login.oauthErrorGoogle'));
+      showError('Không thể kết nối với Google. Vui lòng thử lại.');
     }
   };
 
@@ -172,10 +175,10 @@ const Login = () => {
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         window.location.href = data.result;
       } else {
-        setError('Không thể kết nối với Naver. Vui lòng thử lại.');
+        showError('Không thể kết nối với Naver. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.login.oauthErrorNaver'));
+      showError('Không thể kết nối với Naver. Vui lòng thử lại.');
     }
   };
 
@@ -206,7 +209,6 @@ const Login = () => {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   value={email}
                   onChange={handleEmailChange}
                   onBlur={handleEmailBlur}
@@ -229,7 +231,6 @@ const Login = () => {
                   name="password"
                   type="password"
                   autoComplete="current-password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={styles['form-input']}
@@ -251,17 +252,6 @@ const Login = () => {
                 </label>
               </div>
 
-              {successMessage && (
-                <div className={styles['success-message']}>
-                  {successMessage}
-                </div>
-              )}
-              
-              {error && (
-                <div className={styles['error-message']}>
-                  {error}
-                </div>
-              )}
 
               <button
                 type="submit"

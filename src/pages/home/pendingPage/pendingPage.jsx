@@ -31,8 +31,8 @@ const PendingPage = () => {
           <div className="px-6 py-8">
             <div className="text-center">
               {/* Icon pending */}
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-6">
-                <svg className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-secondary mb-6">
+                <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -41,13 +41,13 @@ const PendingPage = () => {
               
               <p className="text-lg text-gray-600 mb-6">{t('pending.submitted')}</p>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                <h2 className="text-xl font-semibold text-blue-900 mb-4">{t('pending.infoTitle')}</h2>
+              <div className="bg-secondary border border-primary rounded-lg p-6 mb-8">
+                <h2 className="text-xl font-semibold text-primary mb-4">{t('pending.infoTitle')}</h2>
                 <div className="text-left space-y-2">
-                  <p className="text-blue-800"><span className="font-medium">{t('pending.email')}:</span> {userEmail}</p>
-                  <p className="text-blue-800">
+                  <p className="text-primary"><span className="font-medium">{t('pending.email')}:</span> {userEmail}</p>
+                  <p className="text-primary">
                     <span className="font-medium">{t('pending.status')}:</span> 
-                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-primary">
                       {t('pending.statusPending')}
                     </span>
                   </p>
@@ -66,7 +66,7 @@ const PendingPage = () => {
                     <span className="text-gray-700">{t('pending.step1')}</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-3">
                       <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                       </svg>
@@ -92,7 +92,7 @@ const PendingPage = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => navigate('/')}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   {t('pending.btnHome')}
                 </button>

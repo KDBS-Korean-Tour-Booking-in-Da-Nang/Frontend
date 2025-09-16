@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
-import Modal from '../../../components/Modal';
+import { Modal } from '../../../components';
 import './adminDashboard.css';
 import { 
   ChartBarIcon, 
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
+                      ? 'border-primary text-primary'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -357,7 +357,7 @@ const UsersTab = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                          <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
                             {user.name.split(' ').map(n => n[0]).join('')}
                           </div>
                         </div>
@@ -385,7 +385,7 @@ const UsersTab = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleViewUser(user)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary hover:text-primary-hover"
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
@@ -533,7 +533,7 @@ const CompaniesTab = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleViewCompany(company)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary hover:text-primary-hover"
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
@@ -655,7 +655,7 @@ const StaffTab = () => {
             <h3 className="text-lg font-medium text-gray-900">Quản lý Staff</h3>
             <button
               onClick={handleAddStaff}
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary-hover"
             >
               Thêm Staff
             </button>
@@ -694,7 +694,7 @@ const StaffTab = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => handleEditStaff(staff)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary hover:text-primary-hover"
                       >
                         <PencilIcon className="h-5 w-5" />
                       </button>
@@ -730,7 +730,7 @@ const StaffTab = () => {
               value={staffForm.name}
               onChange={(e) => setStaffForm(prev => ({ ...prev, name: e.target.value }))}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             />
           </div>
 
@@ -744,7 +744,7 @@ const StaffTab = () => {
               value={staffForm.email}
               onChange={(e) => setStaffForm(prev => ({ ...prev, email: e.target.value }))}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             />
           </div>
 
@@ -756,7 +756,7 @@ const StaffTab = () => {
               id="staffRole"
               value={staffForm.role}
               onChange={(e) => setStaffForm(prev => ({ ...prev, role: e.target.value }))}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             >
               <option value="staff">Staff</option>
               <option value="admin">Admin</option>
@@ -773,7 +773,7 @@ const StaffTab = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-primary-hover"
             >
               {editingStaff ? 'Cập nhật' : 'Thêm'}
             </button>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../../../contexts/ToastContext';
 import './forgotPassword.css';
 
 const ForgotPassword = () => {
@@ -12,26 +13,29 @@ const ForgotPassword = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [verified, setVerified] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [countdown, setCountdown] = useState(0);
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccessMessage('');
 
-    // Basic validation
+    // Collect all validation errors
+    const errors = [];
+
     if (!email.trim()) {
-      setError(t('auth.forgot.error'));
-      setLoading(false);
-      return;
+      errors.push('Email là bắt buộc');
+    } else if (!email.includes('@')) {
+      errors.push('Email không đúng định dạng');
     }
 
-    if (!email.includes('@')) {
-      setError(t('auth.forgot.error'));
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setLoading(false);
       return;
     }
@@ -50,14 +54,14 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        setSuccessMessage(t('auth.forgot.success'));
+        showSuccess('Email đặt lại mật khẩu đã được gửi!');
         setSent(true);
         setCountdown(60);
       } else {
-        setError(data.message || t('auth.forgot.error'));
+        showError(data.message || 'Gửi email thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.forgot.error'));
+      showError('Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -82,17 +86,22 @@ const ForgotPassword = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setOtpLoading(true);
-    setError('');
-    setSuccessMessage('');
+
+    // Collect all validation errors
+    const errors = [];
 
     if (!otp.trim()) {
-      setError(t('auth.common.otp'));
-      setOtpLoading(false);
-      return;
+      errors.push('OTP là bắt buộc');
+    } else if (otp.length !== 6) {
+      errors.push('OTP phải có 6 chữ số');
     }
 
-    if (otp.length !== 6) {
-      setError(t('auth.common.otp'));
+    // Show all errors if any
+    if (errors.length > 0) {
+      // Show all errors at the same time
+      errors.forEach((error) => {
+        showError(error);
+      });
       setOtpLoading(false);
       return;
     }
@@ -109,7 +118,7 @@ const ForgotPassword = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // OTP verified successfully, navigate to reset password
         setVerified(true);
-        setSuccessMessage(t('auth.verify.successBanner'));
+        showSuccess('Xác thực OTP thành công!');
         
         // Navigate to reset password after 2 seconds
         setTimeout(() => {
@@ -122,10 +131,10 @@ const ForgotPassword = () => {
           });
         }, 2000);
       } else {
-        setError(data.message || t('auth.verify.error'));
+        showError(data.message || 'Xác thực thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      showError('Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setOtpLoading(false);
     }
@@ -133,8 +142,6 @@ const ForgotPassword = () => {
 
   const handleResendOTP = async () => {
     setResendLoading(true);
-    setError('');
-    setSuccessMessage('');
 
     try {
       const response = await fetch('/api/auth/forgot-password/request', {
@@ -150,15 +157,15 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        setSuccessMessage(t('auth.forgot.success'));
+        showSuccess('OTP mới đã được gửi!');
         
         // Reset countdown
         setCountdown(60);
       } else {
-        setError(data.message || t('auth.verify.failed'));
+        showError(data.message || 'Gửi lại OTP thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      showError('Có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setResendLoading(false);
     }
@@ -192,7 +199,7 @@ const ForgotPassword = () => {
                     required
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary text-center text-lg tracking-widest"
                     placeholder={t('auth.common.otpPlaceholder')}
                     maxLength="6"
                   />
@@ -206,17 +213,12 @@ const ForgotPassword = () => {
                 </div>
               )}
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                  {error}
-                </div>
-              )}
 
               <div>
                 <button
                   type="submit"
                   disabled={otpLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   {otpLoading ? t('auth.verify.submitting') : t('auth.verify.submit')}
                 </button>
@@ -234,7 +236,7 @@ const ForgotPassword = () => {
                   <button
                     onClick={handleResendOTP}
                     disabled={resendLoading}
-                    className="text-blue-600 hover:text-blue-500 disabled:opacity-50"
+                    className="text-primary hover:text-primary-hover disabled:opacity-50"
                   >
                     {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
                   </button>
@@ -247,8 +249,6 @@ const ForgotPassword = () => {
                 onClick={() => {
                   setSent(false);
                   setOtp('');
-                  setError('');
-                  setSuccessMessage('');
                   setCountdown(0);
                 }}
                 className="text-sm text-gray-600 hover:text-gray-500"
@@ -289,7 +289,7 @@ const ForgotPassword = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
                 />
               </div>
             </div>
@@ -300,17 +300,12 @@ const ForgotPassword = () => {
               </div>
             )}
             
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
 
             <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {loading ? t('auth.forgot.sending') : t('auth.forgot.submit')}
               </button>
@@ -320,7 +315,7 @@ const ForgotPassword = () => {
           <div className="mt-6 text-center">
             <Link
               to="/login"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-primary hover:text-primary-hover"
             >
               {t('auth.common.backToLogin')}
             </Link>

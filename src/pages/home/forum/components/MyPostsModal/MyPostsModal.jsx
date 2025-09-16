@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
-import DeleteConfirmModal from '../../../../../components/DeleteConfirmModal/DeleteConfirmModal';
+import { BaseURL, API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
+import { DeleteConfirmModal } from '../../../../../components';
 import './MyPostsModal.css';
 
 const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -71,14 +71,12 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
     if (!postToDelete || !user) return;
 
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const response = await fetch(
         `${API_ENDPOINTS.POST_BY_ID(postToDelete.forumPostId)}?userEmail=${encodeURIComponent(user.email)}`,
         {
           method: 'DELETE',
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: createAuthHeaders(token),
         }
       );
 

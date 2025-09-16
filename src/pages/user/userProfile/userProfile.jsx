@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
-import Modal from '../../../components/Modal';
+import { Modal } from '../../../components';
 import { PencilIcon, EyeIcon } from '@heroicons/react/24/outline';
 import './userProfile.css';
 
@@ -72,7 +72,7 @@ const UserProfile = () => {
               </h2>
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className="flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Chỉnh sửa
@@ -84,7 +84,7 @@ const UserProfile = () => {
                 {user.avatar ? (
                   <img src={user.avatar} alt="avatar" className="h-20 w-20 rounded-full object-cover" />
                 ) : (
-                  <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                  <div className="h-20 w-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold">
                     {getInitials(user.username || user.name)}
                   </div>
                 )}
@@ -172,7 +172,7 @@ const UserProfile = () => {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="preview" className="h-16 w-16 rounded-full object-cover border" />
               ) : (
-                <div className="h-16 w-16 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                   {getInitials(editForm.name)}
                 </div>
               )}
@@ -189,7 +189,7 @@ const UserProfile = () => {
               name="name"
               value={editForm.name}
               onChange={handleEditChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             />
           </div>
 
@@ -203,7 +203,7 @@ const UserProfile = () => {
               name="phone"
               value={editForm.phone}
               onChange={handleEditChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
             />
           </div>
 
@@ -218,7 +218,7 @@ const UserProfile = () => {
                 name="dob"
                 value={editForm.dob}
                 onChange={handleEditChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
               />
             </div>
             <div>
@@ -230,7 +230,7 @@ const UserProfile = () => {
                 name="gender"
                 value={editForm.gender}
                 onChange={handleEditChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white"
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary bg-white"
               >
                 <option value="">Chưa cập nhật</option>
                 <option value="male">Nam</option>
@@ -249,7 +249,7 @@ const UserProfile = () => {
                 maxLength={12}
                 value={editForm.cccd}
                 onChange={handleEditChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-primary focus:border-primary"
               />
             </div>
           </div>
@@ -258,13 +258,13 @@ const UserProfile = () => {
             <button
               type="button"
               onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               Lưu thay đổi
             </button>
