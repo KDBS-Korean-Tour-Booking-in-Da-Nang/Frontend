@@ -3,10 +3,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import './Step2Itinerary.css';
 
-// Helper function to generate auto titles based on day number
-const generateAutoTitle = (dayNumber) => {
-  return `NGÀY ${dayNumber} - TOUR ĐÀ NẴNG`;
-};
+// Note: Day titles are fully customized by Company; no default prefix is injected
 
 // Helper function to adjust color brightness for gradient
 const adjustColor = (color, percent) => {
@@ -34,6 +31,7 @@ const Step2Itinerary = () => {
 
   // TinyMCE configuration with image upload
   const getTinyMCEConfig = (height = 200) => ({
+    apiKey: import.meta.env.VITE_TINYMCE_API_KEY,
     height,
     menubar: false,
     statusbar: false, // Hide status bar
@@ -184,18 +182,13 @@ const Step2Itinerary = () => {
       newItinerary = newItinerary.slice(0, duration);
     }
     
-    // Update day numbers and set default titles if not customized
-    newItinerary = newItinerary.map((day, index) => {
-      const dayNumber = index + 1;
-      const autoTitle = generateAutoTitle(dayNumber);
-      
-      return {
-        ...day,
-        day: dayNumber,
-        dayTitle: day.dayTitle || autoTitle, // Keep existing title or use auto-generated
-        dayDescription: day.dayDescription || 'Ăn trưa – tối'
-      };
-    });
+    // Update day numbers; keep titles empty unless user customizes
+    newItinerary = newItinerary.map((day, index) => ({
+      ...day,
+      day: index + 1,
+      dayTitle: day.dayTitle || '',
+      dayDescription: day.dayDescription || 'Ăn trưa – tối'
+    }));
     
     setFormData({
       tourDescription: tourData.tourDescription || '',
@@ -608,18 +601,18 @@ const Step2Itinerary = () => {
                 <div className="single-day-title-container">
                   <input
                     type="text"
-                    className={`single-day-title-input ${day.dayTitle && day.dayTitle !== generateAutoTitle(day.day) ? 'customized' : ''}`}
-                    value={day.dayTitle || generateAutoTitle(day.day)}
+                    className={`single-day-title-input ${day.dayTitle ? 'customized' : ''}`}
+                    value={day.dayTitle || ''}
                     onChange={(e) => updateDay(index, 'dayTitle', e.target.value)}
-                    placeholder="Tùy chỉnh tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)"
+                    placeholder="Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)"
                     title="Nhấp để tùy chỉnh toàn bộ tiêu đề ngày"
                   />
-                  {day.dayTitle && day.dayTitle !== generateAutoTitle(day.day) && (
+                  {day.dayTitle && (
                     <button
                       type="button"
                       className="reset-title-btn"
-                      onClick={() => updateDay(index, 'dayTitle', generateAutoTitle(day.day))}
-                      title="Reset về tiêu đề mặc định"
+                      onClick={() => updateDay(index, 'dayTitle', '')}
+                      title="Xóa tiêu đề ngày"
                     >
                       ↺
                     </button>

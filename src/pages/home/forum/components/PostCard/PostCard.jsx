@@ -738,7 +738,8 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       isOpen={showDeleteConfirmModal}
       onClose={() => setShowDeleteConfirmModal(false)}
       onConfirm={confirmDelete}
-      itemName={t('forum.post.post')}
+      title={"Xác nhận xóa bài viết"}
+      message={"Bạn có chắc chắn muốn xóa bài viết này?"}
     />
     </>
   );

@@ -1,31 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { useTours } from '../../hooks/useTours';
+import { useToursAPI } from '../../hooks/useToursAPI';
 import TourCard from './TourCard';
 import './TourList.css';
 
 const TourList = () => {
   const { 
-    filteredTours, 
+    tours,
     loading, 
     error, 
-    currentCategory, 
-    searchQuery,
-    loadTours, 
-    loadToursByCategory,
-    searchTours, 
-    clearToursError 
-  } = useTours();
+    fetchTours,
+    getToursByCategory,
+    searchTours
+  } = useToursAPI();
 
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [currentCategory, setCurrentCategory] = useState('all');
+  const [filteredTours, setFilteredTours] = useState([]);
 
   useEffect(() => {
-    loadTours();
+    fetchTours();
   }, []);
+
+  // Update filtered tours when tours or category changes
+  useEffect(() => {
+    let filtered = getToursByCategory(currentCategory);
+    if (localSearchQuery.trim()) {
+      filtered = searchTours(localSearchQuery).filter(tour => 
+        currentCategory === 'all' || tour.category === currentCategory
+      );
+    }
+    setFilteredTours(filtered);
+  }, [tours, currentCategory, localSearchQuery]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setLocalSearchQuery(value);
-    searchTours(value);
+  };
+
+  const handleCategoryChange = (category) => {
+    setCurrentCategory(category);
   };
 
 
@@ -42,7 +55,7 @@ const TourList = () => {
         <div className="error-message">
           <h3>Đã xảy ra lỗi</h3>
           <p>{error}</p>
-          <button onClick={clearToursError} className="retry-btn">
+          <button onClick={() => fetchTours()} className="retry-btn">
             Thử lại
           </button>
         </div>
@@ -88,7 +101,7 @@ const TourList = () => {
                 key={category.id}
                 className={`category-btn ${currentCategory === category.id ? 'active' : ''}`}
                 onClick={() => {
-                  loadToursByCategory(category.id);
+                  handleCategoryChange(category.id);
                 }}
               >
                 <span className="category-icon">{category.icon}</span>

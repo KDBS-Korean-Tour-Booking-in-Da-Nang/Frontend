@@ -5,6 +5,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import EditTourModal from '../wizard/modals/EditTourModal';
 import DeleteConfirmModal from '../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import './TourManagement.css';
+import { API_ENDPOINTS, getImageUrl } from '../../../../config/api';
 
 const TourManagement = () => {
   const navigate = useNavigate();
@@ -31,15 +32,12 @@ const TourManagement = () => {
     
     try {
       setLoading(true);
-      const response = await fetch('/api/tour');
+      const response = await fetch(API_ENDPOINTS.TOURS);
       
       if (response.ok) {
         const data = await response.json();
-        // Filter tours by current user's company
-        const userTours = data.filter(tour => 
-          tour.companyEmail === user.email
-        );
-        setTours(userTours);
+        // Show all tours for now (backend response lacks companyEmail/companyId)
+        setTours(Array.isArray(data) ? data : []);
       } else {
         showErrorRef.current('Không thể tải danh sách tour');
       }
@@ -62,7 +60,7 @@ const TourManagement = () => {
   };
 
   const handleEditTour = (tourId) => {
-    const tour = tours.find(t => t.tourId === tourId);
+    const tour = tours.find(t => t.id === tourId);
     if (tour) {
       setSelectedTour(tour);
       setEditModalOpen(true);
@@ -74,7 +72,7 @@ const TourManagement = () => {
     
     // Update local state only (for demo purposes)
     setTours(tours.map(tour => 
-      tour.tourId === tourId 
+      tour.id === tourId 
         ? { ...tour, tourStatus: newStatus }
         : tour
     ));
@@ -83,7 +81,7 @@ const TourManagement = () => {
   };
 
   const handleDeleteTour = (tourId) => {
-    const tour = tours.find(t => t.tourId === tourId);
+    const tour = tours.find(t => t.id === tourId);
     if (tour) {
       setSelectedTour(tour);
       setDeleteModalOpen(true);
@@ -94,14 +92,14 @@ const TourManagement = () => {
     if (!selectedTour) return;
 
     try {
-      const response = await fetch(`/api/tour/${selectedTour.tourId}`, {
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(selectedTour.id), {
         method: 'DELETE'
       });
 
       if (response.ok) {
         showSuccess('Đã xóa tour thành công');
         // Remove tour from local state
-        setTours(tours.filter(tour => tour.tourId !== selectedTour.tourId));
+        setTours(tours.filter(tour => tour.id !== selectedTour.id));
       } else {
         showError('Có lỗi xảy ra khi xóa tour');
       }
@@ -132,10 +130,12 @@ const TourManagement = () => {
 
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
-    
-    // Extract filename from path like "/uploads/tours/thumbnails/filename.jpg"
-    const filename = tourImgPath.split('/').pop();
-    return `/api/tour/image/${filename}`;
+    if (tourImgPath.startsWith('http')) return tourImgPath;
+    // Normalize inconsistent stored values: sometimes full "/uploads/...", sometimes only filename
+    const normalized = tourImgPath.startsWith('/uploads')
+      ? tourImgPath
+      : `/uploads/tours/thumbnails/${tourImgPath}`;
+    return getImageUrl(normalized);
   };
 
   // Show loading if user is not loaded yet
@@ -208,7 +208,7 @@ const TourManagement = () => {
         ) : (
           <div className="tours-grid">
             {tours.map((tour) => (
-              <div key={tour.tourId} className="tour-card">
+              <div key={tour.id} className="tour-card">
                 {/* Tour Image */}
                 <div className="tour-image-container" style={{height: '250px'}}>
                   {tour.tourImgPath ? (
@@ -263,7 +263,7 @@ const TourManagement = () => {
                         <input
                           type="checkbox"
                           checked={tour.tourStatus === 'ACTIVE'}
-                          onChange={() => handleToggleStatus(tour.tourId, tour.tourStatus)}
+                          onChange={() => handleToggleStatus(tour.id, tour.tourStatus)}
                         />
                         <span className="toggle-slider"></span>
                       </label>
@@ -271,7 +271,7 @@ const TourManagement = () => {
                     
                     <div className="action-buttons">
                       <button 
-                        onClick={() => handleEditTour(tour.tourId)}
+                        onClick={() => handleEditTour(tour.id)}
                         className="edit-btn"
                       >
                         <span className="edit-icon">✏️</span>
@@ -279,7 +279,7 @@ const TourManagement = () => {
                       </button>
                       
                       <button 
-                        onClick={() => handleDeleteTour(tour.tourId)}
+                        onClick={() => handleDeleteTour(tour.id)}
                         className="delete-btn"
                       >
                         <span className="delete-icon">🗑️</span>

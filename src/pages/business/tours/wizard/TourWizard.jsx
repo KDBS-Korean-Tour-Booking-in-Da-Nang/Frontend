@@ -111,13 +111,14 @@ const TourWizardContent = () => {
         attachments: [], // Removed for testing
         
         contents: (tourData.itinerary || []).map((day, index) => ({
-          tourContentTitle: `Ngày ${index + 1}: ${day.dayTitle || day.location || 'Địa điểm'}`,
+          tourContentTitle: (day.dayTitle && day.dayTitle.trim()) ? day.dayTitle.trim() : `Ngày ${index + 1}`,
           tourContentDescription: day.activities || day.description || `Hoạt động ngày ${index + 1}`,
           images: day.images ? day.images.map(img => img.name) : [] // Image file names
         }))
       };
 
-      formData.append('data', JSON.stringify(tourRequest));
+      // Append JSON as a Blob with explicit content type so Spring binds @RequestPart correctly
+      formData.append('data', new Blob([JSON.stringify(tourRequest)], { type: 'application/json' }));
       
       // Ensure we have a valid image file
       if (tourData.thumbnail && tourData.thumbnail instanceof File) {

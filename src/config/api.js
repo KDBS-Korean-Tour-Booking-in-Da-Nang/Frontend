@@ -45,6 +45,10 @@ export const API_ENDPOINTS = {
   // Users
   USERS: `${BaseURL}/api/users`,
   USERS_SUGGESTIONS: `${BaseURL}/api/users/suggestions`,
+  
+  // Tours
+  TOURS: `${BaseURL}/api/tour`,
+  TOUR_BY_ID: (id) => `${BaseURL}/api/tour/${id}`,
 };
 
 // Helper function để xử lý avatar URLs

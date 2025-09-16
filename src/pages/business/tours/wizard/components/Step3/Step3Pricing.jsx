@@ -8,6 +8,7 @@ const Step3Pricing = () => {
 
   // TinyMCE configuration with image upload
   const getTinyMCEConfig = (height = 200) => ({
+    apiKey: import.meta.env.VITE_TINYMCE_API_KEY,
     height,
     menubar: false,
     statusbar: false, // Hide status bar

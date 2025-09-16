@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../contexts/ToastContext';
 import './EditTourModal.css';
@@ -9,6 +10,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
   // TinyMCE configuration with image upload
   const getTinyMCEConfig = (height = 200) => ({
+    apiKey: import.meta.env.VITE_TINYMCE_API_KEY,
     height,
     menubar: false,
     statusbar: false, // Hide status bar
@@ -38,7 +40,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
       try {
-        const response = await fetch('/api/tour/content-image', {
+        const response = await fetch(API_ENDPOINTS.TOURS + '/content-image', {
           method: 'POST',
           body: formData
         });
@@ -104,8 +106,15 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourStatus: tour.tourStatus || 'ACTIVE',
         bookingDeadline: tour.bookingDeadline || '',
         
-        // Step 2: Itinerary
-        itinerary: tour.contents || [],
+        // Step 2: Itinerary - normalize from backend contents
+        itinerary: Array.isArray(tour.contents)
+          ? tour.contents.map((c, idx) => ({
+              dayNumber: idx + 1,
+              title: c.tourContentTitle || '',
+              description: c.tourContentDescription || '',
+              images: c.images || []
+            }))
+          : [],
         
         // Step 3: Pricing
         surchargePolicy: tour.surchargePolicy || '',
@@ -188,7 +197,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const addItineraryDay = () => {
     const newDay = {
       dayNumber: formData.itinerary.length + 1,
-      title: `NGÀY ${formData.itinerary.length + 1} - TOUR ĐÀ NẴNG`,
+      title: '',
       description: '',
       images: []
     };
@@ -256,7 +265,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         surchargePolicy: formData.surchargePolicy,
         cancellationPolicy: formData.cancellationPolicy,
         surcharges: formData.surcharges,
-        contents: formData.itinerary
+        contents: (formData.itinerary || []).map((day, index) => ({
+          tourContentTitle: day.title || `Ngày ${index + 1}`,
+          tourContentDescription: day.description || '',
+          images: day.images || []
+        }))
       };
 
       // Create a Blob with the JSON data
@@ -269,7 +282,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       }
 
       // Call API to update tour
-      const response = await fetch(`/api/tour/${tour.tourId}`, {
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(tour.id ?? tour.tourId), {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -581,7 +594,16 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                               'bold italic forecolor | alignleft aligncenter ' +
                               'alignright alignjustify | bullist numlist outdent indent | ' +
                               'removeformat | help',
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                            forced_root_block: false,
+                            force_br_newlines: true,
+                            force_p_newlines: false,
+                            remove_redundant_brs: true,
+                            cleanup: true,
+                            cleanup_on_startup: true,
+                            verify_html: false,
+                            entity_encoding: 'raw',
+                            convert_urls: false
                           }}
                         />
                       </div>
@@ -688,37 +710,12 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             key={formData.tourImgPath}
                             src={(() => {
                               const imgPath = formData.tourImgPath;
-                              console.log('Processing image path:', imgPath);
-                              
-                              if (imgPath.startsWith('blob:')) {
-                                return imgPath;
-                              }
-                              if (imgPath.startsWith('http')) {
-                                return imgPath;
-                              }
-                              if (imgPath.startsWith('/uploads/')) {
-                                const filename = imgPath.split('/').pop();
-                                const result = `/api/tour/image/${filename}`;
-                                console.log('Generated URL (with /uploads/):', result);
-                                return result;
-                              }
-                              if (imgPath.startsWith('uploads/')) {
-                                const filename = imgPath.split('/').pop();
-                                const result = `/api/tour/image/${filename}`;
-                                console.log('Generated URL (with uploads/):', result);
-                                return result;
-                              }
-                              // Handle case like "uploadstours/thumbnails/filename.png"
-                              if (imgPath.includes('uploadstours/')) {
-                                const filename = imgPath.split('/').pop();
-                                const result = `/api/tour/image/${filename}`;
-                                console.log('Generated URL (uploadstours case):', result);
-                                return result;
-                              }
-                              // Default case
-                              const result = `/api/tour/image/${imgPath}`;
-                              console.log('Generated URL (default):', result);
-                              return result;
+                              if (!imgPath) return '';
+                              if (imgPath.startsWith('blob:') || imgPath.startsWith('http')) return imgPath;
+                              const normalized = imgPath.startsWith('/uploads')
+                                ? imgPath
+                                : `/uploads/tours/thumbnails/${imgPath.split('/').pop()}`;
+                              return getImageUrl(normalized);
                             })()} 
                             alt="Current cover" 
                             className="preview-image"
