@@ -191,11 +191,7 @@ const ForgotPassword = () => {
                 <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
               </div>
 
-              {successMessage && (
-                <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                  {successMessage}
-                </div>
-              )}
+              
 
 
               <div>
@@ -278,11 +274,7 @@ const ForgotPassword = () => {
               </div>
             </div>
 
-            {successMessage && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                {successMessage}
-              </div>
-            )}
+            
             
 
             <div>
