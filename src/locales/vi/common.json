@@ -672,6 +672,466 @@
 			"title": "Bài viết của tôi",
 			"empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!"
 		}
+	},
+	"toast": {
+		"required": "{{field}} là bắt buộc",
+		"login_required": "Vui lòng đăng nhập để tiếp tục",
+		"save_success": "Lưu thành công",
+		"save_error": "Có lỗi xảy ra khi lưu",
+		"invalid_past_deadline": "Hạn đặt chỗ không được ở quá khứ. Đã điều chỉnh về hiện tại.",
+		"max_capacity_range": "Số chỗ tối đa phải từ 1 đến 9999.",
+		"company_only": "Chỉ tài khoản Company mới có thể thực hiện thao tác này.",
+		"field_invalid": "Giá trị không hợp lệ",
+		"tour": {
+			"upload_image_failed": "Không thể upload ảnh. Vui lòng thử lại.",
+			"file_size_exceeded": "Kích thước file không được vượt quá 5MB",
+			"invalid_file_format": "Chỉ được upload file ảnh",
+			"itinerary_required": "Phải có ít nhất 1 ngày trong lịch trình.",
+			"name_required": "Tên tour là bắt buộc",
+			"user_info_not_found": "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+			"user_email_not_found": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
+			"create_success": "Tạo tour thành công!",
+			"delete_success": "Đã xóa tour thành công",
+			"delete_error": "Có lỗi xảy ra khi xóa tour",
+			"load_failed": "Không thể tải danh sách tour",
+			"load_error": "Có lỗi xảy ra khi tải danh sách tour",
+			"activate_success": "Đã kích hoạt tour",
+			"deactivate_success": "Đã tạm dừng tour"
+		},
+		"payment": {
+			"deposit_success": "Nạp tiền thành công!",
+			"deposit_failed": "Nạp tiền thất bại. Vui lòng thử lại.",
+			"withdraw_success": "Yêu cầu rút tiền đã được gửi thành công!",
+			"withdraw_failed": "Rút tiền thất bại. Vui lòng thử lại."
+		},
+		"auth": {
+			"login_success": "Đăng nhập thành công!",
+			"login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
+			"register_success": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
+			"email_already_exists": "Email này đã được đăng ký",
+			"google_connection_failed": "Không thể kết nối với Google. Vui lòng thử lại.",
+			"naver_connection_failed": "Không thể kết nối với Naver. Vui lòng thử lại.",
+			"email_verify_success": "Xác thực email thành công!",
+			"email_verify_failed": "Xác thực email thất bại. Vui lòng thử lại.",
+			"otp_sent_success": "Mã OTP mới đã được gửi!",
+			"otp_resend_failed": "Không thể gửi lại mã OTP. Vui lòng thử lại.",
+			"password_reset_email_sent": "Email đặt lại mật khẩu đã được gửi!",
+			"otp_verify_success": "Xác thực OTP thành công!",
+			"general_error": "Có lỗi xảy ra. Vui lòng thử lại."
+		},
+		"forum": {
+			"post_update_success": "Cập nhật bài viết thành công!",
+			"post_create_success": "Tạo bài viết thành công!",
+			"post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại.",
+			"post_create_failed": "Tạo bài viết thất bại. Vui lòng thử lại."
+		},
+		"business": {
+			"info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
+			"info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
+		}
+	},
+	"tourWizard": {
+		"steps": {
+			"step1": {
+				"title": "Thông tin cơ bản",
+				"description": "Nhập thông tin cơ bản của tour"
+			},
+			"step2": {
+				"title": "Lịch trình",
+				"description": "Thiết lập chi tiết lịch trình"
+			},
+			"step3": {
+				"title": "Giá & chính sách",
+				"description": "Thiết lập giá và chính sách"
+			},
+			"step4": {
+				"title": "Hình ảnh",
+				"description": "Upload hình ảnh và tệp đính kèm"
+			}
+		},
+		"navigation": {
+			"back": "Quay lại",
+			"next": "Tiếp theo",
+			"complete": "Hoàn thành"
+		},
+		"step1": {
+			"title": "Thông tin cơ bản",
+			"subtitle": "Nhập thông tin cơ bản của tour",
+			"fields": {
+				"tourName": "Tên tour *",
+				"tourType": "Loại hình tour *",
+				"departurePoint": "Điểm khởi hành",
+				"vehicle": "Phương tiện",
+				"duration": "Số ngày *",
+				"nights": "Số đêm *",
+				"maxCapacity": "Số chỗ tối đa *",
+				"bookingDeadline": "Hạn chót đặt chỗ *"
+			},
+			"placeholders": {
+				"tourName": "Ví dụ: Tour Đà Nẵng - Hội An 3N2Đ, Tour Hàn Quốc 5N4Đ",
+				"duration": "Ví dụ: 3",
+				"nights": "Ví dụ: 2",
+				"maxCapacity": "Ví dụ: 30",
+				"bookingDeadline": "Chọn ngày giờ hạn chót đặt chỗ"
+			},
+			"help": {
+				"departurePoint": "Tất cả tour đều khởi hành từ Đà Nẵng",
+				"vehicle": "Phương tiện mặc định: Xe Du Lịch",
+				"bookingDeadline": "Thời gian hạn chót để khách hàng đặt tour"
+			},
+			"summary": {
+				"title": "Tóm tắt thông tin",
+				"tourName": "Tên tour:",
+				"tourType": "Loại hình:",
+				"departurePoint": "Điểm khởi hành:",
+				"vehicle": "Phương tiện:",
+				"duration": "Thời gian:",
+				"maxCapacity": "Số chỗ tối đa:",
+				"bookingDeadline": "Hạn đặt chỗ:",
+				"notEntered": "Chưa nhập",
+				"notSelected": "Chưa chọn",
+				"guests": "khách"
+			}
+		},
+		"step2": {
+			"title": "Lịch trình chi tiết",
+			"subtitle": "Thiết lập chi tiết lịch trình từng ngày",
+			"instructions": {
+				"title": "💡 Hướng dẫn:",
+				"description": "Bạn có thể tùy chỉnh hoàn toàn các tiêu đề trong lịch trình:",
+				"customizable": "🔧 Các phần có thể tùy chỉnh:",
+				"sectionTitle": "Tiêu đề phần:",
+				"dayTitle": "Tiêu đề ngày:",
+				"examples": "📝 Ví dụ tiêu đề ngày:"
+			},
+			"tourDescription": {
+				"title": "Mô tả tour *",
+				"description": "Mô tả tổng quan về tour, điểm nổi bật và lợi ích cho khách hàng",
+				"placeholder": "Nhập mô tả văn bản (không chèn hình ảnh)..."
+			},
+			"itinerary": {
+				"mainSectionTitle": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
+				"activities": "Hoạt động & địa điểm *",
+				"images": "Hình ảnh minh họa (tối đa 5 ảnh)",
+				"services": "Dịch vụ kèm theo",
+				"addService": "+ Thêm dịch vụ",
+				"addDay": "+ Thêm ngày",
+				"removeDay": "− Xóa ngày",
+				"serviceTypes": {
+					"food": "Ăn uống",
+					"ticket": "Vé tham quan",
+					"transport": "Vận chuyển",
+					"other": "Khác"
+				},
+				"servicePlaceholders": {
+					"name": "Tên dịch vụ",
+					"price": "Giá (VNĐ)"
+				}
+			},
+			"colorPicker": {
+				"title": "Tùy chỉnh màu sắc",
+				"apply": "Áp dụng",
+				"cancel": "Hủy"
+			}
+		},
+		"step3": {
+			"title": "Giá & chính sách",
+			"subtitle": "Thiết lập giá và chính sách tour",
+			"pricing": {
+				"title": "Giá tour",
+				"adultPrice": "Giá người lớn (≥ 12 tuổi) *",
+				"childrenPrice": "Giá trẻ em (2-11 tuổi)",
+				"babyPrice": "Giá em bé (dưới 2 tuổi)",
+				"unit": "VNĐ / người",
+				"unitChildren": "VNĐ / trẻ em",
+				"unitBaby": "VNĐ / em bé",
+				"placeholders": {
+					"adultPrice": "Ví dụ: 2500000",
+					"childrenPrice": "Ví dụ: 1800000",
+					"babyPrice": "Ví dụ: 500000"
+				},
+				"error": "Vui lòng nhập giá người lớn"
+			},
+			"summary": {
+				"title": "Tóm tắt giá",
+				"adult": "Người lớn:",
+				"children": "Trẻ em:",
+				"baby": "Em bé:"
+			},
+			"surcharges": {
+				"title": "Phụ thu",
+				"add": "+ Thêm phụ thu",
+				"types": {
+					"holiday": "Dịp lễ Tết",
+					"weekend": "Cuối tuần",
+					"singleRoom": "Phòng đơn",
+					"peakSeason": "Mùa cao điểm",
+					"other": "Khác"
+				},
+				"placeholders": {
+					"name": "Tên phụ thu",
+					"percentage": "Phần trăm (%)"
+				},
+				"description": "Mô tả phụ thu"
+			},
+			"policies": {
+				"title": "Chính sách",
+				"surchargePolicy": "Chính sách phụ thu",
+				"cancellationPolicy": "Chính sách hủy/hoàn tiền *",
+				"placeholders": {
+					"surchargePolicy": "Nhập chính sách phụ thu...",
+					"cancellationPolicy": "Nhập chính sách hủy/hoàn tiền..."
+				}
+			}
+		},
+		"step4": {
+			"title": "Hình ảnh & Tệp đính kèm",
+			"thumbnail": {
+				"title": "Ảnh cover tour",
+				"changeImage": "Thay đổi ảnh",
+				"selectImage": "Click để chọn ảnh cover",
+				"supportedFormats": "Hỗ trợ: JPG, PNG, GIF, WebP, SVG",
+				"recommendedSize": "Kích thước khuyến nghị: 1200x800px (tối đa 10MB)"
+			},
+			"preview": {
+				"title": "Preview Tour",
+				"infoTitle": "Thông tin tour preview:",
+				"fields": {
+					"tourName": "Tên tour:",
+					"duration": "Thời gian:",
+					"adultPrice": "Giá người lớn:",
+					"image": "Hình ảnh:",
+					"status": "Trạng thái:"
+				},
+				"values": {
+					"notSet": "Chưa có tên",
+					"noPrice": "Chưa có giá",
+					"uploaded": "Đã upload",
+					"notUploaded": "Chưa có",
+					"willShow": "Sẽ hiển thị trong danh sách tour"
+				}
+			}
+		}
+	},
+	"tourManagement": {
+		"title": "Quản lý tour",
+		"createNew": "Tạo tour mới",
+		"header": {
+			"title": "Danh Sách Tour",
+			"addNew": "Thêm Tour Mới"
+		},
+		"loading": {
+			"user": "Đang tải thông tin người dùng...",
+			"tours": "Đang tải danh sách tour..."
+		},
+		"accessDenied": {
+			"title": "Truy cập bị từ chối",
+			"message": "Bạn cần có quyền business để truy cập trang này."
+		},
+		"actions": {
+			"edit": "Chỉnh sửa",
+			"delete": "Xóa",
+			"activate": "Kích hoạt",
+			"deactivate": "Tạm dừng"
+		},
+		"status": {
+			"active": "Hoạt động",
+			"inactive": "Tạm dừng"
+		},
+		"statusBadge": {
+			"ACTIVE": "HOẠT ĐỘNG",
+			"INACTIVE": "TẠM DỪNG",
+			"NOT_APPROVED": "CHỜ DUYỆT",
+			"DRAFT": "BẢN NHÁP",
+			"UNKNOWN": "KHÔNG XÁC ĐỊNH"
+		},
+		"card": {
+			"priceLabel": "GIÁ/NGƯỜI",
+			"durationLabel": "THỜI GIAN:",
+			"capacityLabel": "SỨC CHỨA:",
+			"capacityUnit": "khách",
+			"departureLabel": "ĐIỂM KHỞI HÀNH:",
+			"durationZero": "0 ngày",
+			"durationDays": "{{days}} ngày"
+		},
+		"empty": {
+			"title": "Chưa có tour nào",
+			"description": "Bắt đầu tạo tour đầu tiên của bạn",
+			"createFirst": "Tạo tour đầu tiên"
+		},
+		"modals": {
+			"delete": {
+				"title": "Xác nhận xóa tour",
+				"message": "Bạn có chắc chắn muốn xóa tour \"{{name}}\"?",
+				"itemName": "tour này"
+			}
+		},
+		"edit": {
+			"title": "Chỉnh sửa tour",
+			"saving": "Đang lưu...",
+			"save": "Lưu thay đổi",
+			"tabs": {
+				"basic": "Thông tin cơ bản",
+				"itinerary": "Lịch trình",
+				"pricing": "Giá cả & chính sách",
+				"media": "Media"
+			},
+			"basic": {
+				"title": "Thông tin cơ bản",
+				"priceCapacityTitle": "Giá cả & sức chứa",
+				"fields": {
+					"tourName": "Tên tour *",
+					"tourDescription": "Mô tả tour",
+					"tourDuration": "Thời gian",
+					"tourDeparturePoint": "Điểm khởi hành",
+					"tourVehicle": "Phương tiện",
+					"tourType": "Loại tour",
+					"amount": "Sức chứa (người)",
+					"tourStatus": "Trạng thái",
+					"bookingDeadline": "Hạn đặt tour"
+				},
+				"placeholders": {
+					"tourDuration": "VD: 5 ngày 4 đêm",
+					"selectTourType": "Chọn loại tour"
+				}
+			},
+			"itinerary": {
+				"title": "Lịch trình tour",
+				"dailyTitle": "Lịch trình từng ngày",
+				"dayN": "Ngày {{day}}",
+				"fields": {
+					"dayTitle": "Tiêu đề ngày",
+					"dayDescription": "Mô tả chi tiết"
+				},
+				"actions": {
+					"addDay": "+ Thêm ngày",
+					"removeDay": "− Xóa ngày"
+				}
+			},
+			"pricing": {
+				"title": "Giá cả & chính sách",
+				"fields": {
+					"adultPrice": "Giá người lớn (₫)",
+					"childrenPrice": "Giá trẻ em (₫)",
+					"babyPrice": "Giá em bé (₫)",
+					"surchargePolicy": "Chính sách phụ thu",
+					"cancellationPolicy": "Chính sách hủy tour"
+				}
+			},
+			"media": {
+				"title": "Ảnh cover tour",
+				"coverLabel": "Ảnh cover tour",
+				"changeImage": "Thay đổi ảnh",
+				"selectImage": "Chọn ảnh cover",
+				"hint": "Hỗ trợ: JPG, PNG, GIF. Kích thước tối đa: 5MB"
+			}
+		}
+	},
+	"tourPage": {
+		"detail": {
+			"loading": "Đang tải thông tin tour...",
+			"errorTitle": "Đã xảy ra lỗi",
+			"backToList": "Quay lại danh sách tour",
+			"back": "Quay lại danh sách",
+			"badge": "Tour du lịch",
+			"overview": {
+				"title": "Tổng quan tour",
+				"departVehicle": "Khởi hành từ {{departure}} bằng {{vehicle}}.",
+				"adultPrice": "Giá người lớn",
+				"childrenPrice": "Giá trẻ em",
+				"babyPrice": "Giá em bé",
+				"free": "Miễn phí",
+				"amount": "Số chỗ",
+				"availableDates": "Ngày khởi hành"
+			},
+			"highlights": {
+				"title": "Điểm nổi bật của tour",
+				"items": {
+					"historyTitle": "Tham quan di tích lịch sử",
+					"historyDesc": "Khám phá những di tích lịch sử nổi tiếng với hướng dẫn viên chuyên nghiệp",
+					"foodTitle": "Ẩm thực địa phương",
+					"foodDesc": "Thưởng thức những món ăn đặc sản nổi tiếng của vùng đất này",
+					"photoTitle": "Chụp ảnh kỷ niệm",
+					"photoDesc": "Ghi lại những khoảnh khắc đáng nhớ tại các điểm check-in nổi tiếng",
+					"giftTitle": "Mua sắm quà lưu niệm",
+					"giftDesc": "Thời gian tự do để mua sắm những món quà lưu niệm ý nghĩa"
+				}
+			},
+			"itinerary": {
+				"header": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
+				"updating": "Lịch trình đang được cập nhật.",
+				"day": "Ngày {{index}}"
+			},
+			"gallery": {
+				"title": "Hình ảnh tour"
+			},
+			"booking": {
+				"price": "Giá tour",
+				"includedNote": "Giá đã bao gồm thuế và phí dịch vụ",
+				"children": "Trẻ em",
+				"baby": "Em bé",
+				"bookNow": "Đặt tour ngay",
+				"contact": "Liên hệ tư vấn",
+				"infoTitle": "Thông tin đặt tour",
+				"infos": [
+					"✓ Hỗ trợ đặt tour 24/7",
+					"✓ Thanh toán an toàn",
+					"✓ Hủy tour miễn phí 24h trước khởi hành",
+					"✓ Bảo hiểm du lịch miễn phí",
+					"✓ Hướng dẫn viên chuyên nghiệp",
+					"✓ Xe du lịch tiện nghi"
+				],
+				"contactTitle": "Liên hệ đặt tour"
+			}
+		}
+	},
+	"tourList": {
+		"hero": {
+			"title": "Tour du lịch Đà Nẵng trong nước và quốc tế các điểm hấp dẫn",
+			"desc": "Đà Nẵng Xanh sẽ mang đến du khách chuyến tour du lịch tốt nhất đảm bảo về chất lượng với chi phí hợp lý du khách sẽ có chuyến du lịch đích thực."
+		},
+		"search": {
+			"placeholder": "Tìm kiếm tour..."
+		},
+		"categories": {
+			"all": "Tất cả tour",
+			"domestic": "Tour trong nước",
+			"international": "Tour nước ngoài",
+			"dayTour": "Tour trong ngày"
+		},
+		"loading": "Đang tải danh sách tour...",
+		"error": {
+			"title": "Đã xảy ra lỗi",
+			"retry": "Thử lại"
+		},
+		"empty": {
+			"title": "Không tìm thấy tour nào",
+			"desc": "Hãy thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác."
+		},
+		"loadMore": "Xem thêm"
+	},
+	"tourCard": {
+		"featured": "Nổi bật",
+		"children": "Trẻ em:",
+		"baby": "Em bé:",
+		"details": "CHI TIẾT",
+		"duration": {
+			"template": "{{days}} ngày {{nights}} đêm"
+		}
+	},
+	"businessNav": {
+		"brandSuffix": "Business",
+		"title": "Quản lý Business",
+		"roleSuffix": "Business",
+		"mobileSectionTitle": "Quản lý Business",
+		"dropdown": {
+			"manageToursTitle": "Quản lý Tours",
+			"manageToursDesc": "Tạo và quản lý tours",
+			"analyticsTitle": "Thống kê & Báo cáo",
+			"analyticsDesc": "Xem doanh thu và thống kê",
+			"ordersTitle": "Quản lý Đơn hàng",
+			"ordersDesc": "Xem và xử lý đơn hàng"
+		}
 	}
 }
 

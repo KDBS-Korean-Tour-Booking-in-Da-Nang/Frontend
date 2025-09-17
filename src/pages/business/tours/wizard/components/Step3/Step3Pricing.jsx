@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
+import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import './Step3Pricing.css';
 
 const Step3Pricing = () => {
+  const { t } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
+  const { showError } = useToast();
 
   // TinyMCE configuration with image upload
   const getTinyMCEConfig = (height = 200) => ({
@@ -18,13 +22,11 @@ const Step3Pricing = () => {
       'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
       'insertdatetime', 'media', 'table', 'help', 'wordcount'
     ],
-    toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | removeformat | code | help',
+    toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | table tabledelete | tableprops tablerowprops tablecellprops | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | code | help',
     branding: false,
     content_style: 'body { font-family: Inter, system-ui, Arial, sans-serif; font-size: 14px }',
-    // Prevent automatic <p> tags
-    forced_root_block: false,
-    force_br_newlines: true,
-    force_p_newlines: false,
+    // TinyMCE 8 compatible options
+    forced_root_block: 'div',
     remove_redundant_brs: true,
     // Clean up HTML
     cleanup: true,
@@ -64,9 +66,7 @@ const Step3Pricing = () => {
   const [formData, setFormData] = useState({
     adultPrice: '',
     childrenPrice: '',
-    babyPrice: '',
-    surchargePolicy: '',
-    cancellationPolicy: ''
+    babyPrice: ''
   });
 
   const [surcharges, setSurcharges] = useState([]);
@@ -76,9 +76,7 @@ const Step3Pricing = () => {
     setFormData({
       adultPrice: tourData.adultPrice || '',
       childrenPrice: tourData.childrenPrice || '',
-      babyPrice: tourData.babyPrice || '',
-      surchargePolicy: tourData.surchargePolicy || '',
-      cancellationPolicy: tourData.cancellationPolicy || ''
+      babyPrice: tourData.babyPrice || ''
     });
     setSurcharges(tourData.surcharges || []);
   }, [tourData]);
@@ -120,92 +118,101 @@ const Step3Pricing = () => {
   return (
     <div className="step3-container">
       <div className="step-header">
-        <h2 className="step-title">Giá & chính sách</h2>
-        <p className="step-subtitle">Thiết lập giá và chính sách tour</p>
+        <h2 className="step-title">{t('tourWizard.step3.title')}</h2>
+        <p className="step-subtitle">{t('tourWizard.step3.subtitle')}</p>
       </div>
 
       {/* Pricing */}
       <div className="pricing-section">
-        <h3>Giá tour</h3>
+        <h3>{t('tourWizard.step3.pricing.title')}</h3>
         <div className="form-grid">
           <div className="form-group">
             <label htmlFor="adultPrice" className="form-label">
-              Giá người lớn (≥ 12 tuổi) *
+              {t('tourWizard.step3.pricing.adultPrice')}
             </label>
             <input
               type="number"
               id="adultPrice"
               name="adultPrice"
               value={formData.adultPrice}
+              onKeyDown={(e) => { if(['e','E','+','-','.'].includes(e.key)) e.preventDefault(); }}
               onChange={(e) => {
-                const newFormData = { ...formData, adultPrice: e.target.value };
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const newFormData = { ...formData, adultPrice: value };
                 setFormData(newFormData);
                 updateTourData(newFormData);
               }}
               className="form-input"
-              placeholder="Ví dụ: 2500000"
+              placeholder={t('tourWizard.step3.pricing.placeholders.adultPrice')}
               min="0"
             />
-            <small className="form-help">VNĐ / người</small>
+            <small className="form-help">{t('tourWizard.step3.pricing.unit')}</small>
+            {!formData.adultPrice && (
+              <div className="form-error">{t('tourWizard.step3.pricing.error')}</div>
+            )}
           </div>
 
           <div className="form-group">
             <label htmlFor="childrenPrice" className="form-label">
-              Giá trẻ em (2-11 tuổi)
+              {t('tourWizard.step3.pricing.childrenPrice')}
             </label>
             <input
               type="number"
               id="childrenPrice"
               name="childrenPrice"
               value={formData.childrenPrice}
+              onKeyDown={(e) => { if(['e','E','+','-','.'].includes(e.key)) e.preventDefault(); }}
               onChange={(e) => {
-                const newFormData = { ...formData, childrenPrice: e.target.value };
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const newFormData = { ...formData, childrenPrice: value };
                 setFormData(newFormData);
                 updateTourData(newFormData);
               }}
               className="form-input"
-              placeholder="Ví dụ: 1800000"
+              placeholder={t('tourWizard.step3.pricing.placeholders.childrenPrice')}
               min="0"
             />
-            <small className="form-help">VNĐ / trẻ em</small>
+            <small className="form-help">{t('tourWizard.step3.pricing.unitChildren')}</small>
           </div>
 
           <div className="form-group">
             <label htmlFor="babyPrice" className="form-label">
-              Giá em bé (dưới 2 tuổi)
+              {t('tourWizard.step3.pricing.babyPrice')}
             </label>
             <input
               type="number"
               id="babyPrice"
               name="babyPrice"
               value={formData.babyPrice}
+              onKeyDown={(e) => { if(['e','E','+','-','.'].includes(e.key)) e.preventDefault(); }}
               onChange={(e) => {
-                const newFormData = { ...formData, babyPrice: e.target.value };
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const newFormData = { ...formData, babyPrice: value };
                 setFormData(newFormData);
                 updateTourData(newFormData);
               }}
               className="form-input"
-              placeholder="Ví dụ: 500000"
+              placeholder={t('tourWizard.step3.pricing.placeholders.babyPrice')}
               min="0"
             />
-            <small className="form-help">VNĐ / em bé</small>
+            <small className="form-help">{t('tourWizard.step3.pricing.unitBaby')}</small>
           </div>
         </div>
 
         {/* Price Summary */}
         <div className="price-summary">
-          <h4>Tóm tắt giá</h4>
+          <h4>{t('tourWizard.step3.summary.title')}</h4>
           <div className="summary-grid">
             <div className="price-item">
-              <span className="price-label">Người lớn:</span>
+              <span className="price-label">{t('tourWizard.step3.summary.adult')}</span>
               <span className="price-value">{formatPrice(formData.adultPrice)}</span>
             </div>
             <div className="price-item">
-              <span className="price-label">Trẻ em:</span>
+              <span className="price-label">{t('tourWizard.step3.summary.children')}</span>
               <span className="price-value">{formatPrice(formData.childrenPrice)}</span>
             </div>
             <div className="price-item">
-              <span className="price-label">Em bé:</span>
+              <span className="price-label">{t('tourWizard.step3.summary.baby')}</span>
               <span className="price-value">{formatPrice(formData.babyPrice)}</span>
             </div>
           </div>
@@ -215,13 +222,13 @@ const Step3Pricing = () => {
       {/* Surcharges */}
       <div className="surcharges-section">
         <div className="section-header">
-          <h3>Phụ thu</h3>
+          <h3>{t('tourWizard.step3.surcharges.title')}</h3>
           <button 
             type="button" 
             className="btn-add" 
             onClick={addSurcharge}
           >
-            + Thêm phụ thu
+            {t('tourWizard.step3.surcharges.add')}
           </button>
         </div>
 
@@ -232,22 +239,22 @@ const Step3Pricing = () => {
               onChange={(e) => updateSurcharge(index, 'type', e.target.value)}
               className="form-select"
             >
-              <option value="holiday">Dịp lễ Tết</option>
-              <option value="weekend">Cuối tuần</option>
-              <option value="single-room">Phòng đơn</option>
-              <option value="peak-season">Mùa cao điểm</option>
-              <option value="other">Khác</option>
+              <option value="holiday">{t('tourWizard.step3.surcharges.types.holiday')}</option>
+              <option value="weekend">{t('tourWizard.step3.surcharges.types.weekend')}</option>
+              <option value="single-room">{t('tourWizard.step3.surcharges.types.singleRoom')}</option>
+              <option value="peak-season">{t('tourWizard.step3.surcharges.types.peakSeason')}</option>
+              <option value="other">{t('tourWizard.step3.surcharges.types.other')}</option>
             </select>
             <input
               type="text"
-              placeholder="Tên phụ thu"
+              placeholder={t('tourWizard.step3.surcharges.placeholders.name')}
               value={surcharge.name}
               onChange={(e) => updateSurcharge(index, 'name', e.target.value)}
               className="form-input"
             />
             <input
               type="number"
-              placeholder="Phần trăm (%)"
+              placeholder={t('tourWizard.step3.surcharges.placeholders.percentage')}
               value={surcharge.percentage}
               onChange={(e) => updateSurcharge(index, 'percentage', e.target.value)}
               className="form-input"
@@ -265,7 +272,7 @@ const Step3Pricing = () => {
         {/* Description Editor - Full Width */}
         {surcharges.length > 0 && (
           <div className="surcharge-description-section">
-            <label className="form-label">Mô tả phụ thu</label>
+            <label className="form-label">{t('tourWizard.step3.surcharges.description')}</label>
             <Editor
               apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
               value={surcharges[0]?.description || ''}
@@ -280,42 +287,7 @@ const Step3Pricing = () => {
         )}
       </div>
 
-      {/* Policies */}
-      <div className="policies-section">
-        <h3>Chính sách</h3>
-        
-        <div className="form-group">
-          <label htmlFor="surchargePolicy" className="form-label">
-            Chính sách phụ thu
-          </label>
-          <Editor
-            apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
-            value={formData.surchargePolicy}
-            init={getTinyMCEConfig(200)}
-            onEditorChange={(content) => {
-              const newFormData = { ...formData, surchargePolicy: content };
-              setFormData(newFormData);
-              updateTourData(newFormData);
-            }}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="cancellationPolicy" className="form-label">
-            Chính sách hủy/hoàn tiền *
-          </label>
-          <Editor
-            apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
-            value={formData.cancellationPolicy}
-            init={getTinyMCEConfig(200)}
-            onEditorChange={(content) => {
-              const newFormData = { ...formData, cancellationPolicy: content };
-              setFormData(newFormData);
-              updateTourData(newFormData);
-            }}
-          />
-        </div>
-      </div>
+      {/* Policies removed: consolidated into tourDescription at the bottom of FE pages */}
     </div>
   );
 };

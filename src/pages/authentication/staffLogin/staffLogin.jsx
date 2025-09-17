@@ -54,10 +54,10 @@ const StaffLogin = () => {
       };
 
       login(mockUser);
-      showSuccess('Đăng nhập thành công!');
+      showSuccess('toast.auth.login_success');
       navigate('/admin');
     } catch (err) {
-      showError('Đăng nhập thất bại. Vui lòng thử lại.');
+      showError('toast.auth.login_failed');
     } finally {
       setLoading(false);
     }

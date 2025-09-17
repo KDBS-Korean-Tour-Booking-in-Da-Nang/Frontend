@@ -52,42 +52,38 @@ const Register = () => {
     setLoading(true);
     setEmailError('');
 
-    // Collect all validation errors
-    const errors = [];
+    // Collect all validation errors to show multiple toasts at once
+    const validationErrors = [];
 
     // Email validation
     if (!formData.email.trim()) {
-      errors.push('Email là bắt buộc');
+      validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
     } else {
       const emailValidation = validateEmail(formData.email);
       if (!emailValidation.isValid) {
-        errors.push('Email không đúng định dạng');
+        validationErrors.push(t('auth.common.form.email.invalid'));
       }
     }
 
     // Username validation
     if (!formData.username.trim()) {
-      errors.push('Tên người dùng là bắt buộc');
+      validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.register.username') } });
     }
 
     // Password validation
     if (!formData.password.trim()) {
-      errors.push('Mật khẩu là bắt buộc');
+      validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.register.password') } });
     } else if (formData.password.length < 6) {
-      errors.push('Mật khẩu phải có ít nhất 6 ký tự');
+      validationErrors.push(t('auth.register.errors.passwordMinLength'));
     }
 
     // Confirm password validation
     if (formData.password !== formData.confirmPassword) {
-      errors.push('Mật khẩu xác nhận không khớp');
+      validationErrors.push(t('auth.register.errors.passwordMismatch'));
     }
 
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(msg => showError(msg));
       setLoading(false);
       return;
     }
@@ -112,7 +108,7 @@ const Register = () => {
         localStorage.setItem('userEmail', formData.email);
         
         // Show success message
-        showSuccess('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
+        showSuccess('toast.auth.register_success');
         
         // Registration successful, redirect to verification page immediately
         // Backend already sends OTP automatically during registration
@@ -126,14 +122,14 @@ const Register = () => {
         // Check if it's an email already exists error
         if (data.code === 1001 || data.message?.includes('Email has existed')) {
           setEmailError('exists');
-          showError('Email này đã được đăng ký');
+          showError('toast.auth.email_already_exists');
         } else {
-          showError(data.message || t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
+          showError(data.message || t('auth.register.errors.registerFailed') || 'toast.auth.general_error');
         }
       }
     } catch (error) {
       console.error('Registration error:', error);
-      showError(t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
+      showError(t('auth.register.errors.registerFailed') || 'toast.auth.general_error');
     } finally {
       setLoading(false);
     }

@@ -21,21 +21,13 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Collect all validation errors
-    const errors = [];
-
     if (!email.trim()) {
-      errors.push('Email là bắt buộc');
-    } else if (!email.includes('@')) {
-      errors.push('Email không đúng định dạng');
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
+      setLoading(false);
+      return;
     }
-
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (!email.includes('@')) {
+      showError(t('auth.common.form.email.invalid'));
       setLoading(false);
       return;
     }
@@ -54,14 +46,14 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        showSuccess('Email đặt lại mật khẩu đã được gửi!');
+        showSuccess('toast.auth.password_reset_email_sent');
         setSent(true);
         setCountdown(60);
       } else {
-        showError(data.message || 'Gửi email thất bại. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {
-      showError('Có lỗi xảy ra. Vui lòng thử lại.');
+      showError('toast.auth.general_error');
     } finally {
       setLoading(false);
     }
@@ -87,21 +79,13 @@ const ForgotPassword = () => {
     e.preventDefault();
     setOtpLoading(true);
 
-    // Collect all validation errors
-    const errors = [];
-
     if (!otp.trim()) {
-      errors.push('OTP là bắt buộc');
-    } else if (otp.length !== 6) {
-      errors.push('OTP phải có 6 chữ số');
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
+      setOtpLoading(false);
+      return;
     }
-
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (otp.length !== 6) {
+      showError(t('auth.verify.error'));
       setOtpLoading(false);
       return;
     }
@@ -118,7 +102,7 @@ const ForgotPassword = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // OTP verified successfully, navigate to reset password
         setVerified(true);
-        showSuccess('Xác thực OTP thành công!');
+        showSuccess('toast.auth.otp_verify_success');
         
         // Navigate to reset password after 2 seconds
         setTimeout(() => {
@@ -131,10 +115,10 @@ const ForgotPassword = () => {
           });
         }, 2000);
       } else {
-        showError(data.message || 'Xác thực thất bại. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {
-      showError('Có lỗi xảy ra. Vui lòng thử lại.');
+      showError('toast.auth.general_error');
     } finally {
       setOtpLoading(false);
     }
@@ -157,15 +141,15 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        showSuccess('OTP mới đã được gửi!');
+        showSuccess('toast.auth.otp_sent_success');
         
         // Reset countdown
         setCountdown(60);
       } else {
-        showError(data.message || 'Gửi lại OTP thất bại. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {
-      showError('Có lỗi xảy ra. Vui lòng thử lại.');
+      showError('toast.auth.general_error');
     } finally {
       setResendLoading(false);
     }
@@ -207,11 +191,7 @@ const ForgotPassword = () => {
                 <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
               </div>
 
-              {successMessage && (
-                <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                  {successMessage}
-                </div>
-              )}
+              
 
 
               <div>
@@ -294,11 +274,7 @@ const ForgotPassword = () => {
               </div>
             </div>
 
-            {successMessage && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                {successMessage}
-              </div>
-            )}
+            
             
 
             <div>

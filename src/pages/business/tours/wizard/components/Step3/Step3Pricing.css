@@ -48,6 +48,12 @@
   margin-top: 5px;
 }
 
+.form-error {
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+
 .price-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import TourCard from './TourCard';
 import './Step4Media.css';
 
 const Step4Media = () => {
+  const { t } = useTranslation();
   const { showError } = useToast();
   const { tourData, updateTourData } = useTourWizardContext();
   const [formData, setFormData] = useState({
@@ -23,14 +25,14 @@ const Step4Media = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        showError('Vui lòng chọn file hình ảnh hợp lệ (JPG, PNG, GIF, WebP, etc.)');
+        showError({ i18nKey: 'toast.field_invalid' });
         return;
       }
       
       // Validate file size (max 10MB)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        showError('Kích thước file không được vượt quá 10MB');
+        showError({ i18nKey: 'toast.field_invalid' });
         return;
       }
       
@@ -44,7 +46,7 @@ const Step4Media = () => {
 
   return (
     <div className="step4-container">
-      <h2 className="section-title">Hình ảnh & Tệp đính kèm</h2>
+      <h2 className="section-title">{t('tourWizard.step4.title')}</h2>
 
       {/* Thumbnail */}
       <div className="media-section">
@@ -64,7 +66,7 @@ const Step4Media = () => {
                   alt="Thumbnail preview" 
                   className="thumbnail-image"
                 />
-                <div className="upload-text">Thay đổi ảnh</div>
+                <div className="upload-text">{t('tourWizard.step4.thumbnail.changeImage')}</div>
                 <div className="upload-subtext">
                   {formData.thumbnail.name} • {(formData.thumbnail.size / 1024 / 1024).toFixed(2)} MB
                 </div>
@@ -72,10 +74,10 @@ const Step4Media = () => {
             ) : (
               <div className="upload-placeholder">
                 <div className="upload-icon">📷</div>
-                <div className="upload-text">Click để chọn ảnh cover</div>
+                <div className="upload-text">{t('tourWizard.step4.thumbnail.selectImage')}</div>
                 <div className="upload-subtext">
-                  Hỗ trợ: JPG, PNG, GIF, WebP, SVG<br/>
-                  Kích thước khuyến nghị: 1200x800px (tối đa 10MB)
+                  {t('tourWizard.step4.thumbnail.supportedFormats')}<br/>
+                  {t('tourWizard.step4.thumbnail.recommendedSize')}
                 </div>
               </div>
             )}
@@ -86,7 +88,7 @@ const Step4Media = () => {
 
       {/* Preview */}
       <div className="preview-container">
-        <h3 className="preview-title">Preview Tour</h3>
+        <h3 className="preview-title">{t('tourWizard.step4.preview.title')}</h3>
         
         <div className="preview-grid">
           <TourCard 
@@ -102,13 +104,13 @@ const Step4Media = () => {
           />
           
           <div className="preview-info">
-            <h5>Thông tin tour preview:</h5>
+            <h5>{t('tourWizard.step4.preview.infoTitle')}</h5>
             <ul>
-              <li><strong>Tên tour:</strong> {tourData.tourName || 'Chưa có tên'}</li>
-              <li><strong>Thời gian:</strong> {tourData.duration || '0'} ngày {tourData.nights || '0'} đêm</li>
-              <li><strong>Giá người lớn:</strong> {tourData.adultPrice ? `${new Intl.NumberFormat('vi-VN').format(tourData.adultPrice)} VNĐ` : 'Chưa có giá'}</li>
-              <li><strong>Hình ảnh:</strong> {formData.thumbnail ? 'Đã upload' : 'Chưa có'}</li>
-              <li><strong>Trạng thái:</strong> Sẽ hiển thị trong danh sách tour</li>
+              <li><strong>{t('tourWizard.step4.preview.fields.tourName')}</strong> {tourData.tourName || t('tourWizard.step4.preview.values.notSet')}</li>
+              <li><strong>{t('tourWizard.step4.preview.fields.duration')}</strong> {tourData.duration || '0'} ngày {tourData.nights || '0'} đêm</li>
+              <li><strong>{t('tourWizard.step4.preview.fields.adultPrice')}</strong> {tourData.adultPrice ? `${new Intl.NumberFormat('vi-VN').format(tourData.adultPrice)} VNĐ` : t('tourWizard.step4.preview.values.noPrice')}</li>
+              <li><strong>{t('tourWizard.step4.preview.fields.image')}</strong> {formData.thumbnail ? t('tourWizard.step4.preview.values.uploaded') : t('tourWizard.step4.preview.values.notUploaded')}</li>
+              <li><strong>{t('tourWizard.step4.preview.fields.status')}</strong> {t('tourWizard.step4.preview.values.willShow')}</li>
             </ul>
           </div>
         </div>

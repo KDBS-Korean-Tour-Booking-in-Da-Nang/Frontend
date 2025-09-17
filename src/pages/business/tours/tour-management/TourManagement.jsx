@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import EditTourModal from '../wizard/modals/EditTourModal';
@@ -12,6 +13,7 @@ const TourManagement = () => {
   const { user } = useAuth();
   const { showError, showSuccess } = useToast();
   const showErrorRef = useRef(showError);
+  const { t } = useTranslation();
   
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,11 +41,11 @@ const TourManagement = () => {
         // Show all tours for now (backend response lacks companyEmail/companyId)
         setTours(Array.isArray(data) ? data : []);
       } else {
-        showErrorRef.current('Không thể tải danh sách tour');
+        showErrorRef.current('toast.tour.load_failed');
       }
     } catch (error) {
       console.error('Error fetching tours:', error);
-      showErrorRef.current('Có lỗi xảy ra khi tải danh sách tour');
+      showErrorRef.current('toast.tour.load_error');
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,7 @@ const TourManagement = () => {
         : tour
     ));
     
-    showSuccess(`Đã ${newStatus === 'ACTIVE' ? 'kích hoạt' : 'tạm dừng'} tour`);
+    showSuccess(newStatus === 'ACTIVE' ? 'toast.tour.activate_success' : 'toast.tour.deactivate_success');
   };
 
   const handleDeleteTour = (tourId) => {
@@ -97,15 +99,15 @@ const TourManagement = () => {
       });
 
       if (response.ok) {
-        showSuccess('Đã xóa tour thành công');
+        showSuccess('toast.tour.delete_success');
         // Remove tour from local state
         setTours(tours.filter(tour => tour.id !== selectedTour.id));
       } else {
-        showError('Có lỗi xảy ra khi xóa tour');
+        showError('toast.tour.delete_error');
       }
     } catch (error) {
       console.error('Error deleting tour:', error);
-      showError('Có lỗi xảy ra khi xóa tour');
+      showError('toast.tour.delete_error');
     } finally {
       setDeleteModalOpen(false);
       setSelectedTour(null);
@@ -122,10 +124,10 @@ const TourManagement = () => {
   };
 
   const formatDuration = (duration) => {
-    if (!duration) return '0 ngày';
+    if (!duration) return t('tourManagement.card.durationZero');
     // Extract number from duration string like "5 ngày 4 đêm"
     const match = duration.match(/(\d+)/);
-    return match ? `${match[1]} ngày` : duration;
+    return match ? t('tourManagement.card.durationDays', { days: match[1] }) : duration;
   };
 
   const getImageSrc = (tourImgPath) => {
@@ -144,7 +146,7 @@ const TourManagement = () => {
       <div className="tour-management">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Đang tải thông tin người dùng...</p>
+          <p>{t('tourManagement.loading.user')}</p>
         </div>
       </div>
     );
@@ -154,8 +156,8 @@ const TourManagement = () => {
     return (
       <div className="tour-management">
         <div className="access-denied">
-          <h1>Truy cập bị từ chối</h1>
-          <p>Bạn cần có quyền business để truy cập trang này.</p>
+          <h1>{t('tourManagement.accessDenied.title')}</h1>
+          <p>{t('tourManagement.accessDenied.message')}</p>
         </div>
       </div>
     );
@@ -166,7 +168,7 @@ const TourManagement = () => {
       <div className="tour-management">
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Đang tải danh sách tour...</p>
+          <p>{t('tourManagement.loading.tours')}</p>
         </div>
       </div>
     );
@@ -179,14 +181,14 @@ const TourManagement = () => {
         <div className="header-content">
           <div className="header-title">
             <div className="title-icon">🏔️</div>
-            <h1>Danh Sách Tour</h1>
+            <h1>{t('tourManagement.header.title')}</h1>
           </div>
           <button 
             onClick={handleCreateTour}
             className="add-tour-btn"
           >
             <span className="btn-icon">+</span>
-            Thêm Tour Mới
+            {t('tourManagement.header.addNew')}
           </button>
         </div>
       </div>
@@ -196,13 +198,13 @@ const TourManagement = () => {
         {tours.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🏔️</div>
-            <h3>Chưa có tour nào</h3>
-            <p>Hãy tạo tour đầu tiên của bạn</p>
+            <h3>{t('tourManagement.empty.title')}</h3>
+            <p>{t('tourManagement.empty.description')}</p>
             <button 
               onClick={handleCreateTour}
               className="create-first-tour-btn"
             >
-              Tạo tour đầu tiên
+              {t('tourManagement.empty.createFirst')}
             </button>
           </div>
         ) : (
@@ -225,10 +227,7 @@ const TourManagement = () => {
                   
                   {/* Status Badge */}
                   <div className={`status-badge ${tour.tourStatus?.toLowerCase()}`}>
-                    {tour.tourStatus === 'ACTIVE' ? 'HOẠT ĐỘNG' :
-                     tour.tourStatus === 'INACTIVE' ? 'TẠM DỪNG' :
-                     tour.tourStatus === 'NOT_APPROVED' ? 'CHỜ DUYỆT' :
-                     tour.tourStatus === 'DRAFT' ? 'BẢN NHÁP' : tour.tourStatus}
+                    {t(`tourManagement.statusBadge.${tour.tourStatus || 'UNKNOWN'}`)}
                   </div>
                 </div>
 
@@ -237,21 +236,21 @@ const TourManagement = () => {
                   <h3 className="tour-name">{tour.tourName}</h3>
                   
                   <div className="tour-price">
-                    <span className="price-label">GIÁ/NGƯỜI</span>
+                    <span className="price-label">{t('tourManagement.card.priceLabel')}</span>
                     <span className="price-value">{formatPrice(tour.adultPrice)}₫</span>
                   </div>
 
                   <div className="tour-details">
                     <div className="detail-item">
-                      <span className="detail-label">THỜI GIAN:</span>
+                      <span className="detail-label">{t('tourManagement.card.durationLabel')}</span>
                       <span className="detail-value">{formatDuration(tour.tourDuration)}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="detail-label">SỨC CHỨA:</span>
-                      <span className="detail-value">{tour.amount || '30'} khách</span>
+                      <span className="detail-label">{t('tourManagement.card.capacityLabel')}</span>
+                      <span className="detail-value">{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="detail-label">ĐIỂM KHỞI HÀNH:</span>
+                      <span className="detail-label">{t('tourManagement.card.departureLabel')}</span>
                       <span className="detail-value">{tour.tourDeparturePoint || 'Đà Nẵng'}</span>
                     </div>
                   </div>
@@ -275,7 +274,7 @@ const TourManagement = () => {
                         className="edit-btn"
                       >
                         <span className="edit-icon">✏️</span>
-                        Chỉnh sửa
+                        {t('tourManagement.actions.edit')}
                       </button>
                       
                       <button 
@@ -283,7 +282,7 @@ const TourManagement = () => {
                         className="delete-btn"
                       >
                         <span className="delete-icon">🗑️</span>
-                        Xóa
+                        {t('tourManagement.actions.delete')}
                       </button>
                     </div>
                   </div>
@@ -313,9 +312,9 @@ const TourManagement = () => {
           setSelectedTour(null);
         }}
         onConfirm={confirmDeleteTour}
-        title="Xác nhận xóa tour"
-        message={`Bạn có chắc chắn muốn xóa tour "${selectedTour?.tourName}"?`}
-        itemName="tour này"
+        title={t('tourManagement.modals.delete.title')}
+        message={t('tourManagement.modals.delete.message', { name: selectedTour?.tourName || '' })}
+        itemName={t('tourManagement.modals.delete.itemName')}
       />
     </div>
   );

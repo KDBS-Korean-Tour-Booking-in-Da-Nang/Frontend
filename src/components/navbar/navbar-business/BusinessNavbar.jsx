@@ -66,8 +66,13 @@ const BusinessNavbar = () => {
     if (path === '/business/tours') {
       return location.pathname.startsWith('/business/tours');
     }
+    if (path === '/tour') {
+      // Consider tour detail pages as active for Tours
+      return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
+    }
     return location.pathname === path;
   };
+  const isBizActive = location.pathname.startsWith('/business/');
 
   return (
     <>
@@ -81,7 +86,7 @@ const BusinessNavbar = () => {
                 alt="KDBS Logo"
                 className={styles.logo}
               />
-              <span className={styles['brand-name']}>{t('brand')} Business</span>
+              <span className={styles['brand-name']}>{t('brand')} {t('businessNav.brandSuffix')}</span>
             </Link>
           </div>
 
@@ -109,15 +114,18 @@ const BusinessNavbar = () => {
             </Link>
 
             {/* Business Management Section */}
-            <div className="relative group">
-              <button className={`${styles['nav-link']} ${isActive('/business/tours') ? styles.active : ''} flex items-center gap-1`}>
+            <div className="relative group" style={{ position: 'relative' }}>
+              <button
+                className={`${styles['nav-link']} ${isBizActive ? styles.active : ''} flex items-center gap-1`}
+                onClick={() => navigate('/business/tours')}
+              >
                 <BuildingOfficeIcon className="w-4 h-4" />
-                Quản lý Business
+                {t('businessNav.title')}
                 <span className="text-xs">▼</span>
               </button>
               
               {/* Business Dropdown Menu */}
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" style={{ zIndex: 9999 }}>
                 <div className="py-2">
                   <Link
                     to="/business/tours"
@@ -125,8 +133,8 @@ const BusinessNavbar = () => {
                   >
                     <MapIcon className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="font-medium">Quản lý Tours</div>
-                      <div className="text-sm text-gray-500">Tạo và quản lý tours</div>
+                      <div className="font-medium">{t('businessNav.dropdown.manageToursTitle')}</div>
+                      <div className="text-sm text-gray-500">{t('businessNav.dropdown.manageToursDesc')}</div>
                     </div>
                   </Link>
                   
@@ -136,8 +144,8 @@ const BusinessNavbar = () => {
                   >
                     <ChartBarIcon className="w-5 h-5 text-green-600" />
                     <div>
-                      <div className="font-medium">Thống kê & Báo cáo</div>
-                      <div className="text-sm text-gray-500">Xem doanh thu và thống kê</div>
+                      <div className="font-medium">{t('businessNav.dropdown.analyticsTitle')}</div>
+                      <div className="text-sm text-gray-500">{t('businessNav.dropdown.analyticsDesc')}</div>
                     </div>
                   </Link>
 
@@ -147,8 +155,8 @@ const BusinessNavbar = () => {
                   >
                     <ClipboardDocumentListIcon className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="font-medium">Quản lý Đơn hàng</div>
-                      <div className="text-sm text-gray-500">Xem và xử lý đơn hàng</div>
+                      <div className="font-medium">{t('businessNav.dropdown.ordersTitle')}</div>
+                      <div className="text-sm text-gray-500">{t('businessNav.dropdown.ordersDesc')}</div>
                     </div>
                   </Link>
                 </div>
@@ -224,7 +232,7 @@ const BusinessNavbar = () => {
                       )}
                       <div className={styles['dropdown-user-info']}>
                         <h4>{user.name || user.email}</h4>
-                        <p className="text-primary font-medium">{user.role} - Business</p>
+                        <p className="text-primary font-medium">{user.role} - {t('businessNav.roleSuffix')}</p>
                       </div>
                     </div>
 
@@ -309,14 +317,14 @@ const BusinessNavbar = () => {
 
           {/* Business Management Mobile */}
           <div className="border-t border-gray-200 pt-4 mt-4">
-            <div className="text-sm font-medium text-gray-500 px-4 mb-2">Business Management</div>
+            <div className="text-sm font-medium text-gray-500 px-4 mb-2">{t('businessNav.mobileSectionTitle')}</div>
             <Link
               to="/business/tours"
               className={`${styles['mobile-nav-link']} ${isActive('/business/tours') ? styles.active : ''} flex items-center gap-2`}
               onClick={() => setIsMenuOpen(false)}
             >
               <MapIcon className="w-4 h-4" />
-              Quản lý Tours
+              {t('businessNav.dropdown.manageToursTitle')}
             </Link>
             
             <Link
@@ -325,7 +333,7 @@ const BusinessNavbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <ChartBarIcon className="w-4 h-4" />
-              Thống kê & Báo cáo
+              {t('businessNav.dropdown.analyticsTitle')}
             </Link>
 
             <Link
@@ -334,7 +342,7 @@ const BusinessNavbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <ClipboardDocumentListIcon className="w-4 h-4" />
-              Quản lý Đơn hàng
+              {t('businessNav.dropdown.ordersTitle')}
             </Link>
           </div>
 
@@ -366,7 +374,7 @@ const BusinessNavbar = () => {
             <div className={styles['mobile-user-section']}>
               <div className={styles['mobile-user-info']}>
                 <div className={styles['mobile-user-name']}>{user.name || user.email}</div>
-                <div className={styles['mobile-user-role']}>{user.role} - Business</div>
+                <div className={styles['mobile-user-role']}>{user.role} - {t('businessNav.roleSuffix')}</div>
               </div>
               <button
                 onClick={() => {

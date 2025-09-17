@@ -21,8 +21,6 @@ export const TourWizardProvider = ({ children }) => {
     adultPrice: '',
     childrenPrice: '',
     babyPrice: '',
-    surchargePolicy: '',
-    cancellationPolicy: '',
     surcharges: [],
     
     // Step 4: Media
@@ -47,8 +45,6 @@ export const TourWizardProvider = ({ children }) => {
       adultPrice: '',
       childrenPrice: '',
       babyPrice: '',
-      surchargePolicy: '',
-      cancellationPolicy: '',
       surcharges: [],
       thumbnail: null
     });

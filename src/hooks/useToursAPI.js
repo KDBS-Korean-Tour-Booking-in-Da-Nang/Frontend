@@ -60,9 +60,15 @@ export const useToursAPI = () => {
         // Customizable fields by company (optional)
         availableDates: tour.availableDates || [],
         bookingDeadline: tour.bookingDeadline || null,
-        surchargePolicy: tour.surchargePolicy || '',
-        cancellationPolicy: tour.cancellationPolicy || '',
-        surcharges: tour.surcharges || [],
+        surcharges: (() => {
+          try {
+            if (Array.isArray(tour.surcharges)) return tour.surcharges;
+            if (typeof tour.surcharges === 'string' && tour.surcharges.trim()) {
+              return JSON.parse(tour.surcharges);
+            }
+          } catch (_) {}
+          return [];
+        })(),
         gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
         attachments: tour.attachments || []
       }));
@@ -114,9 +120,15 @@ export const useToursAPI = () => {
         // Customizable fields by company (optional)
         availableDates: tour.availableDates || [],
         bookingDeadline: tour.bookingDeadline || null,
-        surchargePolicy: tour.surchargePolicy || '',
-        cancellationPolicy: tour.cancellationPolicy || '',
-        surcharges: tour.surcharges || [],
+        surcharges: (() => {
+          try {
+            if (Array.isArray(tour.surcharges)) return tour.surcharges;
+            if (typeof tour.surcharges === 'string' && tour.surcharges.trim()) {
+              return JSON.parse(tour.surcharges);
+            }
+          } catch (_) {}
+          return [];
+        })(),
         gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
         attachments: tour.attachments || []
       };

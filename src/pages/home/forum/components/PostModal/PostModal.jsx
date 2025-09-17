@@ -200,11 +200,11 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         if (editPost) {
           // Call onPostCreated with the updated post for edit mode
           onPostCreated(result);
-          showSuccess('Cập nhật bài viết thành công!');
+          showSuccess('toast.forum.post_update_success');
         } else {
           // Call onPostCreated with the new post for create mode
           onPostCreated(result);
-          showSuccess('Tạo bài viết thành công!');
+          showSuccess('toast.forum.post_create_success');
         }
         onClose();
         resetForm();
@@ -213,7 +213,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       }
     } catch (error) {
       console.error('Error creating/updating post:', error);
-      showError(editPost ? 'Cập nhật bài viết thất bại. Vui lòng thử lại.' : 'Tạo bài viết thất bại. Vui lòng thử lại.');
+      showError(editPost ? 'toast.forum.post_update_failed' : 'toast.forum.post_create_failed');
     } finally {
       setIsLoading(false);
     }

@@ -209,7 +209,7 @@ const BusinessInfo = () => {
       console.log('Response status text:', response.statusText);
 
       if (response.ok) {
-        showSuccess('Thông tin doanh nghiệp đã được gửi thành công!');
+        showSuccess('toast.business.info_submit_success');
         // Ghi nhận đã nộp hồ sơ (theo email) trên thiết bị này để chặn nộp lại
         const statusKey = `businessUploadStatus:${userEmail}`;
         localStorage.setItem(statusKey, 'submitted');
@@ -256,7 +256,7 @@ const BusinessInfo = () => {
       }
     } catch (error) {
       console.error('Error uploading files:', error);
-      showError('Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại.');
+      showError('toast.business.info_submit_failed');
     } finally {
       setLoading(false);
     }

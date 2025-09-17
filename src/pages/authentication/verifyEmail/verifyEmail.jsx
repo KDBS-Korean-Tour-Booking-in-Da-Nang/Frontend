@@ -47,21 +47,14 @@ const VerifyEmail = () => {
     setLoading(true);
     setError('');
 
-    // Collect all validation errors
-    const errors = [];
-
+    // Validation
     if (!otp.trim()) {
-      errors.push('OTP là bắt buộc');
-    } else if (otp.length !== 6) {
-      errors.push('OTP phải có 6 chữ số');
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
+      setLoading(false);
+      return;
     }
-
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (otp.length !== 6) {
+      showError(t('auth.verify.error'));
       setLoading(false);
       return;
     }
@@ -83,7 +76,7 @@ const VerifyEmail = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // Verification successful - show success message and redirect based on role
         setError(''); // Clear any previous errors
-        showSuccess('Xác thực email thành công!');
+        showSuccess('toast.auth.email_verify_success');
         
         // Auto navigate based on role after 2 seconds
         setTimeout(() => {
@@ -94,10 +87,10 @@ const VerifyEmail = () => {
           }
         }, 2000);
       } else {
-        showError(data.message || 'Xác thực email thất bại. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.email_verify_failed');
       }
     } catch (err) {
-      showError('Xác thực email thất bại. Vui lòng thử lại.');
+      showError('toast.auth.email_verify_failed');
     } finally {
       setLoading(false);
     }
@@ -132,12 +125,12 @@ const VerifyEmail = () => {
             return prev - 1;
           });
         }, 1000);
-        showSuccess('Mã OTP mới đã được gửi!');
+        showSuccess('toast.auth.otp_sent_success');
       } else {
-        showError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.otp_resend_failed');
       }
     } catch (err) {
-      showError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
+      showError('toast.auth.otp_resend_failed');
     } finally {
       setResendLoading(false);
     }

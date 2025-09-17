@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../contexts/ToastContext';
 import { TourWizardProvider, useTourWizardContext } from '../../../../contexts/TourWizardContext';
 import { useStepValidation } from '../../../../hooks/useStepValidation';
@@ -8,22 +9,113 @@ import Step2Itinerary from './components/Step2/Step2Itinerary';
 import Step3Pricing from './components/Step3/Step3Pricing';
 import Step4Media from './components/Step4/Step4Media';
 import './TourWizard.css';
+import { ConfirmLeaveModal } from '../../../../components/modals';
 
 const TourWizardContent = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { showError, showSuccess } = useToast();
   const { tourData } = useTourWizardContext();
   const [currentStep, setCurrentStep] = useState(1);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const pendingNavigationRef = useRef(null);
   
   // Use custom hook for step validation
   const { isStepCompleted, getStepErrors } = useStepValidation(tourData);
 
   const steps = [
-    { id: 1, title: 'Thông tin cơ bản', description: 'Nhập thông tin cơ bản của tour' },
-    { id: 2, title: 'Lịch trình', description: 'Thiết lập chi tiết lịch trình' },
-    { id: 3, title: 'Giá & chính sách', description: 'Thiết lập giá và chính sách' },
-    { id: 4, title: 'Hình ảnh', description: 'Upload hình ảnh và tệp đính kèm' }
+    { id: 1, title: t('tourWizard.steps.step1.title'), description: t('tourWizard.steps.step1.description') },
+    { id: 2, title: t('tourWizard.steps.step2.title'), description: t('tourWizard.steps.step2.description') },
+    { id: 3, title: t('tourWizard.steps.step3.title'), description: t('tourWizard.steps.step3.description') },
+    { id: 4, title: t('tourWizard.steps.step4.title'), description: t('tourWizard.steps.step4.description') }
   ];
+
+  // Determine if the form has any user-entered data
+  const isDirty = useMemo(() => {
+    const hasText = (v) => typeof v === 'string' && v.trim().length > 0;
+    const hasList = (v) => Array.isArray(v) && v.length > 0;
+    // Only consider fields that user actually types/selects. Ignore defaults like departurePoint.
+    return (
+      hasText(tourData.tourName) ||
+      hasText(tourData.duration) ||
+      hasText(tourData.nights) ||
+      hasText(tourData.tourType) ||
+      hasText(tourData.maxCapacity) ||
+      hasText(tourData.bookingDeadline) ||
+      hasList(tourData.itinerary) ||
+      hasText(tourData.adultPrice) ||
+      hasText(tourData.childrenPrice) ||
+      hasText(tourData.babyPrice) ||
+      hasText(tourData.tourDescription) ||
+      hasList(tourData.surcharges) ||
+      !!tourData.thumbnail
+    );
+  }, [tourData]);
+
+  // Warn on browser/tab close only when dirty
+  useEffect(() => {
+    const handler = (e) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // Intercept in-app route changes (links/back) only when dirty
+  useEffect(() => {
+    const onPopState = () => {
+      if (isDirty) {
+        // Immediately push state forward to keep user on page
+        try { window.history.pushState(null, ''); } catch (_) {}
+        setShowLeaveConfirm(true);
+        pendingNavigationRef.current = { type: 'back' };
+      } else {
+        // Not dirty: allow normal back navigation by removing our listener before going back
+        window.removeEventListener('popstate', onPopState);
+        navigate(-1);
+        return;
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+
+    // Intercept clicks on <a> links inside the wizard container
+    const onClick = (ev) => {
+      if (!isDirty) return; // allow normal nav if not dirty
+      const anchor = ev.target.closest('a');
+      if (!anchor) return;
+      const url = new URL(anchor.href, window.location.origin);
+      const isSameOrigin = url.origin === window.location.origin;
+      if (isSameOrigin && url.pathname !== window.location.pathname) {
+        ev.preventDefault();
+        setShowLeaveConfirm(true);
+        pendingNavigationRef.current = { type: 'href', href: url.pathname + url.search + url.hash };
+      }
+    };
+    document.addEventListener('click', onClick, true);
+
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      document.removeEventListener('click', onClick, true);
+    };
+  }, [isDirty, navigate]);
+
+  const handleConfirmLeave = () => {
+    // Allow closing tab without prompt
+    window.removeEventListener('beforeunload', () => {});
+    const pending = pendingNavigationRef.current;
+    setShowLeaveConfirm(false);
+    if (pending?.type === 'href' && pending.href) {
+      navigate(pending.href);
+    } else if (pending?.type === 'back') {
+      navigate(-1);
+    }
+  };
+
+  const handleCancelLeave = () => {
+    setShowLeaveConfirm(false);
+  };
 
 
   const nextStep = () => {
@@ -32,9 +124,8 @@ const TourWizardContent = () => {
       const errors = getStepErrors(currentStep);
       
       if (errors.length > 0) {
-        // Show specific error messages
-        errors.forEach(error => {
-          showError(`${error} là bắt buộc`);
+        errors.forEach(errorKey => {
+          showError({ i18nKey: 'toast.required', values: { field: t(errorKey) } });
         });
       } else {
         setCurrentStep(currentStep + 1);
@@ -52,7 +143,7 @@ const TourWizardContent = () => {
     try {
       // Validate final data
       if (!tourData.tourName || !tourData.thumbnail) {
-        showError('Vui lòng điền đầy đủ thông tin bắt buộc');
+        showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
         return;
       }
 
@@ -67,7 +158,7 @@ const TourWizardContent = () => {
       
       
       if (!savedUser || !token) {
-        showError('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+        showError('toast.login_required');
         return;
       }
       
@@ -77,12 +168,12 @@ const TourWizardContent = () => {
       
       
       if (!userEmail) {
-        showError('Không tìm thấy email người dùng. Vui lòng đăng nhập lại.');
+        showError('toast.login_required');
         return;
       }
       
       if (userRole !== 'COMPANY') {
-        showError('Chỉ tài khoản Company mới có thể tạo tour.');
+        showError('toast.company_only');
         return;
       }
 
@@ -94,6 +185,8 @@ const TourWizardContent = () => {
         tourDuration: `${tourData.duration} ngày ${tourData.nights} đêm`,
         tourDeparturePoint: 'Đà Nẵng', // All tours depart from Da Nang
         tourVehicle: 'Xe du lịch', // Hardcoded as requested
+        // If Step 1 captured vehicle, prefer that
+        ...(tourData.vehicle ? { tourVehicle: tourData.vehicle } : {}),
         tourType: tourData.tourType,
         tourSchedule: JSON.stringify(tourData.itinerary || []), // Full itinerary
         amount: parseInt(tourData.maxCapacity) || 30,
@@ -104,9 +197,8 @@ const TourWizardContent = () => {
         // Additional fields from wizard
         availableDates: tourData.availableDates || [],
         bookingDeadline: tourData.bookingDeadline || null, // Will be converted to LocalDateTime in backend
-        surchargePolicy: tourData.surchargePolicy || '',
-        cancellationPolicy: tourData.cancellationPolicy || '',
-        surcharges: tourData.surcharges || [],
+        // Policies consolidated into tourDescription
+        surcharges: JSON.stringify(tourData.surcharges || []),
         gallery: [], // Removed for testing
         attachments: [], // Removed for testing
         
@@ -157,7 +249,7 @@ const TourWizardContent = () => {
       });
 
       if (response.ok) {
-        showSuccess('Tạo tour thành công!');
+        showSuccess('toast.tour.create_success');
         navigate('/business/tours');
         } else {
           let errorData;
@@ -171,19 +263,19 @@ const TourWizardContent = () => {
               errorMessage: errorData.message,
               errorData: errorData
             });
-            showError(errorData.message || `Có lỗi xảy ra khi tạo tour (${response.status})`);
+            showError(errorData.message || 'toast.save_error');
           } catch (e) {
             // If JSON parsing fails, get text response
             const textResponse = await response.text();
             console.error('Tour creation error (text):', textResponse);
             console.error('Response status:', response.status);
             console.error('Response headers:', Object.fromEntries(response.headers.entries()));
-            showError(`Có lỗi xảy ra khi tạo tour (${response.status}): ${textResponse}`);
+            showError('toast.save_error');
           }
         }
     } catch (error) {
       console.error('Error creating tour:', error);
-      showError('Có lỗi xảy ra khi tạo tour. Vui lòng thử lại.');
+      showError('toast.save_error');
     }
   };
 
@@ -262,7 +354,7 @@ const TourWizardContent = () => {
           onClick={prevStep}
           disabled={currentStep === 1}
         >
-          Quay lại
+          {t('tourWizard.navigation.back')}
         </button>
         
         {currentStep < 4 ? (
@@ -271,7 +363,7 @@ const TourWizardContent = () => {
             className="btn-primary" 
             onClick={nextStep}
           >
-            Tiếp theo
+            {t('tourWizard.navigation.next')}
           </button>
         ) : (
           <button 
@@ -279,10 +371,17 @@ const TourWizardContent = () => {
             className="btn-success" 
             onClick={handleSubmit}
           >
-            Hoàn thành
+            {t('tourWizard.navigation.complete')}
           </button>
         )}
       </div>
+
+      {/* Confirm Leave Modal */}
+      <ConfirmLeaveModal 
+        open={showLeaveConfirm}
+        onCancel={handleCancelLeave}
+        onConfirm={handleConfirmLeave}
+      />
     </div>
   );
 };

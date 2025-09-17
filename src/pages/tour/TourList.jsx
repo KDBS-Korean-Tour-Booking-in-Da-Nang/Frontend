@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToursAPI } from '../../hooks/useToursAPI';
 import TourCard from './TourCard';
 import './TourList.css';
@@ -12,6 +13,8 @@ const TourList = () => {
     getToursByCategory,
     searchTours
   } = useToursAPI();
+
+  const { t } = useTranslation();
 
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [currentCategory, setCurrentCategory] = useState('all');
@@ -43,20 +46,20 @@ const TourList = () => {
 
 
   const categories = [
-    { id: 'all', name: 'Tất cả tour', icon: '🏠' },
-    { id: 'domestic', name: 'Tour trong nước', icon: '🇻🇳' },
-    { id: 'international', name: 'Tour nước ngoài', icon: '✈️' },
-    { id: 'day-tour', name: 'Tour trong ngày', icon: '🌅' }
+    { id: 'all', name: t('tourList.categories.all'), icon: '🏠' },
+    { id: 'domestic', name: t('tourList.categories.domestic'), icon: '🇻🇳' },
+    { id: 'international', name: t('tourList.categories.international'), icon: '✈️' },
+    { id: 'day-tour', name: t('tourList.categories.dayTour'), icon: '🌅' }
   ];
 
   if (error) {
     return (
       <div className="error-container">
         <div className="error-message">
-          <h3>Đã xảy ra lỗi</h3>
+          <h3>{t('tourList.error.title')}</h3>
           <p>{error}</p>
           <button onClick={() => fetchTours()} className="retry-btn">
-            Thử lại
+            {t('tourList.error.retry')}
           </button>
         </div>
       </div>
@@ -69,10 +72,10 @@ const TourList = () => {
       <div className="tour-hero">
         <div className="hero-content">
           <h1 className="hero-title">
-            Tour du lịch Đà Nẵng trong nước và quốc tế các điểm hấp dẫn
+            {t('tourList.hero.title')}
           </h1>
           <p className="hero-description">
-            Đà Nẵng Xanh sẽ mang đến du khách chuyến tour du lịch tốt nhất đảm bảo về chất lượng với chi phí hợp lý du khách sẽ có chuyến du lịch đích thực.
+            {t('tourList.hero.desc')}
           </p>
         </div>
       </div>
@@ -87,7 +90,7 @@ const TourList = () => {
               </svg>
               <input
                 type="text"
-                placeholder="Tìm kiếm tour..."
+                placeholder={t('tourList.search.placeholder')}
                 value={localSearchQuery}
                 onChange={handleSearchChange}
                 className="search-input"
@@ -118,7 +121,7 @@ const TourList = () => {
           {loading ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>Đang tải danh sách tour...</p>
+              <p>{t('tourList.loading')}</p>
             </div>
           ) : (
             <>
@@ -137,8 +140,8 @@ const TourList = () => {
                     <svg className="no-tours-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 6.291A7.962 7.962 0 0012 5c-2.34 0-4.29 1.009-5.824 2.709" />
                     </svg>
-                    <h3>Không tìm thấy tour nào</h3>
-                    <p>Hãy thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác.</p>
+                    <h3>{t('tourList.empty.title')}</h3>
+                    <p>{t('tourList.empty.desc')}</p>
                   </div>
                 </div>
               )}
@@ -146,7 +149,7 @@ const TourList = () => {
               {filteredTours.length > 0 && (
                 <div className="load-more-section">
                   <button className="load-more-btn">
-                    Xem thêm
+                    {t('tourList.loadMore')}
                   </button>
                 </div>
               )}

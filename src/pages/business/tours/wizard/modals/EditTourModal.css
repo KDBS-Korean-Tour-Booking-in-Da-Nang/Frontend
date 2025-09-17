@@ -163,22 +163,19 @@
 }
 
 .btn-remove-day {
-  background: #dc2626;
-  color: white;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
   border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: all 0.2s ease;
 }
 
 .btn-remove-day:hover {
-  background: #b91c1c;
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
 }
 
 /* Rich Textarea Styles */

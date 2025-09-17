@@ -72,7 +72,7 @@ const OAuthCallback = () => {
       login(user, decodedToken, rememberMe);
       
       // Show success toast
-      showSuccess('Đăng nhập thành công!');
+      showSuccess('toast.auth.login_success');
       
       // Redirect nội bộ để tránh reload toàn bộ app
       navigate('/', { replace: true });

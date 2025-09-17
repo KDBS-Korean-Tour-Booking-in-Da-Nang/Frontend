@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import Toast from '../components/toast/Toast';
+import i18n from '../i18n';
 
 const ToastContext = createContext();
 
@@ -18,11 +19,24 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  const resolveMessage = (input) => {
+    try {
+      if (typeof input === 'object' && input !== null) {
+        const { i18nKey, values } = input;
+        if (i18nKey) return i18n.t(i18nKey, values);
+      }
+      if (typeof input === 'string' && i18n?.exists?.(input)) {
+        return i18n.t(input);
+      }
+    } catch (_) {}
+    return String(input ?? '');
+  };
+
   const addToast = (message, type = 'error', duration = 5000) => {
     const id = Date.now() + Math.random();
     const newToast = {
       id,
-      message,
+      message: resolveMessage(message),
       type,
       duration
     };
