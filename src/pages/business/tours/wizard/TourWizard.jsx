@@ -46,8 +46,7 @@ const TourWizardContent = () => {
       hasText(tourData.adultPrice) ||
       hasText(tourData.childrenPrice) ||
       hasText(tourData.babyPrice) ||
-      hasText(tourData.surchargePolicy) ||
-      hasText(tourData.cancellationPolicy) ||
+      hasText(tourData.tourDescription) ||
       hasList(tourData.surcharges) ||
       !!tourData.thumbnail
     );
@@ -198,8 +197,7 @@ const TourWizardContent = () => {
         // Additional fields from wizard
         availableDates: tourData.availableDates || [],
         bookingDeadline: tourData.bookingDeadline || null, // Will be converted to LocalDateTime in backend
-        surchargePolicy: tourData.surchargePolicy || '',
-        cancellationPolicy: tourData.cancellationPolicy || '',
+        // Policies consolidated into tourDescription
         surcharges: JSON.stringify(tourData.surcharges || []),
         gallery: [], // Removed for testing
         attachments: [], // Removed for testing

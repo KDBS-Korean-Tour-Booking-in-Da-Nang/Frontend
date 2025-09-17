@@ -22,13 +22,11 @@ const Step3Pricing = () => {
       'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
       'insertdatetime', 'media', 'table', 'help', 'wordcount'
     ],
-    toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | removeformat | code | help',
+    toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | table tabledelete | tableprops tablerowprops tablecellprops | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | code | help',
     branding: false,
     content_style: 'body { font-family: Inter, system-ui, Arial, sans-serif; font-size: 14px }',
-    // Prevent automatic <p> tags
-    forced_root_block: false,
-    force_br_newlines: true,
-    force_p_newlines: false,
+    // TinyMCE 8 compatible options
+    forced_root_block: 'div',
     remove_redundant_brs: true,
     // Clean up HTML
     cleanup: true,
@@ -68,9 +66,7 @@ const Step3Pricing = () => {
   const [formData, setFormData] = useState({
     adultPrice: '',
     childrenPrice: '',
-    babyPrice: '',
-    surchargePolicy: '',
-    cancellationPolicy: ''
+    babyPrice: ''
   });
 
   const [surcharges, setSurcharges] = useState([]);
@@ -80,9 +76,7 @@ const Step3Pricing = () => {
     setFormData({
       adultPrice: tourData.adultPrice || '',
       childrenPrice: tourData.childrenPrice || '',
-      babyPrice: tourData.babyPrice || '',
-      surchargePolicy: tourData.surchargePolicy || '',
-      cancellationPolicy: tourData.cancellationPolicy || ''
+      babyPrice: tourData.babyPrice || ''
     });
     setSurcharges(tourData.surcharges || []);
   }, [tourData]);
@@ -293,46 +287,7 @@ const Step3Pricing = () => {
         )}
       </div>
 
-      {/* Policies */}
-      <div className="policies-section">
-        <h3>{t('tourWizard.step3.policies.title')}</h3>
-        
-        <div className="form-group">
-          <label htmlFor="surchargePolicy" className="form-label">
-            {t('tourWizard.step3.policies.surchargePolicy')}
-          </label>
-          <textarea
-            id="surchargePolicy"
-            className="form-textarea"
-            rows={6}
-            value={formData.surchargePolicy}
-            placeholder={t('tourWizard.step3.policies.placeholders.surchargePolicy')}
-            onChange={(e) => {
-              const newFormData = { ...formData, surchargePolicy: e.target.value };
-              setFormData(newFormData);
-              updateTourData(newFormData);
-            }}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="cancellationPolicy" className="form-label">
-            {t('tourWizard.step3.policies.cancellationPolicy')}
-          </label>
-          <textarea
-            id="cancellationPolicy"
-            className="form-textarea"
-            rows={6}
-            value={formData.cancellationPolicy}
-            placeholder={t('tourWizard.step3.policies.placeholders.cancellationPolicy')}
-            onChange={(e) => {
-              const newFormData = { ...formData, cancellationPolicy: e.target.value };
-              setFormData(newFormData);
-              updateTourData(newFormData);
-            }}
-          />
-        </div>
-      </div>
+      {/* Policies removed: consolidated into tourDescription at the bottom of FE pages */}
     </div>
   );
 };

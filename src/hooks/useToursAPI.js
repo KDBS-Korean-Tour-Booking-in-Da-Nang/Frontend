@@ -60,8 +60,6 @@ export const useToursAPI = () => {
         // Customizable fields by company (optional)
         availableDates: tour.availableDates || [],
         bookingDeadline: tour.bookingDeadline || null,
-        surchargePolicy: tour.surchargePolicy || '',
-        cancellationPolicy: tour.cancellationPolicy || '',
         surcharges: (() => {
           try {
             if (Array.isArray(tour.surcharges)) return tour.surcharges;
@@ -122,8 +120,6 @@ export const useToursAPI = () => {
         // Customizable fields by company (optional)
         availableDates: tour.availableDates || [],
         bookingDeadline: tour.bookingDeadline || null,
-        surchargePolicy: tour.surchargePolicy || '',
-        cancellationPolicy: tour.cancellationPolicy || '',
         surcharges: (() => {
           try {
             if (Array.isArray(tour.surcharges)) return tour.surcharges;

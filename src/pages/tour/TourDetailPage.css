@@ -281,6 +281,17 @@
   background: white;
 }
 
+/* Inline images inside activity content: full width, keep order */
+.itinerary-content .activity img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #f8fafc;
+  margin: 12px 0;
+}
+
 .time-schedule {
   display: flex;
   flex-direction: column;

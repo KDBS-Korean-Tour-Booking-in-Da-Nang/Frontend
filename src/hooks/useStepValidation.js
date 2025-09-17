@@ -29,10 +29,9 @@ export const useStepValidation = (tourData) => {
       ].filter(Boolean)
     },
     step3: {
-      isValid: !!(tourData.adultPrice && tourData.cancellationPolicy),
+      isValid: !!(tourData.adultPrice),
       missingFields: [
-        !tourData.adultPrice && 'tourWizard.step3.pricing.adultPrice',
-        !tourData.cancellationPolicy && 'tourWizard.step3.policies.cancellationPolicy'
+        !tourData.adultPrice && 'tourWizard.step3.pricing.adultPrice'
       ].filter(Boolean)
     },
     step4: {

@@ -105,8 +105,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     itinerary: [],
     
     // Step 3: Pricing
-    surchargePolicy: '',
-    cancellationPolicy: '',
     surcharges: []
   });
   const [loading, setLoading] = useState(false);
@@ -163,8 +161,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           : [],
         
         // Step 3: Pricing
-        surchargePolicy: htmlToText(tour.surchargePolicy || ''),
-        cancellationPolicy: htmlToText(tour.cancellationPolicy || ''),
         surcharges: tour.surcharges ? (() => {
           try { return JSON.parse(tour.surcharges); } 
           catch { return []; }
@@ -325,8 +321,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         babyPrice: parseFloat(formData.babyPrice) || 0,
         tourSchedule: tour.tourSchedule || '',
         bookingDeadline: formData.bookingDeadline || null,
-        surchargePolicy: formData.surchargePolicy,
-        cancellationPolicy: formData.cancellationPolicy,
         surcharges: JSON.stringify(formData.surcharges || []),
         contents: (formData.itinerary || []).map((day, index) => ({
           tourContentTitle: day.title || `Ngày ${index + 1}`,
@@ -598,11 +592,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             toolbar: 'undo redo | blocks | ' +
                               'bold italic forecolor | alignleft aligncenter ' +
                               'alignright alignjustify | bullist numlist outdent indent | ' +
-                              'removeformat | help',
+                              'table tabledelete | tableprops tablerowprops tablecellprops | ' +
+                              'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
+                              'tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | help',
                             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                            forced_root_block: false,
-                            force_br_newlines: true,
-                            force_p_newlines: false,
+                            forced_root_block: 'div',
                             remove_redundant_brs: true,
                             cleanup: true,
                             cleanup_on_startup: true,
@@ -686,27 +680,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                   </div>
                 </div>
                 
-                <div className="form-group">
-                  <label htmlFor="surchargePolicy">{t('tourManagement.edit.pricing.fields.surchargePolicy')}</label>
-                  <textarea
-                    id="surchargePolicy"
-                    className="form-input"
-                    rows={6}
-                    value={formData.surchargePolicy}
-                    onChange={(e) => setFormData(prev => ({ ...prev, surchargePolicy: e.target.value }))}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="cancellationPolicy">{t('tourManagement.edit.pricing.fields.cancellationPolicy')}</label>
-                  <textarea
-                    id="cancellationPolicy"
-                    className="form-input"
-                    rows={6}
-                    value={formData.cancellationPolicy}
-                    onChange={(e) => setFormData(prev => ({ ...prev, cancellationPolicy: e.target.value }))}
-                  />
-                </div>
+                {/* Policies removed: consolidated into tourDescription shown at bottom of FE */}
               </div>
             )}
 

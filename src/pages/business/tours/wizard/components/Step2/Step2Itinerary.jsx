@@ -46,19 +46,19 @@ const Step2Itinerary = () => {
     toolbar: 'undo redo | blocks | ' +
       'bold italic forecolor | alignleft aligncenter ' +
       'alignright alignjustify | bullist numlist outdent indent | ' +
-      'removeformat | help',
-    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-    // Typing/newline behavior
-    forced_root_block: false,
-    force_br_newlines: true,
-    force_p_newlines: false,
+      'table tabledelete | tableprops tablerowprops tablecellprops | ' +
+      'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
+      'tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | help',
+    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px } table { width: 100%; border-collapse: collapse; } table, th, td { border: 1px solid #e5e7eb; } th, td { padding: 8px; }',
+    // Typing/newline behavior (TinyMCE 8 compatible)
+    forced_root_block: 'div',
     remove_redundant_brs: false,
     cleanup: false,
     cleanup_on_startup: false,
     verify_html: false,
     br_in_pre: true,
     extended_valid_elements: 'br[class|style]',
-    // Additional settings to prevent <p> tags
+    // Additional settings
     entity_encoding: 'raw',
     convert_urls: false,
     // Configure image upload
@@ -694,18 +694,18 @@ const Step2Itinerary = () => {
                 <button
                   type="button"
                   className="btn-add-small"
-                  title="Thêm ngày sau"
+                  title="Thêm nội dung sau"
                   onClick={() => addItineraryDayAfter(index)}
                 >
-                  + Thêm ngày
+                  + Thêm nội dung
                 </button>
                 <button
                   type="button"
                   className="btn-remove-small"
-                  title="Xóa ngày này"
+                  title="Xóa nội dung này"
                   onClick={() => removeItineraryDay(index)}
                 >
-                  − Xóa ngày
+                  − Xóa nội dung
                 </button>
               </div>
 

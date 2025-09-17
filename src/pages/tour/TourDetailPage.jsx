@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToursAPI } from '../../hooks/useToursAPI';
+import { getImageUrl } from '../../config/api';
 import './TourDetailPage.css';
 import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
