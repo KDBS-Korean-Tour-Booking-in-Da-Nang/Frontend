@@ -129,10 +129,10 @@ const DepositTab = ({ showError, showSuccess }) => {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      showSuccess('Nạp tiền thành công!');
+      showSuccess('toast.payment.deposit_success');
       setAmount('');
     } catch (err) {
-      showError('Nạp tiền thất bại. Vui lòng thử lại.');
+      showError('toast.payment.deposit_failed');
     } finally {
       setLoading(false);
     }
@@ -233,10 +233,10 @@ const WithdrawTab = ({ showError, showSuccess }) => {
     try {
       // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      showSuccess('Yêu cầu rút tiền đã được gửi thành công!');
+      showSuccess('toast.payment.withdraw_success');
       setFormData({ amount: '', bankAccount: '', accountHolder: '' });
     } catch (err) {
-      showError('Rút tiền thất bại. Vui lòng thử lại.');
+      showError('toast.payment.withdraw_failed');
     } finally {
       setLoading(false);
     }

@@ -409,6 +409,23 @@
   margin-top: 8px;
 }
 
+.price-breakdown {
+  margin: 10px 0 16px 0;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 10px;
+}
+.price-breakdown .price-row {
+  display: flex;
+  justify-content: space-between;
+  color: #374151;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.price-breakdown .price-row span:last-child {
+  font-weight: 600;
+  color: #111827;
+}
+
 /* Booking Actions */
 .booking-actions {
   display: flex;

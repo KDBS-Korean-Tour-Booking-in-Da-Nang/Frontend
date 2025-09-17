@@ -83,7 +83,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className={styles['nav-links']}>
+          <div className={styles['nav-links']} style={{ overflow: 'visible' }}>
             <Link
               to="/"
               className={`${styles['nav-link']} ${isActive('/') ? styles.active : ''}`}

@@ -64,30 +64,24 @@ const Login = () => {
     setLoading(true);
     setEmailError('');
 
-    // Collect all validation errors
-    const errors = [];
-
     // Email validation
     if (!email.trim()) {
-      errors.push('Email là bắt buộc');
-    } else {
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
+      setLoading(false);
+      return;
+    }
+    {
       const emailValidation = validateEmail(email);
       if (!emailValidation.isValid) {
-        errors.push('Email không đúng định dạng');
+        showError(t('auth.common.form.email.invalid'));
+        setLoading(false);
+        return;
       }
     }
 
     // Password validation
     if (!password.trim()) {
-      errors.push('Mật khẩu là bắt buộc');
-    }
-
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.password') } });
       setLoading(false);
       return;
     }
@@ -122,7 +116,7 @@ const Login = () => {
           };
 
           login(user, token, rememberMe);
-          showSuccess('Đăng nhập thành công!');
+          showSuccess('toast.auth.login_success');
           navigate('/');
         } else {
           // Fallback to mock data if user info not available
@@ -133,14 +127,14 @@ const Login = () => {
             name: email.split('@')[0]
           };
           login(user, token, rememberMe);
-          showSuccess('Đăng nhập thành công!');
+          showSuccess('toast.auth.login_success');
           navigate('/');
         }
       } else {
-        showError(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.login_failed');
       }
     } catch (err) {
-      showError(t('auth.login.error') || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      showError(t('auth.login.error') || 'toast.auth.general_error');
     } finally {
       setLoading(false);
     }
@@ -157,10 +151,10 @@ const Login = () => {
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         window.location.href = data.result;
       } else {
-        showError('Không thể kết nối với Google. Vui lòng thử lại.');
+        showError('toast.auth.google_connection_failed');
       }
     } catch (err) {
-      showError('Không thể kết nối với Google. Vui lòng thử lại.');
+      showError('toast.auth.google_connection_failed');
     }
   };
 
@@ -175,10 +169,10 @@ const Login = () => {
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         window.location.href = data.result;
       } else {
-        showError('Không thể kết nối với Naver. Vui lòng thử lại.');
+        showError('toast.auth.naver_connection_failed');
       }
     } catch (err) {
-      showError('Không thể kết nối với Naver. Vui lòng thử lại.');
+      showError('toast.auth.naver_connection_failed');
     }
   };
 

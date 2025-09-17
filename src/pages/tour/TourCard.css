@@ -133,6 +133,25 @@
   transform: translateY(0);
 }
 
+.tour-card-prices {
+  margin: 8px 0 16px 0;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 8px;
+}
+
+.tour-card-prices .price-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #374151;
+  margin-top: 4px;
+}
+
+.tour-card-prices .price-row span:last-child {
+  font-weight: 600;
+  color: #111827;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .tour-card-content {

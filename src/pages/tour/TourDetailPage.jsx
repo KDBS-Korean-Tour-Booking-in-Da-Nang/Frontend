@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToursAPI } from '../../hooks/useToursAPI';
 import './TourDetailPage.css';
@@ -8,6 +9,7 @@ const TourDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchTourById, loading, error } = useToursAPI();
+  const { t } = useTranslation();
   const [tour, setTour] = useState(null);
 
   // Build itinerary data from API (contents or tourSchedule from Step 2)
@@ -48,7 +50,7 @@ const TourDetailPage = () => {
     return (
       <div className="tour-detail-loading">
         <div className="loading-spinner"></div>
-        <p>Đang tải thông tin tour...</p>
+        <p>{t('tourPage.detail.loading')}</p>
       </div>
     );
   }
@@ -56,10 +58,10 @@ const TourDetailPage = () => {
   if (error) {
     return (
       <div className="tour-detail-error">
-        <h3>Đã xảy ra lỗi</h3>
+        <h3>{t('tourPage.detail.errorTitle')}</h3>
         <p>{error}</p>
         <button onClick={() => navigate('/tour')} className="back-btn">
-          Quay lại danh sách tour
+          {t('tourPage.detail.backToList')}
         </button>
       </div>
     );
@@ -98,12 +100,12 @@ const TourDetailPage = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Quay lại danh sách
+              {t('tourPage.detail.back')}
             </button>
             
             <div className="hero-info">
               <div className="hero-badge">
-                <span>Tour du lịch</span>
+                <span>{t('tourPage.detail.badge')}</span>
               </div>
               <h1 className="hero-title">{tour.title}</h1>
               <div className="hero-meta">
@@ -140,29 +142,26 @@ const TourDetailPage = () => {
             <div className="tour-detail-left">
               {/* Tour Overview */}
               <div className="tour-overview">
-                <h2>Tổng quan tour</h2>
+                <h2>{t('tourPage.detail.overview.title')}</h2>
                 <div
                   className="tour-description-html"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(tour.descriptionHtml || tour.description || '') }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml((tour.descriptionHtml || tour.description || '').replace(/\n/g, '<br/>')) }}
                 />
                 {(tour.tourDeparturePoint || tour.tourVehicle) && (
                   <p>
-                    Khởi hành từ {tour.tourDeparturePoint || '...'} bằng {tour.tourVehicle || 'phương tiện phù hợp'}.
+                    {t('tourPage.detail.overview.departVehicle', { departure: tour.tourDeparturePoint || '...', vehicle: tour.tourVehicle || '...' })}
                   </p>
                 )}
                 <div style={{marginTop: '10px'}}>
                   <ul style={{color: '#6b7280', lineHeight: 1.8}}>
+                    <li>{t('tourPage.detail.overview.adultPrice')}: {(tour.price ?? 0) > 0 ? formatPrice(tour.price) : t('tourPage.detail.overview.free')}</li>
+                    <li>{t('tourPage.detail.overview.childrenPrice')}: {(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</li>
+                    <li>{t('tourPage.detail.overview.babyPrice')}: {(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</li>
                     {typeof tour.amount === 'number' && (
-                      <li>Số chỗ: {tour.amount}</li>
-                    )}
-                    {typeof tour.childrenPrice === 'number' && tour.childrenPrice > 0 && (
-                      <li>Giá trẻ em: {formatPrice(tour.childrenPrice)}</li>
-                    )}
-                    {typeof tour.babyPrice === 'number' && tour.babyPrice > 0 && (
-                      <li>Giá em bé: {formatPrice(tour.babyPrice)}</li>
+                      <li>{t('tourPage.detail.overview.amount')}: {tour.amount}</li>
                     )}
                     {Array.isArray(tour.availableDates) && tour.availableDates.length > 0 && (
-                      <li>Ngày khởi hành: {tour.availableDates.join(', ')}</li>
+                      <li>{t('tourPage.detail.overview.availableDates')}: {tour.availableDates.join(', ')}</li>
                     )}
                   </ul>
                 </div>
@@ -170,27 +169,27 @@ const TourDetailPage = () => {
 
               {/* Tour Highlights */}
               <div className="tour-highlights">
-                <h2>Điểm nổi bật của tour</h2>
+                <h2>{t('tourPage.detail.highlights.title')}</h2>
                 <div className="highlights-grid">
                   <div className="highlight-item">
                     <div className="highlight-icon">🏛️</div>
-                    <h3>Tham quan di tích lịch sử</h3>
-                    <p>Khám phá những di tích lịch sử nổi tiếng với hướng dẫn viên chuyên nghiệp</p>
+                    <h3>{t('tourPage.detail.highlights.items.historyTitle')}</h3>
+                    <p>{t('tourPage.detail.highlights.items.historyDesc')}</p>
                   </div>
                   <div className="highlight-item">
                     <div className="highlight-icon">🍽️</div>
-                    <h3>Ẩm thực địa phương</h3>
-                    <p>Thưởng thức những món ăn đặc sản nổi tiếng của vùng đất này</p>
+                    <h3>{t('tourPage.detail.highlights.items.foodTitle')}</h3>
+                    <p>{t('tourPage.detail.highlights.items.foodDesc')}</p>
                   </div>
                   <div className="highlight-item">
                     <div className="highlight-icon">📸</div>
-                    <h3>Chụp ảnh kỷ niệm</h3>
-                    <p>Ghi lại những khoảnh khắc đáng nhớ tại các điểm check-in nổi tiếng</p>
+                    <h3>{t('tourPage.detail.highlights.items.photoTitle')}</h3>
+                    <p>{t('tourPage.detail.highlights.items.photoDesc')}</p>
                   </div>
                   <div className="highlight-item">
                     <div className="highlight-icon">🎁</div>
-                    <h3>Mua sắm quà lưu niệm</h3>
-                    <p>Thời gian tự do để mua sắm những món quà lưu niệm ý nghĩa</p>
+                    <h3>{t('tourPage.detail.highlights.items.giftTitle')}</h3>
+                    <p>{t('tourPage.detail.highlights.items.giftDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -198,13 +197,13 @@ const TourDetailPage = () => {
               {/* Tour Itinerary */}
               <div className="tour-itinerary">
                 <div className="itinerary-header">
-                  <h2>ĐIỂM ĐẾN VÀ HÀNH TRÌNH</h2>
+                  <h2>{t('tourPage.detail.itinerary.header')}</h2>
                 </div>
                 <div className="itinerary-list">
                   {itinerary.length === 0 ? (
                     <div className="itinerary-item">
                       <div className="itinerary-content">
-                        <p className="activity">Lịch trình đang được cập nhật.</p>
+                        <p className="activity">{t('tourPage.detail.itinerary.updating')}</p>
                       </div>
                     </div>
                   ) : (
@@ -212,7 +211,7 @@ const TourDetailPage = () => {
                       const titleFromAPI = day.dayTitle || day.tourContentTitle || '';
                       const headerTitle = titleFromAPI && titleFromAPI.trim().length > 0
                         ? titleFromAPI
-                        : `Ngày ${index + 1}`;
+                        : t('tourPage.detail.itinerary.day', { index: index + 1 });
                       return (
                       <div className="itinerary-item" key={index}>
                         <div className="itinerary-day-header">
@@ -240,7 +239,7 @@ const TourDetailPage = () => {
 
               {/* Tour Gallery */}
               <div className="tour-gallery">
-                <h2>Hình ảnh tour</h2>
+                <h2>{t('tourPage.detail.gallery.title')}</h2>
                 <div className="gallery-grid">
                   {[tour.image, ...(tour.gallery || [])].filter(Boolean).slice(0,4).map((img, idx) => (
                     <div className="gallery-item" key={idx}>
@@ -261,37 +260,39 @@ const TourDetailPage = () => {
               <div className="booking-card">
                 <div className="booking-header">
                   <div className="price-section">
-                    <span className="price-label">Giá tour</span>
+                  <span className="price-label">{t('tourPage.detail.booking.price')}</span>
                     <span className="price-amount">{formatPrice(tour.price)}</span>
                   </div>
                   <div className="price-note">
-                    <span>Giá đã bao gồm thuế và phí dịch vụ</span>
+                  <span>{t('tourPage.detail.booking.includedNote')}</span>
                   </div>
+                </div>
+
+                <div className="price-breakdown">
+                  <div className="price-row"><span>{t('tourPage.detail.booking.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
+                  <div className="price-row"><span>{t('tourPage.detail.booking.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
                 </div>
 
                 <div className="booking-actions">
                   <button className="book-now-btn" onClick={handleBookNow}>
-                    Đặt tour ngay
+                    {t('tourPage.detail.booking.bookNow')}
                   </button>
                   <button className="contact-btn">
-                    Liên hệ tư vấn
+                    {t('tourPage.detail.booking.contact')}
                   </button>
                 </div>
 
                 <div className="booking-info">
-                  <h4>Thông tin đặt tour</h4>
+                  <h4>{t('tourPage.detail.booking.infoTitle')}</h4>
                   <ul>
-                    <li>✓ Hỗ trợ đặt tour 24/7</li>
-                    <li>✓ Thanh toán an toàn</li>
-                    <li>✓ Hủy tour miễn phí 24h trước khởi hành</li>
-                    <li>✓ Bảo hiểm du lịch miễn phí</li>
-                    <li>✓ Hướng dẫn viên chuyên nghiệp</li>
-                    <li>✓ Xe du lịch tiện nghi</li>
+                    {t('tourPage.detail.booking.infos', { returnObjects: true }).map((line, idx) => (
+                      <li key={idx}>{line}</li>
+                    ))}
                   </ul>
                 </div>
 
                 <div className="contact-info">
-                  <h4>Liên hệ đặt tour</h4>
+                  <h4>{t('tourPage.detail.booking.contactTitle')}</h4>
                   <div className="contact-item">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

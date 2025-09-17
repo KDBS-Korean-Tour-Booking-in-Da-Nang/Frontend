@@ -1,12 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
 import { API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
+import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../contexts/ToastContext';
 import './EditTourModal.css';
 
 const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const { showError, showSuccess } = useToast();
+  const { t } = useTranslation();
   const blobUrlRef = useRef(null);
+
+  const htmlToText = (html) => {
+    if (!html) return '';
+    return String(html)
+      .replace(/<\s*br\s*\/?\s*>/gi, '\n')
+      .replace(/<\s*\/p\s*>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
+  // Helpers for numbers/date
+  const preventInvalidNumberKeys = (e) => {
+    if (['e','E','+','-','.'].includes(e.key)) e.preventDefault();
+  };
+  const nowLocalDateTime = () => {
+    const now = new Date();
+    now.setSeconds(0,0);
+    const pad = (n) => String(n).padStart(2,'0');
+    return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  };
 
   // TinyMCE configuration with image upload
   const getTinyMCEConfig = (height = 200) => ({
@@ -56,7 +79,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         }
       } catch (error) {
         console.error('Image upload error:', error);
-        showError('Không thể upload ảnh. Vui lòng thử lại.');
+        showError('toast.tour.upload_image_failed');
         throw new Error('Không thể upload ảnh. Vui lòng thử lại.');
       }
     },
@@ -89,12 +112,35 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
 
+  const toDatetimeLocalValue = (value) => {
+    if (!value) return '';
+    try {
+      // Accept ISO strings with seconds/zone; normalize to YYYY-MM-DDTHH:mm for input[type=datetime-local]
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) {
+        // Fallback: trim seconds if already like 2025-09-16T12:34:56
+        const idx = value.indexOf('T');
+        if (idx > 0) return value.substring(0, 16);
+        return '';
+      }
+      const pad = (n) => String(n).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      const mm = pad(d.getMonth() + 1);
+      const dd = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const mi = pad(d.getMinutes());
+      return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+    } catch {
+      return '';
+    }
+  };
+
   useEffect(() => {
     if (tour && isOpen) {
       setFormData({
         // Step 1: Basic Info
         tourName: tour.tourName || '',
-        tourDescription: tour.tourDescription || '',
+        tourDescription: htmlToText(tour.tourDescription || ''),
         tourDuration: tour.tourDuration || '',
         tourDeparturePoint: tour.tourDeparturePoint || '',
         tourVehicle: tour.tourVehicle || '',
@@ -104,7 +150,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         childrenPrice: tour.childrenPrice || '',
         babyPrice: tour.babyPrice || '',
         tourStatus: tour.tourStatus || 'ACTIVE',
-        bookingDeadline: tour.bookingDeadline || '',
+        bookingDeadline: toDatetimeLocalValue(tour.bookingDeadline),
         
         // Step 2: Itinerary - normalize from backend contents
         itinerary: Array.isArray(tour.contents)
@@ -117,8 +163,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           : [],
         
         // Step 3: Pricing
-        surchargePolicy: tour.surchargePolicy || '',
-        cancellationPolicy: tour.cancellationPolicy || '',
+        surchargePolicy: htmlToText(tour.surchargePolicy || ''),
+        cancellationPolicy: htmlToText(tour.cancellationPolicy || ''),
         surcharges: tour.surcharges ? (() => {
           try { return JSON.parse(tour.surcharges); } 
           catch { return []; }
@@ -166,13 +212,13 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     if (file) {
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        showError('Kích thước file không được vượt quá 5MB');
+        showError('toast.tour.file_size_exceeded');
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        showError('Chỉ được upload file ảnh');
+        showError('toast.tour.invalid_file_format');
         return;
       }
 
@@ -207,7 +253,24 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     }));
   };
 
+  const addItineraryDayAfter = (dayIndex) => {
+    const newDay = {
+      dayNumber: dayIndex + 2,
+      title: '',
+      description: '',
+      images: []
+    };
+    const list = [...formData.itinerary];
+    list.splice(dayIndex + 1, 0, newDay);
+    const reindexed = list.map((d, i) => ({ ...d, dayNumber: i + 1 }));
+    setFormData(prev => ({ ...prev, itinerary: reindexed }));
+  };
+
   const removeItineraryDay = (dayIndex) => {
+    if ((formData.itinerary?.length || 0) <= 1) {
+      showError('toast.tour.itinerary_required');
+      return;
+    }
     setFormData(prev => ({
       ...prev,
       itinerary: prev.itinerary.filter((_, index) => index !== dayIndex)
@@ -219,7 +282,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     e.preventDefault();
     
     if (!formData.tourName.trim()) {
-      showError('Tên tour là bắt buộc');
+      showError('toast.tour.name_required');
       return;
     }
 
@@ -235,7 +298,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const token = storage.getItem('token');
       
       if (!savedUser || !token) {
-        showError('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+        showError('toast.tour.user_info_not_found');
         return;
       }
       
@@ -243,7 +306,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const userEmail = userData.email;
       
       if (!userEmail) {
-        showError('Không tìm thấy email người dùng. Vui lòng đăng nhập lại.');
+        showError('toast.tour.user_email_not_found');
         return;
       }
 
@@ -264,7 +327,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         bookingDeadline: formData.bookingDeadline || null,
         surchargePolicy: formData.surchargePolicy,
         cancellationPolicy: formData.cancellationPolicy,
-        surcharges: formData.surcharges,
+        surcharges: JSON.stringify(formData.surcharges || []),
         contents: (formData.itinerary || []).map((day, index) => ({
           tourContentTitle: day.title || `Ngày ${index + 1}`,
           tourContentDescription: day.description || '',
@@ -291,7 +354,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       });
 
       if (response.ok) {
-        showSuccess('Cập nhật tour thành công!');
+        showSuccess({ i18nKey: 'toast.save_success' });
         // Close modal immediately
         onClose();
         // Refresh data after successful save
@@ -299,12 +362,12 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           onSave();
         }
       } else {
-        const errorData = await response.json();
-        showError(errorData.message || 'Có lỗi xảy ra khi cập nhật tour');
+        const errorData = await response.json().catch(() => ({}));
+        showError(errorData.message || 'toast.save_error');
       }
     } catch (error) {
       console.error('Error updating tour:', error);
-      showError('Có lỗi xảy ra khi cập nhật tour. Vui lòng thử lại.');
+      showError('toast.save_error');
     } finally {
       setLoading(false);
     }
@@ -316,7 +379,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     <div className="modal-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <div className="edit-tour-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="modal-header">
-          <h2>Chỉnh sửa tour</h2>
+          <h2>{t('tourManagement.edit.title')}</h2>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
@@ -328,28 +391,28 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
               className={`tab ${activeTab === 'basic' ? 'active' : ''}`}
               onClick={() => setActiveTab('basic')}
             >
-              Thông tin cơ bản
+              {t('tourManagement.edit.tabs.basic')}
             </button>
             <button
               type="button"
               className={`tab ${activeTab === 'itinerary' ? 'active' : ''}`}
               onClick={() => setActiveTab('itinerary')}
             >
-              Lịch trình
+              {t('tourManagement.edit.tabs.itinerary')}
             </button>
             <button
               type="button"
               className={`tab ${activeTab === 'pricing' ? 'active' : ''}`}
               onClick={() => setActiveTab('pricing')}
             >
-              Giá cả & chính sách
+              {t('tourManagement.edit.tabs.pricing')}
             </button>
             <button
               type="button"
               className={`tab ${activeTab === 'media' ? 'active' : ''}`}
               onClick={() => setActiveTab('media')}
             >
-              Media
+              {t('tourManagement.edit.tabs.media')}
             </button>
           </div>
 
@@ -357,9 +420,9 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           <div className="tab-content">
             {activeTab === 'basic' && (
               <div className="form-section">
-                <h3>Thông tin cơ bản</h3>
+                <h3>{t('tourManagement.edit.basic.title')}</h3>
                 <div className="form-group">
-                  <label htmlFor="tourName">Tên tour *</label>
+                  <label htmlFor="tourName">{t('tourManagement.edit.basic.fields.tourName')}</label>
                   <input
                     type="text"
                     id="tourName"
@@ -371,32 +434,32 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="tourDescription">Mô tả tour</label>
-                  <Editor
-                    apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
+                  <label htmlFor="tourDescription">{t('tourManagement.edit.basic.fields.tourDescription')}</label>
+                  <textarea
+                    id="tourDescription"
+                    className="form-input"
+                    rows={6}
                     value={formData.tourDescription}
-                    onEditorChange={(content) => 
-                      setFormData(prev => ({ ...prev, tourDescription: content }))
-                    }
-                    init={getTinyMCEConfig(200)}
+                    placeholder="Nhập mô tả văn bản (không chèn hình ảnh)..."
+                    onChange={(e) => setFormData(prev => ({ ...prev, tourDescription: e.target.value }))}
                   />
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="tourDuration">Thời gian</label>
+                    <label htmlFor="tourDuration">{t('tourManagement.edit.basic.fields.tourDuration')}</label>
                     <input
                       type="text"
                       id="tourDuration"
                       name="tourDuration"
                       value={formData.tourDuration}
                       onChange={handleInputChange}
-                      placeholder="VD: 5 ngày 4 đêm"
+                      placeholder={t('tourManagement.edit.basic.placeholders.tourDuration')}
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="tourDeparturePoint">Điểm khởi hành</label>
+                    <label htmlFor="tourDeparturePoint">{t('tourManagement.edit.basic.fields.tourDeparturePoint')}</label>
                     <input
                       type="text"
                       id="tourDeparturePoint"
@@ -409,7 +472,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="tourVehicle">Phương tiện</label>
+                    <label htmlFor="tourVehicle">{t('tourManagement.edit.basic.fields.tourVehicle')}</label>
                     <input
                       type="text"
                       id="tourVehicle"
@@ -420,14 +483,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="tourType">Loại tour</label>
+                    <label htmlFor="tourType">{t('tourManagement.edit.basic.fields.tourType')}</label>
                     <select
                       id="tourType"
                       name="tourType"
                       value={formData.tourType}
                       onChange={handleInputChange}
                     >
-                      <option value="">Chọn loại tour</option>
+                      <option value="">{t('tourManagement.edit.basic.placeholders.selectTourType')}</option>
                       <option value="Standard">Standard</option>
                       <option value="Premium">Premium</option>
                       <option value="Luxury">Luxury</option>
@@ -436,10 +499,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                 </div>
 
                 <div className="form-section">
-                  <h3>Giá cả & sức chứa</h3>
+                  <h3>{t('tourManagement.edit.basic.priceCapacityTitle')}</h3>
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="amount">Sức chứa (người)</label>
+                      <label htmlFor="amount">{t('tourManagement.edit.basic.fields.amount')}</label>
                       <input
                         type="number"
                         id="amount"
@@ -451,121 +514,61 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     </div>
                     
                     <div className="form-group">
-                      <label htmlFor="tourStatus">Trạng thái</label>
+                      <label htmlFor="tourStatus">{t('tourManagement.edit.basic.fields.tourStatus')}</label>
                       <select
                         id="tourStatus"
                         name="tourStatus"
                         value={formData.tourStatus}
                         onChange={handleInputChange}
                       >
-                        <option value="ACTIVE">Hoạt động</option>
-                        <option value="INACTIVE">Tạm dừng</option>
-                        <option value="DRAFT">Bản nháp</option>
+                        <option value="ACTIVE">{t('tourManagement.status.active')}</option>
+                        <option value="INACTIVE">{t('tourManagement.status.inactive')}</option>
+                        <option value="DRAFT">{t('tourManagement.status.draft')}</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="bookingDeadline">Hạn đặt tour</label>
+                      <label htmlFor="bookingDeadline">{t('tourManagement.edit.basic.fields.bookingDeadline')}</label>
                       <input
                         type="datetime-local"
                         id="bookingDeadline"
                         name="bookingDeadline"
                         value={formData.bookingDeadline}
-                        onChange={handleInputChange}
+                        min={nowLocalDateTime()}
+                        onChange={(e) => {
+                          const min = new Date(nowLocalDateTime());
+                          const picked = new Date(e.target.value);
+                          setFormData(prev => ({ ...prev, bookingDeadline: picked < min ? nowLocalDateTime() : e.target.value }));
+                        }}
                       />
                     </div>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="adultPrice">Giá người lớn (VNĐ)</label>
-                      <input
-                        type="number"
-                        id="adultPrice"
-                        name="adultPrice"
-                        value={formData.adultPrice}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="childrenPrice">Giá trẻ em (VNĐ)</label>
-                      <input
-                        type="number"
-                        id="childrenPrice"
-                        name="childrenPrice"
-                        value={formData.childrenPrice}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="babyPrice">Giá em bé (VNĐ)</label>
-                    <input
-                      type="number"
-                      id="babyPrice"
-                      name="babyPrice"
-                      value={formData.babyPrice}
-                      onChange={handleInputChange}
-                      min="0"
-                    />
-                  </div>
+                  {/* Removed pricing inputs from Basic tab; pricing is handled in the Pricing tab */}
                 </div>
               </div>
             )}
 
             {activeTab === 'itinerary' && (
               <div className="form-section">
-                <h3>Lịch trình tour</h3>
+                <h3>{t('tourManagement.edit.itinerary.title')}</h3>
                 
-                {/* Tour Description */}
-                <div className="form-group">
-                  <label htmlFor="tourDescription">Mô tả tour</label>
-                  <Editor
-                    apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
-                    value={formData.tourDescription}
-                    onEditorChange={(content) => 
-                      setFormData(prev => ({ ...prev, tourDescription: content }))
-                    }
-                    init={getTinyMCEConfig(300)}
-                  />
-                </div>
-
                 {/* Itinerary Days */}
                 <div className="itinerary-section">
                   <div className="section-header">
-                    <h4>Lịch trình từng ngày</h4>
-                    <button
-                      type="button"
-                      onClick={addItineraryDay}
-                      className="btn-add-day"
-                    >
-                      + Thêm ngày
-                    </button>
+                    <h4>{t('tourManagement.edit.itinerary.dailyTitle')}</h4>
                   </div>
 
                   {formData.itinerary.map((day, index) => (
                     <div key={index} className="itinerary-day">
                       <div className="day-header">
-                        <h5>Ngày {day.dayNumber}</h5>
-                        {formData.itinerary.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeItineraryDay(index)}
-                            className="btn-remove-day"
-                          >
-                            ×
-                          </button>
-                        )}
+                        <h5>{t('tourManagement.edit.itinerary.dayN', { day: day.dayNumber })}</h5>
                       </div>
                       
                       <div className="form-group">
-                        <label htmlFor={`day-title-${index}`}>Tiêu đề ngày</label>
+                        <label htmlFor={`day-title-${index}`}>{t('tourManagement.edit.itinerary.fields.dayTitle')}</label>
                         <input
                           type="text"
                           id={`day-title-${index}`}
@@ -575,7 +578,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       </div>
 
                       <div className="form-group">
-                        <label htmlFor={`day-description-${index}`}>Mô tả chi tiết</label>
+                        <label htmlFor={`day-description-${index}`}>{t('tourManagement.edit.itinerary.fields.dayDescription')}</label>
                         <Editor
                           apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
                           value={day.description}
@@ -583,12 +586,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             handleItineraryChange(index, 'description', content)
                           }
                           init={{
-                            height: 200,
+                            height: 600,
                             menubar: false,
+                            statusbar: false,
+                            branding: false,
                             plugins: [
                               'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                               'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                              'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                              'insertdatetime', 'media', 'table', 'help'
                             ],
                             toolbar: 'undo redo | blocks | ' +
                               'bold italic forecolor | alignleft aligncenter ' +
@@ -607,6 +612,23 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                           }}
                         />
                       </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                        <button
+                          type="button"
+                          className="btn-add-day"
+                          onClick={() => addItineraryDayAfter(index)}
+                        >
+                          {t('tourManagement.edit.itinerary.actions.addDay')}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-remove-day"
+                          onClick={() => removeItineraryDay(index)}
+                        >
+                          {t('tourManagement.edit.itinerary.actions.removeDay')}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -617,71 +639,72 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
             {activeTab === 'pricing' && (
               <div className="form-section">
-                <h3>Giá cả & chính sách</h3>
+                <h3>{t('tourManagement.edit.pricing.title')}</h3>
                 
                 {/* Pricing Fields */}
                 <div className="pricing-grid">
                   <div className="form-group">
-                    <label htmlFor="adultPrice">Giá người lớn (₫)</label>
+                    <label htmlFor="adultPrice">{t('tourManagement.edit.pricing.fields.adultPrice')}</label>
                     <input
                       type="number"
                       id="adultPrice"
                       name="adultPrice"
                       value={formData.adultPrice}
-                      onChange={handleInputChange}
-                      placeholder="Nhập giá cho người lớn"
                       min="0"
+                      onKeyDown={preventInvalidNumberKeys}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      onChange={(e) => setFormData(prev => ({ ...prev, adultPrice: e.target.value.replace(/[^0-9]/g,'') }))}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="childrenPrice">Giá trẻ em (₫)</label>
+                    <label htmlFor="childrenPrice">{t('tourManagement.edit.pricing.fields.childrenPrice')}</label>
                     <input
                       type="number"
                       id="childrenPrice"
                       name="childrenPrice"
                       value={formData.childrenPrice}
-                      onChange={handleInputChange}
-                      placeholder="Nhập giá cho trẻ em"
                       min="0"
+                      onKeyDown={preventInvalidNumberKeys}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      onChange={(e) => setFormData(prev => ({ ...prev, childrenPrice: e.target.value.replace(/[^0-9]/g,'') }))}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="babyPrice">Giá em bé (₫)</label>
+                    <label htmlFor="babyPrice">{t('tourManagement.edit.pricing.fields.babyPrice')}</label>
                     <input
                       type="number"
                       id="babyPrice"
                       name="babyPrice"
                       value={formData.babyPrice}
-                      onChange={handleInputChange}
-                      placeholder="Nhập giá cho em bé"
                       min="0"
+                      onKeyDown={preventInvalidNumberKeys}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      onChange={(e) => setFormData(prev => ({ ...prev, babyPrice: e.target.value.replace(/[^0-9]/g,'') }))}
                     />
                   </div>
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="surchargePolicy">Chính sách phụ thu</label>
-                  <Editor
-                    apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
+                  <label htmlFor="surchargePolicy">{t('tourManagement.edit.pricing.fields.surchargePolicy')}</label>
+                  <textarea
+                    id="surchargePolicy"
+                    className="form-input"
+                    rows={6}
                     value={formData.surchargePolicy}
-                    onEditorChange={(content) => 
-                      setFormData(prev => ({ ...prev, surchargePolicy: content }))
-                    }
-                    init={getTinyMCEConfig(200)}
+                    onChange={(e) => setFormData(prev => ({ ...prev, surchargePolicy: e.target.value }))}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="cancellationPolicy">Chính sách hủy tour</label>
-                  <Editor
-                    apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
+                  <label htmlFor="cancellationPolicy">{t('tourManagement.edit.pricing.fields.cancellationPolicy')}</label>
+                  <textarea
+                    id="cancellationPolicy"
+                    className="form-input"
+                    rows={6}
                     value={formData.cancellationPolicy}
-                    onEditorChange={(content) => 
-                      setFormData(prev => ({ ...prev, cancellationPolicy: content }))
-                    }
-                    init={getTinyMCEConfig(200)}
+                    onChange={(e) => setFormData(prev => ({ ...prev, cancellationPolicy: e.target.value }))}
                   />
                 </div>
               </div>
@@ -689,11 +712,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
             {activeTab === 'media' && (
               <div className="form-section">
-                <h3>Ảnh cover tour</h3>
+                <h3>{t('tourManagement.edit.media.title')}</h3>
                 
                 {/* Cover Image Upload */}
                 <div className="form-group">
-                  <label htmlFor="coverImage">Ảnh cover tour</label>
+                  <label htmlFor="coverImage">{t('tourManagement.edit.media.coverLabel')}</label>
                   <div className="image-upload-container">
                     <input
                       type="file"
@@ -728,20 +751,20 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             }}
                           />
                           <div className="image-overlay">
-                            <span className="current-label">Thay đổi ảnh</span>
+                            <span className="current-label">{t('tourManagement.edit.media.changeImage')}</span>
                           </div>
                         </label>
                       ) : (
                         <label htmlFor="coverImage" className="no-image clickable">
                           <div className="no-image-icon">🖼️</div>
-                          <p>Chọn ảnh cover</p>
+                          <p>{t('tourManagement.edit.media.selectImage')}</p>
                         </label>
                       )}
                     </div>
                     
                     <div className="upload-section">
                       <p className="upload-hint">
-                        Hỗ trợ: JPG, PNG, GIF. Kích thước tối đa: 5MB
+                        {t('tourManagement.edit.media.hint')}
                       </p>
                     </div>
                   </div>
@@ -752,10 +775,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
           <div className="modal-actions">
             <button type="button" onClick={onClose} className="btn-cancel">
-              Hủy
+              {t('common.cancel')}
             </button>
             <button type="submit" className="btn-save" disabled={loading}>
-              {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {loading ? t('tourManagement.edit.saving') : t('tourManagement.edit.save')}
             </button>
           </div>
         </form>

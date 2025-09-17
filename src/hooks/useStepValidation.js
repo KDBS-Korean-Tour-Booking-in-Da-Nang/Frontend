@@ -12,33 +12,33 @@ export const useStepValidation = (tourData) => {
       isValid: !!(tourData.tourName && tourData.departurePoint && 
                  tourData.duration && tourData.nights && tourData.tourType),
       missingFields: [
-        !tourData.tourName && 'Tên tour',
-        !tourData.departurePoint && 'Điểm khởi hành',
-        !tourData.duration && 'Số ngày',
-        !tourData.nights && 'Số đêm',
-        !tourData.tourType && 'Loại tour'
+        !tourData.tourName && 'tourWizard.step1.fields.tourName',
+        !tourData.departurePoint && 'tourWizard.step1.fields.departurePoint',
+        !tourData.duration && 'tourWizard.step1.fields.duration',
+        !tourData.nights && 'tourWizard.step1.fields.nights',
+        !tourData.tourType && 'tourWizard.step1.fields.tourType'
       ].filter(Boolean)
     },
     step2: {
       isValid: !!(tourData.itinerary && tourData.itinerary.length > 0 && 
                  tourData.maxCapacity && tourData.bookingDeadline),
       missingFields: [
-        (!tourData.itinerary || tourData.itinerary.length === 0) && 'Lịch trình',
-        !tourData.maxCapacity && 'Số chỗ tối đa',
-        !tourData.bookingDeadline && 'Hạn chót đặt chỗ'
+        (!tourData.itinerary || tourData.itinerary.length === 0) && 'tourWizard.step2.title',
+        !tourData.maxCapacity && 'tourWizard.step1.fields.maxCapacity',
+        !tourData.bookingDeadline && 'tourWizard.step1.fields.bookingDeadline'
       ].filter(Boolean)
     },
     step3: {
       isValid: !!(tourData.adultPrice && tourData.cancellationPolicy),
       missingFields: [
-        !tourData.adultPrice && 'Giá người lớn',
-        !tourData.cancellationPolicy && 'Chính sách hủy/hoàn tiền'
+        !tourData.adultPrice && 'tourWizard.step3.pricing.adultPrice',
+        !tourData.cancellationPolicy && 'tourWizard.step3.policies.cancellationPolicy'
       ].filter(Boolean)
     },
     step4: {
       isValid: !!(tourData.thumbnail),
       missingFields: [
-        !tourData.thumbnail && 'Ảnh đại diện'
+        !tourData.thumbnail && 'tourWizard.step4.thumbnail.title'
       ].filter(Boolean)
     }
   }), [tourData]);

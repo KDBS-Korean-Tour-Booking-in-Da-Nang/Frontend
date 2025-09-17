@@ -144,6 +144,75 @@
   flex: 1;
 }
 
+.day-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.day-actions.below-editor {
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.day-actions .btn-add-small,
+.day-actions .btn-remove-small {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1;
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-actions .btn-add-small {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+}
+
+.itinerary-section .day-actions .btn-add-small:hover {
+  background: linear-gradient(135deg, #047857, #065f46) !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  filter: none !important;
+  box-shadow: 0 6px 16px rgba(6, 95, 70, 0.35) !important;
+}
+
+.day-actions .btn-remove-small {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+}
+
+.itinerary-section .day-actions .btn-remove-small:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  filter: none !important;
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.35) !important;
+}
+
+/* Override tiny icon-size styles from other contexts */
+.day-actions .btn-remove-small,
+.day-actions .btn-add-small {
+  min-width: 120px;
+}
+
+.day-actions .btn-add-small:hover {
+  background: #ecfeff;
+  border-color: #06b6d4;
+}
+
+.day-actions .btn-remove-small:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
 .single-day-title-container {
   flex: 1;
   display: flex;

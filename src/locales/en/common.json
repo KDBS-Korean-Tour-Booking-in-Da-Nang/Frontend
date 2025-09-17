@@ -668,7 +668,468 @@
 			"title": "My Posts",
 			"empty": "You haven't created any posts yet. Create your first post!"
 		}
+	},
+	"toast": {
+		"required": "{{field}} is required",
+		"login_required": "Please login to continue",
+		"save_success": "Save successful",
+		"save_error": "An error occurred while saving",
+		"invalid_past_deadline": "Booking deadline cannot be in the past. Adjusted to current time.",
+		"max_capacity_range": "Maximum capacity must be between 1 and 9999.",
+		"company_only": "Only Company accounts can perform this action.",
+		"field_invalid": "Invalid value",
+		"tour": {
+			"upload_image_failed": "Unable to upload image. Please try again.",
+			"file_size_exceeded": "File size must not exceed 5MB",
+			"invalid_file_format": "Only image files are allowed",
+			"itinerary_required": "Must have at least 1 day in itinerary.",
+			"name_required": "Tour name is required",
+			"user_info_not_found": "User information not found. Please login again.",
+			"user_email_not_found": "User email not found. Please login again.",
+			"create_success": "Tour created successfully!",
+			"delete_success": "Tour deleted successfully",
+			"delete_error": "An error occurred while deleting tour",
+			"load_failed": "Unable to load tour list",
+			"load_error": "An error occurred while loading tour list",
+			"activate_success": "Tour activated",
+			"deactivate_success": "Tour deactivated"
+		},
+		"payment": {
+			"deposit_success": "Deposit successful!",
+			"deposit_failed": "Deposit failed. Please try again.",
+			"withdraw_success": "Withdrawal request submitted successfully!",
+			"withdraw_failed": "Withdrawal failed. Please try again."
+		},
+		"auth": {
+			"login_success": "Login successful!",
+			"login_failed": "Login failed. Please try again.",
+			"register_success": "Registration successful! Please check your email to verify your account.",
+			"email_already_exists": "This email is already registered",
+			"google_connection_failed": "Cannot connect to Google. Please try again.",
+			"naver_connection_failed": "Cannot connect to Naver. Please try again.",
+			"email_verify_success": "Email verification successful!",
+			"email_verify_failed": "Email verification failed. Please try again.",
+			"otp_sent_success": "New OTP code has been sent!",
+			"otp_resend_failed": "Unable to resend OTP code. Please try again.",
+			"password_reset_email_sent": "Password reset email has been sent!",
+			"otp_verify_success": "OTP verification successful!",
+			"general_error": "An error occurred. Please try again."
+		},
+		"forum": {
+			"post_update_success": "Post updated successfully!",
+			"post_create_success": "Post created successfully!",
+			"post_update_failed": "Failed to update post. Please try again.",
+			"post_create_failed": "Failed to create post. Please try again."
+		},
+		"business": {
+			"info_submit_success": "Business information submitted successfully!",
+			"info_submit_failed": "An error occurred while submitting information. Please try again."
+		}
+	},
+	"tourWizard": {
+		"steps": {
+			"step1": {
+				"title": "Basic Information",
+				"description": "Enter basic tour information"
+			},
+			"step2": {
+				"title": "Itinerary",
+				"description": "Set up detailed itinerary"
+			},
+			"step3": {
+				"title": "Pricing & Policies",
+				"description": "Set up pricing and policies"
+			},
+			"step4": {
+				"title": "Images",
+				"description": "Upload images and attachments"
+			}
+		},
+		"navigation": {
+			"back": "Back",
+			"next": "Next",
+			"complete": "Complete"
+		},
+		"step1": {
+			"title": "Basic Information",
+			"subtitle": "Enter basic tour information",
+			"fields": {
+				"tourName": "Tour Name *",
+				"tourType": "Tour Type *",
+				"departurePoint": "Departure Point",
+				"vehicle": "Vehicle",
+				"duration": "Duration (Days) *",
+				"nights": "Nights *",
+				"maxCapacity": "Max Capacity *",
+				"bookingDeadline": "Booking Deadline *"
+			},
+			"placeholders": {
+				"tourName": "Example: Da Nang - Hoi An 3D2N Tour, Korea 5D4N Tour",
+				"duration": "Example: 3",
+				"nights": "Example: 2",
+				"maxCapacity": "Example: 30",
+				"bookingDeadline": "Select booking deadline date and time"
+			},
+			"help": {
+				"departurePoint": "All tours depart from Da Nang",
+				"vehicle": "Default vehicle: Tourist Bus",
+				"bookingDeadline": "Deadline for customers to book the tour"
+			},
+			"summary": {
+				"title": "Information Summary",
+				"tourName": "Tour Name:",
+				"tourType": "Tour Type:",
+				"departurePoint": "Departure Point:",
+				"vehicle": "Vehicle:",
+				"duration": "Duration:",
+				"maxCapacity": "Max Capacity:",
+				"bookingDeadline": "Booking Deadline:",
+				"notEntered": "Not entered",
+				"notSelected": "Not selected",
+				"guests": "guests"
+			}
+		},
+		"step2": {
+			"title": "Detailed Itinerary",
+			"subtitle": "Set up detailed daily itinerary",
+			"instructions": {
+				"title": "💡 Instructions:",
+				"description": "You can fully customize all titles in the itinerary:",
+				"customizable": "🔧 Customizable sections:",
+				"sectionTitle": "Section title:",
+				"dayTitle": "Day title:",
+				"examples": "📝 Day title examples:"
+			},
+			"tourDescription": {
+				"title": "Tour Description *",
+				"description": "Overall description of the tour, highlights and benefits for customers",
+				"placeholder": "Enter text description (no images)..."
+			},
+			"itinerary": {
+				"mainSectionTitle": "DESTINATIONS & ITINERARY",
+				"activities": "Activities & Locations *",
+				"images": "Illustrative Images (max 5 images)",
+				"services": "Included Services",
+				"addService": "+ Add Service",
+				"addDay": "+ Add Day",
+				"removeDay": "− Remove Day",
+				"serviceTypes": {
+					"food": "Food & Beverage",
+					"ticket": "Admission Tickets",
+					"transport": "Transportation",
+					"other": "Other"
+				},
+				"servicePlaceholders": {
+					"name": "Service name",
+					"price": "Price (VND)"
+				}
+			},
+			"colorPicker": {
+				"title": "Customize Colors",
+				"apply": "Apply",
+				"cancel": "Cancel"
+			}
+		},
+		"step3": {
+			"title": "Pricing & Policies",
+			"subtitle": "Set up tour pricing and policies",
+			"pricing": {
+				"title": "Tour Pricing",
+				"adultPrice": "Adult Price (≥ 12 years) *",
+				"childrenPrice": "Children Price (2-11 years)",
+				"babyPrice": "Baby Price (under 2 years)",
+				"unit": "VND / person",
+				"unitChildren": "VND / child",
+				"unitBaby": "VND / baby",
+				"placeholders": {
+					"adultPrice": "Example: 2500000",
+					"childrenPrice": "Example: 1800000",
+					"babyPrice": "Example: 500000"
+				},
+				"error": "Please enter adult price"
+			},
+			"summary": {
+				"title": "Price Summary",
+				"adult": "Adult:",
+				"children": "Children:",
+				"baby": "Baby:"
+			},
+			"surcharges": {
+				"title": "Surcharges",
+				"add": "+ Add Surcharge",
+				"types": {
+					"holiday": "Holidays",
+					"weekend": "Weekends",
+					"singleRoom": "Single Room",
+					"peakSeason": "Peak Season",
+					"other": "Other"
+				},
+				"placeholders": {
+					"name": "Surcharge name",
+					"percentage": "Percentage (%)"
+				},
+				"description": "Surcharge description"
+			},
+			"policies": {
+				"title": "Policies",
+				"surchargePolicy": "Surcharge Policy",
+				"cancellationPolicy": "Cancellation/Refund Policy *",
+				"placeholders": {
+					"surchargePolicy": "Enter surcharge policy...",
+					"cancellationPolicy": "Enter cancellation/refund policy..."
+				}
+			}
+		},
+		"step4": {
+			"title": "Images & Attachments",
+			"thumbnail": {
+				"title": "Tour Cover Image",
+				"changeImage": "Change Image",
+				"selectImage": "Click to select cover image",
+				"supportedFormats": "Supported: JPG, PNG, GIF, WebP, SVG",
+				"recommendedSize": "Recommended size: 1200x800px (max 10MB)"
+			},
+			"preview": {
+				"title": "Tour Preview",
+				"infoTitle": "Tour preview information:",
+				"fields": {
+					"tourName": "Tour Name:",
+					"duration": "Duration:",
+					"adultPrice": "Adult Price:",
+					"image": "Image:",
+					"status": "Status:"
+				},
+				"values": {
+					"notSet": "No name set",
+					"noPrice": "No price set",
+					"uploaded": "Uploaded",
+					"notUploaded": "Not uploaded",
+					"willShow": "Will show in tour list"
+				}
+			}
+		}
+	},
+	"tourManagement": {
+		"title": "Tour Management",
+		"createNew": "Create New Tour",
+		"header": {
+			"title": "Tour List",
+			"addNew": "Add New Tour"
+		},
+		"loading": {
+			"user": "Loading user information...",
+			"tours": "Loading tours..."
+		},
+		"accessDenied": {
+			"title": "Access Denied",
+			"message": "You need business permissions to access this page."
+		},
+		"actions": {
+			"edit": "Edit",
+			"delete": "Delete",
+			"activate": "Activate",
+			"deactivate": "Deactivate"
+		},
+		"status": {
+			"active": "Active",
+			"inactive": "Inactive"
+		},
+		"statusBadge": {
+			"ACTIVE": "ACTIVE",
+			"INACTIVE": "INACTIVE",
+			"NOT_APPROVED": "PENDING",
+			"DRAFT": "DRAFT",
+			"UNKNOWN": "UNKNOWN"
+		},
+		"card": {
+			"priceLabel": "PRICE/PERSON",
+			"durationLabel": "DURATION:",
+			"capacityLabel": "CAPACITY:",
+			"capacityUnit": "guests",
+			"departureLabel": "DEPARTURE:",
+			"durationZero": "0 days",
+			"durationDays": "{{days}} days"
+		},
+		"empty": {
+			"title": "No tours yet",
+			"description": "Start creating your first tour",
+			"createFirst": "Create First Tour"
+		},
+		"modals": {
+			"delete": {
+				"title": "Confirm delete tour",
+				"message": "Are you sure you want to delete tour \"{{name}}\"?",
+				"itemName": "this tour"
+			}
+		},
+		"edit": {
+			"title": "Edit tour",
+			"saving": "Saving...",
+			"save": "Save changes",
+			"tabs": {
+				"basic": "Basic Info",
+				"itinerary": "Itinerary",
+				"pricing": "Pricing & Policies",
+				"media": "Media"
+			},
+			"basic": {
+				"title": "Basic Information",
+				"priceCapacityTitle": "Pricing & Capacity",
+				"fields": {
+					"tourName": "Tour Name *",
+					"tourDescription": "Tour Description",
+					"tourDuration": "Duration",
+					"tourDeparturePoint": "Departure Point",
+					"tourVehicle": "Vehicle",
+					"tourType": "Tour Type",
+					"amount": "Capacity (people)",
+					"tourStatus": "Status",
+					"bookingDeadline": "Booking Deadline"
+				},
+				"placeholders": {
+					"tourDuration": "Ex: 5 days 4 nights",
+					"selectTourType": "Select tour type"
+				}
+			},
+			"itinerary": {
+				"title": "Tour itinerary",
+				"dailyTitle": "Daily itinerary",
+				"dayN": "Day {{day}}",
+				"fields": {
+					"dayTitle": "Day title",
+					"dayDescription": "Detailed description"
+				},
+				"actions": {
+					"addDay": "+ Add day",
+					"removeDay": "− Remove day"
+				}
+			},
+			"pricing": {
+				"title": "Pricing & Policies",
+				"fields": {
+					"adultPrice": "Adult Price (₫)",
+					"childrenPrice": "Children Price (₫)",
+					"babyPrice": "Baby Price (₫)",
+					"surchargePolicy": "Surcharge Policy",
+					"cancellationPolicy": "Cancellation Policy"
+				}
+			},
+			"media": {
+				"title": "Tour cover image",
+				"coverLabel": "Tour cover image",
+				"changeImage": "Change image",
+				"selectImage": "Select cover image",
+				"hint": "Supported: JPG, PNG, GIF. Max size: 5MB"
+			}
+		}
+	},
+	"tourPage": {
+		"detail": {
+			"loading": "Loading tour information...",
+			"errorTitle": "An error occurred",
+			"backToList": "Back to tour list",
+			"back": "Back to list",
+			"badge": "Tour",
+			"overview": {
+				"title": "Tour overview",
+				"departVehicle": "Depart from {{departure}} by {{vehicle}}.",
+				"adultPrice": "Adult price",
+				"childrenPrice": "Children price",
+				"babyPrice": "Baby price",
+				"free": "Free",
+				"amount": "Capacity",
+				"availableDates": "Departure dates"
+			},
+			"highlights": {
+				"title": "Tour highlights",
+				"items": {
+					"historyTitle": "Visit historical sites",
+					"historyDesc": "Explore famous historical sites with professional guides",
+					"foodTitle": "Local cuisine",
+					"foodDesc": "Enjoy famous local specialties",
+					"photoTitle": "Memorable photos",
+					"photoDesc": "Capture moments at iconic check-in spots",
+					"giftTitle": "Souvenir shopping",
+					"giftDesc": "Free time to buy meaningful souvenirs"
+				}
+			},
+			"itinerary": {
+				"header": "DESTINATIONS & ITINERARY",
+				"updating": "Itinerary is being updated.",
+				"day": "Day {{index}}"
+			},
+			"gallery": {
+				"title": "Tour gallery"
+			},
+			"booking": {
+				"price": "Tour price",
+				"includedNote": "Price includes taxes and service fees",
+				"children": "Children",
+				"baby": "Baby",
+				"bookNow": "Book now",
+				"contact": "Contact support",
+				"infoTitle": "Booking information",
+				"infos": [
+					"✓ 24/7 booking support",
+					"✓ Secure payment",
+					"✓ Free cancellation 24h before departure",
+					"✓ Free travel insurance",
+					"✓ Professional tour guides",
+					"✓ Comfortable tourist bus"
+				],
+				"contactTitle": "Contact to book"
+			}
+		}
+	},
+	"tourList": {
+		"hero": {
+			"title": "Da Nang tours - domestic and international highlights",
+			"desc": "We bring the best quality tours at reasonable prices for a true travel experience."
+		},
+		"search": {
+			"placeholder": "Search tours..."
+		},
+		"categories": {
+			"all": "All tours",
+			"domestic": "Domestic tours",
+			"international": "International tours",
+			"dayTour": "Day tours"
+		},
+		"loading": "Loading tours...",
+		"error": {
+			"title": "An error occurred",
+			"retry": "Retry"
+		},
+		"empty": {
+			"title": "No tours found",
+			"desc": "Try a different keyword or select another category."
+		},
+		"loadMore": "Load more"
+	},
+	"tourCard": {
+		"featured": "Featured",
+		"children": "Children:",
+		"baby": "Baby:",
+		"details": "DETAILS",
+		"duration": {
+			"template": "{{days}} day{{daysSuffix}} {{nights}} night{{nightsSuffix}}"
+		}
+	},
+	"businessNav": {
+		"brandSuffix": "Business",
+		"title": "Business Management",
+		"roleSuffix": "Business",
+		"mobileSectionTitle": "Business Management",
+		"dropdown": {
+			"manageToursTitle": "Manage Tours",
+			"manageToursDesc": "Create and manage tours",
+			"analyticsTitle": "Analytics & Reports",
+			"analyticsDesc": "View revenue and stats",
+			"ordersTitle": "Manage Orders",
+			"ordersDesc": "View and process orders"
+		}
 	}
 }
+
 
 

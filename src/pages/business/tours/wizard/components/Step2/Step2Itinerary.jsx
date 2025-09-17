@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useToast } from '../../../../../../contexts/ToastContext';
 import { Editor } from '@tinymce/tinymce-react';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import './Step2Itinerary.css';
@@ -28,6 +29,7 @@ const adjustColor = (color, percent) => {
 
 const Step2Itinerary = () => {
   const { tourData, updateTourData } = useTourWizardContext();
+  const { showError, showInfo } = useToast();
 
   // TinyMCE configuration with image upload
   const getTinyMCEConfig = (height = 200) => ({
@@ -46,15 +48,16 @@ const Step2Itinerary = () => {
       'alignright alignjustify | bullist numlist outdent indent | ' +
       'removeformat | help',
     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-    // Prevent automatic <p> tags
+    // Typing/newline behavior
     forced_root_block: false,
     force_br_newlines: true,
     force_p_newlines: false,
-    remove_redundant_brs: true,
-    // Clean up HTML
-    cleanup: true,
-    cleanup_on_startup: true,
+    remove_redundant_brs: false,
+    cleanup: false,
+    cleanup_on_startup: false,
     verify_html: false,
+    br_in_pre: true,
+    extended_valid_elements: 'br[class|style]',
     // Additional settings to prevent <p> tags
     entity_encoding: 'raw',
     convert_urls: false,
@@ -92,6 +95,7 @@ const Step2Itinerary = () => {
     mainSectionTitle: 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
     mainSectionColor: '#4caf50'
   });
+  const [initialized, setInitialized] = useState(false);
   const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState('#4caf50');
   const [currentTarget, setCurrentTarget] = useState(null); // 'main' or day index
@@ -157,46 +161,35 @@ const Step2Itinerary = () => {
     setCustomColor(rgbToHex(r, g, b));
   }, [currentHue, saturation, brightness]);
 
-  // Update form data when tourData changes
+  // Initialize once from Step 1 and allow user to customize freely afterwards
   useEffect(() => {
+    if (initialized) return;
     const duration = parseInt(tourData.duration) || 1;
-    
-    // Auto-generate itinerary days based on duration from Step 1
-    let newItinerary = tourData.itinerary || [];
-    
-    // If we have fewer days than duration, add missing days
-    while (newItinerary.length < duration) {
-      newItinerary.push({
-        day: newItinerary.length + 1,
-        activities: '',
-        images: [],
-        services: [],
-        dayTitle: '',
-        dayDescription: 'Ăn trưa – tối',
-        dayColor: '#10b981' // Default green color
-      });
-    }
-    
-    // If we have more days than duration, remove extra days
-    if (newItinerary.length > duration) {
-      newItinerary = newItinerary.slice(0, duration);
-    }
-    
-    // Update day numbers; keep titles empty unless user customizes
+    let newItinerary = Array.isArray(tourData.itinerary) && tourData.itinerary.length > 0
+      ? tourData.itinerary
+      : Array.from({ length: duration }, (_, i) => ({
+          day: i + 1,
+          activities: '',
+          images: [],
+          services: [],
+          dayTitle: '',
+          dayDescription: 'Ăn trưa – tối',
+          dayColor: '#10b981'
+        }));
     newItinerary = newItinerary.map((day, index) => ({
       ...day,
       day: index + 1,
       dayTitle: day.dayTitle || '',
       dayDescription: day.dayDescription || 'Ăn trưa – tối'
     }));
-    
     setFormData({
       tourDescription: tourData.tourDescription || '',
       itinerary: newItinerary,
       mainSectionTitle: tourData.mainSectionTitle || 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
       mainSectionColor: tourData.mainSectionColor || '#3498db'
     });
-  }, [tourData.duration, tourData.itinerary, tourData.tourDescription, tourData.mainSectionTitle, tourData.mainSectionColor]);
+    setInitialized(true);
+  }, [initialized, tourData.duration, tourData.itinerary, tourData.tourDescription, tourData.mainSectionTitle, tourData.mainSectionColor]);
 
 
 
@@ -271,6 +264,35 @@ const Step2Itinerary = () => {
     updateTourData(newFormData);
   };
 
+  const addItineraryDayAfter = (index) => {
+    const newDay = {
+      day: index + 2,
+      activities: '',
+      images: [],
+      services: [],
+      dayTitle: '',
+      dayDescription: 'Ăn trưa – tối',
+      dayColor: '#10b981'
+    };
+    const list = [...formData.itinerary];
+    list.splice(index + 1, 0, newDay);
+    const reindexed = list.map((d, i) => ({ ...d, day: i + 1 }));
+    const newFormData = { ...formData, itinerary: reindexed };
+    setFormData(newFormData);
+    updateTourData(newFormData);
+    showInfo('Đã thêm một ngày lịch trình.');
+  };
+
+  const removeItineraryDay = (index) => {
+    if ((formData.itinerary?.length || 0) <= 1) {
+      showError({ i18nKey: 'toast.required', values: { field: 'Lịch trình' } });
+      return;
+    }
+    const list = formData.itinerary.filter((_, i) => i !== index).map((d, i) => ({ ...d, day: i + 1 }));
+    const newFormData = { ...formData, itinerary: list };
+    setFormData(newFormData);
+    updateTourData(newFormData);
+  };
   const updateService = (dayIndex, serviceIndex, field, value) => {
     const newFormData = {
       ...formData,
@@ -332,15 +354,19 @@ const Step2Itinerary = () => {
         <p className="section-description">
           Mô tả tổng quan về tour, điểm nổi bật và lợi ích cho khách hàng
         </p>
-        <Editor
-          apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
+        <textarea
+          className="form-textarea"
+          rows={10}
           value={formData.tourDescription}
-          init={getTinyMCEConfig(300)}
-          onEditorChange={(content) => {
-            const cleanedContent = cleanHtmlContent(content);
-            const newFormData = { ...formData, tourDescription: cleanedContent };
+          placeholder="Nhập mô tả văn bản (không chèn hình ảnh)..."
+          onChange={(e) => {
+            const newFormData = { ...formData, tourDescription: e.target.value };
             setFormData(newFormData);
             updateTourData(newFormData);
+          }}
+          onKeyDown={(e) => {
+            // Cho phép phím mũi tên, Enter xuống dòng, Tab, Backspace... mặc định
+            // Không cần chặn gì ở đây vì textarea xử lý chuẩn
           }}
         />
       </div>
@@ -659,9 +685,28 @@ const Step2Itinerary = () => {
                 <Editor
                   apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
                   value={day.activities}
-                  init={getTinyMCEConfig(300)}
-                  onEditorChange={(content) => updateDay(index, 'activities', cleanHtmlContent(content))}
+                  init={getTinyMCEConfig(600)}
+                  onEditorChange={(content) => updateDay(index, 'activities', content)}
                 />
+              </div>
+
+              <div className="day-actions below-editor">
+                <button
+                  type="button"
+                  className="btn-add-small"
+                  title="Thêm ngày sau"
+                  onClick={() => addItineraryDayAfter(index)}
+                >
+                  + Thêm ngày
+                </button>
+                <button
+                  type="button"
+                  className="btn-remove-small"
+                  title="Xóa ngày này"
+                  onClick={() => removeItineraryDay(index)}
+                >
+                  − Xóa ngày
+                </button>
               </div>
 
               <div className="form-group">
