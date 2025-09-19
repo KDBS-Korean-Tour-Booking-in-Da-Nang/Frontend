@@ -10,13 +10,12 @@ const Step1BasicInfo = () => {
   const { showError } = useToast();
   const [formData, setFormData] = useState({
     tourName: '',
-    departurePoint: 'Đà Nẵng', // Default departure point
-    vehicle: 'Xe Du Lịch',
+    departurePoint: t('common.departurePoints.daNang'), // Default departure point (i18n)
+    vehicle: t('common.vehicles.tourBus'),
     duration: '',
     nights: '',
     tourType: '',
-    maxCapacity: '',
-    bookingDeadline: ''
+    maxCapacity: ''
   });
 
   // Helpers
@@ -55,17 +54,39 @@ const Step1BasicInfo = () => {
     return values.join(', ');
   };
 
+  // Normalize values entered/stored in different languages to current locale label
+  const localizeDeparturePoint = (value) => {
+    if (!value) return '';
+    const variants = [
+      'Đà Nẵng',
+      'Da Nang',
+      '다낭',
+      t('common.departurePoints.daNang')
+    ];
+    return variants.includes(value) ? t('common.departurePoints.daNang') : value;
+  };
+
+  const localizeVehicle = (value) => {
+    if (!value) return '';
+    const variants = [
+      'Xe Du Lịch',
+      'Tour Bus',
+      '관광 버스',
+      t('common.vehicles.tourBus')
+    ];
+    return variants.includes(value) ? t('common.vehicles.tourBus') : value;
+  };
+
   // Update form data when tourData changes
   useEffect(() => {
     setFormData({
       tourName: tourData.tourName || '',
-      departurePoint: tourData.departurePoint || 'Đà Nẵng', // Default departure point
-      vehicle: tourData.vehicle || 'Xe Du Lịch',
+      departurePoint: tourData.departurePoint || t('common.departurePoints.daNang'), // Default departure point (i18n)
+      vehicle: tourData.vehicle || t('common.vehicles.tourBus'),
       duration: tourData.duration || '',
       nights: tourData.nights || '',
       tourType: tourData.tourType || '',
-      maxCapacity: tourData.maxCapacity || '',
-      bookingDeadline: tourData.bookingDeadline || ''
+      maxCapacity: tourData.maxCapacity || ''
     });
   }, [tourData]);
 
@@ -96,14 +117,14 @@ const Step1BasicInfo = () => {
   }, [formData.duration]);
 
   const tourTypes = [
-    { value: 'resort', label: 'Nghỉ dưỡng' },
-    { value: 'culture', label: 'Văn hóa' },
-    { value: 'adventure', label: 'Mạo hiểm' },
-    { value: 'team-building', label: 'Team Building' },
-    { value: 'food', label: 'Ẩm thực' },
-    { value: 'photography', label: 'Nhiếp ảnh' },
-    { value: 'religious', label: 'Tâm linh' },
-    { value: 'other', label: 'Khác' }
+    { value: 'resort', i18nKey: 'common.tourTypes.resort' },
+    { value: 'culture', i18nKey: 'common.tourTypes.culture' },
+    { value: 'adventure', i18nKey: 'common.tourTypes.adventure' },
+    { value: 'team-building', i18nKey: 'common.tourTypes.teamBuilding' },
+    { value: 'food', i18nKey: 'common.tourTypes.food' },
+    { value: 'photography', i18nKey: 'common.tourTypes.photography' },
+    { value: 'religious', i18nKey: 'common.tourTypes.religious' },
+    { value: 'other', i18nKey: 'common.tourTypes.other' }
   ];
 
   const handleChange = (e) => {
@@ -166,15 +187,7 @@ const Step1BasicInfo = () => {
       }
     }
 
-    // Prevent past date for bookingDeadline
-    if (name === 'bookingDeadline' && nextValue) {
-      const minValue = new Date(nowLocalDateTime());
-      const picked = new Date(nextValue);
-      if (picked < minValue) {
-        nextValue = nowLocalDateTime();
-        showError('toast.invalid_past_deadline');
-      }
-    }
+    
 
     const newFormData = {
       ...formData,
@@ -222,7 +235,7 @@ const Step1BasicInfo = () => {
             <option value="">{t('tourWizard.step1.fields.tourType')}</option>
             {tourTypes.map(type => (
               <option key={type.value} value={type.value}>
-                {type.label}
+                {t(type.i18nKey)}
               </option>
             ))}
           </select>
@@ -240,7 +253,7 @@ const Step1BasicInfo = () => {
             className="form-select"
             disabled
           >
-            <option value="Đà Nẵng">Đà Nẵng</option>
+            <option value={t('common.departurePoints.daNang')}>{t('common.departurePoints.daNang')}</option>
           </select>
           <small className="form-help">{t('tourWizard.step1.help.departurePoint')}</small>
         </div>
@@ -257,7 +270,7 @@ const Step1BasicInfo = () => {
             className="form-select"
             disabled
           >
-            <option value="Xe Du Lịch">Xe Du Lịch</option>
+            <option value={t('common.vehicles.tourBus')}>{t('common.vehicles.tourBus')}</option>
           </select>
           <small className="form-help">{t('tourWizard.step1.help.vehicle')}</small>
         </div>
@@ -299,8 +312,9 @@ const Step1BasicInfo = () => {
           />
           {formData.duration !== '' && (
             <small className="form-help">
-              Gợi ý: {getAllowedNightsRange(formData.duration).suggest} đêm (cho {formData.duration} ngày).
-              Cho phép: {formatAllowedNights(formData.duration)} đêm.
+              {t('tourWizard.step1.hints.nightsSuggestion', { suggest: getAllowedNightsRange(formData.duration).suggest, days: formData.duration })}
+              {' '}
+              {t('tourWizard.step1.hints.allowedNights', { allowed: formatAllowedNights(formData.duration) })}
             </small>
           )}
         </div>
@@ -323,34 +337,19 @@ const Step1BasicInfo = () => {
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="bookingDeadline" className="form-label">
-            {t('tourWizard.step1.fields.bookingDeadline')}
-          </label>
-          <input
-            type="datetime-local"
-            id="bookingDeadline"
-            name="bookingDeadline"
-            value={formData.bookingDeadline}
-            onChange={handleChange}
-            className="form-input"
-            placeholder={t('tourWizard.step1.placeholders.bookingDeadline')}
-            min={nowLocalDateTime()}
-          />
-          <small className="form-help">{t('tourWizard.step1.help.bookingDeadline')}</small>
-        </div>
+        
       </div>
 
       <div className="step-summary">
         <h3>{t('tourWizard.step1.summary.title')}</h3>
         <div className="summary-content">
           <p><strong>{t('tourWizard.step1.summary.tourName')}</strong> {formData.tourName || t('tourWizard.step1.summary.notEntered')}</p>
-          <p><strong>{t('tourWizard.step1.summary.tourType')}</strong> {tourTypes.find(type => type.value === formData.tourType)?.label || t('tourWizard.step1.summary.notSelected')}</p>
-          <p><strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {formData.departurePoint || t('tourWizard.step1.summary.notEntered')}</p>
-          <p><strong>{t('tourWizard.step1.summary.vehicle')}</strong> {formData.vehicle || 'Xe Du Lịch'}</p>
-          <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {formData.duration || t('tourWizard.step1.summary.notEntered')} ngày {formData.nights ? `${formData.nights} đêm` : ''}</p>
+          <p><strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}</p>
+          <p><strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {localizeDeparturePoint(formData.departurePoint) || t('tourWizard.step1.summary.notEntered')}</p>
+          <p><strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}</p>
+          <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights ? `${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}</p>
           <p><strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.guests')}</p>
-          <p><strong>{t('tourWizard.step1.summary.bookingDeadline')}</strong> {formData.bookingDeadline || t('tourWizard.step1.summary.notEntered')}</p>
+          
         </div>
       </div>
     </div>

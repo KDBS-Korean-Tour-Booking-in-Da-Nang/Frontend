@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import './verifyEmail.css';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import styles from './verifyEmail.module.css';
 
 const VerifyEmail = () => {
   const { t } = useTranslation();
@@ -137,63 +138,78 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{t('auth.verify.title')}</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">{t('auth.verify.subtitle', { email })}</p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700">{t('auth.verify.label')}</label>
-              <div className="mt-1">
-                <input
-                  id="otp"
-                  name="otp"
-                  type="text"
-                  required
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary text-center text-lg tracking-widest"
-                  placeholder={t('auth.common.otpPlaceholder')}
-                  maxLength="6"
-                />
-              </div>
-              <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
+    <div className={styles['verify-container']}>
+      <div className={styles['verify-content']}>
+        <div className={styles['verify-form-section']}>
+          <div className={styles['verify-header']}>
+            <div className={styles['verify-logo']}>
+              <EnvelopeIcon className="h-8 w-8 text-white" />
+            </div>
+            <h2 className={styles['verify-title']}>
+              {t('auth.verify.title')}
+            </h2>
+            <p className={styles['verify-subtitle']}>
+              {t('auth.verify.subtitle', { email })}
+            </p>
+          </div>
+          <form className={styles['verify-form']} onSubmit={handleSubmit}>
+            <div className={styles['form-group']}>
+              <label htmlFor="otp" className={styles['form-label']}>
+                {t('auth.verify.label')}
+              </label>
+              <input
+                id="otp"
+                name="otp"
+                type="text"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className={`${styles['form-input']} ${styles['otp-input']}`}
+                placeholder={t('auth.common.otpPlaceholder')}
+                maxLength="6"
+              />
+              <p className={styles['verify-subtitle']}>{t('auth.verify.helper')}</p>
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className={styles['error-message']}>
+                {error}
+              </div>
             )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? t('auth.verify.submitting') : t('auth.verify.submit')}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles['verify-button']}
+            >
+              {loading ? t('auth.verify.submitting') : t('auth.verify.submit')}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className={styles['resend-section']}>
+            <p className={styles['resend-text']}>
               {t('auth.common.notReceivedCode')}{' '}
               {countdown > 0 ? (
-                <span className="text-gray-400">{t('auth.common.resendIn', { seconds: countdown })}</span>
+                <span className={styles['resend-text']}>
+                  {t('auth.common.resendIn', { seconds: countdown })}
+                </span>
               ) : (
-                <button onClick={handleResendOTP} disabled={resendLoading} className="text-primary hover:text-primary-hover disabled:opacity-50">
+                <button
+                  onClick={handleResendOTP}
+                  disabled={resendLoading}
+                  className={styles['resend-button']}
+                >
                   {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
                 </button>
               )}
             </p>
           </div>
 
-          <div className="mt-6 text-center">
-            <button onClick={() => navigate('/register')} className="text-sm text-gray-600 hover:text-gray-500">
+          <div className={styles['register-link']}>
+            <button
+              onClick={() => navigate('/register')}
+              className={styles['back-button']}
+            >
               {t('auth.common.backToRegister')}
             </button>
           </div>

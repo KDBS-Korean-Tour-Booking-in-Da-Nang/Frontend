@@ -93,8 +93,8 @@ const Step4Media = () => {
         <div className="preview-grid">
           <TourCard 
             tour={{
-              tourName: tourData.tourName || 'Tour Hàn Quốc đi tết âm lịch từ Đà Nẵng',
-              tourDuration: `${tourData.duration || '5'} ngày ${tourData.nights || '4'} đêm`,
+              tourName: tourData.tourName || t('tourCard.sampleTitle'),
+              tourDuration: `${tourData.duration || '2'} ${t('tourWizard.step1.summary.days')} ${tourData.nights || '1'} ${t('tourWizard.step1.summary.nights')}`,
               adultPrice: tourData.adultPrice || 14990000,
               thumbnail: formData.thumbnail,
               tourStatus: 'ACTIVE'
@@ -107,7 +107,7 @@ const Step4Media = () => {
             <h5>{t('tourWizard.step4.preview.infoTitle')}</h5>
             <ul>
               <li><strong>{t('tourWizard.step4.preview.fields.tourName')}</strong> {tourData.tourName || t('tourWizard.step4.preview.values.notSet')}</li>
-              <li><strong>{t('tourWizard.step4.preview.fields.duration')}</strong> {tourData.duration || '0'} ngày {tourData.nights || '0'} đêm</li>
+              <li><strong>{t('tourWizard.step4.preview.fields.duration')}</strong> {(tourData.duration || '0') + ' ' + t('tourWizard.step1.summary.days')} {(tourData.nights || '0') + ' ' + t('tourWizard.step1.summary.nights')}</li>
               <li><strong>{t('tourWizard.step4.preview.fields.adultPrice')}</strong> {tourData.adultPrice ? `${new Intl.NumberFormat('vi-VN').format(tourData.adultPrice)} VNĐ` : t('tourWizard.step4.preview.values.noPrice')}</li>
               <li><strong>{t('tourWizard.step4.preview.fields.image')}</strong> {formData.thumbnail ? t('tourWizard.step4.preview.values.uploaded') : t('tourWizard.step4.preview.values.notUploaded')}</li>
               <li><strong>{t('tourWizard.step4.preview.fields.status')}</strong> {t('tourWizard.step4.preview.values.willShow')}</li>

@@ -69,7 +69,7 @@ const Step3Pricing = () => {
     babyPrice: ''
   });
 
-  const [surcharges, setSurcharges] = useState([]);
+  // Surcharges feature removed
 
   // Update form data when tourData changes
   useEffect(() => {
@@ -78,34 +78,14 @@ const Step3Pricing = () => {
       childrenPrice: tourData.childrenPrice || '',
       babyPrice: tourData.babyPrice || ''
     });
-    setSurcharges(tourData.surcharges || []);
+    // no-op for surcharges
   }, [tourData]);
 
-  const addSurcharge = () => {
-    const newSurcharge = {
-      type: 'holiday',
-      name: '',
-      percentage: '',
-      description: ''
-    };
-    const newSurcharges = [...surcharges, newSurcharge];
-    setSurcharges(newSurcharges);
-    updateTourData({ ...formData, surcharges: newSurcharges });
-  };
+  const addSurcharge = () => {};
 
-  const updateSurcharge = (index, field, value) => {
-    const newSurcharges = surcharges.map((surcharge, i) => 
-      i === index ? { ...surcharge, [field]: value } : surcharge
-    );
-    setSurcharges(newSurcharges);
-    updateTourData({ ...formData, surcharges: newSurcharges });
-  };
+  const updateSurcharge = () => {};
 
-  const removeSurcharge = (index) => {
-    const newSurcharges = surcharges.filter((_, i) => i !== index);
-    setSurcharges(newSurcharges);
-    updateTourData({ ...formData, surcharges: newSurcharges });
-  };
+  const removeSurcharge = () => {};
 
 
   const formatPrice = (price) => {
@@ -219,73 +199,7 @@ const Step3Pricing = () => {
         </div>
       </div>
 
-      {/* Surcharges */}
-      <div className="surcharges-section">
-        <div className="section-header">
-          <h3>{t('tourWizard.step3.surcharges.title')}</h3>
-          <button 
-            type="button" 
-            className="btn-add" 
-            onClick={addSurcharge}
-          >
-            {t('tourWizard.step3.surcharges.add')}
-          </button>
-        </div>
-
-        {surcharges.map((surcharge, index) => (
-          <div key={index} className="surcharge-item">
-            <select
-              value={surcharge.type}
-              onChange={(e) => updateSurcharge(index, 'type', e.target.value)}
-              className="form-select"
-            >
-              <option value="holiday">{t('tourWizard.step3.surcharges.types.holiday')}</option>
-              <option value="weekend">{t('tourWizard.step3.surcharges.types.weekend')}</option>
-              <option value="single-room">{t('tourWizard.step3.surcharges.types.singleRoom')}</option>
-              <option value="peak-season">{t('tourWizard.step3.surcharges.types.peakSeason')}</option>
-              <option value="other">{t('tourWizard.step3.surcharges.types.other')}</option>
-            </select>
-            <input
-              type="text"
-              placeholder={t('tourWizard.step3.surcharges.placeholders.name')}
-              value={surcharge.name}
-              onChange={(e) => updateSurcharge(index, 'name', e.target.value)}
-              className="form-input"
-            />
-            <input
-              type="number"
-              placeholder={t('tourWizard.step3.surcharges.placeholders.percentage')}
-              value={surcharge.percentage}
-              onChange={(e) => updateSurcharge(index, 'percentage', e.target.value)}
-              className="form-input"
-            />
-            <button 
-              type="button" 
-              className="btn-remove-small"
-              onClick={() => removeSurcharge(index)}
-            >
-              X
-            </button>
-          </div>
-        ))}
-
-        {/* Description Editor - Full Width */}
-        {surcharges.length > 0 && (
-          <div className="surcharge-description-section">
-            <label className="form-label">{t('tourWizard.step3.surcharges.description')}</label>
-            <Editor
-              apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
-              value={surcharges[0]?.description || ''}
-              onEditorChange={(content) => {
-                if (surcharges.length > 0) {
-                  updateSurcharge(0, 'description', content);
-                }
-              }}
-              init={getTinyMCEConfig(200)}
-            />
-          </div>
-        )}
-      </div>
+      {/* Surcharges removed */}
 
       {/* Policies removed: consolidated into tourDescription at the bottom of FE pages */}
     </div>

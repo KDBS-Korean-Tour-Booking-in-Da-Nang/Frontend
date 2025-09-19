@@ -8,7 +8,7 @@ import './PostModal.css';
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess, showBatch } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [hashtags, setHashtags] = useState([]);
@@ -155,10 +155,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     
     // Show all errors if any
     if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+      showBatch(errors, 'error', 5000);
       return;
     }
 

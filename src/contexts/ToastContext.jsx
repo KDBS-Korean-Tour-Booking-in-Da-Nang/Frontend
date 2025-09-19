@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
 import Toast from '../components/toast/Toast';
 import i18n from '../i18n';
 
@@ -14,8 +14,17 @@ export const useToast = () => {
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
+  const isBatchingRef = useRef(false);
+  const batchTimerRef = useRef(null);
+  const activeKeysRef = useRef(new Set()); // prevent duplicate same-type+message toasts
+  const idToKeyRef = useRef(new Map());
 
   const removeToast = (id) => {
+    const key = idToKeyRef.current.get(id);
+    if (key) {
+      activeKeysRef.current.delete(key);
+      idToKeyRef.current.delete(id);
+    }
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
@@ -34,14 +43,22 @@ export const ToastProvider = ({ children }) => {
 
   const addToast = (message, type = 'error', duration = 5000) => {
     const id = Date.now() + Math.random();
+    const resolved = resolveMessage(message);
+    const key = `${type}:${resolved}`;
+    // de-dup by same message+type while visible
+    if (activeKeysRef.current.has(key)) {
+      return null;
+    }
+    activeKeysRef.current.add(key);
     const newToast = {
       id,
-      message: resolveMessage(message),
+      message: resolved,
       type,
       duration
     };
 
     setToasts(prev => [...prev, newToast]);
+    idToKeyRef.current.set(id, key);
 
     // Auto remove toast after duration
     if (duration > 0) {
@@ -51,6 +68,25 @@ export const ToastProvider = ({ children }) => {
     }
 
     return id;
+  };
+
+  // Show a batch immediately only if none is active; ignore while active (no queue)
+  const showBatch = (messages, type = 'error', duration = 5000) => {
+    const normalized = (messages || []).filter(Boolean).map(m => resolveMessage(m));
+    if (normalized.length === 0) return;
+    if (isBatchingRef.current) return; // ignore new batches while one is active
+
+    isBatchingRef.current = true;
+
+    const ids = normalized.map(msg => addToast(msg, type, duration));
+    // Clear active flag after duration; also ensure cleanup
+    const ms = Math.max(duration, 0);
+    if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+    batchTimerRef.current = setTimeout(() => {
+      ids.forEach(id => removeToast(id));
+      isBatchingRef.current = false;
+      batchTimerRef.current = null;
+    }, ms);
   };
 
   const showError = (message, duration = 5000) => {
@@ -81,7 +117,8 @@ export const ToastProvider = ({ children }) => {
     showSuccess,
     showWarning,
     showInfo,
-    clearAllToasts
+    clearAllToasts,
+    showBatch
   };
 
   return (

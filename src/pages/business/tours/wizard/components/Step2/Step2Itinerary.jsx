@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../../../../../../contexts/ToastContext';
+import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import './Step2Itinerary.css';
@@ -28,6 +29,7 @@ const adjustColor = (color, percent) => {
 };
 
 const Step2Itinerary = () => {
+  const { t, i18n } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
   const { showError, showInfo } = useToast();
 
@@ -92,8 +94,9 @@ const Step2Itinerary = () => {
   const [formData, setFormData] = useState({
     tourDescription: '',
     itinerary: [],
-    mainSectionTitle: 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
-    mainSectionColor: '#4caf50'
+    mainSectionTitle: t('tourWizard.step2.itinerary.mainSectionTitle'),
+    mainSectionColor: '#4caf50',
+    appendices: []
   });
   const [initialized, setInitialized] = useState(false);
   const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
@@ -102,6 +105,7 @@ const Step2Itinerary = () => {
   const [currentHue, setCurrentHue] = useState(180); // 0-360
   const [saturation, setSaturation] = useState(0.8); // 0-1
   const [brightness, setBrightness] = useState(0.8); // 0-1
+  const [newAppendixTitle, setNewAppendixTitle] = useState('PHỤ LỤC / GHI CHÚ');
 
   // Helper function to convert HSV to RGB
   const hsvToRgb = (h, s, v) => {
@@ -173,23 +177,57 @@ const Step2Itinerary = () => {
           images: [],
           services: [],
           dayTitle: '',
-          dayDescription: 'Ăn trưa – tối',
-          dayColor: '#10b981'
+          dayDescription: t('tourWizard.step2.day.defaultMeal'),
+          dayColor: '#10b981',
+          titleAlignment: 'left'
         }));
     newItinerary = newItinerary.map((day, index) => ({
       ...day,
       day: index + 1,
       dayTitle: day.dayTitle || '',
-      dayDescription: day.dayDescription || 'Ăn trưa – tối'
+      dayDescription: day.dayDescription || t('tourWizard.step2.day.defaultMeal'),
+      titleAlignment: day.titleAlignment || 'left'
     }));
     setFormData({
       tourDescription: tourData.tourDescription || '',
+      tourSchedule: tourData.tourSchedule || '',
       itinerary: newItinerary,
-      mainSectionTitle: tourData.mainSectionTitle || 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
+      mainSectionTitle: tourData.mainSectionTitle || t('tourWizard.step2.itinerary.mainSectionTitle'),
       mainSectionColor: tourData.mainSectionColor || '#3498db'
     });
     setInitialized(true);
-  }, [initialized, tourData.duration, tourData.itinerary, tourData.tourDescription, tourData.mainSectionTitle, tourData.mainSectionColor]);
+  }, [initialized, tourData.duration, tourData.itinerary, tourData.tourDescription, tourData.tourSchedule, tourData.mainSectionTitle, tourData.mainSectionColor]);
+
+  // React to language changes: if user hasn't customized, keep defaults in new language
+  useEffect(() => {
+    const defaultSectionTitles = [
+      'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
+      'DESTINATIONS & ITINERARY',
+      '목적지 & 일정'
+    ];
+    const defaultMeals = [
+      'Ăn trưa – tối',
+      'Lunch – Dinner',
+      '점심 – 저녁'
+    ];
+
+    const newDefaultTitle = t('tourWizard.step2.itinerary.mainSectionTitle');
+    const newDefaultMeal = t('tourWizard.step2.day.defaultMeal');
+
+    setFormData(prev => {
+      const shouldUpdateTitle = !prev.mainSectionTitle || defaultSectionTitles.includes(prev.mainSectionTitle.trim());
+      const updatedItinerary = (prev.itinerary || []).map(d => {
+        const desc = d.dayDescription;
+        const shouldUpdateDesc = !desc || defaultMeals.includes(String(desc).trim());
+        return shouldUpdateDesc ? { ...d, dayDescription: newDefaultMeal } : d;
+      });
+      return {
+        ...prev,
+        mainSectionTitle: shouldUpdateTitle ? newDefaultTitle : prev.mainSectionTitle,
+        itinerary: updatedItinerary
+      };
+    });
+  }, [i18n.language]);
 
 
 
@@ -327,22 +365,30 @@ const Step2Itinerary = () => {
   return (
     <div className="step2-container">
       <div className="step-header">
-        <h2 className="step-title">Lịch trình chi tiết</h2>
-        <p className="step-subtitle">Thiết lập chi tiết lịch trình từng ngày</p>
+        <h2 className="step-title">{t('tourWizard.step2.title')}</h2>
+        <p className="step-subtitle">{t('tourWizard.step2.subtitle')}</p>
         <div className="step-instructions">
-          <p><strong>💡 Hướng dẫn:</strong> Bạn có thể tùy chỉnh hoàn toàn các tiêu đề trong lịch trình:</p>
+          <p><strong>💡 {t('tourWizard.step2.instructions.title')}</strong> {t('tourWizard.step2.instructions.description')}</p>
           <div className="title-examples">
-            <p><strong>🔧 Các phần có thể tùy chỉnh:</strong></p>
+            <p><strong>🔧 {t('tourWizard.step2.instructions.customizable')}</strong></p>
             <ul>
-              <li><strong>Tiêu đề phần:</strong> "ĐIỂM ĐẾN VÀ HÀNH TRÌNH" → "LỊCH TRÌNH CHI TIẾT"</li>
-              <li><strong>Tiêu đề ngày:</strong> "NGÀY 1 - TOUR ĐÀ NẴNG" → "NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER"</li>
+              <li><strong>{t('tourWizard.step2.instructions.sectionTitle')}</strong></li>
+              <li><strong>{t('tourWizard.step2.instructions.dayTitle')}</strong></li>
             </ul>
-            <p><strong>📝 Ví dụ tiêu đề ngày:</strong></p>
+            <p><strong>📝 {t('tourWizard.step2.instructions.examples')}</strong></p>
             <ul>
-              <li>"NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER"</li>
-              <li>"DAY 1 - HỘI AN - LÀNG GỐM THANH HÀ"</li>
-              <li>"CHƯƠNG 1 - BA NA HILLS - CẦU VÀNG"</li>
-              <li>"BUỔI 1 - THAM QUAN ĐÀ NẴNG"</li>
+              <li>
+                {`"${t('tourWizard.step2.prefix.day', { n: 1 })} - ${t('tourWizard.step2.examples.c1')}"`}
+              </li>
+              <li>
+                {`"${t('tourWizard.step2.prefix.day', { n: 1 })} - ${t('tourWizard.step2.examples.c2')}"`}
+              </li>
+              <li>
+                {`"${t('tourWizard.step2.prefix.chapter', { n: 1 })} - ${t('tourWizard.step2.examples.c3')}"`}
+              </li>
+              <li>
+                {`"${t('tourWizard.step2.prefix.session', { n: 1 })} - ${t('tourWizard.step2.examples.c4')}"`}
+              </li>
             </ul>
           </div>
         </div>
@@ -350,15 +396,15 @@ const Step2Itinerary = () => {
 
       {/* Tour Description */}
       <div className="tour-description-section">
-        <h3>Mô tả tour *</h3>
+        <h3>{t('tourWizard.step2.tourDescription.title')}</h3>
         <p className="section-description">
-          Mô tả tổng quan về tour, điểm nổi bật và lợi ích cho khách hàng
+          {t('tourWizard.step2.tourDescription.description')}
         </p>
         <textarea
           className="form-textarea"
           rows={10}
           value={formData.tourDescription}
-          placeholder="Nhập mô tả văn bản (không chèn hình ảnh)..."
+          placeholder={t('tourWizard.step2.tourDescription.description')}
           onChange={(e) => {
             const newFormData = { ...formData, tourDescription: e.target.value };
             setFormData(newFormData);
@@ -367,6 +413,25 @@ const Step2Itinerary = () => {
           onKeyDown={(e) => {
             // Cho phép phím mũi tên, Enter xuống dòng, Tab, Backspace... mặc định
             // Không cần chặn gì ở đây vì textarea xử lý chuẩn
+          }}
+        />
+      </div>
+
+      {/* Tour Schedule Summary */}
+      <div className="tour-schedule-section">
+        <h3>{t('tourWizard.step2.fields.tourSchedule')}</h3>
+        <p className="section-description">
+          {t('tourWizard.step2.tourSchedule.description')}
+        </p>
+        <input
+          type="text"
+          className="form-input"
+          value={formData.tourSchedule}
+          placeholder={t('tourWizard.step2.tourSchedule.placeholder')}
+          onChange={(e) => {
+            const newFormData = { ...formData, tourSchedule: e.target.value };
+            setFormData(newFormData);
+            updateTourData(newFormData);
           }}
         />
       </div>
@@ -388,15 +453,15 @@ const Step2Itinerary = () => {
                 className="single-day-title-input"
                 value={formData.mainSectionTitle}
                 onChange={(e) => updateFormData('mainSectionTitle', e.target.value)}
-                placeholder="Tùy chỉnh tiêu đề phần (ví dụ: LỊCH TRÌNH CHI TIẾT)"
-                title="Nhấp để tùy chỉnh tiêu đề phần"
+                placeholder={t('tourWizard.step2.placeholders.sectionTitle')}
+                title={t('tourWizard.step2.titles.editSectionTitle')}
               />
-              {formData.mainSectionTitle !== 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH' && (
+              {formData.mainSectionTitle !== t('tourWizard.step2.itinerary.mainSectionTitle') && (
                 <button
                   type="button"
                   className="reset-title-btn"
-                  onClick={() => updateFormData('mainSectionTitle', 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH')}
-                  title="Reset về tiêu đề mặc định"
+                  onClick={() => updateFormData('mainSectionTitle', t('tourWizard.step2.itinerary.mainSectionTitle'))}
+                  title={t('tourWizard.step2.titles.resetDefault')}
                 >
                   ↺
                 </button>
@@ -587,8 +652,18 @@ const Step2Itinerary = () => {
                     onClick={() => {
                       if (currentTarget === 'main') {
                         updateFormData('mainSectionColor', customColor);
-                      } else if (currentTarget !== null) {
+                      } else if (typeof currentTarget === 'number') {
                         updateDay(currentTarget, 'dayColor', customColor);
+                      } else if (typeof currentTarget === 'string' && currentTarget.startsWith('appendix-')) {
+                        const appendixIndex = parseInt(currentTarget.split('-')[1]);
+                        const newFormData = {
+                          ...formData,
+                          appendices: formData.appendices.map((app, i) => 
+                            i === appendixIndex ? { ...app, color: customColor } : app
+                          )
+                        };
+                        setFormData(newFormData);
+                        updateTourData(newFormData);
                       }
                       setShowCustomColorPicker(false);
                     }}
@@ -625,26 +700,88 @@ const Step2Itinerary = () => {
             >
               <div className="day-header-content">
                 <div className="single-day-title-container">
-                  <input
+              <input
                     type="text"
                     className={`single-day-title-input ${day.dayTitle ? 'customized' : ''}`}
                     value={day.dayTitle || ''}
                     onChange={(e) => updateDay(index, 'dayTitle', e.target.value)}
-                    placeholder="Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)"
-                    title="Nhấp để tùy chỉnh toàn bộ tiêu đề ngày"
+                placeholder={t('tourWizard.step2.placeholders.dayTitle')}
+                title={t('tourWizard.step2.titles.editDayTitle')}
+                    style={{ textAlign: day.titleAlignment || 'left' }}
                   />
-                  {day.dayTitle && (
-                    <button
-                      type="button"
-                      className="reset-title-btn"
-                      onClick={() => updateDay(index, 'dayTitle', '')}
-                      title="Xóa tiêu đề ngày"
-                    >
-                      ↺
-                    </button>
-                  )}
+                  <div className="title-controls">
+                    <div className="alignment-buttons">
+                      <button
+                        type="button"
+                        className={`align-btn ${(day.titleAlignment || 'left') === 'left' ? 'active' : ''}`}
+                        onClick={() => {
+                          const currentAlignment = day.titleAlignment || 'left';
+                          if (currentAlignment === 'left') {
+                            updateDay(index, 'titleAlignment', 'left');
+                          } else {
+                            updateDay(index, 'titleAlignment', 'left');
+                          }
+                        }}
+                        title={t('tourWizard.step2.alignment.left')}
+                      >
+                        <div className="align-icon left-align">
+                          <div className="line"></div>
+                          <div className="line"></div>
+                          <div className="line"></div>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`align-btn ${day.titleAlignment === 'center' ? 'active' : ''}`}
+                        onClick={() => {
+                          const currentAlignment = day.titleAlignment || 'left';
+                          if (currentAlignment === 'center') {
+                            updateDay(index, 'titleAlignment', 'left');
+                          } else {
+                            updateDay(index, 'titleAlignment', 'center');
+                          }
+                        }}
+                        title={t('tourWizard.step2.alignment.center')}
+                      >
+                        <div className="align-icon center-align">
+                          <div className="line"></div>
+                          <div className="line"></div>
+                          <div className="line"></div>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`align-btn ${day.titleAlignment === 'right' ? 'active' : ''}`}
+                        onClick={() => {
+                          const currentAlignment = day.titleAlignment || 'left';
+                          if (currentAlignment === 'right') {
+                            updateDay(index, 'titleAlignment', 'left');
+                          } else {
+                            updateDay(index, 'titleAlignment', 'right');
+                          }
+                        }}
+                        title={t('tourWizard.step2.alignment.right')}
+                      >
+                        <div className="align-icon right-align">
+                          <div className="line"></div>
+                          <div className="line"></div>
+                          <div className="line"></div>
+                        </div>
+                      </button>
+                    </div>
+                    {day.dayTitle && (
+                      <button
+                        type="button"
+                        className="reset-title-btn"
+                        onClick={() => updateDay(index, 'dayTitle', '')}
+                        title={t('tourWizard.step2.titles.clearDayTitle')}
+                      >
+                        ↺
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <span className="day-description">({day.dayDescription || 'Ăn trưa – tối'})</span>
+                <span className="day-description">({day.dayDescription || t('tourWizard.step2.day.defaultMeal')})</span>
                 <div className="color-picker-container">
                   <div className="color-presets">
                     {[
@@ -659,14 +796,14 @@ const Step2Itinerary = () => {
                         className={`color-preset ${day.dayColor === color ? 'active' : ''}`}
                         style={{ backgroundColor: color }}
                         onClick={() => updateDay(index, 'dayColor', color)}
-                        title={`Chọn màu ${color}`}
+                        title={t('tourWizard.step2.color.choose', { color })}
                       />
                     ))}
                   </div>
                   <button
                     type="button"
                     className="custom-color-btn"
-                    title="Tùy chỉnh màu sắc"
+                    title={t('tourWizard.step2.color.customize')}
                     onClick={() => {
                       setCurrentTarget(index);
                       setCustomColor(day.dayColor || '#4caf50');
@@ -681,7 +818,7 @@ const Step2Itinerary = () => {
 
             <div className="day-content">
               <div className="form-group">
-                <label className="form-label">Hoạt động & địa điểm *</label>
+                <label className="form-label">{t('tourWizard.step2.activities.label')}</label>
                 <Editor
                   apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
                   value={day.activities}
@@ -694,23 +831,23 @@ const Step2Itinerary = () => {
                 <button
                   type="button"
                   className="btn-add-small"
-                  title="Thêm nội dung sau"
+                  title={t('tourWizard.step2.actions.addContentAfter')}
                   onClick={() => addItineraryDayAfter(index)}
                 >
-                  + Thêm nội dung
+                  {t('tourWizard.step2.actions.addContent')}
                 </button>
                 <button
                   type="button"
                   className="btn-remove-small"
-                  title="Xóa nội dung này"
+                  title={t('tourWizard.step2.actions.removeThis')}
                   onClick={() => removeItineraryDay(index)}
                 >
-                  − Xóa nội dung
+                  {t('tourWizard.step2.actions.removeContent')}
                 </button>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Hình ảnh minh họa (tối đa 5 ảnh)</label>
+                <label className="form-label">{t('tourWizard.step2.images.label')}</label>
                 <input
                   type="file"
                   multiple
@@ -732,13 +869,14 @@ const Step2Itinerary = () => {
               {/* Services */}
               <div className="services-section">
                 <div className="services-header">
-                  <label className="form-label">Dịch vụ kèm theo</label>
+                  <label className="form-label">{t('tourWizard.step2.services.title')}</label>
                   <button 
                     type="button" 
                     className="btn-add-small"
                     onClick={() => addService(index)}
+                    title={t('tourWizard.step2.services.add')}
                   >
-                    + Thêm dịch vụ
+                    {t('tourWizard.step2.services.add')}
                   </button>
                 </div>
 
@@ -749,21 +887,21 @@ const Step2Itinerary = () => {
                       onChange={(e) => updateService(index, serviceIndex, 'type', e.target.value)}
                       className="form-select"
                     >
-                      <option value="food">Ăn uống</option>
-                      <option value="ticket">Vé tham quan</option>
-                      <option value="transport">Vận chuyển</option>
-                      <option value="other">Khác</option>
+                      <option value="food">{t('tourWizard.step2.services.types.food')}</option>
+                      <option value="ticket">{t('tourWizard.step2.services.types.ticket')}</option>
+                      <option value="transport">{t('tourWizard.step2.services.types.transport')}</option>
+                      <option value="other">{t('tourWizard.step2.services.types.other')}</option>
                     </select>
                     <input
                       type="text"
-                      placeholder="Tên dịch vụ"
+                      placeholder={t('tourWizard.step2.services.placeholders.name')}
                       value={service.name}
                       onChange={(e) => updateService(index, serviceIndex, 'name', e.target.value)}
                       className="form-input"
                     />
                     <input
                       type="number"
-                      placeholder="Giá (VNĐ)"
+                      placeholder={t('tourWizard.step2.services.placeholders.price')}
                       value={service.price}
                       onChange={(e) => updateService(index, serviceIndex, 'price', e.target.value)}
                       className="form-input"
@@ -772,8 +910,9 @@ const Step2Itinerary = () => {
                       type="button" 
                       className="btn-remove-small"
                       onClick={() => removeService(index, serviceIndex)}
+                      title={t('common.delete')}
                     >
-                      X
+                      {t('common.delete')}
                     </button>
                   </div>
                 ))}
@@ -782,6 +921,8 @@ const Step2Itinerary = () => {
           </div>
         ))}
       </div>
+
+      {/* Appendices Section removed */}
 
     </div>
   );

@@ -18,7 +18,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess, showBatch } = useToast();
   const navigate = useNavigate();
 
 
@@ -83,7 +83,7 @@ const Register = () => {
     }
 
     if (validationErrors.length > 0) {
-      validationErrors.forEach(msg => showError(msg));
+      showBatch(validationErrors, 'error', 5000);
       setLoading(false);
       return;
     }

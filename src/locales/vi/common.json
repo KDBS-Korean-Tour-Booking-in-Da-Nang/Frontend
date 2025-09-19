@@ -26,9 +26,38 @@
 		"close": "Đóng",
 		"cancel": "Hủy",
 		"delete": "Xóa",
+		"processing": "Đang xử lý...",
+		"item": "mục này",
+		"modal": {
+			"confirmLeave": {
+				"title": "Rời khỏi trình tạo tour?",
+				"message": "Nếu bạn thoát ra bây giờ, dữ liệu đang nhập sẽ không được lưu.",
+				"stay": "Ở lại",
+				"leave": "Thoát"
+			}
+		},
 		"deleteConfirm": {
 			"title": "Xác nhận xóa",
-			"message": "Bạn có chắc chắn muốn xóa {{item}} này không? Hành động này không thể hoàn tác."
+			"message": "Bạn có chắc chắn muốn xóa {{item}} này không? Hành động này không thể hoàn tác.",
+			"warning": "Hành động này không thể hoàn tác."
+		}
+		,
+		"tourTypes": {
+			"resort": "Nghỉ dưỡng",
+			"culture": "Văn hóa",
+			"adventure": "Mạo hiểm",
+			"teamBuilding": "Team Building",
+			"food": "Ẩm thực",
+			"photography": "Nhiếp ảnh",
+			"religious": "Tâm linh",
+			"other": "Khác"
+		}
+		,
+		"departurePoints": {
+			"daNang": "Đà Nẵng"
+		},
+		"vehicles": {
+			"tourBus": "Xe Du Lịch"
 		}
 	},
 	"auth": {
@@ -752,21 +781,22 @@
 		"navigation": {
 			"back": "Quay lại",
 			"next": "Tiếp theo",
-			"complete": "Hoàn thành"
+			"complete": "Hoàn thành",
+			"creating": "Đang tạo..."
 		},
 		"step1": {
 			"title": "Thông tin cơ bản",
 			"subtitle": "Nhập thông tin cơ bản của tour",
-			"fields": {
-				"tourName": "Tên tour *",
-				"tourType": "Loại hình tour *",
-				"departurePoint": "Điểm khởi hành",
-				"vehicle": "Phương tiện",
-				"duration": "Số ngày *",
-				"nights": "Số đêm *",
-				"maxCapacity": "Số chỗ tối đa *",
-				"bookingDeadline": "Hạn chót đặt chỗ *"
-			},
+            "fields": {
+                "tourName": "Tên tour",
+                "tourType": "Loại hình tour",
+                "departurePoint": "Điểm khởi hành *",
+                "vehicle": "Phương tiện *",
+                "duration": "Số ngày",
+                "nights": "Số đêm",
+                "maxCapacity": "Số chỗ tối đa",
+                "bookingDeadline": "Hạn chót đặt chỗ"
+            },
 			"placeholders": {
 				"tourName": "Ví dụ: Tour Đà Nẵng - Hội An 3N2Đ, Tour Hàn Quốc 5N4Đ",
 				"duration": "Ví dụ: 3",
@@ -779,6 +809,10 @@
 				"vehicle": "Phương tiện mặc định: Xe Du Lịch",
 				"bookingDeadline": "Thời gian hạn chót để khách hàng đặt tour"
 			},
+			"hints": {
+				"nightsSuggestion": "Gợi ý: {{suggest}} đêm (cho {{days}} ngày).",
+				"allowedNights": "Cho phép: {{allowed}} đêm."
+			},
 			"summary": {
 				"title": "Tóm tắt thông tin",
 				"tourName": "Tên tour:",
@@ -786,6 +820,8 @@
 				"departurePoint": "Điểm khởi hành:",
 				"vehicle": "Phương tiện:",
 				"duration": "Thời gian:",
+				"days": "ngày",
+				"nights": "đêm",
 				"maxCapacity": "Số chỗ tối đa:",
 				"bookingDeadline": "Hạn đặt chỗ:",
 				"notEntered": "Chưa nhập",
@@ -794,8 +830,42 @@
 			}
 		},
 		"step2": {
+			"prefix": {
+				"day": "NGÀY {{n}}",
+				"chapter": "CHƯƠNG {{n}}",
+				"session": "BUỔI {{n}}"
+			},
 			"title": "Lịch trình chi tiết",
 			"subtitle": "Thiết lập chi tiết lịch trình từng ngày",
+			"fields": {
+				"tourSchedule": "Lịch trình tóm tắt"
+			},
+			"tourSchedule": {
+				"description": "Nhập tóm tắt lịch trình tour (ví dụ: Huế - Gala Dinner - Thanh Tân - Teambuilding)",
+				"placeholder": "Nhập tóm tắt lịch trình tour..."
+			},
+			"placeholders": {
+				"dayTitle": "Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)"
+			},
+			"day": {
+				"defaultMeal": "Ăn trưa – tối"
+			},
+			"activities": {
+				"label": "Hoạt động & địa điểm"
+			},
+			"images": {
+				"label": "Hình ảnh minh họa (tối đa 5 ảnh)"
+			},
+			"actions": {
+				"addContentAfter": "Thêm nội dung sau",
+				"addContent": "+ Thêm nội dung",
+				"removeThis": "Xóa nội dung này",
+				"removeContent": "− Xóa nội dung"
+			},
+			"services": {
+				"title": "Dịch vụ kèm theo",
+				"add": "+ Thêm dịch vụ"
+			},
 			"instructions": {
 				"title": "💡 Hướng dẫn:",
 				"description": "Bạn có thể tùy chỉnh hoàn toàn các tiêu đề trong lịch trình:",
@@ -804,14 +874,20 @@
 				"dayTitle": "Tiêu đề ngày:",
 				"examples": "📝 Ví dụ tiêu đề ngày:"
 			},
-			"tourDescription": {
-				"title": "Mô tả tour *",
+			"examples": {
+				"c1": "ĐÀ NẴNG – HUẾ - GALA DINNER",
+				"c2": "HỘI AN - LÀNG GỐM THANH HÀ",
+				"c3": "BA NA HILLS - CẦU VÀNG",
+				"c4": "ĐÀ NẴNG"
+			},
+            "tourDescription": {
+                "title": "Mô tả tour",
 				"description": "Mô tả tổng quan về tour, điểm nổi bật và lợi ích cho khách hàng",
 				"placeholder": "Nhập mô tả văn bản (không chèn hình ảnh)..."
 			},
 			"itinerary": {
 				"mainSectionTitle": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
-				"activities": "Hoạt động & địa điểm *",
+                "activities": "Hoạt động & địa điểm",
 				"images": "Hình ảnh minh họa (tối đa 5 ảnh)",
 				"services": "Dịch vụ kèm theo",
 				"addService": "+ Thêm dịch vụ",
@@ -837,9 +913,9 @@
 		"step3": {
 			"title": "Giá & chính sách",
 			"subtitle": "Thiết lập giá và chính sách tour",
-			"pricing": {
+            "pricing": {
 				"title": "Giá tour",
-				"adultPrice": "Giá người lớn (≥ 12 tuổi) *",
+                "adultPrice": "Giá người lớn (≥ 12 tuổi)",
 				"childrenPrice": "Giá trẻ em (2-11 tuổi)",
 				"babyPrice": "Giá em bé (dưới 2 tuổi)",
 				"unit": "VNĐ / người",
@@ -1085,6 +1161,13 @@
 			}
 		}
 	},
+	"tourCard": {
+		"welcome": {
+			"explore": "Khám phá",
+			"dream": "Điểm đến mơ ước"
+		},
+		"viewDetails": "Xem Chi Tiết"
+	},
 	"tourList": {
 		"hero": {
 			"title": "Tour du lịch Đà Nẵng trong nước và quốc tế các điểm hấp dẫn",
@@ -1110,8 +1193,14 @@
 		},
 		"loadMore": "Xem thêm"
 	},
-	"tourCard": {
-		"featured": "Nổi bật",
+    "tourCard": {
+        "welcome": {
+            "explore": "Khám phá",
+            "dream": "Điểm đến mơ ước"
+        },
+        "viewDetails": "Xem Chi Tiết",
+		"sampleTitle": "Tour mẫu",
+        "featured": "Nổi bật",
 		"children": "Trẻ em:",
 		"baby": "Em bé:",
 		"details": "CHI TIẾT",

@@ -10,22 +10,21 @@ export const useStepValidation = (tourData) => {
   const stepValidations = useMemo(() => ({
     step1: {
       isValid: !!(tourData.tourName && tourData.departurePoint && 
-                 tourData.duration && tourData.nights && tourData.tourType),
+                 tourData.duration && tourData.nights && tourData.tourType && tourData.maxCapacity),
       missingFields: [
         !tourData.tourName && 'tourWizard.step1.fields.tourName',
         !tourData.departurePoint && 'tourWizard.step1.fields.departurePoint',
         !tourData.duration && 'tourWizard.step1.fields.duration',
         !tourData.nights && 'tourWizard.step1.fields.nights',
-        !tourData.tourType && 'tourWizard.step1.fields.tourType'
+        !tourData.tourType && 'tourWizard.step1.fields.tourType',
+        !tourData.maxCapacity && 'tourWizard.step1.fields.maxCapacity'
       ].filter(Boolean)
     },
     step2: {
-      isValid: !!(tourData.itinerary && tourData.itinerary.length > 0 && 
-                 tourData.maxCapacity && tourData.bookingDeadline),
+      isValid: !!(tourData.itinerary && tourData.itinerary.length > 0 && tourData.tourSchedule),
       missingFields: [
         (!tourData.itinerary || tourData.itinerary.length === 0) && 'tourWizard.step2.title',
-        !tourData.maxCapacity && 'tourWizard.step1.fields.maxCapacity',
-        !tourData.bookingDeadline && 'tourWizard.step1.fields.bookingDeadline'
+        !tourData.tourSchedule && 'tourWizard.step2.fields.tourSchedule'
       ].filter(Boolean)
     },
     step3: {
