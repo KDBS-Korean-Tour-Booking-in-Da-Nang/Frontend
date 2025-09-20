@@ -124,7 +124,9 @@ const TourPreview = () => {
               <div className="detail-item">
                 <span className="detail-label">Lịch trình:</span>
                 <span className="detail-value">
-                  <button className="schedule-btn">Xem chi tiết</button>
+                  <div className="schedule-content">
+                    Khám phá vùng đất Lệ Giang Shangrila với những cảnh quan thiên nhiên tuyệt đẹp, trải nghiệm văn hóa địa phương độc đáo và thưởng thức ẩm thực truyền thống.
+                  </div>
                 </span>
               </div>
             </div>
@@ -206,7 +208,13 @@ const TourPreview = () => {
             <div className="detail-item">
               <span className="detail-label">Lịch trình:</span>
               <span className="detail-value">
-                <button className="schedule-btn">Xem chi tiết</button>
+                {tour.tourSchedule ? (
+                  <div className="schedule-content">
+                    {tour.tourSchedule}
+                  </div>
+                ) : (
+                  <span className="no-schedule">Chưa có lịch trình</span>
+                )}
               </span>
             </div>
           </div>

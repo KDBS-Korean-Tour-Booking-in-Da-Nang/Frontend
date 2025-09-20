@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { TourBookingProvider, useBooking } from '../../contexts/TourBookingContext';
+import { formatBookingData, validateBookingData } from '../../utils/bookingFormatter';
+import { useAuth } from '../../contexts/AuthContext';
 import Step1Contact from './steps/Step1Contact';
 import Step2Details from './steps/Step2Details';
 import Step3Review from './steps/Step3Review';
@@ -15,18 +17,34 @@ const STEPS = [
 
 // Inner component that uses the booking context
 const BookingWizardContent = () => {
-  const { tourId } = useParams();
+  const { id: tourId } = useParams();
   const navigate = useNavigate();
-  const { showToast } = useToast();
-  const { resetBooking, contact, plan } = useBooking();
+  const { showError } = useToast();
+  const { user, loading: authLoading } = useAuth();
+  const { 
+    resetBooking, 
+    contact, 
+    plan, 
+    booking
+  } = useBooking();
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+
+  // Authentication guard
+  useEffect(() => {
+    if (!authLoading && !user) {
+      // Store current URL to return after login
+      localStorage.setItem('returnAfterLogin', window.location.pathname);
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
 
   // Reset booking when component mounts or tourId changes
   useEffect(() => {
-    resetBooking();
-  }, [tourId, resetBooking]);
+    if (user) {
+      resetBooking();
+    }
+  }, [tourId, resetBooking, user]);
 
   const handleNext = () => {
     // Add validation logic here if needed
@@ -42,24 +60,22 @@ const BookingWizardContent = () => {
   };
 
   const handleConfirm = () => {
-    // Prepare complete booking data
-    const bookingData = {
-      contact,
-      plan,
-      timestamp: new Date().toISOString(),
-      status: 'confirmed'
-    };
-
-    // Log to console as requested
-    console.log('Booking Confirmed:', bookingData);
+    // Validate booking data before proceeding to payment
+    const bookingData = formatBookingData({ contact, plan }, tourId);
+    const validation = validateBookingData(bookingData);
     
-    setIsConfirmed(true);
-    showToast('Đã xác nhận đặt tour thành công! (Demo - Frontend only)', 'success');
+    if (!validation.isValid) {
+      showError(`Dữ liệu không hợp lệ: ${validation.errors.join(', ')}`);
+      return;
+    }
     
-    // Optional: Navigate back to tour detail after a delay
-    setTimeout(() => {
-      navigate(`/tour/${tourId}`);
-    }, 2000);
+    // Navigate to payment page with booking data (not yet created in DB)
+    navigate('/payment/vnpay', {
+      state: {
+        bookingData: bookingData, // Use formatted data, not created booking
+        tourId: tourId
+      }
+    });
   };
 
   const isStepCompleted = (stepId) => {
@@ -86,20 +102,42 @@ const BookingWizardContent = () => {
     }
   };
 
-  if (isConfirmed) {
+  // Show loading while checking authentication
+  if (authLoading) {
     return (
       <div className="tour-booking-wizard">
         <div className="step-content">
-          <div className="success-message">
-            <h1>Đặt tour thành công!</h1>
-            <p>Cảm ơn bạn đã đặt tour. Thông tin đã được ghi nhận.</p>
-            <p>Đây là demo frontend, không có kết nối API thực tế.</p>
-            <p>Bạn sẽ được chuyển về trang chi tiết tour trong giây lát...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Đang kiểm tra xác thực...</p>
           </div>
         </div>
       </div>
     );
   }
+
+  // Show login required message if not authenticated
+  if (!user) {
+    return (
+      <div className="tour-booking-wizard">
+        <div className="step-content">
+          <div className="auth-required">
+            <h2>🔒 Yêu cầu đăng nhập</h2>
+            <p>Bạn cần đăng nhập để đặt tour.</p>
+            <button 
+              type="button"
+              className="btn-primary"
+              onClick={() => navigate('/login')}
+            >
+              Đăng nhập
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Note: Success and error handling is now done via redirect to SuccessPage/FailPage
 
   return (
     <div className="tour-booking-wizard">
@@ -113,30 +151,22 @@ const BookingWizardContent = () => {
         </div>
         <div className="progress-steps">
           {STEPS.map((step) => (
-            <div 
+            <button 
               key={step.id} 
-              className={`progress-step ${
-                currentStep === step.id 
-                  ? 'active' 
-                  : isStepCompleted(step.id) 
-                    ? 'completed' 
-                    : ''
-              }`}
+              type="button"
+              className={(() => {
+                if (currentStep === step.id) return 'progress-step active';
+                if (isStepCompleted(step.id)) return 'progress-step completed';
+                return 'progress-step';
+              })()}
               onClick={() => handleStepClick(step.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleStepClick(step.id);
-                }
-              }}
-              tabIndex={0}
             >
               <div className="step-number">{step.id}</div>
               <div className="step-info">
                 <div className="step-title">{step.title}</div>
                 <div className="step-description">{step.description}</div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -170,8 +200,19 @@ const BookingWizardContent = () => {
             type="button" 
             className="btn-success" 
             onClick={handleConfirm}
+            disabled={booking.loading}
           >
-            Xác nhận đặt tour
+            {(() => {
+              if (booking.loading) {
+                return (
+                  <>
+                    <span className="loading-spinner-small"></span>
+                    {' '}Đang xử lý...
+                  </>
+                );
+              }
+              return 'Xác nhận đặt tour';
+            })()}
           </button>
         )}
       </div>

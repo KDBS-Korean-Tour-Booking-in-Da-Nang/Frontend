@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { useBooking } from '../../../contexts/TourBookingContext';
-import { PRICE, formatPrice } from '../../../utils/priceRules';
+import { formatPrice } from '../../../utils/priceRules';
 import './Step2Details.css';
 
 const Step2Details = () => {
+  const { id: tourId } = useParams();
   const { 
     plan, 
     setDate, 
@@ -16,12 +18,100 @@ const Step2Details = () => {
 
   const [errors, setErrors] = useState({});
   const [confirmedNationalities, setConfirmedNationalities] = useState({});
+  const [tourPrices, setTourPrices] = useState({
+    adult: null,
+    child: null,
+    infant: null
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch tour data and prices
+  const loadTourPrices = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch tour data directly (public endpoint)
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+      
+      const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const tourData = await response.json();
+      console.log('Raw tour data from API:', tourData); // Debug log
+      
+       // Extract prices from tour data - only use real prices from database
+       const prices = {
+         adult: tourData.adultPrice !== null && tourData.adultPrice !== undefined ? Number(tourData.adultPrice) : null,
+         child: tourData.childrenPrice !== null && tourData.childrenPrice !== undefined ? Number(tourData.childrenPrice) : null,
+         infant: tourData.babyPrice !== null && tourData.babyPrice !== undefined ? Number(tourData.babyPrice) : null
+       };
+      
+      console.log('Extracted prices:', {
+        adultPrice: tourData.adultPrice,
+        childrenPrice: tourData.childrenPrice,
+        babyPrice: tourData.babyPrice,
+        processed: prices
+      }); // Debug log
+      
+       // Check if prices are null or 0
+       if (tourData.adultPrice === null || tourData.adultPrice === undefined) {
+         console.warn('⚠️ Adult price is null:', tourData.adultPrice);
+       } else if (tourData.adultPrice === 0) {
+         console.info('ℹ️ Adult price is 0 (Miễn phí):', tourData.adultPrice);
+       }
+       if (tourData.childrenPrice === null || tourData.childrenPrice === undefined) {
+         console.warn('⚠️ Children price is null:', tourData.childrenPrice);
+       } else if (tourData.childrenPrice === 0) {
+         console.info('ℹ️ Children price is 0 (Miễn phí):', tourData.childrenPrice);
+       }
+       if (tourData.babyPrice === null || tourData.babyPrice === undefined) {
+         console.warn('⚠️ Baby price is null:', tourData.babyPrice);
+       } else if (tourData.babyPrice === 0) {
+         console.info('ℹ️ Baby price is 0 (Miễn phí):', tourData.babyPrice);
+       }
+      
+      setTourPrices(prices);
+      console.log('Tour prices loaded:', prices); // Debug log
+    } catch (error) {
+      console.error('Error loading tour prices:', error);
+      
+      // Set prices to null if API fails - no fallback prices
+      setTourPrices({
+        adult: null,
+        child: null,
+        infant: null
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [tourId]);
+
+  useEffect(() => {
+    if (tourId) {
+      loadTourPrices();
+    }
+  }, [tourId, loadTourPrices]);
 
   // Update members when pax changes
   useEffect(() => {
     rebuildMembers();
-    recalcTotal();
-  }, [plan.pax, rebuildMembers, recalcTotal]);
+  }, [plan.pax, rebuildMembers]);
+
+  // Recalculate total when prices or pax change
+  useEffect(() => {
+    // Only recalculate if we have real prices from database
+    if (tourPrices.adult !== null || tourPrices.child !== null || tourPrices.infant !== null) {
+      recalcTotal(tourPrices);
+    }
+  }, [plan.pax, tourPrices, recalcTotal]);
 
   // Validate form
   useEffect(() => {
@@ -106,12 +196,25 @@ const Step2Details = () => {
   };
 
   const getMemberTypePrice = (type) => {
-    switch (type) {
-      case 'adult': return formatPrice(PRICE.ADULT);
-      case 'child': return formatPrice(PRICE.CHILD);
-      case 'infant': return formatPrice(PRICE.INFANT);
-      default: return '0 VND';
-    }
+    const price = (() => {
+      switch (type) {
+        case 'adult': return tourPrices.adult;
+        case 'child': return tourPrices.child;
+        case 'infant': return tourPrices.infant;
+        default: return null;
+      }
+    })();
+    
+    const formattedPrice = (() => {
+      if (price === null) return 'Chưa có giá';
+      if (price === 0) return 'Miễn phí';
+      return formatPrice(price);
+    })();
+    console.log(`Price for ${type}:`, price, 'Formatted:', formattedPrice); // Debug log
+    
+    if (price === null) return 'Chưa có giá';
+    if (price === 0) return 'Miễn phí';
+    return formatPrice(price);
   };
 
   const renderMemberForm = (memberType, members) => {
@@ -220,6 +323,18 @@ const Step2Details = () => {
     );
   };
 
+  // Show loading state while fetching tour prices
+  if (loading) {
+    return (
+      <div className="details-form">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tải thông tin giá tour...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="details-form">
       {/* Date Selection */}
@@ -290,9 +405,16 @@ const Step2Details = () => {
       <div className="form-section">
         <h3 className="section-title">Tổng số khách</h3>
         <div className="pax-section">
-          <div className="pax-card">
-            <div className="pax-title">Người lớn</div>
-            <div className="pax-price">{formatPrice(PRICE.ADULT)}</div>
+           <div className="pax-card">
+             <div className="pax-title">Người lớn</div>
+             <div className="pax-price">
+               {(() => {
+                 if (tourPrices.adult === null) return 'Chưa có giá';
+                 if (tourPrices.adult === 0) return 'Miễn phí';
+                 return formatPrice(tourPrices.adult);
+               })()}
+             </div>
+             {/* Debug: {console.log('Adult price in render:', tourPrices.adult)} */}
             <div className="pax-counter">
               <button
                 className="pax-button decrement"
@@ -312,9 +434,15 @@ const Step2Details = () => {
             </div>
           </div>
 
-          <div className="pax-card">
-            <div className="pax-title">Trẻ em</div>
-            <div className="pax-price">{formatPrice(PRICE.CHILD)}</div>
+           <div className="pax-card">
+             <div className="pax-title">Trẻ em</div>
+             <div className="pax-price">
+               {(() => {
+                 if (tourPrices.child === null) return 'Chưa có giá';
+                 if (tourPrices.child === 0) return 'Miễn phí';
+                 return formatPrice(tourPrices.child);
+               })()}
+             </div>
             <div className="pax-counter">
               <button
                 className="pax-button decrement"
@@ -333,9 +461,15 @@ const Step2Details = () => {
             </div>
           </div>
 
-          <div className="pax-card">
-            <div className="pax-title">Em bé</div>
-            <div className="pax-price">{formatPrice(PRICE.INFANT)}</div>
+           <div className="pax-card">
+             <div className="pax-title">Em bé</div>
+             <div className="pax-price">
+               {(() => {
+                 if (tourPrices.infant === null) return 'Chưa có giá';
+                 if (tourPrices.infant === 0) return 'Miễn phí';
+                 return formatPrice(tourPrices.infant);
+               })()}
+             </div>
             <div className="pax-counter">
               <button
                 className="pax-button decrement"
