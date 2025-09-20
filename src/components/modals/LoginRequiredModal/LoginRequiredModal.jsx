@@ -79,13 +79,13 @@ const LoginRequiredModal = ({ isOpen, onClose, title, message, redirectTo = '/lo
             className="login-required-modal-cancel" 
             onClick={handleClose}
           >
-            {i18n.language === 'vi' ? 'Hủy' : i18n.language === 'ko' ? '취소' : 'Cancel'}
+            {getTranslation('common.cancel', 'Cancel')}
           </button>
           <button 
             className="login-required-modal-login" 
             onClick={handleLogin}
           >
-            {i18n.language === 'vi' ? 'Đăng nhập' : i18n.language === 'ko' ? '로그인' : 'Login'}
+            {getTranslation('auth.common.login', 'Login')}
           </button>
         </div>
       </div>

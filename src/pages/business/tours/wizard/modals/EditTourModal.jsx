@@ -99,10 +99,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     childrenPrice: '',
     babyPrice: '',
     tourStatus: 'ACTIVE',
-    bookingDeadline: '',
     
     // Step 2: Itinerary
     itinerary: [],
+    tourSchedule: '',
     
     // Step 3: Pricing
     surcharges: []
@@ -148,7 +148,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         childrenPrice: tour.childrenPrice || '',
         babyPrice: tour.babyPrice || '',
         tourStatus: tour.tourStatus || 'ACTIVE',
-        bookingDeadline: toDatetimeLocalValue(tour.bookingDeadline),
         
         // Step 2: Itinerary - normalize from backend contents
         itinerary: Array.isArray(tour.contents)
@@ -159,6 +158,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
               images: c.images || []
             }))
           : [],
+        tourSchedule: tour.tourSchedule || '',
         
         // Step 3: Pricing
         surcharges: tour.surcharges ? (() => {
@@ -319,9 +319,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         adultPrice: parseFloat(formData.adultPrice) || 0,
         childrenPrice: parseFloat(formData.childrenPrice) || 0,
         babyPrice: parseFloat(formData.babyPrice) || 0,
-        tourSchedule: tour.tourSchedule || '',
-        bookingDeadline: formData.bookingDeadline || null,
-        surcharges: JSON.stringify(formData.surcharges || []),
+        tourSchedule: formData.tourSchedule || '',
         contents: (formData.itinerary || []).map((day, index) => ({
           tourContentTitle: day.title || `Ngày ${index + 1}`,
           tourContentDescription: day.description || '',
@@ -522,23 +520,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     </div>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="bookingDeadline">{t('tourManagement.edit.basic.fields.bookingDeadline')}</label>
-                      <input
-                        type="datetime-local"
-                        id="bookingDeadline"
-                        name="bookingDeadline"
-                        value={formData.bookingDeadline}
-                        min={nowLocalDateTime()}
-                        onChange={(e) => {
-                          const min = new Date(nowLocalDateTime());
-                          const picked = new Date(e.target.value);
-                          setFormData(prev => ({ ...prev, bookingDeadline: picked < min ? nowLocalDateTime() : e.target.value }));
-                        }}
-                      />
-                    </div>
-                  </div>
+                  
 
                   {/* Removed pricing inputs from Basic tab; pricing is handled in the Pricing tab */}
                 </div>
@@ -548,6 +530,19 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             {activeTab === 'itinerary' && (
               <div className="form-section">
                 <h3>{t('tourManagement.edit.itinerary.title')}</h3>
+                
+                {/* Tour Schedule Summary */}
+                <div className="form-group">
+                  <label htmlFor="tourSchedule">{t('tourWizard.step2.fields.tourSchedule')}</label>
+                  <input
+                    type="text"
+                    id="tourSchedule"
+                    name="tourSchedule"
+                    value={formData.tourSchedule || ''}
+                    onChange={handleInputChange}
+                    placeholder="Nhập tóm tắt lịch trình tour..."
+                  />
+                </div>
                 
                 {/* Itinerary Days */}
                 <div className="itinerary-section">

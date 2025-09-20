@@ -8,7 +8,7 @@ import './payment.css';
 const Payment = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess, showBatch } = useToast();
   const [activeTab, setActiveTab] = useState('deposit');
 
   const tabs = [
@@ -118,10 +118,7 @@ const DepositTab = ({ showError, showSuccess }) => {
 
     // Show all errors if any
     if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+      showBatch(errors, 'error', 5000);
       return;
     }
 
@@ -222,10 +219,7 @@ const WithdrawTab = ({ showError, showSuccess }) => {
 
     // Show all errors if any
     if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+      showBatch(errors, 'error', 5000);
       return;
     }
 

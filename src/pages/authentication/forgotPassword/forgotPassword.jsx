@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
-import './forgotPassword.css';
+import { KeyIcon } from '@heroicons/react/24/outline';
+import styles from './forgotPassword.module.css';
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -158,65 +159,60 @@ const ForgotPassword = () => {
   // Show OTP form after email is sent
   if (sent && !verified) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {t('auth.verify.title')}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t('auth.verify.subtitle', { email })}
-          </p>
-        </div>
-
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <form className="space-y-6" onSubmit={handleVerifyOTP}>
-              <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+      <div className={styles['forgot-container']}>
+        <div className={styles['forgot-content']}>
+          <div className={styles['forgot-form-section']}>
+            <div className={styles['forgot-header']}>
+              <div className={styles['forgot-logo']}>
+                <KeyIcon className="h-8 w-8 text-white" />
+              </div>
+              <h2 className={styles['forgot-title']}>
+                {t('auth.verify.title')}
+              </h2>
+              <p className={styles['forgot-subtitle']}>
+                {t('auth.verify.subtitle', { email })}
+              </p>
+            </div>
+            <form className={styles['forgot-form']} onSubmit={handleVerifyOTP}>
+              <div className={styles['form-group']}>
+                <label htmlFor="otp" className={styles['form-label']}>
                   {t('auth.common.otp')}
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="otp"
-                    name="otp"
-                    type="text"
-                    required
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary text-center text-lg tracking-widest"
-                    placeholder={t('auth.common.otpPlaceholder')}
-                    maxLength="6"
-                  />
-                </div>
-                <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
+                <input
+                  id="otp"
+                  name="otp"
+                  type="text"
+                  required
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className={`${styles['form-input']} ${styles['otp-input']}`}
+                  placeholder={t('auth.common.otpPlaceholder')}
+                  maxLength="6"
+                />
+                <p className={styles['forgot-subtitle']}>{t('auth.verify.helper')}</p>
               </div>
 
-              
-
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={otpLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {otpLoading ? t('auth.verify.submitting') : t('auth.verify.submit')}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={otpLoading}
+                className={styles['forgot-button']}
+              >
+                {otpLoading ? t('auth.verify.submitting') : t('auth.verify.submit')}
+              </button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+            <div className={styles['resend-section']}>
+              <p className={styles['resend-text']}>
                 {t('auth.common.notReceivedCode')}{' '}
                 {countdown > 0 ? (
-                  <span className="text-gray-400">
+                  <span className={styles['resend-text']}>
                     {t('auth.common.resendIn', { seconds: countdown })}
                   </span>
                 ) : (
                   <button
                     onClick={handleResendOTP}
                     disabled={resendLoading}
-                    className="text-primary hover:text-primary-hover disabled:opacity-50"
+                    className={styles['resend-button']}
                   >
                     {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
                   </button>
@@ -224,14 +220,14 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            <div className="mt-6 text-center">
+            <div className={styles['login-link']}>
               <button
                 onClick={() => {
                   setSent(false);
                   setOtp('');
                   setCountdown(0);
                 }}
-                className="text-sm text-gray-600 hover:text-gray-500"
+                className={styles['back-button']}
               >
                 {t('auth.common.backToForgot')}
               </button>
@@ -243,55 +239,51 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {t('auth.forgot.title')}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.forgot.subtitle')}
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+    <div className={styles['forgot-container']}>
+      <div className={styles['forgot-content']}>
+        <div className={styles['forgot-form-section']}>
+          <div className={styles['forgot-header']}>
+            <div className={styles['forgot-logo']}>
+              <KeyIcon className="h-8 w-8 text-white" />
+            </div>
+            <h2 className={styles['forgot-title']}>
+              {t('auth.forgot.title')}
+            </h2>
+            <p className={styles['forgot-subtitle']}>
+              {t('auth.forgot.subtitle')}
+            </p>
+          </div>
+          <form className={styles['forgot-form']} onSubmit={handleSubmit}>
+            <div className={styles['form-group']}>
+              <label htmlFor="email" className={styles['form-label']}>
                 {t('auth.common.email')}
               </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
-                />
-              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={styles['form-input']}
+                placeholder="user@example.com"
+              />
             </div>
 
-            
-            
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? t('auth.forgot.sending') : t('auth.forgot.submit')}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles['forgot-button']}
+            >
+              {loading ? t('auth.forgot.sending') : t('auth.forgot.submit')}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className={styles['login-link']}>
             <Link
               to="/login"
-              className="text-sm text-primary hover:text-primary-hover"
+              className={styles['login-link-text']}
             >
               {t('auth.common.backToLogin')}
             </Link>

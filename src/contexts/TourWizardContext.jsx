@@ -11,17 +11,17 @@ export const TourWizardProvider = ({ children }) => {
     nights: '',
     tourType: '',
     maxCapacity: '',
-    bookingDeadline: '',
     
     // Step 2: Itinerary
     itinerary: [],
+    tourSchedule: '', // User-defined schedule summary
     mainSectionTitle: 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
     
     // Step 3: Pricing
     adultPrice: '',
     childrenPrice: '',
     babyPrice: '',
-    surcharges: [],
+    
     
     // Step 4: Media
     thumbnail: null
@@ -39,13 +39,13 @@ export const TourWizardProvider = ({ children }) => {
       nights: '',
       tourType: '',
       maxCapacity: '',
-      bookingDeadline: '',
       itinerary: [],
+      tourSchedule: '',
       mainSectionTitle: 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
       adultPrice: '',
       childrenPrice: '',
       babyPrice: '',
-      surcharges: [],
+      
       thumbnail: null
     });
   };

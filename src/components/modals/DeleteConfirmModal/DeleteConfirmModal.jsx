@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import './DeleteConfirmModal.css';
 
@@ -25,13 +26,14 @@ const DeleteConfirmModal = ({
   title,
   message,
   itemName,
-  confirmText = 'Xóa',
-  cancelText = 'Hủy',
+  confirmText,
+  cancelText,
   icon = '⚠️',
   danger = true,
   disableBackdropClose = false,
   children
 }) => {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const confirmBtnRef = useRef(null);
   const modalContainerRef = useRef(null);
@@ -94,7 +96,7 @@ const DeleteConfirmModal = ({
         <div className="modal-panel">
           <div className="modal-header">
             <div className="warning-icon" aria-hidden>{icon}</div>
-            <h2 id="confirm-title">{title || 'Xác nhận xóa'}</h2>
+            <h2 id="confirm-title">{title || t('common.deleteConfirm.title')}</h2>
             <button
               type="button"
               className="modal-close"
@@ -109,9 +111,9 @@ const DeleteConfirmModal = ({
           <div className="modal-content">
             <div className="message-card">
               <p className="confirm-message">
-                {message || `Bạn có chắc chắn muốn xóa ${itemName || 'mục này'}?`}
+                {message || t('common.deleteConfirm.message', { item: itemName || t('common.item') })}
               </p>
-              <p className="warning-text">Hành động này không thể hoàn tác.</p>
+              <p className="warning-text">{t('common.deleteConfirm.warning')}</p>
               {children}
             </div>
           </div>
@@ -123,7 +125,7 @@ const DeleteConfirmModal = ({
               className="btn-cancel"
               disabled={submitting}
             >
-              {cancelText}
+              {cancelText || t('common.cancel')}
             </button>
             <button 
               type="button" 
@@ -132,7 +134,7 @@ const DeleteConfirmModal = ({
               disabled={submitting}
               ref={confirmBtnRef}
             >
-              {submitting ? 'Đang xử lý...' : confirmText}
+              {submitting ? t('common.processing') : (confirmText || t('common.delete'))}
             </button>
           </div>
         </div>

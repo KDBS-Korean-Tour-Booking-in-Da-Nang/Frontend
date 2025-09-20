@@ -2,9 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToursAPI } from '../../hooks/useToursAPI';
-import { getImageUrl } from '../../config/api';
 import './TourDetailPage.css';
 import { sanitizeHtml } from '../../utils/sanitizeHtml';
+
+// Adjust color brightness by percentage (negative to darken)
+const shadeColor = (hex, percent) => {
+  try {
+    let color = hex.trim();
+    if (!color.startsWith('#')) return color;
+    if (color.length === 4) {
+      color = '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+    }
+    const num = parseInt(color.slice(1), 16);
+    let r = (num >> 16) & 0xff;
+    let g = (num >> 8) & 0xff;
+    let b = num & 0xff;
+    r = Math.min(255, Math.max(0, Math.round(r + (percent / 100) * 255)));
+    g = Math.min(255, Math.max(0, Math.round(g + (percent / 100) * 255)));
+    b = Math.min(255, Math.max(0, Math.round(b + (percent / 100) * 255)));
+    const toHex = (v) => v.toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  } catch {
+    return hex;
+  }
+};
 
 const TourDetailPage = () => {
   const { id } = useParams();
@@ -17,16 +38,34 @@ const TourDetailPage = () => {
   const getItineraryFromTour = (tourData) => {
     if (!tourData) return [];
     if (Array.isArray(tourData.contents) && tourData.contents.length > 0) {
-      return tourData.contents.map((item, index) => ({
-        dayTitle: item.tourContentTitle || `Ngày ${index + 1}`,
-        description: item.tourContentDescription || '',
-        images: item.images || []
-      }));
+      return tourData.contents.map((item, index) => {
+        // Check if description is default text and treat as empty
+        const defaultTexts = [
+          `Hoạt động ngày ${index + 1}`,
+          `Activity Day ${index + 1}`,
+          `Day ${index + 1} Activity`,
+          'Hoạt động ngày 1',
+          'Activity Day 1',
+          'Day 1 Activity'
+        ];
+        const isDefaultText = defaultTexts.some(defaultText => 
+          item.tourContentDescription === defaultText
+        );
+        
+        return {
+          dayTitle: item.tourContentTitle || `Ngày ${index + 1}`,
+          description: (isDefaultText || !item.tourContentDescription) ? '' : item.tourContentDescription,
+          images: item.images || [],
+          // Optional presentation data if present from wizard
+          dayColor: item.dayColor || item.color,
+          titleAlignment: item.titleAlignment || 'left'
+        };
+      });
     }
     try {
       const parsed = JSON.parse(tourData.tourSchedule || '[]');
       return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   };
@@ -36,8 +75,8 @@ const TourDetailPage = () => {
       try {
         const tourData = await fetchTourById(parseInt(id));
         setTour(tourData);
-      } catch (err) {
-        console.error('Error loading tour:', err);
+      } catch (error) {
+        console.error('Error loading tour:', error);
         navigate('/tour');
       }
     };
@@ -45,7 +84,7 @@ const TourDetailPage = () => {
     if (id) {
       loadTour();
     }
-  }, [id, navigate]);
+  }, [id, navigate]); // Removed fetchTourById from dependencies
 
   if (loading || !tour) {
     return (
@@ -76,8 +115,7 @@ const TourDetailPage = () => {
   };
 
   const handleBookNow = () => {
-    // TODO: Implement booking functionality
-    alert('Tính năng đặt tour sẽ được phát triển!');
+    navigate(`/tour/${id}/booking`);
   };
 
   const handleBackToList = () => {
@@ -215,23 +253,41 @@ const TourDetailPage = () => {
                         : t('tourPage.detail.itinerary.day', { index: index + 1 });
                       return (
                       <div className="itinerary-item" key={index}>
-                        <div className="itinerary-day-header">
-                          <span className="day-destination">{headerTitle}</span>
+                        <div
+                          className="itinerary-day-header"
+                          style={{
+                            background: day.dayColor
+                              ? `linear-gradient(135deg, ${day.dayColor}, ${shadeColor(day.dayColor, -20)})`
+                              : undefined
+                          }}
+                        >
+                          <span 
+                            className="day-destination"
+                            style={{
+                              textAlign: day.titleAlignment || 'left',
+                              display: 'block',
+                              width: '100%'
+                            }}
+                          >
+                            {headerTitle}
+                          </span>
                         </div>
-                        <div className="itinerary-content">
-                          <div className="time-schedule">
-                            <div className="time-item">
-                              <span
-                                className="activity"
-                                dangerouslySetInnerHTML={{
-                                  __html: sanitizeHtml(
-                                    day.description || day.tourContentDescription || day.activities || ''
-                                  )
-                                }}
-                              />
+                        {(day.description || day.tourContentDescription || day.activities) && (
+                          <div className="itinerary-content">
+                            <div className="time-schedule">
+                              <div className="time-item">
+                                <span
+                                  className="activity"
+                                  dangerouslySetInnerHTML={{
+                                    __html: sanitizeHtml(
+                                      day.description || day.tourContentDescription || day.activities || ''
+                                    )
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     );})
                   )}

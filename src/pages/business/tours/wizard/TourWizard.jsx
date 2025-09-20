@@ -14,10 +14,11 @@ import { ConfirmLeaveModal } from '../../../../components/modals';
 const TourWizardContent = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess, showBatch } = useToast();
   const { tourData } = useTourWizardContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const pendingNavigationRef = useRef(null);
   
   // Use custom hook for step validation
@@ -41,13 +42,12 @@ const TourWizardContent = () => {
       hasText(tourData.nights) ||
       hasText(tourData.tourType) ||
       hasText(tourData.maxCapacity) ||
-      hasText(tourData.bookingDeadline) ||
       hasList(tourData.itinerary) ||
       hasText(tourData.adultPrice) ||
       hasText(tourData.childrenPrice) ||
       hasText(tourData.babyPrice) ||
       hasText(tourData.tourDescription) ||
-      hasList(tourData.surcharges) ||
+      false ||
       !!tourData.thumbnail
     );
   }, [tourData]);
@@ -124,9 +124,9 @@ const TourWizardContent = () => {
       const errors = getStepErrors(currentStep);
       
       if (errors.length > 0) {
-        errors.forEach(errorKey => {
-          showError({ i18nKey: 'toast.required', values: { field: t(errorKey) } });
-        });
+        const messages = errors.map(errorKey => ({ i18nKey: 'toast.required', values: { field: t(errorKey) } }));
+        // Queue this batch; if another click happens, the next batch will wait until this one is done
+        showBatch(messages, 'error', 5000);
       } else {
         setCurrentStep(currentStep + 1);
       }
@@ -140,10 +140,18 @@ const TourWizardContent = () => {
   };
 
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+    
     try {
+      setIsSubmitting(true);
+      
       // Validate final data
       if (!tourData.tourName || !tourData.thumbnail) {
         showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
+        setIsSubmitting(false);
         return;
       }
 
@@ -159,6 +167,7 @@ const TourWizardContent = () => {
       
       if (!savedUser || !token) {
         showError('toast.login_required');
+        setIsSubmitting(false);
         return;
       }
       
@@ -169,11 +178,13 @@ const TourWizardContent = () => {
       
       if (!userEmail) {
         showError('toast.login_required');
+        setIsSubmitting(false);
         return;
       }
       
       if (userRole !== 'COMPANY') {
         showError('toast.company_only');
+        setIsSubmitting(false);
         return;
       }
 
@@ -188,24 +199,23 @@ const TourWizardContent = () => {
         // If Step 1 captured vehicle, prefer that
         ...(tourData.vehicle ? { tourVehicle: tourData.vehicle } : {}),
         tourType: tourData.tourType,
-        tourSchedule: JSON.stringify(tourData.itinerary || []), // Full itinerary
+        tourSchedule: tourData.tourSchedule || '', // User-defined schedule summary
         amount: parseInt(tourData.maxCapacity) || 30,
         adultPrice: parseFloat(tourData.adultPrice) || 0,
         childrenPrice: parseFloat(tourData.childrenPrice) || 0,
         babyPrice: parseFloat(tourData.babyPrice) || 0,
         
-        // Additional fields from wizard
+        // Additional fields from wizard (bookingDeadline/surcharges removed)
         availableDates: tourData.availableDates || [],
-        bookingDeadline: tourData.bookingDeadline || null, // Will be converted to LocalDateTime in backend
-        // Policies consolidated into tourDescription
-        surcharges: JSON.stringify(tourData.surcharges || []),
         gallery: [], // Removed for testing
         attachments: [], // Removed for testing
         
         contents: (tourData.itinerary || []).map((day, index) => ({
           tourContentTitle: (day.dayTitle && day.dayTitle.trim()) ? day.dayTitle.trim() : `Ngày ${index + 1}`,
           tourContentDescription: day.activities || day.description || `Hoạt động ngày ${index + 1}`,
-          images: day.images ? day.images.map(img => img.name) : [] // Image file names
+          images: day.images ? day.images.map(img => img.name) : [], // Image file names
+          dayColor: day.dayColor || '#10b981',
+          titleAlignment: day.titleAlignment || 'left'
         }))
       };
 
@@ -251,7 +261,7 @@ const TourWizardContent = () => {
       if (response.ok) {
         showSuccess('toast.tour.create_success');
         navigate('/business/tours');
-        } else {
+      } else {
           let errorData;
           try {
             errorData = await response.json();
@@ -276,6 +286,8 @@ const TourWizardContent = () => {
     } catch (error) {
       console.error('Error creating tour:', error);
       showError('toast.save_error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -370,8 +382,9 @@ const TourWizardContent = () => {
             type="button" 
             className="btn-success" 
             onClick={handleSubmit}
+            disabled={isSubmitting}
           >
-            {t('tourWizard.navigation.complete')}
+            {isSubmitting ? t('tourWizard.navigation.creating') : t('tourWizard.navigation.complete')}
           </button>
         )}
       </div>

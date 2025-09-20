@@ -1,7 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './TourCard.css';
 
 const TourCard = ({ tour, onClick, showActions = false }) => {
+  const { t } = useTranslation();
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN').format(price);
   };
@@ -40,18 +43,18 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
                 <span className="welcome-m">M</span>
                 <span className="welcome-e2">E</span>
               </div>
-              <div className="sub-text">Explore</div>
-              <div className="sub-text-2">Dream Destination</div>
+              <div className="sub-text">{t('tourCard.welcome.explore')}</div>
+              <div className="sub-text-2">{t('tourCard.welcome.dream')}</div>
             </div>
           </div>
         )}
         
         {/* Status Badge */}
         <div className="featured-badge">
-          {tour.tourStatus === 'ACTIVE' ? 'HOẠT ĐỘNG' :
-           tour.tourStatus === 'INACTIVE' ? 'TẠM DỪNG' :
-           tour.tourStatus === 'NOT_APPROVED' ? 'CHỜ DUYỆT' :
-           tour.tourStatus === 'DRAFT' ? 'BẢN NHÁP' : tour.tourStatus}
+          {tour.tourStatus === 'ACTIVE' ? t('tourManagement.statusBadge.ACTIVE') :
+           tour.tourStatus === 'INACTIVE' ? t('tourManagement.statusBadge.INACTIVE') :
+           tour.tourStatus === 'NOT_APPROVED' ? t('tourManagement.statusBadge.NOT_APPROVED') :
+           tour.tourStatus === 'DRAFT' ? t('tourManagement.statusBadge.DRAFT') : (t('tourManagement.statusBadge.UNKNOWN') || tour.tourStatus)}
         </div>
       </div>
 
@@ -74,7 +77,7 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
         </div>
 
         <div className="tour-description">
-          {tour.tourDeparturePoint || 'Đà Nẵng'} • {tour.amount || '30'} khách
+          {(tour.tourDeparturePoint || t('common.departurePoints.daNang'))} • {(tour.amount || '30')} {t('tourWizard.step1.summary.guests')}
         </div>
 
         {/* Controls */}
@@ -110,7 +113,7 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
           </div>
         ) : (
           <button className="tour-details-btn">
-            Xem Chi Tiết
+            {t('tourCard.viewDetails')}
           </button>
         )}
       </div>

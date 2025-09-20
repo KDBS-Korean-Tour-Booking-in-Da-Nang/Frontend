@@ -130,6 +130,17 @@ const TourManagement = () => {
     return match ? t('tourManagement.card.durationDays', { days: match[1] }) : duration;
   };
 
+  const localizeDeparturePoint = (value) => {
+    if (!value) return t('common.departurePoints.daNang');
+    const variants = [
+      'Đà Nẵng',
+      'Da Nang',
+      '다낭',
+      t('common.departurePoints.daNang')
+    ];
+    return variants.includes(String(value).trim()) ? t('common.departurePoints.daNang') : value;
+  };
+
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
     if (tourImgPath.startsWith('http')) return tourImgPath;
@@ -251,7 +262,7 @@ const TourManagement = () => {
                     </div>
                     <div className="detail-item">
                       <span className="detail-label">{t('tourManagement.card.departureLabel')}</span>
-                      <span className="detail-value">{tour.tourDeparturePoint || 'Đà Nẵng'}</span>
+                      <span className="detail-value">{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
                     </div>
                   </div>
 

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import './resetPassword.css';
+import { LockClosedIcon } from '@heroicons/react/24/outline';
+import styles from './resetPassword.module.css';
 
 const ResetPassword = () => {
   const { t } = useTranslation();
@@ -75,14 +76,14 @@ const ResetPassword = () => {
 
   if (!email || !verified || !otpCode) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className={styles['precondition-container']}>
+        <div className={styles['precondition-content']}>
+          <h2 className={styles['precondition-title']}>
             {t('auth.reset.preconditionTitle')}
           </h2>
           <Link
             to="/forgot-password"
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover"
+            className={styles['precondition-button']}
           >
             {t('auth.reset.backToForgot')}
           </Link>
@@ -93,30 +94,26 @@ const ResetPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                {t('auth.reset.successTitle')}
-              </h3>
-              <p className="mt-2 text-sm text-gray-600">
-                {t('auth.reset.successSubtitle')}
-              </p>
-              <div className="mt-6">
-                <Link
-                  to="/login"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {t('auth.reset.login')}
-                </Link>
-              </div>
-            </div>
+      <div className={styles['success-container']}>
+        <div className={styles['success-content']}>
+          <div className={styles['success-icon']}>
+            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className={styles['success-title']}>
+            {t('auth.reset.successTitle')}
+          </h3>
+          <p className={styles['success-subtitle']}>
+            {t('auth.reset.successSubtitle')}
+          </p>
+          <div className="mt-6">
+            <Link
+              to="/login"
+              className={styles['reset-button']}
+            >
+              {t('auth.reset.login')}
+            </Link>
           </div>
         </div>
       </div>
@@ -124,24 +121,66 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {t('auth.reset.title')}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.reset.subtitle', { email })}
-        </p>
-      </div>
+    <div className={styles['reset-container']}>
+      <div className={styles['reset-content']}>
+        <div className={styles['reset-grid']}>
+          {/* Illustration Section */}
+          <div className={styles['illustration-section']}>
+            <h1 className={styles['illustration-title']}>
+              {t('auth.reset.illustrationTitle')}
+            </h1>
+            <p className={styles['illustration-subtitle']}>
+              {t('auth.reset.illustrationSubtitle')}
+            </p>
+            
+            <div className={styles['security-items']}>
+              <div className={styles['security-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                </svg>
+              </div>
+              <div className={styles['security-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <div className={styles['security-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                </svg>
+              </div>
+              <div className={styles['security-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+            </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                {t('auth.reset.newPassword')}
-              </label>
-              <div className="mt-1">
+            <div className={styles['character']}>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </div>
+          </div>
+
+          {/* Reset Password Form Section */}
+          <div className={styles['reset-form-section']}>
+            <div className={styles['reset-header']}>
+              <div className={styles['reset-logo']}>
+                <LockClosedIcon className="h-8 w-8 text-white" />
+              </div>
+              <h2 className={styles['reset-title']}>
+                {t('auth.reset.title')}
+              </h2>
+              <p className={styles['reset-subtitle']}>
+                {t('auth.reset.subtitle', { email })}
+              </p>
+            </div>
+            <form className={styles['reset-form']} onSubmit={handleSubmit}>
+              <div className={styles['form-group']}>
+                <label htmlFor="newPassword" className={styles['form-label']}>
+                  {t('auth.reset.newPassword')}
+                </label>
                 <input
                   id="newPassword"
                   name="newPassword"
@@ -150,16 +189,15 @@ const ResetPassword = () => {
                   required
                   value={formData.newPassword}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                  className={styles['form-input']}
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text.sm font-medium text-gray-700">
-                {t('auth.reset.confirmNewPassword')}
-              </label>
-              <div className="mt-1">
+              <div className={styles['form-group']}>
+                <label htmlFor="confirmPassword" className={styles['form-label']}>
+                  {t('auth.reset.confirmNewPassword')}
+                </label>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -168,35 +206,37 @@ const ResetPassword = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                  className={styles['form-input']}
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
+              {error && (
+                <div className={styles['error-message']}>
+                  {error}
+                </div>
+              )}
 
-            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className={styles['reset-button']}
               >
                 {loading ? t('auth.reset.submitting') : t('auth.reset.submit')}
               </button>
-            </div>
-          </form>
+            </form>
 
-          <div className="mt-6 text-center">
-            <Link
-              to="/login"
-              className="text-sm text-primary hover:text-primary-hover"
-            >
-              {t('auth.common.backToLogin')}
-            </Link>
+            <div className={styles['login-link']}>
+              <span className={styles['login-text']}>
+                {t('auth.common.rememberPassword')}{' '}
+              </span>
+              <Link
+                to="/login"
+                className={styles['login-link-text']}
+              >
+                {t('auth.common.backToLogin')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
