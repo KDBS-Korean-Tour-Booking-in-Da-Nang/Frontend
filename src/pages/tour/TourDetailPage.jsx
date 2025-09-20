@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToursAPI } from '../../hooks/useToursAPI';
-import { getImageUrl } from '../../config/api';
 import './TourDetailPage.css';
 import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
@@ -23,7 +22,7 @@ const shadeColor = (hex, percent) => {
     b = Math.min(255, Math.max(0, Math.round(b + (percent / 100) * 255)));
     const toHex = (v) => v.toString(16).padStart(2, '0');
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  } catch (e) {
+  } catch {
     return hex;
   }
 };
@@ -66,7 +65,7 @@ const TourDetailPage = () => {
     try {
       const parsed = JSON.parse(tourData.tourSchedule || '[]');
       return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   };
@@ -76,8 +75,8 @@ const TourDetailPage = () => {
       try {
         const tourData = await fetchTourById(parseInt(id));
         setTour(tourData);
-      } catch (err) {
-        console.error('Error loading tour:', err);
+      } catch (error) {
+        console.error('Error loading tour:', error);
         navigate('/tour');
       }
     };
@@ -85,7 +84,7 @@ const TourDetailPage = () => {
     if (id) {
       loadTour();
     }
-  }, [id, navigate]);
+  }, [id, navigate]); // Removed fetchTourById from dependencies
 
   if (loading || !tour) {
     return (
@@ -116,8 +115,7 @@ const TourDetailPage = () => {
   };
 
   const handleBookNow = () => {
-    // TODO: Implement booking functionality
-    alert('Tính năng đặt tour sẽ được phát triển!');
+    navigate(`/tour/${id}/booking`);
   };
 
   const handleBackToList = () => {

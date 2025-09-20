@@ -20,6 +20,7 @@ import AdminDashboard from './pages/dashboard/adminDashboard/adminDashboard';
 import Forum from './pages/home/forum/forum';
 import Tour from './pages/tour/Tour';
 import TourDetailPage from './pages/tour/TourDetailPage';
+import TourBookingWizard from './pages/tour/TourBookingWizard';
 import TourManagement from './pages/business/tours/tour-management/TourManagement';
 import TourWizard from './pages/business/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/business/tours/shared/BusinessTourDetail';
@@ -51,8 +52,9 @@ function App() {
                   <Route path="/payment" element={<Payment />} />
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/forum" element={<Forum />} />
-                  <Route path="/tour" element={<Tour />} />
                   <Route path="/tour/:id" element={<TourDetailPage />} />
+                  <Route path="/tour/:id/booking" element={<TourBookingWizard />} />
+                  <Route path="/tour" element={<Tour />} />
                   {/* Business-only routes */}
                   <Route path="/business/tours" element={<TourManagement />} />
                   <Route path="/business/tours/wizard" element={<TourWizard />} />

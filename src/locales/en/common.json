@@ -721,7 +721,8 @@
 			"load_failed": "Unable to load tour list",
 			"load_error": "An error occurred while loading tour list",
 			"activate_success": "Tour activated",
-			"deactivate_success": "Tour deactivated"
+			"deactivate_success": "Tour deactivated",
+			"cannot_delete_content": "Cannot delete content"
 		},
 		"payment": {
 			"deposit_success": "Deposit successful!",

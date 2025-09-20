@@ -323,7 +323,7 @@ const Step2Itinerary = () => {
 
   const removeItineraryDay = (index) => {
     if ((formData.itinerary?.length || 0) <= 1) {
-      showError({ i18nKey: 'toast.required', values: { field: 'Lịch trình' } });
+      showError('toast.tour.cannot_delete_content');
       return;
     }
     const list = formData.itinerary.filter((_, i) => i !== index).map((d, i) => ({ ...d, day: i + 1 }));

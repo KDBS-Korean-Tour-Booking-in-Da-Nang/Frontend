@@ -725,7 +725,8 @@
 			"load_failed": "Không thể tải danh sách tour",
 			"load_error": "Có lỗi xảy ra khi tải danh sách tour",
 			"activate_success": "Đã kích hoạt tour",
-			"deactivate_success": "Đã tạm dừng tour"
+			"deactivate_success": "Đã tạm dừng tour",
+			"cannot_delete_content": "Không thể xóa nội dung"
 		},
 		"payment": {
 			"deposit_success": "Nạp tiền thành công!",

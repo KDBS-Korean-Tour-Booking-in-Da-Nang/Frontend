@@ -721,7 +721,8 @@
 			"load_failed": "투어 목록을 불러올 수 없습니다",
 			"load_error": "투어 목록을 불러오는 중 오류가 발생했습니다",
 			"activate_success": "투어가 활성화되었습니다",
-			"deactivate_success": "투어가 비활성화되었습니다"
+			"deactivate_success": "투어가 비활성화되었습니다",
+			"cannot_delete_content": "콘텐츠를 삭제할 수 없습니다"
 		},
 		"payment": {
 			"deposit_success": "충전 성공!",
