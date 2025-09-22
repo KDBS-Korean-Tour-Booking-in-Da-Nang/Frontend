@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useToast } from '../../../../../contexts/ToastContext';
 import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders } from '../../../../../config/api';
-import './PostModal.css';
+import styles from './PostModal.module.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const { t } = useTranslation();
@@ -228,36 +228,36 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="post-modal-overlay">
-      <div className="post-modal">
-        <div className="post-modal-header">
+    <div className={styles['post-modal-overlay']}>
+      <div className={styles['post-modal']}>
+        <div className={styles['post-modal-header']}>
           <h2>{editPost ? t('forum.createPost.editTitle') : t('forum.createPost.title')}</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className={styles['close-btn']} onClick={onClose}>&times;</button>
         </div>
         
-        <form onSubmit={handleSubmit} className="post-form">
-          <div className="form-group">
+        <form onSubmit={handleSubmit} className={styles['post-form']}>
+          <div className={styles['form-group']}>
             <input
               type="text"
               placeholder={t('forum.createPost.titlePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="title-input"
+              className={styles['title-input']}
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             <textarea
               placeholder={t('forum.createPost.contentPlaceholder')}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="content-input"
+              className={styles['content-input']}
               rows="4"
             />
           </div>
 
-          <div className="form-group">
-            <div className="hashtag-input-container">
+          <div className={styles['form-group']}>
+            <div className={styles['hashtag-input-container']}>
               <input
                 type="text"
                 placeholder={t('forum.createPost.hashtagsPlaceholder')}
@@ -265,16 +265,16 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                 onChange={(e) => setHashtagInput(e.target.value)}
                 onKeyDown={handleHashtagInput}
                 onBlur={() => { if (!choosingTagRef.current) commitTag(hashtagInput); else choosingTagRef.current = false; }}
-                className="hashtag-input"
+                className={styles['hashtag-input']}
                 onFocus={() => tagSuggestions.length > 0 && setShowTagSuggest(true)}
               />
               {showTagSuggest && tagSuggestions.length > 0 && (
-                <div className="tag-suggest">
+                <div className={styles['tag-suggest']}>
                   {tagSuggestions.map((t, idx) => (
                     <button
                       key={idx}
                       type="button"
-                      className="tag-suggest-item"
+                      className={styles['tag-suggest-item']}
                       onMouseDown={() => { choosingTagRef.current = true; }}
                       onClick={() => chooseTag(t)}
                     >
@@ -285,14 +285,14 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
               )}
             </div>
             {hashtags.length > 0 && (
-              <div className="hashtags-container">
+              <div className={styles['hashtags-container']}>
                 {hashtags.map((tag, index) => (
-                  <span key={index} className="hashtag-chip">
+                  <span key={index} className={styles['hashtag-chip']}>
                     #{tag}
                     <button
                       type="button"
                       onClick={() => removeHashtag(tag)}
-                      className="remove-hashtag"
+                      className={styles['remove-hashtag']}
                     >
                       ×
                     </button>
@@ -302,13 +302,13 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             )}
           </div>
 
-          <div className="form-group">
+          <div className={styles['form-group']}>
             {!editPost && (
-              <div className="image-upload-section">
+              <div className={styles['image-upload-section']}>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="upload-btn"
+                  className={styles['upload-btn']}
                 >
                   📷 {t('forum.createPost.addImages')}
                 </button>
@@ -324,28 +324,28 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             )}
             
             {editPost && images.length > 0 && (
-              <div className="existing-images-section">
+              <div className={styles['existing-images-section']}>
                 <h4>{t('forum.createPost.imagesLabel')}:</h4>
-                <div className="image-preview">
+                <div className={styles['image-preview']}>
                   {images.map((image, index) => (
-                    <div key={index} className="image-item">
+                    <div key={index} className={styles['image-item']}>
                       <img src={image} alt={`Current image ${index + 1}`} />
                     </div>
                   ))}
                 </div>
-                <p className="image-note">* {t('forum.createPost.errors.imageEditNote')}</p>
+                <p className={styles['image-note']}>* {t('forum.createPost.errors.imageEditNote')}</p>
               </div>
             )}
             
             {!editPost && images.length > 0 && (
-              <div className="image-preview">
+              <div className={styles['image-preview']}>
                 {images.map((image, index) => (
-                  <div key={index} className="image-item">
+                  <div key={index} className={styles['image-item']}>
                     <img src={image} alt={`Preview ${index + 1}`} />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="remove-image"
+                      className={styles['remove-image']}
                     >
                       ×
                     </button>
@@ -355,18 +355,18 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             )}
           </div>
 
-          <div className="form-actions">
+          <div className={styles['form-actions']}>
             <button
               type="button"
               onClick={onClose}
-              className="cancel-btn"
+              className={styles['cancel-btn']}
               disabled={isLoading}
             >
               {t('forum.createPost.cancel')}
             </button>
             <button
               type="submit"
-              className="submit-btn"
+              className={styles['submit-btn']}
               disabled={isLoading}
             >
               {isLoading ? (editPost ? t('forum.createPost.updating') : t('forum.createPost.submitting')) : (editPost ? t('forum.createPost.update') : t('forum.createPost.submit'))}

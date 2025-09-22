@@ -113,17 +113,24 @@ export function bookingReducer(state, action) {
 
     case ACTIONS.RECALC_TOTAL: {
       const { adult, child, infant } = state.plan.pax;
-      const PRICE = { ADULT: 1000000, CHILD: 700000, INFANT: 200000 };
-      const total = adult * PRICE.ADULT + child * PRICE.CHILD + infant * PRICE.INFANT;
+      
+      // Use prices from API if provided, otherwise set to 0
+      const prices = action.payload || { adult: null, child: null, infant: null };
+      
+      // Calculate totals only for non-null prices
+      const adultTotal = prices.adult ? adult * prices.adult : 0;
+      const childTotal = prices.child ? child * prices.child : 0;
+      const infantTotal = prices.infant ? infant * prices.infant : 0;
+      const total = adultTotal + childTotal + infantTotal;
       
       return {
         ...state,
         plan: {
           ...state.plan,
           price: {
-            adult: adult * PRICE.ADULT,
-            child: child * PRICE.CHILD,
-            infant: infant * PRICE.INFANT,
+            adult: adultTotal,
+            child: childTotal,
+            infant: infantTotal,
             total
           }
         }
@@ -132,6 +139,51 @@ export function bookingReducer(state, action) {
 
     case ACTIONS.RESET_BOOKING:
       return initialState;
+
+    case ACTIONS.SET_BOOKING_LOADING:
+      return {
+        ...state,
+        booking: {
+          ...state.booking,
+          loading: action.payload,
+          error: null
+        }
+      };
+
+    case ACTIONS.SET_BOOKING_ERROR:
+      return {
+        ...state,
+        booking: {
+          ...state.booking,
+          loading: false,
+          error: action.payload,
+          success: false
+        }
+      };
+
+    case ACTIONS.SET_BOOKING_SUCCESS:
+      return {
+        ...state,
+        booking: {
+          ...state.booking,
+          loading: false,
+          error: null,
+          success: true,
+          bookingData: action.payload
+        }
+      };
+
+    case ACTIONS.CLEAR_BOOKING_STATUS:
+      return {
+        ...state,
+        booking: {
+          ...state.booking,
+          loading: false,
+          error: null,
+          success: false,
+          bookingData: null
+        }
+      };
 
     default:
       return state;

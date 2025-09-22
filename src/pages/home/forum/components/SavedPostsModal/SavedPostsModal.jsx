@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
-import './SavedPostsModal.css';
+import styles from './SavedPostsModal.module.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
   const { t } = useTranslation();
@@ -100,36 +100,36 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="saved-posts-overlay">
-      <div className="saved-posts-modal">
-        <div className="saved-posts-header">
+    <div className={styles['saved-posts-overlay']}>
+      <div className={styles['saved-posts-modal']}>
+        <div className={styles['saved-posts-header']}>
           <h2>{t('forum.modals.savedPosts.title')}</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className={styles['close-btn']} onClick={onClose}>&times;</button>
         </div>
         
-        <div className="saved-posts-content">
+        <div className={styles['saved-posts-content']}>
           {isLoading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
+            <div className={styles['loading-container']}>
+              <div className={styles['loading-spinner']}></div>
               <p>{t('forum.loading')}</p>
             </div>
           ) : error ? (
-            <div className="error-container">
+            <div className={styles['error-container']}>
               <p>{error}</p>
-              <button onClick={fetchSavedPosts} className="retry-btn">
+              <button onClick={fetchSavedPosts} className={styles['retry-btn']}>
                 {t('forum.modals.savedPosts.retry')}
               </button>
             </div>
           ) : savedPosts.length === 0 ? (
-            <div className="empty-container">
+            <div className={styles['empty-container']}>
               <p>{t('forum.modals.savedPosts.noSavedPosts')}</p>
             </div>
           ) : (
-            <div className="saved-posts-list">
+            <div className={styles['saved-posts-list']}>
               {getCurrentPagePosts().map((savedPost) => (
-                <div key={savedPost.savedPostId} className="saved-post-item">
+                <div key={savedPost.savedPostId} className={styles['saved-post-item']}>
                   <div 
-                    className="saved-post-content clickable"
+                    className={`${styles['saved-post-content']} ${styles['clickable']}`}
                     onClick={() => {
                       if (onPostClick) {
                         onPostClick(savedPost.postId);
@@ -138,26 +138,26 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                     }}
                     title={t('forum.modals.savedPosts.clickToView')}
                   >
-                    <h3 className="saved-post-title">{savedPost.postTitle}</h3>
-                    <p className="saved-post-text">{savedPost.postContent}</p>
-                    <div className="saved-post-meta">
-                      <span className="saved-post-author">👤 {savedPost.postAuthor}</span>
-                      <span className="saved-post-date">📅 {formatDate(savedPost.postCreatedAt)}</span>
-                      <span className="saved-at">💾 {t('forum.modals.savedPosts.savedAt')}: {formatDate(savedPost.savedAt)}</span>
+                    <h3 className={styles['saved-post-title']}>{savedPost.postTitle}</h3>
+                    <p className={styles['saved-post-text']}>{savedPost.postContent}</p>
+                    <div className={styles['saved-post-meta']}>
+                      <span className={styles['saved-post-author']}>👤 {savedPost.postAuthor}</span>
+                      <span className={styles['saved-post-date']}>📅 {formatDate(savedPost.postCreatedAt)}</span>
+                      <span className={styles['saved-at']}>💾 {t('forum.modals.savedPosts.savedAt')}: {formatDate(savedPost.savedAt)}</span>
                     </div>
                     {savedPost.note && (
-                      <div className="saved-post-note">
+                      <div className={styles['saved-post-note']}>
                         <strong>{t('forum.modals.savedPosts.note')}:</strong> {savedPost.note}
                       </div>
                     )}
                   </div>
-                  <div className="saved-post-actions">
+                  <div className={styles['saved-post-actions']}>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         handleUnsavePost(savedPost.postId);
                       }}
-                      className="unsave-btn"
+                      className={styles['unsave-btn']}
                     >
                       🗑️ {t('forum.modals.savedPosts.unsave')}
                     </button>
@@ -169,17 +169,17 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
           
           {/* Pagination */}
           {savedPosts.length > 0 && totalPages > 1 && (
-            <div className="pagination-container">
-              <div className="pagination">
+            <div className={styles['pagination-container']}>
+              <div className={styles['pagination']}>
                 <button 
-                  className="pagination-btn"
+                  className={styles['pagination-btn']}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
                   ← {t('forum.modals.savedPosts.previous')}
                 </button>
                 
-                <div className="pagination-numbers">
+                <div className={styles['pagination-numbers']}>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
@@ -192,7 +192,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                 </div>
                 
                 <button 
-                  className="pagination-btn"
+                  className={styles['pagination-btn']}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
@@ -200,7 +200,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                 </button>
               </div>
               
-              <div className="pagination-info">
+              <div className={styles['pagination-info']}>
                 {t('forum.modals.savedPosts.pageInfo', { current: currentPage, total: totalPages, count: savedPosts.length })}
               </div>
             </div>

@@ -724,6 +724,7 @@
 			"deactivate_success": "Tour deactivated",
 			"cannot_delete_content": "Cannot delete content"
 		},
+  
 		"payment": {
 			"deposit_success": "Deposit successful!",
 			"deposit_failed": "Deposit failed. Please try again.",
@@ -842,7 +843,8 @@
 				"placeholder": "Enter tour schedule summary..."
 			},
 			"placeholders": {
-				"dayTitle": "Enter day title (e.g., DAY 1 - DA NANG – HUE - GALA DINNER)"
+				"dayTitle": "Enter day title (e.g., DAY 1 - DA NANG – HUE - GALA DINNER)",
+				"sectionTitle": "Enter section title (e.g., DESTINATIONS & ITINERARY)"
 			},
 			"day": {
 				"defaultMeal": "Lunch – Dinner"
@@ -861,7 +863,17 @@
 			},
 			"services": {
 				"title": "Included Services",
-				"add": "+ Add Service"
+				"add": "+ Add Service",
+				"types": {
+					"food": "Food & Beverage",
+					"ticket": "Admission Tickets",
+					"transport": "Transportation",
+					"other": "Other"
+				},
+				"placeholders": {
+					"name": "Service name",
+					"price": "Price (VND)"
+				}
 			},
 			"instructions": {
 				"title": "💡 Instructions:",
@@ -900,6 +912,21 @@
 					"name": "Service name",
 					"price": "Price (VND)"
 				}
+			},
+			"titles": {
+				"editSectionTitle": "Edit section title",
+				"editDayTitle": "Edit day title",
+				"resetDefault": "Reset to default",
+				"clearDayTitle": "Clear day title"
+			},
+			"alignment": {
+				"left": "Left align",
+				"center": "Center align",
+				"right": "Right align"
+			},
+			"color": {
+				"choose": "Choose color {{color}}",
+				"customize": "Customize colors"
 			},
 			"colorPicker": {
 				"title": "Customize Colors",
@@ -985,6 +1012,21 @@
 				}
 			}
 		}
+	},
+	"bookingWizard": {
+		"steps": {
+			"step1": { "title": "Contact Information", "description": "Enter your contact information" },
+			"step2": { "title": "Tour Details", "description": "Select date and group information" },
+			"step3": { "title": "Confirm", "description": "Review and confirm booking" }
+		},
+		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking" },
+		"auth": {
+			"checking": "Checking authentication...",
+			"loginRequiredTitle": "Login Required",
+			"loginRequiredMessage": "You need to login to book a tour.",
+			"loginButton": "Login"
+		},
+		"processing": "Processing..."
 	},
 	"tourManagement": {
 		"title": "Tour Management",
@@ -1158,13 +1200,6 @@
 			}
 		}
 	},
-	"tourCard": {
-		"welcome": {
-			"explore": "Explore",
-			"dream": "Dream Destination"
-		},
-		"viewDetails": "View Details"
-	},
 	"tourList": {
 		"hero": {
 			"title": "Da Nang tours - domestic and international highlights",
@@ -1190,14 +1225,14 @@
 		},
 		"loadMore": "Load more"
 	},
-    "tourCard": {
-        "welcome": {
-            "explore": "Explore",
-            "dream": "Dream Destination"
-        },
-        "viewDetails": "View Details",
+	"tourCard": {
+		"welcome": {
+			"explore": "Explore",
+			"dream": "Dream Destination"
+		},
+		"viewDetails": "View Details",
 		"sampleTitle": "Sample Tour",
-        "featured": "Featured",
+		"featured": "Featured",
 		"children": "Children:",
 		"baby": "Baby:",
 		"details": "DETAILS",
@@ -1218,6 +1253,206 @@
 			"ordersTitle": "Manage Orders",
 			"ordersDesc": "View and process orders"
 		}
+	},
+	"booking": {
+        "step1": {
+          "fields": {
+            "fullName": "Full Name",
+            "phone": "Phone Number",
+            "email": "Email",
+            "address": "Address",
+            "pickupPoint": "Pickup Point",
+            "note": "Note"
+          },
+          "placeholders": {
+            "fullName": "Enter full name",
+            "phone": "0123456789 or +84123456789",
+            "address": "Enter full address",
+            "pickupPoint": "Enter pickup point",
+            "note": "Additional note (optional)"
+          },
+          "sectionTitle": "Contact information",
+          "usePersonalInfo": "Use personal info from my account",
+          "autoFillNotice": "Account info will be auto-filled into corresponding fields. You can edit any field if needed. Empty fields will remain blank."
+        },
+		"step2": {
+			"loading": "Loading tour prices...",
+			"sections": {
+				"dateTitle": "Departure Date",
+				"paxTitle": "Total Guests",
+				"membersTitle": "Group Members",
+				"summaryTitle": "Price Summary"
+			},
+			"summary": { "totalLabel": "Total Payment" },
+			"common": {
+				"noPrice": "No price set",
+				"free": "Free"
+			},
+			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year" },
+			"pax": {
+				"adult": "Adult",
+				"child": "Children",
+				"infant": "Baby",
+				"adultMinHint": "At least 1 adult is required"
+			},
+			"labels": {
+				"fullName": "Full Name",
+				"dob": "Date of Birth",
+				"gender": "Gender",
+				"nationality": "Nationality",
+				"idNumberCCCD": "Citizen ID Number",
+				"idNumberPassport": "Passport Number"
+			},
+			"countries": {
+				"VN": "Vietnam",
+				"KR": "Korea",
+				"JP": "Japan",
+				"CN": "China",
+				"US": "United States",
+				"GB": "United Kingdom",
+				"FR": "France",
+				"DE": "Germany",
+				"TH": "Thailand",
+				"SG": "Singapore",
+				"MY": "Malaysia",
+				"PH": "Philippines",
+				"ID": "Indonesia",
+				"LA": "Laos",
+				"KH": "Cambodia",
+				"AU": "Australia",
+				"CA": "Canada"
+			},
+			"placeholders": {
+				"fullName": "Enter full name",
+				"chooseGender": "Select gender",
+				"chooseNationality": "Select nationality",
+				"idVietnam": "Digits only: 12 digits (CCCD) or 9 digits (CMND/CMT)",
+				"idPassport": "Enter passport number (6-9 characters)",
+				"dateFormat": "Enter in {{format}} format"
+			},
+			"datePicker": {
+				"open": "Open date picker"
+			},
+			"idInfo": {
+				"baby": "Infants under 2: Only name + DOB. If flying, birth certificate required.",
+				"child": "Children 2-14: ID not required. If flying, birth certificate required.",
+				"teen": "Children 14-16: May have ID but not required. If flying, birth certificate required."
+			},
+			"fields": {
+				"date": "Departure Date",
+				"adultPax": "Adult Count",
+				"adultName1": "Adult 1 Name",
+				"adultName2": "Adult 2 Name",
+				"adultName3": "Adult 3 Name",
+				"adultName4": "Adult 4 Name",
+				"adultDob1": "Adult 1 Date of Birth",
+				"adultDob2": "Adult 2 Date of Birth",
+				"adultDob3": "Adult 3 Date of Birth",
+				"adultDob4": "Adult 4 Date of Birth",
+				"childName1": "Child 1 Name",
+				"childName2": "Child 2 Name",
+				"childName3": "Child 3 Name",
+				"childName4": "Child 4 Name",
+				"childDob1": "Child 1 Date of Birth",
+				"childDob2": "Child 2 Date of Birth",
+				"childDob3": "Child 3 Date of Birth",
+				"childDob4": "Child 4 Date of Birth",
+				"infantName1": "Infant 1 Name",
+				"infantName2": "Infant 2 Name",
+				"infantName3": "Infant 3 Name",
+				"infantName4": "Infant 4 Name",
+				"infantDob1": "Infant 1 Date of Birth",
+				"infantDob2": "Infant 2 Date of Birth",
+				"infantDob3": "Infant 3 Date of Birth",
+				"infantDob4": "Infant 4 Date of Birth"
+			},
+			"errors": {
+				"dateRequired": "Please select a departure date",
+				"dateInPast": "Departure date cannot be in the past",
+				"dateOverOneMonth": "Departure date must be within 1 month",
+				"fullNameRequired": "Full name is required",
+				"dobRequired": "Date of birth is required",
+				"dobInFuture": "Date of birth cannot be in the future",
+				"dobInvalidFormat": "Invalid date format (use YYYY-MM-DD)",
+				"dobTooOld": "Invalid date of birth (age must be ≤ 120)",
+				"adultTooYoung": "Adult must be ≥ 12 years old at departure date",
+				"childTooYoung": "Child must be ≥ 2 years old at departure date",
+				"childTooOld": "Child must be < 12 years old at departure date",
+				"infantTooOld": "Infant must be < 2 years old at departure date",
+				"genderRequired": "Gender is required",
+				"nationalityRequired": "Nationality is required",
+				"idRequired": "ID/Passport number is required"
+			},
+			"validation": {
+				"vietnameseId": "Vietnamese ID must be 12 digits (CCCD) or 9 digits (CMND/CMT)",
+				"passport": "Passport number must be 6-9 characters (letters and numbers)"
+			}
+		},
+		"step3": {
+			"sections": {
+				"contact": "Contact Information",
+				"tour": "Tour Information",
+				"members": "Group Members",
+				"price": "Price Summary"
+			},
+			"labels": {
+				"fullName": "Full Name",
+				"phone": "Phone Number",
+				"email": "Email",
+				"address": "Address",
+				"pickupPoint": "Pickup Point",
+				"note": "Note",
+				"departureDate": "Departure Date",
+				"totalGuests": "Total Guests",
+				"adult": "Adult",
+				"child": "Children",
+				"infant": "Baby",
+				"notSet": "Not set",
+				"totalPrice": "Total Payment"
+			},
+			"table": {
+				"index": "#",
+				"fullName": "Full Name",
+				"dob": "Date of Birth",
+				"gender": "Gender",
+				"nationality": "Nationality",
+				"idNumber": "ID/Passport Number"
+			}
+		},
+		"tourPreview": {
+			"loading": "Loading tour information...",
+			"fallback": {
+				"apiError": "Cannot connect to API, showing sample data",
+				"title": "Da Nang Tour",
+				"duration": "1 day 1 night",
+				"departure": "Da Nang",
+				"vehicle": "Tour Bus",
+				"schedule": "Explore the beautiful landscapes of Da Nang with unique local cultural experiences and traditional cuisine."
+			},
+			"placeholder": { "title": "Explore", "subtitle": "Dream Destination" },
+			"durationTemplate": "{{days}} days {{nights}} nights",
+			"labels": {
+				"code": "Tour Code:",
+				"duration": "Duration:",
+				"departure": "Departure:",
+				"vehicle": "Vehicle:",
+				"category": "Category:",
+				"schedule": "Schedule:",
+				"noSchedule": "No schedule",
+				"notAvailable": "N/A"
+			},
+			"categories": { "standard": "Standard" }
+		},
+		"errors": {
+          "fullNameRequired": "Full name is required",
+          "phoneRequired": "Phone number is required",
+          "phoneInvalid": "Invalid phone number (e.g., 0123456789 or +84 705327671)",
+          "emailRequired": "Email is required",
+          "emailInvalid": "Invalid email",
+          "emailMismatch": "Email does not match your account. Please use the registered email.",
+          "addressRequired": "Address is required",
+          "pickupPointRequired": "Pickup point is required"
+        }
 	}
 }
 

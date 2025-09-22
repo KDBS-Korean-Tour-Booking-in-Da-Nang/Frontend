@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { getImageUrl, getAvatarUrl } from '../../../../../config/api';
-import './ImageViewerModal.css';
+import styles from './ImageViewerModal.module.css';
 
 const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
   const { user } = useAuth();
@@ -38,24 +38,24 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
   if (!open || !post) return null;
 
   return (
-    <div className="ivm-backdrop" onClick={onClose}>
-      <div className="ivm-modal" onClick={e => e.stopPropagation()}>
-        <div className="ivm-header">
-          <div className="ivm-user">
+    <div className={styles['ivm-backdrop']} onClick={onClose}>
+      <div className={styles['ivm-modal']} onClick={e => e.stopPropagation()}>
+        <div className={styles['ivm-header']}>
+          <div className={styles['ivm-user']}>
             <img src={getAvatarUrl(post.userAvatar)} alt={post.username} />
-            <div className="ivm-user-name">{post.username}</div>
+            <div className={styles['ivm-user-name']}>{post.username}</div>
           </div>
-          <button className="ivm-close" onClick={onClose}>✕</button>
+          <button className={styles['ivm-close']} onClick={onClose}>✕</button>
         </div>
-        <div className="ivm-body">
+        <div className={styles['ivm-body']}>
           {imgs.length > 0 && (
             <>
-              <img className="ivm-image" src={imgs[current]} alt={`image ${current + 1}`} />
+              <img className={styles['ivm-image']} src={imgs[current]} alt={`image ${current + 1}`} />
               {imgs.length > 1 && (
                 <>
-                  <button className="ivm-nav ivm-prev" disabled={current === 0} onClick={() => setCurrent(c => Math.max(0, c - 1))}>‹</button>
-                  <button className="ivm-nav ivm-next" disabled={current === imgs.length - 1} onClick={() => setCurrent(c => Math.min(imgs.length - 1, c + 1))}>›</button>
-                  <div className="ivm-counter">{current + 1}/{imgs.length}</div>
+                  <button className={`${styles['ivm-nav']} ${styles['ivm-prev']}`} disabled={current === 0} onClick={() => setCurrent(c => Math.max(0, c - 1))}>‹</button>
+                  <button className={`${styles['ivm-nav']} ${styles['ivm-next']}`} disabled={current === imgs.length - 1} onClick={() => setCurrent(c => Math.min(imgs.length - 1, c + 1))}>›</button>
+                  <div className={styles['ivm-counter']}>{current + 1}/{imgs.length}</div>
                 </>
               )}
             </>

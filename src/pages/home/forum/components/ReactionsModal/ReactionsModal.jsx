@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import './ReactionsModal.css';
+import styles from './ReactionsModal.module.css';
 
 const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
   const { t } = useTranslation();
@@ -96,14 +96,14 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="reactions-modal-overlay" onClick={onClose}>
-      <div className="reactions-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="reactions-modal-header">
+    <div className={styles['reactions-modal-overlay']} onClick={onClose}>
+      <div className={styles['reactions-modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['reactions-modal-header']}>
           <h3>{t('forum.modals.reactions.title')}</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className={styles['close-btn']} onClick={onClose}>×</button>
         </div>
 
-        <div className="reactions-tabs">
+        <div className={styles['reactions-tabs']}>
           <button
             className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
@@ -124,20 +124,20 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
           </button>
         </div>
 
-        <div className="reactions-content">
+        <div className={styles['reactions-content']}>
           {loading ? (
-            <div className="loading">{t('forum.loading')}</div>
+            <div className={styles['loading']}>{t('forum.loading')}</div>
           ) : reactions.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">😴</div>
+            <div className={styles['empty-state']}>
+              <div className={styles['empty-icon']}>😴</div>
               <p>{t('forum.modals.reactions.noReactions')}</p>
             </div>
           ) : (
-            <div className="reactions-list">
+            <div className={styles['reactions-list']}>
               {reactions.map((reaction) => (
-                <div key={reaction.reactionId} className="reaction-item">
+                <div key={reaction.reactionId} className={styles['reaction-item']}>
                   <div
-                    className="reaction-info clickable"
+                    className={`${styles['reaction-info']} ${styles['clickable']}`}
                     onClick={() => {
                       if (onPostClick && reaction.targetType === 'POST') {
                         onPostClick(reaction.targetId);
@@ -146,22 +146,22 @@ const ReactionsModal = ({ isOpen, onClose, onPostClick }) => {
                     }}
                     title={reaction.targetType === 'POST' ? t('forum.modals.reactions.clickToView') : ""}
                   >
-                    <div className="reaction-type">
-                      <span className="reaction-icon">{getReactionIcon(reaction.reactionType)}</span>
-                      <span className="reaction-text">{getReactionText(reaction.reactionType)}</span>
+                    <div className={styles['reaction-type']}>
+                      <span className={styles['reaction-icon']}>{getReactionIcon(reaction.reactionType)}</span>
+                      <span className={styles['reaction-text']}>{getReactionText(reaction.reactionType)}</span>
                     </div>
-                    <div className="reaction-time">{formatTime(reaction.createdAt)}</div>
+                    <div className={styles['reaction-time']}>{formatTime(reaction.createdAt)}</div>
                   </div>
 
-                  <div className="reaction-target">
-                    <div className="target-type">
+                  <div className={styles['reaction-target']}>
+                    <div className={styles['target-type']}>
                       {reaction.targetType === 'POST' ? `📝 ${t('forum.modals.reactions.post')}` : `💬 ${t('forum.modals.reactions.comment')}`} #{reaction.targetId}
                     </div>
                   </div>
 
-                  <div className="reaction-actions">
+                  <div className={styles['reaction-actions']}>
                     <button
-                      className="remove-btn"
+                      className={styles['remove-btn']}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveReaction(reaction.reactionId, reaction.targetId, reaction.targetType);

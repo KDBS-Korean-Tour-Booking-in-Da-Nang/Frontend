@@ -5,7 +5,7 @@ import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../.
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
 import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
-import './CommentSection.css';
+import styles from './CommentSection.module.css';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
@@ -280,27 +280,27 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
   };
 
   return (
-    <div className="comment-section">
+    <div className={styles['comment-section']}>
       {/* Comment Input */}
       {user && showCommentInput && (
-        <div className="comment-input-container">
+        <div className={styles['comment-input-container']}>
           <img 
             src={user.avatar ? user.avatar : '/default-avatar.png'} 
             alt={user.username}
-            className="comment-user-avatar"
+            className={styles['comment-user-avatar']}
           />
-          <form onSubmit={handleSubmitComment} className="comment-form">
+          <form onSubmit={handleSubmitComment} className={styles['comment-form']}>
             <input
               type="text"
               placeholder={t('forum.comments.placeholder')}
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              className="comment-input"
+              className={styles['comment-input']}
               disabled={isSubmitting}
             />
             <button 
               type="submit" 
-              className="comment-submit-btn"
+              className={styles['comment-submit-btn']}
               disabled={isSubmitting || !commentText.trim()}
             >
               {isSubmitting ? t('forum.comments.submitting') : t('forum.comments.submit')}
@@ -311,7 +311,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
       {/* Comments List */}
       {displayedComments.length > 0 && (
-        <div className="comments-list">
+        <div className={styles['comments-list']}>
           {displayedComments.map((comment, index) => (
             <CommentItem 
               key={comment.forumCommentId || index} 
@@ -344,10 +344,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
       {/* Show More Comments */}
       {hasMoreComments && (
-        <div className="show-more-comments">
+        <div className={styles['show-more-comments']}>
           <button 
             onClick={() => setShowAllComments(!showAllComments)}
-            className="show-more-btn"
+            className={styles['show-more-btn']}
           >
             {showAllComments 
               ? t('forum.comments.hideComments') 
@@ -359,7 +359,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
       {/* No Comments Message */}
       {comments.length === 0 && (
-        <div className="no-comments">
+        <div className={styles['no-comments']}>
           <p>{t('forum.comments.noComments')}</p>
         </div>
       )}
@@ -685,16 +685,16 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       <img 
         src={getAvatarUrl(comment.userAvatar)} 
         alt={comment.username}
-        className="comment-avatar"
+        className={styles['comment-avatar']}
       />
-      <div className="comment-content">
-        <div className="comment-header">
-          <span className="comment-username">{comment.username}</span>
-          <span className="comment-time">{formatTime(comment.createdAt)}</span>
+      <div className={styles['comment-content']}>
+        <div className={styles['comment-header']}>
+          <span className={styles['comment-username']}>{comment.username}</span>
+          <span className={styles['comment-time']}>{formatTime(comment.createdAt)}</span>
           {user && (
-            <div className="comment-actions-menu">
+            <div className={styles['comment-actions-menu']}>
               <button 
-                className="comment-more-btn"
+                className={styles['comment-more-btn']}
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDropdown(!showDropdown);
@@ -703,7 +703,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                 ⋯
               </button>
               {showDropdown && (
-                <div className="comment-dropdown show">
+                <div className={`${styles['comment-dropdown']} ${styles['show']}`}>
                   {(() => {
                     const isOwner = isCommentOwner(comment);
                     const isReported = reportedComments && reportedComments.has(comment.forumCommentId);
@@ -712,41 +712,41 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                     return isOwner ? (
                       <>
                         <button 
-                          className="dropdown-item edit-item"
+                          className={`${styles['dropdown-item']} ${styles['edit-item']}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEdit();
                           }}
                         >
-                          <span className="dropdown-icon">✏️</span>
+                          <span className={styles['dropdown-icon']}>✏️</span>
                           Chỉnh sửa
                         </button>
                         <button 
-                          className="dropdown-item delete-item"
+                          className={`${styles['dropdown-item']} ${styles['delete-item']}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDelete();
                           }}
                         >
-                          <span className="dropdown-icon">🗑️</span>
+                          <span className={styles['dropdown-icon']}>🗑️</span>
                           Xóa
                         </button>
                       </>
                     ) : (
                       isReported ? (
-                        <div className="dropdown-item report-item-disabled">
-                          <span className="dropdown-icon">✅</span>
+                        <div className={`${styles['dropdown-item']} ${styles['report-item-disabled']}`}>
+                          <span className={styles['dropdown-icon']}>✅</span>
                           Đã báo cáo
                         </div>
                       ) : (
                         <button 
-                          className="dropdown-item report-item"
+                          className={`${styles['dropdown-item']} ${styles['report-item']}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleReport();
                           }}
                         >
-                          <span className="dropdown-icon">⚠️</span>
+                          <span className={styles['dropdown-icon']}>⚠️</span>
                           Báo cáo
                         </button>
                       )
@@ -759,27 +759,27 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         </div>
         
         {editing ? (
-          <div className="edit-comment-form">
+          <div className={styles['edit-comment-form']}>
             <textarea
-              className="edit-comment-input"
+              className={styles['edit-comment-input']}
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
               placeholder="Chỉnh sửa bình luận..."
             />
-            <div className="edit-comment-actions">
-              <button className="save-edit-btn" onClick={handleSaveEdit}>
+            <div className={styles['edit-comment-actions']}>
+              <button className={styles['save-edit-btn']} onClick={handleSaveEdit}>
                 Lưu
               </button>
-              <button className="cancel-edit-btn" onClick={() => setEditing(false)}>
+              <button className={styles['cancel-edit-btn']} onClick={() => setEditing(false)}>
                 Hủy
               </button>
             </div>
           </div>
         ) : (
-          <div className="comment-text">{comment.content}</div>
+          <div className={styles['comment-text']}>{comment.content}</div>
         )}
         
-        <div className="comment-actions">
+        <div className={styles['comment-actions']}>
           {user ? (
             <>
               <button 
@@ -795,7 +795,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                 {t('forum.post.dislike')} ({reaction.dislikeCount})
               </button>
               <button 
-                className="comment-action-btn" 
+                className={styles['comment-action-btn']} 
                 onClick={handleReply}
               >
                 {t('forum.post.reply')}
@@ -804,21 +804,21 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
           ) : (
             <>
               <div 
-                className="comment-action-btn-disabled" 
+                className={styles['comment-action-btn-disabled']} 
                 title={t('forum.guest.loginToReact')}
                 onClick={() => onLoginRequired && onLoginRequired()}
               >
                 {t('forum.post.like')} ({reaction.likeCount})
               </div>
               <div 
-                className="comment-action-btn-disabled" 
+                className={styles['comment-action-btn-disabled']} 
                 title={t('forum.guest.loginToReact')}
                 onClick={() => onLoginRequired && onLoginRequired()}
               >
                 {t('forum.post.dislike')} ({reaction.dislikeCount})
               </div>
               <div 
-                className="comment-action-btn-disabled" 
+                className={styles['comment-action-btn-disabled']} 
                 title={t('forum.guest.loginToComment')}
                 onClick={() => onLoginRequired && onLoginRequired()}
               >
@@ -830,9 +830,9 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
         {/* Show replies button */}
         {replies.length > 0 && (
-          <div className="reply-toggle-row">
+          <div className={styles['reply-toggle-row']}>
             <button 
-              className="show-more-btn" 
+              className={styles['show-more-btn']} 
               onClick={handleToggleReplies}
             >
               {showReplies ? t('forum.post.hideReplies') : `${t('forum.post.showReplies')} ${replies.length}`}
@@ -842,7 +842,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
         {/* Show replies */}
         {showReplies && (
-          <div className="replies-container">
+          <div className={styles['replies-container']}>
             {replies.map((reply) => (
               <CommentItem 
                 key={reply.forumCommentId} 
@@ -870,16 +870,16 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
         {/* Reply input */}
         {showReplyInput && (
-          <div className="reply-input-row">
+          <div className={styles['reply-input-row']}>
             <input
               type="text"
               value={replyText}
               placeholder={t('forum.comments.replyPlaceholder')}
               onChange={(e) => setReplyText(e.target.value)}
-              className="comment-input"
+              className={styles['comment-input']}
             />
             <button 
-              className="comment-submit-btn" 
+              className={styles['comment-submit-btn']} 
               onClick={handleSubmitReply}
               disabled={isSubmittingReply || !replyText.trim()}
             >

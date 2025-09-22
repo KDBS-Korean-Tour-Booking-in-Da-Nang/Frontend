@@ -1,0 +1,473 @@
+.tour-booking-wizard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Progress Bar */
+.progress-container {
+  margin-bottom: 40px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 1) Container steps: full width, các item giãn đều */
+.progress-steps{
+  display: flex;         /* đổi từ grid -> flex để kiểm soát dễ */
+  width: 100%;           /* đúng bằng progress bar (trong cùng container) */
+  margin: 0;
+  padding: 0;
+  gap: 0;                /* BỎ gap để không có khoảng trống */
+  box-sizing: border-box;
+  justify-content: stretch;  /* KÉO DÀI hết chiều ngang */
+  align-items: stretch;
+  max-width: 100%;       /* chặn mọi max-width lạ từ global */
+}
+
+/* 2) Mỗi step chiếm 1/3, kéo tràn mép trái-phải */
+.progress-step{
+  flex: 1;               /* <- KÉO DÀI hoàn toàn: flex-grow = 1 */
+  min-width: 0;          /* tránh bị nội dung đẩy tràn */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 2px solid transparent;
+  border-right: 1px solid #e5e7eb;  /* border giữa các step */
+  transition: all .3s ease;
+  position: relative;
+}
+
+.progress-step:last-child {
+  border-right: 2px solid transparent;  /* bỏ border cho step cuối */
+}
+
+/* Không cần bo riêng first/last nữa vì mỗi card đã bo tròn */
+.progress-step:first-child,
+.progress-step:last-child {
+  border-radius: 12px;
+  border-right: 2px solid transparent;
+}
+
+.progress-step.active {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  border-right-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.progress-step.completed {
+  background-color: #f0fdf4;
+  border-color: #10b981;
+  border-right-color: #10b981;
+  cursor: pointer;
+}
+
+.progress-step.completed:hover {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+  border-right-color: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.progress-step.completed .step-number {
+  background-color: #10b981;
+  color: white;
+}
+
+.progress-step.completed .step-number::after {
+  content: '✓';
+  font-size: 16px;
+}
+
+/* Export state class tokens for CSS Modules so .progress-step.active/.completed match */
+/* Dummy declarations to satisfy linters while exposing tokens */
+.active { outline: none; }
+.completed { outline: none; }
+
+.step-info {
+  flex: 1;
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.step-description {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Step Content */
+.step-content {
+  background-color: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 32px;
+  min-height: 500px;
+}
+
+/* Navigation Buttons */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.btn-primary, .btn-secondary, .btn-success {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  max-width: 150px;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+.btn-secondary:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.btn-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #059669;
+}
+
+/* Success Message */
+.success-message {
+  text-align: center;
+  padding: 40px;
+}
+
+.success-message h1 {
+  color: #10b981;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.success-message p {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Container 3 step – giãn đều, có khe hở để viền không "dính" nhau */
+.tour-booking-wizard .progress-steps{
+  display: flex !important;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 16px;                 /* <<< tạo khe, viền sẽ thấy rõ ở hai mép */
+  align-items: stretch;
+  box-sizing: border-box;
+}
+
+/* Mỗi step là 1/3 và có viền quanh đầy đủ */
+.tour-booking-wizard .progress-step{
+  flex: 1 1 0% !important;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 2px solid transparent;   /* viền của card */
+  border-radius: 12px;
+  box-sizing: border-box;
+  /* KHÔNG border-right riêng nữa */
+}
+
+/* Trạng thái */
+.tour-booking-wizard .progress-step.active{
+  background-color: #eff6ff;
+  border-color: #3b82f6;           /* viền xanh quanh cả card */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59,130,246,.15);
+}
+
+.tour-booking-wizard .progress-step.completed{
+  background-color: #f0fdf4;
+  border-color: #10b981;           /* viền xanh lá quanh cả card */
+  cursor: pointer;
+}
+
+.tour-booking-wizard .progress-step.completed:hover{
+  background-color: #dcfce7;
+  border-color: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16,185,129,.15);
+}
+
+/* Loading Spinner */
+.loading-spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-left-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Success Message */
+.success-message {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 12px;
+  border: 2px solid #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.success-message h1 {
+  color: #10b981;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.booking-details {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.booking-details h2 {
+  color: #374151;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.booking-info {
+  text-align: left;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.booking-info p {
+  margin: 0.5rem 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.booking-info strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.success-note {
+  color: #059669;
+  font-weight: 500;
+  margin: 1rem 0;
+  font-size: 1.1rem;
+}
+
+.redirect-note {
+  color: #6b7280;
+  font-style: italic;
+  margin: 0.5rem 0;
+}
+
+/* Button Loading State */
+.step-navigation button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.step-navigation button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading Container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.loading-container .loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.loading-container p {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Auth Required */
+.auth-required {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border: 2px solid #f59e0b;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.auth-required h2 {
+  color: #92400e;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.auth-required p {
+  color: #78350f;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.auth-required .btn-primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.auth-required .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tour-booking-wizard .progress-steps {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .tour-booking-wizard .progress-step {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .step-navigation {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .step-navigation button {
+    width: auto;
+    max-width: 200px;
+    align-self: center;
+  }
+
+  .success-message h1 {
+    font-size: 1.5rem;
+  }
+
+  .booking-info {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-required {
+    padding: 3rem 1.5rem;
+  }
+
+  .auth-required h2 {
+    font-size: 1.75rem;
+  }
+
+  .loading-container {
+    padding: 3rem 1.5rem;
+  }
+}

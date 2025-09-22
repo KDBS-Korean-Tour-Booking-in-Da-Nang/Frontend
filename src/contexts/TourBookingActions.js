@@ -30,10 +30,30 @@ export const createRebuildMembersAction = () => ({
   type: ACTIONS.REBUILD_MEMBERS
 });
 
-export const createRecalcTotalAction = () => ({
-  type: ACTIONS.RECALC_TOTAL
+export const createRecalcTotalAction = (prices = null) => ({
+  type: ACTIONS.RECALC_TOTAL,
+  payload: prices
 });
 
 export const createResetBookingAction = () => ({
   type: ACTIONS.RESET_BOOKING
+});
+
+export const createSetBookingLoadingAction = (loading) => ({
+  type: ACTIONS.SET_BOOKING_LOADING,
+  payload: loading
+});
+
+export const createSetBookingErrorAction = (error) => ({
+  type: ACTIONS.SET_BOOKING_ERROR,
+  payload: error
+});
+
+export const createSetBookingSuccessAction = (bookingData) => ({
+  type: ACTIONS.SET_BOOKING_SUCCESS,
+  payload: bookingData
+});
+
+export const createClearBookingStatusAction = () => ({
+  type: ACTIONS.CLEAR_BOOKING_STATUS
 });

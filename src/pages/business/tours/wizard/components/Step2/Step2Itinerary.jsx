@@ -3,7 +3,7 @@ import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
-import './Step2Itinerary.css';
+import styles from './Step2Itinerary.module.css';
 
 // Note: Day titles are fully customized by Company; no default prefix is injected
 
@@ -48,7 +48,7 @@ const Step2Itinerary = () => {
     toolbar: 'undo redo | blocks | ' +
       'bold italic forecolor | alignleft aligncenter ' +
       'alignright alignjustify | bullist numlist outdent indent | ' +
-      'table tabledelete | tableprops tablerowprops tablecellprops | ' +
+      'image | table tabledelete | tableprops tablerowprops tablecellprops | ' +
       'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
       'tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | help',
     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px } table { width: 100%; border-collapse: collapse; } table, th, td { border: 1px solid #e5e7eb; } th, td { padding: 8px; }',
@@ -63,14 +63,32 @@ const Step2Itinerary = () => {
     // Additional settings
     entity_encoding: 'raw',
     convert_urls: false,
+    // Enable drag and drop for images
+    paste_data_images: true,
+    paste_enable_default_filters: false,
+    paste_auto_cleanup_on_paste: true,
+    paste_remove_styles_if_webkit: false,
+    paste_merge_formats: true,
     // Configure image upload
     images_upload_handler: async (blobInfo) => {
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
+      // Get token for authentication
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+      }
+      
       try {
         const response = await fetch('/api/tour/content-image', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData
         });
         
@@ -89,7 +107,33 @@ const Step2Itinerary = () => {
       }
     },
     automatic_uploads: true,
-    file_picker_types: 'image'
+    file_picker_types: 'image',
+    // Image upload settings
+    images_upload_url: '/api/tour/content-image',
+    images_upload_base_path: '/uploads/tours/content/',
+    images_upload_credentials: true,
+    // File picker configuration
+    file_picker_callback: function (callback, value, meta) {
+      if (meta.filetype === 'image') {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+        
+        input.onchange = function () {
+          const file = this.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function () {
+              callback(reader.result, {
+                alt: file.name
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+      }
+    }
   });
   const [formData, setFormData] = useState({
     tourDescription: '',
@@ -363,13 +407,13 @@ const Step2Itinerary = () => {
 
 
   return (
-    <div className="step2-container">
-      <div className="step-header">
-        <h2 className="step-title">{t('tourWizard.step2.title')}</h2>
-        <p className="step-subtitle">{t('tourWizard.step2.subtitle')}</p>
-        <div className="step-instructions">
+    <div className={styles['step2-container']}>
+      <div className={styles['step-header']}>
+        <h2 className={styles['step-title']}>{t('tourWizard.step2.title')}</h2>
+        <p className={styles['step-subtitle']}>{t('tourWizard.step2.subtitle')}</p>
+        <div className={styles['step-instructions']}>
           <p><strong>💡 {t('tourWizard.step2.instructions.title')}</strong> {t('tourWizard.step2.instructions.description')}</p>
-          <div className="title-examples">
+          <div className={styles['title-examples']}>
             <p><strong>🔧 {t('tourWizard.step2.instructions.customizable')}</strong></p>
             <ul>
               <li><strong>{t('tourWizard.step2.instructions.sectionTitle')}</strong></li>
@@ -395,13 +439,13 @@ const Step2Itinerary = () => {
       </div>
 
       {/* Tour Description */}
-      <div className="tour-description-section">
+      <div className={styles['tour-description-section']}>
         <h3>{t('tourWizard.step2.tourDescription.title')}</h3>
-        <p className="section-description">
+        <p className={styles['section-description']}>
           {t('tourWizard.step2.tourDescription.description')}
         </p>
         <textarea
-          className="form-textarea"
+          className={styles['form-textarea']}
           rows={10}
           value={formData.tourDescription}
           placeholder={t('tourWizard.step2.tourDescription.description')}
@@ -418,14 +462,14 @@ const Step2Itinerary = () => {
       </div>
 
       {/* Tour Schedule Summary */}
-      <div className="tour-schedule-section">
+      <div className={styles['tour-schedule-section']}>
         <h3>{t('tourWizard.step2.fields.tourSchedule')}</h3>
-        <p className="section-description">
+        <p className={styles['section-description']}>
           {t('tourWizard.step2.tourSchedule.description')}
         </p>
         <input
           type="text"
-          className="form-input"
+          className={styles['form-input']}
           value={formData.tourSchedule}
           placeholder={t('tourWizard.step2.tourSchedule.placeholder')}
           onChange={(e) => {
@@ -437,20 +481,20 @@ const Step2Itinerary = () => {
       </div>
 
       {/* Itinerary Days */}
-      <div className="itinerary-section">
+      <div className={styles['itinerary-section']}>
         {/* Main Header - Customizable Color Bar */}
-        <div className="itinerary-main-header">
+        <div className={styles['itinerary-main-header']}>
           <div 
-            className="main-title-container"
+            className={styles['main-title-container']}
             style={{
               background: `linear-gradient(135deg, ${formData.mainSectionColor}, ${adjustColor(formData.mainSectionColor, -20)})`,
               boxShadow: `0 4px 15px ${formData.mainSectionColor}40`
             }}
           >
-            <div className="single-day-title-container">
+            <div className={styles['single-day-title-container']}>
               <input
                 type="text"
-                className="single-day-title-input"
+                className={styles['single-day-title-input']}
                 value={formData.mainSectionTitle}
                 onChange={(e) => updateFormData('mainSectionTitle', e.target.value)}
                 placeholder={t('tourWizard.step2.placeholders.sectionTitle')}
@@ -459,7 +503,7 @@ const Step2Itinerary = () => {
               {formData.mainSectionTitle !== t('tourWizard.step2.itinerary.mainSectionTitle') && (
                 <button
                   type="button"
-                  className="reset-title-btn"
+                  className={styles['reset-title-btn']}
                   onClick={() => updateFormData('mainSectionTitle', t('tourWizard.step2.itinerary.mainSectionTitle'))}
                   title={t('tourWizard.step2.titles.resetDefault')}
                 >
@@ -467,8 +511,8 @@ const Step2Itinerary = () => {
                 </button>
               )}
             </div>
-            <div className="color-picker-container">
-              <div className="color-presets">
+            <div className={styles['color-picker-container']}>
+              <div className={styles['color-presets']}>
                 {[
                   '#e91e63', // Pink
                   '#2196f3', // Blue
@@ -478,7 +522,7 @@ const Step2Itinerary = () => {
                   <button
                     key={color}
                     type="button"
-                    className={`color-preset ${formData.mainSectionColor === color ? 'active' : ''}`}
+                    className={`${styles['color-preset']} ${formData.mainSectionColor === color ? styles['active'] : ''}`}
                     style={{ backgroundColor: color }}
                     onClick={() => updateFormData('mainSectionColor', color)}
                     title={`Chọn màu ${color}`}
@@ -487,7 +531,7 @@ const Step2Itinerary = () => {
               </div>
               <button
                 type="button"
-                className="custom-color-btn"
+                className={styles['custom-color-btn']}
                 title="Tùy chỉnh màu sắc"
                 onClick={() => {
                   setCurrentTarget('main');
@@ -503,22 +547,22 @@ const Step2Itinerary = () => {
 
         {/* Custom Color Picker Modal */}
         {showCustomColorPicker && (
-          <div className="custom-color-picker-modal">
-            <div className="color-picker-content">
-              <div className="color-picker-header">
+          <div className={styles['custom-color-picker-modal']}>
+            <div className={styles['color-picker-content']}>
+              <div className={styles['color-picker-header']}>
                 <h3>Tùy chỉnh màu sắc</h3>
                 <button 
-                  className="close-picker-btn"
+                  className={styles['close-picker-btn']}
                   onClick={() => setShowCustomColorPicker(false)}
                 >
                   ×
                 </button>
               </div>
               
-              <div className="color-picker-body">
-                <div className="color-gradient-area">
+              <div className={styles['color-picker-body']}>
+                <div className={styles['color-gradient-area']}>
                   <div 
-                    className="color-gradient-square" 
+                    className={styles['color-gradient-square']} 
                     id="color-gradient-square"
                     onMouseDown={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
@@ -546,16 +590,16 @@ const Step2Itinerary = () => {
                     }}
                   >
                     <div 
-                      className="color-selector"
+                      className={styles['color-selector']}
                       style={{
                         left: `${saturation * 200 - 6}px`,
                         top: `${(1 - brightness) * 150 - 6}px`
                       }}
                     ></div>
                   </div>
-                  <div className="hue-slider-container">
+                  <div className={styles['hue-slider-container']}>
                     <div 
-                      className="hue-slider"
+                      className={styles['hue-slider']}
                       onMouseDown={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const x = e.clientX - rect.left;
@@ -572,7 +616,7 @@ const Step2Itinerary = () => {
                       }}
                     >
                       <div 
-                        className="hue-selector"
+                        className={styles['hue-selector']}
                         style={{
                           left: `${(currentHue / 360) * 200 - 8}px`
                         }}
@@ -581,22 +625,22 @@ const Step2Itinerary = () => {
                   </div>
                 </div>
                 
-                <div className="color-tools">
-                  <div className="eyedropper-tool">
-                    <button className="eyedropper-btn" title="Eyedropper">
+                <div className={styles['color-tools']}>
+                  <div className={styles['eyedropper-tool']}>
+                    <button className={styles['eyedropper-btn']} title="Eyedropper">
                       🎯
                     </button>
                   </div>
-                  <div className="current-color-swatch">
+                  <div className={styles['current-color-swatch']}>
                     <div 
-                      className="color-swatch"
+                      className={styles['color-swatch']}
                       style={{ backgroundColor: customColor }}
                     ></div>
                   </div>
                 </div>
                 
-                <div className="rgb-inputs">
-                  <div className="rgb-input-group">
+                <div className={styles['rgb-inputs']}>
+                  <div className={styles['rgb-input-group']}>
                     <label>R</label>
                     <input
                       type="number"
@@ -609,10 +653,10 @@ const Step2Itinerary = () => {
                         const b = parseInt(customColor.slice(5, 7), 16);
                         setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
                       }}
-                      className="rgb-input"
+                      className={styles['rgb-input']}
                     />
                   </div>
-                  <div className="rgb-input-group">
+                  <div className={styles['rgb-input-group']}>
                     <label>G</label>
                     <input
                       type="number"
@@ -625,10 +669,10 @@ const Step2Itinerary = () => {
                         const b = parseInt(customColor.slice(5, 7), 16);
                         setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
                       }}
-                      className="rgb-input"
+                      className={styles['rgb-input']}
                     />
                   </div>
-                  <div className="rgb-input-group">
+                  <div className={styles['rgb-input-group']}>
                     <label>B</label>
                     <input
                       type="number"
@@ -641,14 +685,14 @@ const Step2Itinerary = () => {
                         const b = parseInt(e.target.value) || 0;
                         setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
                       }}
-                      className="rgb-input"
+                      className={styles['rgb-input']}
                     />
                   </div>
                 </div>
                 
-                <div className="color-picker-actions">
+                <div className={styles['color-picker-actions']}>
                   <button 
-                    className="apply-color-btn"
+                    className={styles['apply-color-btn']}
                     onClick={() => {
                       if (currentTarget === 'main') {
                         updateFormData('mainSectionColor', customColor);
@@ -671,7 +715,7 @@ const Step2Itinerary = () => {
                     Áp dụng
                   </button>
                   <button 
-                    className="cancel-color-btn"
+                    className={styles['cancel-color-btn']}
                     onClick={() => setShowCustomColorPicker(false)}
                   >
                     Hủy
@@ -685,7 +729,7 @@ const Step2Itinerary = () => {
         {formData.itinerary.map((day, index) => (
           <div 
             key={`day-${day.day}-${index}`} 
-            className="day-card"
+            className={styles['day-card']}
             style={{
               '--day-color': day.dayColor || '#10b981',
               '--day-color-dark': adjustColor(day.dayColor || '#10b981', -20)
@@ -693,27 +737,27 @@ const Step2Itinerary = () => {
           >
             {/* Day Header - Customizable Color Bar with Editable Title */}
             <div 
-              className="day-header-bar"
+              className={styles['day-header-bar']}
               style={{
                 background: `linear-gradient(135deg, ${day.dayColor || '#10b981'}, ${adjustColor(day.dayColor || '#10b981', -20)})`
               }}
             >
-              <div className="day-header-content">
-                <div className="single-day-title-container">
+              <div className={styles['day-header-content']}>
+                <div className={styles['single-day-title-container']}>
               <input
                     type="text"
-                    className={`single-day-title-input ${day.dayTitle ? 'customized' : ''}`}
+                    className={`${styles['single-day-title-input']} ${day.dayTitle ? styles['customized'] : ''}`}
                     value={day.dayTitle || ''}
                     onChange={(e) => updateDay(index, 'dayTitle', e.target.value)}
                 placeholder={t('tourWizard.step2.placeholders.dayTitle')}
                 title={t('tourWizard.step2.titles.editDayTitle')}
                     style={{ textAlign: day.titleAlignment || 'left' }}
                   />
-                  <div className="title-controls">
-                    <div className="alignment-buttons">
+                  <div className={styles['title-controls']}>
+                    <div className={styles['alignment-buttons']}>
                       <button
                         type="button"
-                        className={`align-btn ${(day.titleAlignment || 'left') === 'left' ? 'active' : ''}`}
+                        className={`${styles['align-btn']} ${(day.titleAlignment || 'left') === 'left' ? styles['active'] : ''}`}
                         onClick={() => {
                           const currentAlignment = day.titleAlignment || 'left';
                           if (currentAlignment === 'left') {
@@ -724,15 +768,15 @@ const Step2Itinerary = () => {
                         }}
                         title={t('tourWizard.step2.alignment.left')}
                       >
-                        <div className="align-icon left-align">
-                          <div className="line"></div>
-                          <div className="line"></div>
-                          <div className="line"></div>
+                        <div className={`${styles['align-icon']} ${styles['left-align']}`}>
+                          <div className={styles['line']}></div>
+                          <div className={styles['line']}></div>
+                          <div className={styles['line']}></div>
                         </div>
                       </button>
                       <button
                         type="button"
-                        className={`align-btn ${day.titleAlignment === 'center' ? 'active' : ''}`}
+                        className={`${styles['align-btn']} ${day.titleAlignment === 'center' ? styles['active'] : ''}`}
                         onClick={() => {
                           const currentAlignment = day.titleAlignment || 'left';
                           if (currentAlignment === 'center') {
@@ -743,15 +787,15 @@ const Step2Itinerary = () => {
                         }}
                         title={t('tourWizard.step2.alignment.center')}
                       >
-                        <div className="align-icon center-align">
-                          <div className="line"></div>
-                          <div className="line"></div>
-                          <div className="line"></div>
+                        <div className={`${styles['align-icon']} ${styles['center-align']}`}>
+                          <div className={styles['line']}></div>
+                          <div className={styles['line']}></div>
+                          <div className={styles['line']}></div>
                         </div>
                       </button>
                       <button
                         type="button"
-                        className={`align-btn ${day.titleAlignment === 'right' ? 'active' : ''}`}
+                        className={`${styles['align-btn']} ${day.titleAlignment === 'right' ? styles['active'] : ''}`}
                         onClick={() => {
                           const currentAlignment = day.titleAlignment || 'left';
                           if (currentAlignment === 'right') {
@@ -762,17 +806,17 @@ const Step2Itinerary = () => {
                         }}
                         title={t('tourWizard.step2.alignment.right')}
                       >
-                        <div className="align-icon right-align">
-                          <div className="line"></div>
-                          <div className="line"></div>
-                          <div className="line"></div>
+                        <div className={`${styles['align-icon']} ${styles['right-align']}`}>
+                          <div className={styles['line']}></div>
+                          <div className={styles['line']}></div>
+                          <div className={styles['line']}></div>
                         </div>
                       </button>
                     </div>
                     {day.dayTitle && (
                       <button
                         type="button"
-                        className="reset-title-btn"
+                        className={styles['reset-title-btn']}
                         onClick={() => updateDay(index, 'dayTitle', '')}
                         title={t('tourWizard.step2.titles.clearDayTitle')}
                       >
@@ -781,9 +825,9 @@ const Step2Itinerary = () => {
                     )}
                   </div>
                 </div>
-                <span className="day-description">({day.dayDescription || t('tourWizard.step2.day.defaultMeal')})</span>
-                <div className="color-picker-container">
-                  <div className="color-presets">
+                <span className={styles['day-description']}>({day.dayDescription || t('tourWizard.step2.day.defaultMeal')})</span>
+                <div className={styles['color-picker-container']}>
+                  <div className={styles['color-presets']}>
                     {[
                       '#e91e63', // Pink
                       '#2196f3', // Blue
@@ -793,7 +837,7 @@ const Step2Itinerary = () => {
                       <button
                         key={color}
                         type="button"
-                        className={`color-preset ${day.dayColor === color ? 'active' : ''}`}
+                        className={`${styles['color-preset']} ${day.dayColor === color ? styles['active'] : ''}`}
                         style={{ backgroundColor: color }}
                         onClick={() => updateDay(index, 'dayColor', color)}
                         title={t('tourWizard.step2.color.choose', { color })}
@@ -802,7 +846,7 @@ const Step2Itinerary = () => {
                   </div>
                   <button
                     type="button"
-                    className="custom-color-btn"
+                    className={styles['custom-color-btn']}
                     title={t('tourWizard.step2.color.customize')}
                     onClick={() => {
                       setCurrentTarget(index);
@@ -816,9 +860,9 @@ const Step2Itinerary = () => {
               </div>
             </div>
 
-            <div className="day-content">
-              <div className="form-group">
-                <label className="form-label">{t('tourWizard.step2.activities.label')}</label>
+            <div className={styles['day-content']}>
+              <div className={styles['form-group']}>
+                <label className={styles['form-label']}>{t('tourWizard.step2.activities.label')}</label>
                 <Editor
                   apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
                   value={day.activities}
@@ -827,10 +871,10 @@ const Step2Itinerary = () => {
                 />
               </div>
 
-              <div className="day-actions below-editor">
+              <div className={`${styles['day-actions']} ${styles['below-editor']}`}>
                 <button
                   type="button"
-                  className="btn-add-small"
+                  className={styles['btn-add-small']}
                   title={t('tourWizard.step2.actions.addContentAfter')}
                   onClick={() => addItineraryDayAfter(index)}
                 >
@@ -838,7 +882,7 @@ const Step2Itinerary = () => {
                 </button>
                 <button
                   type="button"
-                  className="btn-remove-small"
+                  className={styles['btn-remove-small']}
                   title={t('tourWizard.step2.actions.removeThis')}
                   onClick={() => removeItineraryDay(index)}
                 >
@@ -846,19 +890,19 @@ const Step2Itinerary = () => {
                 </button>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">{t('tourWizard.step2.images.label')}</label>
+              <div className={styles['form-group']}>
+                <label className={styles['form-label']}>{t('tourWizard.step2.images.label')}</label>
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   onChange={(e) => handleImageUpload(index, e.target.files)}
-                  className="form-input"
+                  className={styles['form-input']}
                 />
                 {day.images.length > 0 && (
-                  <div className="image-preview">
+                  <div className={styles['image-preview']}>
                 {day.images.map((img, imgIndex) => (
-                  <div key={`img-${day.day}-${imgIndex}`} className="preview-item">
+                  <div key={`img-${day.day}-${imgIndex}`} className={styles['preview-item']}>
                         <img src={URL.createObjectURL(img)} alt={`Preview ${imgIndex}`} />
                       </div>
                     ))}
@@ -867,12 +911,12 @@ const Step2Itinerary = () => {
               </div>
 
               {/* Services */}
-              <div className="services-section">
-                <div className="services-header">
-                  <label className="form-label">{t('tourWizard.step2.services.title')}</label>
+              <div className={styles['services-section']}>
+                <div className={styles['services-header']}>
+                  <label className={styles['form-label']}>{t('tourWizard.step2.services.title')}</label>
                   <button 
                     type="button" 
-                    className="btn-add-small"
+                    className={styles['btn-add-small']}
                     onClick={() => addService(index)}
                     title={t('tourWizard.step2.services.add')}
                   >
@@ -881,11 +925,11 @@ const Step2Itinerary = () => {
                 </div>
 
                 {day.services?.map((service, serviceIndex) => (
-                  <div key={`service-${day.day}-${serviceIndex}`} className="service-item">
+                  <div key={`service-${day.day}-${serviceIndex}`} className={styles['service-item']}>
                     <select
                       value={service.type}
                       onChange={(e) => updateService(index, serviceIndex, 'type', e.target.value)}
-                      className="form-select"
+                      className={styles['form-select']}
                     >
                       <option value="food">{t('tourWizard.step2.services.types.food')}</option>
                       <option value="ticket">{t('tourWizard.step2.services.types.ticket')}</option>
@@ -897,18 +941,18 @@ const Step2Itinerary = () => {
                       placeholder={t('tourWizard.step2.services.placeholders.name')}
                       value={service.name}
                       onChange={(e) => updateService(index, serviceIndex, 'name', e.target.value)}
-                      className="form-input"
+                      className={styles['form-input']}
                     />
                     <input
                       type="number"
                       placeholder={t('tourWizard.step2.services.placeholders.price')}
                       value={service.price}
                       onChange={(e) => updateService(index, serviceIndex, 'price', e.target.value)}
-                      className="form-input"
+                      className={styles['form-input']}
                     />
                     <button 
                       type="button" 
-                      className="btn-remove-small"
+                      className={styles['btn-remove-small']}
                       onClick={() => removeService(index, serviceIndex)}
                       title={t('common.delete')}
                     >

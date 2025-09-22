@@ -19,8 +19,11 @@ import Payment from './pages/user/payment/payment';
 import AdminDashboard from './pages/dashboard/adminDashboard/adminDashboard';
 import Forum from './pages/home/forum/forum';
 import Tour from './pages/tour/Tour';
-import TourDetailPage from './pages/tour/TourDetailPage';
-import TourBookingWizard from './pages/tour/TourBookingWizard';
+import TourDetailPage from './pages/tour/TourDetailPage/TourDetailPage';
+import TourBookingWizard from './pages/tour/TourBookingWizard/TourBookingWizard';
+import VNPayPaymentPage from './pages/payment/VNPayPaymentPage';
+import VNPayReturnPage from './pages/payment/VNPayReturnPage';
+import TransactionResultPage from './pages/payment/TransactionResultPage';
 import TourManagement from './pages/business/tours/tour-management/TourManagement';
 import TourWizard from './pages/business/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/business/tours/shared/BusinessTourDetail';
@@ -54,6 +57,9 @@ function App() {
                   <Route path="/forum" element={<Forum />} />
                   <Route path="/tour/:id" element={<TourDetailPage />} />
                   <Route path="/tour/:id/booking" element={<TourBookingWizard />} />
+                  <Route path="/payment/vnpay" element={<VNPayPaymentPage />} />
+                  <Route path="/api/vnpay/return" element={<VNPayReturnPage />} />
+                  <Route path="/transaction-result" element={<TransactionResultPage />} />
                   <Route path="/tour" element={<Tour />} />
                   {/* Business-only routes */}
                   <Route path="/business/tours" element={<TourManagement />} />

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import './businessInfo.css';
 
 const BusinessInfo = () => {
   const { t } = useTranslation();
@@ -287,7 +286,7 @@ const BusinessInfo = () => {
   }
 
   // Nếu user đã có role Company, ẩn phần thông tin doanh nghiệp
-  const isCompanyRole = user && (user.role === 'COMPANY' || user.role === 'company');
+  const isCompanyRole = user && user.role === 'COMPANY';
   if (isCompanyRole) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

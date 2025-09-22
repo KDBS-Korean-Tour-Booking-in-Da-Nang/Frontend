@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import './ReportSuccessModal.css';
+import styles from './ReportSuccessModal.module.css';
 
 const ReportSuccessModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -37,9 +37,9 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="report-success-overlay" onClick={onClose}>
-      <div className="report-success-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="success-icon">
+    <div className={styles['report-success-overlay']} onClick={onClose}>
+      <div className={styles['report-success-modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['success-icon']}>
           <svg
             width="48"
             height="48"
@@ -58,31 +58,31 @@ const ReportSuccessModal = ({ isOpen, onClose }) => {
           </svg>
         </div>
 
-        <div className="success-content">
+        <div className={styles['success-content']}>
           <h3>{t('forum.modals.reportSuccess.title')}</h3>
           <p>
             {t('forum.modals.reportSuccess.message')}
           </p>
-          <p className="admin-note">
+          <p className={styles['admin-note']}>
             <strong>{t('forum.modals.reportSuccess.adminNote')}</strong>
           </p>
         </div>
 
-        <div className="auto-close-progress">
-          <div className="progress-bar">
+        <div className={styles['auto-close-progress']}>
+          <div className={styles['progress-bar']}>
             <div
-              className="progress-fill"
+              className={styles['progress-fill']}
               style={{
                 width: `${((3 - timeLeft) / 3) * 100}%`,
                 transition: 'width 1s linear'
               }}
             ></div>
           </div>
-          <div className="progress-text">{t('forum.modals.reportSuccess.autoClose', { seconds: timeLeft })}</div>
+          <div className={styles['progress-text']}>{t('forum.modals.reportSuccess.autoClose', { seconds: timeLeft })}</div>
         </div>
 
-        <div className="success-actions">
-          <button className="ok-btn" onClick={onClose}>
+        <div className={styles['success-actions']}>
+          <button className={styles['ok-btn']} onClick={onClose}>
             {t('forum.modals.reportSuccess.understood')}
           </button>
         </div>

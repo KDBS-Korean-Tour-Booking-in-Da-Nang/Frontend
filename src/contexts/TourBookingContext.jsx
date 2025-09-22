@@ -10,11 +10,15 @@ import {
   createSetMemberAction,
   createRebuildMembersAction,
   createRecalcTotalAction,
-  createResetBookingAction
+  createResetBookingAction,
+  createSetBookingLoadingAction,
+  createSetBookingErrorAction,
+  createSetBookingSuccessAction,
+  createClearBookingStatusAction
 } from './TourBookingActions';
 
 // Create context
-const TourBookingContext = createContext();
+export const TourBookingContext = createContext();
 
 // Provider component
 export function TourBookingProvider({ children }) {
@@ -45,12 +49,28 @@ export function TourBookingProvider({ children }) {
     dispatch(createRebuildMembersAction());
   }, []);
 
-  const recalcTotal = useCallback(() => {
-    dispatch(createRecalcTotalAction());
+  const recalcTotal = useCallback((prices = null) => {
+    dispatch(createRecalcTotalAction(prices));
   }, []);
 
   const resetBooking = useCallback(() => {
     dispatch(createResetBookingAction());
+  }, []);
+
+  const setBookingLoading = useCallback((loading) => {
+    dispatch(createSetBookingLoadingAction(loading));
+  }, []);
+
+  const setBookingError = useCallback((error) => {
+    dispatch(createSetBookingErrorAction(error));
+  }, []);
+
+  const setBookingSuccess = useCallback((bookingData) => {
+    dispatch(createSetBookingSuccessAction(bookingData));
+  }, []);
+
+  const clearBookingStatus = useCallback(() => {
+    dispatch(createClearBookingStatusAction());
   }, []);
 
   const value = useMemo(() => ({
@@ -62,8 +82,12 @@ export function TourBookingProvider({ children }) {
     setMember,
     rebuildMembers,
     recalcTotal,
-    resetBooking
-  }), [state, setContact, setDate, incrementPax, decrementPax, setMember, rebuildMembers, recalcTotal, resetBooking]);
+    resetBooking,
+    setBookingLoading,
+    setBookingError,
+    setBookingSuccess,
+    clearBookingStatus
+  }), [state, setContact, setDate, incrementPax, decrementPax, setMember, rebuildMembers, recalcTotal, resetBooking, setBookingLoading, setBookingError, setBookingSuccess, clearBookingStatus]);
 
   return (
     <TourBookingContext.Provider value={value}>

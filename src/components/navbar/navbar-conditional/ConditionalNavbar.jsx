@@ -6,7 +6,7 @@ const ConditionalNavbar = () => {
   const { user } = useAuth();
 
   // Check if user has business role (COMPANY in backend)
-  const isBusinessUser = user && (user.role === 'COMPANY' || user.role === 'company');
+  const isBusinessUser = user && user.role === 'COMPANY';
 
   // Return appropriate navbar based on user role
   if (isBusinessUser) {

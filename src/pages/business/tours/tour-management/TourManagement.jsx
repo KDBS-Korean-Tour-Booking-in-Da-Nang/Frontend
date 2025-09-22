@@ -5,7 +5,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import EditTourModal from '../wizard/modals/EditTourModal';
 import DeleteConfirmModal from '../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
-import './TourManagement.css';
+import styles from './TourManagement.module.css';
 import { API_ENDPOINTS, getImageUrl } from '../../../../config/api';
 
 const TourManagement = () => {
@@ -27,14 +27,29 @@ const TourManagement = () => {
   }, [showError]);
 
   // Check if user has business role
-  const isBusinessUser = user && (user.role === 'COMPANY' || user.role === 'company');
+  const isBusinessUser = user && user.role === 'COMPANY';
   
   const fetchTours = useCallback(async () => {
     if (!user?.email) return;
     
+    // Get token for authentication
+    const remembered = localStorage.getItem('rememberMe') === 'true';
+    const storage = remembered ? localStorage : sessionStorage;
+    const token = storage.getItem('token');
+    
+    if (!token) {
+      showErrorRef.current('toast.login_required');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
-      const response = await fetch(API_ENDPOINTS.TOURS);
+      const response = await fetch(API_ENDPOINTS.TOURS, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -93,9 +108,24 @@ const TourManagement = () => {
   const confirmDeleteTour = async () => {
     if (!selectedTour) return;
 
+    // Get token for authentication
+    const remembered = localStorage.getItem('rememberMe') === 'true';
+    const storage = remembered ? localStorage : sessionStorage;
+    const token = storage.getItem('token');
+
+    if (!token) {
+      showError('toast.login_required');
+      setDeleteModalOpen(false);
+      setSelectedTour(null);
+      return;
+    }
+
     try {
       const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(selectedTour.id), {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok) {
@@ -154,9 +184,9 @@ const TourManagement = () => {
   // Show loading if user is not loaded yet
   if (!user) {
     return (
-      <div className="tour-management">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+      <div className={styles['tour-management']}>
+        <div className={styles['loading-container']}>
+          <div className={styles['loading-spinner']}></div>
           <p>{t('tourManagement.loading.user')}</p>
         </div>
       </div>
@@ -165,8 +195,8 @@ const TourManagement = () => {
 
   if (!isBusinessUser) {
     return (
-      <div className="tour-management">
-        <div className="access-denied">
+      <div className={styles['tour-management']}>
+        <div className={styles['access-denied']}>
           <h1>{t('tourManagement.accessDenied.title')}</h1>
           <p>{t('tourManagement.accessDenied.message')}</p>
         </div>
@@ -176,9 +206,9 @@ const TourManagement = () => {
 
   if (loading) {
     return (
-      <div className="tour-management">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
+      <div className={styles['tour-management']}>
+        <div className={styles['loading-container']}>
+          <div className={styles['loading-spinner']}></div>
           <p>{t('tourManagement.loading.tours')}</p>
         </div>
       </div>
@@ -186,53 +216,53 @@ const TourManagement = () => {
   }
 
   return (
-    <div className="tour-management">
+    <div className={styles['tour-management']}>
       {/* Header */}
-      <div className="management-header">
-        <div className="header-content">
-          <div className="header-title">
-            <div className="title-icon">🏔️</div>
+      <div className={styles['management-header']}>
+        <div className={styles['header-content']}>
+          <div className={styles['header-title']}>
+            <div className={styles['title-icon']}>🏔️</div>
             <h1>{t('tourManagement.header.title')}</h1>
           </div>
           <button 
             onClick={handleCreateTour}
-            className="add-tour-btn"
+            className={styles['add-tour-btn']}
           >
-            <span className="btn-icon">+</span>
+            <span className={styles['btn-icon']}>+</span>
             {t('tourManagement.header.addNew')}
           </button>
         </div>
       </div>
 
       {/* Tour Cards */}
-      <div className="tours-container">
+      <div className={styles['tours-container']}>
         {tours.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🏔️</div>
+          <div className={styles['empty-state']}>
+            <div className={styles['empty-icon']}>🏔️</div>
             <h3>{t('tourManagement.empty.title')}</h3>
             <p>{t('tourManagement.empty.description')}</p>
             <button 
               onClick={handleCreateTour}
-              className="create-first-tour-btn"
+              className={styles['create-first-tour-btn']}
             >
               {t('tourManagement.empty.createFirst')}
             </button>
           </div>
         ) : (
-          <div className="tours-grid">
+          <div className={styles['tours-grid']}>
             {tours.map((tour) => (
-              <div key={tour.id} className="tour-card">
+              <div key={tour.id} className={styles['tour-card']}>
                 {/* Tour Image */}
-                <div className="tour-image-container" style={{height: '250px'}}>
+                <div className={styles['tour-image-container']} style={{height: '250px'}}>
                   {tour.tourImgPath ? (
                     <img 
                       src={getImageSrc(tour.tourImgPath)} 
                       alt={tour.tourName}
-                      className="tour-image"
+                      className={styles['tour-image']}
                     />
                   ) : (
-                    <div className="tour-image-placeholder">
-                      <div className="placeholder-icon">🏞️</div>
+                    <div className={styles['tour-image-placeholder']}>
+                      <div className={styles['placeholder-icon']}>🏞️</div>
                     </div>
                   )}
                   
@@ -243,56 +273,56 @@ const TourManagement = () => {
                 </div>
 
                 {/* Tour Info */}
-                <div className="tour-info">
-                  <h3 className="tour-name">{tour.tourName}</h3>
+                <div className={styles['tour-info']}>
+                  <h3 className={styles['tour-name']}>{tour.tourName}</h3>
                   
-                  <div className="tour-price">
-                    <span className="price-label">{t('tourManagement.card.priceLabel')}</span>
-                    <span className="price-value">{formatPrice(tour.adultPrice)}₫</span>
+                  <div className={styles['tour-price']}>
+                    <span className={styles['price-label']}>{t('tourManagement.card.priceLabel')}</span>
+                    <span className={styles['price-value']}>{formatPrice(tour.adultPrice)}₫</span>
                   </div>
 
-                  <div className="tour-details">
-                    <div className="detail-item">
-                      <span className="detail-label">{t('tourManagement.card.durationLabel')}</span>
-                      <span className="detail-value">{formatDuration(tour.tourDuration)}</span>
+                  <div className={styles['tour-details']}>
+                    <div className={styles['detail-item']}>
+                      <span className={styles['detail-label']}>{t('tourManagement.card.durationLabel')}</span>
+                      <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
                     </div>
-                    <div className="detail-item">
-                      <span className="detail-label">{t('tourManagement.card.capacityLabel')}</span>
-                      <span className="detail-value">{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
+                    <div className={styles['detail-item']}>
+                      <span className={styles['detail-label']}>{t('tourManagement.card.capacityLabel')}</span>
+                      <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
                     </div>
-                    <div className="detail-item">
-                      <span className="detail-label">{t('tourManagement.card.departureLabel')}</span>
-                      <span className="detail-value">{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
+                    <div className={styles['detail-item']}>
+                      <span className={styles['detail-label']}>{t('tourManagement.card.departureLabel')}</span>
+                      <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
                     </div>
                   </div>
 
                   {/* Controls */}
-                  <div className="tour-controls">
-                    <div className="toggle-container">
-                      <label className="toggle-switch">
+                  <div className={styles['tour-controls']}>
+                    <div className={styles['toggle-container']}>
+                      <label className={styles['toggle-switch']}>
                         <input
                           type="checkbox"
                           checked={tour.tourStatus === 'ACTIVE'}
                           onChange={() => handleToggleStatus(tour.id, tour.tourStatus)}
                         />
-                        <span className="toggle-slider"></span>
+                        <span className={styles['toggle-slider']}></span>
                       </label>
                     </div>
                     
-                    <div className="action-buttons">
+                    <div className={styles['action-buttons']}>
                       <button 
                         onClick={() => handleEditTour(tour.id)}
-                        className="edit-btn"
+                        className={styles['edit-btn']}
                       >
-                        <span className="edit-icon">✏️</span>
+                        <span className={styles['edit-icon']}>✏️</span>
                         {t('tourManagement.actions.edit')}
                       </button>
                       
                       <button 
                         onClick={() => handleDeleteTour(tour.id)}
-                        className="delete-btn"
+                        className={styles['delete-btn']}
                       >
-                        <span className="delete-icon">🗑️</span>
+                        <span className={styles['delete-icon']}>🗑️</span>
                         {t('tourManagement.actions.delete')}
                       </button>
                     </div>

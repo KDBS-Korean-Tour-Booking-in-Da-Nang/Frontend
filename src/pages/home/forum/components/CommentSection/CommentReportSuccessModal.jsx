@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import './CommentReportSuccessModal.css';
+import styles from './CommentReportSuccessModal.module.css';
 
 const CommentReportSuccessModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -37,9 +37,9 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="comment-report-success-overlay" onClick={onClose}>
-      <div className="comment-report-success-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="success-icon">
+    <div className={styles['comment-report-success-overlay']} onClick={onClose}>
+      <div className={styles['comment-report-success-modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['success-icon']}>
           <svg 
             width="48" 
             height="48" 
@@ -58,31 +58,31 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
           </svg>
         </div>
         
-        <div className="success-content">
+        <div className={styles['success-content']}>
           <h3>Báo cáo đã được gửi thành công!</h3>
           <p>
             Cảm ơn bạn đã báo cáo bình luận này. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.
           </p>
-          <p className="admin-note">
+          <p className={styles['admin-note']}>
             <strong>Lưu ý:</strong> Đội ngũ quản trị viên sẽ xem xét báo cáo của bạn và thực hiện các biện pháp phù hợp.
           </p>
         </div>
         
-        <div className="auto-close-progress">
-          <div className="progress-bar">
+        <div className={styles['auto-close-progress']}>
+          <div className={styles['progress-bar']}>
             <div 
-              className="progress-fill" 
+              className={styles['progress-fill']} 
               style={{ 
                 width: `${((3 - timeLeft) / 3) * 100}%`,
                 transition: 'width 1s linear'
               }}
             ></div>
           </div>
-          <div className="progress-text">Tự động đóng sau {timeLeft} giây</div>
+          <div className={styles['progress-text']}>Tự động đóng sau {timeLeft} giây</div>
         </div>
         
-        <div className="success-actions">
-          <button className="ok-btn" onClick={onClose}>
+        <div className={styles['success-actions']}>
+          <button className={styles['ok-btn']} onClick={onClose}>
             Đã hiểu
           </button>
         </div>

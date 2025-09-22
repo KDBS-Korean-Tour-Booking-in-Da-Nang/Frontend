@@ -7,7 +7,11 @@ export const ACTIONS = {
   SET_MEMBER: 'SET_MEMBER',
   REBUILD_MEMBERS: 'REBUILD_MEMBERS',
   RECALC_TOTAL: 'RECALC_TOTAL',
-  RESET_BOOKING: 'RESET_BOOKING'
+  RESET_BOOKING: 'RESET_BOOKING',
+  SET_BOOKING_LOADING: 'SET_BOOKING_LOADING',
+  SET_BOOKING_ERROR: 'SET_BOOKING_ERROR',
+  SET_BOOKING_SUCCESS: 'SET_BOOKING_SUCCESS',
+  CLEAR_BOOKING_STATUS: 'CLEAR_BOOKING_STATUS'
 };
 
 // Initial state structure
@@ -29,5 +33,11 @@ export const initialState = {
       infant: []
     },
     price: { adult: 0, child: 0, infant: 0, total: 0 }
+  },
+  booking: {
+    loading: false,
+    error: null,
+    success: false,
+    bookingData: null
   }
 };

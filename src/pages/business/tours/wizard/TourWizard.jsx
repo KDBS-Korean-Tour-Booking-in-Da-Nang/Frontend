@@ -8,7 +8,7 @@ import Step1BasicInfo from './components/Step1/Step1BasicInfo';
 import Step2Itinerary from './components/Step2/Step2Itinerary';
 import Step3Pricing from './components/Step3/Step3Pricing';
 import Step4Media from './components/Step4/Step4Media';
-import './TourWizard.css';
+import styles from './TourWizard.module.css';
 import { ConfirmLeaveModal } from '../../../../components/modals';
 
 const TourWizardContent = () => {
@@ -251,10 +251,12 @@ const TourWizardContent = () => {
       }
 
 
-      // Call backend API to create tour
-      // Note: Backend endpoint /api/tour/create is public, no auth required
+      // Call backend API to create tour with Bearer token authentication
       const response = await fetch('/api/tour/create', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       });
 
@@ -316,22 +318,22 @@ const TourWizardContent = () => {
   };
 
   return (
-    <div className="tour-wizard">
+    <div className={styles['tour-wizard']}>
       {/* Progress Bar */}
-      <div className="progress-container">
-        <div className="progress-bar">
+      <div className={styles['progress-container']}>
+        <div className={styles['progress-bar']}>
           <div 
-            className="progress-fill" 
+            className={styles['progress-fill']} 
             style={{ width: `${(currentStep / 4) * 100}%` }}
           />
         </div>
-        <div className="progress-steps">
+        <div className={styles['progress-steps']}>
         {steps.map((step) => (
           <div 
             key={step.id} 
-            className={`progress-step ${
-              currentStep === step.id ? 'active' : 
-              isStepCompleted(step.id) ? 'completed' : ''
+            className={`${styles['progress-step']} ${
+              currentStep === step.id ? styles['active'] : 
+              isStepCompleted(step.id) ? styles['completed'] : ''
             }`}
             onClick={() => handleStepClick(step.id)}
             onKeyDown={(e) => {
@@ -343,10 +345,10 @@ const TourWizardContent = () => {
             role="button"
             tabIndex={0}
           >
-            <div className="step-number">{step.id}</div>
-            <div className="step-info">
-              <div className="step-title">{step.title}</div>
-              <div className="step-description">{step.description}</div>
+            <div className={styles['step-number']}>{step.id}</div>
+            <div className={styles['step-info']}>
+              <div className={styles['step-title']}>{step.title}</div>
+              <div className={styles['step-description']}>{step.description}</div>
             </div>
           </div>
         ))}
@@ -354,15 +356,15 @@ const TourWizardContent = () => {
       </div>
 
       {/* Step Content */}
-      <div className="step-content">
+      <div className={styles['step-content']}>
         {renderCurrentStep()}
       </div>
 
       {/* Navigation Buttons */}
-      <div className="step-navigation">
+      <div className={styles['step-navigation']}>
         <button 
           type="button" 
-          className="btn-secondary" 
+          className={styles['btn-secondary']} 
           onClick={prevStep}
           disabled={currentStep === 1}
         >
@@ -372,7 +374,7 @@ const TourWizardContent = () => {
         {currentStep < 4 ? (
           <button 
             type="button" 
-            className="btn-primary" 
+            className={styles['btn-primary']} 
             onClick={nextStep}
           >
             {t('tourWizard.navigation.next')}
@@ -380,7 +382,7 @@ const TourWizardContent = () => {
         ) : (
           <button 
             type="button" 
-            className="btn-success" 
+            className={styles['btn-success']} 
             onClick={handleSubmit}
             disabled={isSubmitting}
           >

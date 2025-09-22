@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './Toast.css';
+import styles from './Toast.module.css';
 
 const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -53,78 +53,47 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
 
   return (
     <div 
+      className={styles['toast-container']}
       style={{
-        position: 'fixed',
         top: `${topPosition}px`,
-        right: '20px',
-        zIndex: 999999,
-        backgroundColor: 'white',
-        border: `3px solid ${getBackgroundColor()}`,
-        borderRadius: '12px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-        minWidth: '320px',
-        maxWidth: '400px',
-        padding: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        fontSize: '16px',
-        fontWeight: 'bold'
+        zIndex: 999999
       }}
     >
       <div 
+        className={`${styles['toast']} ${styles[`toast-${type}`]}`}
         style={{
-          width: '24px',
-          height: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          color: getBackgroundColor()
+          border: `3px solid ${getBackgroundColor()}`
         }}
       >
-        {getIcon()}
+        <div className={styles['toast-content']}>
+          <div className={styles['toast-icon-container']}>
+            <div 
+              className={`${styles['toast-icon']} ${styles[type]}`}
+              style={{
+                color: getBackgroundColor()
+              }}
+            >
+              {getIcon()}
+            </div>
+          </div>
+          <div className={styles['toast-message']}>
+            {message}
+          </div>
+          <button 
+            onClick={handleClose}
+            className={styles['toast-close-button']}
+          >
+            <span className={styles['toast-close-icon']}>×</span>
+          </button>
+        </div>
+        <div 
+          className={`${styles['toast-progress-bar']} ${styles['toast-progress-animation']}`}
+          style={{
+            background: `linear-gradient(90deg, ${getBackgroundColor()}, ${getBackgroundColor()}88)`,
+            animationDuration: `${duration}ms`
+          }}
+        />
       </div>
-      <div 
-        style={{
-          flex: 1,
-          fontSize: '14px',
-          fontWeight: '500',
-          color: '#374151',
-          lineHeight: '1.5'
-        }}
-      >
-        {message}
-      </div>
-      <button 
-        onClick={handleClose}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: '4px',
-          cursor: 'pointer',
-          borderRadius: '6px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '16px',
-          color: '#6b7280'
-        }}
-      >
-        ×
-      </button>
-      <div 
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          height: '3px',
-          width: '100%',
-          background: `linear-gradient(90deg, ${getBackgroundColor()}, ${getBackgroundColor()}88)`,
-          animation: `toast-progress ${duration}ms linear forwards`
-        }}
-      />
     </div>
   );
 };

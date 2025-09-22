@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
-import './SearchSidebar.css';
+import styles from './SearchSidebar.module.css';
 
 const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
   const { t } = useTranslation();
@@ -448,18 +448,18 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
   }, []);
 
   return (
-    <div className="search-sidebar" ref={rootRef}>
-      <div className="search-section">
-        <h3 className="sidebar-title">{t('forum.search.title')}</h3>
-        <form onSubmit={handleSearch} className="search-form">
-          <div className="search-input-container">
+    <div className={styles['search-sidebar']} ref={rootRef}>
+      <div className={styles['search-section']}>
+        <h3 className={styles['sidebar-title']}>{t('forum.search.title')}</h3>
+        <form onSubmit={handleSearch} className={styles['search-form']}>
+          <div className={styles['search-input-container']}>
             <input
               type="text"
               placeholder={t('forum.search.placeholder')}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="search-input"
+              className={styles['search-input']}
               onFocus={() => {
                 setIsInputFocused(true);
                 if (searchHistory.length > 0 && !searchKeyword.trim()) {
@@ -471,12 +471,12 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
               }}
               ref={inputRef}
             />
-            <button type="submit" className="search-btn">
+            <button type="submit" className={styles['search-btn']}>
               🔍
             </button>
           </div>
           {showSuggest && (suggestions.length > 0 || (searchHistory.length > 0 && !searchKeyword.trim())) && createPortal(
-            <div ref={dropdownRef} className="search-suggest" style={{ position: 'fixed', left: suggestPos.left, top: suggestPos.top, width: suggestPos.width }}>
+            <div ref={dropdownRef} className={styles['search-suggest']} style={{ position: 'fixed', left: suggestPos.left, top: suggestPos.top, width: suggestPos.width }}>
               {suggestions.length > 0 ? (
                 // Show suggestions when typing
                 suggestions.map((s, idx) => (
@@ -486,10 +486,10 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
                     className={`suggest-item ${s.type} ${selectedIndex === idx ? 'selected' : ''}`}
                     onClick={(e) => clickSuggestion(s, e)}
                   >
-                    <span className="icon">{s.icon || (s.type === 'hashtag' ? '#' : s.type === 'user' ? '👤' : '🔎')}</span>
-                    <div className="suggest-content">
-                      <span className="text">{s.text}</span>
-                      {s.subtitle && <span className="subtitle">{s.subtitle}</span>}
+                    <span className={styles['icon']}>{s.icon || (s.type === 'hashtag' ? '#' : s.type === 'user' ? '👤' : '🔎')}</span>
+                    <div className={styles['suggest-content']}>
+                      <span className={styles['text']}>{s.text}</span>
+                      {s.subtitle && <span className={styles['subtitle']}>{s.subtitle}</span>}
                     </div>
                   </button>
                 ))
@@ -497,12 +497,12 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
                 // Show search history when focused and no suggestions
                 searchHistory.length > 0 && (
                   <>
-                    <div className="history-header">
-                      <span className="history-title">{t('forum.search.recentSearches')}</span>
+                    <div className={styles['history-header']}>
+                      <span className={styles['history-title']}>{t('forum.search.recentSearches')}</span>
                       <button
                         type="button"
                         onClick={handleClearAllHistory}
-                        className="clear-all-history-btn"
+                        className={styles['clear-all-history-btn']}
                         title={t('forum.search.clearRecent')}
                       >
                         ✕
@@ -511,21 +511,21 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
                     {searchHistory.map((keyword, index) => (
                       <div
                         key={index}
-                        className="history-item"
+                        className={styles['history-item']}
                         onMouseDown={(e) => {
                           console.log('History item mousedown:', keyword, e);
                           handleHistoryClick(keyword, e);
                         }}
                         title={`Click để tìm kiếm "${keyword}"`}
                       >
-                        <span className="history-keyword">{keyword}</span>
+                        <span className={styles['history-keyword']}>{keyword}</span>
                         <button
                           type="button"
                           onMouseDown={(e) => {
                             console.log('Remove button mousedown:', keyword, e);
                             handleRemoveHistoryItem(keyword, e);
                           }}
-                          className="remove-history-btn"
+                          className={styles['remove-history-btn']}
                           title={t('forum.search.removeFromHistory')}
                         >
                           ✕
@@ -540,12 +540,12 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
         </form>
       </div>
 
-      <div className="hashtags-section">
-        <div className="hashtags-header">
-          <h3 className="sidebar-title">{t('forum.search.popularHashtags')}</h3>
+      <div className={styles['hashtags-section']}>
+        <div className={styles['hashtags-header']}>
+          <h3 className={styles['sidebar-title']}>{t('forum.search.popularHashtags')}</h3>
           {selectedHashtags.length > 0 && (
             <button 
-              className="clear-hashtags-btn"
+              className={styles['clear-hashtags-btn']}
               onClick={() => {
                 isInternalUpdate.current = true;
                 setSelectedHashtags([]);
@@ -557,7 +557,7 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
             </button>
           )}
         </div>
-        <div className="hashtags-list">
+        <div className={styles['hashtags-list']}>
           {popularHashtags.map((hashtag, index) => {
             const isSelected = selectedHashtags.includes(hashtag.content);
             return (
@@ -566,37 +566,37 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
                 onClick={(e) => handleHashtagClick(hashtag, e)}
                 className={`hashtag-item ${isSelected ? 'selected' : ''}`}
               >
-                {isSelected && <span className="hashtag-check">✓</span>}
-                <span className="hashtag-text">#{hashtag.content}</span>
-                <span className="hashtag-count">{hashtag.count}</span>
+                {isSelected && <span className={styles['hashtag-check']}>✓</span>}
+                <span className={styles['hashtag-text']}>#{hashtag.content}</span>
+                <span className={styles['hashtag-count']}>{hashtag.count}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="trending-section">
-        <h3 className="sidebar-title">{t('forum.sidebar.trendingTopics')}</h3>
-        <div className="trending-topics">
-          <div className="trending-topic">
-            <span className="topic-number">1</span>
-            <span className="topic-text">{t('forum.trendingTopics.ai')}</span>
+      <div className={styles['trending-section']}>
+        <h3 className={styles['sidebar-title']}>{t('forum.sidebar.trendingTopics')}</h3>
+        <div className={styles['trending-topics']}>
+          <div className={styles['trending-topic']}>
+            <span className={styles['topic-number']}>1</span>
+            <span className={styles['topic-text']}>{t('forum.trendingTopics.ai')}</span>
           </div>
-          <div className="trending-topic">
-            <span className="topic-number">2</span>
-            <span className="topic-text">{t('forum.trendingTopics.startup')}</span>
+          <div className={styles['trending-topic']}>
+            <span className={styles['topic-number']}>2</span>
+            <span className={styles['topic-text']}>{t('forum.trendingTopics.startup')}</span>
           </div>
-          <div className="trending-topic">
-            <span className="topic-number">3</span>
-            <span className="topic-text">{t('forum.trendingTopics.marketing')}</span>
+          <div className={styles['trending-topic']}>
+            <span className={styles['topic-number']}>3</span>
+            <span className={styles['topic-text']}>{t('forum.trendingTopics.marketing')}</span>
           </div>
-          <div className="trending-topic">
-            <span className="topic-number">4</span>
-            <span className="topic-text">{t('forum.trendingTopics.finance')}</span>
+          <div className={styles['trending-topic']}>
+            <span className={styles['topic-number']}>4</span>
+            <span className={styles['topic-text']}>{t('forum.trendingTopics.finance')}</span>
           </div>
-          <div className="trending-topic">
-            <span className="topic-number">5</span>
-            <span className="topic-text">{t('forum.trendingTopics.design')}</span>
+          <div className={styles['trending-topic']}>
+            <span className={styles['topic-number']}>5</span>
+            <span className={styles['topic-text']}>{t('forum.trendingTopics.design')}</span>
           </div>
         </div>
       </div>

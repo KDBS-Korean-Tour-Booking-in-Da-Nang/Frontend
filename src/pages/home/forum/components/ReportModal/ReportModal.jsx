@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import './ReportModal.css';
+import styles from './ReportModal.module.css';
 
 const ReportModal = ({ isOpen, onClose, onReport, post }) => {
   const { t } = useTranslation();
@@ -65,12 +65,12 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="report-modal-overlay" onClick={handleClose}>
-      <div className="report-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="report-modal-header">
+    <div className={styles['report-modal-overlay']} onClick={handleClose}>
+      <div className={styles['report-modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['report-modal-header']}>
           <h3>{t('forum.modals.report.title')}</h3>
           <button 
-            className="close-btn" 
+            className={styles['close-btn']} 
             onClick={handleClose}
             disabled={isSubmitting}
           >
@@ -78,14 +78,14 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
           </button>
         </div>
 
-        <div className="report-modal-content">
-          <div className="post-preview">
-            <div className="post-author">
+        <div className={styles['report-modal-content']}>
+          <div className={styles['post-preview']}>
+            <div className={styles['post-author']}>
               <strong>{post.username}</strong>
             </div>
-            <div className="post-content-preview">
-              {post.title && <div className="post-title">{post.title}</div>}
-              <div className="post-text">
+            <div className={styles['post-content-preview']}>
+              {post.title && <div className={styles['post-title']}>{post.title}</div>}
+              <div className={styles['post-text']}>
                 {post.content.length > 100 
                   ? `${post.content.substring(0, 100)}...` 
                   : post.content
@@ -94,32 +94,32 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
             </div>
           </div>
 
-          <div className="report-reasons">
+          <div className={styles['report-reasons']}>
             <h4>{t('forum.modals.report.selectReason')}</h4>
-            <div className="reasons-list">
+            <div className={styles['reasons-list']}>
               {reportReasons.map((reason) => (
                 <div 
                   key={reason.value}
                   className={`reason-item ${selectedReasons.includes(reason.value) ? 'selected' : ''}`}
                   onClick={() => handleReasonToggle(reason.value)}
                 >
-                  <div className="reason-checkbox">
+                  <div className={styles['reason-checkbox']}>
                     <input 
                       type="checkbox" 
                       checked={selectedReasons.includes(reason.value)}
                       onChange={() => handleReasonToggle(reason.value)}
                     />
                   </div>
-                  <div className="reason-content">
-                    <div className="reason-label">{reason.label}</div>
-                    <div className="reason-description">{reason.description}</div>
+                  <div className={styles['reason-content']}>
+                    <div className={styles['reason-label']}>{reason.label}</div>
+                    <div className={styles['reason-description']}>{reason.description}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="report-description">
+          <div className={styles['report-description']}>
             <label htmlFor="description">{t('forum.modals.report.additionalDescription')}</label>
             <textarea
               id="description"
@@ -129,20 +129,20 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
               maxLength={500}
               rows={3}
             />
-            <div className="char-count">{description.length}/500</div>
+            <div className={styles['char-count']}>{description.length}/500</div>
           </div>
         </div>
 
-        <div className="report-modal-footer">
+        <div className={styles['report-modal-footer']}>
           <button 
-            className="cancel-btn" 
+            className={styles['cancel-btn']} 
             onClick={handleClose}
             disabled={isSubmitting}
           >
             {t('forum.modals.report.cancel')}
           </button>
           <button 
-            className="submit-btn" 
+            className={styles['submit-btn']} 
             onClick={handleSubmit}
             disabled={isSubmitting || selectedReasons.length === 0}
           >

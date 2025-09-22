@@ -8,7 +8,7 @@ import SearchSidebar from './components/SearchSidebar/SearchSidebar';
 import UserSidebar from './components/UserSidebar/UserSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
 import MyPostsModal from './components/MyPostsModal/MyPostsModal';
-import './forum.css';
+import styles from './forum.module.css';
 
 const Forum = () => {
   const { t } = useTranslation();
@@ -319,28 +319,28 @@ const Forum = () => {
   };
 
   return (
-    <div className="forum-container">
+    <div className={styles['forum-container']}>
       {/* Only show create post section if user is logged in */}
       {user ? (
-        <div className="forum-header">
-          <div className="create-post-section">
-            <div className="create-post-input" onClick={() => setShowPostModal(true)}>
+        <div className={styles['forum-header']}>
+          <div className={styles['create-post-section']}>
+            <div className={styles['create-post-input']} onClick={() => setShowPostModal(true)}>
               <img 
                 src={getAvatarUrl(user?.avatar)} 
                 alt={user?.username}
-                className="user-avatar-small"
+                className={styles['user-avatar-small']}
               />
-              <span className="create-post-text">{t('forum.createPost.placeholder')}</span>
+              <span className={styles['create-post-text']}>{t('forum.createPost.placeholder')}</span>
             </div>
-            <div className="header-buttons">
+            <div className={styles['header-buttons']}>
               <button 
-                className="saved-posts-btn"
+                className={styles['saved-posts-btn']}
                 onClick={() => setShowSavedPostsModal(true)}
               >
                 {t('forum.sidebar.savedPosts')}
               </button>
               <button 
-                className="my-posts-btn"
+                className={styles['my-posts-btn']}
                 onClick={() => setShowMyPostsModal(true)}
               >
                 {t('forum.sidebar.myPosts')}
@@ -349,17 +349,17 @@ const Forum = () => {
           </div>
         </div>
       ) : (
-        <div className="forum-header guest-notice">
-          <div className="guest-message">
+        <div className={`${styles['forum-header']} ${styles['guest-notice']}`}>
+          <div className={styles['guest-message']}>
             <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
-            <p className="guest-features">{t('forum.guest.searchAndFilter')}</p>
+            <p className={styles['guest-features']}>{t('forum.guest.searchAndFilter')}</p>
           </div>
         </div>
       )}
 
-      <div className="forum-content">
+      <div className={styles['forum-content']}>
       {/* Left Sidebar - Search */}
-        <div className="forum-sidebar left">
+        <div className={`${styles['forum-sidebar']} ${styles['left']}`}>
       <SearchSidebar 
             onSearch={handleSearch}
             onHashtagFilter={handleHashtagFilter}
@@ -368,19 +368,19 @@ const Forum = () => {
         </div>
 
         {/* Main Content - Posts Feed */}
-        <div className="forum-main">
+        <div className={styles['forum-main']}>
           {/* Filter Status Bar - Only show for hashtag filters */}
           {!isSearchMode && selectedHashtags.length > 0 && (
-            <div className="filter-status-bar">
-              <div className="filter-info">
+            <div className={styles['filter-status-bar']}>
+              <div className={styles['filter-info']}>
                 {selectedHashtags.map((tag, index) => (
-                  <span key={index} className="filter-tag hashtag-tag">
+                  <span key={index} className={`${styles['filter-tag']} ${styles['hashtag-tag']}`}>
                     #{tag}
                   </span>
                 ))}
               </div>
               <button 
-                className="clear-filters-btn"
+                className={styles['clear-filters-btn']}
                 onClick={clearAllFilters}
                 title={t('forum.filter.clearAll')}
               >
@@ -391,18 +391,18 @@ const Forum = () => {
 
           {/* Search Results Header - Only show for search mode */}
           {isSearchMode && searchKeyword && (
-            <div className="search-results-header">
-              <div className="search-info">
-                <span className="search-icon">🔍</span>
-                <span className="search-text">
+            <div className={styles['search-results-header']}>
+              <div className={styles['search-info']}>
+                <span className={styles['search-icon']}>🔍</span>
+                <span className={styles['search-text']}>
                   Kết quả tìm kiếm cho: <strong>"{searchKeyword}"</strong>
                 </span>
-                <span className="search-count">
+                <span className={styles['search-count']}>
                   ({posts.length} {posts.length === 1 ? 'bài viết' : 'bài viết'})
                 </span>
               </div>
               <button 
-                className="back-to-forum-btn"
+                className={styles['back-to-forum-btn']}
                 onClick={clearAllFilters}
                 title={t('forum.search.backToForum')}
               >
@@ -412,12 +412,12 @@ const Forum = () => {
           )}
           
           {isLoading && currentPage === 0 ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
+            <div className={styles['loading-container']}>
+              <div className={styles['loading-spinner']}></div>
               <p>{t('forum.post.loading')}</p>
             </div>
           ) : posts.length === 0 ? (
-            <div className="no-posts">
+            <div className={styles['no-posts']}>
               {isSearchMode ? (
                 <>
                   <h3>🔍 {t('forum.search.noResults')}</h3>
@@ -430,7 +430,7 @@ const Forum = () => {
                   {user && (
                     <button 
                       onClick={() => setShowPostModal(true)}
-                      className="create-first-post-btn"
+                      className={styles['create-first-post-btn']}
                     >
                       {t('forum.post.createFirst')}
                     </button>
@@ -441,13 +441,13 @@ const Forum = () => {
         ) : (
           <>
             {selectedPostId && singlePost ? (
-              <div className="single-post-view">
-                <div className="back-button-container">
-                  <button className="back-button" onClick={backToAllPosts}>
+              <div className={styles['single-post-view']}>
+                <div className={styles['back-button-container']}>
+                  <button className={styles['back-button']} onClick={backToAllPosts}>
                     {t('forum.post.backToList')}
                   </button>
                 </div>
-                <div className="posts-feed">
+                <div className={styles['posts-feed']}>
                   <PostCard 
                     key={singlePost.forumPostId}
                     post={singlePost}
@@ -459,7 +459,7 @@ const Forum = () => {
                 </div>
               </div>
             ) : (
-              <div className="posts-feed">
+              <div className={styles['posts-feed']}>
                 {posts.map((post) => (
                   <PostCard 
                     key={post.forumPostId}
@@ -475,10 +475,10 @@ const Forum = () => {
             
             {/* Infinite scroll trigger element */}
             {!selectedPostId && hasMorePosts && (
-              <div ref={lastPostElementRefCallback} className="infinite-scroll-trigger">
+              <div ref={lastPostElementRefCallback} className={styles['infinite-scroll-trigger']}>
                 {isLoadingMore && (
-                  <div className="loading-more-container">
-                    <div className="loading-spinner"></div>
+                  <div className={styles['loading-more-container']}>
+                    <div className={styles['loading-spinner']}></div>
                     <p>{t('forum.post.loadingMore')}</p>
                   </div>
                 )}
@@ -487,7 +487,7 @@ const Forum = () => {
             
             {/* Show message when no more posts */}
             {!selectedPostId && !hasMorePosts && posts.length > 0 && (
-              <div className="no-more-posts">
+              <div className={styles['no-more-posts']}>
                 <p>{t('forum.post.noMorePosts')}</p>
               </div>
             )}
@@ -496,7 +496,7 @@ const Forum = () => {
       </div>
 
         {/* Right Sidebar - User Suggestions */}
-        <div className="forum-sidebar right">
+        <div className={`${styles['forum-sidebar']} ${styles['right']}`}>
       <UserSidebar />
         </div>
       </div>
