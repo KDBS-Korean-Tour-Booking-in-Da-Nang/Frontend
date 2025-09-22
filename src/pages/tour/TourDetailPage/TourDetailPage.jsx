@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useToursAPI } from '../../hooks/useToursAPI';
-import './TourDetailPage.css';
-import { sanitizeHtml } from '../../utils/sanitizeHtml';
+import { useToursAPI } from '../../../hooks/useToursAPI';
+import styles from './TourDetailPage.module.css';
+import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 
 // Adjust color brightness by percentage (negative to darken)
 const shadeColor = (hex, percent) => {
@@ -88,8 +88,8 @@ const TourDetailPage = () => {
 
   if (loading || !tour) {
     return (
-      <div className="tour-detail-loading">
-        <div className="loading-spinner"></div>
+      <div className={styles['tour-detail-loading']}>
+        <div className={styles['loading-spinner']}></div>
         <p>{t('tourPage.detail.loading')}</p>
       </div>
     );
@@ -97,10 +97,10 @@ const TourDetailPage = () => {
 
   if (error) {
     return (
-      <div className="tour-detail-error">
+      <div className={styles['tour-detail-error']}>
         <h3>{t('tourPage.detail.errorTitle')}</h3>
         <p>{error}</p>
-        <button onClick={() => navigate('/tour')} className="back-btn">
+        <button onClick={() => navigate('/tour')} className={styles['back-btn']}>
           {t('tourPage.detail.backToList')}
         </button>
       </div>
@@ -125,43 +125,43 @@ const TourDetailPage = () => {
   const itinerary = getItineraryFromTour(tour);
 
   return (
-    <div className="tour-detail-page">
+    <div className={styles['tour-detail-page']}>
       {/* Hero Section */}
-      <div className="tour-hero-section">
-        <div className="hero-background">
+      <div className={styles['tour-hero-section']}>
+        <div className={styles['hero-background']}>
           <img src={tour.image} alt={tour.title} />
-          <div className="hero-overlay"></div>
+          <div className={styles['hero-overlay']}></div>
         </div>
         
-        <div className="hero-content">
-          <div className="container">
-            <button onClick={handleBackToList} className="back-button">
+        <div className={styles['hero-content']}>
+          <div className={styles['container']}>
+            <button onClick={handleBackToList} className={styles['back-button']}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               {t('tourPage.detail.back')}
             </button>
             
-            <div className="hero-info">
-              <div className="hero-badge">
+            <div className={styles['hero-info']}>
+              <div className={styles['hero-badge']}>
                 <span>{t('tourPage.detail.badge')}</span>
               </div>
-              <h1 className="hero-title">{tour.title}</h1>
-              <div className="hero-meta">
-                <div className="meta-item">
+              <h1 className={styles['hero-title']}>{tour.title}</h1>
+              <div className={styles['hero-meta']}>
+                <div className={styles['meta-item']}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>{tour.duration}</span>
                 </div>
-                <div className="meta-item">
+                <div className={styles['meta-item']}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <span>{tour.category === 'domestic' ? 'Trong nước' : tour.category === 'international' ? 'Nước ngoài' : 'Trong ngày'}</span>
                 </div>
-                <div className="meta-item">
+                <div className={styles['meta-item']}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
@@ -174,16 +174,16 @@ const TourDetailPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="tour-detail-content">
-        <div className="container">
-          <div className="tour-detail-grid">
+      <div className={styles['tour-detail-content']}>
+        <div className={styles['container']}>
+          <div className={styles['tour-detail-grid']}>
             {/* Left Column - Content */}
-            <div className="tour-detail-left">
+            <div className={styles['tour-detail-left']}>
               {/* Tour Overview */}
-              <div className="tour-overview">
+              <div className={styles['tour-overview']}>
                 <h2>{t('tourPage.detail.overview.title')}</h2>
                 <div
-                  className="tour-description-html"
+                  className={styles['tour-description-html']}
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml((tour.descriptionHtml || tour.description || '').replace(/\n/g, '<br/>')) }}
                 />
                 {(tour.tourDeparturePoint || tour.tourVehicle) && (
@@ -207,26 +207,26 @@ const TourDetailPage = () => {
               </div>
 
               {/* Tour Highlights */}
-              <div className="tour-highlights">
+              <div className={styles['tour-highlights']}>
                 <h2>{t('tourPage.detail.highlights.title')}</h2>
-                <div className="highlights-grid">
-                  <div className="highlight-item">
-                    <div className="highlight-icon">🏛️</div>
+                <div className={styles['highlights-grid']}>
+                  <div className={styles['highlight-item']}>
+                    <div className={styles['highlight-icon']}>🏛️</div>
                     <h3>{t('tourPage.detail.highlights.items.historyTitle')}</h3>
                     <p>{t('tourPage.detail.highlights.items.historyDesc')}</p>
                   </div>
-                  <div className="highlight-item">
-                    <div className="highlight-icon">🍽️</div>
+                  <div className={styles['highlight-item']}>
+                    <div className={styles['highlight-icon']}>🍽️</div>
                     <h3>{t('tourPage.detail.highlights.items.foodTitle')}</h3>
                     <p>{t('tourPage.detail.highlights.items.foodDesc')}</p>
                   </div>
-                  <div className="highlight-item">
-                    <div className="highlight-icon">📸</div>
+                  <div className={styles['highlight-item']}>
+                    <div className={styles['highlight-icon']}>📸</div>
                     <h3>{t('tourPage.detail.highlights.items.photoTitle')}</h3>
                     <p>{t('tourPage.detail.highlights.items.photoDesc')}</p>
                   </div>
-                  <div className="highlight-item">
-                    <div className="highlight-icon">🎁</div>
+                  <div className={styles['highlight-item']}>
+                    <div className={styles['highlight-icon']}>🎁</div>
                     <h3>{t('tourPage.detail.highlights.items.giftTitle')}</h3>
                     <p>{t('tourPage.detail.highlights.items.giftDesc')}</p>
                   </div>
@@ -234,15 +234,15 @@ const TourDetailPage = () => {
               </div>
 
               {/* Tour Itinerary */}
-              <div className="tour-itinerary">
-                <div className="itinerary-header">
+              <div className={styles['tour-itinerary']}>
+                <div className={styles['itinerary-header']}>
                   <h2>{t('tourPage.detail.itinerary.header')}</h2>
                 </div>
-                <div className="itinerary-list">
+                <div className={styles['itinerary-list']}>
                   {itinerary.length === 0 ? (
-                    <div className="itinerary-item">
-                      <div className="itinerary-content">
-                        <p className="activity">{t('tourPage.detail.itinerary.updating')}</p>
+                    <div className={styles['itinerary-item']}>
+                      <div className={styles['itinerary-content']}>
+                        <p className={styles['activity']}>{t('tourPage.detail.itinerary.updating')}</p>
                       </div>
                     </div>
                   ) : (
@@ -252,9 +252,9 @@ const TourDetailPage = () => {
                         ? titleFromAPI
                         : t('tourPage.detail.itinerary.day', { index: index + 1 });
                       return (
-                      <div className="itinerary-item" key={index}>
+                      <div className={styles['itinerary-item']} key={index}>
                         <div
-                          className="itinerary-day-header"
+                          className={styles['itinerary-day-header']}
                           style={{
                             background: day.dayColor
                               ? `linear-gradient(135deg, ${day.dayColor}, ${shadeColor(day.dayColor, -20)})`
@@ -262,7 +262,7 @@ const TourDetailPage = () => {
                           }}
                         >
                           <span 
-                            className="day-destination"
+                            className={styles['day-destination']}
                             style={{
                               textAlign: day.titleAlignment || 'left',
                               display: 'block',
@@ -273,11 +273,11 @@ const TourDetailPage = () => {
                           </span>
                         </div>
                         {(day.description || day.tourContentDescription || day.activities) && (
-                          <div className="itinerary-content">
-                            <div className="time-schedule">
-                              <div className="time-item">
+                          <div className={styles['itinerary-content']}>
+                            <div className={styles['time-schedule']}>
+                              <div className={styles['time-item']}>
                                 <span
-                                  className="activity"
+                                  className={styles['activity']}
                                   dangerouslySetInnerHTML={{
                                     __html: sanitizeHtml(
                                       day.description || day.tourContentDescription || day.activities || ''
@@ -295,13 +295,13 @@ const TourDetailPage = () => {
               </div>
 
               {/* Tour Gallery */}
-              <div className="tour-gallery">
+              <div className={styles['tour-gallery']}>
                 <h2>{t('tourPage.detail.gallery.title')}</h2>
-                <div className="gallery-grid">
+                <div className={styles['gallery-grid']}>
                   {[tour.image, ...(tour.gallery || [])].filter(Boolean).slice(0,4).map((img, idx) => (
-                    <div className="gallery-item" key={idx}>
+                    <div className={styles['gallery-item']} key={idx}>
                       <img src={img} alt={`Gallery ${idx+1}`} />
-                      <div className="gallery-overlay">
+                      <div className={styles['gallery-overlay']}>
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
@@ -313,33 +313,33 @@ const TourDetailPage = () => {
             </div>
 
             {/* Right Column - Booking Info */}
-            <div className="tour-detail-right">
-              <div className="booking-card">
-                <div className="booking-header">
-                  <div className="price-section">
-                  <span className="price-label">{t('tourPage.detail.booking.price')}</span>
-                    <span className="price-amount">{formatPrice(tour.price)}</span>
+            <div className={styles['tour-detail-right']}>
+              <div className={styles['booking-card']}>
+                <div className={styles['booking-header']}>
+                  <div className={styles['price-section']}>
+                  <span className={styles['price-label']}>{t('tourPage.detail.booking.price')}</span>
+                    <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
                   </div>
-                  <div className="price-note">
+                  <div className={styles['price-note']}>
                   <span>{t('tourPage.detail.booking.includedNote')}</span>
                   </div>
                 </div>
 
-                <div className="price-breakdown">
-                  <div className="price-row"><span>{t('tourPage.detail.booking.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
-                  <div className="price-row"><span>{t('tourPage.detail.booking.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
+                <div className={styles['price-breakdown']}>
+                  <div className={styles['price-row']}><span>{t('tourPage.detail.booking.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
+                  <div className={styles['price-row']}><span>{t('tourPage.detail.booking.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
                 </div>
 
-                <div className="booking-actions">
-                  <button className="book-now-btn" onClick={handleBookNow}>
+                <div className={styles['booking-actions']}>
+                  <button className={styles['book-now-btn']} onClick={handleBookNow}>
                     {t('tourPage.detail.booking.bookNow')}
                   </button>
-                  <button className="contact-btn">
+                  <button className={styles['contact-btn']}>
                     {t('tourPage.detail.booking.contact')}
                   </button>
                 </div>
 
-                <div className="booking-info">
+                <div className={styles['booking-info']}>
                   <h4>{t('tourPage.detail.booking.infoTitle')}</h4>
                   <ul>
                     {t('tourPage.detail.booking.infos', { returnObjects: true }).map((line, idx) => (
@@ -348,15 +348,15 @@ const TourDetailPage = () => {
                   </ul>
                 </div>
 
-                <div className="contact-info">
+                <div className={styles['contact-info']}>
                   <h4>{t('tourPage.detail.booking.contactTitle')}</h4>
-                  <div className="contact-item">
+                  <div className={styles['contact-item']}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                     <span>+84 236 247 5555</span>
                   </div>
-                  <div className="contact-item">
+                  <div className={styles['contact-item']}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>

@@ -1,10 +1,10 @@
 import React from 'react';
-import TourList from './TourList';
-import './Tour.css';
+import TourList from './TourList/TourList';
+import styles from './Tour.module.css';
 
 const Tour = () => {
   return (
-    <div className="tour-page">
+    <div className={styles['tour-page']}>
       <TourList />
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import './CommentReportModal.css';
+import styles from './CommentReportModal.module.css';
 
 const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
   const { t } = useTranslation();
@@ -65,12 +65,12 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="comment-report-modal-overlay" onClick={handleClose}>
-      <div className="comment-report-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="comment-report-modal-header">
+    <div className={styles['comment-report-modal-overlay']} onClick={handleClose}>
+      <div className={styles['comment-report-modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['comment-report-modal-header']}>
           <h3>Báo cáo bình luận</h3>
           <button 
-            className="close-btn" 
+            className={styles['close-btn']} 
             onClick={handleClose}
             disabled={isSubmitting}
           >
@@ -78,12 +78,12 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
           </button>
         </div>
 
-        <div className="comment-report-modal-content">
-          <div className="comment-preview">
-            <div className="comment-author">
+        <div className={styles['comment-report-modal-content']}>
+          <div className={styles['comment-preview']}>
+            <div className={styles['comment-author']}>
               <strong>{comment.username}</strong>
             </div>
-            <div className="comment-content-preview">
+            <div className={styles['comment-content-preview']}>
               {comment.content.length > 100 
                 ? `${comment.content.substring(0, 100)}...` 
                 : comment.content
@@ -91,32 +91,32 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
             </div>
           </div>
 
-          <div className="report-reasons">
+          <div className={styles['report-reasons']}>
             <h4>Chọn lý do báo cáo</h4>
-            <div className="reasons-list">
+            <div className={styles['reasons-list']}>
               {reportReasons.map((reason) => (
                 <div 
                   key={reason.value}
                   className={`reason-item ${selectedReasons.includes(reason.value) ? 'selected' : ''}`}
                   onClick={() => handleReasonToggle(reason.value)}
                 >
-                  <div className="reason-checkbox">
+                  <div className={styles['reason-checkbox']}>
                     <input 
                       type="checkbox" 
                       checked={selectedReasons.includes(reason.value)}
                       onChange={() => handleReasonToggle(reason.value)}
                     />
                   </div>
-                  <div className="reason-content">
-                    <div className="reason-label">{reason.label}</div>
-                    <div className="reason-description">{reason.description}</div>
+                  <div className={styles['reason-content']}>
+                    <div className={styles['reason-label']}>{reason.label}</div>
+                    <div className={styles['reason-description']}>{reason.description}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="report-description">
+          <div className={styles['report-description']}>
             <label htmlFor="description">Mô tả thêm (tùy chọn)</label>
             <textarea
               id="description"
@@ -126,20 +126,20 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
               maxLength={500}
               rows={3}
             />
-            <div className="char-count">{description.length}/500</div>
+            <div className={styles['char-count']}>{description.length}/500</div>
           </div>
         </div>
 
-        <div className="comment-report-modal-footer">
+        <div className={styles['comment-report-modal-footer']}>
           <button 
-            className="cancel-btn" 
+            className={styles['cancel-btn']} 
             onClick={handleClose}
             disabled={isSubmitting}
           >
             Hủy
           </button>
           <button 
-            className="submit-btn" 
+            className={styles['submit-btn']} 
             onClick={handleSubmit}
             disabled={isSubmitting || selectedReasons.length === 0}
           >

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import './LoginRequiredModal.css';
+import styles from './LoginRequiredModal.module.css';
 
 const LoginRequiredModal = ({ isOpen, onClose, title, message, redirectTo = '/login', returnTo = null }) => {
   const { t, i18n } = useTranslation();
@@ -50,14 +50,14 @@ const LoginRequiredModal = ({ isOpen, onClose, title, message, redirectTo = '/lo
   };
 
   return (
-    <div className="login-required-modal-overlay" onClick={handleClose}>
-      <div className="login-required-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="login-required-modal-header">
-          <h3 className="login-required-modal-title">
+    <div className={styles['login-required-modal-overlay']} onClick={handleClose}>
+      <div className={styles['login-required-modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['login-required-modal-header']}>
+          <h3 className={styles['login-required-modal-title']}>
             {title || getTranslation('auth.loginRequired.title', 'Please login to perform')}
           </h3>
           <button 
-            className="login-required-modal-close" 
+            className={styles['login-required-modal-close']} 
             onClick={handleClose}
             aria-label={getTranslation('common.close', 'Close')}
           >
@@ -65,24 +65,24 @@ const LoginRequiredModal = ({ isOpen, onClose, title, message, redirectTo = '/lo
           </button>
         </div>
         
-        <div className="login-required-modal-body">
-          <div className="login-required-modal-icon">
+        <div className={styles['login-required-modal-body']}>
+          <div className={styles['login-required-modal-icon']}>
             🔐
           </div>
-          <p className="login-required-modal-message">
+          <p className={styles['login-required-modal-message']}>
             {message || getTranslation('auth.loginRequired.message', 'Please login to perform this action.')}
           </p>
         </div>
         
-        <div className="login-required-modal-footer">
+        <div className={styles['login-required-modal-footer']}>
           <button 
-            className="login-required-modal-cancel" 
+            className={styles['login-required-modal-cancel']} 
             onClick={handleClose}
           >
             {getTranslation('common.cancel', 'Cancel')}
           </button>
           <button 
-            className="login-required-modal-login" 
+            className={styles['login-required-modal-login']} 
             onClick={handleLogin}
           >
             {getTranslation('auth.common.login', 'Login')}

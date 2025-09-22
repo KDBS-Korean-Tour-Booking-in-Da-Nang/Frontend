@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import './TourCard.css';
+import styles from './TourCard.module.css';
 
 const TourCard = ({ tour }) => {
   const navigate = useNavigate();
@@ -41,39 +41,39 @@ const TourCard = ({ tour }) => {
   };
 
   return (
-    <div className="tour-card">
-      <div className="tour-card-image">
+    <div className={styles['tour-card']}>
+      <div className={styles['tour-card-image']}>
         <img src={tour.image} alt={tour.title} />
         {tour.featured && (
-          <div className="featured-badge">
+          <div className={styles['featured-badge']}>
             <span>{t('tourCard.featured')}</span>
           </div>
         )}
       </div>
       
-      <div className="tour-card-content">
-        <h3 className="tour-card-title">{tour.title}</h3>
+      <div className={styles['tour-card-content']}>
+        <h3 className={styles['tour-card-title']}>{tour.title}</h3>
         
-        <div className="tour-card-info">
-          <div className="tour-duration">
+        <div className={styles['tour-card-info']}>
+          <div className={styles['tour-duration']}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{formatDurationLocalized()}</span>
           </div>
           
-          <div className="tour-price">
-            <span className="price-amount">{formatPrice(tour.price)}</span>
+          <div className={styles['tour-price']}>
+            <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
           </div>
         </div>
 
-        <div className="tour-card-prices">
-          <div className="price-row"><span>{t('tourCard.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
-          <div className="price-row"><span>{t('tourCard.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
+        <div className={styles['tour-card-prices']}>
+          <div className={styles['price-row']}><span>{t('tourCard.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
+          <div className={styles['price-row']}><span>{t('tourCard.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
         </div>
 
         <button 
-          className="tour-details-btn"
+          className={styles['tour-details-btn']}
           onClick={handleViewDetails}
         >
           {t('tourCard.details')}

@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
-import './staffLogin.css';
 
 const StaffLogin = () => {
   const { t } = useTranslation();

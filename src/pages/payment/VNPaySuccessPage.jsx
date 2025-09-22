@@ -85,13 +85,6 @@ const VNPaySuccessPage = () => {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            // Navigate to tour detail or home
-            const tourId = transactionData?.tourId;
-            if (tourId) {
-              navigate(`/tour/${tourId}`);
-            } else {
-              navigate('/tour');
-            }
             return 0;
           }
           return prev - 1;
@@ -100,7 +93,19 @@ const VNPaySuccessPage = () => {
 
       return () => clearInterval(timer);
     }
-  }, [loading, navigate, transactionData]);
+  }, [loading]);
+
+  // Separate effect for navigation when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0 && !loading) {
+      const tourId = transactionData?.tourId;
+      if (tourId) {
+        navigate(`/tour/${tourId}`);
+      } else {
+        navigate('/tour');
+      }
+    }
+  }, [countdown, loading, navigate, transactionData]);
 
   const handleGoToTour = () => {
     const tourId = transactionData?.tourId;

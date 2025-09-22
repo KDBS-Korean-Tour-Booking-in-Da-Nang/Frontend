@@ -77,12 +77,86 @@ export const formatNationality = (nationality) => {
 };
 
 /**
+ * Convert display date format to YYYY-MM-DD for API
+ * @param {string} displayDate - Date in display format (DD/MM/YYYY, MM/DD/YYYY, or YYYY.MM.DD)
+ * @param {string} language - Language context ('vi', 'en', 'ko') to determine format
+ * @returns {string} - Date in YYYY-MM-DD format for API
+ */
+export const formatDateForAPI = (displayDate, language = 'vi') => {
+  if (!displayDate) return '';
+  
+  // If already in YYYY-MM-DD format, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
+    return displayDate;
+  }
+  
+  // Parse different display formats
+  let year, month, day;
+  
+  // Check for DD/MM/YYYY or MM/DD/YYYY format
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(displayDate)) {
+    const [firstPart, secondPart, yearPart] = displayDate.split('/');
+    const firstNum = parseInt(firstPart);
+    const secondNum = parseInt(secondPart);
+    
+    // If first part > 12, it's definitely DD/MM/YYYY (Vietnamese format)
+    if (firstNum > 12) {
+      day = firstPart.padStart(2, '0');
+      month = secondPart.padStart(2, '0');
+      year = yearPart;
+    }
+    // If second part > 12, it's definitely MM/DD/YYYY (English format)
+    else if (secondNum > 12) {
+      month = firstPart.padStart(2, '0');
+      day = secondPart.padStart(2, '0');
+      year = yearPart;
+    }
+    // If both parts <= 12, determine based on language context
+    else {
+      if (language === 'en') {
+        // English format: MM/DD/YYYY
+        month = firstPart.padStart(2, '0');
+        day = secondPart.padStart(2, '0');
+        year = yearPart;
+      } else {
+        // Vietnamese format: DD/MM/YYYY (default)
+        day = firstPart.padStart(2, '0');
+        month = secondPart.padStart(2, '0');
+        year = yearPart;
+      }
+    }
+  }
+  // Check for YYYY.MM.DD format (Korean)
+  else if (/^\d{4}\.\d{1,2}\.\d{1,2}$/.test(displayDate)) {
+    const [yearPart, monthPart, dayPart] = displayDate.split('.');
+    year = yearPart;
+    month = monthPart.padStart(2, '0');
+    day = dayPart.padStart(2, '0');
+  }
+  // If format is not recognized, try to parse as is
+  else {
+    console.warn('Unrecognized date format:', displayDate);
+    return displayDate;
+  }
+  
+  // Validate date components
+  if (!year || !month || !day) {
+    console.warn('Invalid date components:', { year, month, day });
+    return displayDate;
+  }
+  
+  // Return in YYYY-MM-DD format
+  return `${year}-${month}-${day}`;
+};
+
+/**
  * Format booking data from frontend context to backend API format
  * @param {Object} bookingContext - Frontend booking context data
  * @param {number} tourId - Tour ID
+ * @param {string} language - Current language context ('vi', 'en', 'ko')
  * @returns {Object} - Formatted booking data for API
  */
-export const formatBookingData = (bookingContext, tourId) => {
+export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
   const { contact, plan } = bookingContext;
   
   // Validate required fields
@@ -106,7 +180,7 @@ export const formatBookingData = (bookingContext, tourId) => {
     if (member.fullName && member.dob) {
       guests.push({
         fullName: member.fullName.trim(),
-        birthDate: member.dob, // Already in YYYY-MM-DD format from date input
+        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
@@ -120,7 +194,7 @@ export const formatBookingData = (bookingContext, tourId) => {
     if (member.fullName && member.dob) {
       guests.push({
         fullName: member.fullName.trim(),
-        birthDate: member.dob,
+        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
@@ -134,7 +208,7 @@ export const formatBookingData = (bookingContext, tourId) => {
     if (member.fullName && member.dob) {
       guests.push({
         fullName: member.fullName.trim(),
-        birthDate: member.dob,
+        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),

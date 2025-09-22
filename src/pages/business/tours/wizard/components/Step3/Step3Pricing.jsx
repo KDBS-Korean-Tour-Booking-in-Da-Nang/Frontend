@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
-import './Step3Pricing.css';
+import styles from './Step3Pricing.module.css';
 
 const Step3Pricing = () => {
   const { t } = useTranslation();
@@ -40,9 +40,21 @@ const Step3Pricing = () => {
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
+      // Get token for authentication
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+      }
+      
       try {
         const response = await fetch('/api/tour/content-image', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData
         });
         
@@ -96,18 +108,18 @@ const Step3Pricing = () => {
   };
 
   return (
-    <div className="step3-container">
-      <div className="step-header">
-        <h2 className="step-title">{t('tourWizard.step3.title')}</h2>
-        <p className="step-subtitle">{t('tourWizard.step3.subtitle')}</p>
+    <div className={styles['step3-container']}>
+      <div className={styles['step-header']}>
+        <h2 className={styles['step-title']}>{t('tourWizard.step3.title')}</h2>
+        <p className={styles['step-subtitle']}>{t('tourWizard.step3.subtitle')}</p>
       </div>
 
       {/* Pricing */}
-      <div className="pricing-section">
+      <div className={styles['pricing-section']}>
         <h3>{t('tourWizard.step3.pricing.title')}</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label htmlFor="adultPrice" className="form-label">
+        <div className={styles['form-grid']}>
+          <div className={styles['form-group']}>
+            <label htmlFor="adultPrice" className={styles['form-label']}>
               {t('tourWizard.step3.pricing.adultPrice')}
             </label>
             <input
@@ -122,18 +134,18 @@ const Step3Pricing = () => {
                 setFormData(newFormData);
                 updateTourData(newFormData);
               }}
-              className="form-input"
+              className={styles['form-input']}
               placeholder={t('tourWizard.step3.pricing.placeholders.adultPrice')}
               min="0"
             />
-            <small className="form-help">{t('tourWizard.step3.pricing.unit')}</small>
+            <small className={styles['form-help']}>{t('tourWizard.step3.pricing.unit')}</small>
             {!formData.adultPrice && (
-              <div className="form-error">{t('tourWizard.step3.pricing.error')}</div>
+              <div className={styles['form-error']}>{t('tourWizard.step3.pricing.error')}</div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="childrenPrice" className="form-label">
+          <div className={styles['form-group']}>
+            <label htmlFor="childrenPrice" className={styles['form-label']}>
               {t('tourWizard.step3.pricing.childrenPrice')}
             </label>
             <input
@@ -148,15 +160,15 @@ const Step3Pricing = () => {
                 setFormData(newFormData);
                 updateTourData(newFormData);
               }}
-              className="form-input"
+              className={styles['form-input']}
               placeholder={t('tourWizard.step3.pricing.placeholders.childrenPrice')}
               min="0"
             />
-            <small className="form-help">{t('tourWizard.step3.pricing.unitChildren')}</small>
+            <small className={styles['form-help']}>{t('tourWizard.step3.pricing.unitChildren')}</small>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="babyPrice" className="form-label">
+          <div className={styles['form-group']}>
+            <label htmlFor="babyPrice" className={styles['form-label']}>
               {t('tourWizard.step3.pricing.babyPrice')}
             </label>
             <input
@@ -171,29 +183,29 @@ const Step3Pricing = () => {
                 setFormData(newFormData);
                 updateTourData(newFormData);
               }}
-              className="form-input"
+              className={styles['form-input']}
               placeholder={t('tourWizard.step3.pricing.placeholders.babyPrice')}
               min="0"
             />
-            <small className="form-help">{t('tourWizard.step3.pricing.unitBaby')}</small>
+            <small className={styles['form-help']}>{t('tourWizard.step3.pricing.unitBaby')}</small>
           </div>
         </div>
 
         {/* Price Summary */}
-        <div className="price-summary">
+        <div className={styles['price-summary']}>
           <h4>{t('tourWizard.step3.summary.title')}</h4>
-          <div className="summary-grid">
-            <div className="price-item">
-              <span className="price-label">{t('tourWizard.step3.summary.adult')}</span>
-              <span className="price-value">{formatPrice(formData.adultPrice)}</span>
+          <div className={styles['summary-grid']}>
+            <div className={styles['price-item']}>
+              <span className={styles['price-label']}>{t('tourWizard.step3.summary.adult')}</span>
+              <span className={styles['price-value']}>{formatPrice(formData.adultPrice)}</span>
             </div>
-            <div className="price-item">
-              <span className="price-label">{t('tourWizard.step3.summary.children')}</span>
-              <span className="price-value">{formatPrice(formData.childrenPrice)}</span>
+            <div className={styles['price-item']}>
+              <span className={styles['price-label']}>{t('tourWizard.step3.summary.children')}</span>
+              <span className={styles['price-value']}>{formatPrice(formData.childrenPrice)}</span>
             </div>
-            <div className="price-item">
-              <span className="price-label">{t('tourWizard.step3.summary.baby')}</span>
-              <span className="price-value">{formatPrice(formData.babyPrice)}</span>
+            <div className={styles['price-item']}>
+              <span className={styles['price-label']}>{t('tourWizard.step3.summary.baby')}</span>
+              <span className={styles['price-value']}>{formatPrice(formData.babyPrice)}</span>
             </div>
           </div>
         </div>

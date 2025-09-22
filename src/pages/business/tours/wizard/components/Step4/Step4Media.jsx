@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
-import TourCard from './TourCard';
-import './Step4Media.css';
+import TourCard from '../../../../../tour/TourCard/TourCard';
+import styles from './Step4Media.module.css';
 
 const Step4Media = () => {
   const { t } = useTranslation();
@@ -45,37 +45,37 @@ const Step4Media = () => {
 
 
   return (
-    <div className="step4-container">
-      <h2 className="section-title">{t('tourWizard.step4.title')}</h2>
+    <div className={styles['step4-container']}>
+      <h2 className={styles['section-title']}>{t('tourWizard.step4.title')}</h2>
 
       {/* Thumbnail */}
-      <div className="media-section">
-        <div className="upload-area">
+      <div className={styles['media-section']}>
+        <div className={styles['upload-area']}>
           <input
             type="file"
             accept="image/*"
             onChange={handleThumbnailUpload}
-            className="file-input"
+            className={styles['file-input']}
             id="thumbnail-upload"
           />
           <label htmlFor="thumbnail-upload">
             {formData.thumbnail ? (
-              <div className="thumbnail-preview">
+              <div className={styles['thumbnail-preview']}>
                 <img 
                   src={URL.createObjectURL(formData.thumbnail)} 
                   alt="Thumbnail preview" 
-                  className="thumbnail-image"
+                  className={styles['thumbnail-image']}
                 />
-                <div className="upload-text">{t('tourWizard.step4.thumbnail.changeImage')}</div>
-                <div className="upload-subtext">
+                <div className={styles['upload-text']}>{t('tourWizard.step4.thumbnail.changeImage')}</div>
+                <div className={styles['upload-subtext']}>
                   {formData.thumbnail.name} • {(formData.thumbnail.size / 1024 / 1024).toFixed(2)} MB
                 </div>
               </div>
             ) : (
-              <div className="upload-placeholder">
-                <div className="upload-icon">📷</div>
-                <div className="upload-text">{t('tourWizard.step4.thumbnail.selectImage')}</div>
-                <div className="upload-subtext">
+              <div className={styles['upload-placeholder']}>
+                <div className={styles['upload-icon']}>📷</div>
+                <div className={styles['upload-text']}>{t('tourWizard.step4.thumbnail.selectImage')}</div>
+                <div className={styles['upload-subtext']}>
                   {t('tourWizard.step4.thumbnail.supportedFormats')}<br/>
                   {t('tourWizard.step4.thumbnail.recommendedSize')}
                 </div>
@@ -87,10 +87,10 @@ const Step4Media = () => {
 
 
       {/* Preview */}
-      <div className="preview-container">
-        <h3 className="preview-title">{t('tourWizard.step4.preview.title')}</h3>
+      <div className={styles['preview-container']}>
+        <h3 className={styles['preview-title']}>{t('tourWizard.step4.preview.title')}</h3>
         
-        <div className="preview-grid">
+        <div className={styles['preview-grid']}>
           <TourCard 
             tour={{
               tourName: tourData.tourName || t('tourCard.sampleTitle'),
@@ -103,7 +103,7 @@ const Step4Media = () => {
             showActions={false}
           />
           
-          <div className="preview-info">
+          <div className={styles['preview-info']}>
             <h5>{t('tourWizard.step4.preview.infoTitle')}</h5>
             <ul>
               <li><strong>{t('tourWizard.step4.preview.fields.tourName')}</strong> {tourData.tourName || t('tourWizard.step4.preview.values.notSet')}</li>

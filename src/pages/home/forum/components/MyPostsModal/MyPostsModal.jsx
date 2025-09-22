@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { BaseURL, API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
 import { DeleteConfirmModal } from '../../../../../components';
-import './MyPostsModal.css';
+import styles from './MyPostsModal.module.css';
 
 const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
   const { t } = useTranslation();
@@ -114,14 +114,14 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
 
   return (
     <>
-      <div className="my-posts-modal-overlay" onClick={onClose}>
-        <div className="my-posts-modal" onClick={(e) => e.stopPropagation()}>
-          <div className="my-posts-modal-header">
-            <h3 className="my-posts-modal-title">
+      <div className={styles['my-posts-modal-overlay']} onClick={onClose}>
+        <div className={styles['my-posts-modal']} onClick={(e) => e.stopPropagation()}>
+          <div className={styles['my-posts-modal-header']}>
+            <h3 className={styles['my-posts-modal-title']}>
               {t('forum.myPosts.title')}
             </h3>
             <button 
-              className="my-posts-modal-close" 
+              className={styles['my-posts-modal-close']} 
               onClick={onClose}
               aria-label={t('common.close')}
             >
@@ -129,48 +129,48 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
             </button>
           </div>
 
-          <div className="my-posts-modal-body">
+          <div className={styles['my-posts-modal-body']}>
             {loading ? (
-              <div className="my-posts-loading">
-                <div className="loading-spinner"></div>
+              <div className={styles['my-posts-loading']}>
+                <div className={styles['loading-spinner']}></div>
                 <p>{t('common.loading')}</p>
               </div>
             ) : posts.length === 0 ? (
-              <div className="my-posts-empty">
-                <div className="empty-icon">📝</div>
+              <div className={styles['my-posts-empty']}>
+                <div className={styles['empty-icon']}>📝</div>
                 <p>{t('forum.myPosts.empty')}</p>
               </div>
             ) : (
-              <div className="my-posts-list">
+              <div className={styles['my-posts-list']}>
                 {posts.map((post) => (
-                  <div key={post.forumPostId} className="my-post-item">
+                  <div key={post.forumPostId} className={styles['my-post-item']}>
                     <div 
-                      className="my-post-content"
+                      className={styles['my-post-content']}
                       onClick={() => handlePostClick(post)}
                     >
-                      <h4 className="my-post-title">{post.title}</h4>
-                      <p className="my-post-preview">
+                      <h4 className={styles['my-post-title']}>{post.title}</h4>
+                      <p className={styles['my-post-preview']}>
                         {post.content.length > 100 
                           ? `${post.content.substring(0, 100)}...` 
                           : post.content}
                       </p>
-                      <div className="my-post-meta">
-                        <span className="my-post-date">{formatDate(post.createdAt)}</span>
-                        <div className="my-post-stats">
-                          <span className="stat-item">
+                      <div className={styles['my-post-meta']}>
+                        <span className={styles['my-post-date']}>{formatDate(post.createdAt)}</span>
+                        <div className={styles['my-post-stats']}>
+                          <span className={styles['stat-item']}>
                             👍 {post.reactions?.likeCount || 0}
                           </span>
-                          <span className="stat-item">
+                          <span className={styles['stat-item']}>
                             👎 {post.reactions?.dislikeCount || 0}
                           </span>
-                          <span className="stat-item">
+                          <span className={styles['stat-item']}>
                             💾 {post.saveCount || 0}
                           </span>
                         </div>
                       </div>
                     </div>
                     <button 
-                      className="my-post-delete-btn"
+                      className={styles['my-post-delete-btn']}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteClick(post);
@@ -186,20 +186,20 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
           </div>
 
           {totalPages > 1 && (
-            <div className="my-posts-modal-footer">
-              <div className="pagination">
+            <div className={styles['my-posts-modal-footer']}>
+              <div className={styles['pagination']}>
                 <button 
-                  className="pagination-btn"
+                  className={styles['pagination-btn']}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 0}
                 >
                   {t('common.previous')}
                 </button>
-                <span className="pagination-info">
+                <span className={styles['pagination-info']}>
                   {currentPage + 1} / {totalPages}
                 </span>
                 <button 
-                  className="pagination-btn"
+                  className={styles['pagination-btn']}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages - 1}
                 >

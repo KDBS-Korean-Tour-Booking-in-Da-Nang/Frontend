@@ -115,6 +115,10 @@
   animation-fill-mode: forwards;
 }
 
+.toast-progress-animation {
+  animation: toast-progress 5000ms linear forwards;
+}
+
 /* Animations */
 @keyframes toast-slide-in {
   from {
@@ -146,6 +150,7 @@
     transform: scaleX(0);
   }
 }
+
 
 /* Responsive */
 @media (max-width: 480px) {

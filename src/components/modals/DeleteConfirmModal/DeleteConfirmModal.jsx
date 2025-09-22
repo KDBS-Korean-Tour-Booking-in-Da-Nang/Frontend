@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
-import './DeleteConfirmModal.css';
+import styles from './DeleteConfirmModal.module.css';
 
 /**
  * Reusable confirmation modal for destructive or generic actions.
@@ -91,15 +91,15 @@ const DeleteConfirmModal = ({
   };
 
   const modalNode = (
-    <div className="modal-overlay kdbs-modal" onClick={(e) => { if (e.target === e.currentTarget) handleBackdrop(); }} onKeyDown={handleKey} tabIndex={-1}>
-      <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-        <div className="modal-panel">
-          <div className="modal-header">
-            <div className="warning-icon" aria-hidden>{icon}</div>
+    <div className={`${styles['modal-overlay']} ${styles['kdbs-modal']}`} onClick={(e) => { if (e.target === e.currentTarget) handleBackdrop(); }} onKeyDown={handleKey} tabIndex={-1}>
+      <div className={styles['delete-confirm-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div className={styles['modal-panel']}>
+          <div className={styles['modal-header']}>
+            <div className={styles['warning-icon']} aria-hidden>{icon}</div>
             <h2 id="confirm-title">{title || t('common.deleteConfirm.title')}</h2>
             <button
               type="button"
-              className="modal-close"
+              className={styles['modal-close']}
               aria-label="Đóng"
               onClick={onClose}
               disabled={submitting}
@@ -108,21 +108,21 @@ const DeleteConfirmModal = ({
             </button>
           </div>
 
-          <div className="modal-content">
-            <div className="message-card">
-              <p className="confirm-message">
+          <div className={styles['modal-content']}>
+            <div className={styles['message-card']}>
+              <p className={styles['confirm-message']}>
                 {message || t('common.deleteConfirm.message', { item: itemName || t('common.item') })}
               </p>
-              <p className="warning-text">{t('common.deleteConfirm.warning')}</p>
+              <p className={styles['warning-text']}>{t('common.deleteConfirm.warning')}</p>
               {children}
             </div>
           </div>
 
-          <div className="modal-actions">
+          <div className={styles['modal-actions']}>
             <button 
               type="button" 
               onClick={onClose} 
-              className="btn-cancel"
+              className={styles['btn-cancel']}
               disabled={submitting}
             >
               {cancelText || t('common.cancel')}
@@ -130,7 +130,7 @@ const DeleteConfirmModal = ({
             <button 
               type="button" 
               onClick={doConfirm} 
-              className={danger ? 'btn-delete' : 'btn-primary'}
+              className={danger ? styles['btn-delete'] : styles['btn-primary']}
               disabled={submitting}
               ref={confirmBtnRef}
             >

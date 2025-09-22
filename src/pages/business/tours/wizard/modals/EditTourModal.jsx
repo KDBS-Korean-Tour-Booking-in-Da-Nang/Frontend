@@ -3,7 +3,7 @@ import { API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
 import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../contexts/ToastContext';
-import './EditTourModal.css';
+import styles from './EditTourModal.module.css';
 
 const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const { showError, showSuccess } = useToast();
@@ -62,9 +62,21 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
+      // Get token for authentication
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+      }
+      
       try {
         const response = await fetch(API_ENDPOINTS.TOURS + '/content-image', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData
         });
         
@@ -368,16 +380,16 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
-      <div className="edit-tour-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className="modal-header">
+    <div className={styles['modal-overlay']} onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
+      <div className={styles['edit-tour-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className={styles['modal-header']}>
           <h2>{t('tourManagement.edit.title')}</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className={styles['close-btn']} onClick={onClose}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="edit-form">
+        <form onSubmit={handleSubmit} className={styles['edit-form']}>
           {/* Tabs */}
-          <div className="tabs-container">
+          <div className={styles['tabs-container']}>
             <button
               type="button"
               className={`tab ${activeTab === 'basic' ? 'active' : ''}`}
@@ -409,11 +421,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           </div>
 
           {/* Tab Content */}
-          <div className="tab-content">
+          <div className={styles['tab-content']}>
             {activeTab === 'basic' && (
-              <div className="form-section">
+              <div className={styles['form-section']}>
                 <h3>{t('tourManagement.edit.basic.title')}</h3>
-                <div className="form-group">
+                <div className={styles['form-group']}>
                   <label htmlFor="tourName">{t('tourManagement.edit.basic.fields.tourName')}</label>
                   <input
                     type="text"
@@ -425,11 +437,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                   />
                 </div>
                 
-                <div className="form-group">
+                <div className={styles['form-group']}>
                   <label htmlFor="tourDescription">{t('tourManagement.edit.basic.fields.tourDescription')}</label>
                   <textarea
                     id="tourDescription"
-                    className="form-input"
+                    className={styles['form-input']}
                     rows={6}
                     value={formData.tourDescription}
                     placeholder="Nhập mô tả văn bản (không chèn hình ảnh)..."
@@ -437,8 +449,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                   />
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
+                <div className={styles['form-row']}>
+                  <div className={styles['form-group']}>
                     <label htmlFor="tourDuration">{t('tourManagement.edit.basic.fields.tourDuration')}</label>
                     <input
                       type="text"
@@ -450,7 +462,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     />
                   </div>
                   
-                  <div className="form-group">
+                  <div className={styles['form-group']}>
                     <label htmlFor="tourDeparturePoint">{t('tourManagement.edit.basic.fields.tourDeparturePoint')}</label>
                     <input
                       type="text"
@@ -462,8 +474,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
+                <div className={styles['form-row']}>
+                  <div className={styles['form-group']}>
                     <label htmlFor="tourVehicle">{t('tourManagement.edit.basic.fields.tourVehicle')}</label>
                     <input
                       type="text"
@@ -474,7 +486,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     />
                   </div>
                   
-                  <div className="form-group">
+                  <div className={styles['form-group']}>
                     <label htmlFor="tourType">{t('tourManagement.edit.basic.fields.tourType')}</label>
                     <select
                       id="tourType"
@@ -490,10 +502,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                   </div>
                 </div>
 
-                <div className="form-section">
+                <div className={styles['form-section']}>
                   <h3>{t('tourManagement.edit.basic.priceCapacityTitle')}</h3>
-                  <div className="form-row">
-                    <div className="form-group">
+                  <div className={styles['form-row']}>
+                    <div className={styles['form-group']}>
                       <label htmlFor="amount">{t('tourManagement.edit.basic.fields.amount')}</label>
                       <input
                         type="number"
@@ -505,7 +517,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       />
                     </div>
                     
-                    <div className="form-group">
+                    <div className={styles['form-group']}>
                       <label htmlFor="tourStatus">{t('tourManagement.edit.basic.fields.tourStatus')}</label>
                       <select
                         id="tourStatus"
@@ -528,11 +540,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             )}
 
             {activeTab === 'itinerary' && (
-              <div className="form-section">
+              <div className={styles['form-section']}>
                 <h3>{t('tourManagement.edit.itinerary.title')}</h3>
                 
                 {/* Tour Schedule Summary */}
-                <div className="form-group">
+                <div className={styles['form-group']}>
                   <label htmlFor="tourSchedule">{t('tourWizard.step2.fields.tourSchedule')}</label>
                   <input
                     type="text"
@@ -545,18 +557,18 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                 </div>
                 
                 {/* Itinerary Days */}
-                <div className="itinerary-section">
-                  <div className="section-header">
+                <div className={styles['itinerary-section']}>
+                  <div className={styles['section-header']}>
                     <h4>{t('tourManagement.edit.itinerary.dailyTitle')}</h4>
                   </div>
 
                   {formData.itinerary.map((day, index) => (
-                    <div key={index} className="itinerary-day">
-                      <div className="day-header">
+                    <div key={index} className={styles['itinerary-day']}>
+                      <div className={styles['day-header']}>
                         <h5>{t('tourManagement.edit.itinerary.dayN', { day: day.dayNumber })}</h5>
                       </div>
                       
-                      <div className="form-group">
+                      <div className={styles['form-group']}>
                         <label htmlFor={`day-title-${index}`}>{t('tourManagement.edit.itinerary.fields.dayTitle')}</label>
                         <input
                           type="text"
@@ -566,7 +578,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                         />
                       </div>
 
-                      <div className="form-group">
+                      <div className={styles['form-group']}>
                         <label htmlFor={`day-description-${index}`}>{t('tourManagement.edit.itinerary.fields.dayDescription')}</label>
                         <Editor
                           apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
@@ -605,14 +617,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
                         <button
                           type="button"
-                          className="btn-add-day"
+                          className={styles['btn-add-day']}
                           onClick={() => addItineraryDayAfter(index)}
                         >
                           {t('tourManagement.edit.itinerary.actions.addDay')}
                         </button>
                         <button
                           type="button"
-                          className="btn-remove-day"
+                          className={styles['btn-remove-day']}
                           onClick={() => removeItineraryDay(index)}
                         >
                           {t('tourManagement.edit.itinerary.actions.removeDay')}
@@ -627,12 +639,12 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             )}
 
             {activeTab === 'pricing' && (
-              <div className="form-section">
+              <div className={styles['form-section']}>
                 <h3>{t('tourManagement.edit.pricing.title')}</h3>
                 
                 {/* Pricing Fields */}
-                <div className="pricing-grid">
-                  <div className="form-group">
+                <div className={styles['pricing-grid']}>
+                  <div className={styles['form-group']}>
                     <label htmlFor="adultPrice">{t('tourManagement.edit.pricing.fields.adultPrice')}</label>
                     <input
                       type="number"
@@ -646,7 +658,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className={styles['form-group']}>
                     <label htmlFor="childrenPrice">{t('tourManagement.edit.pricing.fields.childrenPrice')}</label>
                     <input
                       type="number"
@@ -660,7 +672,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     />
                   </div>
 
-                  <div className="form-group">
+                  <div className={styles['form-group']}>
                     <label htmlFor="babyPrice">{t('tourManagement.edit.pricing.fields.babyPrice')}</label>
                     <input
                       type="number"
@@ -680,24 +692,24 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             )}
 
             {activeTab === 'media' && (
-              <div className="form-section">
+              <div className={styles['form-section']}>
                 <h3>{t('tourManagement.edit.media.title')}</h3>
                 
                 {/* Cover Image Upload */}
-                <div className="form-group">
+                <div className={styles['form-group']}>
                   <label htmlFor="coverImage">{t('tourManagement.edit.media.coverLabel')}</label>
-                  <div className="image-upload-container">
+                  <div className={styles['image-upload-container']}>
                     <input
                       type="file"
                       id="coverImage"
                       accept="image/*"
                       onChange={handleCoverImageChange}
-                      className="file-input"
+                      className={styles['file-input']}
                     />
                     
-                    <div className="current-image">
+                    <div className={styles['current-image']}>
                       {formData.tourImgPath ? (
-                        <label htmlFor="coverImage" className="image-preview clickable">
+                        <label htmlFor="coverImage" className={`${styles['image-preview']} ${styles['clickable']}`}>
                           <img 
                             key={formData.tourImgPath}
                             src={(() => {
@@ -710,7 +722,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                               return getImageUrl(normalized);
                             })()} 
                             alt="Current cover" 
-                            className="preview-image"
+                            className={styles['preview-image']}
                             onError={(e) => {
                               console.log('Image load error:', formData.tourImgPath);
                               e.target.style.display = 'none';
@@ -719,20 +731,20 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                               console.log('Image loaded successfully:', formData.tourImgPath);
                             }}
                           />
-                          <div className="image-overlay">
-                            <span className="current-label">{t('tourManagement.edit.media.changeImage')}</span>
+                          <div className={styles['image-overlay']}>
+                            <span className={styles['current-label']}>{t('tourManagement.edit.media.changeImage')}</span>
                           </div>
                         </label>
                       ) : (
-                        <label htmlFor="coverImage" className="no-image clickable">
-                          <div className="no-image-icon">🖼️</div>
+                        <label htmlFor="coverImage" className={`${styles['no-image']} ${styles['clickable']}`}>
+                          <div className={styles['no-image-icon']}>🖼️</div>
                           <p>{t('tourManagement.edit.media.selectImage')}</p>
                         </label>
                       )}
                     </div>
                     
-                    <div className="upload-section">
-                      <p className="upload-hint">
+                    <div className={styles['upload-section']}>
+                      <p className={styles['upload-hint']}>
                         {t('tourManagement.edit.media.hint')}
                       </p>
                     </div>
@@ -742,11 +754,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             )}
           </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
+          <div className={styles['modal-actions']}>
+            <button type="button" onClick={onClose} className={styles['btn-cancel']}>
               {t('common.cancel')}
             </button>
-            <button type="submit" className="btn-save" disabled={loading}>
+            <button type="submit" className={styles['btn-save']} disabled={loading}>
               {loading ? t('tourManagement.edit.saving') : t('tourManagement.edit.save')}
             </button>
           </div>

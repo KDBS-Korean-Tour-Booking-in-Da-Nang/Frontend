@@ -728,6 +728,7 @@
 			"deactivate_success": "Đã tạm dừng tour",
 			"cannot_delete_content": "Không thể xóa nội dung"
 		},
+  
 		"payment": {
 			"deposit_success": "Nạp tiền thành công!",
 			"deposit_failed": "Nạp tiền thất bại. Vui lòng thử lại.",
@@ -846,7 +847,8 @@
 				"placeholder": "Nhập tóm tắt lịch trình tour..."
 			},
 			"placeholders": {
-				"dayTitle": "Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)"
+				"dayTitle": "Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)",
+				"sectionTitle": "Nhập tiêu đề phần (ví dụ: ĐIỂM ĐẾN VÀ HÀNH TRÌNH)"
 			},
 			"day": {
 				"defaultMeal": "Ăn trưa – tối"
@@ -865,7 +867,17 @@
 			},
 			"services": {
 				"title": "Dịch vụ kèm theo",
-				"add": "+ Thêm dịch vụ"
+				"add": "+ Thêm dịch vụ",
+				"types": {
+					"food": "Ăn uống",
+					"ticket": "Vé tham quan",
+					"transport": "Vận chuyển",
+					"other": "Khác"
+				},
+				"placeholders": {
+					"name": "Tên dịch vụ",
+					"price": "Giá (VND)"
+				}
 			},
 			"instructions": {
 				"title": "💡 Hướng dẫn:",
@@ -904,6 +916,21 @@
 					"name": "Tên dịch vụ",
 					"price": "Giá (VNĐ)"
 				}
+			},
+			"titles": {
+				"editSectionTitle": "Chỉnh sửa tiêu đề phần",
+				"editDayTitle": "Chỉnh sửa tiêu đề ngày",
+				"resetDefault": "Đặt lại mặc định",
+				"clearDayTitle": "Xóa tiêu đề ngày"
+			},
+			"alignment": {
+				"left": "Căn trái",
+				"center": "Căn giữa",
+				"right": "Căn phải"
+			},
+			"color": {
+				"choose": "Chọn màu {{color}}",
+				"customize": "Tùy chỉnh màu sắc"
 			},
 			"colorPicker": {
 				"title": "Tùy chỉnh màu sắc",
@@ -989,6 +1016,21 @@
 				}
 			}
 		}
+	},
+	"bookingWizard": {
+		"steps": {
+			"step1": { "title": "Thông tin liên hệ", "description": "Nhập thông tin liên hệ của bạn" },
+			"step2": { "title": "Chi tiết tour", "description": "Chọn ngày và thông tin đoàn" },
+			"step3": { "title": "Xác nhận", "description": "Kiểm tra và xác nhận đặt tour" }
+		},
+		"navigation": { "back": "Quay lại", "next": "Tiếp tục", "confirm": "Xác nhận đặt tour" },
+		"auth": {
+			"checking": "Đang kiểm tra xác thực...",
+			"loginRequiredTitle": "Yêu cầu đăng nhập",
+			"loginRequiredMessage": "Bạn cần đăng nhập để đặt tour.",
+			"loginButton": "Đăng nhập"
+		},
+		"processing": "Đang xử lý..."
 	},
 	"tourManagement": {
 		"title": "Quản lý tour",
@@ -1162,13 +1204,6 @@
 			}
 		}
 	},
-	"tourCard": {
-		"welcome": {
-			"explore": "Khám phá",
-			"dream": "Điểm đến mơ ước"
-		},
-		"viewDetails": "Xem Chi Tiết"
-	},
 	"tourList": {
 		"hero": {
 			"title": "Tour du lịch Đà Nẵng trong nước và quốc tế các điểm hấp dẫn",
@@ -1194,14 +1229,13 @@
 		},
 		"loadMore": "Xem thêm"
 	},
-    "tourCard": {
-        "welcome": {
-            "explore": "Khám phá",
-            "dream": "Điểm đến mơ ước"
-        },
-        "viewDetails": "Xem Chi Tiết",
-		"sampleTitle": "Tour mẫu",
-        "featured": "Nổi bật",
+	"tourCard": {
+		"welcome": {
+			"explore": "Khám phá",
+			"dream": "Điểm đến mơ ước"
+		},
+		"viewDetails": "Xem Chi Tiết",
+		"featured": "Nổi bật",
 		"children": "Trẻ em:",
 		"baby": "Em bé:",
 		"details": "CHI TIẾT",
@@ -1222,6 +1256,242 @@
 			"ordersTitle": "Quản lý Đơn hàng",
 			"ordersDesc": "Xem và xử lý đơn hàng"
 		}
+	},
+	"booking": {
+        "step1": {
+          "fields": {
+            "fullName": "Họ và tên",
+            "phone": "Số điện thoại",
+            "email": "Email",
+            "address": "Địa chỉ",
+            "pickupPoint": "Điểm đón",
+            "note": "Ghi chú"
+          },
+          "placeholders": {
+            "fullName": "Nhập họ và tên đầy đủ",
+            "phone": "0123456789 hoặc +84123456789",
+            "address": "Nhập địa chỉ đầy đủ",
+            "pickupPoint": "Nhập điểm đón",
+            "note": "Nhập ghi chú thêm (tùy chọn)"
+          },
+          "sectionTitle": "Thông tin liên hệ",
+          "usePersonalInfo": "Sử dụng thông tin cá nhân từ tài khoản của tôi",
+          "autoFillNotice": "Thông tin từ tài khoản sẽ được tự động điền vào các trường tương ứng. Bạn có thể chỉnh sửa bất kỳ trường nào nếu cần. Các trường không có thông tin sẽ để trống."
+        },
+		"step2": {
+			"loading": "Đang tải thông tin giá tour...",
+			"sections": {
+				"dateTitle": "Ngày khởi hành",
+				"paxTitle": "Tổng số khách",
+				"membersTitle": "Danh sách đoàn",
+				"summaryTitle": "Tổng kết giá"
+			},
+			"summary": { "totalLabel": "Tổng thanh toán" },
+			"common": {
+				"noPrice": "Chưa có giá",
+				"free": "Miễn phí"
+			},
+			"dateDisplay": { "day": "Ngày", "month": "Tháng", "year": "Năm" },
+			"pax": {
+				"adult": "Người lớn",
+				"child": "Trẻ em",
+				"infant": "Em bé",
+				"adultMinHint": "Cần ít nhất 1 người lớn"
+			},
+			"labels": {
+				"fullName": "Họ và tên",
+				"dob": "Ngày sinh",
+				"gender": "Giới tính",
+				"nationality": "Quốc tịch",
+				"idNumberCCCD": "Số căn cước công dân",
+				"idNumberPassport": "Số hộ chiếu"
+			},
+			"countries": {
+				"VN": "Việt Nam",
+				"KR": "Hàn Quốc",
+				"JP": "Nhật Bản",
+				"CN": "Trung Quốc",
+				"US": "Hoa Kỳ",
+				"GB": "Vương quốc Anh",
+				"FR": "Pháp",
+				"DE": "Đức",
+				"TH": "Thái Lan",
+				"SG": "Singapore",
+				"MY": "Malaysia",
+				"PH": "Philippines",
+				"ID": "Indonesia",
+				"LA": "Lào",
+				"KH": "Campuchia",
+				"AU": "Australia",
+				"CA": "Canada"
+			},
+			"placeholders": {
+				"fullName": "Nhập họ và tên",
+				"chooseGender": "Chọn giới tính",
+				"chooseNationality": "Chọn quốc tịch",
+				"idVietnam": "Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)",
+				"idPassport": "Nhập số hộ chiếu (6-9 ký tự)",
+				"dateFormat": "Nhập theo định dạng {{format}}"
+			},
+			"datePicker": {
+				"open": "Mở date picker"
+			},
+			"idInfo": {
+				"baby": "Em bé dưới 2 tuổi: Chỉ cần họ tên + ngày sinh. Nếu đi máy bay, cần giấy khai sinh.",
+				"child": "Trẻ em 2-14 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh.",
+				"teen": "Trẻ em 14-16 tuổi: Có thể có CCCD nhưng không bắt buộc. Nếu đi máy bay, cần giấy khai sinh."
+			},
+			"fields": {
+				"date": "Ngày khởi hành",
+				"adultPax": "Số lượng người lớn",
+				"adultName1": "Tên người lớn 1",
+				"adultName2": "Tên người lớn 2",
+				"adultName3": "Tên người lớn 3",
+				"adultName4": "Tên người lớn 4",
+				"adultDob1": "Ngày sinh người lớn 1",
+				"adultDob2": "Ngày sinh người lớn 2",
+				"adultDob3": "Ngày sinh người lớn 3",
+				"adultDob4": "Ngày sinh người lớn 4",
+				"childName1": "Tên trẻ em 1",
+				"childName2": "Tên trẻ em 2",
+				"childName3": "Tên trẻ em 3",
+				"childName4": "Tên trẻ em 4",
+				"childDob1": "Ngày sinh trẻ em 1",
+				"childDob2": "Ngày sinh trẻ em 2",
+				"childDob3": "Ngày sinh trẻ em 3",
+				"childDob4": "Ngày sinh trẻ em 4",
+				"infantName1": "Tên em bé 1",
+				"infantName2": "Tên em bé 2",
+				"infantName3": "Tên em bé 3",
+				"infantName4": "Tên em bé 4",
+				"infantDob1": "Ngày sinh em bé 1",
+				"infantDob2": "Ngày sinh em bé 2",
+				"infantDob3": "Ngày sinh em bé 3",
+				"infantDob4": "Ngày sinh em bé 4",
+				"adultGender1": "Giới tính người lớn 1",
+				"adultGender2": "Giới tính người lớn 2",
+				"adultGender3": "Giới tính người lớn 3",
+				"adultGender4": "Giới tính người lớn 4",
+				"adultNationality1": "Quốc tịch người lớn 1",
+				"adultNationality2": "Quốc tịch người lớn 2",
+				"adultNationality3": "Quốc tịch người lớn 3",
+				"adultNationality4": "Quốc tịch người lớn 4",
+				"adultIdNumber1": "Số giấy tờ người lớn 1",
+				"adultIdNumber2": "Số giấy tờ người lớn 2",
+				"adultIdNumber3": "Số giấy tờ người lớn 3",
+				"adultIdNumber4": "Số giấy tờ người lớn 4",
+				"childGender1": "Giới tính trẻ em 1",
+				"childGender2": "Giới tính trẻ em 2",
+				"childGender3": "Giới tính trẻ em 3",
+				"childGender4": "Giới tính trẻ em 4",
+				"childNationality1": "Quốc tịch trẻ em 1",
+				"childNationality2": "Quốc tịch trẻ em 2",
+				"childNationality3": "Quốc tịch trẻ em 3",
+				"childNationality4": "Quốc tịch trẻ em 4",
+				"childIdNumber1": "Số giấy tờ trẻ em 1",
+				"childIdNumber2": "Số giấy tờ trẻ em 2",
+				"childIdNumber3": "Số giấy tờ trẻ em 3",
+				"childIdNumber4": "Số giấy tờ trẻ em 4",
+				"infantGender1": "Giới tính em bé 1",
+				"infantGender2": "Giới tính em bé 2",
+				"infantGender3": "Giới tính em bé 3",
+				"infantGender4": "Giới tính em bé 4",
+				"infantNationality1": "Quốc tịch em bé 1",
+				"infantNationality2": "Quốc tịch em bé 2",
+				"infantNationality3": "Quốc tịch em bé 3",
+				"infantNationality4": "Quốc tịch em bé 4",
+				"infantIdNumber1": "Số giấy tờ em bé 1",
+				"infantIdNumber2": "Số giấy tờ em bé 2",
+				"infantIdNumber3": "Số giấy tờ em bé 3",
+				"infantIdNumber4": "Số giấy tờ em bé 4"
+			},
+			"errors": {
+				"dateRequired": "Vui lòng chọn ngày khởi hành",
+				"dateInPast": "Ngày khởi hành không được ở quá khứ",
+				"dateOverOneMonth": "Ngày khởi hành phải trong vòng 1 tháng",
+				"fullNameRequired": "Họ tên là bắt buộc",
+				"dobRequired": "Ngày sinh là bắt buộc",
+				"dobInFuture": "Ngày sinh không được ở tương lai",
+				"dobInvalidFormat": "Định dạng ngày sinh không hợp lệ (sử dụng YYYY-MM-DD)",
+				"dobTooOld": "Ngày sinh không hợp lệ (tuổi phải ≤ 120)",
+				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
+				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
+				"childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
+				"infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
+				"genderRequired": "Giới tính là bắt buộc",
+				"nationalityRequired": "Quốc tịch là bắt buộc",
+				"idRequired": "Số giấy tờ là bắt buộc"
+			},
+			"validation": {
+				"vietnameseId": "Số căn cước/CMND phải có 12 số (CCCD) hoặc 9 số (CMND/CMT). Chỉ được nhập số.",
+				"passport": "Số hộ chiếu phải có 6-9 ký tự (chữ cái và số)"
+			}
+		},
+		"step3": {
+			"sections": {
+				"contact": "Thông tin liên hệ",
+				"tour": "Thông tin tour",
+				"members": "Danh sách đoàn",
+				"price": "Tổng kết giá"
+			},
+			"labels": {
+				"fullName": "Họ và tên",
+				"phone": "Số điện thoại",
+				"email": "Email",
+				"address": "Địa chỉ",
+				"pickupPoint": "Điểm đón",
+				"note": "Ghi chú",
+				"departureDate": "Ngày khởi hành",
+				"totalGuests": "Tổng số khách",
+				"adult": "Người lớn",
+				"child": "Trẻ em",
+				"infant": "Em bé",
+				"notSet": "Chưa nhập",
+				"totalPrice": "Tổng thanh toán"
+			},
+			"table": {
+				"index": "STT",
+				"fullName": "Họ và tên",
+				"dob": "Ngày sinh",
+				"gender": "Giới tính",
+				"nationality": "Quốc tịch",
+				"idNumber": "Số ID/Hộ chiếu"
+			}
+		},
+		"tourPreview": {
+			"loading": "Đang tải thông tin tour...",
+			"fallback": {
+				"apiError": "Không thể kết nối API, hiển thị dữ liệu mẫu",
+				"title": "Tour Đà Nẵng",
+				"duration": "1 ngày 1 đêm",
+				"departure": "Đà Nẵng",
+				"vehicle": "Xe Du Lịch",
+				"schedule": "Khám phá vùng đất Lệ Giang Shangrila với những cảnh quan thiên nhiên tuyệt đẹp, trải nghiệm văn hóa địa phương độc đáo và thưởng thức ẩm thực truyền thống."
+			},
+			"placeholder": { "title": "Khám phá", "subtitle": "Điểm đến mơ ước" },
+			"durationTemplate": "{{days}} ngày {{nights}} đêm",
+			"labels": {
+				"code": "Mã Tour:",
+				"duration": "Thời gian:",
+				"departure": "Điểm khởi hành:",
+				"vehicle": "Phương tiện:",
+				"category": "Hình thức:",
+				"schedule": "Lịch trình:",
+				"noSchedule": "Chưa có lịch trình",
+				"notAvailable": "Chưa có"
+			},
+			"categories": { "standard": "Tiêu chuẩn" }
+		},
+		"errors": {
+          "fullNameRequired": "Họ tên là bắt buộc",
+          "phoneRequired": "Số điện thoại là bắt buộc",
+          "phoneInvalid": "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84 705327671)",
+          "emailRequired": "Email là bắt buộc",
+          "emailInvalid": "Email không hợp lệ",
+          "emailMismatch": "Email không khớp với tài khoản của bạn. Vui lòng sử dụng email đã đăng ký.",
+          "addressRequired": "Địa chỉ là bắt buộc",
+          "pickupPointRequired": "Điểm đón là bắt buộc"
+        }
 	}
 }
 

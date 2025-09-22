@@ -18,7 +18,7 @@ const BusinessOrders = () => {
   const [selectedOrders, setSelectedOrders] = useState([]);
 
   // Check if user has business role
-  const isBusinessUser = user && (user.role === 'COMPANY' || user.role === 'company');
+  const isBusinessUser = user && user.role === 'COMPANY';
   
   if (!isBusinessUser) {
     return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
-import './UserSidebar.css';
+import styles from './UserSidebar.module.css';
 
 const UserSidebar = () => {
   const { t } = useTranslation();
@@ -152,45 +152,45 @@ const UserSidebar = () => {
   };
 
   return (
-    <div className="user-sidebar">
-      <div className="sidebar-header">
-        <h3 className="sidebar-title">{t('forum.sidebar.userSuggestions')}</h3>
-        <span className="user-count">{suggestedUsers.length} {t('forum.sidebar.people')}</span>
+    <div className={styles['user-sidebar']}>
+      <div className={styles['sidebar-header']}>
+        <h3 className={styles['sidebar-title']}>{t('forum.sidebar.userSuggestions')}</h3>
+        <span className={styles['user-count']}>{suggestedUsers.length} {t('forum.sidebar.people')}</span>
       </div>
 
-      <div className="users-list">
+      <div className={styles['users-list']}>
         {suggestedUsers.map((user) => (
-          <div key={user.id} className="user-item">
-            <div className="user-info">
-              <div className="avatar-container">
+          <div key={user.id} className={styles['user-item']}>
+            <div className={styles['user-info']}>
+              <div className={styles['avatar-container']}>
                 <img 
                   src={user.avatar} 
                   alt={user.username}
-                  className="user-avatar"
+                  className={styles['user-avatar']}
                 />
-                {user.isOnline && <div className="online-indicator"></div>}
+                {user.isOnline && <div className={styles['online-indicator']}></div>}
               </div>
               
-              <div className="user-details">
-                <div className="username">{user.username}</div>
-                <div className="mutual-friends">
+              <div className={styles['user-details']}>
+                <div className={styles['username']}>{user.username}</div>
+                <div className={styles['mutual-friends']}>
                   {user.mutualFriends} {t('forum.sidebar.mutualFriends')}
                 </div>
               </div>
             </div>
 
-            <div className="user-actions">
+            <div className={styles['user-actions']}>
               {user.isFollowed ? (
                 <button
                   onClick={() => handleUnfollow(user.id)}
-                  className="action-btn unfollow-btn"
+                  className={`${styles['action-btn']} ${styles['unfollow-btn']}`}
                 >
                   {t('forum.sidebar.unfollow')}
                 </button>
               ) : (
                 <button
                   onClick={() => handleFollow(user.id)}
-                  className="action-btn follow-btn"
+                  className={`${styles['action-btn']} ${styles['follow-btn']}`}
                 >
                   {t('forum.sidebar.follow')}
                 </button>
@@ -198,7 +198,7 @@ const UserSidebar = () => {
               
               <button
                 onClick={() => handleMessage(user.id)}
-                className="action-btn message-btn"
+                className={`${styles['action-btn']} ${styles['message-btn']}`}
               >
                 💬
               </button>
@@ -207,8 +207,8 @@ const UserSidebar = () => {
         ))}
       </div>
 
-      <div className="sidebar-footer">
-        <button className="see-all-btn">
+      <div className={styles['sidebar-footer']}>
+        <button className={styles['see-all-btn']}>
           {t('forum.sidebar.seeAllSuggestions')}
         </button>
       </div>
