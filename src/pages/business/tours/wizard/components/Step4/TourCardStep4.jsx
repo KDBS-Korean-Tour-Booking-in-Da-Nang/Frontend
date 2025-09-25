@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from './TourCard.module.css';
+import styles from './TourCardStep4.module.css';
 
-const TourCard = ({ tour, onClick, showActions = false }) => {
+const TourCardStep4 = ({ tour, onClick, showActions = false }) => {
   const { t } = useTranslation();
 
   const formatPrice = (price) => {
@@ -12,17 +12,15 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
   const getImageSrc = (thumbnail) => {
     if (!thumbnail) return '';
     
-    // If it's a File object, create object URL
     if (thumbnail instanceof File) {
       return URL.createObjectURL(thumbnail);
     }
     
-    // If it's a string path, return as is
     return thumbnail;
   };
 
   return (
-    <div className={styles['tour-card']} onClick={onClick}>
+    <div className={styles['tour-card']} onClick={showActions ? onClick : undefined}>
       {/* Tour Image */}
       <div className={styles['tour-card-image']}>
         {tour.thumbnail ? (
@@ -80,7 +78,7 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
           {(tour.tourDeparturePoint || t('common.departurePoints.daNang'))} • {(tour.amount || '30')} {t('tourWizard.step1.summary.guests')}
         </div>
 
-        {/* Controls */}
+        {/* Controls: show only in management mode; hide in preview */}
         {showActions ? (
           <div style={{ display: 'flex', gap: '8px' }}>
             <button style={{
@@ -96,7 +94,6 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
             }}>
               ✏️ Chỉnh sửa
             </button>
-            
             <button style={{
               flex: 1,
               padding: '8px 12px',
@@ -111,14 +108,10 @@ const TourCard = ({ tour, onClick, showActions = false }) => {
               🗑️ Xóa
             </button>
           </div>
-        ) : (
-          <button className={styles['tour-details-btn']}>
-            {t('tourCard.viewDetails')}
-          </button>
-        )}
+        ) : null}
       </div>
     </div>
   );
 };
 
-export default TourCard;
+export default TourCardStep4;

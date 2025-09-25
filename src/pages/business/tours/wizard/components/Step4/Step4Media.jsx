@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
-import TourCard from '../../../../../tour/TourCard/TourCard';
+import TourCardStep4 from './TourCardStep4';
 import styles from './Step4Media.module.css';
 
 const Step4Media = () => {
@@ -91,15 +91,14 @@ const Step4Media = () => {
         <h3 className={styles['preview-title']}>{t('tourWizard.step4.preview.title')}</h3>
         
         <div className={styles['preview-grid']}>
-          <TourCard 
+          <TourCardStep4 
             tour={{
               tourName: tourData.tourName || t('tourCard.sampleTitle'),
               tourDuration: `${tourData.duration || '2'} ${t('tourWizard.step1.summary.days')} ${tourData.nights || '1'} ${t('tourWizard.step1.summary.nights')}`,
-              adultPrice: tourData.adultPrice || 14990000,
+              adultPrice: Number(tourData.adultPrice) || 14990000,
               thumbnail: formData.thumbnail,
               tourStatus: 'ACTIVE'
             }}
-            onClick={() => {}}
             showActions={false}
           />
           
