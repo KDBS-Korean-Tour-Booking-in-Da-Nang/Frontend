@@ -452,6 +452,11 @@
 	},
 	"forum": {
 		"title": "포럼",
+		"shareTour": {
+			"title": "포럼에 투어 공유하기",
+			"captionPlaceholder": "생각을 적어보세요...",
+			"shareNow": "공유하기"
+		},
 		"createPost": {
 			"placeholder": "무엇을 생각하고 계신가요?",
 			"title": "새 게시물 작성",
@@ -697,6 +702,16 @@
 			"title": "내 게시물",
 			"empty": "아직 게시물이 없습니다. 첫 번째 게시물을 작성해보세요!"
 		}
+	},
+	"forum.shareTour": {
+		"title": "투어를 포럼에 공유",
+		"captionPlaceholder": "생각을 적어보세요...",
+		"shareNow": "공유"
+	},
+	"forum.shareTour": {
+		"title": "투어를 포럼에 공유",
+		"captionPlaceholder": "생각을 적어보세요...",
+		"shareNow": "공유"
 	},
 	"toast": {
 		"required": "{{field}}은(는) 필수입니다",
@@ -1177,6 +1192,24 @@
 			},
 			"gallery": {
 				"title": "투어 갤러리"
+			},
+			"booking": {
+				"price": "투어 가격",
+				"includedNote": "가격에는 세금 및 서비스 요금이 포함되어 있습니다",
+				"children": "아동",
+				"baby": "유아",
+				"bookNow": "지금 예약",
+				"contact": "상담 문의",
+				"infoTitle": "예약 정보",
+				"infos": [
+					"✓ 24/7 예약 지원",
+					"✓ 안전한 결제",
+					"✓ 출발 24시간 전 무료 취소",
+					"✓ 무료 여행자 보험",
+					"✓ 전문 가이드",
+					"✓ 편안한 관광버스"
+				],
+				"contactTitle": "예약 문의"
 			}
 		}
 	},
@@ -1187,6 +1220,9 @@
 		},
 		"search": {
 			"placeholder": "투어 검색..."
+		},
+		"historyBooking": {
+			"title": "예약 내역"
 		},
 		"categories": {
 			"all": "전체 투어",
@@ -1205,6 +1241,47 @@
 		},
 		"loadMore": "더 보기"
 	},
+	"bookingHistory": {
+		"title": "예약 내역",
+		"subtitle": "모든 투어 예약을 확인하세요",
+		"loading": "예약 내역을 불러오는 중...",
+		"loginRequired": {
+			"title": "로그인 필요",
+			"message": "예약 내역을 보려면 로그인해주세요."
+		},
+		"error": {
+			"title": "오류 발생",
+			"retry": "다시 시도"
+		},
+		"empty": {
+			"title": "아직 예약이 없습니다",
+			"message": "아직 투어를 예약하지 않으셨습니다. 멋진 투어를 둘러보세요!"
+		},
+		"card": {
+			"bookingId": "예약 번호",
+			"departureDate": "출발일",
+			"totalGuests": "총 인원",
+			"guests": "명",
+			"contactName": "연락처 이름",
+			"contactPhone": "연락처 전화번호",
+			"totalAmount": "총 금액",
+			"viewDetails": "상세 보기",
+			"bookedOn": "예약일",
+			"alreadyFeedbacked": "이미 피드백 완료"
+		},
+		"filters": {
+			"status": "상태별 필터",
+			"date": "날짜별 필터",
+			"allStatus": "모든 상태",
+			"newestDate": "최신 날짜",
+			"oldestDate": "오래된 날짜"
+		},
+		"status": {
+			"pending": "대기 중",
+			"confirmed": "확정됨",
+			"cancelled": "취소됨"
+		}
+	},
 	"tourCard": {
 		"welcome": {
 			"explore": "탐험",
@@ -1216,6 +1293,7 @@
 		"children": "아동:",
 		"baby": "유아:",
 		"details": "자세히 보기",
+		"share": "공유",
 		"duration": {
 			"template": "{{days}}일 {{nights}}박"
 		}

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useToast } from '../../../../../contexts/ToastContext';
-import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders } from '../../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, FrontendURL } from '../../../../../config/api';
 import styles from './PostModal.module.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
@@ -21,6 +21,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const choosingTagRef = useRef(false);
+  const [linkPreview, setLinkPreview] = useState(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   // Load edit data when editPost changes
   useEffect(() => {
@@ -139,13 +141,69 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     setImageFiles(imageFiles.filter((_, i) => i !== index));
   };
 
+  // Function to detect and fetch link preview
+  const detectAndFetchPreview = async (text) => {
+    if (!text) return;
+    
+    // Check for tour links
+    const tourRegex = new RegExp(`(?:${FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})?/tour/(\\d+)`, 'i');
+    const tourMatch = text.match(tourRegex);
+    
+    if (tourMatch) {
+      const tourId = tourMatch[1];
+      setIsLoadingPreview(true);
+      try {
+        const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
+        if (response.ok) {
+          const preview = await response.json();
+          console.log('Tour preview data:', preview); // Debug log
+          setLinkPreview({
+            type: 'TOUR',
+            id: tourId,
+            title: preview.title || preview.tourName,
+            summary: preview.summary || preview.tourDescription,
+            thumbnailUrl: preview.thumbnailUrl || preview.tourImgPath,
+            linkUrl: `${FrontendURL}/tour/${tourId}`
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching tour preview:', error);
+        setLinkPreview(null);
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    } else {
+      setLinkPreview(null);
+    }
+  };
+
+  // Debounced preview detection
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      detectAndFetchPreview(content);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [content]);
+
+  const removeLinkPreview = () => {
+    setLinkPreview(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Collect all validation errors
     const errors = [];
     
-    if (!title.trim()) {
+    // Check if content contains only links (no other text)
+    const hasOnlyLinks = content.trim().split(/\s+/).every(part => {
+      const trimmed = part.trim();
+      return !trimmed || /^https?:\/\/.+/.test(trimmed);
+    });
+    
+    // If content has only links, title is not required
+    if (!hasOnlyLinks && !title.trim()) {
       errors.push('Tiêu đề bài viết là bắt buộc');
     }
     
@@ -169,6 +227,18 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);
       });
+
+      // Add link preview metadata if available
+      if (linkPreview) {
+        formData.append('metadata', JSON.stringify({
+          linkType: linkPreview.type,
+          linkRefId: linkPreview.id,
+          title: linkPreview.title,
+          summary: linkPreview.summary,
+          thumbnailUrl: linkPreview.thumbnailUrl,
+          linkUrl: linkPreview.linkUrl
+        }));
+      }
       
       // Only append new image files when creating new post
       if (!editPost) {
@@ -223,6 +293,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     setImages([]);
     setImageFiles([]);
     setHashtagInput('');
+    setLinkPreview(null);
   };
 
   if (!isOpen) return null;
@@ -239,7 +310,14 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           <div className={styles['form-group']}>
             <input
               type="text"
-              placeholder={t('forum.createPost.titlePlaceholder')}
+              placeholder={
+                content.trim().split(/\s+/).every(part => {
+                  const trimmed = part.trim();
+                  return !trimmed || /^https?:\/\/.+/.test(trimmed);
+                }) 
+                  ? "Tiêu đề (không bắt buộc khi chỉ đăng link)" 
+                  : t('forum.createPost.titlePlaceholder')
+              }
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className={styles['title-input']}
@@ -254,6 +332,75 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
               className={styles['content-input']}
               rows="4"
             />
+            
+            {/* Render content with clickable links */}
+            {content && (
+              <div className={styles['content-preview']}>
+                {content.split(/(\s+)/).map((part, index) => {
+                  const isUrl = /^https?:\/\/.+/.test(part.trim());
+                  if (isUrl) {
+                    return (
+                      <a 
+                        key={index}
+                        href={part.trim()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles['content-link']}
+                      >
+                        {part}
+                      </a>
+                    );
+                  }
+                  return <span key={index}>{part}</span>;
+                })}
+              </div>
+            )}
+            
+            {/* Link Preview */}
+            {isLoadingPreview && (
+              <div className={styles['preview-loading']}>
+                <div className={styles['loading-spinner']}></div>
+                <span>Đang tải preview...</span>
+              </div>
+            )}
+            
+            {linkPreview && (
+              <div className={styles['link-preview']}>
+                <div className={styles['preview-header']}>
+                  <span className={styles['preview-label']}>Preview:</span>
+                  <button
+                    type="button"
+                    onClick={removeLinkPreview}
+                    className={styles['remove-preview-btn']}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div 
+                  className={styles['preview-card']}
+                  onClick={() => window.open(linkPreview.linkUrl, '_blank')}
+                >
+                  <div className={styles['preview-thumb']}>
+                    <img 
+                      src={getImageUrl(linkPreview.thumbnailUrl)} 
+                      alt={linkPreview.title}
+                      onError={(e) => {
+                        console.log('Image load error:', e.target.src);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className={styles['preview-thumb-placeholder']} style={{ display: 'none' }}>
+                      🏞️
+                    </div>
+                  </div>
+                  <div className={styles['preview-meta']}>
+                    <div className={styles['preview-title']}>{linkPreview.title}</div>
+                    <div className={styles['preview-desc']}>{linkPreview.summary}</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={styles['form-group']}>

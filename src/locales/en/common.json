@@ -452,6 +452,11 @@
 	},
 	"forum": {
 		"title": "Forum",
+		"shareTour": {
+			"title": "Share tour to forum",
+			"captionPlaceholder": "Write your thoughts...",
+			"shareNow": "Share"
+		},
 		"createPost": {
 			"placeholder": "What's on your mind?",
 			"title": "Create New Post",
@@ -697,6 +702,16 @@
 			"title": "My Posts",
 			"empty": "You haven't created any posts yet. Create your first post!"
 		}
+	},
+	"forum.shareTour": {
+		"title": "Share tour to forum",
+		"captionPlaceholder": "Write your thoughts...",
+		"shareNow": "Share"
+	},
+	"forum.shareTour": {
+		"title": "Share tour to forum",
+		"captionPlaceholder": "Write your thoughts...",
+		"shareNow": "Share"
 	},
 	"toast": {
 		"required": "{{field}} is required",
@@ -1208,6 +1223,9 @@
 		"search": {
 			"placeholder": "Search tours..."
 		},
+		"historyBooking": {
+			"title": "Booking History"
+		},
 		"categories": {
 			"all": "All tours",
 			"domestic": "Domestic tours",
@@ -1225,6 +1243,47 @@
 		},
 		"loadMore": "Load more"
 	},
+	"bookingHistory": {
+		"title": "Booking History",
+		"subtitle": "View all your tour bookings",
+		"loading": "Loading booking history...",
+		"loginRequired": {
+			"title": "Login Required",
+			"message": "Please login to view your booking history."
+		},
+		"error": {
+			"title": "An Error Occurred",
+			"retry": "Try Again"
+		},
+		"empty": {
+			"title": "No Bookings Yet",
+			"message": "You haven't booked any tours yet. Explore our amazing tours!"
+		},
+		"card": {
+			"bookingId": "Booking ID",
+			"departureDate": "Departure Date",
+			"totalGuests": "Total Guests",
+			"guests": "guests",
+			"contactName": "Contact Name",
+			"contactPhone": "Contact Phone",
+			"totalAmount": "Total Amount",
+			"viewDetails": "View Details",
+			"bookedOn": "Booked On",
+			"alreadyFeedbacked": "Already Feedbacked"
+		},
+		"filters": {
+			"status": "Filter by Status",
+			"date": "Filter by Date",
+			"allStatus": "All Status",
+			"newestDate": "Newest Date",
+			"oldestDate": "Oldest Date"
+		},
+		"status": {
+			"pending": "Pending",
+			"confirmed": "Confirmed",
+			"cancelled": "Cancelled"
+		}
+	},
 	"tourCard": {
 		"welcome": {
 			"explore": "Explore",
@@ -1236,6 +1295,7 @@
 		"children": "Children:",
 		"baby": "Baby:",
 		"details": "DETAILS",
+		"share": "Share",
 		"duration": {
 			"template": "{{days}} day{{daysSuffix}} {{nights}} night{{nightsSuffix}}"
 		}

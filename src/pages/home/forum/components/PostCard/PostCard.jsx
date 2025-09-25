@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders } from '../../../../../config/api';
+import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../../config/api';
+import { useNavigate } from 'react-router-dom';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
@@ -12,7 +13,9 @@ import styles from './PostCard.module.css';
 const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const postMenuRef = useRef(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.reactions?.likeCount || 0);
@@ -27,6 +30,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
+  const [tourLinkPreview, setTourLinkPreview] = useState(null);
 
   useEffect(() => {
     // Always fetch reaction count and save count for all users (including guests)
@@ -39,12 +43,44 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       checkIfSaved();
       checkIfReported();
     }
+    // Detect tour link via metadata first, fallback to parsing content
+    try {
+      const meta = post.metadata || post.meta || null;
+      let match = null;
+      if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
+        const idFromMeta = meta.linkRefId || (String(meta.linkUrl || '').match(/\/tour\/(\d+)/)?.[1]);
+        if (idFromMeta) match = [null, idFromMeta];
+      }
+      if (!match) {
+        const text = String(post.content || '');
+        const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp(`(?:${escapedBase})?/tour/(\\d+)`);
+        match = text.match(regex);
+      }
+      if (match && match[1]) {
+        const tourId = match[1];
+        fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
+          .then(r => (r.ok ? r.json() : Promise.reject()))
+        .then(data => {
+          setTourLinkPreview({
+            id: tourId,
+            title: data.title || data.tourName,
+            summary: data.summary || data.tourDescription,
+            image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
+          });
+        })
+          .catch(() => setTourLinkPreview(null));
+      } else {
+        setTourLinkPreview(null);
+      }
+    } catch (_) { setTourLinkPreview(null); }
   }, [user, post.forumPostId]);
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showMenu && !event.target.closest('.post-menu')) {
+      if (!showMenu) return;
+      if (postMenuRef.current && !postMenuRef.current.contains(event.target)) {
         setShowMenu(false);
       }
     };
@@ -78,7 +114,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
 
   const handleLike = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const email = user?.email || localStorage.getItem('email') || '';
       const reactionRequest = {
         targetId: post.forumPostId,
@@ -90,10 +126,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         // Remove reaction (legacy spec)
         await fetch(API_ENDPOINTS.REACTIONS_POST(post.forumPostId), {
           method: 'POST',
-          headers: {
-            'User-Email': email,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          }
+          headers: createAuthHeaders(token, { 'User-Email': email })
         });
         setIsLiked(false);
         setLikeCount(prev => prev - 1);
@@ -101,11 +134,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         // Add reaction (legacy spec)
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Email': email,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: createAuthHeaders(token, { 'User-Email': email, 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
         
@@ -122,7 +151,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
 
   const handleDislike = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      const token = getToken();
       const email = user?.email || localStorage.getItem('email') || '';
       const reactionRequest = {
         targetId: post.forumPostId,
@@ -133,20 +162,13 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       if (isDisliked) {
         await fetch(API_ENDPOINTS.REACTIONS_POST(post.forumPostId), {
           method: 'POST',
-          headers: {
-            'User-Email': email,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          }
+          headers: createAuthHeaders(token, { 'User-Email': email })
         });
         setIsDisliked(false);
       } else {
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Email': email,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: createAuthHeaders(token, { 'User-Email': email, 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
         if (response.ok) {
@@ -433,7 +455,48 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
 
   const defaultAvatar = '/default-avatar.png';
 
+  // Function to render content with clickable links
+  const renderContentWithLinks = (content) => {
+    if (!content) return '';
+    
+    return content.split(/(\s+)/).map((part, index) => {
+      const isUrl = /^https?:\/\/.+/.test(part.trim());
+      if (isUrl) {
+        return (
+          <a 
+            key={index}
+            href={part.trim()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles['content-link']}
+          >
+            {part}
+          </a>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   const renderImages = () => {
+    // If there is a tour link preview, show it as a link card before normal images
+    if (tourLinkPreview) {
+      return (
+        <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
+          <div className={styles['pc-link-thumb']}>
+            {tourLinkPreview.image ? (
+              <img src={tourLinkPreview.image} alt={tourLinkPreview.title} />
+            ) : (
+              <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
+            )}
+          </div>
+          <div className={styles['pc-link-meta']}>
+            <div className={styles['pc-link-title']}>{tourLinkPreview.title}</div>
+            <div className={styles['pc-link-desc']}>{tourLinkPreview.summary}</div>
+          </div>
+        </div>
+      );
+    }
     if (!post.images || post.images.length === 0) return null;
     const imgs = post.images.map((img) => resolveImageUrl(img.imgPath)).filter(Boolean);
     const count = imgs.length;
@@ -496,7 +559,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             {user ? (
               <button 
                 onClick={handleSavePost} 
-                className={`save-btn ${isSaved ? 'saved' : ''}`}
+                className={`${styles['save-btn']} ${isSaved ? styles['saved'] : ''}`}
                 title={isSaved ? t('forum.post.unsave') : t('forum.post.save')}
               >
                 <svg 
@@ -529,7 +592,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             <span className={styles['save-count']}>{saveCount}</span>
           </div>
           
-          <div className={styles['post-menu']}>
+          <div className={styles['post-menu']} ref={postMenuRef}>
             <button 
               className={styles['menu-btn']}
               onClick={() => setShowMenu(!showMenu)}
@@ -551,7 +614,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                 ) : (
                   <button 
                     onClick={handleReport} 
-                    className={`menu-item ${hasReported ? 'reported' : ''}`}
+                    className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
                     disabled={hasReported}
                   >
                     {hasReported ? `✅ ${t('forum.modals.report.success')}` : `⚠️ ${t('forum.post.report')}`}
@@ -567,7 +630,14 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         {post.title && (
           <h3 className={styles['post-title']}>{post.title}</h3>
         )}
-        <p className={styles['post-text']}>{post.content}</p>
+         <p className={styles['post-text']}>
+           {renderContentWithLinks(
+             String(post.content || '')
+               .split(/\n+/)
+               .filter(line => !line.trim().match(new RegExp(`^(?:${BaseURL.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&')})?/tour/\\d+$`)))
+               .join('\n')
+           )}
+         </p>
         
         {post.hashtags && post.hashtags.length > 0 && (
           <div className={styles['post-hashtags']}>
@@ -603,7 +673,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         {user ? (
           <>
             <button 
-              className={`action-btn like-btn ${isLiked ? 'active' : ''}`}
+              className={`${styles['action-btn']} ${styles['like-btn']} ${isLiked ? styles['active'] : ''}`}
               onClick={handleLike}
             >
               <svg 
@@ -618,7 +688,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
               <span className={styles['action-text']}>{t('forum.post.like')}</span>
             </button>
             <button 
-              className={`action-btn dislike-btn ${isDisliked ? 'active' : ''}`}
+              className={`${styles['action-btn']} ${styles['dislike-btn']} ${isDisliked ? styles['active'] : ''}`}
               onClick={handleDislike}
             >
               <svg 

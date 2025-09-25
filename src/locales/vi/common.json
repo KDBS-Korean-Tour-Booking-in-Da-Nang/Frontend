@@ -450,9 +450,14 @@
 			"password": "Mật khẩu: (bất kỳ)"
 		}
 	},
-	"forum": {
-		"title": "Diễn đàn",
-		"createPost": {
+		"forum": {
+			"title": "Diễn đàn",
+			"shareTour": {
+				"title": "Chia sẻ tour lên diễn đàn",
+				"captionPlaceholder": "Viết cảm nghĩ của bạn...",
+				"shareNow": "Chia sẻ"
+			},
+			"createPost": {
 			"placeholder": "Bạn đang nghĩ gì?",
 			"title": "Tạo bài viết mới",
 			"editTitle": "Chỉnh sửa bài viết",
@@ -701,6 +706,16 @@
 			"title": "Bài viết của tôi",
 			"empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!"
 		}
+	},
+	"forum.shareTour": {
+		"title": "Chia sẻ tour lên diễn đàn",
+		"captionPlaceholder": "Viết cảm nghĩ của bạn...",
+		"shareNow": "Chia sẻ"
+	},
+	"forum.shareTour": {
+		"title": "Chia sẻ tour lên diễn đàn",
+		"captionPlaceholder": "Viết cảm nghĩ của bạn...",
+		"shareNow": "Chia sẻ"
 	},
 	"toast": {
 		"required": "{{field}} là bắt buộc",
@@ -1212,6 +1227,9 @@
 		"search": {
 			"placeholder": "Tìm kiếm tour..."
 		},
+		"historyBooking": {
+			"title": "Lịch sử đặt tour"
+		},
 		"categories": {
 			"all": "Tất cả tour",
 			"domestic": "Tour trong nước",
@@ -1229,6 +1247,47 @@
 		},
 		"loadMore": "Xem thêm"
 	},
+	"bookingHistory": {
+		"title": "Lịch sử đặt tour",
+		"subtitle": "Xem lại tất cả các tour bạn đã đặt",
+		"loading": "Đang tải lịch sử đặt tour...",
+		"loginRequired": {
+			"title": "Cần đăng nhập",
+			"message": "Vui lòng đăng nhập để xem lịch sử đặt tour của bạn."
+		},
+		"error": {
+			"title": "Đã xảy ra lỗi",
+			"retry": "Thử lại"
+		},
+		"empty": {
+			"title": "Chưa có tour nào",
+			"message": "Bạn chưa đặt tour nào. Hãy khám phá các tour hấp dẫn!"
+		},
+		"card": {
+			"bookingId": "Mã đặt tour",
+			"departureDate": "Ngày khởi hành",
+			"totalGuests": "Số khách",
+			"guests": "khách",
+			"contactName": "Tên liên hệ",
+			"contactPhone": "Số điện thoại",
+			"totalAmount": "Tổng tiền",
+			"viewDetails": "Xem chi tiết",
+			"bookedOn": "Đặt ngày",
+			"alreadyFeedbacked": "Đã phản hồi"
+		},
+		"filters": {
+			"status": "Lọc theo trạng thái",
+			"date": "Lọc theo ngày",
+			"allStatus": "Tất cả trạng thái",
+			"newestDate": "Ngày mới nhất",
+			"oldestDate": "Ngày cũ nhất"
+		},
+		"status": {
+			"pending": "Chờ xác nhận",
+			"confirmed": "Đã xác nhận",
+			"cancelled": "Đã hủy"
+		}
+	},
 	"tourCard": {
 		"welcome": {
 			"explore": "Khám phá",
@@ -1239,6 +1298,7 @@
 		"children": "Trẻ em:",
 		"baby": "Em bé:",
 		"details": "CHI TIẾT",
+		"share": "Chia sẻ",
 		"duration": {
 			"template": "{{days}} ngày {{nights}} đêm"
 		}

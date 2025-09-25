@@ -2,6 +2,9 @@
 // Thay đổi BaseURL này khi deploy để trỏ đến server thực tế
 export const BaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
+// Frontend URL for link detection
+export const FrontendURL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+
 // API endpoints
 export const API_ENDPOINTS = {
   // Posts
@@ -49,6 +52,13 @@ export const API_ENDPOINTS = {
   // Tours
   TOURS: `${BaseURL}/api/tour`,
   TOUR_BY_ID: (id) => `${BaseURL}/api/tour/${id}`,
+  TOURS_SEARCH: `${BaseURL}/api/tour/search`,
+  TOUR_PREVIEW_BY_ID: (id) => `${BaseURL}/api/tour/preview/${id}`,
+  
+  // Booking
+  BOOKING_BY_EMAIL: (email) => `${BaseURL}/api/booking/email/${encodeURIComponent(email)}`,
+  BOOKING_SUMMARY_BY_EMAIL: (email) => `${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`,
+  BOOKING_BY_ID: (id) => `${BaseURL}/api/booking/id/${id}`,
 };
 
 // Helper function để xử lý avatar URLs

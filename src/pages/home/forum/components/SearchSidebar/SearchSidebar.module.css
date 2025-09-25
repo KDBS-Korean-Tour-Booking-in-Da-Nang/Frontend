@@ -114,6 +114,13 @@
 .suggest-item.post .icon { color: #ff6b35; }
 .suggest-item.trending .icon { color: #ff4757; }
 
+/* Ensure CSS Modules export these modifier classes */
+.selected {}
+.hashtag {}
+.user {}
+.post {}
+.trending {}
+
 .suggest-content {
   display: flex;
   flex-direction: column;
@@ -308,6 +315,9 @@
   transform: scale(1.02);
   box-shadow: 0 2px 8px rgba(24, 119, 242, 0.2);
 }
+
+/* Export selected for modules reference */
+.selected {}
 
 .hashtag-item.selected .hashtag-text {
   color: #1877f2;

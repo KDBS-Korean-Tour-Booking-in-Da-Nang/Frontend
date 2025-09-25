@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../../config/api';
@@ -403,6 +403,8 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
 
+  const dropdownRef = useRef(null);
+
   // Load replies count on mount
   useEffect(() => {
     loadReplies();
@@ -412,16 +414,9 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showDropdown) {
-        const dropdown = event.target.closest('.comment-actions-menu');
-        const dropdownItem = event.target.closest('.dropdown-item');
-        
-        // Close dropdown if:
-        // 1. Click is outside the entire dropdown menu, OR
-        // 2. Click is on a disabled item (like "Đã báo cáo")
-        if (!dropdown || (dropdownItem && dropdownItem.classList.contains('report-item-disabled'))) {
-          setShowDropdown(false);
-        }
+      if (!showDropdown) return;
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
       }
     };
 
@@ -681,7 +676,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   };
 
   return (
-    <div className={`comment-item ${isReply ? 'reply-item' : ''}`}>
+    <div className={`${styles['comment-item']} ${isReply ? styles['reply-item'] : ''}`}>
       <img 
         src={getAvatarUrl(comment.userAvatar)} 
         alt={comment.username}
@@ -692,7 +687,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
           <span className={styles['comment-username']}>{comment.username}</span>
           <span className={styles['comment-time']}>{formatTime(comment.createdAt)}</span>
           {user && (
-            <div className={styles['comment-actions-menu']}>
+            <div className={styles['comment-actions-menu']} ref={dropdownRef}>
               <button 
                 className={styles['comment-more-btn']}
                 onClick={(e) => {
@@ -783,13 +778,13 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
           {user ? (
             <>
               <button 
-                className={`comment-action-btn ${reaction.userReaction === 'LIKE' ? 'active' : ''}`}
+                className={`${styles['comment-action-btn']} ${reaction.userReaction === 'LIKE' ? styles['active'] : ''}`}
                 onClick={() => handleReaction('LIKE')}
               >
                 {t('forum.post.like')} ({reaction.likeCount})
               </button>
               <button 
-                className={`comment-action-btn ${reaction.userReaction === 'DISLIKE' ? 'active' : ''}`}
+                className={`${styles['comment-action-btn']} ${reaction.userReaction === 'DISLIKE' ? styles['active'] : ''}`}
                 onClick={() => handleReaction('DISLIKE')}
               >
                 {t('forum.post.dislike')} ({reaction.dislikeCount})
