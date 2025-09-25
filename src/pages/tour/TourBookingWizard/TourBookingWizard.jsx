@@ -21,7 +21,7 @@ const STEPS = [
 const BookingWizardContent = () => {
   const { id: tourId } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showError, showBatch } = useToast();
   const { user, loading: authLoading } = useAuth();
   const { 
@@ -75,7 +75,7 @@ const BookingWizardContent = () => {
 
   const handleConfirm = () => {
     // Get current language for date format conversion
-    const currentLanguage = i18n.language || 'vi';
+    const currentLanguage = (i18n && i18n.language) ? i18n.language : 'vi';
     
     // Validate booking data before proceeding to payment
     const bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage);
