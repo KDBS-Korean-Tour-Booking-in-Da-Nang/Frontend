@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useToast } from '../../contexts/ToastContext';
-import './VNPayReturnPage.css';
+import { useTranslation } from 'react-i18next';
+import { useToast } from '../../../contexts/ToastContext';
+import styles from './VNPayReturnPage.module.css';
 
 const VNPayReturnPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { showSuccess, showError } = useToast();
   const [processing, setProcessing] = useState(true);
 
@@ -45,7 +47,7 @@ const VNPayReturnPage = () => {
       // Determine payment status
       if (vnpResponseCode === '00' && vnpTransactionStatus === '00') {
         // Payment successful
-        showSuccess('Thanh toán thành công! Đang chuyển hướng...');
+        showSuccess(t('payment.paymentSuccessRedirect'));
         
         // Clear pending booking data
         if (pendingBookingData) {
@@ -72,7 +74,7 @@ const VNPayReturnPage = () => {
         }, 2000);
       } else {
         // Payment failed or cancelled
-        showError('Thanh toán thất bại hoặc đã bị hủy');
+        showError(t('payment.paymentFailedCancelled'));
         
         // Clear pending booking data
         if (pendingBookingData) {
@@ -106,14 +108,14 @@ const VNPayReturnPage = () => {
   }, [location.search, navigate, showSuccess, showError]);
 
   return (
-    <div className="vnpay-return-page">
-      <div className="return-container">
-        <div className="loading-spinner"></div>
-        <p>Đang xử lý kết quả thanh toán...</p>
+    <div className={styles['vnpay-return-page']}>
+      <div className={styles['return-container']}>
+        <div className={styles['loading-spinner']}></div>
+        <p>{t('payment.processing')}</p>
         {!processing && (
-          <p className="redirect-notice">
-            Không tìm thấy thông tin thanh toán. Vui lòng{' '}
-            <a href="/tour" className="redirect-link">quay lại trang tour</a>.
+          <p className={styles['redirect-notice']}>
+            {t('payment.noPaymentInfo')}{' '}
+            <a href="/tour" className={styles['redirect-link']}>{t('payment.backToTour')}</a>.
           </p>
         )}
       </div>

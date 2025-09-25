@@ -120,6 +120,10 @@ const TourDetailPage = () => {
   };
 
   const handleBookNow = () => {
+    if (!user) { 
+      setShowLoginRequired(true); 
+      return; 
+    }
     navigate(`/tour/${id}/booking`);
   };
 

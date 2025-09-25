@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useToast } from '../../contexts/ToastContext';
-import './VNPayFailPage.css';
+import { useTranslation } from 'react-i18next';
+import { useToast } from '../../../contexts/ToastContext';
+import styles from './VNPayFailPage.module.css';
 
 const VNPayFailPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { showError } = useToast();
   const [countdown, setCountdown] = useState(10);
   const [transactionData, setTransactionData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toastShown, setToastShown] = useState(false);
 
   useEffect(() => {
     // Check if we have data from location state (from VNPayReturnPage or TransactionResultPage)
@@ -25,8 +28,11 @@ const VNPayFailPage = () => {
         paymentInfo: location.state.paymentInfo
       });
 
-      // Show error message
-      showError('Thanh toán thất bại. Vui lòng thử lại.');
+      // Show error message only once
+      if (!toastShown) {
+        showError(t('payment.paymentFailed'));
+        setToastShown(true);
+      }
       
       setLoading(false);
       return;
@@ -67,8 +73,11 @@ const VNPayFailPage = () => {
       paymentInfo: bookingData?.paymentInfo
     });
 
-    // Show error message
-    showError('Thanh toán thất bại. Vui lòng thử lại.');
+    // Show error message only once
+    if (!toastShown) {
+      showError(t('payment.paymentFailed'));
+      setToastShown(true);
+    }
     
     setLoading(false);
 
@@ -76,7 +85,7 @@ const VNPayFailPage = () => {
     if (pendingBookingData) {
       sessionStorage.removeItem('pendingBooking');
     }
-  }, [location.search, location.state, showError]);
+  }, [location.search, location.state, showError, toastShown]);
 
   useEffect(() => {
     if (!loading) {
@@ -131,34 +140,34 @@ const VNPayFailPage = () => {
 
   const getErrorMessage = () => {
     if (!transactionData?.responseCode) {
-      return 'Thanh toán đã bị hủy hoặc thất bại';
+      return t('payment.paymentCancelledFailed');
     }
     
     const responseCode = transactionData.responseCode;
     
     switch (responseCode) {
       case '07':
-        return 'Trừ tiền thành công, giao dịch bị nghi ngờ (liên quan đến lừa đảo, giao dịch bất thường)';
+        return t('payment.paymentSuspicious');
       case '09':
-        return 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking';
+        return t('payment.paymentNotRegistered');
       case '10':
-        return 'Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần';
+        return t('payment.paymentVerificationFailed');
       case '11':
-        return 'Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch';
+        return t('payment.paymentExpired');
       case '12':
-        return 'Giao dịch bị hủy';
+        return t('payment.paymentCancelled');
       case '24':
-        return 'Khách hàng hủy giao dịch';
+        return t('payment.paymentUserCancelled');
       case '51':
-        return 'Tài khoản không đủ số dư để thực hiện giao dịch';
+        return t('payment.paymentInsufficientBalance');
       case '65':
-        return 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày';
+        return t('payment.paymentExceedLimit');
       case '75':
-        return 'Ngân hàng thanh toán đang bảo trì';
+        return t('payment.paymentBankMaintenance');
       case '79':
-        return 'Nhập sai mật khẩu thanh toán quá số lần quy định';
+        return t('payment.paymentWrongPassword');
       default:
-        return `Thanh toán thất bại với mã lỗi: ${responseCode}`;
+        return `${t('payment.paymentFailedWithCode')}: ${responseCode}`;
     }
   };
 
@@ -201,17 +210,17 @@ const VNPayFailPage = () => {
     
     switch (errorType) {
       case 'cancelled':
-        return 'Thanh toán đã bị hủy';
+        return t('payment.errorCancelled');
       case 'insufficient':
-        return 'Số dư không đủ';
+        return t('payment.errorInsufficientBalance');
       case 'maintenance':
-        return 'Hệ thống đang bảo trì';
+        return t('payment.errorMaintenance');
       case 'password':
-        return 'Sai mật khẩu';
+        return t('payment.errorWrongPassword');
       case 'verification':
-        return 'Xác thực thất bại';
+        return t('payment.errorVerificationFailed');
       default:
-        return 'Thanh toán thất bại';
+        return t('payment.errorGeneral');
     }
   };
 
@@ -220,17 +229,17 @@ const VNPayFailPage = () => {
     
     switch (errorType) {
       case 'cancelled':
-        return 'Bạn đã hủy giao dịch hoặc giao dịch đã bị hủy. Vui lòng thử lại nếu muốn tiếp tục đặt tour.';
+        return t('payment.errorMessageCancelled');
       case 'insufficient':
-        return 'Tài khoản của bạn không đủ số dư để thực hiện giao dịch. Vui lòng nạp thêm tiền và thử lại.';
+        return t('payment.errorMessageInsufficient');
       case 'maintenance':
-        return 'Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau ít phút.';
+        return t('payment.errorMessageMaintenance');
       case 'password':
-        return 'Bạn đã nhập sai mật khẩu quá số lần cho phép. Vui lòng thử lại sau hoặc liên hệ ngân hàng.';
+        return t('payment.errorMessagePassword');
       case 'verification':
-        return 'Thông tin xác thực không chính xác. Vui lòng kiểm tra lại thông tin thẻ/tài khoản.';
+        return t('payment.errorMessageVerification');
       default:
-        return 'Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.';
+        return t('payment.errorMessageGeneral');
     }
   };
 
@@ -240,110 +249,110 @@ const VNPayFailPage = () => {
     switch (errorType) {
       case 'cancelled':
         return [
-          'Thử lại thanh toán',
-          'Kiểm tra thông tin thẻ/tài khoản',
-          'Liên hệ ngân hàng nếu cần thiết'
+          t('payment.suggestionRetryPayment'),
+          t('payment.suggestionCheckCardInfo'),
+          t('payment.suggestionContactBank')
         ];
       case 'insufficient':
         return [
-          'Nạp thêm tiền vào tài khoản',
-          'Sử dụng thẻ/tài khoản khác',
-          'Kiểm tra hạn mức giao dịch'
+          t('payment.suggestionAddMoney'),
+          t('payment.suggestionUseOtherCard'),
+          t('payment.suggestionCheckLimit')
         ];
       case 'maintenance':
         return [
-          'Thử lại sau 15-30 phút',
-          'Sử dụng phương thức thanh toán khác',
-          'Liên hệ hỗ trợ nếu cần thiết'
+          t('payment.suggestionRetryLater'),
+          t('payment.suggestionUseOtherMethod'),
+          t('payment.suggestionContactSupport')
         ];
       case 'password':
         return [
-          'Thử lại sau 30 phút',
-          'Liên hệ ngân hàng để reset mật khẩu',
-          'Sử dụng thẻ/tài khoản khác'
+          t('payment.suggestionRetryAfter30min'),
+          t('payment.suggestionResetPassword'),
+          t('payment.suggestionUseOtherCardAccount')
         ];
       case 'verification':
         return [
-          'Kiểm tra lại thông tin thẻ',
-          'Đảm bảo thẻ đã được kích hoạt',
-          'Liên hệ ngân hàng để được hỗ trợ'
+          t('payment.suggestionCheckCardInfoAgain'),
+          t('payment.suggestionEnsureCardActive'),
+          t('payment.suggestionContactBankSupport')
         ];
       default:
         return [
-          'Thử lại thanh toán',
-          'Kiểm tra kết nối internet',
-          'Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn'
+          t('payment.suggestionRetryPayment'),
+          t('payment.suggestionCheckInternet'),
+          t('payment.suggestionContactSupportIfIssue')
         ];
     }
   };
 
   if (loading) {
     return (
-      <div className="vnpay-fail-page">
-        <div className="fail-container">
-          <div className="loading-spinner"></div>
-          <p>Đang xử lý kết quả thanh toán...</p>
+      <div className={styles['vnpay-fail-page']}>
+        <div className={styles['fail-container']}>
+          <div className={styles['loading-spinner']}></div>
+          <p>{t('payment.processing')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="vnpay-fail-page">
-      <div className="fail-container">
+    <div className={styles['vnpay-fail-page']}>
+      <div className={styles['fail-container']}>
         {/* Error Icon */}
-        <div className="error-icon">
-          <div className="error-symbol">
-            <span className="error-emoji">{getErrorIcon()}</span>
+        <div className={styles['error-icon']}>
+          <div className={styles['error-symbol']}>
+            <span className={styles['error-emoji']}>{getErrorIcon()}</span>
           </div>
         </div>
 
         {/* Error Message */}
-        <div className="error-message">
+        <div className={styles['error-message']}>
           <h1>{getErrorTitle()}</h1>
-          <p className="error-subtitle">
+          <p className={styles['error-subtitle']}>
             {getErrorDescription()}
           </p>
         </div>
 
         {/* Transaction Details */}
         {transactionData && (
-          <div className="transaction-details">
-            <h2>Thông tin giao dịch</h2>
-            <div className="transaction-info-grid">
-              <div className="info-item">
-                <span className="info-label">Mã giao dịch:</span>
-                <span className="info-value transaction-id">#{transactionData.orderId}</span>
+          <div className={styles['transaction-details']}>
+            <h2>{t('payment.transactionInfo')}</h2>
+            <div className={styles['transaction-info-grid']}>
+              <div className={styles['info-item']}>
+                <span className={styles['info-label']}>{t('payment.transactionId')}:</span>
+                <span className={`${styles['info-value']} ${styles['transaction-id']}`}>#{transactionData.orderId}</span>
               </div>
               
-              <div className="info-item">
-                <span className="info-label">Phương thức thanh toán:</span>
-                <span className="info-value">{transactionData.paymentMethod?.toUpperCase() || 'VNPay'}</span>
+              <div className={styles['info-item']}>
+                <span className={styles['info-label']}>{t('payment.paymentMethod')}:</span>
+                <span className={styles['info-value']}>{transactionData.paymentMethod?.toUpperCase() || 'VNPay'}</span>
               </div>
               
-              <div className="info-item">
-                <span className="info-label">Mã phản hồi:</span>
-                <span className="info-value error-code">{transactionData.responseCode}</span>
+              <div className={styles['info-item']}>
+                <span className={styles['info-label']}>{t('payment.responseCode')}:</span>
+                <span className={`${styles['info-value']} ${styles['error-code']}`}>{transactionData.responseCode}</span>
               </div>
             </div>
           </div>
         )}
 
         {/* Error Details */}
-        <div className="error-details">
-          <h3>Chi tiết lỗi:</h3>
-          <div className="error-content">
-            <p className="error-text">{getErrorMessage()}</p>
+        <div className={styles["error-details"]}>
+          <h3>{t('payment.errorDetails')}:</h3>
+          <div className={styles["error-content"]}>
+            <p className={styles["error-text"]}>{getErrorMessage()}</p>
           </div>
         </div>
 
         {/* Error Suggestions */}
-        <div className="error-suggestions">
-          <h3>Gợi ý khắc phục:</h3>
-          <ul className="suggestions-list">
+        <div className={styles["error-suggestions"]}>
+          <h3>{t('payment.suggestions')}:</h3>
+          <ul className={styles["suggestions-list"]}>
             {getErrorSuggestions().map((suggestion, index) => (
-              <li key={`suggestion-${index}-${suggestion.slice(0, 10)}`} className="suggestion-item">
-                <span className="suggestion-icon">💡</span>
+              <li key={`suggestion-${index}-${suggestion.slice(0, 10)}`} className={styles["suggestion-item"]}>
+                <span className={styles["suggestion-icon"]}>💡</span>
                 {suggestion}
               </li>
             ))}
@@ -351,44 +360,44 @@ const VNPayFailPage = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="action-buttons">
+        <div className={styles['action-buttons']}>
           <button 
-            className="btn-retry"
+            className={styles['btn-retry']}
             onClick={handleRetryPayment}
           >
-            🔄 Thử lại thanh toán
+            🔄 {t('payment.retryPayment')}
           </button>
           
           <button 
-            className="btn-secondary"
+            className={styles['btn-secondary']}
             onClick={handleGoToTour}
           >
-            Xem tour
+            {t('payment.viewTour')}
           </button>
           
           <button 
-            className="btn-tertiary"
+            className={styles['btn-tertiary']}
             onClick={handleGoHome}
           >
-            Về trang chủ
+            {t('payment.goHome')}
           </button>
         </div>
 
         {/* Support Section */}
-        <div className="support-section">
-          <div className="support-card">
-            <h4>🆘 Cần hỗ trợ?</h4>
-            <p>Nếu vấn đề vẫn tiếp diễn, vui lòng liên hệ với chúng tôi:</p>
-            <div className="support-contacts">
+        <div className={styles['support-section']}>
+          <div className={styles['support-card']}>
+            <h4>🆘 {t('payment.needSupport')}?</h4>
+            <p>{t('payment.contactUs')}:</p>
+            <div className={styles['support-contacts']}>
               <button 
-                className="btn-support"
+                className={styles['btn-support']}
                 onClick={handleContactSupport}
               >
-                📧 Email hỗ trợ
+                📧 {t('payment.supportEmail')}
               </button>
               <a 
                 href="tel:1900-xxxx" 
-                className="btn-support"
+                className={styles['btn-support']}
               >
                 📞 Hotline: 1900-xxxx
               </a>
@@ -397,18 +406,18 @@ const VNPayFailPage = () => {
         </div>
 
         {/* Countdown */}
-        <div className="countdown">
+        <div className={styles["countdown"]}>
           <p>
-            Tự động chuyển về trang tour trong <span className="countdown-number">{countdown}</span> giây
+            Tự động chuyển về trang tour trong <span className={styles["countdown-number"]}>{countdown}</span> giây
           </p>
         </div>
 
         {/* Technical Details (for debugging) */}
         {import.meta.env.DEV && transactionData && (
-          <div className="technical-details">
+          <div className={styles["technical-details"]}>
             <details>
-              <summary>Chi tiết kỹ thuật (Development)</summary>
-              <pre className="error-stack">
+              <summary>{t('payment.technicalDetails')}</summary>
+              <pre className={styles["error-stack"]}>
                 {JSON.stringify(transactionData, null, 2)}
               </pre>
             </details>

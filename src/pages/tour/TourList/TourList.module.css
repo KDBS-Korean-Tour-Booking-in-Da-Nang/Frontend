@@ -38,6 +38,7 @@
   margin-bottom: 20px;
   line-height: 1.2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: white !important;
 }
 
 .hero-description {
@@ -46,6 +47,7 @@
   opacity: 0.95;
   max-width: 600px;
   margin: 0 auto;
+  color: white !important;
 }
 
 /* Search and Filter Section */
@@ -287,10 +289,12 @@
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2rem;
+    color: white !important;
   }
   
   .hero-description {
     font-size: 1rem;
+    color: white !important;
   }
   
   .tours-grid {
@@ -319,6 +323,7 @@
   
   .hero-title {
     font-size: 1.75rem;
+    color: white !important;
   }
   
   .search-filter-section {

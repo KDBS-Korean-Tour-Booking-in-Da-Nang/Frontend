@@ -269,6 +269,46 @@
   font-style: italic;
 }
 
+.image-upload-disabled {
+  background-color: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.disabled-message {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.disabled-reason {
+  margin: 0;
+  font-size: 12px;
+  color: #868e96;
+  line-height: 1.4;
+}
+
+.image-preview-disabled {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.image-preview-disabled .disabled-message {
+  color: #856404;
+  font-weight: 500;
+}
+
+.image-preview-disabled .disabled-reason {
+  color: #856404;
+}
+
 /* Link Preview Styles */
 .preview-loading {
   display: flex;

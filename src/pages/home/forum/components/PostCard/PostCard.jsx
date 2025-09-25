@@ -450,7 +450,9 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     if (typeof imgPath !== 'string') return '';
     if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
     const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
-    return getImageUrl(normalized);
+    const resolvedUrl = getImageUrl(normalized);
+    console.log('resolveImageUrl:', imgPath, '-> normalized:', normalized, '-> resolved:', resolvedUrl);
+    return resolvedUrl;
   };
 
   const defaultAvatar = '/default-avatar.png';
@@ -498,13 +500,30 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       );
     }
     if (!post.images || post.images.length === 0) return null;
-    const imgs = post.images.map((img) => resolveImageUrl(img.imgPath)).filter(Boolean);
+    console.log('Post images data:', post.images);
+    const imgs = post.images.map((img) => {
+      // Handle both object format {imgPath: "..."} and string format
+      const imgPath = typeof img === 'string' ? img : img.imgPath;
+      const resolvedUrl = resolveImageUrl(imgPath);
+      console.log('Resolving image:', imgPath, '->', resolvedUrl);
+      return resolvedUrl;
+    }).filter(Boolean);
     const count = imgs.length;
+    console.log('Resolved images:', imgs);
 
     if (count === 1) {
       return (
         <div className={`${styles['pc-images']} ${styles['one']}`}>
-          <img src={imgs[0]} alt="Post image" className={`${styles['pc-img']} ${styles['main']}`} onClick={() => { setViewerIndex(0); setOpenViewer(true); }} />
+          <img 
+            src={imgs[0]} 
+            alt="Post image" 
+            className={`${styles['pc-img']} ${styles['main']}`} 
+            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+            onError={(e) => {
+              console.error('Image failed to load:', e.target.src);
+              e.target.style.display = 'none';
+            }}
+          />
         </div>
       );
     }
@@ -512,8 +531,26 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     if (count === 2) {
       return (
         <div className={`${styles['pc-images']} ${styles['two']}`}>
-          <img src={imgs[0]} alt="Post image 1" className={styles['pc-img']} onClick={() => { setViewerIndex(0); setOpenViewer(true); }} />
-          <img src={imgs[1]} alt="Post image 2" className={styles['pc-img']} onClick={() => { setViewerIndex(1); setOpenViewer(true); }} />
+          <img 
+            src={imgs[0]} 
+            alt="Post image 1" 
+            className={styles['pc-img']} 
+            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+            onError={(e) => {
+              console.error('Image failed to load:', e.target.src);
+              e.target.style.display = 'none';
+            }}
+          />
+          <img 
+            src={imgs[1]} 
+            alt="Post image 2" 
+            className={styles['pc-img']} 
+            onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
+            onError={(e) => {
+              console.error('Image failed to load:', e.target.src);
+              e.target.style.display = 'none';
+            }}
+          />
         </div>
       );
     }
@@ -523,11 +560,29 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     const remaining = count - 4;
     return (
       <div className={`${styles['pc-images']} ${styles['collage']}`}>
-        <img src={imgs[0]} alt="Post image main" className={`${styles['pc-img']} ${styles['main']}`} onClick={() => { setViewerIndex(0); setOpenViewer(true); }} />
+        <img 
+          src={imgs[0]} 
+          alt="Post image main" 
+          className={`${styles['pc-img']} ${styles['main']}`} 
+          onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+          onError={(e) => {
+            console.error('Image failed to load:', e.target.src);
+            e.target.style.display = 'none';
+          }}
+        />
         <div className={styles['pc-thumbs']}>
           {rest.map((src, idx) => (
             <div key={idx} className={styles['pc-thumb-wrap']}>
-              <img src={src} alt={`Post image ${idx + 2}`} className={`${styles['pc-img']} ${styles['thumb']}`} onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }} />
+              <img 
+                src={src} 
+                alt={`Post image ${idx + 2}`} 
+                className={`${styles['pc-img']} ${styles['thumb']}`} 
+                onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
+                onError={(e) => {
+                  console.error('Image failed to load:', e.target.src);
+                  e.target.style.display = 'none';
+                }}
+              />
               {idx === rest.length - 1 && remaining > 0 && (
                 <div className={styles['pc-more-overlay']}>+{remaining}</div>
               )}

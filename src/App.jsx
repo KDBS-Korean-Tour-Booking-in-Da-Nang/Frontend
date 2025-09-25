@@ -15,16 +15,15 @@ import PendingPage from './pages/home/pendingPage/pendingPage';
 import ForgotPassword from './pages/authentication/forgotPassword/forgotPassword';
 import ResetPassword from './pages/authentication/resetPassword/resetPassword';
 import UserProfile from './pages/user/userProfile/UserProfile';
-import Payment from './pages/user/payment/payment';
 import BookingHistory from './pages/user/bookingHistory/BookingHistory';
 import AdminDashboard from './pages/dashboard/adminDashboard/adminDashboard';
 import Forum from './pages/home/forum/forum';
 import Tour from './pages/tour/Tour';
 import TourDetailPage from './pages/tour/TourDetailPage/TourDetailPage';
 import TourBookingWizard from './pages/tour/TourBookingWizard/TourBookingWizard';
-import VNPayPaymentPage from './pages/payment/VNPayPaymentPage';
-import VNPayReturnPage from './pages/payment/VNPayReturnPage';
-import TransactionResultPage from './pages/payment/TransactionResultPage';
+import VNPayPaymentPage from './pages/payment/VNPayPaymentPage/VNPayPaymentPage';
+import VNPayReturnPage from './pages/payment/VNPayReturnPage/VNPayReturnPage';
+import TransactionResultPage from './pages/payment/TransactionResultPage/TransactionResultPage';
 import TourManagement from './pages/business/tours/tour-management/TourManagement';
 import TourWizard from './pages/business/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/business/tours/shared/BusinessTourDetail';
@@ -53,7 +52,6 @@ function App() {
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/profile" element={<UserProfile />} />
-                  <Route path="/payment" element={<Payment />} />
                   <Route path="/user/booking-history" element={<BookingHistory />} />
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/forum" element={<Forum />} />

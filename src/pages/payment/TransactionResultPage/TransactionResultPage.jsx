@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import VNPaySuccessPage from './VNPaySuccessPage';
-import VNPayFailPage from './VNPayFailPage';
+import { useTranslation } from 'react-i18next';
+import VNPaySuccessPage from '../VNPaySuccessPage/VNPaySuccessPage';
+import VNPayFailPage from '../VNPayFailPage/VNPayFailPage';
+import styles from './TransactionResultPage.module.css';
 
 const TransactionResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(null);
 
@@ -53,10 +56,10 @@ const TransactionResultPage = () => {
 
   if (loading) {
     return (
-      <div className="transaction-result-page">
-        <div className="result-container">
-          <div className="loading-spinner"></div>
-          <p>Đang xử lý kết quả thanh toán...</p>
+      <div className={styles['transaction-result-page']}>
+        <div className={styles['result-container']}>
+          <div className={styles['loading-spinner']}></div>
+          <p>{t('payment.processing')}</p>
         </div>
       </div>
     );
@@ -71,16 +74,16 @@ const TransactionResultPage = () => {
 
   // Fallback - should not reach here
   return (
-    <div className="transaction-result-page">
-      <div className="result-container">
-        <div className="error-icon">❓</div>
-        <h1>Không xác định được kết quả</h1>
-        <p>Không thể xác định kết quả thanh toán. Vui lòng thử lại.</p>
+    <div className={styles['transaction-result-page']}>
+      <div className={styles['result-container']}>
+        <div className={styles['error-icon']}>❓</div>
+        <h1>{t('payment.unknownResult')}</h1>
+        <p>{t('payment.cannotDetermine')}</p>
         <button 
-          className="btn-primary"
+          className={styles['btn-primary']}
           onClick={() => navigate('/tour')}
         >
-          Về trang tour
+          {t('payment.backToTour')}
         </button>
       </div>
     </div>

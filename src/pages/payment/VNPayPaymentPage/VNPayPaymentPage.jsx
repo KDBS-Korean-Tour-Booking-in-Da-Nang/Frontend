@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
-import { createVNPayPayment, createBooking } from '../../services/bookingAPI';
-import { formatPrice } from '../../utils/priceRules';
-import './VNPayPaymentPage.css';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
+import { createVNPayPayment, createBooking } from '../../../services/bookingAPI';
+import { formatPrice } from '../../../utils/priceRules';
+import styles from './VNPayPaymentPage.module.css';
 
 const VNPayPaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { showError } = useToast();
   
@@ -68,7 +70,7 @@ const VNPayPaymentPage = () => {
       setTotalAmount(total);
     } catch (error) {
       console.error('Error calculating total amount:', error);
-      setError('Không thể tính tổng tiền. Vui lòng thử lại.');
+      setError(t('payment.cannotCalculateTotal'));
     } finally {
       setCalculatingTotal(false);
     }
@@ -82,7 +84,7 @@ const VNPayPaymentPage = () => {
 
     // Validate that user email matches contact email
     if (user.email !== bookingData.contactEmail) {
-      showError('Email người dùng không khớp với email trong thông tin liên hệ');
+      showError(t('payment.emailMismatch'));
       navigate('/tours');
       return;
     }
@@ -93,7 +95,7 @@ const VNPayPaymentPage = () => {
 
   const handlePayment = async () => {
     if (!bookingData || !user) {
-      showError('Thông tin thanh toán không hợp lệ');
+      showError(t('payment.invalidPaymentInfo'));
       return;
     }
 
@@ -128,19 +130,19 @@ const VNPayPaymentPage = () => {
         // Redirect to VNPay payment page
         window.location.href = response.payUrl;
       } else {
-        throw new Error('Không thể tạo liên kết thanh toán VNPay');
+        throw new Error(t('payment.cannotCreatePaymentLink'));
       }
     } catch (error) {
       console.error('Payment creation failed:', error);
       
       if (error.message === 'Unauthenticated') {
-        showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        showError(t('payment.sessionExpired'));
         navigate('/login');
         return;
       }
       
-      setError(error.message || 'Có lỗi xảy ra khi tạo thanh toán');
-      showError(`Lỗi thanh toán: ${error.message || 'Có lỗi xảy ra'}`);
+      setError(error.message || t('payment.paymentCreationError'));
+      showError(`${t('payment.paymentError')}: ${error.message || t('payment.errorOccurred')}`);
     } finally {
       setLoading(false);
     }
@@ -152,14 +154,14 @@ const VNPayPaymentPage = () => {
 
   if (!bookingData || !user) {
     return (
-      <div className="vnpay-payment-page">
-        <div className="payment-container">
-          <div className="error-message">
-            <h2>Không tìm thấy thông tin đặt tour</h2>
-            <p>Vui lòng thực hiện đặt tour trước khi thanh toán.</p>
+      <div className={styles['vnpay-payment-page']}>
+        <div className={styles['payment-container']}>
+          <div className={styles['error-message']}>
+            <h2>{t('payment.noBookingInfo')}</h2>
+            <p>{t('payment.pleaseBookFirst')}</p>
             <button 
               type="button"
-              className="btn-primary"
+              className={styles['btn-primary']}
               onClick={() => navigate('/tours')}
             >
               Quay lại danh sách tour
@@ -171,114 +173,114 @@ const VNPayPaymentPage = () => {
   }
 
   return (
-    <div className="vnpay-payment-page">
-      <div className="payment-container">
-        <div className="payment-header">
-          <h1>Thanh toán VNPay</h1>
-          <p>Hoàn tất thanh toán để xác nhận đặt tour</p>
+    <div className={styles['vnpay-payment-page']}>
+      <div className={styles['payment-container']}>
+        <div className={styles['payment-header']}>
+          <h1>{t('payment.vnpayTitle')}</h1>
+          <p>{t('payment.completePaymentToConfirm')}</p>
         </div>
 
-        <div className="payment-content">
+        <div className={styles['payment-content']}>
           {/* Booking Summary */}
-          <div className="booking-summary">
-            <h3>Thông tin đặt tour</h3>
-            <div className="summary-details">
-              <div className="summary-item">
-                <span className="label">Tên tour:</span>
-                <span className="value">{tourInfo?.tourName || 'Đang tải...'}</span>
+          <div className={styles['booking-summary']}>
+            <h3>{t('payment.bookingInfo')}</h3>
+            <div className={styles['summary-details']}>
+              <div className={styles['summary-item']}>
+                <span className={styles['label']}>{t('payment.tourName')}:</span>
+                <span className={styles['value']}>{tourInfo?.tourName || t('payment.loading')}</span>
               </div>
-              <div className="summary-item">
-                <span className="label">Ngày khởi hành:</span>
-                <span className="value">{bookingData.departureDate}</span>
+              <div className={styles['summary-item']}>
+                <span className={styles['label']}>{t('payment.departureDate')}:</span>
+                <span className={styles['value']}>{bookingData.departureDate}</span>
               </div>
-              <div className="summary-item">
-                <span className="label">Số khách:</span>
-                <span className="value">{(bookingData.adultsCount || 0) + (bookingData.childrenCount || 0) + (bookingData.babiesCount || 0)} người</span>
+              <div className={styles['summary-item']}>
+                <span className={styles['label']}>{t('payment.guestCount')}:</span>
+                <span className={styles['value']}>{(bookingData.adultsCount || 0) + (bookingData.childrenCount || 0) + (bookingData.babiesCount || 0)} {t('payment.guests')}</span>
               </div>
-              <div className="summary-item">
-                <span className="label">Người liên hệ:</span>
-                <span className="value">{bookingData.contactName}</span>
+              <div className={styles['summary-item']}>
+                <span className={styles['label']}>{t('payment.contactPerson')}:</span>
+                <span className={styles['value']}>{bookingData.contactName}</span>
               </div>
-              <div className="summary-item">
-                <span className="label">Email:</span>
-                <span className="value">{bookingData.contactEmail}</span>
+              <div className={styles['summary-item']}>
+                <span className={styles['label']}>Email:</span>
+                <span className={styles['value']}>{bookingData.contactEmail}</span>
               </div>
             </div>
           </div>
 
           {/* Payment Amount */}
-          <div className="payment-amount">
-            <h3>Tổng thanh toán</h3>
-            <div className="amount-display">
+          <div className={styles['payment-amount']}>
+            <h3>{t('payment.totalPayment')}</h3>
+            <div className={styles['amount-display']}>
               {(() => {
                 if (calculatingTotal) {
-                  return <span className="loading-amount">Đang tính toán...</span>;
+                  return <span className={styles['loading-amount']}>{t('payment.calculating')}</span>;
                 }
                 if (totalAmount !== null) {
-                  return <span className="total-amount">{formatPrice(totalAmount)}</span>;
+                  return <span className={styles['total-amount']}>{formatPrice(totalAmount)}</span>;
                 }
                 if (error) {
                   return (
-                    <div className="amount-error">
-                      <span className="error-text">Không thể tính tổng tiền</span>
+                    <div className={styles['amount-error']}>
+                      <span className={styles['error-text']}>{t('payment.cannotCalculateTotal')}</span>
                       <button 
                         type="button"
-                        className="retry-btn-small"
+                        className={styles['retry-btn-small']}
                         onClick={calculateTotalAmount}
                       >
-                        Thử lại
+                        {t('payment.retry')}
                       </button>
                     </div>
                   );
                 }
-                return <span className="loading-amount">Đang tải...</span>;
+                return <span className={styles['loading-amount']}>{t('payment.loading')}</span>;
               })()}
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
-              <span className="error-text">{error}</span>
+            <div className={styles['error-message']}>
+              <span className={styles['error-icon']}>⚠️</span>
+              <span className={styles['error-text']}>{error}</span>
             </div>
           )}
 
           {/* Payment Actions */}
-          <div className="payment-actions">
+          <div className={styles['payment-actions']}>
             <button
               type="button"
-              className="btn-secondary"
+              className={styles['btn-secondary']}
               onClick={handleCancel}
               disabled={loading}
             >
-              Hủy bỏ
+              {t('payment.cancel')}
             </button>
             <button
               type="button"
-              className="btn-primary"
+              className={styles['btn-primary']}
               onClick={handlePayment}
               disabled={loading || calculatingTotal || totalAmount === null}
             >
               {loading ? (
                 <>
-                  <span className="loading-spinner-small"></span>
-                  <span>Đang xử lý...</span>
+                  <span className={styles['loading-spinner-small']}></span>
+                  <span>{t('payment.processing')}</span>
                 </>
               ) : (
-                'Thanh toán VNPay'
+                t('payment.vnpayPayment')
               )}
             </button>
           </div>
 
           {/* Payment Info */}
-          <div className="payment-info">
-            <h4>Thông tin thanh toán</h4>
+          <div className={styles['payment-info']}>
+            <h4>{t('payment.paymentInfo')}</h4>
             <ul>
-              <li>Thanh toán được xử lý bởi VNPay - Cổng thanh toán điện tử uy tín</li>
-              <li>Hỗ trợ thanh toán qua thẻ ATM, Internet Banking, Ví điện tử</li>
-              <li>Thông tin thanh toán được mã hóa và bảo mật</li>
-              <li>Sau khi thanh toán thành công, bạn sẽ nhận được email xác nhận</li>
+              <li>{t('payment.vnpayDescription')}</li>
+              <li>{t('payment.supportedPaymentMethods')}</li>
+              <li>{t('payment.securePayment')}</li>
+              <li>{t('payment.confirmationEmail')}</li>
             </ul>
           </div>
         </div>
