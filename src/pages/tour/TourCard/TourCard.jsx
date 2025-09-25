@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { ShareTourModal, LoginRequiredModal } from '../../../components/modals';
+import { useAuth } from '../../../contexts/AuthContext';
 import styles from './TourCard.module.css';
 
 const TourCard = ({ tour }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [openShare, setOpenShare] = useState(false);
+  const [showLoginRequired, setShowLoginRequired] = useState(false);
   const { t, i18n } = useTranslation();
 
   const formatPrice = (price) => {
@@ -40,10 +46,29 @@ const TourCard = ({ tour }) => {
     navigate(`/tour/${tour.id}`);
   };
 
+  const handleShare = () => {
+    if (!user) { setShowLoginRequired(true); return; }
+    setOpenShare(true);
+  };
+
+  const handleCardClick = () => {
+    navigate(`/tour/${tour.id}`);
+  };
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation(); // Ngăn event bubbling lên card
+  };
+
   return (
-    <div className={styles['tour-card']}>
+    <div className={styles['tour-card']} onClick={handleCardClick}>
       <div className={styles['tour-card-image']}>
-        <img src={tour.image} alt={tour.title} />
+        <img 
+          src={tour.image || '/default-tour.jpg'} 
+          alt={tour.title} 
+          onError={(e) => {
+            e.target.src = '/default-tour.jpg';
+          }}
+        />
         {tour.featured && (
           <div className={styles['featured-badge']}>
             <span>{t('tourCard.featured')}</span>
@@ -72,13 +97,46 @@ const TourCard = ({ tour }) => {
           <div className={styles['price-row']}><span>{t('tourCard.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
         </div>
 
-        <button 
-          className={styles['tour-details-btn']}
-          onClick={handleViewDetails}
-        >
-          {t('tourCard.details')}
-        </button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <button 
+            className={styles['tour-details-btn']}
+            onClick={(e) => {
+              handleButtonClick(e);
+              handleViewDetails();
+            }}
+          >
+            {t('tourCard.details')}
+          </button>
+          <button 
+            className={styles['share-btn']}
+            onClick={(e) => {
+              handleButtonClick(e);
+              handleShare();
+            }}
+          >
+            {t('tourCard.share') || 'Share'}
+          </button>
+        </div>
       </div>
+      {openShare && createPortal(
+        <ShareTourModal 
+          isOpen={openShare} 
+          onClose={() => setOpenShare(false)} 
+          tourId={tour.id}
+          onShared={(post)=>{ navigate('/forum'); }}
+        />,
+        document.body
+      )}
+      {showLoginRequired && createPortal(
+        <LoginRequiredModal 
+          isOpen={showLoginRequired}
+          onClose={() => setShowLoginRequired(false)}
+          title={t('auth.loginRequired.title')}
+          message={t('auth.loginRequired.message')}
+          returnTo={`/tour/${tour.id}`}
+        />,
+        document.body
+      )}
     </div>
   );
 };

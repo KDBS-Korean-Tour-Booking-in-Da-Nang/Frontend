@@ -195,6 +195,82 @@
   padding: 0 20px 16px;
 }
 
+.pc-link-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.pc-link-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.pc-link-thumb {
+  width: 100%;
+  height: 400px;
+  background: #eef2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-link-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.pc-link-card:hover .pc-link-thumb img {
+  transform: scale(1.05);
+}
+
+.pc-link-meta {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: white;
+}
+
+.pc-link-title { 
+  font-weight: 700; 
+  color: #111827; 
+  font-size: 16px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.pc-link-desc { 
+  color: #4b5563; 
+  font-size: 14px; 
+  line-height: 1.4; 
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pc-link-url { 
+  color: #1a8eea; 
+  font-size: 12px; 
+  word-break: break-all; 
+  margin: 0;
+  font-weight: 500;
+}
+
 .post-title {
   margin: 0 0 12px 0;
   font-size: 18px;
@@ -209,6 +285,18 @@
   line-height: 1.5;
   color: #1c1e21;
   white-space: pre-wrap;
+}
+
+.content-link {
+  color: #1877f2;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.content-link:hover {
+  color: #166fe5;
+  text-decoration: none;
 }
 
 .post-hashtags {
@@ -469,6 +557,11 @@
   background-color: #f0f2f5;
   color: #65676b;
 }
+
+/* Ensure CSS Modules export these modifier classes */
+.active {}
+.saved {}
+.reported {}
 
 .action-icon {
   font-size: 18px;

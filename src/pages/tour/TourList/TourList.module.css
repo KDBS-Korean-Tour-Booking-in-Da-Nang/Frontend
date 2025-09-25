@@ -1,11 +1,11 @@
 .tour-list-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  background: linear-gradient(135deg, #D4E8FF 0%, #ffffff 100%);
 }
 
 /* Hero Section */
 .tour-hero {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: linear-gradient(135deg, #1a8eea 0%, #1478c3 100%);
   color: white;
   padding: 80px 0 60px;
   text-align: center;
@@ -63,12 +63,17 @@
 
 .search-bar {
   margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 800px;
+  margin: 0 auto 30px;
 }
 
 .search-input-wrapper {
   position: relative;
+  flex: 1;
   max-width: 500px;
-  margin: 0 auto;
 }
 
 .search-icon {
@@ -93,9 +98,9 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #059669;
+  border-color: #1a8eea;
   background: white;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  box-shadow: 0 0 0 3px rgba(26, 142, 234, 0.15);
 }
 
 .category-filters {
@@ -121,17 +126,17 @@
 }
 
 .category-btn:hover {
-  border-color: #059669;
-  color: #059669;
+  border-color: #1a8eea;
+  color: #1a8eea;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.2);
 }
 
 .category-btn.active {
-  background: #059669;
-  border-color: #059669;
+  background: #1a8eea;
+  border-color: #1a8eea;
   color: white;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.35);
 }
 
 .category-icon {
@@ -164,7 +169,7 @@
   width: 50px;
   height: 50px;
   border: 4px solid #e5e7eb;
-  border-top: 4px solid #059669;
+  border-top: 4px solid #1a8eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
@@ -218,7 +223,7 @@
 }
 
 .load-more-btn {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, #1a8eea, #1478c3);
   color: white;
   border: none;
   padding: 16px 40px;
@@ -232,9 +237,9 @@
 }
 
 .load-more-btn:hover {
-  background: linear-gradient(135deg, #047857, #065f46);
+  background: linear-gradient(135deg, #1478c3, #1067a7);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 8px 25px rgba(26, 142, 234, 0.35);
 }
 
 /* Error */
@@ -275,7 +280,7 @@
 }
 
 .retry-btn:hover {
-  background: #b91c1c;
+  background: #1478c3;
 }
 
 /* Responsive */
@@ -334,4 +339,44 @@
     max-width: 280px;
     justify-content: center;
   }
+  
+  .search-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .history-booking-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* History Booking Button */
+.history-booking-btn {
+  background: linear-gradient(135deg, #1a8eea 0%, #1478c3 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.history-booking-btn:hover {
+  background: linear-gradient(135deg, #1478c3 0%, #0f5a9a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.history-icon {
+  width: 18px;
+  height: 18px;
 }

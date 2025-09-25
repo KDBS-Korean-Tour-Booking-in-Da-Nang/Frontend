@@ -93,7 +93,7 @@
 .price-amount {
   font-size: 18px;
   font-weight: 700;
-  color: #059669;
+  color: #1a8eea;
 }
 
 .tour-description {
@@ -109,7 +109,7 @@
 }
 
 .tour-details-btn {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, #1a8eea, #1478c3);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -124,9 +124,9 @@
 }
 
 .tour-details-btn:hover {
-  background: linear-gradient(135deg, #047857, #065f46);
+  background: linear-gradient(135deg, #1478c3, #1067a7);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.3);
 }
 
 .tour-details-btn:active {
@@ -170,4 +170,47 @@
     padding: 10px 20px;
     font-size: 13px;
   }
+}
+
+/* Button styles */
+.tour-details-btn {
+  background-color: #1a8eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tour-details-btn:hover {
+  background-color: #1a8eea;
+  transform: translateY(-1px);
+}
+
+.share-btn {
+  background-color: #6B7280;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.share-btn:hover {
+  background-color: #4B5563;
+  transform: translateY(-1px);
 }

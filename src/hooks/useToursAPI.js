@@ -22,6 +22,32 @@ export const useToursAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const transformTour = (tour) => ({
+    id: tour.id,
+    title: stripHtmlTags(tour.tourName),
+    duration: tour.tourDuration,
+    price: tour.adultPrice ? Number(tour.adultPrice) : 0,
+    image: getImageUrl(tour.tourImgPath),
+    description: stripHtmlTags(tour.tourDescription),
+    descriptionHtml: tour.tourDescription || '',
+    category: mapTourTypeToCategory(tour.tourType),
+    featured: tour.tourStatus === 'APPROVED',
+    // Additional fields from backend
+    tourDeparturePoint: stripHtmlTags(tour.tourDeparturePoint),
+    tourVehicle: stripHtmlTags(tour.tourVehicle),
+    tourSchedule: stripHtmlTags(tour.tourSchedule),
+    childrenPrice: tour.childrenPrice ? Number(tour.childrenPrice) : 0,
+    babyPrice: tour.babyPrice ? Number(tour.babyPrice) : 0,
+    amount: tour.amount,
+    tourStatus: tour.tourStatus,
+    createdAt: tour.createdAt,
+    contents: tour.contents || [],
+    // Customizable fields by company (optional)
+    availableDates: tour.availableDates || [],
+    gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
+    attachments: tour.attachments || []
+  });
+
   // Fetch all tours from API
   const fetchTours = async () => {
     try {
@@ -37,31 +63,7 @@ export const useToursAPI = () => {
       const data = await response.json();
       
       // Transform backend data to match frontend format
-      const transformedTours = data.map(tour => ({
-        id: tour.id,
-        title: stripHtmlTags(tour.tourName),
-        duration: tour.tourDuration,
-        price: tour.adultPrice ? Number(tour.adultPrice) : 0,
-        image: getImageUrl(tour.tourImgPath),
-        description: stripHtmlTags(tour.tourDescription),
-        descriptionHtml: tour.tourDescription || '',
-        category: mapTourTypeToCategory(tour.tourType),
-        featured: tour.tourStatus === 'APPROVED', // Only approved tours are featured
-        // Additional fields from backend
-        tourDeparturePoint: stripHtmlTags(tour.tourDeparturePoint),
-        tourVehicle: stripHtmlTags(tour.tourVehicle),
-        tourSchedule: stripHtmlTags(tour.tourSchedule),
-        childrenPrice: tour.childrenPrice ? Number(tour.childrenPrice) : 0,
-        babyPrice: tour.babyPrice ? Number(tour.babyPrice) : 0,
-        amount: tour.amount,
-        tourStatus: tour.tourStatus,
-        createdAt: tour.createdAt,
-        contents: tour.contents || [],
-        // Customizable fields by company (optional)
-        availableDates: tour.availableDates || [],
-        gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
-        attachments: tour.attachments || []
-      }));
+      const transformedTours = data.map(transformTour);
       
       setTours(transformedTours);
     } catch (err) {
@@ -87,31 +89,7 @@ export const useToursAPI = () => {
       const tour = await response.json();
       
       // Transform backend data to match frontend format
-      return {
-        id: tour.id,
-        title: stripHtmlTags(tour.tourName),
-        duration: tour.tourDuration,
-        price: tour.adultPrice ? Number(tour.adultPrice) : 0,
-        image: getImageUrl(tour.tourImgPath),
-        description: stripHtmlTags(tour.tourDescription),
-        descriptionHtml: tour.tourDescription || '',
-        category: mapTourTypeToCategory(tour.tourType),
-        featured: tour.tourStatus === 'APPROVED',
-        // Additional fields from backend
-        tourDeparturePoint: stripHtmlTags(tour.tourDeparturePoint),
-        tourVehicle: stripHtmlTags(tour.tourVehicle),
-        tourSchedule: tour.tourSchedule,
-        childrenPrice: tour.childrenPrice ? Number(tour.childrenPrice) : 0,
-        babyPrice: tour.babyPrice ? Number(tour.babyPrice) : 0,
-        amount: tour.amount,
-        tourStatus: tour.tourStatus,
-        createdAt: tour.createdAt,
-        contents: tour.contents || [],
-        // Customizable fields by company (optional)
-        availableDates: tour.availableDates || [],
-        gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
-        attachments: tour.attachments || []
-      };
+      return transformTour(tour);
     } catch (err) {
       setError(err.message);
       console.error('Error fetching tour:', err);
@@ -153,6 +131,40 @@ export const useToursAPI = () => {
     );
   };
 
+  // Server-side search tours via backend pagination API
+  const searchToursServer = async (query, page = 0, size = 20, signal) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const url = `${API_ENDPOINTS.TOURS_SEARCH}?keyword=${encodeURIComponent(query)}&page=${page}&size=${size}`;
+      const response = await fetch(url, { signal });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const pageData = await response.json();
+      const items = Array.isArray(pageData.content) ? pageData.content.map(transformTour) : [];
+      return {
+        items,
+        totalPages: pageData.totalPages ?? 0,
+        totalElements: pageData.totalElements ?? items.length,
+        pageNumber: pageData.number ?? page,
+        pageSize: pageData.size ?? size
+      };
+    } catch (err) {
+      // Ignore abort errors
+      if (err && (err.name === 'AbortError' || err.code === 20)) {
+        return { items: [], totalPages: 0, totalElements: 0, pageNumber: 0, pageSize: size };
+      }
+      setError(err.message);
+      console.error('Error searching tours:', err);
+      return { items: [], totalPages: 0, totalElements: 0, pageNumber: 0, pageSize: size };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get featured tours
   const getFeaturedTours = () => {
     return tours.filter(tour => tour.featured);
@@ -172,6 +184,7 @@ export const useToursAPI = () => {
     // Actions
     fetchTours,
     fetchTourById,
+    searchToursServer,
     
     // Selectors
     getToursByCategory,

@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useToursAPI } from '../../../hooks/useToursAPI';
+import { useAuth } from '../../../contexts/AuthContext';
 import TourCard from '../TourCard/TourCard';
 import styles from './TourList.module.css';
 
@@ -11,29 +13,70 @@ const TourList = () => {
     error, 
     fetchTours,
     getToursByCategory,
-    searchTours
+    searchTours,
+    searchToursServer
   } = useToursAPI();
 
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [currentCategory, setCurrentCategory] = useState('all');
   const [filteredTours, setFilteredTours] = useState([]);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const debounceRef = useRef(null);
+  const controllerRef = useRef(null);
 
   useEffect(() => {
     fetchTours();
   }, []);
 
-  // Update filtered tours when tours or category changes
+  // Initial load and when base tours change (non-search mode)
   useEffect(() => {
-    let filtered = getToursByCategory(currentCategory);
-    if (localSearchQuery.trim()) {
-      filtered = searchTours(localSearchQuery).filter(tour => 
+    if (!isSearchMode) {
+      const base = getToursByCategory(currentCategory);
+      setFilteredTours(base);
+    }
+  }, [tours, currentCategory, isSearchMode]);
+
+  // Debounced server-side search (Hybrid part A)
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    const query = localSearchQuery.trim();
+    if (!query) {
+      if (controllerRef.current) controllerRef.current.abort();
+      setIsSearchMode(false);
+      setPage(0);
+      setTotalPages(0);
+      setFilteredTours(getToursByCategory(currentCategory));
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      if (controllerRef.current) controllerRef.current.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      setIsSearchMode(true);
+      const res = await searchToursServer(query, 0, 20, controller.signal);
+      const items = (res.items || []).filter(tour => 
         currentCategory === 'all' || tour.category === currentCategory
       );
-    }
-    setFilteredTours(filtered);
-  }, [tours, currentCategory, localSearchQuery]);
+      setFilteredTours(items);
+      setPage(res.pageNumber || 0);
+      setTotalPages(res.totalPages || 0);
+    }, 350);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (controllerRef.current) controllerRef.current.abort();
+    };
+  }, [localSearchQuery, currentCategory]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -42,6 +85,69 @@ const TourList = () => {
 
   const handleCategoryChange = (category) => {
     setCurrentCategory(category);
+    // If in search mode, re-run current search immediately for new category
+    const query = localSearchQuery.trim();
+    if (query) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (controllerRef.current) controllerRef.current.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      setIsSearchMode(true);
+      searchToursServer(query, 0, 20, controller.signal).then((res) => {
+        const items = (res.items || []).filter(tour => 
+          category === 'all' || tour.category === category
+        );
+        setFilteredTours(items);
+        setPage(res.pageNumber || 0);
+        setTotalPages(res.totalPages || 0);
+      });
+    }
+  };
+
+  const handleKeyDown = async (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submit/page reload
+      const query = localSearchQuery.trim();
+      if (!query) return;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (controllerRef.current) controllerRef.current.abort();
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      setIsSearchMode(true);
+      const res = await searchToursServer(query, 0, 20, controller.signal);
+      const items = (res.items || []).filter(tour => 
+        currentCategory === 'all' || tour.category === currentCategory
+      );
+      setFilteredTours(items);
+      setPage(res.pageNumber || 0);
+      setTotalPages(res.totalPages || 0);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (!isSearchMode) return; // Only load more in search mode
+    if (page + 1 >= totalPages) return;
+    const nextPage = page + 1;
+    if (controllerRef.current) controllerRef.current.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const res = await searchToursServer(localSearchQuery.trim(), nextPage, 20, controller.signal);
+    const items = (res.items || []).filter(tour => 
+      currentCategory === 'all' || tour.category === currentCategory
+    );
+    setFilteredTours(prev => [...prev, ...items]);
+    setPage(res.pageNumber || nextPage);
+    setTotalPages(res.totalPages || totalPages);
+  };
+
+  const handleHistoryBooking = () => {
+    if (!user) {
+      // Redirect to login if not authenticated
+      navigate('/login');
+      return;
+    }
+    // Navigate to booking history page
+    navigate('/user/booking-history');
   };
 
 
@@ -93,9 +199,21 @@ const TourList = () => {
                 placeholder={t('tourList.search.placeholder')}
                 value={localSearchQuery}
                 onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
                 className={styles['search-input']}
               />
             </div>
+            
+            {/* History Booking Button */}
+            <button 
+              className={styles['history-booking-btn']}
+              onClick={handleHistoryBooking}
+            >
+              <svg className={styles['history-icon']} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{t('tourList.historyBooking.title')}</span>
+            </button>
           </div>
 
           <div className={styles['category-filters']}>
@@ -146,9 +264,13 @@ const TourList = () => {
                 </div>
               )}
 
-              {filteredTours.length > 0 && (
+              {filteredTours.length > 0 && isSearchMode && (
                 <div className={styles['load-more-section']}>
-                  <button className={styles['load-more-btn']}>
+                  <button 
+                    className={styles['load-more-btn']}
+                    onClick={handleLoadMore}
+                    disabled={loading || page + 1 >= totalPages}
+                  >
                     {t('tourList.loadMore')}
                   </button>
                 </div>

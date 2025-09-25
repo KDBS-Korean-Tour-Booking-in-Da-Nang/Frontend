@@ -164,6 +164,13 @@
   background-color: #e4e6eb;
 }
 
+/* Active state for comment reaction buttons */
+.comment-action-btn.active,
+.active {
+  background-color: #e7f3ff;
+  color: #1877f2;
+}
+
 .comment-action-btn-disabled {
   background: none;
   border: none;

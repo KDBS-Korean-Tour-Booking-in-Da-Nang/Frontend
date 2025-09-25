@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import styles from './TourDetailPage.module.css';
+import { ShareTourModal, LoginRequiredModal } from '../../../components';
+import { useAuth } from '../../../contexts/AuthContext';
 import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 
 // Adjust color brightness by percentage (negative to darken)
@@ -33,6 +35,9 @@ const TourDetailPage = () => {
   const { fetchTourById, loading, error } = useToursAPI();
   const { t } = useTranslation();
   const [tour, setTour] = useState(null);
+  const { user } = useAuth();
+  const [openShare, setOpenShare] = useState(false);
+  const [showLoginRequired, setShowLoginRequired] = useState(false);
 
   // Build itinerary data from API (contents or tourSchedule from Step 2)
   const getItineraryFromTour = (tourData) => {
@@ -120,6 +125,11 @@ const TourDetailPage = () => {
 
   const handleBackToList = () => {
     navigate('/tour');
+  };
+
+  const handleShare = () => {
+    if (!user) { setShowLoginRequired(true); return; }
+    setOpenShare(true);
   };
 
   const itinerary = getItineraryFromTour(tour);
@@ -337,6 +347,9 @@ const TourDetailPage = () => {
                   <button className={styles['contact-btn']}>
                     {t('tourPage.detail.booking.contact')}
                   </button>
+                  <button className={styles['book-now-btn']} onClick={handleShare}>
+                    {t('tourCard.share') || 'Share'}
+                  </button>
                 </div>
 
                 <div className={styles['booking-info']}>
@@ -368,6 +381,19 @@ const TourDetailPage = () => {
           </div>
         </div>
       </div>
+      <ShareTourModal 
+        isOpen={openShare}
+        onClose={() => setOpenShare(false)}
+        tourId={id}
+        onShared={(post)=>{ navigate('/forum'); }}
+      />
+      <LoginRequiredModal 
+        isOpen={showLoginRequired}
+        onClose={() => setShowLoginRequired(false)}
+        title={t('auth.loginRequired.title')}
+        message={t('auth.loginRequired.message')}
+        returnTo={`/tour/${id}`}
+      />
     </div>
   );
 };

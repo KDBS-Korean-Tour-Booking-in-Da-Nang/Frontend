@@ -483,7 +483,7 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
                   <button
                     key={idx}
                     type="button"
-                    className={`suggest-item ${s.type} ${selectedIndex === idx ? 'selected' : ''}`}
+                    className={`${styles['suggest-item']} ${styles[s.type] || ''} ${selectedIndex === idx ? styles['selected'] : ''}`}
                     onClick={(e) => clickSuggestion(s, e)}
                   >
                     <span className={styles['icon']}>{s.icon || (s.type === 'hashtag' ? '#' : s.type === 'user' ? '👤' : '🔎')}</span>
@@ -564,7 +564,7 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
               <button
                 key={index}
                 onClick={(e) => handleHashtagClick(hashtag, e)}
-                className={`hashtag-item ${isSelected ? 'selected' : ''}`}
+                className={`${styles['hashtag-item']} ${isSelected ? styles['selected'] : ''}`}
               >
                 {isSelected && <span className={styles['hashtag-check']}>✓</span>}
                 <span className={styles['hashtag-text']}>#{hashtag.content}</span>
