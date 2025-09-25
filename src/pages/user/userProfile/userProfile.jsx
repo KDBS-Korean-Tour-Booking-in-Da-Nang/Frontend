@@ -27,6 +27,7 @@ const UserProfile = () => {
     cccd: user?.cccd || ''
   });
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // Check if user logged in via OAuth (Google/Naver)
   // Multiple detection methods for OAuth
@@ -95,6 +96,11 @@ const UserProfile = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    
+    // Save the file for later upload
+    setAvatarFile(file);
+    
+    // Create preview
     const reader = new FileReader();
     reader.onload = () => {
       setAvatarPreview(reader.result);
@@ -342,11 +348,11 @@ const UserProfile = () => {
       >
         <form onSubmit={handleEditSubmit} className="space-y-4">
            <div className={styles['avatar-upload']}>
-             {/* Always show user's current avatar in modal */}
-             {user?.avatar ? (
+             {/* Show avatar preview (current or newly selected) */}
+             {avatarPreview ? (
                <img 
-                 src={user.avatar} 
-                 alt="current avatar" 
+                 src={avatarPreview} 
+                 alt="avatar preview" 
                  className={styles['avatar-preview']} 
                />
              ) : (

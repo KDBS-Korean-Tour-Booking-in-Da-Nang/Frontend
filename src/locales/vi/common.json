@@ -219,7 +219,9 @@
 		"note1": "Thời gian duyệt thường mất từ 1-3 ngày làm việc.",
 		"note2": "Bạn sẽ nhận được email thông báo khi tài khoản được duyệt.",
 		"btnHome": "Về trang chủ",
-		"btnLogout": "Đăng xuất"
+		"btnLogout": "Đăng xuất",
+		"info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
+		"info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
 	},
 	"business": {
 		"loading": "Đang tải...",
@@ -371,63 +373,6 @@
 		"cancel": "Hủy",
 		"saveChanges": "Lưu thay đổi"
 	},
-	"payment": {
-		"loginRequired": "Vui lòng đăng nhập để sử dụng dịch vụ thanh toán",
-		"heading": "Quản lý thanh toán",
-		"subtitle": "Nạp tiền, rút tiền và xem lịch sử giao dịch",
-		"tabs": {
-			"deposit": "Nạp tiền",
-			"withdraw": "Rút tiền",
-			"history": "Lịch sử"
-		},
-		"deposit": {
-			"title": "Nạp tiền vào tài khoản",
-			"amountLabel": "Số tiền (VNĐ)",
-			"placeholder": "Nhập số tiền (tối thiểu 10,000 VNĐ)",
-			"minError": "Số tiền tối thiểu là 10,000 VNĐ",
-			"paymentInfoTitle": "Thông tin thanh toán",
-			"bank": "• Ngân hàng: Vietcombank",
-			"account": "• Số tài khoản: 1234567890",
-			"holder": "• Chủ tài khoản: CÔNG TY DU LỊCH ĐÀ NẴNG KOREA",
-			"content": "• Nội dung: NAP_[SỐ ĐIỆN THOẠI]",
-			"submit": "Nạp tiền",
-			"submitting": "Đang xử lý...",
-			"success": "Nạp tiền thành công!",
-			"failed": "Nạp tiền thất bại. Vui lòng thử lại."
-		},
-		"withdraw": {
-			"title": "Rút tiền từ tài khoản",
-			"amountLabel": "Số tiền (VNĐ)",
-			"accountNumber": "Số tài khoản ngân hàng",
-			"accountHolder": "Tên chủ tài khoản",
-			"placeholderAmount": "Nhập số tiền (tối thiểu 50,000 VNĐ)",
-			"submit": "Rút tiền",
-			"submitting": "Đang xử lý...",
-			"success": "Yêu cầu rút tiền đã được gửi!",
-			"failed": "Rút tiền thất bại. Vui lòng thử lại."
-		},
-		"history": {
-			"title": "Lịch sử giao dịch",
-			"headers": {
-				"type": "Loại",
-				"amount": "Số tiền",
-				"status": "Trạng thái",
-				"bank": "Ngân hàng",
-				"paymentId": "Payment ID",
-				"date": "Ngày"
-			},
-			"type": {
-				"deposit": "Nạp tiền",
-				"withdraw": "Rút tiền"
-			},
-			"status": {
-				"completed": "Thành công",
-				"pending": "Đang xử lý",
-				"failed": "Thất bại",
-				"unknown": "Không xác định"
-			}
-		}
-	},
 	"oauth": {
 		"successLogin": "Đăng nhập thành công!",
 		"missingInfo": "Không nhận được thông tin xác thực đầy đủ",
@@ -485,7 +430,11 @@
 				"updateError": "Có lỗi xảy ra khi cập nhật bài viết",
 				"submitError": "Có lỗi xảy ra khi đăng bài",
 				"imageEditNote": "Không thể thay đổi hình ảnh khi chỉnh sửa bài viết"
-			}
+			},
+			"imageUploadDisabled": "Không thể upload hình ảnh",
+			"imageUploadDisabledReason": "Khi đăng bài có chứa link, bạn không thể upload hình ảnh cùng lúc.",
+			"existingImagesRemoved": "Hình ảnh đã bị xóa",
+			"existingImagesRemovedReason": "Hình ảnh đã upload sẽ bị xóa khi bạn nhập link vào nội dung."
 		},
 		"post": {
 			"loading": "Đang tải bài viết...",
@@ -712,11 +661,6 @@
 		"captionPlaceholder": "Viết cảm nghĩ của bạn...",
 		"shareNow": "Chia sẻ"
 	},
-	"forum.shareTour": {
-		"title": "Chia sẻ tour lên diễn đàn",
-		"captionPlaceholder": "Viết cảm nghĩ của bạn...",
-		"shareNow": "Chia sẻ"
-	},
 	"toast": {
 		"required": "{{field}} là bắt buộc",
 		"login_required": "Vui lòng đăng nhập để tiếp tục",
@@ -744,12 +688,6 @@
 			"cannot_delete_content": "Không thể xóa nội dung"
 		},
   
-		"payment": {
-			"deposit_success": "Nạp tiền thành công!",
-			"deposit_failed": "Nạp tiền thất bại. Vui lòng thử lại.",
-			"withdraw_success": "Yêu cầu rút tiền đã được gửi thành công!",
-			"withdraw_failed": "Rút tiền thất bại. Vui lòng thử lại."
-		},
 		"auth": {
 			"login_success": "Đăng nhập thành công!",
 			"login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
@@ -770,10 +708,6 @@
 			"post_create_success": "Tạo bài viết thành công!",
 			"post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại.",
 			"post_create_failed": "Tạo bài viết thất bại. Vui lòng thử lại."
-		},
-		"business": {
-			"info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
-			"info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
 		}
 	},
 	"tourWizard": {
@@ -1552,6 +1486,123 @@
           "addressRequired": "Địa chỉ là bắt buộc",
           "pickupPointRequired": "Điểm đón là bắt buộc"
         }
+	},
+	"payment": {
+		"processing": "Đang xử lý kết quả thanh toán...",
+		"unknownResult": "Không xác định được kết quả",
+		"cannotDetermine": "Không thể xác định kết quả thanh toán. Vui lòng thử lại.",
+		"backToTour": "Về trang tour",
+		"cannotCalculateTotal": "Không thể tính tổng tiền. Vui lòng thử lại.",
+		"emailMismatch": "Email người dùng không khớp với email trong thông tin liên hệ",
+		"invalidPaymentInfo": "Thông tin thanh toán không hợp lệ",
+		"cannotCreatePaymentLink": "Không thể tạo liên kết thanh toán VNPay",
+		"sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+		"paymentCreationError": "Có lỗi xảy ra khi tạo thanh toán",
+		"paymentError": "Lỗi thanh toán",
+		"errorOccurred": "Có lỗi xảy ra",
+		"loading": "Đang tải...",
+		"vnpayPayment": "Thanh toán VNPay",
+		"noBookingInfo": "Không tìm thấy thông tin đặt tour",
+		"pleaseBookFirst": "Vui lòng thực hiện đặt tour trước khi thanh toán.",
+		"vnpayTitle": "Thanh toán VNPay",
+		"completePaymentToConfirm": "Hoàn tất thanh toán để xác nhận đặt tour",
+		"bookingInfo": "Thông tin đặt tour",
+		"tourName": "Tên tour",
+		"departureDate": "Ngày khởi hành",
+		"guestCount": "Số khách",
+		"guests": "người",
+		"contactPerson": "Người liên hệ",
+		"totalPayment": "Tổng thanh toán",
+		"calculating": "Đang tính toán...",
+		"retry": "Thử lại",
+		"paymentInfo": "Thông tin thanh toán",
+		"vnpayDescription": "Thanh toán được xử lý bởi VNPay - Cổng thanh toán điện tử uy tín",
+		"supportedPaymentMethods": "Hỗ trợ thanh toán qua thẻ ATM, Internet Banking, Ví điện tử",
+		"securePayment": "Thông tin thanh toán được mã hóa và bảo mật",
+		"confirmationEmail": "Sau khi thanh toán thành công, bạn sẽ nhận được email xác nhận",
+		"paymentFailed": "Thanh toán thất bại. Vui lòng thử lại.",
+		"transactionInfo": "Thông tin giao dịch",
+		"transactionId": "Mã giao dịch",
+		"paymentMethod": "Phương thức thanh toán",
+		"responseCode": "Mã phản hồi",
+		"errorDetails": "Chi tiết lỗi",
+		"suggestions": "Gợi ý khắc phục",
+		"retryPayment": "Thử lại thanh toán",
+		"viewTour": "Xem tour",
+		"goHome": "Về trang chủ",
+		"needSupport": "Cần hỗ trợ",
+		"contactUs": "Nếu vấn đề vẫn tiếp diễn, vui lòng liên hệ với chúng tôi",
+		"supportEmail": "Email hỗ trợ",
+		"paymentSuccess": "Thanh toán thành công! Đặt tour hoàn tất.",
+		"paymentSuccessTitle": "Thanh toán thành công!",
+		"paymentSuccessMessage": "Cảm ơn bạn đã thanh toán. Đặt tour đã được hoàn tất thành công.",
+		"bookingId": "Mã đặt tour",
+		"totalGuests": "Tổng số khách",
+		"phoneNumber": "Số điện thoại",
+		"bookingTime": "Thời gian đặt",
+		"guestList": "Danh sách khách",
+		"fullName": "Họ và tên",
+		"birthDate": "Ngày sinh",
+		"gender": "Giới tính",
+		"nationality": "Quốc tịch",
+		"guestType": "Loại khách",
+		"idPassport": "Số ID/Passport",
+		"emailSent": "Chúng tôi đã gửi email xác nhận thanh toán và đặt tour đến địa chỉ email của bạn.",
+		"customerSupport": "Hỗ trợ khách hàng",
+		"contactHotline": "Nếu có thắc mắc, vui lòng liên hệ hotline",
+		"transactionProcessed": "Giao dịch đã được xử lý thành công qua VNPay. Bạn có thể kiểm tra lịch sử giao dịch trong tài khoản.",
+		"noPaymentInfo": "Không tìm thấy thông tin thanh toán. Vui lòng",
+		"cancel": "Hủy bỏ",
+		"paymentSuccessRedirect": "Thanh toán thành công! Đang chuyển hướng...",
+		"paymentFailedCancelled": "Thanh toán thất bại hoặc đã bị hủy",
+		"male": "Nam",
+		"female": "Nữ",
+		"other": "Khác",
+		"adult": "Người lớn",
+		"child": "Trẻ em",
+		"baby": "Em bé",
+		"paymentCancelledFailed": "Thanh toán đã bị hủy hoặc thất bại",
+		"paymentSuspicious": "Trừ tiền thành công, giao dịch bị nghi ngờ (liên quan đến lừa đảo, giao dịch bất thường)",
+		"paymentNotRegistered": "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking",
+		"paymentVerificationFailed": "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần",
+		"paymentExpired": "Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch",
+		"paymentCancelled": "Giao dịch bị hủy",
+		"paymentUserCancelled": "Khách hàng hủy giao dịch",
+		"paymentInsufficientBalance": "Tài khoản không đủ số dư để thực hiện giao dịch",
+		"paymentExceedLimit": "Tài khoản đã vượt quá hạn mức giao dịch trong ngày",
+		"paymentBankMaintenance": "Ngân hàng thanh toán đang bảo trì",
+		"paymentWrongPassword": "Nhập sai mật khẩu thanh toán quá số lần quy định",
+		"paymentFailedWithCode": "Thanh toán thất bại với mã lỗi",
+		"errorCancelled": "Thanh toán đã bị hủy",
+		"errorInsufficientBalance": "Số dư không đủ",
+		"errorMaintenance": "Hệ thống đang bảo trì",
+		"errorWrongPassword": "Sai mật khẩu",
+		"errorVerificationFailed": "Xác thực thất bại",
+		"errorGeneral": "Thanh toán thất bại",
+		"errorMessageCancelled": "Bạn đã hủy giao dịch hoặc giao dịch đã bị hủy. Vui lòng thử lại nếu muốn tiếp tục đặt tour.",
+		"errorMessageInsufficient": "Tài khoản của bạn không đủ số dư để thực hiện giao dịch. Vui lòng nạp thêm tiền và thử lại.",
+		"errorMessageMaintenance": "Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau ít phút.",
+		"errorMessagePassword": "Bạn đã nhập sai mật khẩu quá số lần cho phép. Vui lòng thử lại sau hoặc liên hệ ngân hàng.",
+		"errorMessageVerification": "Thông tin xác thực không chính xác. Vui lòng kiểm tra lại thông tin thẻ/tài khoản.",
+		"errorMessageGeneral": "Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.",
+		"suggestionRetryPayment": "Thử lại thanh toán",
+		"suggestionCheckCardInfo": "Kiểm tra thông tin thẻ/tài khoản",
+		"suggestionContactBank": "Liên hệ ngân hàng nếu cần thiết",
+		"suggestionAddMoney": "Nạp thêm tiền vào tài khoản",
+		"suggestionUseOtherCard": "Sử dụng thẻ/tài khoản khác",
+		"suggestionCheckLimit": "Kiểm tra hạn mức giao dịch",
+		"suggestionRetryLater": "Thử lại sau 15-30 phút",
+		"suggestionUseOtherMethod": "Sử dụng phương thức thanh toán khác",
+		"suggestionContactSupport": "Liên hệ hỗ trợ nếu cần thiết",
+		"suggestionRetryAfter30min": "Thử lại sau 30 phút",
+		"suggestionResetPassword": "Liên hệ ngân hàng để reset mật khẩu",
+		"suggestionUseOtherCardAccount": "Sử dụng thẻ/tài khoản khác",
+		"suggestionCheckCardInfoAgain": "Kiểm tra lại thông tin thẻ",
+		"suggestionEnsureCardActive": "Đảm bảo thẻ đã được kích hoạt",
+		"suggestionContactBankSupport": "Liên hệ ngân hàng để được hỗ trợ",
+		"suggestionCheckInternet": "Kiểm tra kết nối internet",
+		"suggestionContactSupportIfIssue": "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn",
+		"technicalDetails": "Chi tiết kỹ thuật (Development)"
 	}
 }
 

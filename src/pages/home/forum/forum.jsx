@@ -117,9 +117,17 @@ const Forum = () => {
         });
       }
 
+      console.log('=== FETCH POSTS DEBUG ===');
+      console.log('URL:', url);
+      
       const response = await fetch(url);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Posts data received:', data);
+        console.log('Posts content:', data.content);
         
         if (currentPage === 0) {
           setPosts(data.content || []);
@@ -129,6 +137,8 @@ const Forum = () => {
         
         setHasMorePosts(!data.last);
       } else {
+        const errorText = await response.text();
+        console.log('Error response:', errorText);
         throw new Error('Failed to fetch posts');
       }
     } catch (error) {
