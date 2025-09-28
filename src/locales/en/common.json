@@ -74,6 +74,7 @@
 			},
 			"password": "Password",
 			"rememberMe": "Remember me",
+			"rememberPassword": "Remember password?",
 			"or": "Or",
 			"otp": "OTP Code",
 			"otpPlaceholder": "000000",
@@ -512,14 +513,11 @@
 		"sidebar": {
 			"savedPosts": "📚 Saved Posts",
 			"myPosts": "📝 My Posts",
-			"userSuggestions": "Friend Suggestions",
 			"trendingTopics": "Trending Topics",
 			"onlineUsers": "Online Users",
 			"follow": "Follow",
 			"unfollow": "Unfollow",
 			"viewProfile": "View Profile",
-			"people": "people",
-			"mutualFriends": "mutual friends",
 			"seeAllSuggestions": "See all suggestions",
 			"mockUsers": {
 				"user1": "John Smith",
@@ -658,7 +656,7 @@
 		"shareNow": "Share"
 	},
 	"toast": {
-		"required": "{{field}} is required",
+		"required": "{{field}}",
 		"login_required": "Please login to continue",
 		"save_success": "Save successful",
 		"save_error": "An error occurred while saving",
@@ -1254,6 +1252,7 @@
             "fullName": "Full Name",
             "phone": "Phone Number",
             "email": "Email",
+            "dob": "Date of Birth",
             "address": "Address",
             "pickupPoint": "Pickup Point",
             "note": "Note"
@@ -1263,6 +1262,7 @@
             "phone": "0123456789 or +84123456789",
             "address": "Enter full address",
             "pickupPoint": "Enter pickup point",
+            "dateFormat": "Format: {format}",
             "note": "Additional note (optional)"
           },
           "sectionTitle": "Contact information",
@@ -1276,6 +1276,10 @@
 				"paxTitle": "Total Guests",
 				"membersTitle": "Group Members",
 				"summaryTitle": "Price Summary"
+			},
+			"representative": {
+				"title": "Representative",
+				"label": "Representative"
 			},
 			"summary": { "totalLabel": "Total Payment" },
 			"common": {
@@ -1329,8 +1333,9 @@
 			},
 			"idInfo": {
 				"baby": "Infants under 2: Only name + DOB. If flying, birth certificate required.",
-				"child": "Children 2-14: ID not required. If flying, birth certificate required.",
-				"teen": "Children 14-16: May have ID but not required. If flying, birth certificate required."
+				"child": "Children 2-12: ID not required. If flying, birth certificate required.",
+				"teen": "Children 14-16: May have ID but not required. If flying, birth certificate required.",
+				"adult": "Adults under 14: ID not required. If flying, birth certificate required."
 			},
 			"fields": {
 				"date": "Departure Date",
@@ -1358,18 +1363,56 @@
 				"infantDob1": "Infant 1 Date of Birth",
 				"infantDob2": "Infant 2 Date of Birth",
 				"infantDob3": "Infant 3 Date of Birth",
-				"infantDob4": "Infant 4 Date of Birth"
+				"infantDob4": "Infant 4 Date of Birth",
+				"adultGender1": "Adult 1 Gender",
+				"adultGender2": "Adult 2 Gender",
+				"adultGender3": "Adult 3 Gender",
+				"adultGender4": "Adult 4 Gender",
+				"adultNationality1": "Adult 1 Nationality",
+				"adultNationality2": "Adult 2 Nationality",
+				"adultNationality3": "Adult 3 Nationality",
+				"adultNationality4": "Adult 4 Nationality",
+				"adultIdNumber1": "Adult 1 ID/Passport",
+				"adultIdNumber2": "Adult 2 ID/Passport",
+				"adultIdNumber3": "Adult 3 ID/Passport",
+				"adultIdNumber4": "Adult 4 ID/Passport",
+				"childGender1": "Child 1 Gender",
+				"childGender2": "Child 2 Gender",
+				"childGender3": "Child 3 Gender",
+				"childGender4": "Child 4 Gender",
+				"childNationality1": "Child 1 Nationality",
+				"childNationality2": "Child 2 Nationality",
+				"childNationality3": "Child 3 Nationality",
+				"childNationality4": "Child 4 Nationality",
+				"childIdNumber1": "Child 1 ID/Passport",
+				"childIdNumber2": "Child 2 ID/Passport",
+				"childIdNumber3": "Child 3 ID/Passport",
+				"childIdNumber4": "Child 4 ID/Passport",
+				"infantGender1": "Infant 1 Gender",
+				"infantGender2": "Infant 2 Gender",
+				"infantGender3": "Infant 3 Gender",
+				"infantGender4": "Infant 4 Gender",
+				"infantNationality1": "Infant 1 Nationality",
+				"infantNationality2": "Infant 2 Nationality",
+				"infantNationality3": "Infant 3 Nationality",
+				"infantNationality4": "Infant 4 Nationality",
+				"infantIdNumber1": "Infant 1 ID/Passport",
+				"infantIdNumber2": "Infant 2 ID/Passport",
+				"infantIdNumber3": "Infant 3 ID/Passport",
+				"infantIdNumber4": "Infant 4 ID/Passport"
 			},
 			"errors": {
 				"dateRequired": "Please select a departure date",
 				"dateInPast": "Departure date cannot be in the past",
 				"dateOverOneMonth": "Departure date must be within 1 month",
 				"fullNameRequired": "Full name is required",
+				"fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
 				"dobRequired": "Date of birth is required",
 				"dobInFuture": "Date of birth cannot be in the future",
 				"dobInvalidFormat": "Invalid date format (use YYYY-MM-DD)",
 				"dobTooOld": "Invalid date of birth (age must be ≤ 120)",
 				"adultTooYoung": "Adult must be ≥ 12 years old at departure date",
+				"representativeTooYoung": "Representative must be ≥ 18 years old at departure date",
 				"childTooYoung": "Child must be ≥ 2 years old at departure date",
 				"childTooOld": "Child must be < 12 years old at departure date",
 				"infantTooOld": "Infant must be < 2 years old at departure date",
@@ -1380,6 +1423,42 @@
 			"validation": {
 				"vietnameseId": "Vietnamese ID must be 12 digits (CCCD) or 9 digits (CMND/CMT)",
 				"passport": "Passport number must be 6-9 characters (letters and numbers)"
+			},
+			"toast": {
+				"dateRequired": "Please select a departure date",
+				"adultPaxRequired": "Adult count must be greater than 0",
+				"representativeNameRequired": "Please enter representative name",
+				"representativeDobRequired": "Please enter representative date of birth",
+				"representativeGenderRequired": "Please select representative gender",
+				"representativeNationalityRequired": "Please select representative nationality",
+				"adultNameRequiredGeneric": "Please enter adult name",
+				"adultDobRequiredGeneric": "Please enter adult date of birth",
+				"adultGenderRequiredGeneric": "Please select adult gender",
+				"adultNationalityRequiredGeneric": "Please select adult nationality",
+				"childNameRequiredGeneric": "Please enter child name",
+				"childDobRequiredGeneric": "Please enter child date of birth",
+				"childGenderRequiredGeneric": "Please select child gender",
+				"childNationalityRequiredGeneric": "Please select child nationality",
+				"infantNameRequiredGeneric": "Please enter infant name",
+				"infantDobRequiredGeneric": "Please enter infant date of birth",
+				"infantGenderRequiredGeneric": "Please select infant gender",
+				"infantNationalityRequiredGeneric": "Please select infant nationality",
+				"representativeIdRequired": "Please enter representative ID",
+				"representativeIdRequiredPassport": "Please enter representative passport",
+				"representativeIdInvalidFormat": "Representative ID format is invalid",
+				"representativeIdInvalidFormatPassport": "Representative passport format is invalid",
+				"adultIdRequiredGeneric": "Please enter adult ID",
+				"adultIdRequiredGenericPassport": "Please enter adult passport",
+				"adultIdInvalidFormatGeneric": "Adult ID format is invalid",
+				"adultIdInvalidFormatGenericPassport": "Adult passport format is invalid",
+				"childIdRequiredGeneric": "Please enter child ID",
+				"childIdRequiredGenericPassport": "Please enter child passport",
+				"childIdInvalidFormatGeneric": "Child ID format is invalid",
+				"childIdInvalidFormatGenericPassport": "Child passport format is invalid",
+				"infantIdRequiredGeneric": "Please enter infant ID",
+				"infantIdRequiredGenericPassport": "Please enter infant passport",
+				"infantIdInvalidFormatGeneric": "Infant ID format is invalid",
+				"infantIdInvalidFormatGenericPassport": "Infant passport format is invalid"
 			}
 		},
 		"step3": {
@@ -1437,13 +1516,17 @@
 			},
 			"categories": { "standard": "Standard" }
 		},
-		"errors": {
+        "errors": {
           "fullNameRequired": "Full name is required",
+          "fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
           "phoneRequired": "Phone number is required",
           "phoneInvalid": "Invalid phone number (e.g., 0123456789 or +84 705327671)",
           "emailRequired": "Email is required",
           "emailInvalid": "Invalid email",
           "emailMismatch": "Email does not match your account. Please use the registered email.",
+          "dobRequired": "Date of birth is required",
+          "dobInvalidFormat": "Invalid date of birth format",
+          "representativeTooYoung": "Representative must be ≥ 18 years old",
           "addressRequired": "Address is required",
           "pickupPointRequired": "Pickup point is required"
         }

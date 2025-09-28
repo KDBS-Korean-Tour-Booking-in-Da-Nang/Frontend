@@ -74,6 +74,7 @@
 			},
 			"password": "비밀번호",
 			"rememberMe": "로그인 상태 유지",
+			"rememberPassword": "비밀번호를 기억하시나요?",
 			"or": "또는",
 			"otp": "OTP 코드",
 			"otpPlaceholder": "000000",
@@ -512,14 +513,11 @@
 		"sidebar": {
 			"savedPosts": "📚 저장된 게시물",
 			"myPosts": "📝 내 게시물",
-			"userSuggestions": "친구 추천",
 			"trendingTopics": "인기 주제",
 			"onlineUsers": "온라인 사용자",
 			"follow": "팔로우",
 			"unfollow": "언팔로우",
 			"viewProfile": "프로필 보기",
-			"people": "명",
-			"mutualFriends": "공통 친구",
 			"seeAllSuggestions": "모든 추천 보기",
 			"mockUsers": {
 				"user1": "김철수",
@@ -658,7 +656,7 @@
 		"shareNow": "공유"
 	},
 	"toast": {
-		"required": "{{field}}은(는) 필수입니다",
+		"required": "{{field}}",
 		"login_required": "계속하려면 로그인하세요",
 		"save_success": "저장 성공",
 		"save_error": "저장 중 오류가 발생했습니다",
@@ -1252,6 +1250,7 @@
             "fullName": "성명",
             "phone": "전화번호",
             "email": "이메일",
+            "dob": "생년월일",
             "address": "주소",
             "pickupPoint": "픽업 지점",
             "note": "메모"
@@ -1261,6 +1260,7 @@
             "phone": "0123456789 또는 +84123456789",
             "address": "주소를 입력하세요",
             "pickupPoint": "픽업 지점을 입력하세요",
+            "dateFormat": "형식: {format}",
             "note": "추가 메모 (선택 사항)"
           },
           "sectionTitle": "연락처 정보",
@@ -1274,6 +1274,10 @@
 				"paxTitle": "총 인원",
 				"membersTitle": "일행 목록",
 				"summaryTitle": "가격 요약"
+			},
+			"representative": {
+				"title": "대표자",
+				"label": "대표자"
 			},
 			"summary": { "totalLabel": "총 결제금액" },
 			"common": {
@@ -1319,12 +1323,17 @@
 				"chooseGender": "성별을 선택하세요",
 				"chooseNationality": "국적을 선택하세요",
 				"idVietnam": "숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)",
-				"idPassport": "여권 번호 입력 (6-9자)"
+				"idPassport": "여권 번호 입력 (6-9자)",
+				"dateFormat": "{{format}} 형식으로 입력"
+			},
+			"datePicker": {
+				"open": "날짜 선택기 열기"
 			},
 			"idInfo": {
 				"baby": "만 2세 미만 유아: 이름 + 생년월일만 필요. 비행 시 출생증명서 필요.",
-				"child": "만 2-14세 아동: 신분증 불필요. 비행 시 출생증명서 필요.",
-				"teen": "만 14-16세: 신분증이 있을 수 있으나 필수는 아님. 비행 시 출생증명서 필요."
+				"child": "만 2-12세 아동: 신분증 불필요. 비행 시 출생증명서 필요.",
+				"teen": "만 14-16세: 신분증이 있을 수 있으나 필수는 아님. 비행 시 출생증명서 필요.",
+				"adult": "만 14세 미만 성인: 신분증 불필요. 비행 시 출생증명서 필요."
 			},
 			"fields": {
 				"date": "출발일",
@@ -1395,11 +1404,13 @@
 				"dateInPast": "출발일은 과거일 수 없습니다",
 				"dateOverOneMonth": "출발일은 1개월 이내여야 합니다",
 				"fullNameRequired": "성명은 필수입니다",
+				"fullNameInvalid": "성명은 문자, 공백, 하이픈 및 아포스트로피만 포함할 수 있습니다",
 				"dobRequired": "생년월일은 필수입니다",
 				"dobInFuture": "생년월일은 미래일 수 없습니다",
 				"dobInvalidFormat": "날짜 형식이 올바르지 않습니다 (YYYY-MM-DD 형식 사용)",
 				"dobTooOld": "생년월일이 유효하지 않습니다 (나이는 ≤ 120세)",
 				"adultTooYoung": "성인은 출발일 기준 12세 이상이어야 합니다",
+				"representativeTooYoung": "대표자는 출발일 기준 18세 이상이어야 합니다",
 				"childTooYoung": "아이는 출발일 기준 2세 이상이어야 합니다",
 				"childTooOld": "아이는 출발일 기준 12세 미만이어야 합니다",
 				"infantTooOld": "유아는 출발일 기준 2세 미만이어야 합니다",
@@ -1410,6 +1421,42 @@
 			"validation": {
 				"vietnameseId": "베트남 신분증은 12자리(CCCD) 또는 9자리(CMND/CMT)여야 합니다",
 				"passport": "여권 번호는 6-9자리(문자와 숫자)여야 합니다"
+			},
+			"toast": {
+				"dateRequired": "출발일을 선택해주세요",
+				"adultPaxRequired": "성인 인원은 0명보다 많아야 합니다",
+				"representativeNameRequired": "대표자 이름을 입력해주세요",
+				"representativeDobRequired": "대표자 생년월일을 입력해주세요",
+				"representativeGenderRequired": "대표자 성별을 선택해주세요",
+				"representativeNationalityRequired": "대표자 국적을 선택해주세요",
+				"adultNameRequiredGeneric": "성인 이름을 입력해주세요",
+				"adultDobRequiredGeneric": "성인 생년월일을 입력해주세요",
+				"adultGenderRequiredGeneric": "성인 성별을 선택해주세요",
+				"adultNationalityRequiredGeneric": "성인 국적을 선택해주세요",
+				"childNameRequiredGeneric": "아동 이름을 입력해주세요",
+				"childDobRequiredGeneric": "아동 생년월일을 입력해주세요",
+				"childGenderRequiredGeneric": "아동 성별을 선택해주세요",
+				"childNationalityRequiredGeneric": "아동 국적을 선택해주세요",
+				"infantNameRequiredGeneric": "유아 이름을 입력해주세요",
+				"infantDobRequiredGeneric": "유아 생년월일을 입력해주세요",
+				"infantGenderRequiredGeneric": "유아 성별을 선택해주세요",
+				"infantNationalityRequiredGeneric": "유아 국적을 선택해주세요",
+				"representativeIdRequired": "대표자 신분증을 입력해주세요",
+				"representativeIdRequiredPassport": "대표자 여권을 입력해주세요",
+				"representativeIdInvalidFormat": "대표자 신분증 형식이 올바르지 않습니다",
+				"representativeIdInvalidFormatPassport": "대표자 여권 형식이 올바르지 않습니다",
+				"adultIdRequiredGeneric": "성인 신분증을 입력해주세요",
+				"adultIdRequiredGenericPassport": "성인 여권을 입력해주세요",
+				"adultIdInvalidFormatGeneric": "성인 신분증 형식이 올바르지 않습니다",
+				"adultIdInvalidFormatGenericPassport": "성인 여권 형식이 올바르지 않습니다",
+				"childIdRequiredGeneric": "아동 신분증을 입력해주세요",
+				"childIdRequiredGenericPassport": "아동 여권을 입력해주세요",
+				"childIdInvalidFormatGeneric": "아동 신분증 형식이 올바르지 않습니다",
+				"childIdInvalidFormatGenericPassport": "아동 여권 형식이 올바르지 않습니다",
+				"infantIdRequiredGeneric": "유아 신분증을 입력해주세요",
+				"infantIdRequiredGenericPassport": "유아 여권을 입력해주세요",
+				"infantIdInvalidFormatGeneric": "유아 신분증 형식이 올바르지 않습니다",
+				"infantIdInvalidFormatGenericPassport": "유아 여권 형식이 올바르지 않습니다"
 			}
 		},
 		"step3": {
@@ -1467,13 +1514,17 @@
 			},
 			"categories": { "standard": "스탠다드" }
 		},
-		"errors": {
+        "errors": {
           "fullNameRequired": "성명은 필수입니다",
+          "fullNameInvalid": "성명은 문자, 공백, 하이픈 및 아포스트로피만 포함할 수 있습니다",
           "phoneRequired": "전화번호는 필수입니다",
           "phoneInvalid": "유효하지 않은 전화번호 (예: 0123456789 또는 +84 705327671)",
           "emailRequired": "이메일은 필수입니다",
           "emailInvalid": "유효하지 않은 이메일",
           "emailMismatch": "계정 이메일과 일치하지 않습니다. 등록된 이메일을 사용하세요.",
+          "dobRequired": "생년월일은 필수입니다",
+          "dobInvalidFormat": "유효하지 않은 생년월일 형식",
+          "representativeTooYoung": "대표자는 18세 이상이어야 합니다",
           "addressRequired": "주소는 필수입니다",
           "pickupPointRequired": "픽업 지점은 필수입니다"
         }

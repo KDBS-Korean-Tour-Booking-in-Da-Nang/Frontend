@@ -123,120 +123,78 @@ const ResetPassword = () => {
   return (
     <div className={styles['reset-container']}>
       <div className={styles['reset-content']}>
-        <div className={styles['reset-grid']}>
-          {/* Illustration Section */}
-          <div className={styles['illustration-section']}>
-            <h1 className={styles['illustration-title']}>
-              {t('auth.reset.illustrationTitle')}
-            </h1>
-            <p className={styles['illustration-subtitle']}>
-              {t('auth.reset.illustrationSubtitle')}
+        <div className={styles['reset-form-section']}>
+          <div className={styles['reset-header']}>
+            <div className={styles['reset-logo']}>
+              <LockClosedIcon className="h-8 w-8 text-white" />
+            </div>
+            <h2 className={styles['reset-title']}>
+              {t('auth.reset.title')}
+            </h2>
+            <p className={styles['reset-subtitle']}>
+              {t('auth.reset.subtitle', { email })}
             </p>
-            
-            <div className={styles['security-items']}>
-              <div className={styles['security-item']}>
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                </svg>
-              </div>
-              <div className={styles['security-item']}>
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </div>
-              <div className={styles['security-item']}>
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                </svg>
-              </div>
-              <div className={styles['security-item']}>
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-            </div>
-
-            <div className={styles['character']}>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
           </div>
-
-          {/* Reset Password Form Section */}
-          <div className={styles['reset-form-section']}>
-            <div className={styles['reset-header']}>
-              <div className={styles['reset-logo']}>
-                <LockClosedIcon className="h-8 w-8 text-white" />
-              </div>
-              <h2 className={styles['reset-title']}>
-                {t('auth.reset.title')}
-              </h2>
-              <p className={styles['reset-subtitle']}>
-                {t('auth.reset.subtitle', { email })}
-              </p>
+          <form className={styles['reset-form']} onSubmit={handleSubmit}>
+            <div className={styles['form-group']}>
+              <label htmlFor="newPassword" className={styles['form-label']}>
+                {t('auth.reset.newPassword')}
+              </label>
+              <input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.newPassword}
+                onChange={handleChange}
+                className={styles['form-input']}
+                placeholder="••••••••"
+              />
             </div>
-            <form className={styles['reset-form']} onSubmit={handleSubmit}>
-              <div className={styles['form-group']}>
-                <label htmlFor="newPassword" className={styles['form-label']}>
-                  {t('auth.reset.newPassword')}
-                </label>
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  className={styles['form-input']}
-                  placeholder="••••••••"
-                />
-              </div>
 
-              <div className={styles['form-group']}>
-                <label htmlFor="confirmPassword" className={styles['form-label']}>
-                  {t('auth.reset.confirmNewPassword')}
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className={styles['form-input']}
-                  placeholder="••••••••"
-                />
-              </div>
-
-              {error && (
-                <div className={styles['error-message']}>
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={styles['reset-button']}
-              >
-                {loading ? t('auth.reset.submitting') : t('auth.reset.submit')}
-              </button>
-            </form>
-
-            <div className={styles['login-link']}>
-              <span className={styles['login-text']}>
-                {t('auth.common.rememberPassword')}{' '}
-              </span>
-              <Link
-                to="/login"
-                className={styles['login-link-text']}
-              >
-                {t('auth.common.backToLogin')}
-              </Link>
+            <div className={styles['form-group']}>
+              <label htmlFor="confirmPassword" className={styles['form-label']}>
+                {t('auth.reset.confirmNewPassword')}
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={styles['form-input']}
+                placeholder="••••••••"
+              />
             </div>
+
+            {error && (
+              <div className={styles['error-message']}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles['reset-button']}
+            >
+              {loading ? t('auth.reset.submitting') : t('auth.reset.submit')}
+            </button>
+          </form>
+
+          <div className={styles['login-link']}>
+            <span className={styles['login-text']}>
+              {t('auth.common.rememberPassword')}{' '}
+            </span>
+            <Link
+              to="/login"
+              className={styles['login-link-text']}
+            >
+              {t('auth.common.backToLogin')}
+            </Link>
           </div>
         </div>
       </div>

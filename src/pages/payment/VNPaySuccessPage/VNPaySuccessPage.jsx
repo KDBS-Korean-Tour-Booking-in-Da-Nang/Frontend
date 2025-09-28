@@ -290,8 +290,8 @@ const VNPaySuccessPage = () => {
                       <td>{guest.nationality}</td>
                       <td>
                         {(() => {
-                          if (guest.guestType === 'ADULT') return t('payment.adult');
-                          if (guest.guestType === 'CHILD') return t('payment.child');
+                          if (guest.bookingGuestType === 'ADULT') return t('payment.adult');
+                          if (guest.bookingGuestType === 'CHILD') return t('payment.child');
                           return t('payment.baby');
                         })()}
                       </td>

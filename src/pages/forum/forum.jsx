@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../../config/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../config/api';
 import PostModal from './components/PostModal/PostModal';
 import PostCard from './components/PostCard/PostCard';
 import SearchSidebar from './components/SearchSidebar/SearchSidebar';
-import UserSidebar from './components/UserSidebar/UserSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
 import MyPostsModal from './components/MyPostsModal/MyPostsModal';
 import styles from './forum.module.css';
@@ -31,7 +30,6 @@ const Forum = () => {
   const lastPostElementRef = useRef();
 
   const showSinglePost = async (postId) => {
-    console.log('showSinglePost called with postId:', postId, 'type:', typeof postId);
     setSelectedPostId(postId);
     try {
       const response = await fetch(API_ENDPOINTS.POST_BY_ID(postId));
@@ -96,6 +94,9 @@ const Forum = () => {
     };
   }, []);
 
+  // Cache for posts to avoid unnecessary refetches
+  const postsCache = useRef(new Map());
+  
   const fetchPosts = async () => {
     try {
       // Set loading state based on whether it's initial load or loading more
@@ -117,17 +118,26 @@ const Forum = () => {
         });
       }
 
-      console.log('=== FETCH POSTS DEBUG ===');
-      console.log('URL:', url);
-      
+      // Check cache first for initial page load
+      const cacheKey = `${url}_${currentPage}`;
+      if (currentPage === 0 && postsCache.current.has(cacheKey)) {
+        const cachedData = postsCache.current.get(cacheKey);
+        setPosts(cachedData.content || []);
+        setHasMorePosts(!cachedData.last);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        return;
+      }
+
       const response = await fetch(url);
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Posts data received:', data);
-        console.log('Posts content:', data.content);
+        
+        // Cache the response for initial page loads
+        if (currentPage === 0) {
+          postsCache.current.set(cacheKey, data);
+        }
         
         if (currentPage === 0) {
           setPosts(data.content || []);
@@ -137,8 +147,6 @@ const Forum = () => {
         
         setHasMorePosts(!data.last);
       } else {
-        const errorText = await response.text();
-        console.log('Error response:', errorText);
         throw new Error('Failed to fetch posts');
       }
     } catch (error) {
@@ -505,10 +513,6 @@ const Forum = () => {
         )}
       </div>
 
-        {/* Right Sidebar - User Suggestions */}
-        <div className={`${styles['forum-sidebar']} ${styles['right']}`}>
-      <UserSidebar />
-        </div>
       </div>
 
       {/* Post Modal - Only show if user is logged in */}

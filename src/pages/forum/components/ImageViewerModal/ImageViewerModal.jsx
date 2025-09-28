@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { getImageUrl, getAvatarUrl } from '../../../../../config/api';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { getImageUrl, getAvatarUrl } from '../../../../config/api';
 import styles from './ImageViewerModal.module.css';
 
 const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {

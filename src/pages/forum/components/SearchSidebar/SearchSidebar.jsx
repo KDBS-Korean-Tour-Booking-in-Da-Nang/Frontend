@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
-import { BaseURL, API_ENDPOINTS } from '../../../../../config/api';
+import { BaseURL, API_ENDPOINTS } from '../../../../config/api';
 import styles from './SearchSidebar.module.css';
 
 const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {

@@ -177,14 +177,19 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
   
   // Add adult guests
   plan.members.adult.forEach((member, index) => {
-    if (member.fullName && member.dob) {
+    // For representative (index 0), use contact data as fallback for name and dob
+    const isRepresentative = index === 0;
+    const effectiveFullName = isRepresentative ? (member.fullName?.trim() || contact.fullName?.trim()) : member.fullName?.trim();
+    const effectiveDob = isRepresentative ? (member.dob || contact.dob) : member.dob;
+    
+    if (effectiveFullName && effectiveDob) {
       guests.push({
-        fullName: member.fullName.trim(),
-        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
+        fullName: effectiveFullName,
+        birthDate: formatDateForAPI(effectiveDob, language), // Convert display format to YYYY-MM-DD
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
-        guestType: 'ADULT'
+        bookingGuestType: 'ADULT'
       });
     }
   });
@@ -198,7 +203,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
-        guestType: 'CHILD'
+        bookingGuestType: 'CHILD'
       });
     }
   });
@@ -212,7 +217,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
-        guestType: 'BABY'
+        bookingGuestType: 'BABY'
       });
     }
   });
@@ -325,7 +330,7 @@ export const validateBookingData = (bookingData) => {
         errors.push(`Guest ${index + 1}: Nationality is required`);
       }
       
-      if (!guest.guestType) {
+      if (!guest.bookingGuestType) {
         errors.push(`Guest ${index + 1}: Guest type is required`);
       }
     });

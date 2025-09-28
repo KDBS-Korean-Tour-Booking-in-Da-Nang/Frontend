@@ -23,6 +23,9 @@ export function bookingReducer(state, action) {
       const newPax = { ...state.plan.pax };
       newPax[incrementType] += 1;
       
+      console.log(`📈 INCREMENT_PAX - ${incrementType}: ${state.plan.pax[incrementType]} → ${newPax[incrementType]}`);
+      console.log('📈 Stack trace:', new Error().stack);
+      
       return {
         ...state,
         plan: {
@@ -36,8 +39,12 @@ export function bookingReducer(state, action) {
       const { type: decrementType } = action.payload;
       const updatedPax = { ...state.plan.pax };
       
+      console.log(`📉 DECREMENT_PAX - ${decrementType}: ${state.plan.pax[decrementType]} → ${updatedPax[decrementType] - 1}`);
+      console.log('📉 Stack trace:', new Error().stack);
+      
       // Ensure adult count never goes below 1
       if (decrementType === 'adult' && updatedPax[decrementType] <= 1) {
+        console.log('📉 DECREMENT_PAX - Prevented adult count from going below 1');
         return state; // No change if trying to go below 1 adult
       }
       
@@ -58,6 +65,22 @@ export function bookingReducer(state, action) {
       const { memberType, index, partial } = action.payload;
       const updatedMembers = { ...state.plan.members };
       updatedMembers[memberType] = [...updatedMembers[memberType]];
+      
+      console.log(`🔧 SET_MEMBER - ${memberType}[${index}]:`, partial);
+      console.log(`🔧 Current array length: ${updatedMembers[memberType].length}`);
+      
+      // Ensure array has enough elements for the index
+      while (updatedMembers[memberType].length <= index) {
+        updatedMembers[memberType].push({
+          fullName: '',
+          dob: '',
+          gender: '',
+          nationality: '',
+          idNumber: ''
+        });
+        console.log(`🔧 Added empty member at index ${updatedMembers[memberType].length - 1}`);
+      }
+      
       updatedMembers[memberType][index] = {
         ...updatedMembers[memberType][index],
         ...partial
@@ -80,16 +103,26 @@ export function bookingReducer(state, action) {
         infant: []
       };
 
+      console.log('🔄 REBUILD_MEMBERS - Current pax:', pax);
+      console.log('🔄 REBUILD_MEMBERS - Current members:', state.plan.members);
+
       // Rebuild members arrays based on current pax counts
       ['adult', 'child', 'infant'].forEach(type => {
         const currentMembers = state.plan.members[type] || [];
         const targetCount = pax[type];
         
+        console.log(`🔄 Rebuilding ${type}: currentMembers=${currentMembers.length}, targetCount=${targetCount}`);
+        
         // Keep existing members up to target count
         for (let i = 0; i < targetCount; i++) {
-          if (currentMembers[i]) {
-            newMembers[type].push(currentMembers[i]);
+          const currentMember = currentMembers[i];
+          console.log(`🔄 ${type}[${i}]:`, { currentMember, isUndefined: currentMember === undefined, isNull: currentMember === null });
+          
+          if (currentMember && currentMember !== undefined && currentMember !== null) {
+            console.log(`✅ Keeping existing ${type}[${i}]`);
+            newMembers[type].push(currentMember);
           } else {
+            console.log(`➕ Creating new ${type}[${i}]`);
             // Add new empty member
             newMembers[type].push({
               fullName: '',
@@ -101,6 +134,8 @@ export function bookingReducer(state, action) {
           }
         }
       });
+
+      console.log('🔄 REBUILD_MEMBERS - New members:', newMembers);
 
       return {
         ...state,

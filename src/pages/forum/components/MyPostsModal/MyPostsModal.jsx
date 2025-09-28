@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
-import { DeleteConfirmModal } from '../../../../../components';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
+import { DeleteConfirmModal } from '../../../../components';
 import styles from './MyPostsModal.module.css';
 
 const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {

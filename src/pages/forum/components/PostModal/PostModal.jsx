@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { useToast } from '../../../../../contexts/ToastContext';
-import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, createAuthHeaders, FrontendURL } from '../../../../../config/api';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { useToast } from '../../../../contexts/ToastContext';
+import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, createAuthHeaders, FrontendURL } from '../../../../config/api';
 import styles from './PostModal.module.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
@@ -156,7 +156,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
         if (response.ok) {
           const preview = await response.json();
-          console.log('Tour preview data:', preview); // Debug log
           setLinkPreview({
             type: 'TOUR',
             id: tourId,
@@ -165,9 +164,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             thumbnailUrl: preview.thumbnailUrl || preview.tourImgPath,
             linkUrl: `${FrontendURL}/tour/${tourId}`
           });
-          console.log('Link preview set:', linkPreview);
         } else {
-          console.error('Failed to fetch tour preview:', response.status);
           setLinkPreview(null);
         }
       } catch (error) {
@@ -208,23 +205,13 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   // Auto-remove images when links are detected
   useEffect(() => {
     if (hasLinksInContent(content) && images.length > 0) {
-      console.log('Links detected in content, clearing uploaded images');
       setImages([]);
       setImageFiles([]);
-    } else if (!hasLinksInContent(content)) {
-      console.log('No links detected in content, image upload should be available');
     }
   }, [content, images.length]);
 
-  // Debug log for link detection
-  useEffect(() => {
-    const hasLinks = hasLinksInContent(content);
-    console.log('Content has links:', hasLinks, 'Content:', content);
-  }, [content]);
-
   const removeLinkPreview = () => {
     setLinkPreview(null);
-    console.log('Link preview removed');
   };
 
   const handleSubmit = async (e) => {
@@ -275,7 +262,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           thumbnailUrl: linkPreview.thumbnailUrl,
           linkUrl: linkPreview.linkUrl
         }));
-        console.log('Adding link preview metadata:', linkPreview);
       }
       
       // Only append new image files when creating new post and no links in content
@@ -283,9 +269,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         imageFiles.forEach(file => {
           formData.append('images', file);
         });
-        console.log('Sending image files:', imageFiles.length, 'files');
-      } else if (!editPost && hasLinksInContent(content)) {
-        console.log('Skipping image upload due to links in content');
       }
 
       const url = editPost 
@@ -297,39 +280,14 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
       const token = getToken();
       const headers = createAuthFormHeaders(token);
 
-      console.log('=== POST REQUEST DEBUG ===');
-      console.log('URL:', url);
-      console.log('Method:', method);
-      console.log('Token:', token ? 'Present' : 'Missing');
-      console.log('Headers:', headers);
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name} (${value.size} bytes)` : value);
-      }
-      console.log('Total FormData entries:', Array.from(formData.entries()).length);
-      console.log('========================');
-
       const response = await fetch(url, {
         method: method,
         headers,
         body: formData,
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (response.ok) {
         const result = await response.json();
-        console.log('Post created/updated successfully:', result);
-        console.log('Post images:', result.images);
-        console.log('Full result object:', JSON.stringify(result, null, 2));
-        console.log('Result keys:', Object.keys(result));
-        console.log('Looking for image-related properties:');
-        Object.keys(result).forEach(key => {
-          if (key.toLowerCase().includes('image') || key.toLowerCase().includes('img')) {
-            console.log(`  ${key}:`, result[key]);
-          }
-        });
         
         // Ensure images array exists and is properly formatted (only if no links in content)
         if (!result.images && imageFiles.length > 0 && !hasLinksInContent(content)) {
@@ -338,7 +296,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             imgPath: `/uploads/posts/images/${Date.now()}_${index}_${file.name}`,
             // This is a fallback - in reality, backend should return the correct path
           }));
-          console.log('Created fallback images array:', result.images);
         }
         
         // Ensure metadata is properly set if we had a link preview
@@ -351,12 +308,10 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             thumbnailUrl: linkPreview.thumbnailUrl,
             linkUrl: linkPreview.linkUrl
           };
-          console.log('Added metadata to result:', result.metadata);
         }
         
         // If we sent images but backend didn't return them, try to fetch the post again
         if (!editPost && imageFiles.length > 0 && !hasLinksInContent(content) && (!result.images || result.images.length === 0)) {
-          console.log('Backend didn\'t return images, trying to fetch post again...');
           try {
             const token = getToken();
             const headers = createAuthHeaders(token);
@@ -365,11 +320,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             });
             if (fetchResponse.ok) {
               const fetchedPost = await fetchResponse.json();
-              console.log('Fetched post after creation:', fetchedPost);
-              console.log('Fetched post images:', fetchedPost.images);
               if (fetchedPost.images && fetchedPost.images.length > 0) {
                 result.images = fetchedPost.images;
-                console.log('Updated result with fetched images:', result.images);
               }
             }
           } catch (fetchError) {
@@ -389,23 +341,14 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         onClose();
         resetForm();
       } else {
-        console.log('=== ERROR RESPONSE ===');
-        console.log('Status:', response.status);
-        console.log('Status Text:', response.statusText);
-        
         const errorText = await response.text();
-        console.log('Response text:', errorText);
         
         let errorData;
         try {
           errorData = JSON.parse(errorText);
-          console.log('Parsed error data:', errorData);
         } catch (e) {
-          console.log('Failed to parse error response as JSON');
           errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
         }
-        
-        console.log('=====================');
         
         throw new Error(errorData.message || (editPost ? 'Failed to update post' : 'Failed to create post'));
       }
@@ -516,7 +459,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                       src={getImageUrl(linkPreview.thumbnailUrl)} 
                       alt={linkPreview.title}
                       onError={(e) => {
-                        console.log('Image load error:', e.target.src);
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
                       }}

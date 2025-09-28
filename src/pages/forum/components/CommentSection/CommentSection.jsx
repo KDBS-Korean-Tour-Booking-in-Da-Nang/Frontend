@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../../config/api';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../config/api';
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
-import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import DeleteConfirmModal from '../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import styles from './CommentSection.module.css';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
@@ -37,7 +37,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     if (comments.length > 0 && user) {
       loadReportedComments();
     }
-  }, [comments, user]);
+  }, [comments.length, user?.email]);
 
   // Load reported comments from backend
   const loadReportedComments = async (commentList = comments) => {
@@ -119,7 +119,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
     setIsSubmitting(true);
     try {
-      const token = getToken();
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
       const body = {
         userEmail: user.email,
         forumPostId: post.forumPostId,
@@ -163,19 +163,10 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
   // Check if user owns comment
   const isCommentOwner = (comment) => {
     if (!user || !comment) {
-      console.log('Missing user or comment:', { user: !!user, comment: !!comment });
       return false;
     }
     
-    console.log('User object:', user);
-    console.log('Comment object:', comment);
-    
     const isOwner = user.email === comment.userEmail;
-    console.log('Checking comment ownership:', {
-      userEmail: user.email,
-      commentUserEmail: comment.userEmail,
-      isOwner
-    });
     return isOwner;
   };
 
@@ -194,7 +185,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     if (!user) return;
     
     try {
-    const token = getToken();
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
       const url = `${API_ENDPOINTS.REPORTS_CREATE}?userEmail=${encodeURIComponent(user.email)}`;
       const response = await fetch(url, {
         method: 'POST',
@@ -210,11 +201,6 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       if (response.ok) {
         // Add comment to reported list
         const newReportedComments = new Set([...reportedComments, reportData.targetId]);
-        console.log('Report successful, updating reportedComments:', {
-          targetId: reportData.targetId,
-          oldSet: Array.from(reportedComments),
-          newSet: Array.from(newReportedComments)
-        });
         setReportedComments(newReportedComments);
         
         setShowReportModal(false);
@@ -257,7 +243,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
   const confirmDeleteComment = async () => {
     if (!deleteTarget || !user) return;
     try {
-      const token = getToken();
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
       const response = await fetch(API_ENDPOINTS.COMMENTS + `/${deleteTarget.forumCommentId}?userEmail=${user.email}`, {
         method: 'DELETE',
         headers: createAuthHeaders(token),
@@ -434,7 +420,6 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       const response = await fetch(API_ENDPOINTS.COMMENT_REPLIES(comment.forumCommentId));
       if (response.ok) {
         const data = await response.json();
-        console.log('Loading replies for comment:', comment.forumCommentId, 'Replies:', data);
         setReplies(data);
         
         // Load reported status for replies if user is logged in
@@ -500,19 +485,25 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       return;
     }
 
-    console.log('Reaction clicked:', type, 'for comment:', comment.forumCommentId);
 
     try {
       const email = user?.email || localStorage.getItem('userEmail') || localStorage.getItem('email');
-      const token = getToken();
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
       
-      const headers = createAuthHeaders(token, { 'User-Email': email });
+      const headers = createAuthHeaders(token);
 
       // Toggle off if same reaction
       if (reaction.userReaction === type) {
-        const response = await fetch(API_ENDPOINTS.REACTIONS_COMMENT(comment.forumCommentId), { 
+        const removeRequest = {
+          targetId: comment.forumCommentId,
+          targetType: 'COMMENT',
+          reactionType: type,
+          userEmail: email
+        };
+        const response = await fetch(API_ENDPOINTS.REACTIONS_DELETE, { 
           method: 'POST', 
-          headers 
+          headers,
+          body: JSON.stringify(removeRequest)
         });
         if (response.ok) {
           setReaction(prev => ({
@@ -529,7 +520,8 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       const body = { 
         targetId: comment.forumCommentId, 
         targetType: 'COMMENT', 
-        reactionType: type 
+        reactionType: type,
+        userEmail: email
       };
       const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, { 
         method: 'POST', 
@@ -561,7 +553,6 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
   // Handle reply
   const handleReply = () => {
-    console.log('Reply button clicked for:', comment.forumCommentId);
     setShowReplyInput(!showReplyInput);
   };
 
@@ -571,7 +562,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
     setIsSubmittingReply(true);
     try {
-      const token = getToken();
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
       const body = {
         userEmail: user.email,
         forumPostId: post.forumPostId,
@@ -604,7 +595,6 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
   // Handle show/hide replies
   const handleToggleReplies = () => {
-    console.log('Toggle replies clicked for:', comment.forumCommentId);
     setShowReplies(!showReplies);
   };
 
@@ -620,7 +610,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     if (!editText.trim()) return;
 
     try {
-      const token = getToken();
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
       const response = await fetch(API_ENDPOINTS.COMMENTS + `/${comment.forumCommentId}`, {
         method: 'PUT',
         headers: createAuthHeaders(token),
@@ -636,7 +626,6 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         setEditing(false);
         setEditText('');
         setShowDropdown(false);
-        console.log('Comment updated successfully:', comment.forumCommentId);
       } else {
         console.error('Failed to update comment:', response.status);
         alert('Có lỗi xảy ra khi cập nhật bình luận. Vui lòng thử lại.');
@@ -658,13 +647,8 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
   // Handle report
   const handleReport = () => {
-    console.log('handleReport called for comment:', comment.forumCommentId);
-    console.log('Current reportedComments:', Array.from(reportedComments || []));
-    console.log('Is comment reported?', reportedComments && reportedComments.has(comment.forumCommentId));
-    
     // Check if already reported
     if (reportedComments && reportedComments.has(comment.forumCommentId)) {
-      console.log('Comment already reported:', comment.forumCommentId);
       setShowDropdown(false);
       return;
     }
@@ -702,8 +686,6 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                   {(() => {
                     const isOwner = isCommentOwner(comment);
                     const isReported = reportedComments && reportedComments.has(comment.forumCommentId);
-                    console.log('Dropdown render - isOwner:', isOwner, 'isReported:', isReported, 'for comment:', comment.forumCommentId);
-                    console.log('reportedComments in dropdown:', Array.from(reportedComments || []));
                     return isOwner ? (
                       <>
                         <button 

@@ -108,8 +108,6 @@ const VNPayPaymentPage = () => {
       const createdBookingResult = await createBooking(bookingData);
       console.log('Booking created:', createdBookingResult);
       
-      // Store created booking for later use (in sessionStorage)
-      
       // Step 2: Create VNPay payment
       const paymentRequest = {
         bookingId: createdBookingResult.bookingId,
@@ -127,7 +125,7 @@ const VNPayPaymentPage = () => {
           paymentInfo: response
         }));
         
-        // Redirect to VNPay payment page
+        // Redirect to VNPay payment page immediately
         window.location.href = response.payUrl;
       } else {
         throw new Error(t('payment.cannotCreatePaymentLink'));
@@ -143,13 +141,23 @@ const VNPayPaymentPage = () => {
       
       setError(error.message || t('payment.paymentCreationError'));
       showError(`${t('payment.paymentError')}: ${error.message || t('payment.errorOccurred')}`);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state on error
     }
+    // Note: Don't set loading to false on success - we're redirecting immediately
   };
 
   const handleCancel = () => {
-    navigate('/tours');
+    // Clear any pending booking data
+    sessionStorage.removeItem('pendingBooking');
+    
+    // Navigate back to Step 3 of BookingWizard
+    navigate(`/tour/${tourId}/booking`, { 
+      state: { 
+        returnFromPayment: true,
+        message: t('payment.bookingCancelled'),
+        type: 'info'
+      }
+    });
   };
 
   if (!bookingData || !user) {

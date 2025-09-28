@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../../config/api';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../config/api';
 import { useNavigate } from 'react-router-dom';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
-import { DeleteConfirmModal, LoginRequiredModal } from '../../../../../components';
+import { DeleteConfirmModal, LoginRequiredModal } from '../../../../components';
 import styles from './PostCard.module.css';
 
 const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
@@ -31,6 +31,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [tourLinkPreview, setTourLinkPreview] = useState(null);
+  const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
 
   useEffect(() => {
     // Always fetch reaction count and save count for all users (including guests)
@@ -43,38 +44,94 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       checkIfSaved();
       checkIfReported();
     }
-    // Detect tour link via metadata first, fallback to parsing content
-    try {
-      const meta = post.metadata || post.meta || null;
-      let match = null;
-      if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
-        const idFromMeta = meta.linkRefId || (String(meta.linkUrl || '').match(/\/tour\/(\d+)/)?.[1]);
-        if (idFromMeta) match = [null, idFromMeta];
-      }
-      if (!match) {
-        const text = String(post.content || '');
-        const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const regex = new RegExp(`(?:${escapedBase})?/tour/(\\d+)`);
-        match = text.match(regex);
-      }
-      if (match && match[1]) {
-        const tourId = match[1];
-        fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
-          .then(r => (r.ok ? r.json() : Promise.reject()))
-        .then(data => {
-          setTourLinkPreview({
-            id: tourId,
-            title: data.title || data.tourName,
-            summary: data.summary || data.tourDescription,
-            image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
-          });
-        })
-          .catch(() => setTourLinkPreview(null));
-      } else {
+  }, [post.forumPostId, user?.email]);
+
+  // Detect tour link via metadata first, fallback to parsing content
+  useEffect(() => {
+    const fetchTourPreview = () => {
+      try {
+        const meta = post.metadata || post.meta || null;
+        let match = null;
+        if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
+          const idFromMeta = meta.linkRefId || (String(meta.linkUrl || '').match(/\/tour\/(\d+)/)?.[1]);
+          if (idFromMeta) match = [null, idFromMeta];
+        }
+        if (!match) {
+          const text = String(post.content || '');
+          const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+          const regex = new RegExp(`(?:${escapedBase})?/tour/(\\d+)`);
+          match = text.match(regex);
+        }
+        if (match && match[1]) {
+          const tourId = match[1];
+          setIsLoadingTourPreview(true);
+          // Use requestIdleCallback to avoid blocking main thread
+          if (window.requestIdleCallback) {
+            window.requestIdleCallback(() => {
+              fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
+                .then(r => (r.ok ? r.json() : Promise.reject()))
+                .then(data => {
+                  setTourLinkPreview({
+                    id: tourId,
+                    title: data.title || data.tourName,
+                    summary: data.summary || data.tourDescription,
+                    image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
+                  });
+                })
+                .catch(() => setTourLinkPreview(null))
+                .finally(() => setIsLoadingTourPreview(false));
+            });
+          } else {
+            // Fallback for browsers without requestIdleCallback
+            setTimeout(() => {
+              fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
+                .then(r => (r.ok ? r.json() : Promise.reject()))
+                .then(data => {
+                  setTourLinkPreview({
+                    id: tourId,
+                    title: data.title || data.tourName,
+                    summary: data.summary || data.tourDescription,
+                    image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
+                  });
+                })
+                .catch(() => setTourLinkPreview(null))
+                .finally(() => setIsLoadingTourPreview(false));
+            }, 0);
+          }
+        } else {
+          setTourLinkPreview(null);
+          setIsLoadingTourPreview(false);
+        }
+      } catch (_) { 
         setTourLinkPreview(null);
+        setIsLoadingTourPreview(false);
       }
-    } catch (_) { setTourLinkPreview(null); }
-  }, [user, post.forumPostId]);
+    };
+
+    // Debounce the fetch to avoid multiple rapid calls
+    const timeoutId = setTimeout(fetchTourPreview, 200);
+    return () => clearTimeout(timeoutId);
+  }, [post.forumPostId, post.content, post.metadata]);
+
+  // Preload first few images for better performance
+  useEffect(() => {
+    if (post.images && post.images.length > 0) {
+      const firstFewImages = post.images.slice(0, 3);
+      firstFewImages.forEach((img) => {
+        const imgPath = typeof img === 'string' ? img : img.imgPath;
+        if (imgPath) {
+          const resolvedUrl = resolveImageUrl(imgPath);
+          if (resolvedUrl) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = resolvedUrl;
+            document.head.appendChild(link);
+          }
+        }
+      });
+    }
+  }, [post.images]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -119,14 +176,22 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       const reactionRequest = {
         targetId: post.forumPostId,
         targetType: 'POST',
-        reactionType: 'LIKE'
+        reactionType: 'LIKE',
+        userEmail: email
       };
 
       if (isLiked) {
-        // Remove reaction (legacy spec)
-        await fetch(API_ENDPOINTS.REACTIONS_POST(post.forumPostId), {
+        // Remove reaction
+        const removeRequest = {
+          targetId: post.forumPostId,
+          targetType: 'POST',
+          reactionType: 'LIKE',
+          userEmail: email
+        };
+        await fetch(API_ENDPOINTS.REACTIONS_DELETE, {
           method: 'POST',
-          headers: createAuthHeaders(token, { 'User-Email': email })
+          headers: createAuthHeaders(token),
+          body: JSON.stringify(removeRequest)
         });
         setIsLiked(false);
         setLikeCount(prev => prev - 1);
@@ -134,7 +199,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         // Add reaction (legacy spec)
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
-          headers: createAuthHeaders(token, { 'User-Email': email, 'Content-Type': 'application/json' }),
+          headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
         
@@ -156,19 +221,27 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       const reactionRequest = {
         targetId: post.forumPostId,
         targetType: 'POST',
-        reactionType: 'DISLIKE'
+        reactionType: 'DISLIKE',
+        userEmail: email
       };
 
       if (isDisliked) {
-        await fetch(API_ENDPOINTS.REACTIONS_POST(post.forumPostId), {
+        const removeRequest = {
+          targetId: post.forumPostId,
+          targetType: 'POST',
+          reactionType: 'DISLIKE',
+          userEmail: email
+        };
+        await fetch(API_ENDPOINTS.REACTIONS_DELETE, {
           method: 'POST',
-          headers: createAuthHeaders(token, { 'User-Email': email })
+          headers: createAuthHeaders(token),
+          body: JSON.stringify(removeRequest)
         });
         setIsDisliked(false);
       } else {
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
-          headers: createAuthHeaders(token, { 'User-Email': email, 'Content-Type': 'application/json' }),
+          headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
         if (response.ok) {
@@ -227,21 +300,15 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
       
-      console.log('Checking if post is saved:', post.forumPostId, email);
       const response = await fetch(API_ENDPOINTS.SAVED_POSTS_CHECK(post.forumPostId), {
         headers: {
           'User-Email': email,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
       });
-      console.log('Check saved response:', response.status, response.statusText);
       if (response.ok) {
         const data = await response.json();
-        console.log('Check saved data:', data);
         setIsSaved(data.result || false);
-      } else {
-        const errorText = await response.text();
-        console.error('Failed to check if saved:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error checking if saved:', error);
@@ -289,17 +356,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     const token = getToken();
     const email = user?.email || localStorage.getItem('email') || '';
     
-    console.log('Save button clicked:', {
-      postId: post.forumPostId,
-      isSaved,
-      userEmail: email,
-      hasToken: !!token,
-      token: token ? token.substring(0, 20) + '...' : 'none',
-      user: user
-    });
-    
     if (!email) {
-      console.error('No user email found');
       alert(t('forum.errors.unauthorized'));
       return;
     }
@@ -307,25 +364,17 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     try {
       if (isSaved) {
         // Unsave post
-        console.log('Attempting to unsave post...');
         const response = await fetch(API_ENDPOINTS.SAVED_POSTS_UNSAVE(post.forumPostId), {
           method: 'DELETE',
           headers: createAuthHeaders(token, { 'User-Email': email })
         });
         
-        console.log('Unsave response:', response.status, response.statusText);
-        
         if (response.ok) {
           setIsSaved(false);
           setSaveCount(prev => Math.max(0, prev - 1));
-          console.log('Post unsaved successfully');
-        } else {
-          const errorText = await response.text();
-          console.error('Failed to unsave post:', response.status, errorText);
         }
       } else {
         // Save post
-        console.log('Attempting to save post...');
         const response = await fetch(API_ENDPOINTS.SAVED_POSTS_SAVE, {
           method: 'POST',
           headers: createAuthHeaders(token, { 'User-Email': email }),
@@ -335,15 +384,9 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           })
         });
         
-        console.log('Save response:', response.status, response.statusText);
-        
         if (response.ok) {
           setIsSaved(true);
           setSaveCount(prev => prev + 1);
-          console.log('Post saved successfully');
-        } else {
-          const errorText = await response.text();
-          console.error('Failed to save post:', response.status, errorText);
         }
       }
     } catch (error) {
@@ -445,13 +488,24 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
+  // Cache for resolved image URLs to avoid repeated processing
+  const imageUrlCache = useRef(new Map());
+  
   const resolveImageUrl = (imgPath) => {
     if (!imgPath) return '';
     if (typeof imgPath !== 'string') return '';
     if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
+    
+    // Check cache first
+    if (imageUrlCache.current.has(imgPath)) {
+      return imageUrlCache.current.get(imgPath);
+    }
+    
     const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
     const resolvedUrl = getImageUrl(normalized);
-    console.log('resolveImageUrl:', imgPath, '-> normalized:', normalized, '-> resolved:', resolvedUrl);
+    
+    // Cache the resolved URL
+    imageUrlCache.current.set(imgPath, resolvedUrl);
     return resolvedUrl;
   };
 
@@ -481,13 +535,35 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   };
 
   const renderImages = () => {
+    // Show loading skeleton for tour link preview
+    if (isLoadingTourPreview) {
+      return (
+        <div className={styles['pc-link-card']} style={{cursor: 'default'}}>
+          <div className={styles['pc-link-thumb']}>
+            <div className={styles['pc-link-thumb-placeholder']} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
+              <div style={{width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px'}}></div>
+            </div>
+          </div>
+          <div className={styles['pc-link-meta']}>
+            <div className={styles['pc-link-title']} style={{backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+            <div className={styles['pc-link-desc']} style={{backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+          </div>
+        </div>
+      );
+    }
+    
     // If there is a tour link preview, show it as a link card before normal images
     if (tourLinkPreview) {
       return (
         <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
           <div className={styles['pc-link-thumb']}>
             {tourLinkPreview.image ? (
-              <img src={tourLinkPreview.image} alt={tourLinkPreview.title} />
+              <img 
+                src={tourLinkPreview.image} 
+                alt={tourLinkPreview.title}
+                loading="eager"
+                decoding="async"
+              />
             ) : (
               <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
             )}
@@ -500,16 +576,13 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       );
     }
     if (!post.images || post.images.length === 0) return null;
-    console.log('Post images data:', post.images);
     const imgs = post.images.map((img) => {
       // Handle both object format {imgPath: "..."} and string format
       const imgPath = typeof img === 'string' ? img : img.imgPath;
       const resolvedUrl = resolveImageUrl(imgPath);
-      console.log('Resolving image:', imgPath, '->', resolvedUrl);
       return resolvedUrl;
     }).filter(Boolean);
     const count = imgs.length;
-    console.log('Resolved images:', imgs);
 
     if (count === 1) {
       return (
@@ -518,9 +591,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             src={imgs[0]} 
             alt="Post image" 
             className={`${styles['pc-img']} ${styles['main']}`} 
+            loading="eager"
+            decoding="async"
             onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
             onError={(e) => {
-              console.error('Image failed to load:', e.target.src);
               e.target.style.display = 'none';
             }}
           />
@@ -535,9 +609,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             src={imgs[0]} 
             alt="Post image 1" 
             className={styles['pc-img']} 
+            loading="eager"
+            decoding="async"
             onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
             onError={(e) => {
-              console.error('Image failed to load:', e.target.src);
               e.target.style.display = 'none';
             }}
           />
@@ -545,9 +620,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             src={imgs[1]} 
             alt="Post image 2" 
             className={styles['pc-img']} 
+            loading="eager"
+            decoding="async"
             onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
             onError={(e) => {
-              console.error('Image failed to load:', e.target.src);
               e.target.style.display = 'none';
             }}
           />
@@ -564,9 +640,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           src={imgs[0]} 
           alt="Post image main" 
           className={`${styles['pc-img']} ${styles['main']}`} 
+          loading="eager"
+          decoding="async"
           onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
           onError={(e) => {
-            console.error('Image failed to load:', e.target.src);
             e.target.style.display = 'none';
           }}
         />
@@ -577,9 +654,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                 src={src} 
                 alt={`Post image ${idx + 2}`} 
                 className={`${styles['pc-img']} ${styles['thumb']}`} 
+                loading={idx < 2 ? "eager" : "lazy"}
+                decoding="async"
                 onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
                 onError={(e) => {
-                  console.error('Image failed to load:', e.target.src);
                   e.target.style.display = 'none';
                 }}
               />

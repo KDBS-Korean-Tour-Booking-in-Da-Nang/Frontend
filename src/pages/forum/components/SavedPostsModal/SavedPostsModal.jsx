@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
 import styles from './SavedPostsModal.module.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
