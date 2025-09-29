@@ -656,7 +656,7 @@
 		"shareNow": "Share"
 	},
 	"toast": {
-		"required": "{{field}}",
+		"required": "{{field}} is required",
 		"login_required": "Please login to continue",
 		"save_success": "Save successful",
 		"save_error": "An error occurred while saving",
@@ -1246,6 +1246,13 @@
 			"ordersDesc": "View and process orders"
 		}
 	},
+  "profileRole": {
+    "USER": "User",
+    "BUSINESS": "Business",
+    "ADMIN": "Admin",
+    "STAFF": "Staff",
+    "UNKNOWN": "Unknown"
+  },
 	"booking": {
         "step1": {
           "fields": {
@@ -1648,6 +1655,26 @@
 		"suggestionContactSupportIfIssue": "Contact support if issue persists",
 		"technicalDetails": "Technical Details (Development)"
 	}
+  ,
+  "premium": {
+    "title": "Premium",
+    "subscriptionTitle": "Premium Subscription",
+    "plans": {
+      "1month": "1 month",
+      "3months": "3 months"
+    },
+    "price": "{{amount}} VND",
+    "purchase": "Purchase",
+    "validUntil": "Valid until",
+    "activeNoExpiry": "Active Premium - No expiration date available",
+    "na": "N/A",
+    "errors": {
+      "noToken": "No authentication token found. Please login again.",
+      "noEmail": "User email not found. Please login again.",
+      "missingPayUrl": "VNPay payment URL not found in response",
+      "error": "Error"
+    }
+  }
 }
 
 

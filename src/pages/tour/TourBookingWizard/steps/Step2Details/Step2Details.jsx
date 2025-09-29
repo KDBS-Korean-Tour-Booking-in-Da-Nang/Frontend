@@ -586,6 +586,74 @@ const Step2Details = () => {
     return dateString;
   };
 
+  // Helper to convert between display formats across languages, reusing Step1 approach
+  const parseAndConvertDate = (dateString, fromLanguage, toLanguage) => {
+    if (!dateString) return '';
+    try {
+      // Normalize detection if fromLanguage not provided
+      let detectedFrom = fromLanguage;
+      if (!detectedFrom) {
+        if (dateString.includes('.')) {
+          detectedFrom = 'ko';
+        } else if (dateString.includes('/')) {
+          const parts = dateString.split('/');
+          if (parts.length === 3) {
+            const first = parseInt(parts[0], 10);
+            const second = parseInt(parts[1], 10);
+            // If first <= 12 and second <= 31, ambiguous; prefer 'vi' when first > 12 else 'en'
+            detectedFrom = (first > 12) ? 'vi' : 'en';
+          }
+        }
+      }
+
+      // Parse into Date components (YYYY, MM, DD)
+      const parseParts = (value, lang) => {
+        const sep = lang === 'ko' ? '.' : '/';
+        const parts = value.split(sep);
+        if (parts.length !== 3) return null;
+        let y, m, d;
+        switch (lang) {
+          case 'vi': // DD/MM/YYYY
+            d = parts[0]; m = parts[1]; y = parts[2];
+            break;
+          case 'en': // MM/DD/YYYY
+            m = parts[0]; d = parts[1]; y = parts[2];
+            break;
+          case 'ko': // YYYY.MM.DD
+            y = parts[0]; m = parts[1]; d = parts[2];
+            break;
+          default:
+            return null;
+        }
+        const year = y.padStart(4, '0');
+        const month = m.padStart(2, '0');
+        const day = d.padStart(2, '0');
+        const iso = `${year}-${month}-${day}`;
+        const date = new Date(iso);
+        if (isNaN(date.getTime())) return null;
+        return { year, month, day };
+      };
+
+      const srcLang = detectedFrom || toLanguage; // fallback
+      const parts = parseParts(dateString, srcLang);
+      if (!parts) return dateString;
+
+      const sep = toLanguage === 'ko' ? '.' : '/';
+      switch (toLanguage) {
+        case 'vi':
+          return `${parts.day}${sep}${parts.month}${sep}${parts.year}`;
+        case 'en':
+          return `${parts.month}${sep}${parts.day}${sep}${parts.year}`;
+        case 'ko':
+          return `${parts.year}${sep}${parts.month}${sep}${parts.day}`;
+        default:
+          return `${parts.year}-${parts.month}-${parts.day}`;
+      }
+    } catch (_) {
+      return dateString;
+    }
+  };
+
   const parseDateFromDisplay = (displayString) => {
     if (!displayString) return null;
     
@@ -752,6 +820,56 @@ const Step2Details = () => {
         // This will trigger the validation useEffect
       }, 0);
     }
+
+    // Convert existing DOB values to current language display, mirroring Step1 behavior
+    try {
+      const convertMemberDob = (memberType, index) => {
+        const member = plan.members[memberType][index];
+        const dob = member?.dob;
+        if (!dob || typeof dob !== 'string' || dob.trim() === '') return;
+        // Detect source language by separator and structure
+        let fromLang = null;
+        if (dob.includes('.')) {
+          fromLang = 'ko';
+        } else if (dob.includes('/')) {
+          const parts = dob.split('/');
+          if (parts.length === 3) {
+            const first = parseInt(parts[0], 10);
+            const second = parseInt(parts[1], 10);
+            fromLang = (first > 12) ? 'vi' : 'en';
+          }
+        }
+        const converted = parseAndConvertDate(dob, fromLang, currentLanguage);
+        if (converted && converted !== dob) {
+          setMember(memberType, index, { dob: converted });
+        }
+      };
+
+      // Representative adult[0]
+      if (plan.members?.adult?.length > 0) {
+        convertMemberDob('adult', 0);
+      }
+      // Other adults
+      if (plan.members?.adult?.length > 1) {
+        for (let i = 1; i < plan.members.adult.length; i++) {
+          convertMemberDob('adult', i);
+        }
+      }
+      // Children
+      if (plan.members?.child?.length > 0) {
+        for (let i = 0; i < plan.members.child.length; i++) {
+          convertMemberDob('child', i);
+        }
+      }
+      // Infants
+      if (plan.members?.infant?.length > 0) {
+        for (let i = 0; i < plan.members.infant.length; i++) {
+          convertMemberDob('infant', i);
+        }
+      }
+    } catch (err) {
+      console.error('Language change DOB conversion error:', err);
+    }
   }, [currentLanguage]);
 
   // Fetch tour data and prices
@@ -782,22 +900,7 @@ const Step2Details = () => {
          infant: tourData.babyPrice !== null && tourData.babyPrice !== undefined ? Number(tourData.babyPrice) : null
        };
       
-       // Check if prices are null or 0
-       if (tourData.adultPrice === null || tourData.adultPrice === undefined) {
-         console.warn('⚠️ Adult price is null:', tourData.adultPrice);
-       } else if (tourData.adultPrice === 0) {
-         console.info('ℹ️ Adult price is 0 (Miễn phí):', tourData.adultPrice);
-       }
-       if (tourData.childrenPrice === null || tourData.childrenPrice === undefined) {
-         console.warn('⚠️ Children price is null:', tourData.childrenPrice);
-       } else if (tourData.childrenPrice === 0) {
-         console.info('ℹ️ Children price is 0 (Miễn phí):', tourData.childrenPrice);
-       }
-       if (tourData.babyPrice === null || tourData.babyPrice === undefined) {
-         console.warn('⚠️ Baby price is null:', tourData.babyPrice);
-       } else if (tourData.babyPrice === 0) {
-         console.info('ℹ️ Baby price is 0 (Miễn phí):', tourData.babyPrice);
-       }
+      // Diagnostics removed
       
       setTourPrices(prices);
     } catch (error) {
@@ -867,7 +970,7 @@ const Step2Details = () => {
         }
       });
       
-      console.log('🔄 Restoring confirmedNationalities:', restored);
+      
       setConfirmedNationalities(restored);
     };
     
@@ -905,10 +1008,7 @@ const Step2Details = () => {
     // Validate adult members (including representative at index 0)
     plan.members.adult.forEach((member, index) => {
       // Safety check: skip if member is undefined
-      if (!member) {
-        console.warn(`⚠️ Undefined adult member found at index ${index}`);
-        return;
-      }
+      if (!member) { return; }
       
       const memberType = 'adult';
       const globalIndex = index; // Adult members start from 0
@@ -1019,21 +1119,17 @@ const Step2Details = () => {
       // ID validation for Next button blocking (but not for UI display)
       // Real-time validation handles UI display, useEffect handles Next button blocking
       const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber) {
-        // Check if ID is required based on nationality and age
-        const idRequired = isIdRequired(member.dob, member.nationality);
-        if (idRequired) {
-          // Validate format based on nationality
-          if (member.nationality === 'VN') {
-            const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-            if (!vietnameseIdRegex.test(member.idNumber)) {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-            }
-          } else {
-            const passportRegex = /^[A-Z0-9]{6,9}$/i;
-            if (!passportRegex.test(member.idNumber)) {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-            }
+      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
+        // Always validate format when ID is provided, regardless of whether it's required
+        if (member.nationality === 'VN') {
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          if (!vietnameseIdRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          }
+        } else {
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          if (!passportRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
           }
         }
       } else if (touchedFields.has(idKey)) {
@@ -1052,10 +1148,7 @@ const Step2Details = () => {
     // Validate child members
     plan.members.child.forEach((member, index) => {
       // Safety check: skip if member is undefined
-      if (!member) {
-        console.warn(`⚠️ Undefined child member found at index ${index}`);
-        return;
-      }
+      if (!member) { return; }
       
       const memberType = 'child';
       const globalIndex = plan.members.adult.length + index; // Child members start after adults
@@ -1110,21 +1203,17 @@ const Step2Details = () => {
       // ID validation for Next button blocking (but not for UI display)
       // Real-time validation handles UI display, useEffect handles Next button blocking
       const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber) {
-        // Check if ID is required based on nationality and age
-        const idRequired = isIdRequired(member.dob, member.nationality);
-        if (idRequired) {
-          // Validate format based on nationality
-          if (member.nationality === 'VN') {
-            const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-            if (!vietnameseIdRegex.test(member.idNumber)) {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-            }
-          } else {
-            const passportRegex = /^[A-Z0-9]{6,9}$/i;
-            if (!passportRegex.test(member.idNumber)) {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-            }
+      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
+        // Always validate format when ID is provided, regardless of whether it's required
+        if (member.nationality === 'VN') {
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          if (!vietnameseIdRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          }
+        } else {
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          if (!passportRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
           }
         }
       } else if (touchedFields.has(idKey)) {
@@ -1143,10 +1232,7 @@ const Step2Details = () => {
     // Validate infant members
     plan.members.infant.forEach((member, index) => {
       // Safety check: skip if member is undefined
-      if (!member) {
-        console.warn(`⚠️ Undefined infant member found at index ${index}`);
-        return;
-      }
+      if (!member) { return; }
       
       const memberType = 'infant';
       const globalIndex = plan.members.adult.length + plan.members.child.length + index; // Infant members start after adults and children
@@ -1200,21 +1286,17 @@ const Step2Details = () => {
       // ID validation for Next button blocking (but not for UI display)
       // Real-time validation handles UI display, useEffect handles Next button blocking
       const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber) {
-        // Check if ID is required based on nationality and age
-        const idRequired = isIdRequired(member.dob, member.nationality);
-        if (idRequired) {
-          // Validate format based on nationality
-          if (member.nationality === 'VN') {
-            const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-            if (!vietnameseIdRegex.test(member.idNumber)) {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-            }
-          } else {
-            const passportRegex = /^[A-Z0-9]{6,9}$/i;
-            if (!passportRegex.test(member.idNumber)) {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-            }
+      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
+        // Always validate format when ID is provided, regardless of whether it's required
+        if (member.nationality === 'VN') {
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          if (!vietnameseIdRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          }
+        } else {
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          if (!passportRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
           }
         }
       } else if (touchedFields.has(idKey)) {
@@ -1537,7 +1619,11 @@ const Step2Details = () => {
   const handleIdNumberChange = (memberType, index, value) => {
     // Check nationality to determine input filtering
     const key = `${memberType}-${index}`;
-    const nationality = confirmedNationalities[key];
+    const nationality = confirmedNationalities[key] || 
+                       (memberType === 'adult' && index === 0 ? plan.members.adult[0]?.nationality :
+                        memberType === 'adult' ? plan.members.adult[index]?.nationality :
+                        memberType === 'child' ? plan.members.child[index]?.nationality :
+                        memberType === 'infant' ? plan.members.infant[index]?.nationality : null);
     
     let processedValue = value;
     
@@ -1596,7 +1682,8 @@ const Step2Details = () => {
     console.log('🔒 Real-time validation for:', idKey);
     
     // Real-time validation - show error immediately if invalid
-    if (processedValue) {
+    // Always validate format when user inputs something, regardless of whether ID is required
+    if (processedValue && nationality) {
       let isValid = false;
       
       if (nationality === 'VN') {
@@ -1643,13 +1730,13 @@ const Step2Details = () => {
         }
       }
     } else {
-      // Clear error if empty
+      // Clear error if empty or no nationality
       setErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[errorKey];
         return newErrors;
       });
-      console.log('🧹 Real-time clearing error for empty value:', errorKey);
+      console.log('🧹 Real-time clearing error for empty value or no nationality:', errorKey);
     }
   };
 
@@ -2160,7 +2247,8 @@ const Step2Details = () => {
                          });
                          
                    // Set validating flag to prevent useEffect override
-                          const calendarFieldKey = `${memberType}_${localIndex}_dob`;
+                   const calendarFieldKey = `${memberType}_${localIndex}_dob`;
+                   const dobKey = `${memberType}_${localIndex}_dob`;
                    setValidatingFields(prev => new Set(prev).add(calendarFieldKey));
                    validatingFieldsRef.current.add(calendarFieldKey);
                    
@@ -2171,7 +2259,6 @@ const Step2Details = () => {
                      // Set error state immediately and persistently
                      setErrors(prev => {
                        const newErrors = { ...prev };
-                       const dobKey = `${memberType}_${localIndex}_dob`;
                        if (validationResult.isValid) {
                          delete newErrors[dobKey];
                        } else {

@@ -123,7 +123,11 @@ const TourCard = ({ tour }) => {
           isOpen={openShare} 
           onClose={() => setOpenShare(false)} 
           tourId={tour.id}
-          onShared={(post)=>{ navigate('/forum'); }}
+          onShared={(post)=>{ 
+            // Close modal then navigate to forum like TourDetailPage
+            setOpenShare(false);
+            setTimeout(() => navigate('/forum'), 100);
+          }}
         />,
         document.body
       )}

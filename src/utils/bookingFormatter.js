@@ -241,7 +241,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
     adultsCount: plan.pax.adult,
     childrenCount: plan.pax.child,
     babiesCount: plan.pax.infant,
-    guests: guests
+    bookingGuestRequests: guests
   };
   
   return bookingData;
@@ -303,17 +303,17 @@ export const validateBookingData = (bookingData) => {
     errors.push('Babies count cannot be negative');
   }
   
-  // Validate guests array
-  if (!bookingData.guests || bookingData.guests.length === 0) {
+  // Validate bookingGuestRequests array
+  if (!bookingData.bookingGuestRequests || bookingData.bookingGuestRequests.length === 0) {
     errors.push('At least one guest is required');
   } else {
     const expectedTotal = bookingData.adultsCount + bookingData.childrenCount + bookingData.babiesCount;
-    if (bookingData.guests.length !== expectedTotal) {
+    if (bookingData.bookingGuestRequests.length !== expectedTotal) {
       errors.push('Guest count mismatch');
     }
     
     // Validate each guest
-    bookingData.guests.forEach((guest, index) => {
+    bookingData.bookingGuestRequests.forEach((guest, index) => {
       if (!guest.fullName?.trim()) {
         errors.push(`Guest ${index + 1}: Full name is required`);
       }

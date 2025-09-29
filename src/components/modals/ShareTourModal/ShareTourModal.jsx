@@ -104,8 +104,8 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={styles['overlay']}>
-      <div className={styles['modal']}> 
+    <div className={styles['overlay']} onClick={onClose}>
+      <div className={styles['modal']} onClick={(e) => e.stopPropagation()}> 
         <div className={styles['header']}>
           <h3>{t('forum.shareTour.title') || 'Chia sẻ tour lên diễn đàn'}</h3>
           <button className={styles['close']} onClick={onClose}>×</button>

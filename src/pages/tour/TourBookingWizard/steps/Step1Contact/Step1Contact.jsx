@@ -69,17 +69,7 @@ const Step1Contact = () => {
     // Update previous value for next comparison - but only after we've used it for detection
     previousValueRef.current = cleanValue;
     
-    // Debug log to see what's happening
-    console.log('🔍 formatDateInput:', {
-      cleanValue,
-      previousValue,
-      isDeletingNow,
-      isDeletingTrailingSeparator,
-      isDeletingLastSeparator,
-      isInDeletionMode,
-      isDeletingFromFormatted,
-      currentLanguage
-    });
+    
     
     // Helper function to check if year is leap year
     const isLeapYear = (year) => {
@@ -477,7 +467,7 @@ const Step1Contact = () => {
   const parseAndConvertDate = (dateString, fromLanguage, toLanguage) => {
     if (!dateString) return '';
     
-    console.log('🔧 parseAndConvertDate - Input:', dateString, 'From:', fromLanguage, 'To:', toLanguage);
+    
     
     try {
       let day, month, year;
@@ -490,7 +480,7 @@ const Step1Contact = () => {
             day = viParts[0];
             month = viParts[1];
             year = viParts[2];
-            console.log('🔧 Parsed VI format:', { day, month, year });
+            
           }
           break;
         case 'en': // MM/DD/YYYY
@@ -499,7 +489,7 @@ const Step1Contact = () => {
             month = enParts[0];
             day = enParts[1];
             year = enParts[2];
-            console.log('🔧 Parsed EN format:', { day, month, year });
+            
           }
           break;
         case 'ko': // YYYY.MM.DD
@@ -508,15 +498,12 @@ const Step1Contact = () => {
             year = koParts[0];
             month = koParts[1];
             day = koParts[2];
-            console.log('🔧 Parsed KO format:', { day, month, year });
+            
           }
           break;
       }
       
-      if (!day || !month || !year) {
-        console.log('🔧 Missing date parts:', { day, month, year });
-        return dateString;
-      }
+      if (!day || !month || !year) { return dateString; }
       
       // Convert to target format
       let result;
@@ -534,7 +521,6 @@ const Step1Contact = () => {
           result = dateString;
       }
       
-      console.log('🔧 Conversion result:', result);
       return result;
     } catch (error) {
       console.error('Error parsing date:', error);
@@ -1205,16 +1191,14 @@ const Step1Contact = () => {
                     
                     // Mark as deleting for any backspace
                     isDeletingRef.current = true;
-                    console.log('🔙 Backspace detected, setting deletion mode');
+                    
                     
                     // Special case: if current value ends with separator, we're deleting separator
-                    if (currentValue.endsWith(separator)) {
-                      console.log('🔙 Backspace on trailing separator');
-                    }
+                    
                   } else if (e.key.length === 1) {
                     // If user is typing a character, reset deletion flag
                     isDeletingRef.current = false;
-                    console.log('⌨️ Typing detected, reset deletion flag');
+                    
                   }
                   
                   // Trigger validation on Enter key
@@ -1341,10 +1325,9 @@ const Step1Contact = () => {
                   
                   // Validate immediately since user has finished selecting from calendar
                   setTimeout(() => {
-                    console.log('🗓️ Calendar picker validation for:', normalizedDate);
-                    console.log('🗓️ About to call validateDateInput...');
+                    
                     const validationResult = validateDateInput(displayFormat);
-                    console.log('🗓️ Calendar validation result:', validationResult);
+                    
                     
                     // Validate age (≥18 for representative)
                     const birthDate = new Date(normalizedDate);
@@ -1360,10 +1343,9 @@ const Step1Contact = () => {
                     setErrors(prev => {
                       const newErrors = { ...prev };
                       if (age >= 18) {
-                        console.log('🗓️ ✅ Calendar validation passed, clearing error');
+                        
                         delete newErrors[dobKey];
                       } else {
-                        console.log('🗓️ ❌ Calendar validation failed: too young');
                         newErrors[dobKey] = t('booking.errors.representativeTooYoung');
                       }
                       return newErrors;
@@ -1394,43 +1376,43 @@ const Step1Contact = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('🗓️ Calendar button clicked!');
+                  
                   
                   // Trigger the hidden date input
                   const hiddenInput = document.getElementById('dob-hidden');
-                  console.log('🗓️ Hidden input found:', hiddenInput);
+                  
                   if (hiddenInput) {
                     // Focus the input first, then trigger click
                     hiddenInput.focus();
-                    console.log('🗓️ Hidden input focused');
+                    
                     
                     // Use a small delay to ensure focus is set
                     setTimeout(() => {
                       // Use showPicker if available, otherwise click
                       if (hiddenInput.showPicker) {
                         try {
-                          console.log('🗓️ Using showPicker()');
+                          
                           const showPickerResult = hiddenInput.showPicker();
                           // If showPicker returns a promise, handle it
                           if (showPickerResult && typeof showPickerResult.catch === 'function') {
                             showPickerResult.catch(() => {
                               // Fallback to click if showPicker fails
-                              console.log('🗓️ showPicker failed, using click fallback');
+                              
                               hiddenInput.click();
                             });
                           }
                         } catch (error) {
                           // Fallback to click if showPicker throws error
-                          console.log('🗓️ showPicker failed, using click fallback:', error);
+                          
                           hiddenInput.click();
                         }
                       } else {
-                        console.log('🗓️ showPicker not available, using click()');
+                        
                         hiddenInput.click();
                       }
                     }, 10);
                   } else {
-                    console.log('🗓️ Hidden input not found!');
+                    
                   }
                 }}
                 title="Open date picker"

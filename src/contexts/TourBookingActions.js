@@ -11,6 +11,11 @@ export const createSetDateAction = (dateData) => ({
   payload: dateData
 });
 
+export const createSetPaxAction = (paxData) => ({
+  type: ACTIONS.SET_PAX,
+  payload: paxData
+});
+
 export const createIncrementPaxAction = (type) => ({
   type: ACTIONS.INCREMENT_PAX,
   payload: { type }

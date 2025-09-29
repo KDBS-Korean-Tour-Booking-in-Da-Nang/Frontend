@@ -33,6 +33,7 @@ const BookingWizardContent = () => {
     booking,
     setContact,
     setDate,
+    setPax,
     setMember,
     recalcTotal
   } = useBooking();
@@ -73,9 +74,9 @@ const BookingWizardContent = () => {
               setDate(parsedData.plan.date);
             }
             
-            // Restore pax
+            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
             if (parsedData.plan.pax) {
-              // This will be handled by the context
+              setPax(parsedData.plan.pax);
             }
             
             // Restore members
@@ -245,6 +246,11 @@ const BookingWizardContent = () => {
               setDate(parsedData.plan.date);
             }
             
+            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
+            if (parsedData.plan.pax) {
+              setPax(parsedData.plan.pax);
+            }
+
             // Restore members
             if (parsedData.plan.members) {
               // Restore adult members
@@ -292,14 +298,21 @@ const BookingWizardContent = () => {
         
         if (errors.length > 0) {
           const messages = errors.map(errorKey => {
-            const fieldName = t(errorKey);
-            return { i18nKey: 'toast.required', values: { field: fieldName } };
+            // Check if it's a toast message key (contains 'toast')
+            if (errorKey.includes('toast')) {
+              return { i18nKey: errorKey };
+            } else {
+              // It's a field name, use the required toast format
+              const fieldName = t(errorKey);
+              return { i18nKey: 'toast.required', values: { field: fieldName } };
+            }
           });
           
           // Queue this batch; if another click happens, the next batch will wait until this one is done
           showBatch(messages, 'error', 5000);
         }
       } else {
+        
         // Save booking data to localStorage before moving to next step
         try {
           const bookingData = {
@@ -379,7 +392,7 @@ const BookingWizardContent = () => {
     
     if (hasData) {
       // Show confirm leave modal
-      console.log('Showing modal for navigation to:', path);
+      
       setPendingNavigation(path);
       setShowLeaveModal(true);
     } else {

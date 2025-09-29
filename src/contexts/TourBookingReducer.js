@@ -18,6 +18,15 @@ export function bookingReducer(state, action) {
         }
       };
 
+    case ACTIONS.SET_PAX:
+      return {
+        ...state,
+        plan: {
+          ...state.plan,
+          pax: { ...state.plan.pax, ...action.payload }
+        }
+      };
+
     case ACTIONS.INCREMENT_PAX: {
       const { type: incrementType } = action.payload;
       const newPax = { ...state.plan.pax };

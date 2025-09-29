@@ -283,6 +283,15 @@ export const useBookingStepValidation = (bookingData) => {
                 const passportRegex = /^[A-Z0-9]{6,9}$/i;
                 return passportRegex.test(member.idNumber);
               }
+            } else if (member?.idNumber?.trim()) {
+              // Not required, but user entered → validate format to prevent bad data
+              if (member.nationality === 'VN') {
+                const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+                return vietnameseIdRegex.test(member.idNumber);
+              } else {
+                const passportRegex = /^[A-Z0-9]{6,9}$/i;
+                return passportRegex.test(member.idNumber);
+              }
             }
             
             return true;
@@ -390,24 +399,44 @@ export const useBookingStepValidation = (bookingData) => {
           }
           
           // Check adult ID validation
-          if (member?.dob && member?.nationality && isIdRequired(member.dob, member.nationality)) {
-            if (!member?.idNumber?.trim()) {
-              if (member.nationality === 'VN') {
-                missingFields.push('booking.step2.toast.adultIdRequiredGeneric');
+          // 1) If ID is required by age/nationality -> require and validate
+          // 2) If ID is NOT required but user entered something -> still validate format and block proceed with a toast
+          if (member?.dob && member?.nationality) {
+            const required = isIdRequired(member.dob, member.nationality);
+            const hasId = !!member?.idNumber?.trim();
+
+            if (required) {
+              if (!hasId) {
+                if (member.nationality === 'VN') {
+                  missingFields.push('booking.step2.toast.adultIdRequiredGeneric');
+                } else {
+                  missingFields.push('booking.step2.toast.adultIdRequiredGenericPassport');
+                }
+              } else if (member.nationality === 'VN') {
+                // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
+                const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+                if (!vietnameseIdRegex.test(member.idNumber)) {
+                  missingFields.push('booking.step2.toast.adultIdInvalidFormatGeneric');
+                }
               } else {
-                missingFields.push('booking.step2.toast.adultIdRequiredGenericPassport');
+                // Passport validation: 6-9 characters, letters and numbers
+                const passportRegex = /^[A-Z0-9]{6,9}$/i;
+                if (!passportRegex.test(member.idNumber)) {
+                  missingFields.push('booking.step2.toast.adultIdInvalidFormatGenericPassport');
+                }
               }
-            } else if (member.nationality === 'VN') {
-              // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
-              const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-              if (!vietnameseIdRegex.test(member.idNumber)) {
-                missingFields.push('booking.step2.toast.adultIdInvalidFormatGeneric');
-              }
-            } else {
-              // Passport validation: 6-9 characters, letters and numbers
-              const passportRegex = /^[A-Z0-9]{6,9}$/i;
-              if (!passportRegex.test(member.idNumber)) {
-                missingFields.push('booking.step2.toast.adultIdInvalidFormatGenericPassport');
+            } else if (hasId) {
+              // Not required, but user entered → validate format to prevent bad data
+              if (member.nationality === 'VN') {
+                const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+                if (!vietnameseIdRegex.test(member.idNumber)) {
+                  missingFields.push('booking.step2.toast.adultIdInvalidFormatGeneric');
+                }
+              } else {
+                const passportRegex = /^[A-Z0-9]{6,9}$/i;
+                if (!passportRegex.test(member.idNumber)) {
+                  missingFields.push('booking.step2.toast.adultIdInvalidFormatGenericPassport');
+                }
               }
             }
           }
@@ -615,6 +644,22 @@ export const useBookingStepValidation = (bookingData) => {
                 }
               }
               
+              // ID format validation should also block step when provided, even if not required
+              // This ensures cases like Vietnamese 12-<14 entering bad CCCD will not proceed
+              if (member?.nationality && member?.idNumber?.trim()) {
+                if (member.nationality === 'VN') {
+                  const vnIdRegex = /^(?:\d{12}|\d{9})$/;
+                  if (!vnIdRegex.test(member.idNumber)) {
+                    return false;
+                  }
+                } else {
+                  const passportRegex = /^[A-Z0-9]{6,9}$/i;
+                  if (!passportRegex.test(member.idNumber)) {
+                    return false;
+                  }
+                }
+              }
+
               return true;
             })
         );

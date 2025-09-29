@@ -56,6 +56,11 @@ export const API_ENDPOINTS = {
   BOOKING_BY_EMAIL: (email) => `${BaseURL}/api/booking/email/${encodeURIComponent(email)}`,
   BOOKING_SUMMARY_BY_EMAIL: (email) => `${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`,
   BOOKING_BY_ID: (id) => `${BaseURL}/api/booking/id/${id}`,
+  
+  // Premium
+  PREMIUM_PAYMENT: `${BaseURL}/api/premium/payment`,
+  PREMIUM_PAYMENT_STATUS: (orderId) => `${BaseURL}/api/premium/payment/status/${orderId}`,
+  PREMIUM_STATUS: `${BaseURL}/api/premium/status`,
 };
 
 // Helper function để xử lý avatar URLs

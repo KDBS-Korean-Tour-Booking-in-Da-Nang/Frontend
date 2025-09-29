@@ -11,11 +11,11 @@ const TransactionResultPage = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [paymentType, setPaymentType] = useState(null);
 
   useEffect(() => {
     // Check if we have data from location state (from VNPayReturnPage)
     if (location.state) {
-      console.log('Transaction Result Page - Location state:', location.state);
       
       const { responseCode } = location.state;
       
@@ -36,11 +36,19 @@ const TransactionResultPage = () => {
     const paymentMethod = urlParams.get('paymentMethod');
     const responseCode = urlParams.get('responseCode');
 
-    console.log('Transaction Result Page - URL params:', {
-      orderId,
-      paymentMethod,
-      responseCode
-    });
+
+    // Check sessionStorage to determine payment type
+    const pendingBookingData = sessionStorage.getItem('pendingBooking');
+    const pendingPremiumData = sessionStorage.getItem('pendingPremiumPayment');
+    
+    // Determine payment type
+    let paymentType = 'booking'; // default
+    if (pendingPremiumData) {
+      paymentType = 'premium';
+    } else if (pendingBookingData) {
+      paymentType = 'booking';
+    }
+
 
     // Determine payment status based on response code
     if (responseCode === '00') {
@@ -50,6 +58,9 @@ const TransactionResultPage = () => {
       // Payment failed or cancelled
       setPaymentStatus('failed');
     }
+
+    // Store payment type in component state for passing to child components
+    setPaymentType(paymentType);
 
     setLoading(false);
   }, [location.search, location.state]);
@@ -67,9 +78,11 @@ const TransactionResultPage = () => {
 
   // Render appropriate page based on payment status
   if (paymentStatus === 'success') {
-    return <VNPaySuccessPage />;
+    const finalPaymentType = location.state?.paymentType || paymentType;
+    return <VNPaySuccessPage paymentType={finalPaymentType} />;
   } else if (paymentStatus === 'failed') {
-    return <VNPayFailPage />;
+    const finalPaymentType = location.state?.paymentType || paymentType;
+    return <VNPayFailPage paymentType={finalPaymentType} />;
   }
 
   // Fallback - should not reach here

@@ -5,13 +5,14 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { createVNPayPayment, createBooking } from '../../../services/bookingAPI';
 import { formatPrice } from '../../../utils/priceRules';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import styles from './VNPayPaymentPage.module.css';
 
 const VNPayPaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const { showError } = useToast();
   
   const [loading, setLoading] = useState(false);
@@ -20,10 +21,20 @@ const VNPayPaymentPage = () => {
   const [tourInfo, setTourInfo] = useState(null);
   const [calculatingTotal, setCalculatingTotal] = useState(true);
 
-  // Get booking data from location state
-  const { bookingData, tourId } = location.state || {};
+  // Get booking data or premium data from location state
+  const { bookingData, tourId, premiumData } = location.state || {};
 
   const calculateTotalAmount = useCallback(async () => {
+    // Handle premium payment
+    if (premiumData) {
+      setCalculatingTotal(true);
+      setError(null);
+      setTotalAmount(premiumData.amount);
+      setCalculatingTotal(false);
+      return;
+    }
+    
+    // Handle booking payment
     if (!bookingData || !tourId) return;
     
     setCalculatingTotal(true);
@@ -74,9 +85,20 @@ const VNPayPaymentPage = () => {
     } finally {
       setCalculatingTotal(false);
     }
-  }, [bookingData, tourId]);
+  }, [bookingData, tourId, premiumData]);
 
   useEffect(() => {
+    // Handle premium payment
+    if (premiumData) {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      calculateTotalAmount();
+      return;
+    }
+
+    // Handle booking payment
     if (!bookingData || !user) {
       navigate('/tours');
       return;
@@ -91,10 +113,10 @@ const VNPayPaymentPage = () => {
 
     // Calculate total amount
     calculateTotalAmount();
-  }, [bookingData, user, navigate, showError, calculateTotalAmount]);
+  }, [bookingData, premiumData, user, navigate, showError, calculateTotalAmount]);
 
   const handlePayment = async () => {
-    if (!bookingData || !user) {
+    if ((!bookingData && !premiumData) || !user) {
       showError(t('payment.invalidPaymentInfo'));
       return;
     }
@@ -103,32 +125,109 @@ const VNPayPaymentPage = () => {
     setError(null);
 
     try {
-      // Step 1: Create booking in database
-      console.log('Creating booking...', bookingData);
-      const createdBookingResult = await createBooking(bookingData);
-      console.log('Booking created:', createdBookingResult);
+      let response;
       
-      // Step 2: Create VNPay payment
-      const paymentRequest = {
-        bookingId: createdBookingResult.bookingId,
-        userEmail: user.email
-      };
-
-      console.log('Creating VNPay payment...', paymentRequest);
-      const response = await createVNPayPayment(paymentRequest);
-      
-      if (response.success && response.payUrl) {
-        // Store booking data in sessionStorage for return handling
-        sessionStorage.setItem('pendingBooking', JSON.stringify({
-          bookingData: createdBookingResult,
-          tourId: tourId,
-          paymentInfo: response
-        }));
+      if (premiumData) {
+        // Handle premium payment - already has VNPay URL from PremiumModal
+        console.log('Processing premium VNPay payment...', premiumData);
+        console.log('Premium data keys:', Object.keys(premiumData));
+        console.log('Premium payUrl:', premiumData.payUrl);
         
-        // Redirect to VNPay payment page immediately
-        window.location.href = response.payUrl;
+        // Try different possible field names for payUrl
+        const payUrl = premiumData.payUrl || premiumData.pay_url || premiumData.paymentUrl || premiumData.payment_url;
+        
+        if (payUrl) {
+          // Store premium data in sessionStorage for return handling
+          sessionStorage.setItem('pendingPremiumPayment', JSON.stringify({
+            premiumData: premiumData,
+            paymentInfo: {
+              success: true,
+              payUrl: payUrl
+            }
+          }));
+          
+          // Redirect to VNPay payment page immediately
+          window.location.href = payUrl;
+        } else {
+          console.error('Premium data received:', premiumData);
+          console.error('This suggests PremiumModal did not receive payUrl from backend or navigation failed');
+          
+          // Fallback: Try to call premium payment API directly from VNPayPaymentPage
+          console.log('Attempting to call premium payment API directly...');
+          
+          const token = getToken();
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+          
+          // We need to get the premium plan info somehow
+          // For now, let's try to extract from premiumData or use defaults
+          const duration = premiumData.duration || 1; // Default to 1 month if not specified
+          
+          const requestBody = {
+            durationInMonths: duration,
+            userEmail: user.email
+          };
+          
+          console.log('Fallback request body:', requestBody);
+          
+          const fallbackResponse = await fetch(API_ENDPOINTS.PREMIUM_PAYMENT, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            console.log('Fallback response:', fallbackData);
+            
+            if (fallbackData.payUrl) {
+              sessionStorage.setItem('pendingPremiumPayment', JSON.stringify({
+                premiumData: premiumData,
+                paymentInfo: {
+                  success: true,
+                  payUrl: fallbackData.payUrl
+                }
+              }));
+              
+              window.location.href = fallbackData.payUrl;
+              return;
+            }
+          }
+          
+          throw new Error('VNPay payment URL not found in premium data. Available fields: ' + Object.keys(premiumData).join(', '));
+        }
       } else {
-        throw new Error(t('payment.cannotCreatePaymentLink'));
+        // Handle booking payment
+        console.log('Creating booking...', bookingData);
+        const createdBookingResult = await createBooking(bookingData);
+        console.log('Booking created:', createdBookingResult);
+        
+        // Step 2: Create VNPay payment
+        const paymentRequest = {
+          bookingId: createdBookingResult.bookingId,
+          userEmail: user.email
+        };
+
+        console.log('Creating VNPay payment...', paymentRequest);
+        response = await createVNPayPayment(paymentRequest);
+        
+        if (response.success && response.payUrl) {
+          // Store booking data in sessionStorage for return handling
+          sessionStorage.setItem('pendingBooking', JSON.stringify({
+            bookingData: createdBookingResult,
+            tourId: tourId,
+            paymentInfo: response
+          }));
+          
+          // Redirect to VNPay payment page immediately
+          window.location.href = response.payUrl;
+        } else {
+          throw new Error(t('payment.cannotCreatePaymentLink'));
+        }
       }
     } catch (error) {
       console.error('Payment creation failed:', error);
@@ -147,32 +246,38 @@ const VNPayPaymentPage = () => {
   };
 
   const handleCancel = () => {
-    // Clear any pending booking data
+    // Clear any pending data
     sessionStorage.removeItem('pendingBooking');
+    sessionStorage.removeItem('pendingPremiumPayment');
     
-    // Navigate back to Step 3 of BookingWizard
-    navigate(`/tour/${tourId}/booking`, { 
-      state: { 
-        returnFromPayment: true,
-        message: t('payment.bookingCancelled'),
-        type: 'info'
-      }
-    });
+    if (premiumData) {
+      // Navigate back to home for premium payment
+      navigate('/');
+    } else {
+      // Navigate back to Step 3 of BookingWizard
+      navigate(`/tour/${tourId}/booking`, { 
+        state: { 
+          returnFromPayment: true,
+          message: t('payment.bookingCancelled'),
+          type: 'info'
+        }
+      });
+    }
   };
 
-  if (!bookingData || !user) {
+  if ((!bookingData && !premiumData) || !user) {
     return (
       <div className={styles['vnpay-payment-page']}>
         <div className={styles['payment-container']}>
           <div className={styles['error-message']}>
-            <h2>{t('payment.noBookingInfo')}</h2>
-            <p>{t('payment.pleaseBookFirst')}</p>
+            <h2>{t('payment.noPaymentInfo')}</h2>
+            <p>{t('payment.pleaseTryAgain')}</p>
             <button 
               type="button"
               className={styles['btn-primary']}
-              onClick={() => navigate('/tours')}
+              onClick={() => navigate('/')}
             >
-              Quay lại danh sách tour
+              Quay về trang chủ
             </button>
           </div>
         </div>
@@ -184,37 +289,57 @@ const VNPayPaymentPage = () => {
     <div className={styles['vnpay-payment-page']}>
       <div className={styles['payment-container']}>
         <div className={styles['payment-header']}>
-          <h1>{t('payment.vnpayTitle')}</h1>
+          <h1>{premiumData ? 'Premium Payment' : t('payment.vnpayTitle')}</h1>
           <p>{t('payment.completePaymentToConfirm')}</p>
         </div>
 
         <div className={styles['payment-content']}>
-          {/* Booking Summary */}
-          <div className={styles['booking-summary']}>
-            <h3>{t('payment.bookingInfo')}</h3>
-            <div className={styles['summary-details']}>
-              <div className={styles['summary-item']}>
-                <span className={styles['label']}>{t('payment.tourName')}:</span>
-                <span className={styles['value']}>{tourInfo?.tourName || t('payment.loading')}</span>
-              </div>
-              <div className={styles['summary-item']}>
-                <span className={styles['label']}>{t('payment.departureDate')}:</span>
-                <span className={styles['value']}>{bookingData.departureDate}</span>
-              </div>
-              <div className={styles['summary-item']}>
-                <span className={styles['label']}>{t('payment.guestCount')}:</span>
-                <span className={styles['value']}>{(bookingData.adultsCount || 0) + (bookingData.childrenCount || 0) + (bookingData.babiesCount || 0)} {t('payment.guests')}</span>
-              </div>
-              <div className={styles['summary-item']}>
-                <span className={styles['label']}>{t('payment.contactPerson')}:</span>
-                <span className={styles['value']}>{bookingData.contactName}</span>
-              </div>
-              <div className={styles['summary-item']}>
-                <span className={styles['label']}>Email:</span>
-                <span className={styles['value']}>{bookingData.contactEmail}</span>
+          {/* Premium Summary or Booking Summary */}
+          {premiumData ? (
+            <div className={styles['booking-summary']}>
+              <h3>Premium Subscription</h3>
+              <div className={styles['summary-details']}>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>Plan:</span>
+                  <span className={styles['value']}>{premiumData.planName}</span>
+                </div>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>Order ID:</span>
+                  <span className={styles['value']}>{premiumData.orderId}</span>
+                </div>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>User:</span>
+                  <span className={styles['value']}>{user.email}</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className={styles['booking-summary']}>
+              <h3>{t('payment.bookingInfo')}</h3>
+              <div className={styles['summary-details']}>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>{t('payment.tourName')}:</span>
+                  <span className={styles['value']}>{tourInfo?.tourName || t('payment.loading')}</span>
+                </div>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>{t('payment.departureDate')}:</span>
+                  <span className={styles['value']}>{bookingData.departureDate}</span>
+                </div>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>{t('payment.guestCount')}:</span>
+                  <span className={styles['value']}>{(bookingData.adultsCount || 0) + (bookingData.childrenCount || 0) + (bookingData.babiesCount || 0)} {t('payment.guests')}</span>
+                </div>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>{t('payment.contactPerson')}:</span>
+                  <span className={styles['value']}>{bookingData.contactName}</span>
+                </div>
+                <div className={styles['summary-item']}>
+                  <span className={styles['label']}>Email:</span>
+                  <span className={styles['value']}>{bookingData.contactEmail}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Payment Amount */}
           <div className={styles['payment-amount']}>

@@ -660,7 +660,7 @@
 		"shareNow": "Chia sẻ"
 	},
 	"toast": {
-		"required": "{{field}}",
+		"required": "{{field}} là bắt buộc",
 		"login_required": "Vui lòng đăng nhập để tiếp tục",
 		"save_success": "Lưu thành công",
 		"save_error": "Có lỗi xảy ra khi lưu",
@@ -1249,6 +1249,13 @@
 			"ordersDesc": "Xem và xử lý đơn hàng"
 		}
 	},
+  "profileRole": {
+    "USER": "Người dùng",
+    "BUSINESS": "Doanh nghiệp",
+    "ADMIN": "Quản trị viên",
+    "STAFF": "Nhân viên",
+    "UNKNOWN": "Không xác định"
+  },
 	"booking": {
         "step1": {
           "fields": {
@@ -1660,6 +1667,26 @@
 		"suggestionContactSupportIfIssue": "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn",
 		"technicalDetails": "Chi tiết kỹ thuật (Development)"
 	}
+  ,
+  "premium": {
+    "title": "Premium",
+    "subscriptionTitle": "Đăng ký Premium",
+    "plans": {
+      "1month": "1 tháng",
+      "3months": "3 tháng"
+    },
+    "price": "{{amount}} vnđ",
+    "purchase": "Mua gói",
+    "validUntil": "Hiệu lực đến",
+    "activeNoExpiry": "Đang kích hoạt Premium - Không có ngày hết hạn",
+    "na": "N/A",
+    "errors": {
+      "noToken": "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.",
+      "noEmail": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
+      "missingPayUrl": "Không tìm thấy liên kết thanh toán VNPay trong phản hồi",
+      "error": "Lỗi"
+    }
+  }
 }
 
 
