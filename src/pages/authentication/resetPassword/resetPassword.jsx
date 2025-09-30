@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
@@ -19,6 +19,23 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
+
+  // When success becomes true, redirect to login after a short delay
+  useEffect(() => {
+    if (!success) return;
+    setRedirectCountdown(5);
+    const interval = setInterval(() => {
+      setRedirectCountdown(prev => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    const timer = setTimeout(() => {
+      navigate('/login', { replace: true });
+    }, 5000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [success, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -107,14 +124,9 @@ const ResetPassword = () => {
           <p className={styles['success-subtitle']}>
             {t('auth.reset.successSubtitle')}
           </p>
-          <div className="mt-6">
-            <Link
-              to="/login"
-              className={styles['reset-button']}
-            >
-              {t('auth.reset.login')}
-            </Link>
-          </div>
+          <p className={styles['success-subtitle']}>
+            {`Redirecting to login in ${redirectCountdown}s...`}
+          </p>
         </div>
       </div>
     );

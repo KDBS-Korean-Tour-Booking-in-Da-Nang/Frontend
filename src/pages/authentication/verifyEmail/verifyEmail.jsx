@@ -79,6 +79,7 @@ const VerifyEmail = () => {
         setError(''); // Clear any previous errors
         showSuccess('toast.auth.email_verify_success');
         
+        // Keep loading spinner visible until redirect occurs
         // Auto navigate based on role after 2 seconds
         setTimeout(() => {
           if (role === 'business') {
@@ -89,10 +90,10 @@ const VerifyEmail = () => {
         }, 2000);
       } else {
         showError(data.message || 'toast.auth.email_verify_failed');
+        setLoading(false);
       }
     } catch (err) {
       showError('toast.auth.email_verify_failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -180,9 +181,15 @@ const VerifyEmail = () => {
             <button
               type="submit"
               disabled={loading}
-              className={styles['verify-button']}
+              className={`${styles['verify-button']} ${loading ? styles['loading'] : ''}`}
+              aria-busy={loading}
+              aria-live="polite"
             >
-              {loading ? t('auth.verify.submitting') : t('auth.verify.submit')}
+              {loading ? (
+                <span className={styles['spinner']} aria-hidden="true"></span>
+              ) : (
+                t('auth.verify.submit')
+              )}
             </button>
           </form>
 
