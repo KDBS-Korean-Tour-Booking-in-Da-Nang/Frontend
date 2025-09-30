@@ -177,14 +177,19 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
   
   // Add adult guests
   plan.members.adult.forEach((member, index) => {
-    if (member.fullName && member.dob) {
+    // For representative (index 0), use contact data as fallback for name and dob
+    const isRepresentative = index === 0;
+    const effectiveFullName = isRepresentative ? (member.fullName?.trim() || contact.fullName?.trim()) : member.fullName?.trim();
+    const effectiveDob = isRepresentative ? (member.dob || contact.dob) : member.dob;
+    
+    if (effectiveFullName && effectiveDob) {
       guests.push({
-        fullName: member.fullName.trim(),
-        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
+        fullName: effectiveFullName,
+        birthDate: formatDateForAPI(effectiveDob, language), // Convert display format to YYYY-MM-DD
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
-        guestType: 'ADULT'
+        bookingGuestType: 'ADULT'
       });
     }
   });
@@ -198,7 +203,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
-        guestType: 'CHILD'
+        bookingGuestType: 'CHILD'
       });
     }
   });
@@ -212,7 +217,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
         gender: formatGender(member.gender),
         idNumber: member.idNumber || '',
         nationality: formatNationality(member.nationality),
-        guestType: 'BABY'
+        bookingGuestType: 'BABY'
       });
     }
   });
@@ -236,7 +241,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
     adultsCount: plan.pax.adult,
     childrenCount: plan.pax.child,
     babiesCount: plan.pax.infant,
-    guests: guests
+    bookingGuestRequests: guests
   };
   
   return bookingData;
@@ -298,17 +303,17 @@ export const validateBookingData = (bookingData) => {
     errors.push('Babies count cannot be negative');
   }
   
-  // Validate guests array
-  if (!bookingData.guests || bookingData.guests.length === 0) {
+  // Validate bookingGuestRequests array
+  if (!bookingData.bookingGuestRequests || bookingData.bookingGuestRequests.length === 0) {
     errors.push('At least one guest is required');
   } else {
     const expectedTotal = bookingData.adultsCount + bookingData.childrenCount + bookingData.babiesCount;
-    if (bookingData.guests.length !== expectedTotal) {
+    if (bookingData.bookingGuestRequests.length !== expectedTotal) {
       errors.push('Guest count mismatch');
     }
     
     // Validate each guest
-    bookingData.guests.forEach((guest, index) => {
+    bookingData.bookingGuestRequests.forEach((guest, index) => {
       if (!guest.fullName?.trim()) {
         errors.push(`Guest ${index + 1}: Full name is required`);
       }
@@ -325,7 +330,7 @@ export const validateBookingData = (bookingData) => {
         errors.push(`Guest ${index + 1}: Nationality is required`);
       }
       
-      if (!guest.guestType) {
+      if (!guest.bookingGuestType) {
         errors.push(`Guest ${index + 1}: Guest type is required`);
       }
     });

@@ -5,6 +5,7 @@ import { bookingReducer } from './TourBookingReducer';
 import {
   createSetContactAction,
   createSetDateAction,
+  createSetPaxAction,
   createIncrementPaxAction,
   createDecrementPaxAction,
   createSetMemberAction,
@@ -31,6 +32,10 @@ export function TourBookingProvider({ children }) {
 
   const setDate = useCallback((dateData) => {
     dispatch(createSetDateAction(dateData));
+  }, []);
+
+  const setPax = useCallback((paxData) => {
+    dispatch(createSetPaxAction(paxData));
   }, []);
 
   const incrementPax = useCallback((type) => {
@@ -77,6 +82,7 @@ export function TourBookingProvider({ children }) {
     ...state,
     setContact,
     setDate,
+    setPax,
     incrementPax,
     decrementPax,
     setMember,
@@ -87,7 +93,7 @@ export function TourBookingProvider({ children }) {
     setBookingError,
     setBookingSuccess,
     clearBookingStatus
-  }), [state, setContact, setDate, incrementPax, decrementPax, setMember, rebuildMembers, recalcTotal, resetBooking, setBookingLoading, setBookingError, setBookingSuccess, clearBookingStatus]);
+  }), [state, setContact, setDate, setPax, incrementPax, decrementPax, setMember, rebuildMembers, recalcTotal, resetBooking, setBookingLoading, setBookingError, setBookingSuccess, clearBookingStatus]);
 
   return (
     <TourBookingContext.Provider value={value}>

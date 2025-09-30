@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../contexts/ToastContext';
 import styles from './VNPayFailPage.module.css';
 
-const VNPayFailPage = () => {
+const VNPayFailPage = ({ paymentType }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -23,8 +23,10 @@ const VNPayFailPage = () => {
         orderId: location.state.orderId,
         paymentMethod: location.state.paymentMethod,
         responseCode: location.state.responseCode,
+        paymentType: location.state.paymentType || paymentType,
         bookingData: location.state.bookingData,
         tourId: location.state.tourId,
+        premiumData: location.state.premiumData,
         paymentInfo: location.state.paymentInfo
       });
 
@@ -50,9 +52,11 @@ const VNPayFailPage = () => {
       responseCode
     });
 
-    // Get pending booking data from sessionStorage
+    // Get pending booking or premium data from sessionStorage
     const pendingBookingData = sessionStorage.getItem('pendingBooking');
+    const pendingPremiumData = sessionStorage.getItem('pendingPremiumPayment');
     let bookingData = null;
+    let premiumData = null;
     
     if (pendingBookingData) {
       try {
@@ -62,15 +66,26 @@ const VNPayFailPage = () => {
         console.error('Error parsing pending booking data:', error);
       }
     }
+    
+    if (pendingPremiumData) {
+      try {
+        premiumData = JSON.parse(pendingPremiumData);
+        console.log('Pending premium data:', premiumData);
+      } catch (error) {
+        console.error('Error parsing pending premium data:', error);
+      }
+    }
 
     // Set transaction data
     setTransactionData({
       orderId,
       paymentMethod,
       responseCode,
+      paymentType: premiumData ? 'premium' : 'booking',
       bookingData: bookingData?.bookingData,
       tourId: bookingData?.tourId,
-      paymentInfo: bookingData?.paymentInfo
+      premiumData: premiumData?.premiumData,
+      paymentInfo: bookingData?.paymentInfo || premiumData?.paymentInfo
     });
 
     // Show error message only once
@@ -81,9 +96,12 @@ const VNPayFailPage = () => {
     
     setLoading(false);
 
-    // Clear pending booking data
+    // Clear pending data
     if (pendingBookingData) {
       sessionStorage.removeItem('pendingBooking');
+    }
+    if (pendingPremiumData) {
+      sessionStorage.removeItem('pendingPremiumPayment');
     }
   }, [location.search, location.state, showError, toastShown]);
 
@@ -94,12 +112,16 @@ const VNPayFailPage = () => {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            // Navigate to tour detail or home
-            const tourId = transactionData?.tourId;
-            if (tourId) {
-              navigate(`/tour/${tourId}`);
+            // Navigate based on payment type
+            if (transactionData?.paymentType === 'premium') {
+              navigate('/');
             } else {
-              navigate('/tour');
+              const tourId = transactionData?.tourId;
+              if (tourId) {
+                navigate(`/tour/${tourId}`);
+              } else {
+                navigate('/tour');
+              }
             }
             return 0;
           }
@@ -112,20 +134,28 @@ const VNPayFailPage = () => {
   }, [loading, navigate, transactionData]);
 
   const handleRetryPayment = () => {
-    const tourId = transactionData?.tourId;
-    if (tourId) {
-      navigate(`/tour/${tourId}/booking`);
+    if (transactionData?.paymentType === 'premium') {
+      navigate('/profile');
     } else {
-      navigate('/tour');
+      const tourId = transactionData?.tourId;
+      if (tourId) {
+        navigate(`/tour/${tourId}/booking`);
+      } else {
+        navigate('/tour');
+      }
     }
   };
 
   const handleGoToTour = () => {
-    const tourId = transactionData?.tourId;
-    if (tourId) {
-      navigate(`/tour/${tourId}`);
+    if (transactionData?.paymentType === 'premium') {
+      navigate('/');
     } else {
-      navigate('/tour');
+      const tourId = transactionData?.tourId;
+      if (tourId) {
+        navigate(`/tour/${tourId}`);
+      } else {
+        navigate('/tour');
+      }
     }
   };
 
@@ -361,26 +391,48 @@ const VNPayFailPage = () => {
 
         {/* Action Buttons */}
         <div className={styles['action-buttons']}>
-          <button 
-            className={styles['btn-retry']}
-            onClick={handleRetryPayment}
-          >
-            🔄 {t('payment.retryPayment')}
-          </button>
-          
-          <button 
-            className={styles['btn-secondary']}
-            onClick={handleGoToTour}
-          >
-            {t('payment.viewTour')}
-          </button>
-          
-          <button 
-            className={styles['btn-tertiary']}
-            onClick={handleGoHome}
-          >
-            {t('payment.goHome')}
-          </button>
+          {transactionData?.paymentType === 'premium' ? (
+            // Premium payment buttons
+            <>
+              <button 
+                className={styles['btn-retry']}
+                onClick={handleRetryPayment}
+              >
+                🔄 Thử lại thanh toán Premium
+              </button>
+              
+              <button 
+                className={styles['btn-secondary']}
+                onClick={handleGoHome}
+              >
+                Về trang chủ
+              </button>
+            </>
+          ) : (
+            // Booking payment buttons
+            <>
+              <button 
+                className={styles['btn-retry']}
+                onClick={handleRetryPayment}
+              >
+                🔄 {t('payment.retryPayment')}
+              </button>
+              
+              <button 
+                className={styles['btn-secondary']}
+                onClick={handleGoToTour}
+              >
+                {t('payment.viewTour')}
+              </button>
+              
+              <button 
+                className={styles['btn-tertiary']}
+                onClick={handleGoHome}
+              >
+                {t('payment.goHome')}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Support Section */}

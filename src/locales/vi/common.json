@@ -74,6 +74,7 @@
 			},
 			"password": "Mật khẩu",
 			"rememberMe": "Ghi nhớ đăng nhập",
+			"rememberPassword": "Nhớ mật khẩu?",
 			"or": "Hoặc",
 			"otp": "Mã OTP",
 			"otpPlaceholder": "000000",
@@ -523,14 +524,11 @@
 		"sidebar": {
 			"savedPosts": "📚 Bài viết đã lưu",
 			"myPosts": "📝 Bài viết của tôi",
-			"userSuggestions": "Gợi ý kết bạn",
 			"trendingTopics": "Chủ đề nổi bật",
 			"onlineUsers": "Người dùng trực tuyến",
 			"follow": "Theo dõi",
 			"unfollow": "Bỏ theo dõi",
 			"viewProfile": "Xem hồ sơ",
-			"people": "người",
-			"mutualFriends": "bạn chung",
 			"seeAllSuggestions": "Xem tất cả gợi ý",
 			"mockUsers": {
 				"user1": "Nguyễn Văn A",
@@ -1251,12 +1249,20 @@
 			"ordersDesc": "Xem và xử lý đơn hàng"
 		}
 	},
+  "profileRole": {
+    "USER": "Người dùng",
+    "BUSINESS": "Doanh nghiệp",
+    "ADMIN": "Quản trị viên",
+    "STAFF": "Nhân viên",
+    "UNKNOWN": "Không xác định"
+  },
 	"booking": {
         "step1": {
           "fields": {
             "fullName": "Họ và tên",
             "phone": "Số điện thoại",
             "email": "Email",
+            "dob": "Ngày sinh",
             "address": "Địa chỉ",
             "pickupPoint": "Điểm đón",
             "note": "Ghi chú"
@@ -1266,6 +1272,7 @@
             "phone": "0123456789 hoặc +84123456789",
             "address": "Nhập địa chỉ đầy đủ",
             "pickupPoint": "Nhập điểm đón",
+            "dateFormat": "Định dạng: {format}",
             "note": "Nhập ghi chú thêm (tùy chọn)"
           },
           "sectionTitle": "Thông tin liên hệ",
@@ -1279,6 +1286,10 @@
 				"paxTitle": "Tổng số khách",
 				"membersTitle": "Danh sách đoàn",
 				"summaryTitle": "Tổng kết giá"
+			},
+			"representative": {
+				"title": "Người đại diện",
+				"label": "Người đại diện"
 			},
 			"summary": { "totalLabel": "Tổng thanh toán" },
 			"common": {
@@ -1332,8 +1343,9 @@
 			},
 			"idInfo": {
 				"baby": "Em bé dưới 2 tuổi: Chỉ cần họ tên + ngày sinh. Nếu đi máy bay, cần giấy khai sinh.",
-				"child": "Trẻ em 2-14 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh.",
-				"teen": "Trẻ em 14-16 tuổi: Có thể có CCCD nhưng không bắt buộc. Nếu đi máy bay, cần giấy khai sinh."
+				"child": "Trẻ em 2-12 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh.",
+				"teen": "Trẻ em 14-16 tuổi: Có thể có CCCD nhưng không bắt buộc. Nếu đi máy bay, cần giấy khai sinh.",
+				"adult": "Người lớn dưới 14 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh."
 			},
 			"fields": {
 				"date": "Ngày khởi hành",
@@ -1404,11 +1416,13 @@
 				"dateInPast": "Ngày khởi hành không được ở quá khứ",
 				"dateOverOneMonth": "Ngày khởi hành phải trong vòng 1 tháng",
 				"fullNameRequired": "Họ tên là bắt buộc",
+				"fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
 				"dobRequired": "Ngày sinh là bắt buộc",
 				"dobInFuture": "Ngày sinh không được ở tương lai",
 				"dobInvalidFormat": "Định dạng ngày sinh không hợp lệ (sử dụng YYYY-MM-DD)",
 				"dobTooOld": "Ngày sinh không hợp lệ (tuổi phải ≤ 120)",
 				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
+				"representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại ngày khởi hành",
 				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
 				"childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
 				"infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
@@ -1419,6 +1433,51 @@
 			"validation": {
 				"vietnameseId": "Số căn cước/CMND phải có 12 số (CCCD) hoặc 9 số (CMND/CMT). Chỉ được nhập số.",
 				"passport": "Số hộ chiếu phải có 6-9 ký tự (chữ cái và số)"
+			},
+			"toast": {
+				"dateRequired": "Vui lòng chọn ngày khởi hành",
+				"adultPaxRequired": "Số lượng người lớn phải lớn hơn 0",
+				"representativeNameRequired": "Vui lòng nhập tên người đại diện",
+				"representativeDobRequired": "Vui lòng nhập ngày sinh người đại diện",
+				"representativeDobInvalidFormat": "Ngày sinh người đại diện không đúng định dạng",
+				"representativeGenderRequired": "Vui lòng chọn giới tính người đại diện",
+				"representativeNationalityRequired": "Vui lòng chọn quốc tịch người đại diện",
+				"adultNameRequiredGeneric": "Vui lòng nhập tên người lớn",
+				"adultDobRequiredGeneric": "Vui lòng nhập ngày sinh người lớn",
+				"adultDobInvalidFormatGeneric": "Ngày sinh người lớn không đúng định dạng",
+				"adultGenderRequiredGeneric": "Vui lòng chọn giới tính người lớn",
+				"adultNationalityRequiredGeneric": "Vui lòng chọn quốc tịch người lớn",
+				"childNameRequiredGeneric": "Vui lòng nhập tên trẻ em",
+				"childDobRequiredGeneric": "Vui lòng nhập ngày sinh trẻ em",
+				"childDobInvalidFormatGeneric": "Ngày sinh trẻ em không đúng định dạng",
+				"childGenderRequiredGeneric": "Vui lòng chọn giới tính trẻ em",
+				"childNationalityRequiredGeneric": "Vui lòng chọn quốc tịch trẻ em",
+				"infantNameRequiredGeneric": "Vui lòng nhập tên em bé",
+				"infantDobRequiredGeneric": "Vui lòng nhập ngày sinh em bé",
+				"infantDobInvalidFormatGeneric": "Ngày sinh em bé không đúng định dạng",
+				"infantGenderRequiredGeneric": "Vui lòng chọn giới tính em bé",
+				"infantNationalityRequiredGeneric": "Vui lòng chọn quốc tịch em bé",
+				"representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại ngày khởi hành",
+				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
+				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
+				"childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
+				"infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
+				"representativeIdRequired": "Vui lòng nhập CCCD/CMND người đại diện",
+				"representativeIdRequiredPassport": "Vui lòng nhập hộ chiếu người đại diện",
+				"representativeIdInvalidFormat": "CCCD/CMND người đại diện không đúng định dạng",
+				"representativeIdInvalidFormatPassport": "Hộ chiếu người đại diện không đúng định dạng",
+				"adultIdRequiredGeneric": "Vui lòng nhập CCCD/CMND người lớn",
+				"adultIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu người lớn",
+				"adultIdInvalidFormatGeneric": "CCCD/CMND người lớn không đúng định dạng",
+				"adultIdInvalidFormatGenericPassport": "Hộ chiếu người lớn không đúng định dạng",
+				"childIdRequiredGeneric": "Vui lòng nhập CCCD/CMND trẻ em",
+				"childIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu trẻ em",
+				"childIdInvalidFormatGeneric": "CCCD/CMND trẻ em không đúng định dạng",
+				"childIdInvalidFormatGenericPassport": "Hộ chiếu trẻ em không đúng định dạng",
+				"infantIdRequiredGeneric": "Vui lòng nhập CCCD/CMND em bé",
+				"infantIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu em bé",
+				"infantIdInvalidFormatGeneric": "CCCD/CMND em bé không đúng định dạng",
+				"infantIdInvalidFormatGenericPassport": "Hộ chiếu em bé không đúng định dạng"
 			}
 		},
 		"step3": {
@@ -1476,13 +1535,17 @@
 			},
 			"categories": { "standard": "Tiêu chuẩn" }
 		},
-		"errors": {
+        "errors": {
           "fullNameRequired": "Họ tên là bắt buộc",
+          "fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
           "phoneRequired": "Số điện thoại là bắt buộc",
           "phoneInvalid": "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84 705327671)",
           "emailRequired": "Email là bắt buộc",
           "emailInvalid": "Email không hợp lệ",
           "emailMismatch": "Email không khớp với tài khoản của bạn. Vui lòng sử dụng email đã đăng ký.",
+          "dobRequired": "Ngày sinh là bắt buộc",
+          "dobInvalidFormat": "Định dạng ngày sinh không hợp lệ",
+          "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi",
           "addressRequired": "Địa chỉ là bắt buộc",
           "pickupPointRequired": "Điểm đón là bắt buộc"
         }
@@ -1604,6 +1667,26 @@
 		"suggestionContactSupportIfIssue": "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn",
 		"technicalDetails": "Chi tiết kỹ thuật (Development)"
 	}
+  ,
+  "premium": {
+    "title": "Premium",
+    "subscriptionTitle": "Đăng ký Premium",
+    "plans": {
+      "1month": "1 tháng",
+      "3months": "3 tháng"
+    },
+    "price": "{{amount}} vnđ",
+    "purchase": "Mua gói",
+    "validUntil": "Hiệu lực đến",
+    "activeNoExpiry": "Đang kích hoạt Premium - Không có ngày hết hạn",
+    "na": "N/A",
+    "errors": {
+      "noToken": "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.",
+      "noEmail": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
+      "missingPayUrl": "Không tìm thấy liên kết thanh toán VNPay trong phản hồi",
+      "error": "Lỗi"
+    }
+  }
 }
 
 

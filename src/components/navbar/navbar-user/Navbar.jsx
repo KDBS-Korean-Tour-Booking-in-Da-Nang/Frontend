@@ -7,18 +7,23 @@ import {
   XMarkIcon,
   BellIcon,
   ChatBubbleLeftRightIcon,
-  PlusIcon
+  PlusIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
+import PremiumModal from '../../../pages/user/premium/PremiumModal';
+import { API_ENDPOINTS } from '../../../config/api';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, getToken } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [premiumStatus, setPremiumStatus] = useState(null);
   const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
@@ -29,6 +34,41 @@ const Navbar = () => {
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
+
+  // Fetch premium status
+  useEffect(() => {
+    const fetchPremiumStatus = async () => {
+      try {
+        const token = getToken();
+        if (!token) {
+          console.log('No token available for premium status check');
+          return;
+        }
+
+        const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Backend trả về format: { message: "...", result: { isPremium: true/false, expirationDate: "..." } }
+          setPremiumStatus(data.result);
+        } else {
+          console.error('Failed to fetch premium status:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching premium status:', error);
+      }
+    };
+
+    if (user) {
+      fetchPremiumStatus();
+    }
+  }, [user, getToken]);
 
   // Handle scroll behavior
   useEffect(() => {
@@ -173,8 +213,20 @@ const Navbar = () => {
                         </div>
                       )}
                       <div className={styles['dropdown-user-info']}>
-                        <h4>{user.name || user.email}</h4>
-                        <p>{user.role}</p>
+                        <div className={styles['user-info-row']}>
+                          <h4>{user.name || user.email}</h4>
+                          <button 
+                            className={`${styles['premium-icon']} ${premiumStatus?.isPremium ? styles['premium-active'] : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsPremiumModalOpen(true);
+                            }}
+                            title={premiumStatus?.isPremium ? t('premium.title') : t('premium.title')}
+                          >
+                            <StarIcon />
+                          </button>
+                        </div>
+                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})} {premiumStatus?.isPremium && <span className={styles['premium-badge']}>{t('premium.title')}</span>}</p>
                       </div>
                     </div>
 
@@ -300,6 +352,12 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Premium Modal */}
+      <PremiumModal 
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+      />
     </>
   );
 };

@@ -17,7 +17,7 @@ import ResetPassword from './pages/authentication/resetPassword/resetPassword';
 import UserProfile from './pages/user/userProfile/UserProfile';
 import BookingHistory from './pages/user/bookingHistory/BookingHistory';
 import AdminDashboard from './pages/dashboard/adminDashboard/adminDashboard';
-import Forum from './pages/home/forum/forum';
+import Forum from './pages/forum/forum';
 import Tour from './pages/tour/Tour';
 import TourDetailPage from './pages/tour/TourDetailPage/TourDetailPage';
 import TourBookingWizard from './pages/tour/TourBookingWizard/TourBookingWizard';

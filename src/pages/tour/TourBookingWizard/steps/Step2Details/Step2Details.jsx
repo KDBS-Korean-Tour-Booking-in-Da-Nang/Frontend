@@ -16,7 +16,8 @@ const Step2Details = () => {
     decrementPax, 
     setMember, 
     rebuildMembers, 
-    recalcTotal 
+    recalcTotal,
+    contact
   } = useBooking();
 
   const [errors, setErrors] = useState({});
@@ -25,7 +26,10 @@ const Step2Details = () => {
   const [dateTouched, setDateTouched] = useState(false);
   const [editingFields, setEditingFields] = useState(new Set()); // Track which fields are being edited
   const [validatingFields, setValidatingFields] = useState(new Set()); // Track fields being validated manually
-  const validatingFieldsRef = useRef(new Set()); // Ref to avoid useEffect dependency
+  const validatingFieldsRef = useRef(new Set());
+  const [isDeleting, setIsDeleting] = useState(false); // Track if user is deleting
+  const previousValueRef = useRef(''); // Track previous value to detect deletion
+  const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
   const [tourPrices, setTourPrices] = useState({
     adult: null,
     child: null,
@@ -41,6 +45,345 @@ const Step2Details = () => {
       case 'ko': return '.';
       default: return '/';
     }
+  };
+
+  // Helper functions for date validation
+  const isLeapYear = (year) => {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  };
+
+  const getDaysInMonth = (month, year) => {
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    
+    if ([1, 3, 5, 7, 8, 10, 12].includes(monthNum)) {
+      return 31;
+    } else if ([4, 6, 9, 11].includes(monthNum)) {
+      return 30;
+    } else if (monthNum === 2) {
+      return isLeapYear(yearNum) ? 29 : 28;
+    }
+    return 31; // Default fallback
+  };
+
+  // Helper function to format date input for members (separate from representative)
+  const formatMemberDateInput = (value, fieldKey) => {
+    if (!value) return '';
+    
+    // Remove any non-numeric characters except separators
+    const cleanValue = value.replace(/[^\d\/\.]/g, '');
+    
+    const separator = getDateSeparator();
+    let parts = cleanValue.split(separator);
+    
+    // Get previous value for this field
+    const previousValue = previousValueRef.current;
+    const isDeletingNow = cleanValue.length < previousValue.length;
+    
+    // Also detect if user is trying to delete trailing separator
+    // If previous value ended with separator and current doesn't, user is deleting
+    const isDeletingTrailingSeparator = previousValue.endsWith(separator) && 
+                                       !cleanValue.endsWith(separator) && 
+                                       cleanValue.length === previousValue.length - 1;
+    
+    // Detect if user is trying to delete the last character of a complete part
+    // e.g., when they have "19/09/" and try to delete the "/" to get "19/09"
+    const isDeletingLastSeparator = previousValue.endsWith(separator) && 
+                                   !cleanValue.endsWith(separator) && 
+                                   cleanValue.length === previousValue.length - 1 &&
+                                   cleanValue.split(separator).every(part => part.length >= 2 || part === '');
+    
+    // More comprehensive deletion detection
+    // Check if we're in deletion mode from the ref (set by onKeyDown)
+    const isInDeletionMode = isDeletingRef.current;
+    
+    // Check if the current clean value is shorter than what it should be based on formatting
+    // This helps detect when user is deleting from a formatted string
+    const shouldBeFormatted = previousValue.includes(separator) || cleanValue.includes(separator);
+    const isDeletingFromFormatted = shouldBeFormatted && cleanValue.length <= previousValue.replace(/[\/\.]/g, '').length;
+    
+    // Update previous value for next comparison - but only after we've used it for detection
+    previousValueRef.current = cleanValue;
+    
+    // If user is deleting, allow deletion of any characters including separators
+    if (isDeletingNow || isDeletingTrailingSeparator || isDeletingLastSeparator || isInDeletionMode || isDeletingFromFormatted) {
+      // Set deletion flag to prevent automatic separator addition
+      isDeletingRef.current = true;
+      // Allow deletion of separators and digits freely
+      return cleanValue;
+    }
+    
+    // If we were deleting but now we're typing again, clear the deletion flag
+    if (isDeletingRef.current && !isDeletingNow && !isDeletingTrailingSeparator && !isDeletingLastSeparator && !isInDeletionMode && !isDeletingFromFormatted) {
+      isDeletingRef.current = false;
+    }
+    
+    // If user is in deletion mode, don't add automatic separators
+    if (isDeletingRef.current) {
+      return cleanValue;
+    }
+    
+    // If the value is just a separator, allow deletion
+    if (cleanValue === separator) {
+      return cleanValue;
+    }
+    
+    // If the value ends with separator, allow deletion
+    if (cleanValue.endsWith(separator)) {
+      return cleanValue;
+    }
+    
+    // Helper function to validate and format date parts
+    const validateAndFormat = (day, month, year) => {
+      const currentYear = new Date().getFullYear();
+      const minYear = 1900;
+      const maxYear = currentYear;
+      
+      // Validate year - only if it's complete (4 digits)
+      if (year && year.length === 4) {
+        const yearNum = parseInt(year);
+        if (yearNum < minYear) year = minYear.toString();
+        if (yearNum > maxYear) year = maxYear.toString();
+      }
+      
+      // Validate month - only if it's complete (2 digits)
+      if (month && month.length === 2) {
+        const monthNum = parseInt(month);
+        if (monthNum < 1) month = '01';
+        if (monthNum > 12) month = '12';
+      }
+      
+      // Validate day - only if all parts are complete
+      if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+        const dayNum = parseInt(day);
+        const monthNum = parseInt(month);
+        const yearNum = parseInt(year);
+        
+        // Get days in month using our custom function
+        const daysInMonth = getDaysInMonth(month, year);
+        
+        if (dayNum < 1) day = '01';
+        if (dayNum > daysInMonth) day = daysInMonth.toString();
+      }
+      
+      return { day, month, year };
+    };
+    
+    // Handle different language formats
+    switch (currentLanguage) {
+      case 'vi': // DD/MM/YYYY
+        if (parts.length === 1) {
+          let day = parts[0];
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day) > 31) day = '31';
+          if (parseInt(day) > 3 && day.length === 1) day = '0' + day;
+          
+          if (day.length === 2 && parseInt(day) > 3) {
+            return day + separator;
+          }
+          return day;
+        }
+        
+        if (parts.length === 2) {
+          let day = parts[0];
+          let month = parts[1];
+          
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day) > 31) day = '31';
+          if (parseInt(day) > 3 && day.length === 1) day = '0' + day;
+          
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month) > 12) month = '12';
+          if (parseInt(month) > 1 && month.length === 1) month = '0' + month;
+          
+          // Allow deletion of separators - if month is empty, just return day
+          if (month === '') {
+            return day;
+          }
+          
+          // Only add separator after month if month is complete (2 digits)
+          if (month.length === 2 && parseInt(month) > 1) {
+            return day + separator + month + separator;
+          }
+          return day + separator + month;
+        }
+        
+        if (parts.length === 3) {
+          let day = parts[0];
+          let month = parts[1];
+          let year = parts[2];
+          
+          // Allow deletion of separators - if year is empty, return day + separator + month
+          if (year === '') {
+            return day + separator + month;
+          }
+          
+          // Allow deletion of separators - if month is empty, return day
+          if (month === '') {
+            return day;
+          }
+          
+          // Limit year to 4 digits
+          if (year.length > 4) year = year.substring(0, 4);
+          
+          // Only validate if year is complete (4 digits)
+          if (year.length === 4) {
+            const validated = validateAndFormat(day, month, year);
+            return validated.day + separator + validated.month + separator + validated.year;
+          }
+          
+          // Otherwise, just return the formatted string without forcing separators
+          return day + separator + month + separator + year;
+        }
+        break;
+        
+      case 'en': // MM/DD/YYYY
+        if (parts.length === 1) {
+          let month = parts[0];
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month) > 12) month = '12';
+          if (parseInt(month) > 1 && month.length === 1) month = '0' + month;
+          
+          if (month.length === 2 && parseInt(month) > 1) {
+            return month + separator;
+          }
+          return month;
+        }
+        
+        if (parts.length === 2) {
+          let month = parts[0];
+          let day = parts[1];
+          
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month) > 12) month = '12';
+          if (parseInt(month) > 1 && month.length === 1) month = '0' + month;
+          
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day) > 31) day = '31';
+          if (parseInt(day) > 3 && day.length === 1) day = '0' + day;
+          
+          // Allow deletion of separators - if day is empty, just return month
+          if (day === '') {
+            return month;
+          }
+          
+          if (day.length === 2 && parseInt(day) > 3) {
+            return month + separator + day + separator;
+          }
+          return month + separator + day;
+        }
+        
+        if (parts.length === 3) {
+          let month = parts[0];
+          let day = parts[1];
+          let year = parts[2];
+          
+          // Allow deletion of separators - if year is empty, return month + separator + day
+          if (year === '') {
+            return month + separator + day;
+          }
+          
+          // Allow deletion of separators - if day is empty, return month
+          if (day === '') {
+            return month;
+          }
+          
+          // Limit year to 4 digits
+          if (year.length > 4) year = year.substring(0, 4);
+          
+          // Only validate if year is complete (4 digits)
+          if (year.length === 4) {
+            const validated = validateAndFormat(day, month, year);
+            return validated.month + separator + validated.day + separator + validated.year;
+          }
+          
+          // Otherwise, just return the formatted string without forcing separators
+          return month + separator + day + separator + year;
+        }
+        break;
+        
+      case 'ko': // YYYY.MM.DD
+        if (parts.length === 1) {
+          let year = parts[0];
+          if (year.length > 4) year = year.substring(0, 4);
+          
+          // Only validate year if it's complete (4 digits)
+          if (year.length === 4) {
+            const currentYear = new Date().getFullYear();
+            if (parseInt(year) > currentYear) year = currentYear.toString();
+            if (parseInt(year) < 1900) year = '1900';
+          }
+          
+          if (year.length === 4) {
+            return year + separator;
+          }
+          return year;
+        }
+        
+        if (parts.length === 2) {
+          let year = parts[0];
+          let month = parts[1];
+          
+          if (year.length > 4) year = year.substring(0, 4);
+          
+          // Only validate year if it's complete (4 digits)
+          if (year.length === 4) {
+            const currentYear = new Date().getFullYear();
+            if (parseInt(year) > currentYear) year = currentYear.toString();
+            if (parseInt(year) < 1900) year = '1900';
+          }
+          
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month) > 12) month = '12';
+          if (parseInt(month) > 1 && month.length === 1) month = '0' + month;
+          
+          // Allow deletion of separators - if month is empty, just return year
+          if (month === '') {
+            return year;
+          }
+          
+          if (month.length === 2 && parseInt(month) > 1) {
+            return year + separator + month + separator;
+          }
+          return year + separator + month;
+        }
+        
+        if (parts.length === 3) {
+          let year = parts[0];
+          let month = parts[1];
+          let day = parts[2];
+          
+          // Allow deletion of separators - if day is empty, return year + separator + month
+          if (day === '') {
+            return year + separator + month;
+          }
+          
+          // Allow deletion of separators - if month is empty, return year
+          if (month === '') {
+            return year;
+          }
+          
+          // Limit year to 4 digits
+          if (year.length > 4) year = year.substring(0, 4);
+          
+          // Limit day to 2 digits
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day) > 31) day = '31';
+          if (parseInt(day) > 3 && day.length === 1) day = '0' + day;
+          
+          // Only validate if year is complete (4 digits)
+          if (year.length === 4) {
+            const validated = validateAndFormat(day, month, year);
+            return validated.year + separator + validated.month + separator + validated.day;
+          }
+          
+          // Otherwise, just return the formatted string without forcing separators
+          return year + separator + month + separator + day;
+        }
+        break;
+    }
+    
+    return cleanValue;
   };
 
   // Helper function to validate and format date input as user types
@@ -243,6 +586,74 @@ const Step2Details = () => {
     return dateString;
   };
 
+  // Helper to convert between display formats across languages, reusing Step1 approach
+  const parseAndConvertDate = (dateString, fromLanguage, toLanguage) => {
+    if (!dateString) return '';
+    try {
+      // Normalize detection if fromLanguage not provided
+      let detectedFrom = fromLanguage;
+      if (!detectedFrom) {
+        if (dateString.includes('.')) {
+          detectedFrom = 'ko';
+        } else if (dateString.includes('/')) {
+          const parts = dateString.split('/');
+          if (parts.length === 3) {
+            const first = parseInt(parts[0], 10);
+            const second = parseInt(parts[1], 10);
+            // If first <= 12 and second <= 31, ambiguous; prefer 'vi' when first > 12 else 'en'
+            detectedFrom = (first > 12) ? 'vi' : 'en';
+          }
+        }
+      }
+
+      // Parse into Date components (YYYY, MM, DD)
+      const parseParts = (value, lang) => {
+        const sep = lang === 'ko' ? '.' : '/';
+        const parts = value.split(sep);
+        if (parts.length !== 3) return null;
+        let y, m, d;
+        switch (lang) {
+          case 'vi': // DD/MM/YYYY
+            d = parts[0]; m = parts[1]; y = parts[2];
+            break;
+          case 'en': // MM/DD/YYYY
+            m = parts[0]; d = parts[1]; y = parts[2];
+            break;
+          case 'ko': // YYYY.MM.DD
+            y = parts[0]; m = parts[1]; d = parts[2];
+            break;
+          default:
+            return null;
+        }
+        const year = y.padStart(4, '0');
+        const month = m.padStart(2, '0');
+        const day = d.padStart(2, '0');
+        const iso = `${year}-${month}-${day}`;
+        const date = new Date(iso);
+        if (isNaN(date.getTime())) return null;
+        return { year, month, day };
+      };
+
+      const srcLang = detectedFrom || toLanguage; // fallback
+      const parts = parseParts(dateString, srcLang);
+      if (!parts) return dateString;
+
+      const sep = toLanguage === 'ko' ? '.' : '/';
+      switch (toLanguage) {
+        case 'vi':
+          return `${parts.day}${sep}${parts.month}${sep}${parts.year}`;
+        case 'en':
+          return `${parts.month}${sep}${parts.day}${sep}${parts.year}`;
+        case 'ko':
+          return `${parts.year}${sep}${parts.month}${sep}${parts.day}`;
+        default:
+          return `${parts.year}-${parts.month}-${parts.day}`;
+      }
+    } catch (_) {
+      return dateString;
+    }
+  };
+
   const parseDateFromDisplay = (displayString) => {
     if (!displayString) return null;
     
@@ -283,11 +694,8 @@ const Step2Details = () => {
       return null;
     }
 
-    console.log('🔍 validateDateInput - Input:', inputValue, 'Language:', currentLanguage);
-
     // First try to parse using language-specific format
     const parsedDate = parseDateFromDisplay(inputValue);
-    console.log('📅 Parsed date:', parsedDate);
     
     if (parsedDate) {
       return parsedDate;
@@ -295,22 +703,57 @@ const Step2Details = () => {
     
     // Don't use fallback new Date() as it can cause issues
     // Just return null for invalid input
-    console.log('❌ Invalid date format');
     return null;
   };
 
   // Helper function to calculate age from date of birth at a specific date
   const calculateAge = (dob, referenceDate = null) => {
     if (!dob) return null;
+    
     const refDate = referenceDate ? new Date(referenceDate) : new Date();
-    const birthDate = new Date(dob);
+    
+    // Handle different date formats
+    let birthDate;
+    if (typeof dob === 'string') {
+      // Check if it's DD/MM/YYYY format
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) {
+        const [day, month, year] = dob.split('/');
+        birthDate = new Date(year, month - 1, day); // month is 0-indexed
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+        // YYYY-MM-DD format
+        birthDate = new Date(dob);
+      } else {
+        // Try default Date constructor
+        birthDate = new Date(dob);
+      }
+    } else {
+      birthDate = new Date(dob);
+    }
+    
+    // Check if birthDate is valid
+    if (isNaN(birthDate.getTime())) {
+      return null;
+    }
+    
     let age = refDate.getFullYear() - birthDate.getFullYear();
     const monthDiff = refDate.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && refDate.getDate() < birthDate.getDate())) {
       age--;
     }
-    console.log('🔍 calculateAge - dob:', dob, 'refDate:', refDate, 'birthDate:', birthDate, 'age:', age);
+    
     return age;
+  };
+
+  // Helper function to get global index for member
+  const getGlobalIndex = (memberType, localIndex) => {
+    if (memberType === 'adult') {
+      return localIndex; // Adult members: adult[0] = globalIndex 0, adult[1] = globalIndex 1, etc.
+    } else if (memberType === 'child') {
+      return (plan.members?.adult?.length || 0) + localIndex; // Child members start after adults
+    } else if (memberType === 'infant') {
+      return (plan.members?.adult?.length || 0) + (plan.members?.child?.length || 0) + localIndex; // Infant members start after adults and children
+    }
+    return localIndex;
   };
 
   // Helper function to determine if ID is required based on age and nationality
@@ -328,8 +771,8 @@ const Step2Details = () => {
       // Trẻ em (2 - dưới 14 tuổi): Không bắt buộc CCCD/CMND
       if (age >= 2 && age < 14) return false;
       
-      // Trẻ em (14 - dưới 16 tuổi): Có thể có CCCD, không bắt buộc
-      if (age >= 14 && age < 16) return false;
+      // Trẻ em (14 - dưới 16 tuổi): Bắt buộc CCCD (vì đã có thể làm CCCD)
+      if (age >= 14 && age < 16) return true;
       
       // Người lớn (16 tuổi trở lên): Bắt buộc CCCD/CMND
       if (age >= 16) return true;
@@ -344,6 +787,90 @@ const Step2Details = () => {
     'VN','KR','JP','CN','US','GB','FR','DE','TH','SG','MY','PH','ID','LA','KH','AU','CA'
   ].map(code => ({ code, label: t(`booking.step2.countries.${code}`) }))
    .sort((a,b) => a.label.localeCompare(b.label));
+
+  // Sync contact data with representative member (adult[0]) on mount and when contact changes
+  useEffect(() => {
+    if (contact?.fullName && contact?.dob) {
+      // Ensure representative member exists and has basic data from Step 1
+      if (!plan.members.adult[0] || !plan.members.adult[0].fullName) {
+        setMember('adult', 0, {
+          fullName: contact.fullName,
+          dob: contact.dob,
+          gender: plan.members.adult[0]?.gender || contact?.gender || '',
+          nationality: plan.members.adult[0]?.nationality || contact?.nationality || '',
+          idNumber: plan.members.adult[0]?.idNumber || contact?.idNumber || ''
+        });
+      }
+    }
+  }, [contact, setMember]);
+
+  // Handle language change - re-format dates and update displays
+  useEffect(() => {
+    // When language changes, we need to update the display format of dates
+    // but keep the actual stored values unchanged
+    
+    // Force re-render of all date fields by clearing editing fields
+    setEditingFields(new Set());
+    
+    // Re-validate all fields with new language-specific error messages
+    if (Object.keys(errors).length > 0) {
+      setErrors({});
+      // Trigger validation on next tick to ensure UI updates
+      setTimeout(() => {
+        // This will trigger the validation useEffect
+      }, 0);
+    }
+
+    // Convert existing DOB values to current language display, mirroring Step1 behavior
+    try {
+      const convertMemberDob = (memberType, index) => {
+        const member = plan.members[memberType][index];
+        const dob = member?.dob;
+        if (!dob || typeof dob !== 'string' || dob.trim() === '') return;
+        // Detect source language by separator and structure
+        let fromLang = null;
+        if (dob.includes('.')) {
+          fromLang = 'ko';
+        } else if (dob.includes('/')) {
+          const parts = dob.split('/');
+          if (parts.length === 3) {
+            const first = parseInt(parts[0], 10);
+            const second = parseInt(parts[1], 10);
+            fromLang = (first > 12) ? 'vi' : 'en';
+          }
+        }
+        const converted = parseAndConvertDate(dob, fromLang, currentLanguage);
+        if (converted && converted !== dob) {
+          setMember(memberType, index, { dob: converted });
+        }
+      };
+
+      // Representative adult[0]
+      if (plan.members?.adult?.length > 0) {
+        convertMemberDob('adult', 0);
+      }
+      // Other adults
+      if (plan.members?.adult?.length > 1) {
+        for (let i = 1; i < plan.members.adult.length; i++) {
+          convertMemberDob('adult', i);
+        }
+      }
+      // Children
+      if (plan.members?.child?.length > 0) {
+        for (let i = 0; i < plan.members.child.length; i++) {
+          convertMemberDob('child', i);
+        }
+      }
+      // Infants
+      if (plan.members?.infant?.length > 0) {
+        for (let i = 0; i < plan.members.infant.length; i++) {
+          convertMemberDob('infant', i);
+        }
+      }
+    } catch (err) {
+      console.error('Language change DOB conversion error:', err);
+    }
+  }, [currentLanguage]);
 
   // Fetch tour data and prices
   const loadTourPrices = useCallback(async () => {
@@ -365,7 +892,6 @@ const Step2Details = () => {
       }
       
       const tourData = await response.json();
-      console.log('Raw tour data from API:', tourData); // Debug log
       
        // Extract prices from tour data - only use real prices from database
        const prices = {
@@ -374,32 +900,9 @@ const Step2Details = () => {
          infant: tourData.babyPrice !== null && tourData.babyPrice !== undefined ? Number(tourData.babyPrice) : null
        };
       
-      console.log('Extracted prices:', {
-        adultPrice: tourData.adultPrice,
-        childrenPrice: tourData.childrenPrice,
-        babyPrice: tourData.babyPrice,
-        processed: prices
-      }); // Debug log
-      
-       // Check if prices are null or 0
-       if (tourData.adultPrice === null || tourData.adultPrice === undefined) {
-         console.warn('⚠️ Adult price is null:', tourData.adultPrice);
-       } else if (tourData.adultPrice === 0) {
-         console.info('ℹ️ Adult price is 0 (Miễn phí):', tourData.adultPrice);
-       }
-       if (tourData.childrenPrice === null || tourData.childrenPrice === undefined) {
-         console.warn('⚠️ Children price is null:', tourData.childrenPrice);
-       } else if (tourData.childrenPrice === 0) {
-         console.info('ℹ️ Children price is 0 (Miễn phí):', tourData.childrenPrice);
-       }
-       if (tourData.babyPrice === null || tourData.babyPrice === undefined) {
-         console.warn('⚠️ Baby price is null:', tourData.babyPrice);
-       } else if (tourData.babyPrice === 0) {
-         console.info('ℹ️ Baby price is 0 (Miễn phí):', tourData.babyPrice);
-       }
+      // Diagnostics removed
       
       setTourPrices(prices);
-      console.log('Tour prices loaded:', prices); // Debug log
     } catch (error) {
       console.error('Error loading tour prices:', error);
       
@@ -433,6 +936,49 @@ const Step2Details = () => {
     }
   }, [plan.pax, tourPrices, recalcTotal]);
 
+  // Restore confirmedNationalities from saved data when component mounts or when returning from other steps
+  useEffect(() => {
+    const restoreConfirmedNationalities = () => {
+      const restored = {};
+      
+      // Check representative (adult[0])
+      if (plan.members.adult[0]?.nationality) {
+        restored['adult-0'] = plan.members.adult[0].nationality;
+      }
+      
+      // Check other adult members
+      plan.members.adult.forEach((member, index) => {
+        if (index > 0 && member.nationality) { // Skip representative (index 0)
+          const globalIndex = index; // globalIndex = localIndex for adults after representative
+          restored[`adult-${globalIndex}`] = member.nationality;
+        }
+      });
+      
+      // Check child members
+      plan.members.child.forEach((member, index) => {
+        if (member.nationality) {
+          const globalIndex = plan.members.adult.length + index; // globalIndex starts after all adults
+          restored[`child-${globalIndex}`] = member.nationality;
+        }
+      });
+      
+      // Check infant members
+      plan.members.infant.forEach((member, index) => {
+        if (member.nationality) {
+          const globalIndex = plan.members.adult.length + plan.members.child.length + index; // globalIndex starts after adults and children
+          restored[`infant-${globalIndex}`] = member.nationality;
+        }
+      });
+      
+      
+      setConfirmedNationalities(restored);
+    };
+    
+    restoreConfirmedNationalities();
+  }, []); // Only run once on mount to restore nationalities
+
+  // Removed cleanup useEffect since we no longer use timeouts
+
   // Validate form
   useEffect(() => {
     const newErrors = {};
@@ -458,108 +1004,493 @@ const Step2Details = () => {
       }
     }
 
-    // Check members
-    const allMembers = [
-      ...plan.members.adult,
-      ...plan.members.child,
-      ...plan.members.infant
-    ];
-
-    allMembers.forEach((member, index) => {
-      const memberType = index < plan.members.adult.length ? 'adult' : 
-                        index < plan.members.adult.length + plan.members.child.length ? 'child' : 'infant';
-      const memberIndex = memberType === 'adult' ? index : 
-                         memberType === 'child' ? index - plan.members.adult.length : 
-                         index - plan.members.adult.length - plan.members.child.length;
+    // Check members - validate each type separately
+    // Validate adult members (including representative at index 0)
+    plan.members.adult.forEach((member, index) => {
+      // Safety check: skip if member is undefined
+      if (!member) { return; }
       
-      // Only validate if field has been touched or has value
-      const nameKey = `${memberType}_${memberIndex}_fullName`;
-      if (touchedFields.has(nameKey) && !member.fullName.trim()) {
-        newErrors[`member_${index}_name`] = t('booking.step2.errors.fullNameRequired');
-      }
+      const memberType = 'adult';
+      const globalIndex = index; // Adult members start from 0
       
-      const dobKey = `member_${index}_dob`;
-      if (touchedFields.has(dobKey) && !member.dob) {
-        newErrors[`member_${index}_dob`] = t('booking.step2.errors.dobRequired');
-      } else if (member.dob) {
-        // Skip useEffect validation if field is being validated manually
-        if (!validatingFieldsRef.current.has(dobKey)) {
-          console.log('🔄 useEffect validation for:', member.dob, 'member type:', memberType);
-          // Use the same validation logic as manual input and calendar picker
-          const normalizedDate = validateDateInput(member.dob);
-          if (!normalizedDate) {
-            newErrors[`member_${index}_dob`] = t('booking.step2.errors.dobInvalidFormat');
-          } else {
-            // Use validateMemberAge function for consistent validation
-            const validationResult = validateMemberAge(memberType, normalizedDate);
-            console.log('🔄 useEffect validation result:', validationResult);
-            if (!validationResult.isValid) {
-              newErrors[`member_${index}_dob`] = validationResult.error;
+      // Special handling for representative (index 0)
+      const isRepresentative = index === 0;
+      
+      // For representative, only validate editable fields (gender, nationality, idNumber)
+      // Name and DOB come from Step 1 and are read-only
+      if (isRepresentative) {
+        // Validate representative gender
+        const genderKey = 'representative_gender';
+        if (touchedFields.has(genderKey) && !member.gender) {
+          newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
+        }
+        
+        // Validate representative nationality
+        const nationalityKey = 'representative_nationality';
+        if (touchedFields.has(nationalityKey) && !member.nationality) {
+          newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
+        }
+        
+        // ID validation for Next button blocking (but not for UI display)
+        // Real-time validation handles UI display, useEffect handles Next button blocking
+        const idKey = 'representative_idNumber';
+        if (touchedFields.has(idKey) && member.idNumber) {
+          // Check if ID is required based on nationality and age
+          const idRequired = isIdRequired(member.dob, member.nationality);
+          if (idRequired) {
+            // Validate format based on nationality
+            if (member.nationality === 'VN') {
+              const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+              if (!vietnameseIdRegex.test(member.idNumber)) {
+                newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+              }
+            } else {
+              const passportRegex = /^[A-Z0-9]{6,9}$/i;
+              if (!passportRegex.test(member.idNumber)) {
+                newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+              }
             }
           }
+        } else if (touchedFields.has(idKey)) {
+          // Check if ID is required but not provided
+          const idRequired = isIdRequired(member.dob, member.nationality);
+          if (idRequired) {
+            if (member.nationality === 'VN') {
+              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+            } else {
+              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+            }
+          }
+        }
+        
+        return; // Skip regular member validation for representative
+      }
+      
+      // Regular member validation (for index > 0)
+      // Convert array index to local index for consistency with render
+      const localIndex = memberType === 'adult' ? index - 1 : index; // Adult members: array index 1 = local index 0
+      
+      // Only validate if field has been touched or has value
+      const nameKey = `${memberType}_${localIndex}_fullName`;
+      if (touchedFields.has(nameKey)) {
+        if (!member.fullName?.trim()) {
+          newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
         } else {
-          console.log('🔄 Skipping useEffect validation for', dobKey, '- being validated manually');
+          // Validate full name format - only allow letters, spaces, hyphens, apostrophes
+          const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
+          if (!nameRegex.test(member.fullName.trim())) {
+            newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
+          }
         }
       }
       
-      const genderKey = `${memberType}_${memberIndex}_gender`;
+      const dobKey = `${memberType}_${localIndex}_dob`;
+      if (touchedFields.has(dobKey) && !member.dob) {
+        newErrors[dobKey] = t('booking.step2.errors.dobRequired');
+      } else if (member.dob) {
+        // Skip useEffect validation if field is being validated manually
+        if (!validatingFieldsRef.current.has(dobKey)) {
+          // Use the same validation logic as manual input and calendar picker
+          const normalizedDate = validateDateInput(member.dob);
+          if (!normalizedDate) {
+            newErrors[dobKey] = t('booking.step2.errors.dobInvalidFormat');
+          } else {
+            // Use validateMemberAge function for consistent validation
+            const validationResult = validateMemberAge(memberType, normalizedDate);
+            if (!validationResult.isValid) {
+              newErrors[dobKey] = validationResult.error;
+            }
+          }
+        } else {
+          // Skipping useEffect validation - being validated manually
+        }
+      }
+      
+      const genderKey = `${memberType}_${index}_gender`;
       if (touchedFields.has(genderKey) && !member.gender) {
-        newErrors[`member_${index}_gender`] = t('booking.step2.errors.genderRequired');
+        newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
       }
       
-      const nationalityKey = `${memberType}_${memberIndex}_nationality`;
+      const nationalityKey = `${memberType}_${index}_nationality`;
       if (touchedFields.has(nationalityKey) && !member.nationality) {
-        newErrors[`member_${index}_nationality`] = t('booking.step2.errors.nationalityRequired');
+        newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
       }
       
-      // Check if ID is required based on age and nationality
-      const idKey = `${memberType}_${memberIndex}_idNumber`;
-      const idRequired = isIdRequired(member.dob, member.nationality);
-      if (touchedFields.has(idKey) && idRequired && !member.idNumber?.trim()) {
-        newErrors[`member_${index}_idNumber`] = t('booking.step2.errors.idRequired');
+      // ID validation for Next button blocking (but not for UI display)
+      // Real-time validation handles UI display, useEffect handles Next button blocking
+      const idKey = `${memberType}_${index}_idNumber`;
+      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
+        // Always validate format when ID is provided, regardless of whether it's required
+        if (member.nationality === 'VN') {
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          if (!vietnameseIdRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          }
+        } else {
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          if (!passportRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+          }
+        }
+      } else if (touchedFields.has(idKey)) {
+        // Check if ID is required but not provided
+        const idRequired = isIdRequired(member.dob, member.nationality);
+        if (idRequired) {
+          if (member.nationality === 'VN') {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          } else {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+          }
+        }
       }
-      // Note: Format validation for ID number is handled separately in validateIdNumber function
     });
 
-    setErrors(newErrors);
+    // Validate child members
+    plan.members.child.forEach((member, index) => {
+      // Safety check: skip if member is undefined
+      if (!member) { return; }
+      
+      const memberType = 'child';
+      const globalIndex = plan.members.adult.length + index; // Child members start after adults
+      const localIndex = index; // Child members use index directly
+      
+      // Only validate if field has been touched or has value
+      const nameKey = `${memberType}_${index}_fullName`;
+      if (touchedFields.has(nameKey)) {
+        if (!member.fullName?.trim()) {
+          newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
+        } else {
+          // Validate full name format - only allow letters, spaces, hyphens, apostrophes
+          const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
+          if (!nameRegex.test(member.fullName.trim())) {
+            newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
+          }
+        }
+      }
+      
+      const dobKey = `${memberType}_${index}_dob`;
+      if (touchedFields.has(dobKey) && !member.dob) {
+        newErrors[dobKey] = t('booking.step2.errors.dobRequired');
+      } else if (member.dob) {
+        // Skip useEffect validation if field is being validated manually
+        if (!validatingFieldsRef.current.has(dobKey)) {
+          // Use the same validation logic as manual input and calendar picker
+          const normalizedDate = validateDateInput(member.dob);
+          if (!normalizedDate) {
+            newErrors[dobKey] = t('booking.step2.errors.dobInvalidFormat');
+          } else {
+            // Use validateMemberAge function for consistent validation
+            const validationResult = validateMemberAge(memberType, normalizedDate);
+            if (!validationResult.isValid) {
+              newErrors[dobKey] = validationResult.error;
+            }
+          }
+        } else {
+          // Skipping useEffect validation - being validated manually
+        }
+      }
+      
+      const genderKey = `${memberType}_${localIndex}_gender`;
+      if (touchedFields.has(genderKey) && !member.gender) {
+        newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
+      }
+      
+      const nationalityKey = `${memberType}_${localIndex}_nationality`;
+      if (touchedFields.has(nationalityKey) && !member.nationality) {
+        newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
+      }
+      
+      // ID validation for Next button blocking (but not for UI display)
+      // Real-time validation handles UI display, useEffect handles Next button blocking
+      const idKey = `${memberType}_${index}_idNumber`;
+      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
+        // Always validate format when ID is provided, regardless of whether it's required
+        if (member.nationality === 'VN') {
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          if (!vietnameseIdRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          }
+        } else {
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          if (!passportRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+          }
+        }
+      } else if (touchedFields.has(idKey)) {
+        // Check if ID is required but not provided
+        const idRequired = isIdRequired(member.dob, member.nationality);
+        if (idRequired) {
+          if (member.nationality === 'VN') {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          } else {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+          }
+        }
+      }
+    });
+
+    // Validate infant members
+    plan.members.infant.forEach((member, index) => {
+      // Safety check: skip if member is undefined
+      if (!member) { return; }
+      
+      const memberType = 'infant';
+      const globalIndex = plan.members.adult.length + plan.members.child.length + index; // Infant members start after adults and children
+      
+      // Only validate if field has been touched or has value
+      const nameKey = `${memberType}_${index}_fullName`;
+      if (touchedFields.has(nameKey)) {
+        if (!member.fullName?.trim()) {
+          newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
+        } else {
+          // Validate full name format - only allow letters, spaces, hyphens, apostrophes
+          const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
+          if (!nameRegex.test(member.fullName.trim())) {
+            newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
+          }
+        }
+      }
+      
+      const dobKey = `${memberType}_${index}_dob`;
+      if (touchedFields.has(dobKey) && !member.dob) {
+        newErrors[dobKey] = t('booking.step2.errors.dobRequired');
+      } else if (member.dob) {
+        // Skip useEffect validation if field is being validated manually
+        if (!validatingFieldsRef.current.has(dobKey)) {
+          // Use the same validation logic as manual input and calendar picker
+          const normalizedDate = validateDateInput(member.dob);
+          if (!normalizedDate) {
+            newErrors[dobKey] = t('booking.step2.errors.dobInvalidFormat');
+          } else {
+            // Use validateMemberAge function for consistent validation
+            const validationResult = validateMemberAge(memberType, normalizedDate);
+            if (!validationResult.isValid) {
+              newErrors[dobKey] = validationResult.error;
+            }
+          }
+        } else {
+          // Skipping useEffect validation - being validated manually
+        }
+      }
+      
+      const genderKey = `${memberType}_${index}_gender`;
+      if (touchedFields.has(genderKey) && !member.gender) {
+        newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
+      }
+      
+      const nationalityKey = `${memberType}_${index}_nationality`;
+      if (touchedFields.has(nationalityKey) && !member.nationality) {
+        newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
+      }
+      
+      // ID validation for Next button blocking (but not for UI display)
+      // Real-time validation handles UI display, useEffect handles Next button blocking
+      const idKey = `${memberType}_${index}_idNumber`;
+      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
+        // Always validate format when ID is provided, regardless of whether it's required
+        if (member.nationality === 'VN') {
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          if (!vietnameseIdRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          }
+        } else {
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          if (!passportRegex.test(member.idNumber)) {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+          }
+        }
+      } else if (touchedFields.has(idKey)) {
+        // Check if ID is required but not provided
+        const idRequired = isIdRequired(member.dob, member.nationality);
+        if (idRequired) {
+          if (member.nationality === 'VN') {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
+          } else {
+            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+          }
+        }
+      }
+    });
+
+    // Only update errors if not currently being validated manually
+    setErrors(prev => {
+      const updatedErrors = { ...prev };
+      
+      // Only override errors for fields that are not being validated manually
+      // Skip ID errors completely - they are handled by real-time validation only
+      Object.keys(newErrors).forEach(key => {
+        // Skip ID errors - they are handled by real-time validation only
+        if (key.includes('_idNumber')) {
+          console.log('⏭️ useEffect skipping ID error setting for:', key, '- handled by real-time validation');
+          return;
+        }
+        
+        if (!validatingFieldsRef.current.has(key)) {
+          updatedErrors[key] = newErrors[key];
+          console.log('🔄 useEffect setting error for:', key, 'value:', newErrors[key]);
+        } else {
+          console.log('⏭️ useEffect skipping error for:', key, 'because it\'s being validated manually');
+        }
+      });
+      
+      // Remove errors for fields that are no longer invalid and not being validated manually
+      // Skip ID errors completely - they are handled by real-time validation only
+      Object.keys(updatedErrors).forEach(key => {
+        // Skip ID errors - they are handled by real-time validation only
+        if (key.includes('_idNumber')) {
+          console.log('⏭️ useEffect skipping ID error removal for:', key, '- handled by real-time validation');
+          return;
+        }
+        
+        if (!newErrors[key] && !validatingFieldsRef.current.has(key)) {
+          delete updatedErrors[key];
+          console.log('🗑️ useEffect removing error for:', key);
+        }
+      });
+      
+      return updatedErrors;
+    });
   }, [plan.date, plan.members, touchedFields, t]);
 
   const handlePaxChange = (type, action) => {
+    
     if (action === 'increment') {
       incrementPax(type);
+      // Ensure members are rebuilt after incrementing
+      setTimeout(() => {
+        rebuildMembers();
+      }, 0);
     } else if (action === 'decrement') {
       // Prevent adult count from going below 1
       if (type === 'adult' && plan.pax.adult <= 1) {
         return;
       }
       decrementPax(type);
+      // Ensure members are rebuilt after decrementing
+      setTimeout(() => {
+        rebuildMembers();
+      }, 0);
     }
   };
 
   const handleMemberChange = (memberType, index, field, value) => {
-    setMember(memberType, index, { [field]: value });
     
-    // Mark field as touched
-    // do not mark touched here; mark on blur handlers instead
+    let processedValue = value;
+    
+    // Special handling for full name input - only allow letters, spaces, hyphens, apostrophes
+    if (field === 'fullName') {
+      // Remove any characters that are not letters, spaces, hyphens, or apostrophes
+      // This prevents typing numbers and special characters
+      // Supports international names using Unicode properties
+      processedValue = value.replace(/[^\p{L}\p{M}\s\-']/gu, '');
+      
+      // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
+      processedValue = processedValue.replace(/\s+/g, ' ');
+    }
+    
+    setMember(memberType, index, { [field]: processedValue });
+    
+    // Mark field as touched for real-time validation
+    setTouchedFields(prev => new Set(prev).add(`${memberType}_${index}_${field}`));
+    
+    // Clear error if input becomes valid
+    const globalIndex = getGlobalIndex(memberType, index);
+    const errorKey = `member_${globalIndex}_${field === 'fullName' ? 'name' : field}`;
+    
+    if (errors[errorKey]) {
+      // Check if input is now valid
+      let isValid = false;
+      
+      if (field === 'fullName') {
+        isValid = processedValue.trim() && /^[\p{L}\p{M}\s\-']+$/u.test(processedValue.trim());
+      } else if (field === 'gender') {
+        isValid = !!processedValue;
+      } else if (field === 'nationality') {
+        isValid = !!processedValue;
+      }
+      
+      if (isValid) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[errorKey];
+          return newErrors;
+        });
+      }
+    }
   };
 
   // Special handler for date input to ensure proper validation
-  const handleDateChange = (memberType, index, value) => {
-    console.log('📝 handleDateChange - Value:', value);
+  const handleDateChange = (memberType, globalIndex, value) => {
+    // Convert globalIndex to localIndex for setMember
+    // Match the logic from renderMemberForm:
+    // For adult members: globalIndex = localIndex + 1 (skip representative)
+    // So: localIndex = globalIndex - 1
+    // For other members: globalIndex = localIndex
+    const localIndex = memberType === 'adult' ? globalIndex - 1 : globalIndex;
+    
+    // Safety check: don't process if this is representative (globalIndex = 0)
+    if (memberType === 'adult' && globalIndex === 0) {
+      console.warn('⚠️ Attempted to modify representative DOB - this should not happen');
+      return;
+    }
+    
+    // Safety check: don't process if localIndex would be negative
+    if (localIndex < 0) {
+      console.warn('⚠️ Invalid localIndex calculated:', { memberType, globalIndex, localIndex });
+      return;
+    }
+    
+    // For adult members, we need to add 1 to localIndex to get the correct array index
+    // because adult[0] is representative, adult[1] is first additional adult, etc.
+    const arrayIndex = memberType === 'adult' ? localIndex + 1 : localIndex;
     
     // Always store the value as-is (display format)
-    // Validation will happen in the validation function
-    console.log('✅ Storing display value:', value);
-    handleMemberChange(memberType, index, 'dob', value);
+    setMember(memberType, arrayIndex, { dob: value });
+    
+    // Real-time validation for DOB - use localIndex to match render
+    const dobKey = `${memberType}_${localIndex}_dob`;
+    setTouchedFields(prev => new Set(prev).add(dobKey));
+    
+    // Real-time validation: add or clear errors immediately
+    if (value) {
+      const normalizedDate = validateDateInput(value);
+      if (!normalizedDate) {
+        // Invalid format
+        setErrors(prev => ({
+          ...prev,
+          [dobKey]: t('booking.step2.errors.dobInvalidFormat')
+        }));
+      } else {
+        // Valid format, check age requirements
+        const validationResult = validateMemberAge(memberType, normalizedDate);
+        if (!validationResult.isValid) {
+          setErrors(prev => ({
+            ...prev,
+            [dobKey]: validationResult.error
+          }));
+        } else {
+          // Valid - clear any existing error
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[dobKey];
+            return newErrors;
+          });
+        }
+      }
+    } else {
+      // Empty value - clear error
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[dobKey];
+        return newErrors;
+      });
+    }
   };
 
   // Validate member age based on member type
   const validateMemberAge = (memberType, normalizedDate) => {
-    console.log('🔍 validateMemberAge called with:', { memberType, normalizedDate });
-    console.log('🔍 validateMemberAge call stack:', new Error().stack);
     
     if (!normalizedDate || !/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
-      console.log('❌ Invalid date format');
       return { isValid: false, error: t('booking.step2.errors.dobInvalidFormat') };
     }
 
@@ -567,60 +1498,57 @@ const Step2Details = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    console.log('🔍 Birth date:', birthDate, 'Today:', today);
-    
     // Check if birth date is in the future
     if (birthDate > today) {
-      console.log('❌ Birth date is in future');
       return { isValid: false, error: t('booking.step2.errors.dobInFuture') };
     }
 
     // Check if age is too old (sanity check)
     const age = calculateAge(normalizedDate);
-    console.log('🔍 Current age:', age);
     if (age > 120) {
-      console.log('❌ Age too old');
       return { isValid: false, error: t('booking.step2.errors.dobTooOld') };
     }
 
     // Check age requirements based on member type
-    console.log('🔍 Checking age requirements for member type:', memberType);
-    
-    if (memberType === 'adult') {
-      // Adults must be at least 12 years old
-      console.log('🔍 Adult validation - birth date:', normalizedDate, 'current age:', age);
-      console.log('🔍 Adult validation - age < 12?', age < 12);
-      
+    if (memberType === 'representative') {
+      // Representative must be at least 18 years old
       // Check current age first
-      if (age < 12) {
-        console.log('❌ Adult too young (current age):', age);
-        return { isValid: false, error: t('booking.step2.errors.adultTooYoung') };
+      if (age < 18) {
+        return { isValid: false, error: t('booking.step2.errors.representativeTooYoung') };
       }
-      console.log('✅ Adult current age check passed:', age);
       
       // Also check age at departure date if available
       if (plan.date && plan.date.day && plan.date.month && plan.date.year) {
         const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
         const ageAtDeparture = calculateAge(normalizedDate, departureDate);
-        console.log('🔍 Adult age at departure:', ageAtDeparture, 'departure date:', departureDate);
+        
+        if (ageAtDeparture < 18) {
+          return { isValid: false, error: t('booking.step2.errors.representativeTooYoung') };
+        }
+      }
+    } else if (memberType === 'adult') {
+      // Adults must be at least 12 years old
+      
+      // Check current age first
+      if (age < 12) {
+        return { isValid: false, error: t('booking.step2.errors.adultTooYoung') };
+      }
+      
+      // Also check age at departure date if available
+      if (plan.date && plan.date.day && plan.date.month && plan.date.year) {
+        const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
+        const ageAtDeparture = calculateAge(normalizedDate, departureDate);
         
         if (ageAtDeparture < 12) {
-          console.log('❌ Adult too young at departure:', ageAtDeparture);
           return { isValid: false, error: t('booking.step2.errors.adultTooYoung') };
         }
-        console.log('✅ Adult departure age check passed:', ageAtDeparture);
-      } else {
-        console.log('🔍 No departure date, skipping departure age check');
       }
     } else if (memberType === 'child') {
       // Children should be between 2-11 years old (typical definition)
-      console.log('🔍 Child current age:', age);
       if (age < 2) {
-        console.log('❌ Child too young (current age)');
         return { isValid: false, error: t('booking.step2.errors.childTooYoung') };
       }
       if (age >= 12) {
-        console.log('❌ Child too old (current age)');
         return { isValid: false, error: t('booking.step2.errors.childTooOld') };
       }
       
@@ -628,22 +1556,17 @@ const Step2Details = () => {
       if (plan.date && plan.date.day && plan.date.month && plan.date.year) {
         const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
         const ageAtDeparture = calculateAge(normalizedDate, departureDate);
-        console.log('🔍 Child age at departure:', ageAtDeparture);
         
         if (ageAtDeparture < 2) {
-          console.log('❌ Child too young at departure');
           return { isValid: false, error: t('booking.step2.errors.childTooYoung') };
         }
         if (ageAtDeparture >= 12) {
-          console.log('❌ Child too old at departure');
           return { isValid: false, error: t('booking.step2.errors.childTooOld') };
         }
       }
     } else if (memberType === 'infant') {
       // Infants should be under 2 years old
-      console.log('🔍 Infant current age:', age);
       if (age >= 2) {
-        console.log('❌ Infant too old (current age)');
         return { isValid: false, error: t('booking.step2.errors.infantTooOld') };
       }
       
@@ -651,16 +1574,13 @@ const Step2Details = () => {
       if (plan.date && plan.date.day && plan.date.month && plan.date.year) {
         const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
         const ageAtDeparture = calculateAge(normalizedDate, departureDate);
-        console.log('🔍 Infant age at departure:', ageAtDeparture);
         
         if (ageAtDeparture >= 2) {
-          console.log('❌ Infant too old at departure');
           return { isValid: false, error: t('booking.step2.errors.infantTooOld') };
         }
       }
     }
 
-    console.log('✅ Validation passed for member type:', memberType);
     return { isValid: true };
   };
 
@@ -676,41 +1596,34 @@ const Step2Details = () => {
         // Vietnamese ID validation: exactly 12 digits (CCCD) or exactly 9 digits (CMND/CMT)
         const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
         if (!vietnameseIdRegex.test(value)) {
-          setErrors(prev => ({
-            ...prev,
-            [`${memberType}_${index}_idNumber`]: t('booking.step2.validation.vietnameseId')
-          }));
+          return { isValid: false, error: t('booking.step2.validation.vietnameseId') };
         } else {
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[`${memberType}_${index}_idNumber`];
-            return newErrors;
-          });
+          return { isValid: true };
         }
       } else {
         // Passport validation: 6-9 characters, letters and numbers
         const passportRegex = /^[A-Z0-9]{6,9}$/i;
         if (!passportRegex.test(value)) {
-          setErrors(prev => ({
-            ...prev,
-            [`${memberType}_${index}_idNumber`]: t('booking.step2.validation.passport')
-          }));
+          return { isValid: false, error: t('booking.step2.validation.passport') };
         } else {
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[`${memberType}_${index}_idNumber`];
-            return newErrors;
-          });
+          return { isValid: true };
         }
       }
     }
+    
+    // Return valid if no nationality or empty value
+    return { isValid: true };
   };
 
   // Handle ID number input with blur validation
   const handleIdNumberChange = (memberType, index, value) => {
     // Check nationality to determine input filtering
     const key = `${memberType}-${index}`;
-    const nationality = confirmedNationalities[key];
+    const nationality = confirmedNationalities[key] || 
+                       (memberType === 'adult' && index === 0 ? plan.members.adult[0]?.nationality :
+                        memberType === 'adult' ? plan.members.adult[index]?.nationality :
+                        memberType === 'child' ? plan.members.child[index]?.nationality :
+                        memberType === 'infant' ? plan.members.infant[index]?.nationality : null);
     
     let processedValue = value;
     
@@ -731,22 +1644,144 @@ const Step2Details = () => {
     }
     
     handleMemberChange(memberType, index, 'idNumber', processedValue);
+    
+    // Real-time validation for ID number
+    // For representative (adult[0]), use 'representative_idNumber' key to match UI
+    const idKey = memberType === 'adult' && index === 0 ? 'representative_idNumber' : `${memberType}_${index}_idNumber`;
+    
+    // Calculate correct error key to match UI display logic
+    let errorKey;
+    if (memberType === 'adult' && index === 0) {
+      // Representative
+      errorKey = `member_${index}_idNumber`;
+    } else if (memberType === 'adult') {
+      // Other adult members: convert globalIndex to localIndex for UI consistency
+      const localIndex = index - 1; // adult[1] -> localIndex 0, adult[2] -> localIndex 1, etc.
+      errorKey = `${memberType}_${localIndex}_idNumber`;
+    } else {
+      // Child and infant members: use index directly
+      errorKey = `${memberType}_${index}_idNumber`;
+    }
+    
+    // Set touchedFields with the key that matches UI display logic
+    let touchedKey;
+    if (memberType === 'adult' && index === 0) {
+      // Representative
+      touchedKey = 'representative_idNumber';
+    } else if (memberType === 'adult') {
+      // Other adult members: convert globalIndex to localIndex for UI consistency
+      const localIndex = index - 1; // adult[1] -> localIndex 0, adult[2] -> localIndex 1, etc.
+      touchedKey = `${memberType}_${localIndex}_idNumber`;
+    } else {
+      // Child and infant members: use index directly
+      touchedKey = `${memberType}_${index}_idNumber`;
+    }
+    setTouchedFields(prev => new Set(prev).add(touchedKey));
+    
+    // No need for validating flag since we disabled useEffect validation for ID
+    console.log('🔒 Real-time validation for:', idKey);
+    
+    // Real-time validation - show error immediately if invalid
+    // Always validate format when user inputs something, regardless of whether ID is required
+    if (processedValue && nationality) {
+      let isValid = false;
+      
+      if (nationality === 'VN') {
+        // Vietnamese ID validation: exactly 12 digits (CCCD) or exactly 9 digits (CMND/CMT)
+        const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+        isValid = vietnameseIdRegex.test(processedValue);
+        
+        // Show error if not exactly 9 or 12 digits
+        if (!isValid) {
+          setErrors(prev => ({
+            ...prev,
+            [errorKey]: t('booking.step2.validation.vietnameseId')
+          }));
+          console.log('❌ Real-time setting error for:', errorKey, 'value:', t('booking.step2.validation.vietnameseId'));
+        } else {
+          // Clear error if valid
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[errorKey];
+            return newErrors;
+          });
+          console.log('✅ Real-time clearing error for:', errorKey);
+        }
+      } else {
+        // Passport validation: 6-9 characters, letters and numbers
+        const passportRegex = /^[A-Z0-9]{6,9}$/i;
+        isValid = passportRegex.test(processedValue);
+        
+        // Show error if invalid passport format
+        if (!isValid) {
+          setErrors(prev => ({
+            ...prev,
+            [errorKey]: t('booking.step2.validation.passport')
+          }));
+          console.log('❌ Real-time setting error for:', errorKey, 'value:', t('booking.step2.validation.passport'));
+        } else {
+          // Clear error if valid
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[errorKey];
+            return newErrors;
+          });
+          console.log('✅ Real-time clearing error for:', errorKey);
+        }
+      }
+    } else {
+      // Clear error if empty or no nationality
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+      console.log('🧹 Real-time clearing error for empty value or no nationality:', errorKey);
+    }
   };
 
   const handleIdNumberBlur = (memberType, index, value) => {
     // Mark field as touched
-    const fieldKey = `${memberType}_${index}_idNumber`;
+    // For representative (adult[0]), use 'representative_idNumber' key to match UI
+    const fieldKey = memberType === 'adult' && index === 0 ? 'representative_idNumber' : `${memberType}_${index}_idNumber`;
     setTouchedFields(prev => new Set(prev).add(fieldKey));
     
     // Validate ID number only on blur
     validateIdNumber(memberType, index, value);
   };
 
-  const handleNationalityChange = (memberType, index, value) => {
-    handleMemberChange(memberType, index, 'nationality', value);
+  const handleNationalityChange = (memberType, globalIndex, value) => {
+    // For adult members, convert globalIndex to localIndex for setMember
+    // adult[0] = globalIndex 0, adult[1] = globalIndex 1, etc.
+    const localIndex = globalIndex;
+    
+    handleMemberChange(memberType, localIndex, 'nationality', value);
+    
+    // Real-time validation for nationality
+    const nationalityKey = `${memberType}_${localIndex}_nationality`;
+    setTouchedFields(prev => new Set(prev).add(nationalityKey));
+    
+    // Clear error if nationality becomes valid
+    if (value && errors[`member_${globalIndex}_nationality`]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`member_${globalIndex}_nationality`];
+        return newErrors;
+      });
+    }
+    
+    // Calculate localIndex for confirmedNationalities key
+    // Representative uses globalIndex=0, so localIndex=0
+    // Adult[0] (first added) uses globalIndex=1, so localIndex=0 (but key should be 'adult-1')
+    // Adult[1] (second added) uses globalIndex=2, so localIndex=1 (but key should be 'adult-2')
+    const confirmedLocalIndex = memberType === 'adult' && globalIndex === 0 ? 0 : // Representative
+                      memberType === 'adult' ? globalIndex - 1 : // Other adults
+                      memberType === 'child' ? globalIndex : // Child members start from 0
+                      globalIndex; // Infant members start from 0
     
     // Auto-detect Vietnamese nationality and show ID field
-    const key = `${memberType}-${index}`;
+    // Use globalIndex for key to ensure uniqueness between representative and adult members
+    const key = `${memberType}-${globalIndex}`;
     const isVietnamese = value === 'VN';
     
     if (value && value.trim()) {
@@ -755,6 +1790,64 @@ const Step2Details = () => {
         ...prev,
         [key]: value
       }));
+      
+      // Validate existing ID when nationality changes
+      let currentIdNumber;
+      if (memberType === 'adult' && globalIndex === 0) {
+        // Representative (adult[0])
+        currentIdNumber = plan.members.adult[0]?.idNumber;
+      } else if (memberType === 'adult') {
+        // Other adult members (adult[1], adult[2], ...)
+        const localIndex = globalIndex - 1; // Convert globalIndex to local array index
+        currentIdNumber = plan.members.adult[localIndex]?.idNumber;
+      } else if (memberType === 'child') {
+        // Child members
+        currentIdNumber = plan.members.child[globalIndex]?.idNumber;
+      } else if (memberType === 'infant') {
+        // Infant members
+        currentIdNumber = plan.members.infant[globalIndex]?.idNumber;
+      }
+      
+      if (currentIdNumber && currentIdNumber.trim()) {
+        // Trigger validation for existing ID with new nationality
+        const idKey = memberType === 'adult' && globalIndex === 0 ? 'representative_idNumber' : `${memberType}_${globalIndex}_idNumber`;
+        const errorKey = `member_${globalIndex}_idNumber`;
+        
+        // Mark field as touched to show validation
+        setTouchedFields(prev => new Set(prev).add(idKey));
+        
+        // Validate existing ID with new nationality
+        const isVietnamese = value === 'VN';
+        let isValid = false;
+        
+        if (isVietnamese) {
+          // Vietnamese ID validation: exactly 12 digits (CCCD) or exactly 9 digits (CMND/CMT)
+          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
+          isValid = vietnameseIdRegex.test(currentIdNumber);
+        } else {
+          // Passport validation: 6-9 characters, letters and numbers
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          isValid = passportRegex.test(currentIdNumber);
+        }
+        
+        // Set or clear error based on validation result
+        if (!isValid) {
+          setErrors(prev => ({
+            ...prev,
+            [errorKey]: isVietnamese 
+              ? t('booking.step2.validation.vietnameseId')
+              : t('booking.step2.validation.passport')
+          }));
+          console.log('❌ Nationality change validation - setting error for:', errorKey, 'value:', currentIdNumber);
+        } else {
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[errorKey];
+            return newErrors;
+          });
+          console.log('✅ Nationality change validation - clearing error for:', errorKey, 'value:', currentIdNumber);
+        }
+      }
     } else {
       // Clear when empty
       setConfirmedNationalities(prev => {
@@ -792,16 +1885,189 @@ const Step2Details = () => {
       }
     })();
     
-    const formattedPrice = (() => {
-      if (price === null) return 'Chưa có giá';
-      if (price === 0) return 'Miễn phí';
-      return formatPrice(price);
-    })();
-    console.log(`Price for ${type}:`, price, 'Formatted:', formattedPrice); // Debug log
-    
     if (price === null) return 'Chưa có giá';
     if (price === 0) return 'Miễn phí';
     return formatPrice(price);
+  };
+
+  const renderRepresentativeForm = () => {
+    // Lấy tên từ contact, ngày sinh từ member (bookingGuest)
+    const representativeName = contact?.fullName;
+    // Try to get DOB from contact first, then from plan.members.adult[0]
+    const representativeDob = contact?.dob || plan.members.adult[0]?.dob;
+    
+    // Format date for display
+    const displayDob = representativeDob ? formatDateForDisplay(representativeDob, 'representative-dob') : '';
+    
+    // Debug logs removed - issues resolved
+    
+    // Always show representative form, even if data is missing (will be filled by sync)
+    if (!representativeName && !representativeDob) {
+      // console.log('❌ renderRepresentativeForm - No contact data at all, showing loading state');
+      return (
+        <div className={styles['member-group']}>
+          <h4 className={styles['member-group-title']}>
+            {t('booking.step2.representative.title')} - {getMemberTypePrice('adult')}
+          </h4>
+          <div className={styles['member-card']}>
+            <div className={styles['member-title']}>
+              {t('booking.step2.representative.label')}
+            </div>
+            <div className={styles['member-form']}>
+              <div className={styles['form-group']}>
+                <label className={styles['form-label']}>{t('booking.step2.labels.fullName')}</label>
+                <input
+                  type="text"
+                  value="Loading..."
+                  readOnly
+                  className={`${styles['form-input']} ${styles['read-only']}`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles['member-group']}>
+        <h4 className={styles['member-group-title']}>
+          {t('booking.step2.representative.title')} - {getMemberTypePrice('adult')}
+        </h4>
+        <div className={styles['member-card']}>
+          <div className={styles['member-title']}>
+            {t('booking.step2.representative.label')}
+          </div>
+          <div className={styles['member-form']}>
+            {/* Full Name - Read Only */}
+            <div className={styles['form-group']}>
+              <label className={styles['form-label']}>{t('booking.step2.labels.fullName')}</label>
+              <input
+                type="text"
+                value={representativeName || ''}
+                readOnly
+                className={`${styles['form-input']} ${styles['read-only']}`}
+                placeholder={t('booking.step2.placeholders.fullName')}
+              />
+            </div>
+
+            {/* Date of Birth - Read Only */}
+            <div className={styles['form-group']}>
+              <label className={styles['form-label']}>{t('booking.step2.labels.dob')}</label>
+              <input
+                type="text"
+                value={displayDob}
+                readOnly
+                className={`${styles['form-input']} ${styles['read-only']}`}
+                placeholder={t('booking.step2.placeholders.dateFormat', { format: getDateFormat() })}
+              />
+            </div>
+
+            {/* Gender - Editable */}
+            <div className={styles['form-group']}>
+              <label htmlFor="representative-gender" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
+              <select
+                id="representative-gender"
+                value={plan.members.adult[0]?.gender || ''}
+                onChange={(e) => setMember('adult', 0, { gender: e.target.value })}
+                onBlur={() => setTouchedFields(prev => new Set(prev).add('representative_gender'))}
+                className={`${styles['form-select']} ${errors['member_0_gender'] && touchedFields.has('representative_gender') ? styles['error'] : ''}`}
+              >
+                <option value="">{t('booking.step2.placeholders.chooseGender')}</option>
+                <option value="male">{t('profile.genderOptions.male')}</option>
+                <option value="female">{t('profile.genderOptions.female')}</option>
+                <option value="other">{t('profile.genderOptions.other')}</option>
+              </select>
+              {errors['member_0_gender'] && touchedFields.has('representative_gender') && (
+                <span className={styles['form-error']}>{errors['member_0_gender']}</span>
+              )}
+            </div>
+
+            {/* Nationality - Editable */}
+            <div className={styles['form-group']}>
+              <label htmlFor="representative-nationality" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.nationality')}</label>
+              <select
+                id="representative-nationality"
+                value={plan.members.adult[0]?.nationality || ''}
+                onChange={(e) => handleNationalityChange('adult', 0, e.target.value)}
+                onBlur={() => setTouchedFields(prev => new Set(prev).add('representative_nationality'))}
+                className={`${styles['form-select']} ${errors['member_0_nationality'] && touchedFields.has('representative_nationality') ? styles['error'] : ''}`}
+              >
+                <option value="">{t('booking.step2.placeholders.chooseNationality')}</option>
+                {countries.map(({code, label}) => (
+                  <option key={code} value={code}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {errors['member_0_nationality'] && touchedFields.has('representative_nationality') && (
+                <span className={styles['form-error']}>{errors['member_0_nationality']}</span>
+              )}
+            </div>
+
+            {/* ID Number - Conditional */}
+            {(confirmedNationalities['adult-0'] || plan.members.adult[0]?.nationality) && (
+              <div className={styles['form-group']}>
+                {(() => {
+                  const nationality = confirmedNationalities['adult-0'] || plan.members.adult[0]?.nationality;
+                  const departureDate = plan.date.year && plan.date.month && plan.date.day 
+                    ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
+                    : null;
+                  const idRequired = isIdRequired(plan.members.adult[0]?.dob, nationality);
+                  const age = calculateAge(plan.members.adult[0]?.dob, departureDate);
+                  
+                  // Representative always shows ID field when nationality is selected
+                  // Show info message for Vietnamese who don't need ID but still allow input
+                  return (
+                    <>
+                      {!idRequired && nationality === 'VN' && (
+                        <div className={styles['id-info-message']}>
+                          <div className={styles['info-icon']}>ℹ️</div>
+                          <div className={styles['info-text']}>
+                            {age < 2 && t('booking.step2.idInfo.baby')}
+                            {age >= 2 && age < 14 && t('booking.step2.idInfo.child')}
+                            {age >= 14 && age < 16 && t('booking.step2.idInfo.teen')}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <label htmlFor="representative-idNumber" className={`${styles['form-label']} ${idRequired ? styles['required'] : ''}`}>
+                        {nationality === 'VN' ? t('booking.step2.labels.idNumberCCCD') : t('booking.step2.labels.idNumberPassport')}
+                </label>
+                      {nationality === 'VN' && (
+                        <div className={styles['id-input-notice']}>
+                          <span className={styles['notice-text']}>💡 {
+                            currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' :
+                            currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
+                            'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)'
+                          }</span>
+                        </div>
+                      )}
+                <input
+                  type="text"
+                  id="representative-idNumber"
+                        value={plan.members.adult[0]?.idNumber || ''}
+                        onChange={(e) => handleIdNumberChange('adult', 0, e.target.value)}
+                        onBlur={(e) => handleIdNumberBlur('adult', 0, e.target.value)}
+                        className={`${styles['form-input']} ${errors['member_0_idNumber'] && touchedFields.has('representative_idNumber') ? styles['error'] : ''}`}
+                        placeholder={nationality === 'VN' ? 
+                    (currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' : 
+                     currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
+                     'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)') : 
+                    t('booking.step2.placeholders.idPassport')}
+                />
+                      {errors['member_0_idNumber'] && touchedFields.has('representative_idNumber') && (
+                        <span className={styles['form-error']}>{errors['member_0_idNumber']}</span>
+                )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderMemberForm = (memberType, members) => {
@@ -812,63 +2078,98 @@ const Step2Details = () => {
         <h4 className={styles['member-group-title']}>
           {`${getMemberTypeLabel(memberType)} (${members.length} người) - ${getMemberTypePrice(memberType)}`}
         </h4>
-        {members.map((member, index) => (
-          <div key={`${memberType}-${index}`} className={styles['member-card']}>
-            <div className={styles['member-title']}>
-              {`${getMemberTypeLabel(memberType)} ${index + 1}`}
-            </div>
+        {members.map((member, localIndex) => {
+          // Safety check: skip if member is undefined
+          if (!member) {
+            console.warn(`⚠️ Undefined member found at ${memberType}[${localIndex}]`);
+            return null;
+          }
+          
+          // Calculate global index to match useEffect validation
+          // For adult members: skip representative (index 0), so globalIndex = localIndex + 1
+          // For child members: start from 0, so globalIndex = localIndex
+          // For infant members: start from 0, so globalIndex = localIndex
+          const globalIndex = memberType === 'adult' ? localIndex + 1 : // Skip representative (index 0)
+                             memberType === 'child' ? localIndex : // Child members start from 0
+                             localIndex; // Infant members start from 0
+          
+          
+          return (
+            <div key={`${memberType}-${localIndex}`} className={styles['member-card']}>
+              <div className={styles['member-title']}>
+                {`${getMemberTypeLabel(memberType)} ${localIndex + 1}`}
+              </div>
             <div className={styles['member-form']}>
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${index}-fullName`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.fullName')}</label>
+                <label htmlFor={`${memberType}-${localIndex}-fullName`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.fullName')}</label>
                 <input
                   type="text"
-                  id={`${memberType}-${index}-fullName`}
-                  value={member.fullName}
-                  onChange={(e) => handleMemberChange(memberType, index, 'fullName', e.target.value)}
-                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${index}_fullName`))}
-                  className={`${styles['form-input']} ${errors[`member_${index}_name`] && touchedFields.has(`${memberType}_${index}_fullName`) ? styles['error'] : ''}`}
+                  id={`${memberType}-${localIndex}-fullName`}
+                    value={member.fullName || ''}
+                  onChange={(e) => handleMemberChange(memberType, globalIndex, 'fullName', e.target.value)}
+                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_fullName`))}
+                  className={`${styles['form-input']} ${errors[`member_${globalIndex}_name`] && touchedFields.has(`${memberType}_${localIndex}_fullName`) ? styles['error'] : ''}`}
                   placeholder={t('booking.step2.placeholders.fullName')}
                 />
-                {errors[`member_${index}_name`] && touchedFields.has(`${memberType}_${index}_fullName`) && (
-                  <span className={styles['form-error']}>{errors[`member_${index}_name`]}</span>
+                {errors[`member_${globalIndex}_name`] && touchedFields.has(`${memberType}_${localIndex}_fullName`) && (
+                  <span className={styles['form-error']}>{errors[`member_${globalIndex}_name`]}</span>
                 )}
               </div>
 
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${index}-dob`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.dob')}</label>
+                <label htmlFor={`${memberType}-${localIndex}-dob`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.dob')}</label>
                  <div className={styles['date-input-container']}>
                 <input
                      type="text"
-                  id={`${memberType}-${index}-dob`}
-                     value={formatDateForDisplay(member.dob, `${memberType}-${index}-dob`)}
+                  id={`${memberType}-${localIndex}-dob`}
+                     value={formatDateForDisplay(member.dob, `${memberType}-${localIndex}-dob`)}
                      onFocus={(e) => {
-                       const fieldKey = `${memberType}-${index}-dob`;
-                       console.log('📝 Input focused, adding to editing fields:', fieldKey);
+                       const fieldKey = `${memberType}-${localIndex}-dob`;
                        setEditingFields(prev => new Set(prev).add(fieldKey));
                        
                        // If there's a normalized date, convert it to display format for editing
                        if (member.dob && /^\d{4}-\d{2}-\d{2}$/.test(member.dob)) {
                          const displayFormat = formatDateFromNormalized(member.dob);
-                         console.log('📝 Converting normalized date to display format for editing:', displayFormat);
-                         handleDateChange(memberType, index, displayFormat);
+                         handleMemberChange(memberType, globalIndex, 'dob', displayFormat);
+                       }
+                     }}
+                     onKeyDown={(e) => {
+                       if (e.key === 'Backspace') {
+                         const currentValue = e.target.value;
+                         const separator = getDateSeparator();
+                         
+                         // Mark as deleting for any backspace
+                         isDeletingRef.current = true;
+                         
+                         // Special case: if current value ends with separator, we're deleting separator
+                         if (currentValue.endsWith(separator)) {
+                           // Allow deletion of separator
+                         }
+                       } else if (e.key.length === 1) {
+                         // If user is typing a character, reset deletion flag
+                         isDeletingRef.current = false;
+                       }
+                       
+                       // Trigger validation on Enter key
+                       if (e.key === 'Enter') {
+                         e.target.blur(); // This will trigger onBlur validation
                        }
                      }}
                      onChange={(e) => {
                        const rawValue = e.target.value;
-                       const fieldKey = `${memberType}-${index}-dob`;
+                       const fieldKey = `${memberType}-${localIndex}-dob`;
                        
-                       // Format the input as user types
-                       const formattedValue = formatDateInput(rawValue, fieldKey);
+                       // Format the input as user types (use separate function for members)
+                       const formattedValue = formatMemberDateInput(rawValue, fieldKey);
                        
                        // Store the formatted value
-                       handleMemberChange(memberType, index, 'dob', formattedValue);
+                       handleDateChange(memberType, globalIndex, formattedValue);
                        
-                       // Don't validate during typing - only format input
-                       console.log('🔍 Manual input - formattedValue:', formattedValue, 'length:', formattedValue?.length);
+                       // Real-time validation during typing
                      }}
                      onBlur={(e) => {
                        const displayValue = e.target.value;
-                       const fieldKey = `${memberType}-${index}-dob`;
+                       const fieldKey = `${memberType}-${localIndex}-dob`;
                        
                        // Remove from editing state
                        setEditingFields(prev => {
@@ -877,80 +2178,44 @@ const Step2Details = () => {
                          return newSet;
                        });
                        
-                       // Mark field as touched
-                       setTouchedFields(prev => new Set(prev).add(`member_${index}_dob`));
+                       // Mark field as touched (already done in handleDateChange)
+                       // setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_dob`));
                        
-                       // Validate when user finishes typing (onBlur)
-                       console.log('📝 onBlur - validating:', displayValue);
+                       // No need for additional validation here since handleDateChange already handles it
+                       // Just ensure the final validation is consistent
                        if (displayValue && displayValue.length >= 8) {
                          const normalizedDate = validateDateInput(displayValue);
-                         console.log('📝 onBlur - normalizedDate:', normalizedDate);
                          if (normalizedDate) {
-                           // Set validating flag to prevent useEffect override
-                           const dobKey = `member_${index}_dob`;
-                           setValidatingFields(prev => new Set(prev).add(dobKey));
-                           validatingFieldsRef.current.add(dobKey);
-                           
-                           // Validate with delay
-                           setTimeout(() => {
-                             console.log('📝 onBlur validation for:', normalizedDate, 'member type:', memberType);
-                             const validationResult = validateMemberAge(memberType, normalizedDate);
-                             console.log('📝 onBlur validation result:', validationResult);
-                             
-                             // Set error state immediately and persistently
-                             setErrors(prev => {
-                               const newErrors = { ...prev };
-                               if (validationResult.isValid) {
-                                 console.log('✅ onBlur validation passed, clearing error');
-                                 delete newErrors[dobKey];
-                               } else {
-                                 console.log('❌ onBlur validation failed:', validationResult.error);
-                                 newErrors[dobKey] = validationResult.error;
-                               }
-                               return newErrors;
-                             });
-                             
-                             // Clear validating flag after delay
-                             setTimeout(() => {
-                               setValidatingFields(prev => {
-                                 const newSet = new Set(prev);
-                                 newSet.delete(dobKey);
-                                 return newSet;
-                               });
-                               validatingFieldsRef.current.delete(dobKey);
-                             }, 500); // 500ms to ensure useEffect doesn't override
-                           }, 100); // 100ms delay
+                           // Final validation check to ensure consistency
+                           const validationResult = validateMemberAge(memberType, normalizedDate);
+                           if (!validationResult.isValid) {
+                             setErrors(prev => ({
+                               ...prev,
+                               [`${memberType}_${localIndex}_dob`]: validationResult.error
+                             }));
+                           }
                          } else {
-                           console.log('📝 onBlur - invalid date format');
                            setErrors(prev => ({
                              ...prev,
-                             [`member_${index}_dob`]: t('booking.step2.errors.dobInvalidFormat')
+                             [`${memberType}_${localIndex}_dob`]: t('booking.step2.errors.dobInvalidFormat')
                            }));
                          }
                        } else if (!displayValue || displayValue.trim() === '') {
-                         console.log('📝 onBlur - clearing error for empty field');
                          setErrors(prev => {
                            const newErrors = { ...prev };
-                           delete newErrors[`member_${index}_dob`];
+                           delete newErrors[`${memberType}_${localIndex}_dob`];
                            return newErrors;
                          });
                        }
                      }}
-                     onKeyDown={(e) => {
-                       // Trigger validation on Enter key
-                       if (e.key === 'Enter') {
-                         console.log('📝 Enter key pressed - triggering validation');
-                         e.target.blur(); // This will trigger onBlur validation
-                       }
-                     }}
-                     className={`${styles['form-input']} ${styles['date-input']} ${errors[`member_${index}_dob`] && touchedFields.has(`member_${index}_dob`) ? styles['error'] : ''}`}
+                     className={`${styles['form-input']} ${styles['date-input']} ${errors[`${memberType}_${localIndex}_dob`] && touchedFields.has(`${memberType}_${localIndex}_dob`) ? styles['error'] : ''}`}
                      placeholder={getDateFormat()}
                      title={t('booking.step2.placeholders.dateFormat', { format: getDateFormat() })}
                    />
                    {/* Hidden date input for calendar picker - positioned over the text input */}
                    <input
                      type="date"
-                     id={`${memberType}-${index}-dob-hidden`}
+                     id={`${memberType}-${localIndex}-dob-hidden`}
                      style={{ 
                        position: 'absolute',
                        left: '0',
@@ -966,65 +2231,59 @@ const Step2Details = () => {
                      max={new Date().toISOString().split('T')[0]}
                      onChange={(e) => {
                        if (e.target.value) {
-                         console.log('🗓️ Date selected from native picker:', e.target.value);
-                         
                          // Convert to display format and update
                          const normalizedDate = e.target.value;
                          const displayFormat = formatDateFromNormalized(normalizedDate);
-                         console.log('🗓️ Date selected from picker - normalized:', normalizedDate, 'display:', displayFormat);
                          
-                         // Always update the input first (so user can see what they selected)
-                         handleDateChange(memberType, index, displayFormat);
+                         // Use handleDateChange for proper validation
+                         handleDateChange(memberType, globalIndex, displayFormat);
                          
                          // Remove from editing state to show formatted date
-                         const fieldKey = `${memberType}-${index}-dob`;
+                         const fieldKey = `${memberType}-${localIndex}-dob`;
                          setEditingFields(prev => {
                            const newSet = new Set(prev);
                            newSet.delete(fieldKey);
-                           console.log('🗓️ Removed from editing fields:', fieldKey);
                            return newSet;
                          });
                          
-                         // Mark field as touched
-                         setTouchedFields(prev => new Set(prev).add(`member_${index}_dob`));
-                         
                    // Set validating flag to prevent useEffect override
-                   const calendarFieldKey = `member_${index}_dob`;
+                   const calendarFieldKey = `${memberType}_${localIndex}_dob`;
+                   const dobKey = `${memberType}_${localIndex}_dob`;
                    setValidatingFields(prev => new Set(prev).add(calendarFieldKey));
                    validatingFieldsRef.current.add(calendarFieldKey);
                    
                    // Validate immediately since user has finished selecting from calendar
                    setTimeout(() => {
-                     console.log('🗓️ Calendar picker validation for:', normalizedDate, 'member type:', memberType);
-                     console.log('🗓️ About to call validateMemberAge...');
                      const validationResult = validateMemberAge(memberType, normalizedDate);
-                     console.log('🗓️ Calendar validation result:', validationResult);
                      
                      // Set error state immediately and persistently
                      setErrors(prev => {
                        const newErrors = { ...prev };
                        if (validationResult.isValid) {
-                         console.log('🗓️ ✅ Calendar validation passed, clearing error');
-                         delete newErrors[`member_${index}_dob`];
+                         delete newErrors[dobKey];
                        } else {
-                         console.log('🗓️ ❌ Calendar validation failed:', validationResult.error);
-                         newErrors[`member_${index}_dob`] = validationResult.error;
+                         newErrors[dobKey] = validationResult.error;
                        }
                        return newErrors;
                      });
                      
-                     // Clear validating flag after delay
+                     // Clear validating flag after delay, but only if no error
                      setTimeout(() => {
+                       // Only clear validating flag if there's no error for this field
+                       setErrors(prev => {
+                         const hasError = prev[dobKey];
+                         if (!hasError) {
                        setValidatingFields(prev => {
                          const newSet = new Set(prev);
                          newSet.delete(calendarFieldKey);
                          return newSet;
                        });
                        validatingFieldsRef.current.delete(calendarFieldKey);
+                         }
+                         return prev;
+                       });
                      }, 500); // 500ms to ensure useEffect doesn't override
                    }, 100); // 100ms delay to avoid conflict
-                       } else {
-                         console.log('🗓️ No date selected from picker');
                        }
                      }}
                    />
@@ -1034,43 +2293,34 @@ const Step2Details = () => {
                      onClick={(e) => {
                        e.preventDefault();
                        e.stopPropagation();
-                       console.log('🗓️ Calendar button clicked!');
                        
                        // Trigger the hidden date input
-                       const hiddenInput = document.getElementById(`${memberType}-${index}-dob-hidden`);
-                       console.log('🗓️ Hidden input found:', hiddenInput);
+                       const hiddenInput = document.getElementById(`${memberType}-${localIndex}-dob-hidden`);
                        if (hiddenInput) {
                          // Focus the input first, then trigger click
                          hiddenInput.focus();
-                         console.log('🗓️ Hidden input focused');
                          
                          // Use a small delay to ensure focus is set
                          setTimeout(() => {
                            // Use showPicker if available, otherwise click
                            if (hiddenInput.showPicker) {
                              try {
-                               console.log('🗓️ Using showPicker()');
                                const showPickerResult = hiddenInput.showPicker();
                                // If showPicker returns a promise, handle it
                                if (showPickerResult && typeof showPickerResult.catch === 'function') {
                                  showPickerResult.catch(() => {
                                    // Fallback to click if showPicker fails
-                                   console.log('🗓️ showPicker failed, using click fallback');
                                    hiddenInput.click();
                                  });
                                }
                              } catch (error) {
                                // Fallback to click if showPicker throws error
-                               console.log('🗓️ showPicker failed, using click fallback:', error);
                                hiddenInput.click();
                              }
                            } else {
-                             console.log('🗓️ showPicker not available, using click()');
                              hiddenInput.click();
                            }
                          }, 10);
-                       } else {
-                         console.log('🗓️ Hidden input not found!');
                        }
                      }}
                      title="Open date picker"
@@ -1078,38 +2328,38 @@ const Step2Details = () => {
                      📅
                    </button>
                  </div>
-                {errors[`member_${index}_dob`] && touchedFields.has(`member_${index}_dob`) && (
-                  <span className={styles['form-error']}>{errors[`member_${index}_dob`]}</span>
+                {errors[`${memberType}_${localIndex}_dob`] && touchedFields.has(`${memberType}_${localIndex}_dob`) && (
+                  <span className={styles['form-error']}>{errors[`${memberType}_${localIndex}_dob`]}</span>
                 )}
               </div>
 
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${index}-gender`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
+                <label htmlFor={`${memberType}-${localIndex}-gender`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
                 <select
-                  id={`${memberType}-${index}-gender`}
-                  value={member.gender}
-                  onChange={(e) => handleMemberChange(memberType, index, 'gender', e.target.value)}
-                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${index}_gender`))}
-                  className={`${styles['form-select']} ${errors[`member_${index}_gender`] && touchedFields.has(`${memberType}_${index}_gender`) ? styles['error'] : ''}`}
+                  id={`${memberType}-${localIndex}-gender`}
+                    value={member.gender || ''}
+                  onChange={(e) => handleMemberChange(memberType, globalIndex, 'gender', e.target.value)}
+                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_gender`))}
+                  className={`${styles['form-select']} ${errors[`member_${globalIndex}_gender`] && touchedFields.has(`${memberType}_${localIndex}_gender`) ? styles['error'] : ''}`}
                 >
                   <option value="">{t('booking.step2.placeholders.chooseGender')}</option>
                   <option value="male">{t('profile.genderOptions.male')}</option>
                   <option value="female">{t('profile.genderOptions.female')}</option>
                   <option value="other">{t('profile.genderOptions.other')}</option>
                 </select>
-                {errors[`member_${index}_gender`] && touchedFields.has(`${memberType}_${index}_gender`) && (
-                  <span className={styles['form-error']}>{errors[`member_${index}_gender`]}</span>
+                {errors[`member_${globalIndex}_gender`] && touchedFields.has(`${memberType}_${localIndex}_gender`) && (
+                  <span className={styles['form-error']}>{errors[`member_${globalIndex}_gender`]}</span>
                 )}
               </div>
 
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${index}-nationality`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.nationality')}</label>
+                <label htmlFor={`${memberType}-${localIndex}-nationality`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.nationality')}</label>
                 <select
-                  id={`${memberType}-${index}-nationality`}
-                  value={member.nationality}
-                  onChange={(e) => handleNationalityChange(memberType, index, e.target.value)}
-                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${index}_nationality`))}
-                  className={`${styles['form-select']} ${errors[`member_${index}_nationality`] && touchedFields.has(`${memberType}_${index}_nationality`) ? styles['error'] : ''}`}
+                  id={`${memberType}-${localIndex}-nationality`}
+                    value={member.nationality || ''}
+                  onChange={(e) => handleNationalityChange(memberType, globalIndex, e.target.value)}
+                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_nationality`))}
+                  className={`${styles['form-select']} ${errors[`member_${globalIndex}_nationality`] && touchedFields.has(`${memberType}_${localIndex}_nationality`) ? styles['error'] : ''}`}
                 >
                   <option value="">{t('booking.step2.placeholders.chooseNationality')}</option>
                   {countries.map(({code, label}) => (
@@ -1118,40 +2368,67 @@ const Step2Details = () => {
                     </option>
                   ))}
                 </select>
-                {errors[`member_${index}_nationality`] && touchedFields.has(`${memberType}_${index}_nationality`) && (
-                  <span className={styles['form-error']}>{errors[`member_${index}_nationality`]}</span>
+                {errors[`member_${globalIndex}_nationality`] && touchedFields.has(`${memberType}_${localIndex}_nationality`) && (
+                  <span className={styles['form-error']}>{errors[`member_${globalIndex}_nationality`]}</span>
                 )}
               </div>
 
               {/* Dynamic ID/Passport field based on confirmed nationality and age */}
-              {confirmedNationalities[`${memberType}-${index}`] && (
+              {(() => {
+                // Use globalIndex for key to ensure uniqueness between representative and adult members
+                const key = `${memberType}-${globalIndex}`;
+                const hasConfirmedNationality = confirmedNationalities[key];
+                const hasMemberNationality = member.nationality && member.nationality.trim();
+                
+                // Show ID field if either confirmedNationalities or member.nationality exists
+                // This ensures ID field shows when returning from other steps
+                return hasConfirmedNationality || hasMemberNationality;
+              })() && (
                 <div className={styles['form-group']}>
                   {(() => {
-                        const nationality = confirmedNationalities[`${memberType}-${index}`];
+                        const nationality = confirmedNationalities[`${memberType}-${globalIndex}`] || member.nationality;
                     const departureDate = plan.date.year && plan.date.month && plan.date.day 
                       ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
                       : null;
                     const idRequired = isIdRequired(member.dob, nationality);
                     const age = calculateAge(member.dob, departureDate);
                     
-                    if (!idRequired && nationality === 'VN') {
-                      // Show information message for Vietnamese who don't need ID
-                      return (
-                        <div className={styles['id-info-message']}>
-                          <div className={styles['info-icon']}>ℹ️</div>
-                          <div className={styles['info-text']}>
-                            {age < 2 && t('booking.step2.idInfo.baby')}
-                            {age >= 2 && age < 14 && t('booking.step2.idInfo.child')}
-                            {age >= 14 && age < 16 && t('booking.step2.idInfo.teen')}
+                    // Handle ID field display based on nationality and member type
+                    // For Vietnamese children/infants: only show info message, no input
+                    // For other nationalities: show passport input
+                    
+                    // For Vietnamese children and infants: only show info message
+                    if (nationality === 'VN' && (memberType === 'child' || memberType === 'infant')) {
+                        return (
+                          <div className={styles['id-info-message']}>
+                            <div className={styles['info-icon']}>ℹ️</div>
+                            <div className={styles['info-text']}>
+                            {memberType === 'infant' && t('booking.step2.idInfo.baby')}
+                            {memberType === 'child' && t('booking.step2.idInfo.child')}
+                            </div>
                           </div>
-                        </div>
-                      );
+                        );
                     }
                     
-                    // Show ID/Passport field for those who need it
+                    // For Vietnamese adults: show ID field with age-based requirement
+                    // For other nationalities (all ages): show passport field (required)
+                    const isIdRequiredForValidation = nationality === 'VN' ? 
+                      (memberType === 'adult' && idRequired) : // Vietnamese: only required for adults 14+
+                      true; // Other nationalities: always required
+                    
                     return (
                       <>
-                        <label htmlFor={`${memberType}-${index}-idNumber`} className={`${styles['form-label']} ${idRequired ? styles['required'] : ''}`}>
+                        {nationality === 'VN' && memberType === 'adult' && !idRequired && (
+                          <div className={styles['id-info-message']}>
+                            <div className={styles['info-icon']}>ℹ️</div>
+                            <div className={styles['info-text']}>
+                              {t('booking.step2.idInfo.adult')}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className={styles['form-group']}>
+                          <label htmlFor={`${memberType}-${localIndex}-idNumber`} className={`${styles['form-label']} ${isIdRequiredForValidation ? styles['required'] : ''}`}>
                           {nationality === 'VN' ? t('booking.step2.labels.idNumberCCCD') : t('booking.step2.labels.idNumberPassport')}
                         </label>
                         {nationality === 'VN' && (
@@ -1165,28 +2442,30 @@ const Step2Details = () => {
                         )}
                         <input
                           type="text"
-                          id={`${memberType}-${index}-idNumber`}
-                          value={member.idNumber}
-                          onChange={(e) => handleIdNumberChange(memberType, index, e.target.value)}
-                          onBlur={(e) => handleIdNumberBlur(memberType, index, e.target.value)}
-                          className={`${styles['form-input']} ${errors[`${memberType}_${index}_idNumber`] && touchedFields.has(`${memberType}_${index}_idNumber`) ? styles['error'] : ''}`}
+                          id={`${memberType}-${localIndex}-idNumber`}
+                              value={member.idNumber || ''}
+                              onChange={(e) => handleIdNumberChange(memberType, globalIndex, e.target.value)}
+                              onBlur={(e) => handleIdNumberBlur(memberType, globalIndex, e.target.value)}
+                          className={`${styles['form-input']} ${errors[`${memberType}_${localIndex}_idNumber`] && touchedFields.has(`${memberType}_${localIndex}_idNumber`) ? styles['error'] : ''}`}
                           placeholder={nationality === 'VN' ? 
                             (currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' : 
                              currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
                              'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)') : 
                             t('booking.step2.placeholders.idPassport')}
                         />
-                        {errors[`${memberType}_${index}_idNumber`] && touchedFields.has(`${memberType}_${index}_idNumber`) && (
-                          <span className={styles['form-error']}>{errors[`${memberType}_${index}_idNumber`]}</span>
+                        {errors[`${memberType}_${localIndex}_idNumber`] && touchedFields.has(`${memberType}_${localIndex}_idNumber`) && (
+                          <span className={styles['form-error']}>{errors[`${memberType}_${localIndex}_idNumber`]}</span>
                         )}
+                        </div>
                       </>
                     );
                   })()}
                 </div>
               )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
@@ -1288,7 +2567,6 @@ const Step2Details = () => {
                  return formatPrice(tourPrices.adult);
                })()}
              </div>
-             {/* Debug: {console.log('Adult price in render:', tourPrices.adult)} */}
             <div className={styles['pax-counter']}>
               <button
                 className={`${styles['pax-button']} ${styles['decrement']}`}
@@ -1368,9 +2646,12 @@ const Step2Details = () => {
       <div className={styles['form-section']}>
         <h3 className={styles['section-title']}>{t('booking.step2.sections.membersTitle')}</h3>
         <div className={styles['members-section']}>
-          {renderMemberForm('adult', plan.members.adult)}
-          {renderMemberForm('child', plan.members.child)}
-          {renderMemberForm('infant', plan.members.infant)}
+          {/* Representative from Step 1 */}
+          {renderRepresentativeForm()}
+          {/* Additional adult members (skip representative at index 0) */}
+          {plan.members.adult.length > 1 && renderMemberForm('adult', plan.members.adult.slice(1))}
+          {plan.members.child.length > 0 && renderMemberForm('child', plan.members.child)}
+          {plan.members.infant.length > 0 && renderMemberForm('infant', plan.members.infant)}
         </div>
       </div>
 
@@ -1406,6 +2687,7 @@ const Step2Details = () => {
     </div>
   );
 };
+
 
 // No props needed - navigation handled by parent
 

@@ -1,0 +1,430 @@
+.search-sidebar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1c1e21;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e4e6eb;
+}
+
+.search-section {
+  margin-bottom: 24px;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 48px;
+  border: 1px solid #e1e5e9;
+  border-radius: 999px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+}
+
+.search-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: #f2f3f5;
+}
+
+.search-suggest {
+  /* now positioned fixed via inline style to mimic YouTube */
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 8px 0;
+  z-index: 20;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.suggest-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+.suggest-item:hover,
+.suggest-item.selected {
+  background-color: #f7f8fa;
+}
+.suggest-item.selected {
+  background-color: #e3f2fd;
+  border-left: 3px solid #1877f2;
+}
+.suggest-item .icon {
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.suggest-item.hashtag .icon { color: #1877f2; }
+.suggest-item.user .icon { color: #31a24c; }
+.suggest-item.post .icon { color: #ff6b35; }
+.suggest-item.trending .icon { color: #ff4757; }
+
+/* Ensure CSS Modules export these modifier classes */
+.selected {}
+.hashtag {}
+.user {}
+.post {}
+.trending {}
+
+.suggest-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.suggest-item .text {
+  color: #1c1e21;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggest-item .subtitle {
+  color: #65676b;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clear-search-btn {
+  background-color: #f2f3f5;
+  border: 1px solid #e1e5e9;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #65676b;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.clear-search-btn:hover {
+  background-color: #e4e6eb;
+}
+
+/* Search History in Suggestions Dropdown */
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e1e5e9;
+  background-color: #f8f9fa;
+}
+
+.history-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1e21;
+}
+
+.clear-all-history-btn {
+  background: none;
+  border: none;
+  color: #65676b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.clear-all-history-btn:hover {
+  background-color: #e4e6eb;
+  color: #1c1e21;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f2f5;
+  pointer-events: auto;
+  position: relative;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item:hover {
+  background-color: #f8f9fa;
+}
+
+.history-item:active {
+  background-color: #e4e6eb;
+  transform: scale(0.98);
+}
+
+.history-keyword {
+  font-size: 14px;
+  color: #1c1e21;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-history-btn {
+  background: none;
+  border: none;
+  color: #65676b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: all 0.2s;
+  opacity: 0;
+  pointer-events: auto;
+  z-index: 10;
+  position: relative;
+}
+
+.history-item:hover .remove-history-btn {
+  opacity: 1;
+}
+
+.remove-history-btn:hover {
+  background-color: #e4e6eb;
+  color: #1c1e21;
+}
+
+.hashtags-section {
+  margin-bottom: 24px;
+}
+
+.hashtags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.clear-hashtags-btn {
+  background: none;
+  border: none;
+  color: #65676b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.clear-hashtags-btn:hover {
+  background-color: #e4e6eb;
+  color: #1c1e21;
+}
+
+.hashtags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hashtag-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #e4e6eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.hashtag-item:hover {
+  background-color: #e7f3ff;
+  border-color: #1877f2;
+  transform: translateY(-1px);
+}
+
+.hashtag-item.selected {
+  background-color: #e7f3ff;
+  border-color: #1877f2;
+  color: #1877f2;
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(24, 119, 242, 0.2);
+}
+
+/* Export selected for modules reference */
+.selected {}
+
+.hashtag-item.selected .hashtag-text {
+  color: #1877f2;
+  font-weight: 600;
+}
+
+.hashtag-item.selected .hashtag-count {
+  background-color: #1877f2;
+  color: white;
+}
+
+.hashtag-check {
+  color: #1877f2;
+  font-weight: bold;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.hashtag-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1c1e21;
+}
+
+.hashtag-count {
+  background-color: #e4e6eb;
+  color: #65676b;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 24px;
+  text-align: center;
+}
+
+.trending-section {
+  margin-bottom: 16px;
+}
+
+.trending-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trending-topic {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.trending-topic:hover {
+  color: #1877f2;
+}
+
+.topic-number {
+  background-color: #1877f2;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.topic-text {
+  font-size: 14px;
+  color: #1c1e21;
+  line-height: 1.4;
+}
+
+@media (max-width: 1024px) {
+  .search-sidebar {
+    position: static;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-sidebar {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .sidebar-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .search-section,
+  .hashtags-section,
+  .trending-section {
+    margin-bottom: 20px;
+  }
+  
+  .hashtag-item {
+    padding: 8px 10px;
+  }
+  
+  .trending-topic {
+    padding: 6px 0;
+  }
+}

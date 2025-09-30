@@ -201,6 +201,47 @@
   font-size: 0.9rem;
 }
 
+/* Premium Details */
+.premium-details {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border: 1px solid #f59e0b;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-details::before {
+  content: '🌟';
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+
+.premium-details h2 {
+  color: #92400e;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.premium-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.premium-status {
+  color: #059669 !important;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
+}
+
 /* Booking Details */
 .booking-details {
   background: #f8fafc;

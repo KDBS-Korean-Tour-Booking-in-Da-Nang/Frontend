@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TourBookingProvider, useBooking } from '../../../contexts/TourBookingContext';
 import { formatBookingData, validateBookingData } from '../../../utils/bookingFormatter';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { useBookingStepValidation } from '../../../hooks/useBookingStepValidation';
 import { useTranslation } from 'react-i18next';
+import ConfirmLeaveModal from '../../../components/modals/ConfirmLeaveModal/ConfirmLeaveModal';
 import Step1Contact from './steps/Step1Contact/Step1Contact';
 import Step2Details from './steps/Step2Details/Step2Details';
 import Step3Review from './steps/Step3Review/Step3Review';
@@ -21,6 +22,7 @@ const STEPS = [
 const BookingWizardContent = () => {
   const { id: tourId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
   const { showError, showBatch } = useToast();
   const { user, loading: authLoading } = useAuth();
@@ -28,13 +30,184 @@ const BookingWizardContent = () => {
     resetBooking, 
     contact, 
     plan, 
-    booking
+    booking,
+    setContact,
+    setDate,
+    setPax,
+    setMember,
+    recalcTotal
   } = useBooking();
   
   const [currentStep, setCurrentStep] = useState(1);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
+  
+  // Check if we're returning from payment page
+  useEffect(() => {
+    const locationState = location.state;
+    if (locationState && locationState.returnFromPayment) {
+      setCurrentStep(3); // Navigate to Step 3 when returning from payment
+      
+      // Clear confirmed leave flag when returning from payment
+      try {
+        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+      } catch (error) {
+        console.error('Error clearing confirmed leave flag:', error);
+      }
+      
+      // Try to restore booking data from localStorage
+      try {
+        const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
+        if (savedBookingData) {
+          const parsedData = JSON.parse(savedBookingData);
+          
+          // Restore contact data
+          if (parsedData.contact) {
+            setContact(parsedData.contact);
+          }
+          
+          // Restore plan data
+          if (parsedData.plan) {
+            // Restore date
+            if (parsedData.plan.date) {
+              setDate(parsedData.plan.date);
+            }
+            
+            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
+            if (parsedData.plan.pax) {
+              setPax(parsedData.plan.pax);
+            }
+            
+            // Restore members
+            if (parsedData.plan.members) {
+              // Restore adult members
+              if (parsedData.plan.members.adult) {
+                parsedData.plan.members.adult.forEach((member, index) => {
+                  setMember('adult', index, member);
+                });
+              }
+              
+              // Restore child members
+              if (parsedData.plan.members.child) {
+                parsedData.plan.members.child.forEach((member, index) => {
+                  setMember('child', index, member);
+                });
+              }
+              
+              // Restore infant members
+              if (parsedData.plan.members.infant) {
+                parsedData.plan.members.infant.forEach((member, index) => {
+                  setMember('infant', index, member);
+                });
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error restoring booking data:', error);
+      }
+    }
+  }, [setContact, setDate, setMember]);
+  
+  // Load tour prices and trigger price calculation when returning from payment
+  useEffect(() => {
+    const locationState = location.state;
+    if (locationState && locationState.returnFromPayment) {
+      // Load tour prices from API
+      const loadTourPrices = async () => {
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+          const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const tourData = await response.json();
+          
+          // Trigger price calculation with loaded prices
+          const prices = {
+            adult: tourData.adultPrice,
+            child: tourData.childrenPrice,
+            infant: tourData.babyPrice
+          };
+          
+          recalcTotal(prices);
+        } catch (error) {
+          console.error('Error loading tour prices for restoration:', error);
+        }
+      };
+      
+      loadTourPrices();
+    }
+  }, [location.state, tourId, recalcTotal]);
+  
+  // Auto-save booking data when contact or plan changes
+  useEffect(() => {
+    // Only save if we have meaningful data (not initial empty state)
+    if (contact && (contact.fullName || contact.phone || contact.email) && 
+        plan && (plan.date || plan.pax)) {
+      try {
+        const bookingData = {
+          contact,
+          plan,
+          timestamp: Date.now(),
+          tourId: tourId
+        };
+          localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+      } catch (error) {
+        console.error('Error auto-saving booking data:', error);
+      }
+    }
+  }, [contact, plan, tourId]);
+  
+  // Simple beforeunload handler like TourWizard
+  useEffect(() => {
+    const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
+                   plan && (plan.date || plan.pax);
+    
+    const handler = (e) => {
+      if (!hasData) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [contact, plan]);
+
+  // Intercept clicks on navigation links like TourWizard
+  useEffect(() => {
+    const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
+                   plan && (plan.date || plan.pax);
+    
+    const onClick = (ev) => {
+      if (!hasData) return; // allow normal nav if not dirty
+      const anchor = ev.target.closest('a');
+      if (!anchor) return;
+      const url = new URL(anchor.href, window.location.origin);
+      const isSameOrigin = url.origin === window.location.origin;
+      if (isSameOrigin && url.pathname !== window.location.pathname && 
+          !url.pathname.includes('/tour/') && !url.pathname.includes('/payment/')) {
+        ev.preventDefault();
+        setShowLeaveModal(true);
+        setPendingNavigation(url.pathname + url.search + url.hash);
+      }
+    };
+    
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, [contact, plan]);
+  
   
   // Use custom hook for step validation
-  const { getStepErrors } = useBookingStepValidation({ contact, plan, user });
+  const { getStepErrors, isStepCompleted, stepValidations } = useBookingStepValidation({ contact, plan, user });
 
   // Authentication guard
   useEffect(() => {
@@ -48,20 +221,111 @@ const BookingWizardContent = () => {
   // Reset booking when component mounts or tourId changes
   useEffect(() => {
     if (user) {
-      resetBooking();
+      // Check if user has confirmed to leave before
+      const hasConfirmedLeaveFlag = localStorage.getItem(`hasConfirmedLeave_${tourId}`);
+      if (hasConfirmedLeaveFlag === 'true') {
+        resetBooking();
+        return;
+      }
+      
+      // Try to restore existing booking data from localStorage
+      try {
+        const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
+        if (savedBookingData) {
+          const parsedData = JSON.parse(savedBookingData);
+        
+          // Restore contact data
+          if (parsedData.contact) {
+            setContact(parsedData.contact);
+          }
+          
+          // Restore plan data
+          if (parsedData.plan) {
+            // Restore date
+            if (parsedData.plan.date) {
+              setDate(parsedData.plan.date);
+            }
+            
+            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
+            if (parsedData.plan.pax) {
+              setPax(parsedData.plan.pax);
+            }
+
+            // Restore members
+            if (parsedData.plan.members) {
+              // Restore adult members
+              if (parsedData.plan.members.adult) {
+                parsedData.plan.members.adult.forEach((member, index) => {
+                  setMember('adult', index, member);
+                });
+              }
+              
+              // Restore child members
+              if (parsedData.plan.members.child) {
+                parsedData.plan.members.child.forEach((member, index) => {
+                  setMember('child', index, member);
+                });
+              }
+              
+              // Restore infant members
+              if (parsedData.plan.members.infant) {
+                parsedData.plan.members.infant.forEach((member, index) => {
+                  setMember('infant', index, member);
+                });
+              }
+            }
+          }
+        } else {
+          // No saved data, reset to initial state
+          resetBooking();
+        }
+      } catch (error) {
+        console.error('Error restoring booking data:', error);
+        resetBooking();
+      }
     }
-  }, [tourId, resetBooking, user]);
+  }, [tourId, resetBooking, user, setContact, setDate, setMember]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
-      // Get validation errors for current step
-      const errors = getStepErrors(currentStep);
+      // Check if current step is valid using stepValidations
+      const currentStepKey = `step${currentStep}`;
+      const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
       
-      if (errors.length > 0) {
-        const messages = errors.map(errorKey => ({ i18nKey: 'toast.required', values: { field: t(errorKey) } }));
-        // Queue this batch; if another click happens, the next batch will wait until this one is done
-        showBatch(messages, 'error', 5000);
+      if (!isCurrentStepValid) {
+        // Get validation errors for current step
+        const errors = getStepErrors(currentStep);
+        
+        if (errors.length > 0) {
+          const messages = errors.map(errorKey => {
+            // Check if it's a toast message key (contains 'toast')
+            if (errorKey.includes('toast')) {
+              return { i18nKey: errorKey };
+            } else {
+              // It's a field name, use the required toast format
+              const fieldName = t(errorKey);
+              return { i18nKey: 'toast.required', values: { field: fieldName } };
+            }
+          });
+          
+          // Queue this batch; if another click happens, the next batch will wait until this one is done
+          showBatch(messages, 'error', 5000);
+        }
       } else {
+        
+        // Save booking data to localStorage before moving to next step
+        try {
+          const bookingData = {
+            contact,
+            plan,
+            timestamp: Date.now(),
+            tourId: tourId
+          };
+          localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+        } catch (error) {
+          console.error('Error saving booking data:', error);
+        }
+        
         setCurrentStep(currentStep + 1);
       }
     }
@@ -86,6 +350,20 @@ const BookingWizardContent = () => {
       return;
     }
     
+    // Save final booking data to localStorage before payment
+    try {
+      const finalBookingData = {
+        contact,
+        plan,
+        timestamp: Date.now(),
+        tourId: tourId,
+        status: 'pending_payment'
+      };
+      localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(finalBookingData));
+    } catch (error) {
+      console.error('Error saving final booking data:', error);
+    }
+    
     // Navigate to payment page with booking data (not yet created in DB)
     navigate('/payment/vnpay', {
       state: {
@@ -95,15 +373,57 @@ const BookingWizardContent = () => {
     });
   };
 
-  const isStepCompleted = (stepId) => {
-    return stepId < currentStep;
+  const isStepCompletedByValidation = (stepId) => {
+    return isStepCompleted(stepId);
   };
 
   const handleStepClick = (stepId) => {
     // Only allow clicking on completed steps or current step
-    if (isStepCompleted(stepId) || stepId === currentStep) {
+    if (isStepCompletedByValidation(stepId) || stepId === currentStep) {
       setCurrentStep(stepId);
     }
+  };
+
+  // Handle navigation with confirm leave modal
+  const handleNavigation = (path) => {
+    // Check if user has entered any data
+    const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
+                   plan && (plan.date || plan.pax);
+    
+    if (hasData) {
+      // Show confirm leave modal
+      
+      setPendingNavigation(path);
+      setShowLeaveModal(true);
+    } else {
+      // No data, navigate directly
+      navigate(path);
+    }
+  };
+
+  // Handle confirm leave modal actions - simple like TourWizard
+  const handleConfirmLeave = () => {
+    // Allow closing tab without prompt
+    window.removeEventListener('beforeunload', () => {});
+    setShowLeaveModal(false);
+    
+    // Clear booking data when user confirms to leave
+    try {
+      localStorage.removeItem(`bookingData_${tourId}`);
+      localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
+    } catch (error) {
+      console.error('Error clearing booking data:', error);
+    }
+    
+    if (pendingNavigation) {
+      navigate(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
+  const handleCancelLeave = () => {
+    setShowLeaveModal(false);
+    setPendingNavigation(null);
   };
 
   const renderCurrentStep = () => {
@@ -174,7 +494,7 @@ const BookingWizardContent = () => {
               className={(() => {
                 const base = styles['progress-step'];
                 if (currentStep === step.id) return `${base} ${styles.active}`;
-                if (isStepCompleted(step.id)) return `${base} ${styles.completed}`;
+                if (isStepCompletedByValidation(step.id)) return `${base} ${styles.completed}`;
                 return base;
               })()}
               onClick={() => handleStepClick(step.id)}
@@ -234,6 +554,13 @@ const BookingWizardContent = () => {
           </button>
         )}
       </div>
+
+      {/* Confirm Leave Modal */}
+      <ConfirmLeaveModal
+        open={showLeaveModal}
+        onCancel={handleCancelLeave}
+        onConfirm={handleConfirmLeave}
+      />
     </div>
   );
 };

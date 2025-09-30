@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Modal } from '../../../components';
+import { API_ENDPOINTS } from '../../../config/api';
 import { 
   PencilIcon, 
   EyeIcon, 
@@ -10,7 +11,8 @@ import {
   ShieldCheckIcon,
   HeartIcon,
   CreditCardIcon,
-  BellIcon
+  BellIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import styles from './UserProfile.module.css';
 
@@ -28,6 +30,8 @@ const UserProfile = () => {
   });
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
   const [avatarFile, setAvatarFile] = useState(null);
+  const [premiumStatus, setPremiumStatus] = useState(null);
+  const [premiumLoading, setPremiumLoading] = useState(false);
 
   // Check if user logged in via OAuth (Google/Naver)
   // Multiple detection methods for OAuth
@@ -76,8 +80,37 @@ const UserProfile = () => {
   console.log('Final is Naver user:', finalIsNaverUser);
   console.log('========================');
 
+  // Fetch premium status
+  useEffect(() => {
+    const fetchPremiumStatus = async () => {
+      try {
+        setPremiumLoading(true);
+        const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setPremiumStatus(data);
+        }
+      } catch (error) {
+        console.error('Error fetching premium status:', error);
+      } finally {
+        setPremiumLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchPremiumStatus();
+    }
+  }, [user]);
+
   const sidebarMenuItems = [
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserIcon },
+    { id: 'premium', label: 'Premium', icon: StarIcon },
     { id: 'settings', label: 'Cài đặt', icon: CogIcon },
     { id: 'security', label: 'Bảo mật', icon: ShieldCheckIcon },
     { id: 'favorites', label: 'Yêu thích', icon: HeartIcon },
@@ -168,6 +201,40 @@ const UserProfile = () => {
               <div className={`${styles['info-value']} ${!user?.cccd ? styles['empty'] : ''}`}>
                 {user?.cccd || 'Chưa cập nhật'}
               </div>
+            </div>
+          </div>
+        );
+
+      case 'premium':
+        return (
+          <div className={styles['profile-info']}>
+            <div className={styles['premium-status']}>
+              <div className={styles['premium-header']}>
+                <StarIcon className={styles['premium-icon']} />
+                <h3>Premium Status</h3>
+              </div>
+              
+              {premiumLoading ? (
+                <div className={styles['loading']}>
+                  <div className={styles['spinner']}></div>
+                  <p>Đang tải thông tin premium...</p>
+                </div>
+              ) : premiumStatus?.isPremium ? (
+                <div className={styles['premium-active']}>
+                  <div className={styles['premium-badge']}>Active</div>
+                  <div className={styles['premium-details']}>
+                    <p><strong>Valid until:</strong> {new Date(premiumStatus.expirationDate).toLocaleDateString('vi-VN')}</p>
+                    <p><strong>Status:</strong> Premium Member</p>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles['premium-inactive']}>
+                  <div className={styles['premium-badge-inactive']}>Inactive</div>
+                  <div className={styles['premium-details']}>
+                    <p>Bạn chưa có gói Premium. Nâng cấp để tận hưởng các tính năng đặc biệt!</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );

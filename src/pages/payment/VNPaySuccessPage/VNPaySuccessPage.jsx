@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../contexts/ToastContext';
 import styles from './VNPaySuccessPage.module.css';
 
-const VNPaySuccessPage = () => {
+const VNPaySuccessPage = ({ paymentType }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -14,17 +14,20 @@ const VNPaySuccessPage = () => {
   const [loading, setLoading] = useState(true);
   const [toastShown, setToastShown] = useState(false);
 
+
   useEffect(() => {
     // Check if we have data from location state (from VNPayReturnPage or TransactionResultPage)
     if (location.state) {
-      console.log('VNPay Success Page - Location state:', location.state);
+      const finalPaymentType = location.state.paymentType || paymentType;
       
       setTransactionData({
         orderId: location.state.orderId,
         paymentMethod: location.state.paymentMethod,
         responseCode: location.state.responseCode,
+        paymentType: finalPaymentType,
         bookingData: location.state.bookingData,
         tourId: location.state.tourId,
+        premiumData: location.state.premiumData,
         paymentInfo: location.state.paymentInfo
       });
 
@@ -44,33 +47,43 @@ const VNPaySuccessPage = () => {
     const paymentMethod = urlParams.get('paymentMethod');
     const responseCode = urlParams.get('responseCode');
 
-    console.log('VNPay Success Page - URL params:', {
-      orderId,
-      paymentMethod,
-      responseCode
-    });
 
-    // Get pending booking data from sessionStorage
+    // Get pending booking or premium data from sessionStorage
     const pendingBookingData = sessionStorage.getItem('pendingBooking');
+    const pendingPremiumData = sessionStorage.getItem('pendingPremiumPayment');
     let bookingData = null;
+    let premiumData = null;
     
     if (pendingBookingData) {
       try {
         bookingData = JSON.parse(pendingBookingData);
-        console.log('Pending booking data:', bookingData);
       } catch (error) {
         console.error('Error parsing pending booking data:', error);
       }
     }
+    
+    if (pendingPremiumData) {
+      try {
+        premiumData = JSON.parse(pendingPremiumData);
+      } catch (error) {
+        console.error('Error parsing pending premium data:', error);
+      }
+    }
 
-    // Set transaction data
+    // Set transaction data - prioritize paymentType from prop
+    const detectedPaymentType = premiumData ? 'premium' : 'booking';
+    const finalPaymentType = paymentType || detectedPaymentType;
+    
+    
     setTransactionData({
       orderId,
       paymentMethod,
       responseCode,
+      paymentType: finalPaymentType,
       bookingData: bookingData?.bookingData,
       tourId: bookingData?.tourId,
-      paymentInfo: bookingData?.paymentInfo
+      premiumData: premiumData?.premiumData,
+      paymentInfo: bookingData?.paymentInfo || premiumData?.paymentInfo
     });
 
     // Show success message only once
@@ -81,9 +94,12 @@ const VNPaySuccessPage = () => {
     
     setLoading(false);
 
-    // Clear pending booking data
+    // Clear pending data
     if (pendingBookingData) {
       sessionStorage.removeItem('pendingBooking');
+    }
+    if (pendingPremiumData) {
+      sessionStorage.removeItem('pendingPremiumPayment');
     }
   }, [location.search, location.state, showSuccess, toastShown]);
 
@@ -182,7 +198,12 @@ const VNPaySuccessPage = () => {
         <div className={styles['success-message']}>
           <h1>🎉 {t('payment.paymentSuccessTitle')}</h1>
           <p className={styles['success-subtitle']}>
-            {t('payment.paymentSuccessMessage')}
+            {(() => {
+              const message = transactionData?.paymentType === 'premium' 
+                ? 'Cảm ơn bạn đã thanh toán. Gói Premium đã được kích hoạt thành công!'
+                : t('payment.paymentSuccessMessage');
+              return message;
+            })()}
           </p>
         </div>
 
@@ -204,6 +225,29 @@ const VNPaySuccessPage = () => {
               <div className={styles['info-item']}>
                 <span className={styles['info-label']}>{t('payment.responseCode')}:</span>
                 <span className={`${styles['info-value']} ${styles['success-code']}`}>{transactionData.responseCode}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Premium Details */}
+        {transactionData?.paymentType === 'premium' && transactionData?.premiumData && (
+          <div className={styles['premium-details']}>
+            <h2>🌟 Thông tin gói Premium</h2>
+            <div className={styles['premium-info-grid']}>
+              <div className={styles['info-item']}>
+                <span className={styles['info-label']}>Gói Premium:</span>
+                <span className={styles['info-value']}>{transactionData.premiumData.planName}</span>
+              </div>
+              
+              <div className={styles['info-item']}>
+                <span className={styles['info-label']}>Số tiền thanh toán:</span>
+                <span className={styles['info-value']}>{transactionData.premiumData.amount?.toLocaleString('vi-VN')} VND</span>
+              </div>
+              
+              <div className={styles['info-item']}>
+                <span className={styles['info-label']}>Trạng thái:</span>
+                <span className={`${styles['info-value']} ${styles['premium-status']}`}>Đã kích hoạt</span>
               </div>
             </div>
           </div>
@@ -258,7 +302,7 @@ const VNPaySuccessPage = () => {
         )}
 
         {/* Guest List */}
-        {transactionData?.bookingData?.guests && transactionData.bookingData.guests.length > 0 && (
+        {transactionData?.bookingData?.bookingGuestRequests && transactionData.bookingData.bookingGuestRequests.length > 0 && (
           <div className={styles['guests-section']}>
             <h3>{t('payment.guestList')}</h3>
             <div className={styles['guests-table']}>
@@ -275,7 +319,7 @@ const VNPaySuccessPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactionData.bookingData.guests.map((guest, index) => (
+                  {transactionData.bookingData.bookingGuestRequests.map((guest, index) => (
                     <tr key={`guest-${guest.fullName}-${index}`}>
                       <td>{index + 1}</td>
                       <td>{guest.fullName}</td>
@@ -290,8 +334,8 @@ const VNPaySuccessPage = () => {
                       <td>{guest.nationality}</td>
                       <td>
                         {(() => {
-                          if (guest.guestType === 'ADULT') return t('payment.adult');
-                          if (guest.guestType === 'CHILD') return t('payment.child');
+                          if (guest.bookingGuestType === 'ADULT') return t('payment.adult');
+                          if (guest.bookingGuestType === 'CHILD') return t('payment.child');
                           return t('payment.baby');
                         })()}
                       </td>
@@ -306,26 +350,48 @@ const VNPaySuccessPage = () => {
 
         {/* Action Buttons */}
         <div className={styles['action-buttons']}>
-          <button 
-            className={styles['btn-primary']}
-            onClick={handleViewBooking}
-          >
-            Xem đặt tour của tôi
-          </button>
-          
-          <button 
-            className={styles['btn-secondary']}
-            onClick={handleGoToTour}
-          >
-            Xem chi tiết tour
-          </button>
-          
-          <button 
-            className={styles['btn-tertiary']}
-            onClick={handleGoHome}
-          >
-            Về trang chủ
-          </button>
+          {transactionData?.paymentType === 'premium' ? (
+            // Premium payment buttons
+            <>
+              <button 
+                className={styles['btn-primary']}
+                onClick={handleGoHome}
+              >
+                Về trang chủ
+              </button>
+              
+              <button 
+                className={styles['btn-secondary']}
+                onClick={() => navigate('/profile')}
+              >
+                Xem tài khoản Premium
+              </button>
+            </>
+          ) : (
+            // Booking payment buttons
+            <>
+              <button 
+                className={styles['btn-primary']}
+                onClick={handleViewBooking}
+              >
+                Xem đặt tour của tôi
+              </button>
+              
+              <button 
+                className={styles['btn-secondary']}
+                onClick={handleGoToTour}
+              >
+                Xem chi tiết tour
+              </button>
+              
+              <button 
+                className={styles['btn-tertiary']}
+                onClick={handleGoHome}
+              >
+                Về trang chủ
+              </button>
+            </>
+          )}
         </div>
 
         {/* Countdown */}
