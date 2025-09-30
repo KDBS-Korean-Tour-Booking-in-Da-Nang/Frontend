@@ -6,6 +6,8 @@ import styles from './TourDetailPage.module.css';
 import { ShareTourModal, LoginRequiredModal } from '../../../components';
 import { useAuth } from '../../../contexts/AuthContext';
 import { sanitizeHtml } from '../../../utils/sanitizeHtml';
+import { useTourRated } from '../../../hooks/useTourRated';
+import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 
 // Adjust color brightness by percentage (negative to darken)
 const shadeColor = (hex, percent) => {
@@ -38,6 +40,23 @@ const TourDetailPage = () => {
   const { user } = useAuth();
   const [openShare, setOpenShare] = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
+  const { ratings, submitRating, updateRating, deleteRating, canRate, ratedByMe, myRating, refresh } = useTourRated(id);
+  const [newStar, setNewStar] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  // close open menu on outside click
+  useEffect(() => {
+    if (!openMenuId) return;
+    const onDocClick = (e) => {
+      const target = e.target;
+      if (!target) return;
+      const container = target.closest?.(`[data-menu-id="${openMenuId}"]`);
+      if (!container) setOpenMenuId(null);
+    };
+    document.addEventListener('click', onDocClick, { capture: true });
+    return () => document.removeEventListener('click', onDocClick, { capture: true });
+  }, [openMenuId]);
 
   // Build itinerary data from API (contents or tourSchedule from Step 2)
   const getItineraryFromTour = (tourData) => {
@@ -137,6 +156,16 @@ const TourDetailPage = () => {
   };
 
   const itinerary = getItineraryFromTour(tour);
+  const ratingStats = (() => {
+    const total = ratings.length;
+    if (total === 0) return { avg: 0, dist: [0,0,0,0,0], total };
+    const dist = [0,0,0,0,0];
+    let sum = 0;
+    ratings.forEach(r => { const s = Math.max(1, Math.min(5, Number(r.star)||0)); dist[s-1]++; sum += s; });
+    const avg = sum / total;
+    return { avg, dist, total };
+  })();
+  const formatAvg = (v) => (Math.round(v * 10) / 10).toFixed(1);
 
   return (
     <div className={styles['tour-detail-page']}>
@@ -324,6 +353,164 @@ const TourDetailPage = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Ratings & Reviews */}
+              <div className={styles['tour-reviews']}
+                   style={{marginTop: '32px'}}>
+                <h2>{t('tourPage.detail.reviews.title') || 'Đánh giá & Nhận xét'}</h2>
+                {/* Create Rating */}
+                {user && canRate && (
+                  <div style={{
+                    border:'1px solid #e5e7eb', borderRadius:8, padding:16, margin:'12px 0'
+                  }}>
+                    <div style={{display:'flex', alignItems:'center', gap:8}}>
+                      {[1,2,3,4,5].map((s)=> (
+                        <button key={s}
+                                onClick={()=> setNewStar(s)}
+                                aria-label={`star-${s}`}
+                                style={{
+                                  background:'transparent', border:'none', cursor:'pointer', fontSize:22,
+                                  color: s <= newStar ? '#f59e0b' : '#d1d5db'
+                                }}>
+                          ★
+                        </button>
+                      ))}
+                      <span style={{marginLeft:8, color:'#6b7280', fontWeight:700}}>{newStar}/5</span>
+                    </div>
+                    <textarea
+                      value={newComment}
+                      onChange={(e)=> setNewComment(e.target.value)}
+                      placeholder={t('tourPage.detail.reviews.placeholder') || 'Chia sẻ trải nghiệm của bạn...'}
+                      style={{
+                        width:'100%', marginTop:10, padding:10, border:'1px solid #e5e7eb', borderRadius:6,
+                        minHeight:80, resize:'vertical'
+                      }}
+                    />
+                    <div style={{display:'flex', gap:8, marginTop:10}}>
+                      <button
+                        onClick={async ()=>{
+                          await submitRating({ star: newStar, comment: newComment });
+                          setNewComment('');
+                          setNewStar(5);
+                          await refresh();
+                        }}
+                        className={styles['book-now-btn']}
+                      >
+                        {t('tourPage.detail.reviews.submit') || 'Gửi đánh giá'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary */}
+                <div className={styles['reviews-summary']} style={{
+                  display:'flex', alignItems:'center', gap:24, padding:'16px', border:'1px solid #e5e7eb', borderRadius:8, background:'#f8fafc', marginTop:12
+                }}>
+                  <div style={{flex:1, display:'flex', flexDirection:'column', gap:6}}>
+                    {[5,4,3,2,1].map((s, idx)=>{
+                      const count = ratingStats.dist[s-1] || 0;
+                      const percent = ratingStats.total ? (count / ratingStats.total) * 100 : 0;
+                      return (
+                        <div key={s} style={{display:'flex', alignItems:'center', gap:8}}>
+                          <span style={{width:14, fontSize:12, color:'#6b7280'}}>{s}</span>
+                          <div style={{flex:1, height:8, background:'#e5e7eb', borderRadius:999}}>
+                            <div style={{width:`${percent}%`, height:'100%', background:'#f59e0b', borderRadius:999}}/>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{minWidth:100, textAlign:'right'}}>
+                    <div style={{fontSize:36, fontWeight:800, lineHeight:1}}>{formatAvg(ratingStats.avg)}</div>
+                    <div style={{color:'#f59e0b', letterSpacing:1, margin:'4px 0'}}>
+                      {'★★★★★'.split('').map((ch, i)=> (
+                        <span key={i} style={{color: (i+1) <= Math.round(ratingStats.avg) ? '#f59e0b' : '#e5e7eb'}}>★</span>
+                      ))}
+                    </div>
+                    <div style={{fontSize:12, color:'#6b7280'}}>{ratingStats.total} {t('forum.post.comments') || 'đánh giá'}</div>
+                  </div>
+                </div>
+
+                {/* Reviews List */}
+                <div style={{marginTop:16, display:'flex', flexDirection:'column', gap:12}}>
+                  {ratings.length === 0 ? (
+                    <div style={{color:'#6b7280'}}>
+                      {t('tourPage.detail.reviews.empty') || 'Chưa có đánh giá nào.'}
+                    </div>
+                  ) : (
+                    ratings.map((r)=>(
+                      <div key={r.tourRatedId}
+                           style={{border:'1px solid #e5e7eb', borderRadius:8, padding:12}}>
+                        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+                          <div style={{display:'flex', alignItems:'center', gap:8}}>
+                            {[1,2,3,4,5].map((s)=> (
+                              <span key={s} style={{
+                                color: s <= (r.star || 0) ? '#f59e0b' : '#d1d5db', fontSize:16
+                              }}>★</span>
+                            ))}
+                          </div>
+                          <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end'}}>
+                            <span style={{color:'#9ca3af', fontSize:12}}>{new Date(r.createdAt).toLocaleString()}</span>
+                            {user && ([user.userId,user.id,user.user_id].filter(Boolean).some(mid => String(mid)===String(r.userId))) && (
+                              <div style={{position:'relative', marginTop:4}} data-menu-id={r.tourRatedId}>
+                                <button
+                                  aria-label="more"
+                                  onClick={()=> setOpenMenuId(openMenuId===r.tourRatedId ? null : r.tourRatedId)}
+                                  style={{
+                                    background: openMenuId===r.tourRatedId ? '#f3f4f6' : 'transparent',
+                                    border:'1px solid ' + (openMenuId===r.tourRatedId ? '#e5e7eb' : 'transparent'),
+                                    cursor:'pointer', color:'#6b7280',
+                                    padding:6, lineHeight:1, fontSize:16, borderRadius:'999px',
+                                    transition:'background 0.2s'
+                                  }}
+                                >
+                                  ⋮
+                                </button>
+                                {openMenuId === r.tourRatedId && (
+                                  <div style={{
+                                    position:'absolute', right:0, top:26, background:'#fff', border:'1px solid #e5e7eb',
+                                    borderRadius:10, boxShadow:'0 8px 20px rgba(0,0,0,0.12)', overflow:'hidden', minWidth:120
+                                  }}>
+                                    <button
+                                      onClick={()=>{ setConfirmDeleteId(r.tourRatedId); setOpenMenuId(null); }}
+                                      style={{
+                                        background:'#ef4444', border:'none', padding:'10px 14px', cursor:'pointer',
+                                        color:'#ffffff', width:'100%', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center',
+                                        borderRadius:8
+                                      }}
+                                    >{t('tourPage.detail.reviews.delete') || 'Xóa'}</button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {/* Reviewer info under stars */}
+                        <div style={{display:'flex', alignItems:'center', gap:8, marginTop:8}}>
+                          <img src={'/default-avatar.png'} alt="avatar" style={{width:24, height:24, borderRadius:'50%'}} />
+                          <span style={{color:'#374151', fontWeight:600, fontSize:13}}>
+                            {(user && ([user.userId,user.id,user.user_id].filter(Boolean).some(mid => String(mid)===String(r.userId)))
+                              ? (user.fullName || user.username || user.name || user.email || 'Bạn')
+                              : `User #${r.userId}`)
+                            }
+                          </span>
+                        </div>
+                        {r.comment && (
+                          <div style={{marginTop:6, color:'#374151', whiteSpace:'pre-wrap'}}>{r.comment}</div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              {/* Delete Confirm Modal */}
+              <DeleteConfirmModal
+                isOpen={!!confirmDeleteId}
+                onClose={()=> setConfirmDeleteId(null)}
+                onConfirm={async ()=>{ if(confirmDeleteId){ await deleteRating(confirmDeleteId); await refresh(); setConfirmDeleteId(null); } }}
+                title={t('common.deleteConfirm.title')}
+                itemName={t('tourPage.detail.reviews.title')}
+              />
             </div>
 
             {/* Right Column - Booking Info */}

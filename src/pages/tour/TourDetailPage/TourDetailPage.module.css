@@ -376,6 +376,14 @@
   height: 32px;
 }
 
+/* Reviews */
+.tour-reviews h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
 /* Right Column - Booking Card */
 .tour-detail-right {
   position: sticky;
