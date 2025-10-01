@@ -61,6 +61,11 @@ export const API_ENDPOINTS = {
   PREMIUM_PAYMENT: `${BaseURL}/api/premium/payment`,
   PREMIUM_PAYMENT_STATUS: (orderId) => `${BaseURL}/api/premium/payment/status/${orderId}`,
   PREMIUM_STATUS: `${BaseURL}/api/premium/status`,
+
+  // Tour Rated
+  TOUR_RATED: `${BaseURL}/api/tourRated`,
+  TOUR_RATED_BY_ID: (id) => `${BaseURL}/api/tourRated/${id}`,
+  TOUR_RATED_BY_TOUR: (tourId) => `${BaseURL}/api/tourRated/tour/${tourId}`,
 };
 
 // Helper function để xử lý avatar URLs

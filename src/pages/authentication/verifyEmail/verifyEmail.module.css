@@ -164,6 +164,32 @@
   box-shadow: none;
 }
 
+/* Loading state: morph button to circular spinner */
+.loading {
+  width: 44px !important;
+  height: 44px;
+  padding: 0 !important;
+  border-radius: 9999px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: none !important;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .error-message {
   background: #ef4444;
   color: white;

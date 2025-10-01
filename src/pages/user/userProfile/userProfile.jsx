@@ -18,7 +18,7 @@ import styles from './UserProfile.module.css';
 
 const UserProfile = () => {
   const { t } = useTranslation();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, getToken } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [editForm, setEditForm] = useState({
@@ -85,16 +85,24 @@ const UserProfile = () => {
     const fetchPremiumStatus = async () => {
       try {
         setPremiumLoading(true);
+        const token = getToken();
+        if (!token) {
+          console.log('No token available for premium status check');
+          return;
+        }
+
         const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           }
         });
 
         if (response.ok) {
           const data = await response.json();
-          setPremiumStatus(data);
+          // Backend might return { result: { ... } } or direct object
+          setPremiumStatus(data?.result || data);
         }
       } catch (error) {
         console.error('Error fetching premium status:', error);
@@ -106,7 +114,7 @@ const UserProfile = () => {
     if (user) {
       fetchPremiumStatus();
     }
-  }, [user]);
+  }, [user, getToken]);
 
   const sidebarMenuItems = [
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserIcon },

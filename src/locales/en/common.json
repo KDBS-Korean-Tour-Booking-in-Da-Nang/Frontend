@@ -1127,6 +1127,18 @@
 			"gallery": {
 				"title": "Tour gallery"
 			},
+        "reviews": {
+            "title": "Ratings & Reviews",
+            "placeholder": "Share your experience...",
+            "submit": "Submit review",
+            "cannotRate": "You are not eligible to rate this tour.",
+            "empty": "No reviews yet.",
+            "edit": "Edit",
+            "delete": "Delete",
+            "editPrompt": "Edit your comment:",
+            "editStarPrompt": "Edit stars (1-5):",
+            "deleteConfirm": "Delete this review?"
+        },
 			"booking": {
 				"price": "Tour price",
 				"includedNote": "Price includes taxes and service fees",

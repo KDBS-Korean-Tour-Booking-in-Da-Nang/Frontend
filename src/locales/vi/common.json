@@ -1131,6 +1131,18 @@
 			"gallery": {
 				"title": "Hình ảnh tour"
 			},
+        "reviews": {
+            "title": "Đánh giá & Nhận xét",
+            "placeholder": "Chia sẻ trải nghiệm của bạn...",
+            "submit": "Gửi đánh giá",
+            "cannotRate": "Bạn chưa đủ điều kiện để đánh giá tour này.",
+            "empty": "Chưa có đánh giá nào.",
+            "edit": "Sửa",
+            "delete": "Xóa",
+            "editPrompt": "Sửa nhận xét của bạn:",
+            "editStarPrompt": "Sửa số sao (1-5):",
+            "deleteConfirm": "Xóa đánh giá này?"
+        },
 			"booking": {
 				"price": "Giá tour",
 				"includedNote": "Giá đã bao gồm thuế và phí dịch vụ",

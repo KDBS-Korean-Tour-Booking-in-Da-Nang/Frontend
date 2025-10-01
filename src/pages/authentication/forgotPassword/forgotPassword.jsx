@@ -101,20 +101,16 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
-        // OTP verified successfully, navigate to reset password
-        setVerified(true);
+        // OTP verified successfully, navigate to reset password immediately
         showSuccess('toast.auth.otp_verify_success');
-        
-        // Navigate to reset password after 2 seconds
-        setTimeout(() => {
-          navigate('/reset-password', { 
-            state: { 
-              email: email,
-              verified: true,
-              otpCode: otp // Pass the verified OTP
-            } 
-          });
-        }, 2000);
+        navigate('/reset-password', {
+          replace: true,
+          state: {
+            email: email,
+            verified: true,
+            otpCode: otp
+          }
+        });
       } else {
         showError(data.message || 'toast.auth.general_error');
       }
