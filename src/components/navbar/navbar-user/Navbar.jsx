@@ -38,6 +38,12 @@ const Navbar = () => {
   // Fetch premium status
   useEffect(() => {
     const fetchPremiumStatus = async () => {
+      // Skip premium check for STAFF and ADMIN roles
+      if (user && (user.role === 'STAFF' || user.role === 'ADMIN')) {
+        console.log('Skipping premium check for staff/admin user');
+        return;
+      }
+
       try {
         const token = getToken();
         if (!token) {
@@ -102,6 +108,10 @@ const Navbar = () => {
     if (path === '/tour') {
       // For tour, also check if we're on tour detail page
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
+    }
+    if (path === '/news') {
+      // For news, also check if we're on news detail page
+      return location.pathname === '/news' || location.pathname.startsWith('/news/');
     }
     return location.pathname === path;
   };

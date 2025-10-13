@@ -382,6 +382,7 @@
 	"staffLogin": {
 		"title": "Staff/Admin Login",
 		"subtitle": "Access the management system",
+		"username": "Username",
 		"email": "Email",
 		"password": "Password",
 		"submit": "Login",
@@ -481,6 +482,7 @@
 			"edit": "Edit",
 			"delete": "Delete",
 			"reply": "Reply",
+			"report": "Report",
 			"editPlaceholder": "Edit comment...",
 			"replyPlaceholder": "Write a reply...",
 			"update": "Update",
@@ -495,7 +497,8 @@
 			"submitError": "Unable to add comment. Please try again.",
 			"hideComments": "Hide comments",
 			"showMore": "Show more",
-			"noComments": "No comments yet. Be the first to comment!"
+			"noComments": "No comments yet. Be the first to comment!",
+			"reported": "Reported"
 		},
 		"search": {
 			"title": "Search Posts",
@@ -503,6 +506,9 @@
 			"searchButton": "Search",
 			"clearButton": "Clear search",
 			"noResults": "No results found",
+			"backToForum": "Back to Forum",
+			"headerTitle": "Search Results",
+			"postCount": "posts",
 			"popularHashtags": "Popular Hashtags",
 			"recentSearches": "Recent Searches",
 			"clearRecent": "Clear History",
@@ -619,7 +625,10 @@
 			"selected": "selected"
 		},
 		"hashtag": {
-			"clickToFilter": "Click to filter posts by this hashtag"
+			"clickToFilter": "Click to filter posts by this hashtag",
+			"headerTitle": "Filter by Hashtag",
+			"postCount": "posts",
+			"backToForum": "Back to Forum"
 		},
 		"errors": {
 			"loadPosts": "Unable to load posts. Please try again.",
@@ -647,7 +656,11 @@
 		},
 		"myPosts": {
 			"title": "My Posts",
-			"empty": "You haven't created any posts yet. Create your first post!"
+			"empty": "You haven't created any posts yet. Create your first post!",
+			"emptyDesc": "Share your ideas and experiences with the community.",
+			"headerTitle": "My Posts",
+			"postCount": "posts",
+			"backToForum": "Back to Forum"
 		}
 	},
 	"forum.shareTour": {
@@ -1685,6 +1698,178 @@
       "noEmail": "User email not found. Please login again.",
       "missingPayUrl": "VNPay payment URL not found in response",
       "error": "Error"
+    }
+  },
+  "news": {
+    "title": "News",
+    "hero": {
+      "title": "Exciting Travel Information About Attractive Destinations",
+      "subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences"
+    },
+    "loading": "Loading articles...",
+    "loadingMore": "Loading...",
+    "loadMore": "Load More",
+    "noArticles": "No articles yet",
+    "noArticlesDesc": "Please come back later to see the latest articles!",
+    "noImage": "No image",
+    "category": "News",
+    "readMore": "Details",
+    "sidebar": {
+      "title": "TOUR CATEGORIES",
+      "domestic": {
+        "title": "Domestic Tours",
+        "north": "Northern Tours",
+        "central": "Central Tours",
+        "south": "Southern Tours",
+        "teambuilding": "Team Building Tours"
+      },
+      "international": {
+        "title": "International Tours",
+        "japan": "Japan Tours",
+        "singapore": "Singapore Malaysia Indonesia Tours",
+        "thailand": "Thailand Tours",
+        "taiwan": "Taiwan Tours",
+        "korea": "Korea Tours",
+        "china": "China Tours",
+        "laos": "Laos Cambodia Tours"
+      },
+      "dayTours": {
+        "title": "Day Tours",
+        "hue": "Hue Tour",
+        "baNa": "Ba Na Tour",
+        "hoiAn": "Hoi An Tour",
+        "mySon": "My Son Tour",
+        "sonTra": "Son Tra Tour",
+        "daNangCompany": "Da Nang Company Tour",
+        "chamIsland": "Cham Island Tour",
+        "daNangExplore": "Da Nang Exploration Tour"
+      },
+      "daNangTours": {
+        "title": "Da Nang Tourism Tours",
+        "1day": "Da Nang 1 Day Tour",
+        "2days": "Da Nang 2 Days 1 Night Tour",
+        "3days": "Da Nang 3 Days 2 Nights Tour",
+        "4days": "Da Nang 4 Days 3 Nights Tour",
+        "5days": "Da Nang 5 Days 4 Nights Tour",
+        "6days": "Da Nang 6 Days 5 Nights Tour",
+        "7days": "Da Nang 7 Days 6 Nights Tour",
+        "8days": "Da Nang 8 Days 7 Nights Tour"
+      },
+      "events": {
+        "title": "Featured Event Tours",
+        "tet": "Tet Tour",
+        "festival": "Festival Tour"
+      }
+    }
+  },
+  "newsDetail": {
+    "backToNews": "Back",
+    "news": "News",
+    "loading": "Loading article...",
+    "errorTitle": "Error loading article",
+    "errorMessage": "Unable to load article. Please try again later.",
+    "retry": "Retry",
+    "backToNewsPage": "Back to News Page",
+    "notFoundTitle": "Article not found",
+    "notFoundMessage": "The article you are looking for does not exist or has been deleted.",
+    "category": "News",
+    "publishedAt": "Published at",
+    "backToTop": "↑ Back to top",
+    "viewMoreNews": "← View more news",
+    "contentUpdating": "Article content is being updated..."
+  },
+  "newsManagement": {
+    "title": "News Management",
+    "subtitle": "Crawl and manage news articles from various sources",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You need administrator or staff permissions to access this page.",
+      "goHome": "Go Home",
+      "staffLogin": "Staff Login"
+    },
+    "logout": {
+      "loggingOut": "Logging out..."
+    },
+    "messages": {
+      "autoCrawlSuccess": "Successfully auto-crawled {{count}} new articles!",
+      "crawlSuccess": "Successfully crawled {{count}} new articles!",
+      "crawlError": "Error occurred while crawling news",
+      "crawlErrorDesc": "Error occurred while crawling news. Please try again later.",
+      "noNewArticles": "No new articles!",
+      "noNewArticlesDesc": "No new articles. All articles have been updated or already exist in the system.",
+      "selectArticles": "Please select at least one article",
+      "approved": "approved",
+      "unapproved": "unapproved",
+      "statusUpdateSuccess": "{{action}} {{count}} articles",
+      "statusUpdateError": "Error occurred while updating status",
+      "logoutSuccess": "Successfully logged out!"
+    },
+    "buttons": {
+      "crawlNews": "Crawl New News",
+      "crawling": "Crawling news...",
+      "loading": "Loading...",
+      "reloadList": "Reload List",
+      "approve": "Approve",
+      "unapprove": "Unapprove",
+      "viewDetails": "View Details",
+      "logout": "Logout",
+      "backToNews": "Back to News Page"
+    },
+    "status": {
+      "approved": "Approved",
+      "pending": "Pending"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "staff": "Staff"
+    },
+    "sidebar": {
+      "title": "Management",
+      "subtitle": "News & Articles",
+      "news": "News",
+      "statistics": "Statistics",
+      "settings": "Settings"
+    },
+    "welcome": {
+      "title": "Welcome, {{name}}!",
+      "description": "Manage and update news for the website",
+      "autoCrawl": "System automatically crawls new articles at 00:00 daily"
+    },
+    "articles": {
+      "title": "Article Management ({{count}} articles)",
+      "selectAll": "Select All",
+      "selectedCount": "{{count}} articles selected"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}} articles",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "noArticles": {
+      "message": "No articles yet. Start by crawling news!"
+    },
+    "instructions": {
+      "title": "Usage Instructions",
+      "crawlButton": "Click \"Crawl New News\" button to automatically collect articles from Danangxanh",
+      "autoCrawl": "System automatically crawls new articles at 00:00 daily",
+      "noDuplicates": "Duplicate articles will not be added to the system",
+      "approvedDisplay": "Approved articles will be displayed on the public news page",
+      "accessControl": "Only admins and staff can perform this function"
+    },
+    "modal": {
+      "title": "Article Details",
+      "source": "Article Source:",
+      "close": "Close"
+    },
+    "role": {
+      "admin": "Administrator",
+      "staff": "Staff"
+    },
+    "actions": {
+      "crawlNews": "Crawl New News",
+      "crawling": "Crawling news...",
+      "reloadList": "Reload List",
+      "reloading": "Loading..."
     }
   }
 }

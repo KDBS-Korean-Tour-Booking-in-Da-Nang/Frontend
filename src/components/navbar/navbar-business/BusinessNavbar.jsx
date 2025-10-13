@@ -70,6 +70,10 @@ const BusinessNavbar = () => {
       // Consider tour detail pages as active for Tours
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
     }
+    if (path === '/news') {
+      // For news, also check if we're on news detail page
+      return location.pathname === '/news' || location.pathname.startsWith('/news/');
+    }
     return location.pathname === path;
   };
   const isBizActive = location.pathname.startsWith('/business/');

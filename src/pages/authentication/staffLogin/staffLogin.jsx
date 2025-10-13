@@ -7,7 +7,7 @@ import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
 const StaffLogin = () => {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,16 +15,16 @@ const StaffLogin = () => {
   const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Collect all validation errors
     const errors = [];
 
-    if (!email.trim()) {
-      errors.push('Email là bắt buộc');
-    } else if (!email.includes('@')) {
-      errors.push('Email không đúng định dạng');
+    if (!username.trim()) {
+      errors.push('Username là bắt buộc');
     }
 
     if (!password.trim()) {
@@ -44,19 +44,73 @@ const StaffLogin = () => {
     setError('');
 
     try {
-      // Mock login - in real app, this would be an API call
-      const mockUser = {
-        id: Date.now(),
-        email,
-        role: email.includes('admin') ? 'admin' : 'staff',
-        name: email.split('@')[0]
-      };
+      const response = await fetch('/api/auth/login-username', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
 
-      login(mockUser);
-      showSuccess('toast.auth.login_success');
-      navigate('/admin');
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle HTTP error status with detailed error info
+        let errorMessage = data.message || `HTTP Error: ${response.status}`;
+        
+        // Add more specific error messages based on response
+        if (response.status === 401) {
+          if (data.code === 1008) {
+            errorMessage = `Xác thực thất bại. Vui lòng kiểm tra lại username và password.`;
+          } else {
+            errorMessage = `Username hoặc password không đúng. Vui lòng thử lại.`;
+          }
+        } else if (response.status === 400) {
+          errorMessage = `Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.`;
+        }
+        
+        showError(errorMessage);
+        return;
+      }
+
+      if ((data.code === 1000 || data.code === 0) && data.result) {
+        const token = data.result.token;
+        const userData = data.result.user;
+
+        // Check if user has admin or staff role (backend uses uppercase)
+        if (userData.role === 'ADMIN' || userData.role === 'STAFF') {
+          const user = {
+            id: userData.userId,
+            role: userData.role,
+            name: userData.username,
+            avatar: userData.avatar,
+            isPremium: userData.isPremium,
+            balance: userData.balance
+          };
+
+              login(user, token, false);
+              showSuccess('Đăng nhập thành công!');
+              navigate('/staff/news-management');
+        } else {
+          showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN và STAFF mới được phép đăng nhập vào trang quản lý.`);
+        }
+      } else {
+        // Handle API error response
+        const errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+        showError(errorMessage);
+      }
     } catch (err) {
-      showError('toast.auth.login_failed');
+      console.error('Login error:', err);
+      
+      // More specific error handling
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        showError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
+      } else {
+        showError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+      }
     } finally {
       setLoading(false);
     }
@@ -78,18 +132,18 @@ const StaffLogin = () => {
         <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">{t('staffLogin.email')}</label>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">{t('staffLogin.username')}</label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  placeholder="admin@company.com"
+                  placeholder="admin"
                 />
               </div>
             </div>
@@ -132,6 +186,7 @@ const StaffLogin = () => {
                   t('staffLogin.submit')
                 )}
               </button>
+              
             </div>
           </form>
 
@@ -158,11 +213,17 @@ const StaffLogin = () => {
 
           {/* Demo credentials */}
           <div className="mt-6 p-4 bg-gray-50 rounded-md">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">{t('staffLogin.demo.title')}</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Thông tin đăng nhập</h4>
             <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>{t('staffLogin.demo.admin')}</strong> admin@company.com</p>
-              <p><strong>{t('staffLogin.demo.staff')}</strong> staff@company.com</p>
-              <p><strong>{t('staffLogin.demo.password')}</strong></p>
+              <p><strong>Lưu ý:</strong> Chỉ tài khoản có role "ADMIN" hoặc "STAFF" mới được phép đăng nhập</p>
+              <p><strong>Username:</strong> Nhập username của tài khoản có quyền admin/staff</p>
+              <p><strong>Mật khẩu:</strong> Mật khẩu của tài khoản đó</p>
+              <p className="text-blue-600 mt-2">
+                <strong>Tip:</strong> Đảm bảo tài khoản trong database có role = 'ADMIN' hoặc 'STAFF' (uppercase)
+              </p>
+              <p className="text-red-600 mt-2">
+                <strong>Quan trọng:</strong> Tài khoản USER hoặc BUSINESS sẽ bị từ chối truy cập
+              </p>
             </div>
           </div>
         </div>

@@ -19,7 +19,9 @@
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .comment-report-modal-header {
@@ -63,6 +65,8 @@
 }
 
 .comment-report-modal-content {
+  flex: 1;
+  overflow-y: auto;
   padding: 24px;
 }
 
@@ -199,6 +203,8 @@
   padding: 20px 24px;
   border-top: 1px solid #e4e6eb;
   justify-content: flex-end;
+  background: #f9fafb;
+  flex-shrink: 0;
 }
 
 .cancel-btn {
