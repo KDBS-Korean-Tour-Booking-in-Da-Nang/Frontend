@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { AuthProvider } from './contexts/AuthContext';
@@ -29,17 +29,22 @@ import TourWizard from './pages/business/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/business/tours/shared/BusinessTourDetail';
 import BusinessAnalytics from './pages/business/analytics/BusinessAnalytics';
 import BusinessOrders from './pages/business/orders/BusinessOrders';
+import News from './pages/news/News';
+import NewsManagement from './pages/staff/news-management/NewsManagement';
+import NewsDetail from './pages/news/NewsDetail';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  
+  // Check if current path is staff/admin pages
+  const isStaffAdminPage = location.pathname.startsWith('/staff/') || 
+                          location.pathname.startsWith('/admin/');
+
   return (
-    <Provider store={store}>
-      <ToastProvider>
-        <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-gray-50">
-              <ConditionalNavbar />
-              <main className="pt-16">
-                <Routes>
+    <div className="min-h-screen bg-gray-50">
+      <ConditionalNavbar />
+      <main className={isStaffAdminPage ? "" : "pt-16"}>
+        <Routes>
                   <Route path="/" element={<Homepage />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/staff-login" element={<StaffLogin />} />
@@ -67,9 +72,24 @@ function App() {
                   <Route path="/business/tours/:id" element={<BusinessTourDetail />} />
                   <Route path="/business/analytics" element={<BusinessAnalytics />} />
                   <Route path="/business/orders" element={<BusinessOrders />} />
-                </Routes>
-              </main>
-            </div>
+                  {/* News routes */}
+                  <Route path="/news" element={<News />} />
+                  <Route path="/news/:id" element={<NewsDetail />} />
+                  {/* Staff/Admin routes */}
+                  <Route path="/staff/news-management" element={<NewsManagement />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <AppContent />
           </Router>
         </AuthProvider>
       </ToastProvider>

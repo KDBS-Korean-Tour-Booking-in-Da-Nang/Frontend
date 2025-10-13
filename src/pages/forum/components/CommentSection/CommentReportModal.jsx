@@ -9,14 +9,14 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reportReasons = [
-    { value: 'SPAM', label: 'Spam', description: 'Nội dung spam hoặc quảng cáo không mong muốn' },
-    { value: 'INAPPROPRIATE', label: 'Nội dung không phù hợp', description: 'Nội dung không phù hợp với cộng đồng' },
-    { value: 'VIOLENCE', label: 'Bạo lực', description: 'Nội dung chứa bạo lực hoặc đe dọa' },
-    { value: 'HARASSMENT', label: 'Quấy rối', description: 'Quấy rối hoặc bắt nạt người khác' },
-    { value: 'HATE_SPEECH', label: 'Ngôn từ thù địch', description: 'Ngôn từ thù địch hoặc phân biệt đối xử' },
-    { value: 'FALSE_INFO', label: 'Thông tin sai lệch', description: 'Thông tin sai lệch hoặc gây hiểu lầm' },
-    { value: 'COPYRIGHT', label: 'Vi phạm bản quyền', description: 'Vi phạm bản quyền hoặc sở hữu trí tuệ' },
-    { value: 'OTHER', label: 'Khác', description: 'Lý do khác không được liệt kê ở trên' }
+    { value: 'SPAM', label: t('forum.modals.report.reasons.spam'), description: t('forum.modals.report.reasons.spamDesc') },
+    { value: 'INAPPROPRIATE', label: t('forum.modals.report.reasons.inappropriate'), description: t('forum.modals.report.reasons.inappropriateDesc') },
+    { value: 'VIOLENCE', label: t('forum.modals.report.reasons.violence'), description: t('forum.modals.report.reasons.violenceDesc') },
+    { value: 'HARASSMENT', label: t('forum.modals.report.reasons.harassment'), description: t('forum.modals.report.reasons.harassmentDesc') },
+    { value: 'HATE_SPEECH', label: t('forum.modals.report.reasons.hateSpeech'), description: t('forum.modals.report.reasons.hateSpeechDesc') },
+    { value: 'FALSE_INFO', label: t('forum.modals.report.reasons.falseInfo'), description: t('forum.modals.report.reasons.falseInfoDesc') },
+    { value: 'COPYRIGHT', label: t('forum.modals.report.reasons.copyright'), description: t('forum.modals.report.reasons.copyrightDesc') },
+    { value: 'OTHER', label: t('forum.modals.report.reasons.other'), description: t('forum.modals.report.reasons.otherDesc') }
   ];
 
   const handleReasonToggle = (reason) => {
@@ -29,7 +29,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
 
   const handleSubmit = async () => {
     if (selectedReasons.length === 0) {
-      alert('Vui lòng chọn ít nhất một lý do báo cáo');
+      alert(t('forum.modals.report.selectReasonError'));
       return;
     }
 
@@ -48,7 +48,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
       onClose();
     } catch (error) {
       console.error('Error reporting comment:', error);
-      alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
+      alert(t('forum.modals.report.submitError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -68,7 +68,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
     <div className={styles['comment-report-modal-overlay']} onClick={handleClose}>
       <div className={styles['comment-report-modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['comment-report-modal-header']}>
-          <h3>Báo cáo bình luận</h3>
+          <h3>{t('forum.modals.report.title')}</h3>
           <button 
             className={styles['close-btn']} 
             onClick={handleClose}
@@ -92,7 +92,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
           </div>
 
           <div className={styles['report-reasons']}>
-            <h4>Chọn lý do báo cáo</h4>
+            <h4>{t('forum.modals.report.selectReason')}</h4>
             <div className={styles['reasons-list']}>
               {reportReasons.map((reason) => (
                 <div 
@@ -105,6 +105,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
                       type="checkbox" 
                       checked={selectedReasons.includes(reason.value)}
                       onChange={() => handleReasonToggle(reason.value)}
+                      onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                     />
                   </div>
                   <div className={styles['reason-content']}>
@@ -117,12 +118,12 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
           </div>
 
           <div className={styles['report-description']}>
-            <label htmlFor="description">Mô tả thêm (tùy chọn)</label>
+            <label htmlFor="description">{t('forum.modals.report.additionalDescription')}</label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Mô tả chi tiết về lý do báo cáo..."
+              placeholder={t('forum.modals.report.descriptionPlaceholder')}
               maxLength={500}
               rows={3}
             />
@@ -136,14 +137,14 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            Hủy
+            {t('forum.modals.report.cancel')}
           </button>
           <button 
             className={styles['submit-btn']} 
             onClick={handleSubmit}
             disabled={isSubmitting || selectedReasons.length === 0}
           >
-            {isSubmitting ? 'Đang gửi...' : 'Gửi báo cáo'}
+            {isSubmitting ? t('forum.modals.report.submitting') : t('forum.modals.report.submit')}
           </button>
         </div>
       </div>

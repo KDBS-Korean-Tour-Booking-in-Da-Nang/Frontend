@@ -108,6 +108,7 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
                       type="checkbox" 
                       checked={selectedReasons.includes(reason.value)}
                       onChange={() => handleReasonToggle(reason.value)}
+                      onClick={(e) => e.stopPropagation()} // Prevent event bubbling
                     />
                   </div>
                   <div className={styles['reason-content']}>

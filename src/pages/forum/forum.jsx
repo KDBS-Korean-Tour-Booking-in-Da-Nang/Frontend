@@ -6,7 +6,6 @@ import PostModal from './components/PostModal/PostModal';
 import PostCard from './components/PostCard/PostCard';
 import SearchSidebar from './components/SearchSidebar/SearchSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
-import MyPostsModal from './components/MyPostsModal/MyPostsModal';
 import styles from './forum.module.css';
 
 const Forum = () => {
@@ -17,7 +16,7 @@ const Forum = () => {
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [showSavedPostsModal, setShowSavedPostsModal] = useState(false);
-  const [showMyPostsModal, setShowMyPostsModal] = useState(false);
+  const [isMyPostsMode, setIsMyPostsMode] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -83,7 +82,7 @@ const Forum = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [searchKeyword, selectedHashtags, currentPage]);
+  }, [searchKeyword, selectedHashtags, currentPage, isMyPostsMode]);
 
   // Cleanup Intersection Observer on unmount
   useEffect(() => {
@@ -106,16 +105,23 @@ const Forum = () => {
         setIsLoadingMore(true);
       }
       
-      let url = `${API_ENDPOINTS.POST_SEARCH}?page=${currentPage}&size=10&sort=createdAt,desc`;
+      let url;
       
-      if (searchKeyword) {
-        url += `&keyword=${encodeURIComponent(searchKeyword)}`;
-      }
-      
-      if (selectedHashtags.length > 0) {
-        selectedHashtags.forEach(tag => {
-          url += `&hashtags=${encodeURIComponent(tag)}`;
-        });
+      // Check if we're in My Posts mode
+      if (isMyPostsMode && user) {
+        url = `${API_ENDPOINTS.MY_POSTS}?page=${currentPage}&size=10`;
+      } else {
+        url = `${API_ENDPOINTS.POST_SEARCH}?page=${currentPage}&size=10&sort=createdAt,desc`;
+        
+        if (searchKeyword) {
+          url += `&keyword=${encodeURIComponent(searchKeyword)}`;
+        }
+        
+        if (selectedHashtags.length > 0) {
+          selectedHashtags.forEach(tag => {
+            url += `&hashtags=${encodeURIComponent(tag)}`;
+          });
+        }
       }
 
       // Check cache first for initial page load
@@ -129,7 +135,16 @@ const Forum = () => {
         return;
       }
 
-      const response = await fetch(url);
+      const headers = {};
+      if (isMyPostsMode && user) {
+        headers['User-Email'] = user.email;
+        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+      
+      const response = await fetch(url, { headers });
       
       if (response.ok) {
         const data = await response.json();
@@ -255,6 +270,7 @@ const Forum = () => {
     setSearchKeyword(keyword);
     setCurrentPage(0);
     setIsSearchMode(true); // Set search mode
+    setIsMyPostsMode(false); // Exit My Posts mode
     
     // Save to localStorage
     localStorage.setItem('forum-selected-hashtags', JSON.stringify([]));
@@ -270,6 +286,7 @@ const Forum = () => {
     setSelectedHashtags(hashtagArray);
     setCurrentPage(0);
     setIsSearchMode(false); // Set filter mode
+    setIsMyPostsMode(false); // Exit My Posts mode
     
     // Save to localStorage
     localStorage.setItem('forum-selected-hashtags', JSON.stringify(hashtagArray));
@@ -282,6 +299,20 @@ const Forum = () => {
     setSelectedHashtags([]);
     setCurrentPage(0);
     setIsSearchMode(false); // Reset to normal mode
+    setIsMyPostsMode(false); // Exit My Posts mode
+    
+    // Clear localStorage
+    localStorage.removeItem('forum-selected-hashtags');
+    localStorage.removeItem('forum-search-keyword');
+    localStorage.removeItem('forum-search-mode');
+  };
+
+  const handleMyPostsClick = () => {
+    setIsMyPostsMode(true);
+    setIsSearchMode(false);
+    setSearchKeyword('');
+    setSelectedHashtags([]);
+    setCurrentPage(0);
     
     // Clear localStorage
     localStorage.removeItem('forum-selected-hashtags');
@@ -359,7 +390,7 @@ const Forum = () => {
               </button>
               <button 
                 className={styles['my-posts-btn']}
-                onClick={() => setShowMyPostsModal(true)}
+                onClick={handleMyPostsClick}
               >
                 {t('forum.sidebar.myPosts')}
               </button>
@@ -387,22 +418,30 @@ const Forum = () => {
 
         {/* Main Content - Posts Feed */}
         <div className={styles['forum-main']}>
-          {/* Filter Status Bar - Only show for hashtag filters */}
-          {!isSearchMode && selectedHashtags.length > 0 && (
-            <div className={styles['filter-status-bar']}>
-              <div className={styles['filter-info']}>
-                {selectedHashtags.map((tag, index) => (
-                  <span key={index} className={`${styles['filter-tag']} ${styles['hashtag-tag']}`}>
-                    #{tag}
-                  </span>
-                ))}
+          {/* Hashtag Filter Header - Only show for hashtag filters */}
+          {!isSearchMode && !isMyPostsMode && selectedHashtags.length > 0 && (
+            <div className={styles['search-results-header']}>
+              <div className={styles['search-info']}>
+                <span className={styles['search-text']}>
+                  {t('forum.hashtag.headerTitle')}
+                </span>
+                <span className={styles['search-count']}>
+                  ({posts.length} {posts.length === 1 ? t('forum.hashtag.postCount') : t('forum.hashtag.postCount')})
+                </span>
+                <div className={styles['filter-info']}>
+                  {selectedHashtags.map((tag, index) => (
+                    <span key={index} className={`${styles['filter-tag']} ${styles['hashtag-tag']}`}>
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
               </div>
               <button 
-                className={styles['clear-filters-btn']}
+                className={styles['back-to-forum-btn']}
                 onClick={clearAllFilters}
-                title={t('forum.filter.clearAll')}
+                title={t('forum.hashtag.backToForum')}
               >
-                ✕ {t('forum.filter.clearAll')}
+                ← {t('forum.hashtag.backToForum')}
               </button>
             </div>
           )}
@@ -413,10 +452,10 @@ const Forum = () => {
               <div className={styles['search-info']}>
                 <span className={styles['search-icon']}>🔍</span>
                 <span className={styles['search-text']}>
-                  Kết quả tìm kiếm cho: <strong>"{searchKeyword}"</strong>
+                  {t('forum.search.headerTitle')}: <strong>"{searchKeyword}"</strong>
                 </span>
                 <span className={styles['search-count']}>
-                  ({posts.length} {posts.length === 1 ? 'bài viết' : 'bài viết'})
+                  ({posts.length} {posts.length === 1 ? t('forum.search.postCount') : t('forum.search.postCount')})
                 </span>
               </div>
               <button 
@@ -425,6 +464,27 @@ const Forum = () => {
                 title={t('forum.search.backToForum')}
               >
                 ← {t('forum.search.backToForum')}
+              </button>
+            </div>
+          )}
+
+          {/* My Posts Header - Only show for My Posts mode */}
+          {isMyPostsMode && (
+            <div className={styles['search-results-header']}>
+              <div className={styles['search-info']}>
+                <span className={styles['search-text']}>
+                  {t('forum.myPosts.headerTitle')}
+                </span>
+                <span className={styles['search-count']}>
+                  ({posts.length} {posts.length === 1 ? t('forum.myPosts.postCount') : t('forum.myPosts.postCount')})
+                </span>
+              </div>
+              <button 
+                className={styles['back-to-forum-btn']}
+                onClick={clearAllFilters}
+                title={t('forum.myPosts.backToForum')}
+              >
+                ← {t('forum.myPosts.backToForum')}
               </button>
             </div>
           )}
@@ -440,6 +500,17 @@ const Forum = () => {
                 <>
                   <h3>🔍 {t('forum.search.noResults')}</h3>
                   <p>{t('forum.search.noResultsDesc', { keyword: searchKeyword })}</p>
+                </>
+              ) : isMyPostsMode ? (
+                <>
+                  <h3>📝 {t('forum.myPosts.empty')}</h3>
+                  <p>{t('forum.myPosts.emptyDesc')}</p>
+                  <button 
+                    onClick={() => setShowPostModal(true)}
+                    className={styles['create-first-post-btn']}
+                  >
+                    {t('forum.post.createFirst')}
+                  </button>
                 </>
               ) : (
                 <>
@@ -534,14 +605,6 @@ const Forum = () => {
         />
       )}
 
-      {/* My Posts Modal - Only show if user is logged in */}
-      {user && (
-        <MyPostsModal 
-          isOpen={showMyPostsModal}
-          onClose={() => setShowMyPostsModal(false)}
-          onPostClick={showSinglePost}
-        />
-      )}
     </div>
   );
 };

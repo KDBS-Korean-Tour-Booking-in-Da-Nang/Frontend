@@ -382,6 +382,7 @@
 	"staffLogin": {
 		"title": "스태프/관리자 로그인",
 		"subtitle": "관리 시스템에 접근",
+		"username": "사용자명",
 		"email": "이메일",
 		"password": "비밀번호",
 		"submit": "로그인",
@@ -481,6 +482,7 @@
 			"edit": "수정",
 			"delete": "삭제",
 			"reply": "답글",
+			"report": "신고",
 			"editPlaceholder": "댓글을 수정하세요...",
 			"replyPlaceholder": "답글을 작성하세요...",
 			"update": "업데이트",
@@ -495,7 +497,8 @@
 			"submitError": "댓글을 추가할 수 없습니다. 다시 시도해주세요.",
 			"hideComments": "댓글 숨기기",
 			"showMore": "더 보기",
-			"noComments": "아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!"
+			"noComments": "아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!",
+			"reported": "신고됨"
 		},
 		"search": {
 			"title": "게시물 검색",
@@ -503,6 +506,9 @@
 			"searchButton": "검색",
 			"clearButton": "검색 지우기",
 			"noResults": "검색 결과가 없습니다",
+			"backToForum": "포럼으로 돌아가기",
+			"headerTitle": "검색 결과",
+			"postCount": "게시물",
 			"popularHashtags": "인기 해시태그",
 			"recentSearches": "최근 검색",
 			"clearRecent": "검색 기록 지우기",
@@ -619,7 +625,10 @@
 			"selected": "선택됨"
 		},
 		"hashtag": {
-			"clickToFilter": "이 해시태그로 게시물 필터링하려면 클릭하세요"
+			"clickToFilter": "이 해시태그로 게시물 필터링하려면 클릭하세요",
+			"headerTitle": "해시태그로 필터링",
+			"postCount": "게시물",
+			"backToForum": "포럼으로 돌아가기"
 		},
 		"errors": {
 			"loadPosts": "게시물을 불러올 수 없습니다. 다시 시도해주세요.",
@@ -647,7 +656,11 @@
 		},
 		"myPosts": {
 			"title": "내 게시물",
-			"empty": "아직 게시물이 없습니다. 첫 번째 게시물을 작성해보세요!"
+			"empty": "아직 게시물이 없습니다. 첫 번째 게시물을 작성해보세요!",
+			"emptyDesc": "커뮤니티와 아이디어와 경험을 공유해보세요.",
+			"headerTitle": "내 게시물",
+			"postCount": "게시물",
+			"backToForum": "포럼으로 돌아가기"
 		}
 	},
 	"forum.shareTour": {
@@ -1683,6 +1696,168 @@
       "noEmail": "사용자 이메일을 찾을 수 없습니다. 다시 로그인해 주세요.",
       "missingPayUrl": "응답에 VNPay 결제 URL이 없습니다",
       "error": "오류"
+    }
+  },
+  "news": {
+    "title": "뉴스",
+    "hero": {
+      "title": "매력적인 여행지에 대한 흥미로운 여행 정보",
+      "subtitle": "여행지, 관광 활동 및 독특한 경험에 대한 유용한 정보 제공"
+    },
+    "loading": "로딩 중...",
+    "noImage": "이미지 없음",
+    "category": "카테고리",
+    "readMore": "더 읽기",
+    "noArticles": "뉴스가 없습니다",
+    "noArticlesDesc": "아직 뉴스가 없습니다. 나중에 다시 확인해주세요.",
+    "loadingMore": "더 많은 뉴스 로딩 중...",
+    "loadMore": "더 보기",
+    "sidebar": {
+      "title": "관련 정보",
+      "domestic": {
+        "title": "국내 투어",
+        "north": "북부",
+        "central": "중부",
+        "south": "남부",
+        "teambuilding": "팀빌딩"
+      },
+      "international": {
+        "title": "해외 투어",
+        "japan": "일본",
+        "singapore": "싱가포르",
+        "thailand": "태국",
+        "taiwan": "대만",
+        "korea": "한국",
+        "china": "중국",
+        "laos": "라오스"
+      },
+      "dayTours": {
+        "title": "일일 투어",
+        "hue": "후에",
+        "baNa": "바나힐",
+        "hoiAn": "호이안",
+        "mySon": "미선",
+        "sonTra": "손트라",
+        "daNangCompany": "다낭 회사 투어",
+        "chamIsland": "챔 아일랜드",
+        "daNangExplore": "다낭 탐험"
+      },
+      "daNangTours": {
+        "title": "다낭 투어",
+        "1day": "1일 투어",
+        "2days": "2일 투어",
+        "3days": "3일 투어",
+        "4days": "4일 투어",
+        "5days": "5일 투어",
+        "6days": "6일 투어",
+        "7days": "7일 투어",
+        "8days": "8일 투어"
+      },
+      "events": {
+        "title": "이벤트",
+        "tet": "설날",
+        "festival": "축제"
+      }
+    }
+  },
+  "newsDetail": {
+    "backToNews": "뒤로",
+    "news": "뉴스",
+    "loading": "로딩 중...",
+    "errorTitle": "오류 발생",
+    "errorMessage": "뉴스를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.",
+    "retry": "다시 시도",
+    "backToNewsPage": "뉴스 페이지로 돌아가기",
+    "notFoundTitle": "뉴스를 찾을 수 없습니다",
+    "notFoundMessage": "요청하신 뉴스를 찾을 수 없습니다.",
+    "category": "카테고리",
+    "contentUpdating": "콘텐츠가 업데이트되고 있습니다.",
+    "publishedAt": "발행일",
+    "backToTop": "맨 위로",
+    "viewMoreNews": "더 많은 뉴스 보기"
+  },
+  "newsManagement": {
+    "title": "뉴스 관리",
+    "subtitle": "다양한 소스에서 뉴스 기사를 크롤링하고 관리",
+    "accessDenied": {
+      "title": "접근 거부",
+      "message": "이 페이지에 접근하려면 관리자 또는 스태프 권한이 필요합니다.",
+      "goHome": "홈으로",
+      "staffLogin": "스태프 로그인"
+    },
+    "logout": {
+      "loggingOut": "로그아웃 중..."
+    },
+    "messages": {
+      "autoCrawlSuccess": "{{count}}개의 새로운 기사가 자동으로 크롤링되었습니다!",
+      "crawlSuccess": "{{count}}개의 새로운 기사를 성공적으로 크롤링했습니다!",
+      "crawlError": "뉴스 크롤링 중 오류가 발생했습니다",
+      "crawlErrorDesc": "뉴스 크롤링 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+      "noNewArticles": "새로운 기사가 없습니다!",
+      "noNewArticlesDesc": "새로운 기사가 없습니다. 모든 기사가 업데이트되었거나 시스템에 이미 존재합니다.",
+      "selectArticles": "최소 하나의 기사를 선택해주세요",
+      "approved": "승인됨",
+      "unapproved": "승인 취소됨",
+      "statusUpdateSuccess": "{{count}}개의 기사를 {{action}}했습니다",
+      "statusUpdateError": "상태 업데이트 중 오류가 발생했습니다",
+      "logoutSuccess": "성공적으로 로그아웃되었습니다!"
+    },
+    "buttons": {
+      "crawlNews": "새 뉴스 크롤링",
+      "crawling": "크롤링 중...",
+      "loading": "로딩 중...",
+      "reloadList": "목록 새로고침",
+      "approve": "승인",
+      "unapprove": "승인 취소",
+      "viewDetails": "상세 보기",
+      "logout": "로그아웃",
+      "backToNews": "뉴스 페이지로 돌아가기"
+    },
+    "status": {
+      "approved": "승인됨",
+      "pending": "대기 중"
+    },
+    "roles": {
+      "admin": "관리자",
+      "staff": "스태프"
+    },
+    "sidebar": {
+      "title": "관리",
+      "subtitle": "뉴스 & 기사",
+      "news": "뉴스",
+      "statistics": "통계",
+      "settings": "설정"
+    },
+    "welcome": {
+      "title": "환영합니다, {{name}}님!",
+      "description": "웹사이트 뉴스 관리 및 업데이트",
+      "autoCrawl": "시스템이 매일 00:00에 새로운 기사를 자동으로 크롤링합니다"
+    },
+    "articles": {
+      "title": "기사 관리 ({{count}}개)",
+      "selectAll": "모두 선택",
+      "selectedCount": "{{count}}개의 기사가 선택됨"
+    },
+    "pagination": {
+      "showing": "{{start}}부터 {{end}}까지, 총 {{total}}개 기사 표시",
+      "previous": "이전",
+      "next": "다음"
+    },
+    "noArticles": {
+      "message": "아직 기사가 없습니다. 뉴스를 크롤링하여 시작하세요!"
+    },
+    "instructions": {
+      "title": "사용 안내",
+      "crawlButton": "\"새 뉴스 크롤링\" 버튼을 눌러 Danangxanh에서 자동으로 기사를 수집하세요",
+      "autoCrawl": "시스템이 매일 00:00에 새로운 기사를 자동으로 크롤링합니다",
+      "noDuplicates": "중복 기사는 시스템에 추가되지 않습니다",
+      "approvedDisplay": "승인된 기사는 공개 뉴스 페이지에 표시됩니다",
+      "accessControl": "관리자와 스태프만 이 기능을 수행할 수 있습니다"
+    },
+    "modal": {
+      "title": "기사 상세",
+      "source": "기사 출처:",
+      "close": "닫기"
     }
   }
 }

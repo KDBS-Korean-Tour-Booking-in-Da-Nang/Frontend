@@ -382,6 +382,7 @@
 	"staffLogin": {
 		"title": "Đăng nhập Staff/Admin",
 		"subtitle": "Truy cập hệ thống quản lý",
+		"username": "Username",
 		"email": "Email",
 		"password": "Mật khẩu",
 		"submit": "Đăng nhập",
@@ -481,6 +482,7 @@
 			"edit": "Chỉnh sửa",
 			"delete": "Xóa",
 			"reply": "Trả lời",
+			"report": "Báo cáo",
 			"editPlaceholder": "Chỉnh sửa bình luận...",
 			"replyPlaceholder": "Viết trả lời...",
 			"update": "Cập nhật",
@@ -495,7 +497,8 @@
 			"submitError": "Không thể thêm bình luận. Vui lòng thử lại.",
 			"hideComments": "Ẩn bớt bình luận",
 			"showMore": "Xem thêm",
-			"noComments": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!"
+			"noComments": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!",
+			"reported": "Đã báo cáo"
 		},
 		"search": {
 			"title": "Tìm kiếm bài viết",
@@ -505,6 +508,8 @@
 			"noResults": "Không tìm thấy kết quả nào",
 			"noResultsDesc": "Không có bài viết nào chứa từ khóa \"{{keyword}}\". Hãy thử từ khóa khác hoặc quay lại trang chủ.",
 			"backToForum": "Quay lại diễn đàn",
+			"headerTitle": "Kết quả tìm kiếm",
+			"postCount": "bài viết",
 			"popularHashtags": "Hashtags phổ biến",
 			"recentSearches": "Tìm kiếm gần đây",
 			"clearRecent": "Xóa lịch sử",
@@ -519,7 +524,10 @@
 			"selected": "đã chọn"
 		},
 		"hashtag": {
-			"clickToFilter": "Nhấp để lọc bài viết theo hashtag này"
+			"clickToFilter": "Nhấp để lọc bài viết theo hashtag này",
+			"headerTitle": "Lọc theo hashtag",
+			"postCount": "bài viết",
+			"backToForum": "Quay lại diễn đàn"
 		},
 		"sidebar": {
 			"savedPosts": "📚 Bài viết đã lưu",
@@ -651,7 +659,11 @@
 		},
 		"myPosts": {
 			"title": "Bài viết của tôi",
-			"empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!"
+			"empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!",
+			"emptyDesc": "Chia sẻ ý tưởng và kinh nghiệm của bạn với cộng đồng.",
+			"headerTitle": "Bài viết của tôi",
+			"postCount": "bài viết",
+			"backToForum": "Quay lại diễn đàn"
 		}
 	},
 	"forum.shareTour": {
@@ -1697,6 +1709,168 @@
       "noEmail": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
       "missingPayUrl": "Không tìm thấy liên kết thanh toán VNPay trong phản hồi",
       "error": "Lỗi"
+    }
+  },
+  "news": {
+    "title": "Tin tức",
+    "hero": {
+      "title": "Những thông tin du lịch hấp dẫn về các địa danh điểm đến hấp dẫn",
+      "subtitle": "Cung cấp thông tin hữu ích cho du khách về các điểm đến, hoạt động du lịch và trải nghiệm đặc sắc"
+    },
+    "loading": "Đang tải bài báo...",
+    "loadingMore": "Đang tải...",
+    "loadMore": "Xem thêm",
+    "noArticles": "Chưa có bài báo nào",
+    "noArticlesDesc": "Hãy quay lại sau để xem các bài báo mới nhất!",
+    "noImage": "Không có hình ảnh",
+    "category": "Tin tức",
+    "readMore": "Chi tiết",
+    "sidebar": {
+      "title": "DANH MỤC TOUR",
+      "domestic": {
+        "title": "Tour trong nước",
+        "north": "Tour Miền Bắc",
+        "central": "Tour Miền Trung",
+        "south": "Tour Miền Nam",
+        "teambuilding": "Tour teambuilding"
+      },
+      "international": {
+        "title": "Tour nước ngoài",
+        "japan": "Tour Nhật Bản",
+        "singapore": "Tour Singapore Malaysia Indonesia",
+        "thailand": "Tour Thái Lan",
+        "taiwan": "Tour Đài Loan",
+        "korea": "Tour Hàn Quốc",
+        "china": "Tour Trung Quốc",
+        "laos": "Tour Lao Campuchia"
+      },
+      "dayTours": {
+        "title": "Tour trong ngày",
+        "hue": "Tour Huế",
+        "baNa": "Tour Bà Nà",
+        "hoiAn": "Tour Hội An",
+        "mySon": "Tour Mỹ Sơn",
+        "sonTra": "Tour Son Tra",
+        "daNangCompany": "Tour Đà Nẵng Cty",
+        "chamIsland": "Tour Cù Lao Chàm",
+        "daNangExplore": "Tour khám phá Đà Nẵng"
+      },
+      "daNangTours": {
+        "title": "Tour du lịch Đà Nẵng",
+        "1day": "Tour Đà Nẵng 1 ngày",
+        "2days": "Tour Đà Nẵng 2 ngày 1 đêm",
+        "3days": "Tour Đà Nẵng 3 ngày 2 đêm",
+        "4days": "Tour Đà Nẵng 4 ngày 3 đêm",
+        "5days": "Tour Đà Nẵng 5 ngày 4 đêm",
+        "6days": "Tour Đà Nẵng 6 ngày 5 đêm",
+        "7days": "Tour Đà Nẵng 7 ngày 6 đêm",
+        "8days": "Tour Đà Nẵng 8 ngày 7 đêm"
+      },
+      "events": {
+        "title": "Tour sự kiện nổi bật",
+        "tet": "Tour tết",
+        "festival": "Tour Festival"
+      }
+    }
+  },
+  "newsDetail": {
+    "backToNews": "Quay lại",
+    "news": "Tin tức",
+    "loading": "Đang tải bài báo...",
+    "errorTitle": "Lỗi tải bài báo",
+    "errorMessage": "Không thể tải bài báo. Vui lòng thử lại sau.",
+    "retry": "Thử lại",
+    "backToNewsPage": "Về trang tin tức",
+    "notFoundTitle": "Không tìm thấy bài báo",
+    "notFoundMessage": "Bài báo bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+    "category": "Tin tức",
+    "publishedAt": "Đăng lúc",
+    "backToTop": "↑ Lên đầu trang",
+    "viewMoreNews": "← Xem thêm tin tức",
+    "contentUpdating": "Nội dung bài báo đang được cập nhật..."
+  },
+  "newsManagement": {
+    "title": "Quản lý Tin tức",
+    "subtitle": "Cào và quản lý các bài viết tin tức từ các nguồn khác nhau",
+    "accessDenied": {
+      "title": "Truy cập bị từ chối",
+      "message": "Bạn cần quyền quản trị viên hoặc nhân viên để truy cập trang này.",
+      "goHome": "Về trang chủ",
+      "staffLogin": "Đăng nhập nhân viên"
+    },
+    "logout": {
+      "loggingOut": "Đang đăng xuất..."
+    },
+    "messages": {
+      "autoCrawlSuccess": "Đã tự động cào thành công {{count}} bài viết mới!",
+      "crawlSuccess": "Đã cào thành công {{count}} bài viết mới!",
+      "crawlError": "Có lỗi xảy ra khi cào tin tức",
+      "crawlErrorDesc": "Có lỗi xảy ra khi cào tin tức. Vui lòng thử lại sau.",
+      "noNewArticles": "Không có bài viết mới!",
+      "noNewArticlesDesc": "Không có bài viết mới. Tất cả bài viết đã được cập nhật hoặc đã tồn tại trong hệ thống.",
+      "selectArticles": "Vui lòng chọn ít nhất một bài báo",
+      "approved": "phê duyệt",
+      "unapproved": "hủy phê duyệt",
+      "statusUpdateSuccess": "Đã {{action}} {{count}} bài báo",
+      "statusUpdateError": "Có lỗi xảy ra khi cập nhật trạng thái",
+      "logoutSuccess": "Đã đăng xuất thành công!"
+    },
+    "buttons": {
+      "crawlNews": "Cào tin tức mới",
+      "crawling": "Đang cào tin tức...",
+      "loading": "Đang tải...",
+      "reloadList": "Tải lại danh sách",
+      "approve": "Phê duyệt",
+      "unapprove": "Hủy phê duyệt",
+      "viewDetails": "Xem chi tiết",
+      "logout": "Đăng xuất",
+      "backToNews": "Xem trang tin tức"
+    },
+    "status": {
+      "approved": "Đã phê duyệt",
+      "pending": "Chờ phê duyệt"
+    },
+    "roles": {
+      "admin": "Quản trị viên",
+      "staff": "Nhân viên"
+    },
+    "sidebar": {
+      "title": "Quản lý",
+      "subtitle": "Tin tức & Bài báo",
+      "news": "Tin tức",
+      "statistics": "Thống kê",
+      "settings": "Cài đặt"
+    },
+    "welcome": {
+      "title": "Chào mừng, {{name}}!",
+      "description": "Quản lý và cập nhật tin tức cho trang web",
+      "autoCrawl": "Hệ thống tự động cào bài viết mới lúc 00:00 hàng ngày"
+    },
+    "articles": {
+      "title": "Quản lý bài báo ({{count}} bài)",
+      "selectAll": "Chọn tất cả",
+      "selectedCount": "Đã chọn {{count}} bài báo"
+    },
+    "pagination": {
+      "showing": "Hiển thị {{start}} đến {{end}} trong tổng số {{total}} bài báo",
+      "previous": "Trước",
+      "next": "Sau"
+    },
+    "noArticles": {
+      "message": "Chưa có bài báo nào. Hãy cào tin tức để bắt đầu!"
+    },
+    "instructions": {
+      "title": "Hướng dẫn sử dụng",
+      "crawlButton": "Nhấn nút \"Cào tin tức mới\" để tự động thu thập bài viết từ Danangxanh",
+      "autoCrawl": "Hệ thống sẽ tự động cào bài viết mới lúc 00:00 mỗi ngày",
+      "noDuplicates": "Bài viết trùng lặp sẽ không được thêm vào hệ thống",
+      "approvedDisplay": "Các bài viết được phê duyệt sẽ hiển thị trên trang tin tức công khai",
+      "accessControl": "Chỉ admin và staff mới có thể thực hiện chức năng này"
+    },
+    "modal": {
+      "title": "Chi tiết bài báo",
+      "source": "Nguồn bài viết:",
+      "close": "Đóng"
     }
   }
 }

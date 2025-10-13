@@ -175,15 +175,25 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
+    
+    // Set flag to prevent re-fetching suggestions
+    isUpdatingFromSuggestion.current = true;
+    
     // Set keyword in input
     setSearchKeyword(keyword);
     // Trigger search immediately
     onSearch(keyword);
+    
     // Close dropdown completely
     setShowSuggest(false);
-    setIsInputFocused(false);
     setSuggestions([]); // Clear suggestions to prevent re-display
     setSelectedIndex(-1); // Reset selected index
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isUpdatingFromSuggestion.current = false;
+    }, 500);
+    
     // Keep input focused for better UX
     setTimeout(() => {
       if (inputRef.current) {
@@ -234,17 +244,15 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
       return;
     }
     
-    // If showSuggest is false (e.g., after clicking history), don't fetch suggestions
-    if (!showSuggest) {
-      return;
-    }
+    // Always show suggestions when typing
+    setShowSuggest(true);
     
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       fetchSuggestions(searchKeyword.trim());
     }, 300);
     return () => timerRef.current && clearTimeout(timerRef.current);
-  }, [searchKeyword, searchHistory.length, isInputFocused, showSuggest]);
+  }, [searchKeyword, searchHistory.length, isInputFocused]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -399,11 +407,8 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
     e.nativeEvent.stopImmediatePropagation();
     console.log('Clicking suggestion:', s); // Debug log
     
-    // Close suggestions immediately to prevent re-opening
-    setShowSuggest(false);
-    setSelectedIndex(-1);
-    setSuggestions([]); // Clear suggestions to prevent re-fetching
-    setIsInputFocused(false); // Also close input focus state
+    // Set flag to prevent re-fetching suggestions
+    isUpdatingFromSuggestion.current = true;
     
     // Perform the appropriate action
     if (s.type === 'hashtag') {
@@ -418,17 +423,18 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
       onSearch(s.text);
       console.log('Setting search keyword to:', s.text); // Debug log
       
-      // Set flag to prevent re-fetching suggestions
-      isUpdatingFromSuggestion.current = true;
       setSearchKeyword(s.text); // Update the search keyword in the input
-      
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isUpdatingFromSuggestion.current = false;
-      }, 500);
     }
     
-    // No need to reset isClickingSuggestion flag since we're not using it anymore
+    // Close suggestions after action
+    setShowSuggest(false);
+    setSelectedIndex(-1);
+    setSuggestions([]); // Clear suggestions to prevent re-fetching
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isUpdatingFromSuggestion.current = false;
+    }, 500);
   };
 
   // Position dropdown like YouTube (anchored to input, fixed on viewport)
@@ -462,12 +468,18 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
               className={styles['search-input']}
               onFocus={() => {
                 setIsInputFocused(true);
-                if (searchHistory.length > 0 && !searchKeyword.trim()) {
+                // Always show suggestions when focused
+                if (searchKeyword.trim()) {
+                  setShowSuggest(true);
+                } else if (searchHistory.length > 0) {
                   setShowSuggest(true);
                 }
               }}
               onBlur={() => {
-                setIsInputFocused(false);
+                // Delay blur to allow clicking on suggestions
+                setTimeout(() => {
+                  setIsInputFocused(false);
+                }, 150);
               }}
               ref={inputRef}
             />

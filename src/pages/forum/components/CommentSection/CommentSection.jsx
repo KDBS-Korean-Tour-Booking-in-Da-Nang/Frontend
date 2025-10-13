@@ -367,11 +367,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         isOpen={deleteOpen}
         onClose={() => { setDeleteOpen(false); setDeleteTarget(null); }}
         onConfirm={confirmDeleteComment}
-        title={"Xác nhận xóa bình luận"}
-        message={deleteTarget ? `Bạn có chắc chắn muốn xóa bình luận này?` : ''}
-        itemName={"bình luận này"}
-        confirmText={"Xóa"}
-        cancelText={"Hủy"}
+        title={t('forum.comments.deleteConfirm')}
+        message={deleteTarget ? t('forum.comments.deleteConfirm') : ''}
+        itemName={t('forum.comments.deleteConfirm')}
+        confirmText={t('forum.comments.delete')}
+        cancelText={t('forum.comments.cancel')}
       />
     </div>
   );
@@ -696,7 +696,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                           }}
                         >
                           <span className={styles['dropdown-icon']}>✏️</span>
-                          Chỉnh sửa
+                          {t('forum.comments.edit')}
                         </button>
                         <button 
                           className={`${styles['dropdown-item']} ${styles['delete-item']}`}
@@ -706,14 +706,14 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                           }}
                         >
                           <span className={styles['dropdown-icon']}>🗑️</span>
-                          Xóa
+                          {t('forum.comments.delete')}
                         </button>
                       </>
                     ) : (
                       isReported ? (
                         <div className={`${styles['dropdown-item']} ${styles['report-item-disabled']}`}>
                           <span className={styles['dropdown-icon']}>✅</span>
-                          Đã báo cáo
+                          {t('forum.comments.reported')}
                         </div>
                       ) : (
                         <button 
@@ -724,7 +724,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                           }}
                         >
                           <span className={styles['dropdown-icon']}>⚠️</span>
-                          Báo cáo
+                          {t('forum.comments.report')}
                         </button>
                       )
                     );
@@ -741,14 +741,14 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
               className={styles['edit-comment-input']}
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              placeholder="Chỉnh sửa bình luận..."
+              placeholder={t('forum.comments.editPlaceholder')}
             />
             <div className={styles['edit-comment-actions']}>
               <button className={styles['save-edit-btn']} onClick={handleSaveEdit}>
-                Lưu
+                {t('forum.comments.update')}
               </button>
               <button className={styles['cancel-edit-btn']} onClick={() => setEditing(false)}>
-                Hủy
+                {t('forum.comments.cancel')}
               </button>
             </div>
           </div>
