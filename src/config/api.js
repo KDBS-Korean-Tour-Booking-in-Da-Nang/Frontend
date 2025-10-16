@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
   // Tours
   TOURS: `${BaseURL}/api/tour`,
   TOUR_BY_ID: (id) => `${BaseURL}/api/tour/${id}`,
+  TOUR_DELETE_BY_ID: (id, userEmail) => `${BaseURL}/api/tour/${id}?userEmail=${encodeURIComponent(userEmail)}`,
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
   TOUR_PREVIEW_BY_ID: (id) => `${BaseURL}/api/tour/preview/${id}`,
   

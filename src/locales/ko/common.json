@@ -10,6 +10,7 @@
 		"admin": "관리자 대시보드",
 		"profile": "프로필",
 		"payment": "결제",
+		"dashboard": "대시보드",
 		"businessInfo": "사업자 정보",
 		"login": "로그인",
 		"logout": "로그아웃",
@@ -1271,6 +1272,7 @@
 	},
   "profileRole": {
     "USER": "사용자",
+    "COMPANY": "회사",
     "BUSINESS": "사업자",
     "ADMIN": "관리자",
     "STAFF": "스태프",
@@ -1859,5 +1861,83 @@
       "source": "기사 출처:",
       "close": "닫기"
     }
+  },
+  "businessDashboard": {
+    "sidebar": {
+      "title": "비즈니스 대시보드",
+      "dashboard": "대시보드",
+      "tourManagement": "투어 관리",
+      "orders": "주문",
+      "analytics": "분석",
+      "businessInfo": "비즈니스 정보"
+    },
+    "welcome": {
+      "title": "비즈니스 대시보드에 오신 것을 환영합니다",
+      "subtitle": "투어를 관리하고, 분석을 추적하며, 비즈니스를 성장시키세요",
+      "createTour": "새 투어 만들기"
+    },
+    "stats": {
+      "totalTours": "총 투어",
+      "totalBookings": "총 예약",
+      "totalRevenue": "총 수익",
+      "totalViews": "총 조회수"
+    },
+    "quickActions": {
+      "title": "빠른 작업",
+      "createTour": "새 투어 만들기",
+      "createTourDesc": "컬렉션에 새 투어 추가",
+      "viewAnalytics": "분석 보기",
+      "viewAnalyticsDesc": "비즈니스 성과 확인",
+      "manageOrders": "주문 관리",
+      "manageOrdersDesc": "예약 보기 및 관리",
+      "businessInfo": "비즈니스 정보",
+      "businessInfoDesc": "비즈니스 세부 정보 업데이트"
+    },
+    "charts": {
+      "bookingTrends": "예약 트렌드",
+      "revenueChart": "수익 차트",
+      "last7Days": "최근 7일",
+      "last30Days": "최근 30일",
+      "last90Days": "최근 90일",
+      "monthly": "월별",
+      "quarterly": "분기별",
+      "yearly": "연간",
+      "chartPlaceholder": "차트가 여기에 표시됩니다"
+    }
+  },
+  "notifications": {
+    "title": "알림",
+    "markAllRead": "모두 읽음으로 표시",
+    "close": "닫기",
+    "empty": "알림이 없습니다",
+    "delete": "삭제",
+    "viewAll": "모든 알림 보기",
+    "newBooking": {
+      "title": "새 예약",
+      "message": "John Doe로부터 새로운 투어 예약이 있습니다"
+    },
+    "paymentReceived": {
+      "title": "결제 완료",
+      "message": "투어 예약에 대해 $150 결제를 받았습니다"
+    },
+    "tourUpdate": {
+      "title": "투어 업데이트 필요",
+      "message": "투어 정보를 업데이트해 주세요"
+    },
+    "systemUpdate": {
+      "title": "시스템 업데이트",
+      "message": "대시보드에서 새로운 기능을 사용할 수 있습니다"
+    }
+  },
+  "chat": {
+    "title": "고객 지원",
+    "status": "온라인",
+    "call": "전화",
+    "video": "영상 통화",
+    "more": "더 많은 옵션",
+    "close": "채팅 닫기",
+    "emoji": "이모지 추가",
+    "send": "메시지 보내기",
+    "placeholder": "메시지를 입력하세요..."
   }
 }

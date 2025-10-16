@@ -121,7 +121,7 @@ const TourManagement = () => {
     }
 
     try {
-      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(selectedTour.id), {
+      const response = await fetch(API_ENDPOINTS.TOUR_DELETE_BY_ID(selectedTour.id, user?.email || ''), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

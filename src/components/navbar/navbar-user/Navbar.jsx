@@ -8,10 +8,13 @@ import {
   BellIcon,
   ChatBubbleLeftRightIcon,
   PlusIcon,
-  StarIcon
+  StarIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
 import PremiumModal from '../../../pages/user/premium/PremiumModal';
+import NotificationDropdown from '../../NotificationDropdown';
+import ChatBox from '../../ChatBox';
 import { API_ENDPOINTS } from '../../../config/api';
 
 const Navbar = () => {
@@ -24,6 +27,8 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [premiumStatus, setPremiumStatus] = useState(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
@@ -33,6 +38,16 @@ const Navbar = () => {
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
+  };
+
+  const toggleNotification = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+    // Don't close chat when opening notification
+  };
+
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+    // Don't close notification when opening chat
   };
 
   // Fetch premium status
@@ -182,15 +197,31 @@ const Navbar = () => {
             {user ? (
               <>
                 {/* Notifications */}
-                <div className={styles['notification-icon']}>
-                  <BellIcon />
-                  <span className={styles['notification-badge']}>1</span>
+                <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
+                  <button 
+                    className={styles['notification-button']}
+                    onClick={toggleNotification}
+                    data-notification-button
+                  >
+                    <BellIcon />
+                    <span className={styles['notification-badge']}>3</span>
+                  </button>
+                  <NotificationDropdown 
+                    isOpen={isNotificationOpen} 
+                    onClose={() => setIsNotificationOpen(false)} 
+                  />
                 </div>
 
                 {/* Messages */}
                 <div className={styles['notification-icon']}>
-                  <ChatBubbleLeftRightIcon />
-                  <span className={styles['notification-badge']}>1</span>
+                  <button 
+                    className={styles['notification-button']}
+                    onClick={toggleChat}
+                    data-chat-button
+                  >
+                    <ChatBubbleLeftRightIcon />
+                    <span className={styles['notification-badge']}>1</span>
+                  </button>
                 </div>
 
                 {/* Balance */}
@@ -240,6 +271,12 @@ const Navbar = () => {
                       </div>
                     </div>
 
+                    {user.role === 'COMPANY' && (
+                      <Link to="/business/dashboard" className={styles['dropdown-item']}>
+                        <BuildingOfficeIcon className="w-4 h-4" />
+                        {t('nav.dashboard')}
+                      </Link>
+                    )}
                     <Link to="/profile" className={styles['dropdown-item']}>
                       {t('nav.profileFull')}
                     </Link>
@@ -362,6 +399,12 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Chat Box */}
+      <ChatBox 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
 
       {/* Premium Modal */}
       <PremiumModal 

@@ -124,6 +124,16 @@ export const AuthProvider = ({ children }) => {
       setTimeout(() => {
         window.location.href = returnAfterLogin;
       }, 100);
+    } else {
+      // Default redirect based on user role
+      setTimeout(() => {
+        if (userData.role === 'COMPANY') {
+          window.location.href = '/business/dashboard';
+        } else if (userData.role === 'ADMIN' || userData.role === 'STAFF') {
+          window.location.href = '/admin';
+        }
+        // For USER role, stay on current page or go to homepage
+      }, 100);
     }
   };
 

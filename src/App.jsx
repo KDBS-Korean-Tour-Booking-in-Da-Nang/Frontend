@@ -29,6 +29,8 @@ import TourWizard from './pages/business/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/business/tours/shared/BusinessTourDetail';
 import BusinessAnalytics from './pages/business/analytics/BusinessAnalytics';
 import BusinessOrders from './pages/business/orders/BusinessOrders';
+import BusinessDashboard from './pages/business/BusinessDashboard';
+import DashboardHome from './pages/business/DashboardHome';
 import News from './pages/news/News';
 import NewsManagement from './pages/staff/news-management/NewsManagement';
 import NewsDetail from './pages/news/NewsDetail';
@@ -66,12 +68,17 @@ function AppContent() {
                   <Route path="/api/vnpay/return" element={<VNPayReturnPage />} />
                   <Route path="/transaction-result" element={<TransactionResultPage />} />
                   <Route path="/tour" element={<Tour />} />
-                  {/* Business-only routes */}
-                  <Route path="/business/tours" element={<TourManagement />} />
-                  <Route path="/business/tours/wizard" element={<TourWizard />} />
-                  <Route path="/business/tours/:id" element={<BusinessTourDetail />} />
-                  <Route path="/business/analytics" element={<BusinessAnalytics />} />
-                  <Route path="/business/orders" element={<BusinessOrders />} />
+                  {/* Business Dashboard Routes */}
+                  <Route path="/business" element={<BusinessDashboard />}>
+                    <Route index element={<DashboardHome />} />
+                    <Route path="dashboard" element={<DashboardHome />} />
+                    <Route path="tours" element={<TourManagement />} />
+                    <Route path="tours/wizard" element={<TourWizard />} />
+                    <Route path="tours/:id" element={<BusinessTourDetail />} />
+                    <Route path="analytics" element={<BusinessAnalytics />} />
+                    <Route path="orders" element={<BusinessOrders />} />
+                    <Route path="business-info" element={<BusinessInfo />} />
+                  </Route>
                   {/* News routes */}
                   <Route path="/news" element={<News />} />
                   <Route path="/news/:id" element={<NewsDetail />} />

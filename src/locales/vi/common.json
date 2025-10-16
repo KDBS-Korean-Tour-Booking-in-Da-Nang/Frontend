@@ -10,6 +10,7 @@
 		"admin": "Admin Dashboard",
 		"profile": "Hồ sơ",
 		"payment": "Thanh toán",
+		"dashboard": "Bảng Điều Khiển",
 		"businessInfo": "Thông tin doanh nghiệp",
 		"login": "Đăng nhập",
 		"logout": "Đăng xuất",
@@ -1275,6 +1276,7 @@
 	},
   "profileRole": {
     "USER": "Người dùng",
+    "COMPANY": "Công ty",
     "BUSINESS": "Doanh nghiệp",
     "ADMIN": "Quản trị viên",
     "STAFF": "Nhân viên",
@@ -1872,6 +1874,84 @@
       "source": "Nguồn bài viết:",
       "close": "Đóng"
     }
+  },
+  "businessDashboard": {
+    "sidebar": {
+      "title": "Bảng Điều Khiển Doanh Nghiệp",
+      "dashboard": "Bảng Điều Khiển",
+      "tourManagement": "Quản Lý Tour",
+      "orders": "Đơn Hàng",
+      "analytics": "Phân Tích",
+      "businessInfo": "Thông Tin Doanh Nghiệp"
+    },
+    "welcome": {
+      "title": "Chào mừng đến với Bảng Điều Khiển Doanh Nghiệp",
+      "subtitle": "Quản lý tour, theo dõi phân tích và phát triển doanh nghiệp của bạn",
+      "createTour": "Tạo Tour Mới"
+    },
+    "stats": {
+      "totalTours": "Tổng Tour",
+      "totalBookings": "Tổng Đặt Tour",
+      "totalRevenue": "Tổng Doanh Thu",
+      "totalViews": "Tổng Lượt Xem"
+    },
+    "quickActions": {
+      "title": "Thao Tác Nhanh",
+      "createTour": "Tạo Tour Mới",
+      "createTourDesc": "Thêm tour mới vào bộ sưu tập của bạn",
+      "viewAnalytics": "Xem Phân Tích",
+      "viewAnalyticsDesc": "Kiểm tra hiệu suất kinh doanh",
+      "manageOrders": "Quản Lý Đơn Hàng",
+      "manageOrdersDesc": "Xem và quản lý đặt tour",
+      "businessInfo": "Thông Tin Doanh Nghiệp",
+      "businessInfoDesc": "Cập nhật thông tin doanh nghiệp"
+    },
+    "charts": {
+      "bookingTrends": "Xu Hướng Đặt Tour",
+      "revenueChart": "Biểu Đồ Doanh Thu",
+      "last7Days": "7 Ngày Qua",
+      "last30Days": "30 Ngày Qua",
+      "last90Days": "90 Ngày Qua",
+      "monthly": "Hàng Tháng",
+      "quarterly": "Hàng Quý",
+      "yearly": "Hàng Năm",
+      "chartPlaceholder": "Biểu đồ sẽ hiển thị ở đây"
+    }
+  },
+  "notifications": {
+    "title": "Thông Báo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "close": "Đóng",
+    "empty": "Chưa có thông báo nào",
+    "delete": "Xóa",
+    "viewAll": "Xem Tất Cả Thông Báo",
+    "newBooking": {
+      "title": "Đặt Tour Mới",
+      "message": "Bạn có đặt tour mới từ John Doe"
+    },
+    "paymentReceived": {
+      "title": "Nhận Thanh Toán",
+      "message": "Đã nhận thanh toán $150 cho đặt tour"
+    },
+    "tourUpdate": {
+      "title": "Cần Cập Nhật Tour",
+      "message": "Vui lòng cập nhật thông tin tour của bạn"
+    },
+    "systemUpdate": {
+      "title": "Cập Nhật Hệ Thống",
+      "message": "Tính năng mới có sẵn trong bảng điều khiển"
+    }
+  },
+  "chat": {
+    "title": "Hỗ Trợ Khách Hàng",
+    "status": "Trực tuyến",
+    "call": "Gọi điện",
+    "video": "Gọi video",
+    "more": "Tùy chọn khác",
+    "close": "Đóng chat",
+    "emoji": "Thêm emoji",
+    "send": "Gửi tin nhắn",
+    "placeholder": "Nhập tin nhắn của bạn..."
   }
 }
 

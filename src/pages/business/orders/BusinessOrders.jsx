@@ -133,26 +133,26 @@ const BusinessOrders = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Quản lý Đơn hàng</h1>
-        <p className="text-gray-600 mt-2">Xem và xử lý các đơn đặt tour</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Quản lý Đơn hàng</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-2">Xem và xử lý các đơn đặt tour</p>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-lg shadow p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6">
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="w-4 h-4 sm:w-5 sm:h-5 absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tên tour, khách hàng hoặc mã đơn hàng..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -162,7 +162,7 @@ const BusinessOrders = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2 sm:px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="pending">Chờ xử lý</option>
@@ -179,31 +179,31 @@ const BusinessOrders = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mã đơn hàng
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tour
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Khách hàng
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày tour
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Số người
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tổng tiền
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thanh toán
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
@@ -211,39 +211,39 @@ const BusinessOrders = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.id}</div>
-                    <div className="text-sm text-gray-500">{order.bookingDate}</div>
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900">{order.id}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">{order.bookingDate}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.tourName}</div>
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900">{order.tourName}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
-                    <div className="text-sm text-gray-500">{order.customerEmail}</div>
-                    <div className="text-sm text-gray-500">{order.customerPhone}</div>
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900">{order.customerName}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">{order.customerEmail}</div>
+                    <div className="text-xs sm:text-sm text-gray-500">{order.customerPhone}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{order.tourDate}</div>
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm text-gray-900">{order.tourDate}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{order.participants} người</div>
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm text-gray-900">{order.participants} người</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900">
                       {order.totalAmount.toLocaleString('vi-VN')} VND
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
                     {getStatusBadge(order.status)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap">
                     {getPaymentStatusBadge(order.paymentStatus)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex gap-2">
+                  <td className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                    <div className="flex gap-1 sm:gap-2">
                       <button className="text-primary hover:text-primary-hover">
-                        <EyeIcon className="w-4 h-4" />
+                        <EyeIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                       {order.status === 'pending' && (
                         <>
@@ -252,14 +252,14 @@ const BusinessOrders = () => {
                             className="text-green-600 hover:text-green-900"
                             title="Xác nhận"
                           >
-                            <CheckIcon className="w-4 h-4" />
+                            <CheckIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                           <button 
                             onClick={() => handleStatusChange(order.id, 'cancelled')}
                             className="text-red-600 hover:text-red-900"
                             title="Hủy"
                           >
-                            <XMarkIcon className="w-4 h-4" />
+                            <XMarkIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                         </>
                       )}
@@ -289,33 +289,33 @@ const BusinessOrders = () => {
       </div>
 
       {/* Summary Stats */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-2xl font-bold text-gray-900">
+      <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
             {filteredOrders.filter(o => o.status === 'confirmed').length}
           </div>
-          <div className="text-sm text-gray-600">Đã xác nhận</div>
+          <div className="text-xs sm:text-sm text-gray-600">Đã xác nhận</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-2xl font-bold text-primary">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-primary">
             {filteredOrders.filter(o => o.status === 'pending').length}
           </div>
-          <div className="text-sm text-gray-600">Chờ xử lý</div>
+          <div className="text-xs sm:text-sm text-gray-600">Chờ xử lý</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
             {filteredOrders.reduce((sum, o) => sum + o.participants, 0)}
           </div>
-          <div className="text-sm text-gray-600">Tổng khách</div>
+          <div className="text-xs sm:text-sm text-gray-600">Tổng khách</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-2xl font-bold text-green-600">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">
             {filteredOrders
               .filter(o => o.status === 'confirmed')
               .reduce((sum, o) => sum + o.totalAmount, 0)
               .toLocaleString('vi-VN')} VND
           </div>
-          <div className="text-sm text-gray-600">Doanh thu</div>
+          <div className="text-xs sm:text-sm text-gray-600">Doanh thu</div>
         </div>
       </div>
     </div>

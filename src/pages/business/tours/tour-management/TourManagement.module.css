@@ -507,11 +507,44 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .header-content {
+    padding: 0 1.5rem;
+  }
+
+  .header-title h1 {
+    font-size: 2.25rem;
+  }
+
+  .title-icon {
+    font-size: 2.25rem;
+  }
+
+  .add-tour-btn {
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+  }
+
+  .tours-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.75rem;
+  }
+
+  .tours-container {
+    padding: 0 1.5rem 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .management-header {
+    padding: 1.5rem 0;
+  }
+
   .header-content {
     flex-direction: column;
     gap: 1.5rem;
     text-align: center;
+    padding: 0 1rem;
   }
 
   .header-title h1 {
@@ -522,9 +555,30 @@
     font-size: 2rem;
   }
 
+  .add-tour-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .tours-container {
+    padding: 0 1rem 1rem;
+  }
+
   .tours-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .tour-card {
+    min-height: 520px;
+  }
+
+  .tour-image-container {
+    height: 220px !important;
+  }
+
+  .tour-info {
+    padding: 1.25rem;
   }
 
   .tour-controls {
@@ -547,17 +601,38 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .management-header {
-    padding: 1.5rem 0;
+    padding: 1.25rem 0;
   }
 
   .header-content {
-    padding: 0 1rem;
+    padding: 0 0.75rem;
+  }
+
+  .header-title h1 {
+    font-size: 1.75rem;
+  }
+
+  .title-icon {
+    font-size: 1.75rem;
+  }
+
+  .add-tour-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
   }
 
   .tours-container {
-    padding: 0 1rem 1rem;
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .tour-card {
+    min-height: 480px;
+  }
+
+  .tour-image-container {
+    height: 200px !important;
   }
 
   .tour-info {
@@ -565,10 +640,150 @@
   }
 
   .tour-name {
-    font-size: 1.125rem;
+    font-size: 1rem;
   }
 
   .price-value {
+    font-size: 1.125rem;
+  }
+
+  .detail-item {
+    padding: 6px 0;
+  }
+
+  .detail-label {
+    font-size: 0.7rem;
+  }
+
+  .detail-value {
+    font-size: 0.8rem;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .management-header {
+    padding: 1rem 0;
+  }
+
+  .header-content {
+    padding: 0 0.5rem;
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .title-icon {
+    font-size: 1.5rem;
+  }
+
+  .add-tour-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .tours-container {
+    padding: 0 0.5rem 0.5rem;
+  }
+
+  .tour-card {
+    min-height: 450px;
+  }
+
+  .tour-image-container {
+    height: 180px !important;
+  }
+
+  .tour-info {
+    padding: 0.875rem;
+  }
+
+  .tour-name {
+    font-size: 0.95rem;
+  }
+
+  .price-value {
+    font-size: 1rem;
+  }
+
+  .detail-item {
+    padding: 5px 0;
+  }
+
+  .detail-label {
+    font-size: 0.65rem;
+  }
+
+  .detail-value {
+    font-size: 0.75rem;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  .toggle-switch {
+    width: 45px;
+    height: 22px;
+  }
+
+  .toggle-slider:before {
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(23px);
+  }
+}
+
+@media (max-width: 360px) {
+  .header-title h1 {
     font-size: 1.25rem;
+  }
+
+  .title-icon {
+    font-size: 1.25rem;
+  }
+
+  .add-tour-btn {
+    padding: 0.45rem 0.875rem;
+    font-size: 0.8rem;
+  }
+
+  .tour-card {
+    min-height: 420px;
+  }
+
+  .tour-image-container {
+    height: 160px !important;
+  }
+
+  .tour-info {
+    padding: 0.75rem;
+  }
+
+  .tour-name {
+    font-size: 0.9rem;
+  }
+
+  .price-value {
+    font-size: 0.95rem;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
   }
 }

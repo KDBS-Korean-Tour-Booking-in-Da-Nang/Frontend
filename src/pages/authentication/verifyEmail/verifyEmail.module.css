@@ -335,23 +335,41 @@
 @media (max-width: 768px) {
   .verify-container {
     padding: 0.5rem;
+    min-height: 100vh;
   }
   
   .verify-content {
     max-width: 100%;
     padding: 0.25rem;
+    max-width: 400px;
   }
   
   .verify-form-section {
-    padding: 1.25rem;
+    padding: 1.5rem;
+    border-radius: 16px;
   }
   
   .verify-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
   
   .verify-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .form-input {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+  
+  .verify-button {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+  
+  .success-content {
+    padding: 2rem;
+    margin: 0 0.5rem;
   }
 }
 
@@ -362,11 +380,55 @@
   
   .verify-content {
     padding: 0.25rem;
+    max-width: 100%;
   }
   
   .verify-form-section {
-    padding: 1rem;
+    padding: 1.25rem;
     border-radius: 12px;
+  }
+  
+  .verify-title {
+    font-size: 1.1rem;
+  }
+  
+  .verify-subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .form-input {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .verify-button {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .resend-text,
+  .back-button {
+    font-size: 0.75rem;
+  }
+  
+  .success-content {
+    padding: 1.5rem;
+    margin: 0 0.5rem;
+  }
+  
+  .success-title {
+    font-size: 1.25rem;
+  }
+  
+  .success-subtitle {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .verify-form-section {
+    padding: 1rem;
+    margin: 0 0.25rem;
   }
   
   .verify-title {
@@ -388,7 +450,11 @@
   }
   
   .success-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
+  }
+  
+  .success-title {
+    font-size: 1.1rem;
   }
 }
 

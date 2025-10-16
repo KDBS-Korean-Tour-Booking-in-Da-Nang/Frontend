@@ -10,6 +10,7 @@
 		"admin": "Admin Dashboard",
 		"profile": "Profile",
 		"payment": "Payment",
+		"dashboard": "Dashboard",
 		"businessInfo": "Business Info",
 		"login": "Login",
 		"logout": "Logout",
@@ -1273,6 +1274,7 @@
 	},
   "profileRole": {
     "USER": "User",
+    "COMPANY": "Company",
     "BUSINESS": "Business",
     "ADMIN": "Admin",
     "STAFF": "Staff",
@@ -1871,6 +1873,84 @@
       "reloadList": "Reload List",
       "reloading": "Loading..."
     }
+  },
+  "businessDashboard": {
+    "sidebar": {
+      "title": "Business Dashboard",
+      "dashboard": "Dashboard",
+      "tourManagement": "Tour Management",
+      "orders": "Orders",
+      "analytics": "Analytics",
+      "businessInfo": "Business Info"
+    },
+    "welcome": {
+      "title": "Welcome to your Business Dashboard",
+      "subtitle": "Manage your tours, track analytics, and grow your business",
+      "createTour": "Create New Tour"
+    },
+    "stats": {
+      "totalTours": "Total Tours",
+      "totalBookings": "Total Bookings",
+      "totalRevenue": "Total Revenue",
+      "totalViews": "Total Views"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createTour": "Create New Tour",
+      "createTourDesc": "Add a new tour to your collection",
+      "viewAnalytics": "View Analytics",
+      "viewAnalyticsDesc": "Check your business performance",
+      "manageOrders": "Manage Orders",
+      "manageOrdersDesc": "View and manage bookings",
+      "businessInfo": "Business Info",
+      "businessInfoDesc": "Update your business details"
+    },
+    "charts": {
+      "bookingTrends": "Booking Trends",
+      "revenueChart": "Revenue Chart",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "chartPlaceholder": "Chart will be displayed here"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "close": "Close",
+    "empty": "No notifications yet",
+    "delete": "Delete",
+    "viewAll": "View All Notifications",
+    "newBooking": {
+      "title": "New Booking",
+      "message": "You have a new tour booking from John Doe"
+    },
+    "paymentReceived": {
+      "title": "Payment Received",
+      "message": "Payment of $150 has been received for tour booking"
+    },
+    "tourUpdate": {
+      "title": "Tour Update Required",
+      "message": "Please update your tour information"
+    },
+    "systemUpdate": {
+      "title": "System Update",
+      "message": "New features available in your dashboard"
+    }
+  },
+  "chat": {
+    "title": "Customer Support",
+    "status": "Online",
+    "call": "Call",
+    "video": "Video Call",
+    "more": "More Options",
+    "close": "Close Chat",
+    "emoji": "Add Emoji",
+    "send": "Send Message",
+    "placeholder": "Type your message..."
   }
 }
 

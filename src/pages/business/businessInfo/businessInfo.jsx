@@ -330,16 +330,16 @@ const BusinessInfo = () => {
   // Nếu đã nộp hồ sơ trước đó, hiển thị lại các mục với dấu tick và tên file
   if (alreadySubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 py-6 sm:py-12">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('business.submittedTitle')}</h2>
-                <p className="text-gray-600">{t('business.submittedSubtitle')}</p>
+            <div className="px-3 py-4 sm:px-4 sm:py-5 lg:p-6">
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('business.submittedTitle')}</h2>
+                <p className="text-sm sm:text-base text-gray-600">{t('business.submittedSubtitle')}</p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('business.form.businessLicense')}</label>
                   <div className="mt-2 flex items-center text-sm">
@@ -371,19 +371,19 @@ const BusinessInfo = () => {
                 </div>
               </div>
 
-              <div className="bg-secondary border border-primary rounded-lg p-4 my-6">
-                <p className="text-primary text-sm">{t('business.submittedSubtitle')}</p>
+              <div className="bg-secondary border border-primary rounded-lg p-3 sm:p-4 my-4 sm:my-6">
+                <p className="text-primary text-xs sm:text-sm">{t('business.submittedSubtitle')}</p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={() => navigate('/pending-page')}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-primary hover:bg-primary-hover"
                 >
                   {t('business.submittedViewPending')}
                 </button>
                 <button
                   onClick={() => navigate('/')}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   {t('pending.btnHome')}
                 </button>
@@ -396,13 +396,13 @@ const BusinessInfo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-12">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('business.heading')}</h2>
-              <p className="text-gray-600">{t('business.subtitle')}</p>
+          <div className="px-3 py-4 sm:px-4 sm:py-5 lg:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('business.heading')}</h2>
+              <p className="text-sm sm:text-base text-gray-600">{t('business.subtitle')}</p>
             </div>
 
             {success && (
@@ -417,7 +417,7 @@ const BusinessInfo = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div>
                 <label htmlFor="businessLicense" className="block text-sm font-medium text-gray-700">{t('business.form.businessLicense')}</label>
                 <div className="mt-1">
@@ -466,9 +466,9 @@ const BusinessInfo = () => {
                 )}
               </div>
 
-              <div className="bg-secondary border border-primary rounded-lg p-4">
-                <h3 className="text-sm font-medium text-primary mb-2">{t('business.important.title')}</h3>
-                <ul className="text-sm text-primary space-y-1">
+              <div className="bg-secondary border border-primary rounded-lg p-3 sm:p-4">
+                <h3 className="text-xs sm:text-sm font-medium text-primary mb-2">{t('business.important.title')}</h3>
+                <ul className="text-xs sm:text-sm text-primary space-y-1">
                   <li>{t('business.important.i1')}</li>
                   <li>{t('business.important.i2')}</li>
                   <li>{t('business.important.i3')}</li>
@@ -478,18 +478,18 @@ const BusinessInfo = () => {
                 </ul>
               </div>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 sm:space-x-0">
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 >
                   {t('business.back')}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
                 >
                   {loading ? t('business.submitting') : t('business.submit')}
                 </button>
