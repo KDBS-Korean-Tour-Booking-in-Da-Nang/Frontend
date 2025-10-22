@@ -139,11 +139,10 @@ const Navbar = () => {
           <div className={styles['logo-section']}>
             <Link to="/" className={styles['logo-section']}>
               <img
-                src="/logo.jpg"
+                src="/logoKDBS.png"
                 alt="KDBS Logo"
                 className={styles.logo}
               />
-              <span className={styles['brand-name']}>{t('brand')}</span>
             </Link>
           </div>
 
@@ -167,7 +166,7 @@ const Navbar = () => {
               to="/tour"
               className={`${styles['nav-link']} ${isActive('/tour') ? styles.active : ''}`}
             >
-              {t('nav.tours')}
+              {t('nav.tourBooking')}
             </Link>
 
             <Link
@@ -175,20 +174,6 @@ const Navbar = () => {
               className={`${styles['nav-link']} ${isActive('/news') ? styles.active : ''}`}
             >
               {t('nav.news')}
-            </Link>
-
-            <Link
-              to="/self-travel"
-              className={`${styles['nav-link']} ${isActive('/self-travel') ? styles.active : ''}`}
-            >
-              {t('nav.selfTravel')}
-            </Link>
-
-            <Link
-              to="/contact"
-              className={`${styles['nav-link']} ${isActive('/contact') ? styles.active : ''}`}
-            >
-              {t('nav.contact')}
             </Link>
           </div>
 
@@ -291,10 +276,16 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className={styles['nav-link']}>
+                <Link 
+                  to="/login" 
+                  className={`${styles['login-button']} ${isActive('/login') ? styles['login-active'] : ''}`}
+                >
                   {t('nav.login')}
                 </Link>
-                <Link to="/register" className={styles['nav-link']}>
+                <Link 
+                  to="/register" 
+                  className={`${styles['register-button']} ${isActive('/register') ? styles['register-active'] : ''}`}
+                >
                   {t('nav.register')}
                 </Link>
               </>
@@ -303,17 +294,23 @@ const Navbar = () => {
             {/* Language Switcher */}
             <div className={styles['language-switcher']}>
               <button className={styles['language-button']}>
-                {i18n.language?.toUpperCase() || 'VI'}
+                {i18n.language === 'vi' && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
+                {i18n.language === 'en' && <img src="/EN.png" alt="English" className={styles['language-flag']} />}
+                {i18n.language === 'ko' && <img src="/KR.png" alt="Korean" className={styles['language-flag']} />}
+                {!i18n.language && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
               </button>
               <div className={styles['language-dropdown']}>
-                <button onClick={() => changeLanguage('vi')} className={styles['language-option']}>
-                  {t('lang.vi')}
+                <button onClick={() => changeLanguage('vi')} className={`${styles['language-option']} ${i18n.language === 'vi' ? 'active ' + styles['active'] : ''}`}>
+                  <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />
+                  <span className={styles['language-text']}>{t('lang.vi')}</span>
                 </button>
-                <button onClick={() => changeLanguage('en')} className={styles['language-option']}>
-                  {t('lang.en')}
+                <button onClick={() => changeLanguage('en')} className={`${styles['language-option']} ${i18n.language === 'en' ? 'active ' + styles['active'] : ''}`}>
+                  <img src="/EN.png" alt="English" className={styles['language-flag']} />
+                  <span className={styles['language-text']}>{t('lang.en')}</span>
                 </button>
-                <button onClick={() => changeLanguage('ko')} className={styles['language-option']}>
-                  {t('lang.ko')}
+                <button onClick={() => changeLanguage('ko')} className={`${styles['language-option']} ${i18n.language === 'ko' ? 'active ' + styles['active'] : ''}`}>
+                  <img src="/KR.png" alt="Korean" className={styles['language-flag']} />
+                  <span className={styles['language-text']}>{t('lang.ko')}</span>
                 </button>
               </div>
             </div>
@@ -353,7 +350,7 @@ const Navbar = () => {
             className={`${styles['mobile-nav-link']} ${isActive('/tour') ? styles.active : ''}`}
             onClick={() => setIsMenuOpen(false)}
           >
-            {t('nav.tours')}
+            {t('nav.tourBooking')}
           </Link>
 
           <Link
@@ -362,22 +359,6 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             {t('nav.news')}
-          </Link>
-
-          <Link
-            to="/self-travel"
-            className={`${styles['mobile-nav-link']} ${isActive('/self-travel') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.selfTravel')}
-          </Link>
-
-          <Link
-            to="/contact"
-            className={`${styles['mobile-nav-link']} ${isActive('/contact') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.contact')}
           </Link>
 
           {user && (

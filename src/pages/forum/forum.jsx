@@ -369,44 +369,47 @@ const Forum = () => {
 
   return (
     <div className={styles['forum-container']}>
-      {/* Only show create post section if user is logged in */}
-      {user ? (
-        <div className={styles['forum-header']}>
-          <div className={styles['create-post-section']}>
-            <div className={styles['create-post-input']} onClick={() => setShowPostModal(true)}>
-              <img 
-                src={getAvatarUrl(user?.avatar)} 
-                alt={user?.username}
-                className={styles['user-avatar-small']}
-              />
-              <span className={styles['create-post-text']}>{t('forum.createPost.placeholder')}</span>
-            </div>
-            <div className={styles['header-buttons']}>
-              <button 
-                className={styles['saved-posts-btn']}
-                onClick={() => setShowSavedPostsModal(true)}
-              >
-                {t('forum.sidebar.savedPosts')}
-              </button>
-              <button 
-                className={styles['my-posts-btn']}
-                onClick={handleMyPostsClick}
-              >
-                {t('forum.sidebar.myPosts')}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className={`${styles['forum-header']} ${styles['guest-notice']}`}>
-          <div className={styles['guest-message']}>
-            <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
-            <p className={styles['guest-features']}>{t('forum.guest.searchAndFilter')}</p>
-          </div>
-        </div>
-      )}
-
       <div className={styles['forum-content']}>
+        {/* Header: HÀNG 1 của grid */}
+        {user ? (
+          <div className={styles['forum-header']}>
+            <div className={styles['forum-header__inner']}>
+              <div className={styles['create-post-section']}>
+                <div className={styles['create-post-input']} onClick={() => setShowPostModal(true)}>
+                  <img 
+                    src={getAvatarUrl(user?.avatar)} 
+                    alt={user?.username}
+                    className={styles['user-avatar-small']}
+                  />
+                  <span className={styles['create-post-text']}>{t('forum.createPost.placeholder')}</span>
+                </div>
+                <div className={styles['header-buttons']}>
+                  <button 
+                    className={styles['saved-posts-btn']}
+                    onClick={() => setShowSavedPostsModal(true)}
+                  >
+                    {t('forum.sidebar.savedPosts')}
+                  </button>
+                  <button 
+                    className={styles['my-posts-btn']}
+                    onClick={handleMyPostsClick}
+                  >
+                    {t('forum.sidebar.myPosts')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className={`${styles['forum-header']} ${styles['guest-notice']}`}>
+            <div className={styles['forum-header__inner']}>
+              <div className={styles['guest-message']}>
+                <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
+                <p className={styles['guest-features']}>{t('forum.guest.searchAndFilter')}</p>
+              </div>
+            </div>
+          </div>
+        )}
       {/* Left Sidebar - Search */}
         <div className={`${styles['forum-sidebar']} ${styles['left']}`}>
       <SearchSidebar 
@@ -583,7 +586,6 @@ const Forum = () => {
           </>
         )}
       </div>
-
       </div>
 
       {/* Post Modal - Only show if user is logged in */}

@@ -11,6 +11,22 @@
   --color-primary-rgba-10: rgba(26, 142, 234, 0.1);
   --color-primary-rgba-30: rgba(26, 142, 234, 0.3);
   --color-primary-rgba-40: rgba(26, 142, 234, 0.4);
+  --page-gradient: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
+}
+
+/* Page gradient background - non-intrusive approach */
+.page-gradient {
+  position: relative;
+  isolation: isolate;            /* tạo stacking context riêng */
+  min-height: 100vh;
+}
+
+.page-gradient::before {
+  content: "";
+  position: fixed;               /* phủ toàn màn */
+  inset: 0;
+  z-index: -1;                   /* luôn ở sau mọi thứ */
+  background: var(--page-gradient);
 }
 
 /* Utility classes for primary colors */

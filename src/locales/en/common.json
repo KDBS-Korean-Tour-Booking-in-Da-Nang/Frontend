@@ -4,6 +4,7 @@
 		"home": "Home",
 		"forum": "Forum",
 		"tours": "Tours",
+		"tourBooking": "Tour Booking",
 		"news": "News",
 		"selfTravel": "Self-Travel",
 		"contact": "Contact",
@@ -126,7 +127,7 @@
 			"login": "Login",
 			"errors": {
 				"passwordMismatch": "Passwords do not match",
-				"passwordMinLength": "Password must be at least 6 characters",
+				"passwordMinLength": "Password must be at least 8 characters",
 				"usernameRequired": "Username is required",
 				"registerFailed": "Registration failed. Please try again."
 			}
@@ -175,37 +176,117 @@
 	},
 	"home": {
 		"hero": {
-			"titleLead": "Tours",
-			"titleEmph": "Da Nang - Korea",
-			"desc": "Explore Da Nang's beauty and Korean culture with high-quality tours.",
-			"btnPayment": "Payment",
-			"btnProfile": "Profile",
-			"btnRegister": "Register",
-			"btnLogin": "Login"
+			"badge": "Explore Da Nang with us",
+			"titleFrom": "From",
+			"titleSoutheast": "Southeast Korea",
+			"titleTo": "to Da Nang",
+			"desc": "Stay updated with the latest travel tips, suggestions and offers.",
+			"btnBookNow": "Book Now"
 		},
-		"welcome": {
-			"heading": "Welcome to",
-			"subheading": "Da Nang - Korea Tours"
+		"services": {
+			"sectionTitle": "SERVICES",
+			"headline": "Why use KDBS",
+			"card1": {
+				"title": "Everything you need",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			},
+			"card2": {
+				"title": "Flexible booking",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			},
+			"card3": {
+				"title": "AI Integration",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			}
+		},
+		"destinations": {
+			"sectionTitle": "TOP DESTINATIONS",
+			"headline": "Discover the top highlights",
+			"seeAll": "See all",
+			"card1": {
+				"location": "Indonesia",
+				"title": "Pandawa Beach, Bali Island",
+				"rating": "4.9"
+			},
+			"card2": {
+				"location": "Bangkok",
+				"title": "Bangkok City, Thailand",
+				"rating": "4.8"
+			},
+			"card3": {
+				"location": "Japan",
+				"title": "Tokyo City, Japan",
+				"rating": "4.9"
+			}
 		},
 		"features": {
-			"sectionTitle": "Features",
-			"headline": "Best service for you",
-			"blurb": "Modern tour management with many useful features",
-			"securityTitle": "Secure",
-			"securityDesc": "Multi-layer security ensures safe personal and payment info.",
-			"speedTitle": "Fast",
-			"speedDesc": "Optimized UI for quick actions and time-saving.",
-			"reliableTitle": "Reliable",
-			"reliableDesc": "Built with modern, reliable technologies.",
-			"friendlyTitle": "Friendly",
-			"friendlyDesc": "User-friendly interface for everyone."
+			"sectionTitle": "MAIN FEATURES",
+			"headline": "We provide the best service",
+			"desc": "Hello! Travelo is here to help you find your dream vacation. Easy, you just need to find where you want to go and buy tickets.",
+			"card1": {
+				"title": "Choose multiple locations",
+				"desc": "Choose your favorite location"
+			},
+			"card2": {
+				"title": "Schedule your trip",
+				"desc": "Set the date you want"
+			},
+			"card3": {
+				"title": "Big discounts",
+				"desc": "Get discounts for all services"
+			}
 		},
-		"cta": {
-			"title1": "Ready to start?",
-			"title2": "Sign up today.",
-			"desc": "Join us to explore amazing destinations.",
-			"btn": "Sign up for free"
+		"testimonials": {
+			"sectionTitle": "TESTIMONIALS",
+			"headline": "Trust our customers",
+			"name": "Irfan Rahmat",
+			"role": "Travel enthusiast",
+			"review": "I love Travelo, this is the best place to buy tickets and help you find your dream vacation."
+		},
+		"newsletter": {
+			"sectionTitle": "NEWSLETTER SIGNUP",
+			"headline": "Prepare yourself and let's explore the beauty of the world",
+			"emailPlaceholder": "Your email",
+			"btnSubscribe": "Subscribe"
 		}
+	},
+	"footer": {
+		"company": {
+			"title": "Company",
+			"about": "About Us",
+			"careers": "Careers",
+			"press": "Press",
+			"blog": "Blog"
+		},
+		"support": {
+			"title": "Support",
+			"help": "Help Center",
+			"contact": "Contact",
+			"status": "Status",
+			"community": "Community"
+		},
+		"legal": {
+			"title": "Legal",
+			"privacy": "Privacy Policy",
+			"terms": "Terms of Service",
+			"cookies": "Cookie Policy",
+			"gdpr": "GDPR"
+		},
+		"social": {
+			"title": "Social Media",
+			"facebook": "Facebook",
+			"twitter": "Twitter",
+			"instagram": "Instagram",
+			"linkedin": "LinkedIn"
+		},
+		"newsletter": {
+			"title": "Newsletter Subscription",
+			"desc": "Get updates on the latest tours and special offers.",
+			"emailPlaceholder": "Enter your email",
+			"subscribe": "Subscribe"
+		},
+		"copyright": "© 2024 KDBS. All rights reserved.",
+		"rights": "All rights reserved."
 	},
 	"pending": {
 		"title": "Pending Approval",

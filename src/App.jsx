@@ -4,6 +4,7 @@ import { store } from './store';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ConditionalNavbar } from './components';
+import Footer from './components/Footer/Footer';
 import Homepage from './pages/home/homepage/homepage';
 import Login from './pages/authentication/login/login';
 import StaffLogin from './pages/authentication/staffLogin/staffLogin';
@@ -41,6 +42,16 @@ function AppContent() {
   // Check if current path is staff/admin pages
   const isStaffAdminPage = location.pathname.startsWith('/staff/') || 
                           location.pathname.startsWith('/admin/');
+  
+  // Check if current path is business dashboard pages
+  const isBusinessDashboardPage = location.pathname.startsWith('/business/');
+  
+  // Check if current path is forum or tour wizard pages
+  const isForumPage = location.pathname === '/forum';
+  const isTourWizardPage = location.pathname.startsWith('/business/tours/wizard');
+  
+  // Footer should not show on staff/admin pages, business dashboard, forum, or tour wizard
+  const shouldShowFooter = !isStaffAdminPage && !isBusinessDashboardPage && !isForumPage && !isTourWizardPage;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,6 +97,7 @@ function AppContent() {
                   <Route path="/staff/news-management" element={<NewsManagement />} />
         </Routes>
       </main>
+      {shouldShowFooter && <Footer />}
     </div>
   );
 }

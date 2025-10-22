@@ -121,6 +121,59 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
+  const [customColor, setCustomColor] = useState('#4caf50');
+  const [currentTarget, setCurrentTarget] = useState(null);
+  const [currentHue, setCurrentHue] = useState(180);
+  const [saturation, setSaturation] = useState(0.8);
+  const [brightness, setBrightness] = useState(0.8);
+
+  // Helper function to adjust color brightness for gradient
+  const adjustColor = (color, percent) => {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    
+    const clampColor = (value) => {
+      if (value < 0) return 0;
+      if (value > 255) return 255;
+      return value;
+    };
+    
+    const clampedR = clampColor(R);
+    const clampedG = clampColor(G);
+    const clampedB = clampColor(B);
+    
+    return '#' + (0x1000000 + clampedR * 0x10000 + clampedG * 0x100 + clampedB).toString(16).slice(1);
+  };
+
+  // Helper function to convert HSV to RGB
+  const hsvToRgb = (h, s, v) => {
+    const c = v * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = v - c;
+    
+    let r, g, b;
+    if (h < 60) { r = c; g = x; b = 0; }
+    else if (h < 120) { r = x; g = c; b = 0; }
+    else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; }
+    else if (h < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    
+    return {
+      r: Math.round((r + m) * 255),
+      g: Math.round((g + m) * 255),
+      b: Math.round((b + m) * 255)
+    };
+  };
+
+  // Helper function to convert RGB to hex
+  const rgbToHex = (r, g, b) => {
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  };
 
   const toDatetimeLocalValue = (value) => {
     if (!value) return '';
@@ -167,7 +220,9 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
               dayNumber: idx + 1,
               title: c.tourContentTitle || '',
               description: c.tourContentDescription || '',
-              images: c.images || []
+              images: c.images || [],
+              dayColor: c.dayColor || '#10b981',
+              titleAlignment: c.titleAlignment || 'left'
             }))
           : [],
         tourSchedule: tour.tourSchedule || '',
@@ -187,6 +242,38 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       });
     }
   }, [tour, isOpen]);
+
+  // Update color gradient when hue changes
+  useEffect(() => {
+    if (showCustomColorPicker) {
+      const gradientSquare = document.getElementById('color-gradient-square');
+      if (gradientSquare) {
+        const ctx = document.createElement('canvas');
+        ctx.width = 200;
+        ctx.height = 150;
+        const canvas = ctx.getContext('2d');
+        
+        // Create the saturation/brightness gradient with current hue
+        for (let x = 0; x < 200; x++) {
+          for (let y = 0; y < 150; y++) {
+            const sat = x / 200;
+            const bright = 1 - (y / 150);
+            const { r, g, b } = hsvToRgb(currentHue, sat, bright);
+            canvas.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            canvas.fillRect(x, y, 1, 1);
+          }
+        }
+        
+        gradientSquare.style.backgroundImage = `url(${ctx.toDataURL()})`;
+      }
+    }
+  }, [showCustomColorPicker, currentHue]);
+
+  // Update customColor when saturation/brightness changes
+  useEffect(() => {
+    const { r, g, b } = hsvToRgb(currentHue, saturation, brightness);
+    setCustomColor(rgbToHex(r, g, b));
+  }, [currentHue, saturation, brightness]);
 
   // Cleanup blob URLs when component unmounts
   useEffect(() => {
@@ -253,7 +340,9 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       dayNumber: formData.itinerary.length + 1,
       title: '',
       description: '',
-      images: []
+      images: [],
+      dayColor: '#10b981',
+      titleAlignment: 'left'
     };
     setFormData(prev => ({
       ...prev,
@@ -266,7 +355,9 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       dayNumber: dayIndex + 2,
       title: '',
       description: '',
-      images: []
+      images: [],
+      dayColor: '#10b981',
+      titleAlignment: 'left'
     };
     const list = [...formData.itinerary];
     list.splice(dayIndex + 1, 0, newDay);
@@ -392,28 +483,28 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           <div className={styles['tabs-container']}>
             <button
               type="button"
-              className={`tab ${activeTab === 'basic' ? 'active' : ''}`}
+              className={`${styles['tab']} ${activeTab === 'basic' ? styles['active'] : ''}`}
               onClick={() => setActiveTab('basic')}
             >
               {t('tourManagement.edit.tabs.basic')}
             </button>
             <button
               type="button"
-              className={`tab ${activeTab === 'itinerary' ? 'active' : ''}`}
+              className={`${styles['tab']} ${activeTab === 'itinerary' ? styles['active'] : ''}`}
               onClick={() => setActiveTab('itinerary')}
             >
               {t('tourManagement.edit.tabs.itinerary')}
             </button>
             <button
               type="button"
-              className={`tab ${activeTab === 'pricing' ? 'active' : ''}`}
+              className={`${styles['tab']} ${activeTab === 'pricing' ? styles['active'] : ''}`}
               onClick={() => setActiveTab('pricing')}
             >
               {t('tourManagement.edit.tabs.pricing')}
             </button>
             <button
               type="button"
-              className={`tab ${activeTab === 'media' ? 'active' : ''}`}
+              className={`${styles['tab']} ${activeTab === 'media' ? styles['active'] : ''}`}
               onClick={() => setActiveTab('media')}
             >
               {t('tourManagement.edit.tabs.media')}
@@ -495,9 +586,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       onChange={handleInputChange}
                     >
                       <option value="">{t('tourManagement.edit.basic.placeholders.selectTourType')}</option>
-                      <option value="Standard">Standard</option>
-                      <option value="Premium">Premium</option>
-                      <option value="Luxury">Luxury</option>
+                      <option value="resort">{t('common.tourTypes.resort')}</option>
+                      <option value="culture">{t('common.tourTypes.culture')}</option>
+                      <option value="adventure">{t('common.tourTypes.adventure')}</option>
+                      <option value="team-building">{t('common.tourTypes.teamBuilding')}</option>
+                      <option value="food">{t('common.tourTypes.food')}</option>
+                      <option value="photography">{t('common.tourTypes.photography')}</option>
+                      <option value="religious">{t('common.tourTypes.religious')}</option>
+                      <option value="other">{t('common.tourTypes.other')}</option>
                     </select>
                   </div>
                 </div>
@@ -564,18 +660,106 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
                   {formData.itinerary.map((day, index) => (
                     <div key={index} className={styles['itinerary-day']}>
-                      <div className={styles['day-header']}>
-                        <h5>{t('tourManagement.edit.itinerary.dayN', { day: day.dayNumber })}</h5>
-                      </div>
-                      
-                      <div className={styles['form-group']}>
-                        <label htmlFor={`day-title-${index}`}>{t('tourManagement.edit.itinerary.fields.dayTitle')}</label>
-                        <input
-                          type="text"
-                          id={`day-title-${index}`}
-                          value={day.title}
-                          onChange={(e) => handleItineraryChange(index, 'title', e.target.value)}
-                        />
+                      {/* Day Header with Color and Alignment Controls */}
+                      <div 
+                        className={styles['day-header-bar']}
+                        style={{
+                          background: `linear-gradient(135deg, ${day.dayColor || '#10b981'}, ${adjustColor(day.dayColor || '#10b981', -20)})`
+                        }}
+                      >
+                        <div className={styles['day-header-content']}>
+                          <div className={styles['single-day-title-container']}>
+                            <input
+                              type="text"
+                              className={`${styles['single-day-title-input']} ${day.title ? styles['customized'] : ''}`}
+                              value={day.title || ''}
+                              onChange={(e) => handleItineraryChange(index, 'title', e.target.value)}
+                              placeholder={`Ngày ${day.dayNumber}`}
+                              style={{ textAlign: day.titleAlignment || 'left' }}
+                            />
+                            <div className={styles['title-controls']}>
+                              <div className={styles['alignment-buttons']}>
+                                <button
+                                  type="button"
+                                  className={`${styles['align-btn']} ${(day.titleAlignment || 'left') === 'left' ? styles['active'] : ''}`}
+                                  onClick={() => handleItineraryChange(index, 'titleAlignment', 'left')}
+                                  title="Căn trái"
+                                >
+                                  <div className={`${styles['align-icon']} ${styles['left-align']}`}>
+                                    <div className={styles['line']}></div>
+                                    <div className={styles['line']}></div>
+                                    <div className={styles['line']}></div>
+                                  </div>
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles['align-btn']} ${day.titleAlignment === 'center' ? styles['active'] : ''}`}
+                                  onClick={() => handleItineraryChange(index, 'titleAlignment', 'center')}
+                                  title="Căn giữa"
+                                >
+                                  <div className={`${styles['align-icon']} ${styles['center-align']}`}>
+                                    <div className={styles['line']}></div>
+                                    <div className={styles['line']}></div>
+                                    <div className={styles['line']}></div>
+                                  </div>
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles['align-btn']} ${day.titleAlignment === 'right' ? styles['active'] : ''}`}
+                                  onClick={() => handleItineraryChange(index, 'titleAlignment', 'right')}
+                                  title="Căn phải"
+                                >
+                                  <div className={`${styles['align-icon']} ${styles['right-align']}`}>
+                                    <div className={styles['line']}></div>
+                                    <div className={styles['line']}></div>
+                                    <div className={styles['line']}></div>
+                                  </div>
+                                </button>
+                              </div>
+                              {day.title && (
+                                <button
+                                  type="button"
+                                  className={styles['reset-title-btn']}
+                                  onClick={() => handleItineraryChange(index, 'title', '')}
+                                  title="Xóa tiêu đề"
+                                >
+                                  ↺
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className={styles['color-picker-container']}>
+                            <div className={styles['color-presets']}>
+                              {[
+                                '#e91e63', // Pink
+                                '#2196f3', // Blue
+                                '#4caf50', // Green
+                                '#ff9800'  // Orange
+                              ].map(color => (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  className={`${styles['color-preset']} ${day.dayColor === color ? styles['active'] : ''}`}
+                                  style={{ backgroundColor: color }}
+                                  onClick={() => handleItineraryChange(index, 'dayColor', color)}
+                                  title={`Chọn màu ${color}`}
+                                />
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              className={styles['custom-color-btn']}
+                              title="Tùy chỉnh màu sắc"
+                              onClick={() => {
+                                setCurrentTarget(index);
+                                setCustomColor(day.dayColor || '#4caf50');
+                                setShowCustomColorPicker(true);
+                              }}
+                            >
+                              🎯
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       <div className={styles['form-group']}>
@@ -763,6 +947,170 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             </button>
           </div>
         </form>
+
+        {/* Custom Color Picker Modal */}
+        {showCustomColorPicker && (
+          <div className={styles['custom-color-picker-modal']}>
+            <div className={styles['color-picker-content']}>
+              <div className={styles['color-picker-header']}>
+                <h3>Tùy chỉnh màu sắc</h3>
+                <button 
+                  className={styles['close-picker-btn']}
+                  onClick={() => setShowCustomColorPicker(false)}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className={styles['color-picker-body']}>
+                <div className={styles['color-gradient-area']}>
+                  <div 
+                    className={styles['color-gradient-square']} 
+                    id="color-gradient-square"
+                    onMouseDown={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      
+                      const newSaturation = Math.max(0, Math.min(1, x / 200));
+                      const newBrightness = Math.max(0, Math.min(1, 1 - (y / 150)));
+                      
+                      setSaturation(newSaturation);
+                      setBrightness(newBrightness);
+                    }}
+                    onMouseMove={(e) => {
+                      if (e.buttons === 1) { // Left mouse button is pressed
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        
+                        const newSaturation = Math.max(0, Math.min(1, x / 200));
+                        const newBrightness = Math.max(0, Math.min(1, 1 - (y / 150)));
+                        
+                        setSaturation(newSaturation);
+                        setBrightness(newBrightness);
+                      }
+                    }}
+                  >
+                    <div 
+                      className={styles['color-selector']}
+                      style={{
+                        left: `${saturation * 200 - 6}px`,
+                        top: `${(1 - brightness) * 150 - 6}px`
+                      }}
+                    ></div>
+                  </div>
+                  <div className={styles['hue-slider-container']}>
+                    <div 
+                      className={styles['hue-slider']}
+                      onMouseDown={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const newHue = Math.max(0, Math.min(360, (x / rect.width) * 360));
+                        setCurrentHue(newHue);
+                      }}
+                      onMouseMove={(e) => {
+                        if (e.buttons === 1) { // Left mouse button is pressed
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const x = e.clientX - rect.left;
+                          const newHue = Math.max(0, Math.min(360, (x / rect.width) * 360));
+                          setCurrentHue(newHue);
+                        }
+                      }}
+                    >
+                      <div 
+                        className={styles['hue-selector']}
+                        style={{
+                          left: `${(currentHue / 360) * 200 - 8}px`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className={styles['color-tools']}>
+                  <div className={styles['current-color-swatch']}>
+                    <div 
+                      className={styles['color-swatch']}
+                      style={{ backgroundColor: customColor }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className={styles['rgb-inputs']}>
+                  <div className={styles['rgb-input-group']}>
+                    <label>R</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="255"
+                      value={parseInt(customColor.slice(1, 3), 16)}
+                      onChange={(e) => {
+                        const r = parseInt(e.target.value) || 0;
+                        const g = parseInt(customColor.slice(3, 5), 16);
+                        const b = parseInt(customColor.slice(5, 7), 16);
+                        setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
+                      }}
+                      className={styles['rgb-input']}
+                    />
+                  </div>
+                  <div className={styles['rgb-input-group']}>
+                    <label>G</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="255"
+                      value={parseInt(customColor.slice(3, 5), 16)}
+                      onChange={(e) => {
+                        const r = parseInt(customColor.slice(1, 3), 16);
+                        const g = parseInt(e.target.value) || 0;
+                        const b = parseInt(customColor.slice(5, 7), 16);
+                        setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
+                      }}
+                      className={styles['rgb-input']}
+                    />
+                  </div>
+                  <div className={styles['rgb-input-group']}>
+                    <label>B</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="255"
+                      value={parseInt(customColor.slice(5, 7), 16)}
+                      onChange={(e) => {
+                        const r = parseInt(customColor.slice(1, 3), 16);
+                        const g = parseInt(customColor.slice(3, 5), 16);
+                        const b = parseInt(e.target.value) || 0;
+                        setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
+                      }}
+                      className={styles['rgb-input']}
+                    />
+                  </div>
+                </div>
+                
+                <div className={styles['color-picker-actions']}>
+                  <button 
+                    className={styles['apply-color-btn']}
+                    onClick={() => {
+                      if (typeof currentTarget === 'number') {
+                        handleItineraryChange(currentTarget, 'dayColor', customColor);
+                      }
+                      setShowCustomColorPicker(false);
+                    }}
+                  >
+                    Áp dụng
+                  </button>
+                  <button 
+                    className={styles['cancel-color-btn']}
+                    onClick={() => setShowCustomColorPicker(false)}
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

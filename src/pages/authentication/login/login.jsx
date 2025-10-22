@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { UserCircleIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { validateEmail } from '../../../utils/emailValidator';
+import gsap from 'gsap';
 import styles from './login.module.css';
 
 const Login = () => {
@@ -39,6 +40,25 @@ const Login = () => {
       navigate(location.pathname, { replace: true });
     }
   }, [searchParams, navigate, location.pathname, showError]);
+
+  // GSAP animations
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    // Animate login form section sliding in from right
+    const loginForm = document.querySelector(`.${styles['login-form-section']}`);
+    const illustrationSection = document.querySelector(`.${styles['illustration-section']}`);
+    
+    if (loginForm) {
+      gsap.set(loginForm, { x: '100%', opacity: 0 });
+      tl.to(loginForm, { x: 0, opacity: 1, duration: 0.8 });
+    }
+    
+    if (illustrationSection) {
+      gsap.set(illustrationSection, { x: '100%', opacity: 0 });
+      tl.to(illustrationSection, { x: 0, opacity: 1, duration: 0.8 }, '-=0.4');
+    }
+  }, []);
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -177,9 +197,10 @@ const Login = () => {
   };
 
   return (
-    <div className={styles['login-container']}>
-      <div className={styles['login-content']}>
-        <div className={styles['login-grid']}>
+    <div className="page-gradient">
+      <div className={`${styles['login-container']} min-h-screen flex items-start justify-center py-8`}>
+      <div className={`${styles['login-content']} w-full max-w-[1000px] px-4`}>
+        <div className={`${styles['login-grid']} grid grid-cols-1 lg:grid-cols-2 gap-6`}>
           {/* Login Form Section */}
           <div className={styles['login-form-section']}>
             <div className={styles['login-header']}>
@@ -309,6 +330,7 @@ const Login = () => {
               </span>
               <Link
                 to="/register"
+                state={{ fromLogin: true }}
                 className={styles['register-link-text']}
               >
                 {t('auth.login.registerNow')}
@@ -366,6 +388,7 @@ const Login = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

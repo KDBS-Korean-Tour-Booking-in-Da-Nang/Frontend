@@ -4,6 +4,7 @@
 		"home": "Trang chủ",
 		"forum": "Diễn đàn",
 		"tours": "Tours",
+		"tourBooking": "Đặt Tour",
 		"news": "Tin tức",
 		"selfTravel": "Tự túc",
 		"contact": "Liên hệ",
@@ -126,7 +127,7 @@
 			"login": "Đăng nhập",
 			"errors": {
 				"passwordMismatch": "Mật khẩu xác nhận không khớp",
-				"passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+				"passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
 				"usernameRequired": "Tên người dùng không được để trống",
 				"registerFailed": "Đăng ký thất bại. Vui lòng thử lại."
 			}
@@ -175,37 +176,117 @@
 	},
 	"home": {
 		"hero": {
-			"titleLead": "Tour du lịch",
-			"titleEmph": "Đà Nẵng - Korea",
-			"desc": "Khám phá vẻ đẹp của Đà Nẵng và trải nghiệm văn hóa Hàn Quốc với những tour du lịch chất lượng cao.",
-			"btnPayment": "Thanh toán",
-			"btnProfile": "Hồ sơ",
-			"btnRegister": "Đăng ký",
-			"btnLogin": "Đăng nhập"
+			"badge": "Khám phá Đà Nẵng cùng chúng tôi",
+			"titleFrom": "Từ",
+			"titleSoutheast": "Đông Nam Hàn Quốc",
+			"titleTo": "đến Đà Nẵng",
+			"desc": "Cập nhật với các mẹo du lịch, gợi ý và khuyến mãi mới nhất.",
+			"btnBookNow": "Đặt ngay"
 		},
-		"welcome": {
-			"heading": "Chào mừng đến với",
-			"subheading": "Tour du lịch Đà Nẵng - Korea"
+		"services": {
+			"sectionTitle": "DỊCH VỤ",
+			"headline": "Tại sao sử dụng KDBS",
+			"card1": {
+				"title": "Tất cả những gì bạn cần",
+				"desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
+			},
+			"card2": {
+				"title": "Đặt chỗ linh hoạt",
+				"desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
+			},
+			"card3": {
+				"title": "Tích hợp AI",
+				"desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
+			}
+		},
+		"destinations": {
+			"sectionTitle": "ĐIỂM ĐẾN HÀNG ĐẦU",
+			"headline": "Khám phá những điểm nổi bật hàng đầu",
+			"seeAll": "Xem tất cả",
+			"card1": {
+				"location": "Indonesia",
+				"title": "Bãi biển Pandawa, Đảo Bali",
+				"rating": "4.9"
+			},
+			"card2": {
+				"location": "Bangkok",
+				"title": "Thành phố Bangkok, Thái Lan",
+				"rating": "4.8"
+			},
+			"card3": {
+				"location": "Nhật Bản",
+				"title": "Thành phố Tokyo, Nhật Bản",
+				"rating": "4.9"
+			}
 		},
 		"features": {
-			"sectionTitle": "Tính năng",
-			"headline": "Dịch vụ tốt nhất cho bạn",
-			"blurb": "Hệ thống quản lý tour du lịch hiện đại với nhiều tính năng hữu ích",
-			"securityTitle": "Bảo mật cao",
-			"securityDesc": "Hệ thống bảo mật đa lớp, đảm bảo thông tin cá nhân và thanh toán an toàn.",
-			"speedTitle": "Nhanh chóng",
-			"speedDesc": "Giao diện tối ưu, thao tác nhanh chóng, tiết kiệm thời gian.",
-			"reliableTitle": "Đáng tin cậy",
-			"reliableDesc": "Hệ thống được phát triển với công nghệ hiện đại, đáng tin cậy.",
-			"friendlyTitle": "Thân thiện",
-			"friendlyDesc": "Giao diện thân thiện, dễ sử dụng cho mọi đối tượng người dùng."
+			"sectionTitle": "TÍNH NĂNG CHÍNH",
+			"headline": "Chúng tôi cung cấp dịch vụ tốt nhất",
+			"desc": "Chào! Travelo ở đây để giúp bạn tìm kỳ nghỉ mơ ước. Dễ dàng, bạn chỉ cần tìm nơi muốn đến và mua vé.",
+			"card1": {
+				"title": "Chọn nhiều địa điểm",
+				"desc": "Chọn địa điểm yêu thích của bạn"
+			},
+			"card2": {
+				"title": "Lên lịch chuyến đi",
+				"desc": "Đặt ngày bạn muốn"
+			},
+			"card3": {
+				"title": "Giảm giá lớn",
+				"desc": "Nhận giảm giá cho mọi dịch vụ"
+			}
 		},
-		"cta": {
-			"title1": "Sẵn sàng bắt đầu?",
-			"title2": "Đăng ký ngay hôm nay.",
-			"desc": "Tham gia cùng chúng tôi để khám phá những điểm đến tuyệt vời.",
-			"btn": "Đăng ký miễn phí"
+		"testimonials": {
+			"sectionTitle": "ĐÁNH GIÁ",
+			"headline": "Tin tưởng khách hàng của chúng tôi",
+			"name": "Irfan Rahmat",
+			"role": "Người đam mê du lịch",
+			"review": "Tôi yêu Travelo, đây là nơi tốt nhất để mua vé và giúp bạn tìm kỳ nghỉ mơ ước."
+		},
+		"newsletter": {
+			"sectionTitle": "ĐĂNG KÝ NHẬN BẢN TIN",
+			"headline": "Chuẩn bị bản thân và hãy khám phá vẻ đẹp của thế giới",
+			"emailPlaceholder": "Email của bạn",
+			"btnSubscribe": "Đăng ký"
 		}
+	},
+	"footer": {
+		"company": {
+			"title": "Công ty",
+			"about": "Về chúng tôi",
+			"careers": "Tuyển dụng",
+			"press": "Báo chí",
+			"blog": "Blog"
+		},
+		"support": {
+			"title": "Hỗ trợ",
+			"help": "Trung tâm trợ giúp",
+			"contact": "Liên hệ",
+			"status": "Trạng thái",
+			"community": "Cộng đồng"
+		},
+		"legal": {
+			"title": "Pháp lý",
+			"privacy": "Chính sách bảo mật",
+			"terms": "Điều khoản dịch vụ",
+			"cookies": "Chính sách cookie",
+			"gdpr": "GDPR"
+		},
+		"social": {
+			"title": "Mạng xã hội",
+			"facebook": "Facebook",
+			"twitter": "Twitter",
+			"instagram": "Instagram",
+			"linkedin": "LinkedIn"
+		},
+		"newsletter": {
+			"title": "Đăng ký nhận bản tin",
+			"desc": "Nhận thông tin cập nhật về các tour du lịch mới nhất và ưu đãi đặc biệt.",
+			"emailPlaceholder": "Nhập email của bạn",
+			"subscribe": "Đăng ký"
+		},
+		"copyright": "© 2024 KDBS. Tất cả quyền được bảo lưu.",
+		"rights": "Tất cả quyền được bảo lưu."
 	},
 	"pending": {
 		"title": "Đang chờ duyệt",

@@ -155,10 +155,11 @@ const ForgotPassword = () => {
   // Show OTP form after email is sent
   if (sent && !verified) {
     return (
-      <div className={styles['forgot-container']}>
-        <div className={styles['forgot-content']}>
-          <div className={styles['forgot-form-section']}>
-            <div className={styles['forgot-header']}>
+      <div className="page-gradient">
+        <div className={`${styles['forgot-container']} min-h-screen flex items-center justify-center py-8`}>
+          <div className={`${styles['forgot-content']} w-full max-w-[450px] px-4`}>
+            <div className={styles['forgot-form-section']}>
+              <div className={styles['forgot-header']}>
               <div className={styles['forgot-logo']}>
                 <KeyIcon className="h-8 w-8 text-white" />
               </div>
@@ -168,7 +169,7 @@ const ForgotPassword = () => {
               <p className={styles['forgot-subtitle']}>
                 {t('auth.verify.subtitle', { email })}
               </p>
-            </div>
+              </div>
             <form className={styles['forgot-form']} onSubmit={handleVerifyOTP}>
               <div className={styles['form-group']}>
                 <label htmlFor="otp" className={styles['form-label']}>
@@ -228,18 +229,20 @@ const ForgotPassword = () => {
                 {t('auth.common.backToForgot')}
               </button>
             </div>
-          </div>
+        </div>
         </div>
       </div>
+    </div>
     );
   }
 
   return (
-    <div className={styles['forgot-container']}>
-      <div className={styles['forgot-content']}>
-        <div className={styles['forgot-form-section']}>
-          <div className={styles['forgot-header']}>
-            <div className={styles['forgot-logo']}>
+    <div className="page-gradient">
+      <div className={`${styles['forgot-container']} min-h-screen flex items-center justify-center py-8`}>
+        <div className={`${styles['forgot-content']} w-full max-w-[450px] px-4`}>
+          <div className={styles['forgot-form-section']}>
+            <div className={styles['forgot-header']}>
+              <div className={styles['forgot-logo']}>
               <KeyIcon className="h-8 w-8 text-white" />
             </div>
             <h2 className={styles['forgot-title']}>
@@ -284,6 +287,7 @@ const ForgotPassword = () => {
               {t('auth.common.backToLogin')}
             </Link>
           </div>
+        </div>
         </div>
       </div>
     </div>

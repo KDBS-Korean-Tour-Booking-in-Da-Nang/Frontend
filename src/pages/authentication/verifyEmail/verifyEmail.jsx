@@ -43,6 +43,7 @@ const VerifyEmail = () => {
     return () => clearInterval(timer);
   }, [email, navigate]);
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -139,10 +140,11 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className={styles['verify-container']}>
-      <div className={styles['verify-content']}>
-        <div className={styles['verify-form-section']}>
-          <div className={styles['verify-header']}>
+    <div className="page-gradient">
+      <div className={`${styles['verify-container']} min-h-screen flex items-center justify-center py-8`}>
+        <div className={`${styles['verify-content']} w-full max-w-[450px] px-4`}>
+          <div className={styles['verify-form-section']}>
+            <div className={styles['verify-header']}>
             <div className={styles['verify-logo']}>
               <EnvelopeIcon className="h-8 w-8 text-white" />
             </div>
@@ -152,7 +154,7 @@ const VerifyEmail = () => {
             <p className={styles['verify-subtitle']}>
               {t('auth.verify.subtitle', { email })}
             </p>
-          </div>
+            </div>
           <form className={styles['verify-form']} onSubmit={handleSubmit}>
             <div className={styles['form-group']}>
               <label htmlFor="otp" className={styles['form-label']}>
@@ -219,6 +221,7 @@ const VerifyEmail = () => {
             >
               {t('auth.common.backToRegister')}
             </button>
+          </div>
           </div>
         </div>
       </div>

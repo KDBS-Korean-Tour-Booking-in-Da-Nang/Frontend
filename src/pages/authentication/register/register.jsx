@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { validateEmail } from '../../../utils/emailValidator';
+import gsap from 'gsap';
 import styles from './register.module.css';
 
 const Register = () => {
@@ -18,10 +19,30 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const { showError, showSuccess, showBatch } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
-
+  // GSAP animations
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    // Register page always slides in from left
+    const registerForm = document.querySelector(`.${styles['register-form-section']}`);
+    const illustrationSection = document.querySelector(`.${styles['illustration-section']}`);
+    
+    if (registerForm) {
+      gsap.set(registerForm, { x: '-100%', opacity: 0 });
+      tl.to(registerForm, { x: 0, opacity: 1, duration: 0.8 });
+    }
+    
+    if (illustrationSection) {
+      gsap.set(illustrationSection, { x: '-100%', opacity: 0 });
+      tl.to(illustrationSection, { x: 0, opacity: 1, duration: 0.8 }, '-=0.4');
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,6 +54,30 @@ const Register = () => {
     // Clear email error when user starts typing
     if (name === 'email' && emailError) {
       setEmailError('');
+    }
+
+    // Real-time password validation
+    if (name === 'password') {
+      if (value.length > 0 && value.length < 8) {
+        setPasswordError(t('auth.register.errors.passwordMinLength'));
+      } else {
+        setPasswordError('');
+      }
+      // Also check confirm password if it has value
+      if (formData.confirmPassword && formData.confirmPassword !== value) {
+        setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
+      } else if (formData.confirmPassword && formData.confirmPassword === value) {
+        setConfirmPasswordError('');
+      }
+    }
+
+    // Real-time confirm password validation
+    if (name === 'confirmPassword') {
+      if (value && formData.password && value !== formData.password) {
+        setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
+      } else {
+        setConfirmPasswordError('');
+      }
     }
   };
 
@@ -73,7 +118,7 @@ const Register = () => {
     // Password validation
     if (!formData.password.trim()) {
       validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.register.password') } });
-    } else if (formData.password.length < 6) {
+    } else if (formData.password.length < 8) {
       validationErrors.push(t('auth.register.errors.passwordMinLength'));
     }
 
@@ -136,9 +181,10 @@ const Register = () => {
   };
 
   return (
-    <div className={styles['register-container']}>
-      <div className={styles['register-content']}>
-        <div className={styles['register-grid']}>
+    <div className="page-gradient">
+      <div className={`${styles['register-container']} min-h-screen flex items-start justify-center py-8`}>
+        <div className={`${styles['register-content']} w-full max-w-[1000px] px-4`}>
+          <div className={`${styles['register-grid']} grid grid-cols-1 lg:grid-cols-2 gap-6`}>
           {/* Illustration Section */}
           <div className={styles['illustration-section']}>
             <h1 className={styles['illustration-title']}>
@@ -249,9 +295,14 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={styles['form-input']}
+                  className={`${styles['form-input']} ${passwordError ? styles['input-error'] : ''}`}
                   placeholder="••••••••"
                 />
+                {passwordError && (
+                  <div className={styles['field-error']}>
+                    {passwordError}
+                  </div>
+                )}
               </div>
 
               <div className={styles['form-group']}>
@@ -265,9 +316,14 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={styles['form-input']}
+                  className={`${styles['form-input']} ${confirmPasswordError ? styles['input-error'] : ''}`}
                   placeholder="••••••••"
                 />
+                {confirmPasswordError && (
+                  <div className={styles['field-error']}>
+                    {confirmPasswordError}
+                  </div>
+                )}
               </div>
 
               <div className={styles['role-selection']}>
@@ -297,7 +353,7 @@ const Register = () => {
 
               <button
                 type="submit"
-                disabled={loading || emailError}
+                disabled={loading || emailError || passwordError || confirmPasswordError}
                 className={styles['register-button']}
               >
                 {loading ? t('auth.register.submitting') : t('auth.register.submit')}
@@ -317,6 +373,7 @@ const Register = () => {
                 {t('auth.register.login')}
               </Link>
             </div>
+          </div>
           </div>
         </div>
       </div>

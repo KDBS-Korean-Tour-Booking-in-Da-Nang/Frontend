@@ -15,20 +15,17 @@
   gap: 0.25rem;
 }
 
-.field-error::before {
-  content: '⚠';
-  font-size: 0.75rem;
-}
+/* Removed warning icon */
 
 .verify-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a8eea 0%, #3ba0f2 100%);
+  /* background removed to use global .page-gradient */
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
-  padding: 1rem;
+  overflow: visible;
+  padding: 2rem 0;
   box-sizing: border-box;
 }
 
@@ -42,24 +39,17 @@
 }
 
 .verify-form-section {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   position: relative;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background:
+    /* lớp nền thật của card */
+    linear-gradient(#fff, #fff) padding-box,
+    /* lớp viền gradient */
+    linear-gradient(135deg, #1a8eea, #3ba0f2) border-box;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
   width: 100%;
-}
-
-.verify-form-section::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(135deg, #1a8eea, #3ba0f2);
-  border-radius: 18px;
-  z-index: -1;
 }
 
 .verify-header {
@@ -118,6 +108,7 @@
   transition: all 0.3s ease;
   background: #f9fafb;
 }
+
 
 .form-input:focus {
   outline: none;
