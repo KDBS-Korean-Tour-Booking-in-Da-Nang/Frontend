@@ -437,14 +437,17 @@
   padding: 12px 20px;
   border-top: 1px solid #f0f2f5;
   border-bottom: 1px solid #f0f2f5;
+  justify-content: space-around;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   color: #65676b;
   font-size: 14px;
+  flex: 1;
 }
 
 .stat-icon {
@@ -454,6 +457,7 @@
 .post-actions {
   display: flex;
   padding: 8px 20px;
+  justify-content: space-around;
 }
 
 .action-btn {

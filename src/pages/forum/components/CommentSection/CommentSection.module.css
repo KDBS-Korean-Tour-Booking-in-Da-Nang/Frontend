@@ -158,6 +158,9 @@
   padding: 4px 8px;
   border-radius: 4px;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .comment-action-btn:hover {
@@ -169,6 +172,47 @@
 .active {
   background-color: #e7f3ff;
   color: #1877f2;
+}
+
+/* Like button styles */
+.like-btn.active {
+  color: #1877f2;
+  background-color: #e7f3ff;
+}
+
+.like-btn.active .action-icon {
+  color: #1877f2;
+}
+
+.like-btn:hover {
+  background-color: #e7f3ff;
+}
+
+/* Dislike button styles */
+.dislike-btn.active {
+  color: #e41e3f;
+  background-color: #ffe7eb;
+}
+
+.dislike-btn.active .action-icon {
+  color: #e41e3f;
+}
+
+.dislike-btn:hover {
+  background-color: #ffe7eb;
+}
+
+/* Rotate dislike icon 180 degrees to make it thumbs down */
+.dislike-btn .action-icon {
+  transform: rotate(180deg);
+}
+
+.action-icon {
+  font-size: 14px;
+}
+
+.action-text {
+  font-size: 12px;
 }
 
 .comment-action-btn-disabled {
@@ -189,6 +233,23 @@
 .comment-action-btn-disabled:hover {
   background-color: #f0f2f5;
   color: #65676b;
+}
+
+/* Guest like button styles */
+.like-btn-disabled:hover {
+  background-color: #e7f3ff;
+  color: #1877f2;
+}
+
+/* Guest dislike button styles */
+.dislike-btn-disabled:hover {
+  background-color: #ffe7eb;
+  color: #e41e3f;
+}
+
+/* Rotate guest dislike icon 180 degrees to make it thumbs down */
+.dislike-btn-disabled .action-icon {
+  transform: rotate(180deg);
 }
 
 .show-more-comments {

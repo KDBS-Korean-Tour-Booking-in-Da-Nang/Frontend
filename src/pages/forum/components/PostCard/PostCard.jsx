@@ -19,6 +19,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.reactions?.likeCount || 0);
+  const [dislikeCount, setDislikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
   const [openViewer, setOpenViewer] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -34,8 +35,9 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
 
   useEffect(() => {
-    // Always fetch reaction count and save count for all users (including guests)
+    // Always fetch reaction count, dislike count and save count for all users (including guests)
     fetchReactionCount();
+    fetchDislikeCount();
     fetchSaveCount();
     
     // Only check user-specific data if user is logged in
@@ -238,6 +240,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           body: JSON.stringify(removeRequest)
         });
         setIsDisliked(false);
+        setDislikeCount(prev => Math.max(0, prev - 1));
       } else {
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
@@ -246,6 +249,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         });
         if (response.ok) {
           setIsDisliked(true);
+          setDislikeCount(prev => prev + 1);
           if (isLiked) {
             setIsLiked(false);
             setLikeCount(prev => Math.max(0, prev - 1));
@@ -292,6 +296,19 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
       }
     } catch (error) {
       console.error('Error fetching reaction count:', error);
+    }
+  };
+
+  const fetchDislikeCount = async () => {
+    try {
+      // No authentication required for public dislike count
+      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_DISLIKE_COUNT(post.forumPostId));
+      if (response.ok) {
+        const count = await response.json();
+        setDislikeCount(count);
+      }
+    } catch (error) {
+      console.error('Error fetching dislike count:', error);
     }
   };
 
@@ -795,10 +812,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           <span className={styles['stat-count']}>{likeCount} {t('forum.post.like')}</span>
         </div>
         <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{commentCount} {t('forum.post.comments')}</span>
+          <span className={styles['stat-count']}>{dislikeCount} {t('forum.post.dislike')}</span>
         </div>
         <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{saveCount} {t('forum.post.save')}</span>
+          <span className={styles['stat-count']}>{commentCount} {t('forum.post.comments')}</span>
         </div>
       </div>
 
