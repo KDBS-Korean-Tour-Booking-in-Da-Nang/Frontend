@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useChat } from '../../../contexts/ChatContext';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -15,10 +16,29 @@ import styles from './Navbar.module.css';
 import PremiumModal from '../../../pages/user/premium/PremiumModal';
 import NotificationDropdown from '../../NotificationDropdown';
 import ChatBox from '../../ChatBox';
+import ChatDropdown from '../../ChatDropdown';
+import WebSocketStatus from '../../WebSocketStatus';
 import { API_ENDPOINTS } from '../../../config/api';
 
 const Navbar = () => {
   const { user, logout, getToken } = useAuth();
+  
+  // Add error boundary for chat context
+  let chatState, chatActions;
+  try {
+    const chatContext = useChat();
+    chatState = chatContext.state;
+    chatActions = chatContext.actions;
+  } catch (error) {
+    console.warn('Chat context not available:', error.message);
+    // Provide fallback values
+    chatState = { isChatDropdownOpen: false, isChatBoxOpen: false };
+    chatActions = { 
+      toggleChatDropdown: () => {}, 
+      closeChatDropdown: () => {},
+      closeChatBox: () => {}
+    };
+  }
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,7 +48,6 @@ const Navbar = () => {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [premiumStatus, setPremiumStatus] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
@@ -41,12 +60,20 @@ const Navbar = () => {
   };
 
   const toggleNotification = () => {
+    if (isCompanyPending) {
+      navigate('/company-info');
+      return;
+    }
     setIsNotificationOpen(!isNotificationOpen);
     // Don't close chat when opening notification
   };
 
   const toggleChat = () => {
-    setIsChatOpen(!isChatOpen);
+    if (isCompanyPending) {
+      navigate('/company-info');
+      return;
+    }
+    chatActions.toggleChatDropdown();
     // Don't close notification when opening chat
   };
 
@@ -131,50 +158,62 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
+  const isCompanyPending = (user && (user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING');
+  const isLockedToCompanyInfo = isCompanyPending;
+
+  const disableIfPending = (e) => {
+    if (isCompanyPending) {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate('/company-info');
+    }
+  };
+
+  const disabledClass = isLockedToCompanyInfo ? ' cursor-not-allowed opacity-50' : '';
+
   return (
     <>
       <nav className={`${styles.navbar} ${!isVisible ? styles.hidden : ''} ${isScrolled ? styles.scrolled : ''}`}>
         <div className={styles['navbar-container']}>
           {/* Logo Section */}
           <div className={styles['logo-section']}>
-            <Link to="/" className={styles['logo-section']}>
-              <img
-                src="/logoKDBS.png"
-                alt="KDBS Logo"
-                className={styles.logo}
-              />
-            </Link>
+            {isLockedToCompanyInfo ? (
+              <Link to="/company-info" className={styles['logo-section']} onClick={(e) => { e.stopPropagation(); }}>
+                <img
+                  src="/logoKDBS.png"
+                  alt="KDBS Logo"
+                  className={styles.logo}
+                />
+              </Link>
+            ) : (
+              <Link to="/" className={styles['logo-section']}>
+                <img
+                  src="/logoKDBS.png"
+                  alt="KDBS Logo"
+                  className={styles.logo}
+                />
+              </Link>
+            )}
           </div>
 
           {/* Desktop Navigation */}
           <div className={styles['nav-links']} style={{ overflow: 'visible' }}>
-            <Link
-              to="/"
-              className={`${styles['nav-link']} ${isActive('/') ? styles.active : ''}`}
-            >
-              {t('nav.home')}
-            </Link>
-
-            <Link
-              to="/forum"
-              className={`${styles['nav-link']} ${isActive('/forum') ? styles.active : ''}`}
-            >
-              {t('nav.forum')}
-            </Link>
-
-            <Link
-              to="/tour"
-              className={`${styles['nav-link']} ${isActive('/tour') ? styles.active : ''}`}
-            >
-              {t('nav.tourBooking')}
-            </Link>
-
-            <Link
-              to="/news"
-              className={`${styles['nav-link']} ${isActive('/news') ? styles.active : ''}`}
-            >
-              {t('nav.news')}
-            </Link>
+            {isLockedToCompanyInfo ? (
+              // Render disabled lookalike links that redirect to company-info
+              <>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.home')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.forum')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.tourBooking')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.news')}</a>
+              </>
+            ) : (
+              <>
+                <Link to="/" className={styles['nav-link']}>{t('nav.home')}</Link>
+                <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
+                <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
+                <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
+              </>
+            )}
           </div>
 
           {/* Right Section */}
@@ -184,38 +223,57 @@ const Navbar = () => {
                 {/* Notifications */}
                 <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
                   <button 
-                    className={styles['notification-button']}
-                    onClick={toggleNotification}
+                    className={`${styles['notification-button']}${disabledClass}`}
+                    onClick={isLockedToCompanyInfo ? disableIfPending : toggleNotification}
                     data-notification-button
+                    disabled={isLockedToCompanyInfo}
                   >
                     <BellIcon />
                     <span className={styles['notification-badge']}>3</span>
                   </button>
-                  <NotificationDropdown 
-                    isOpen={isNotificationOpen} 
-                    onClose={() => setIsNotificationOpen(false)} 
-                  />
+                  {!isLockedToCompanyInfo && (
+                    <NotificationDropdown 
+                      isOpen={isNotificationOpen} 
+                      onClose={() => setIsNotificationOpen(false)} 
+                    />
+                  )}
                 </div>
 
                 {/* Messages */}
-                <div className={styles['notification-icon']}>
+                <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
                   <button 
-                    className={styles['notification-button']}
-                    onClick={toggleChat}
+                    className={`${styles['notification-button']}${disabledClass}`}
+                    onClick={isLockedToCompanyInfo ? disableIfPending : toggleChat}
                     data-chat-button
+                    disabled={isLockedToCompanyInfo}
                   >
                     <ChatBubbleLeftRightIcon />
                     <span className={styles['notification-badge']}>1</span>
                   </button>
+                  {!isLockedToCompanyInfo && (
+                    <ChatDropdown 
+                      isOpen={chatState.isChatDropdownOpen} 
+                      onClose={chatActions.closeChatDropdown} 
+                    />
+                  )}
                 </div>
 
-                {/* Balance */}
-                <div className={styles['balance-container']}>
-                  <span className={styles['balance-amount']}>10.000</span>
-                  <button className={styles['balance-add']}>
-                    <PlusIcon />
-                  </button>
-                </div>
+                {/* WebSocket Status */}
+                {!isLockedToCompanyInfo && (
+                  <div style={{ display: 'none' }}>
+                    <WebSocketStatus />
+                  </div>
+                )}
+
+                {/* Balance - Only show for COMPANY users */}
+                {user.role === 'COMPANY' && (
+                  <div className={styles['balance-container']}>
+                    <span className={styles['balance-amount']}>10.000</span>
+                    <button className={styles['balance-add']}>
+                      <PlusIcon />
+                    </button>
+                  </div>
+                )}
 
                 {/* User Profile */}
                 <div className={styles['user-profile']}>
@@ -256,18 +314,28 @@ const Navbar = () => {
                       </div>
                     </div>
 
-                    {user.role === 'COMPANY' && (
-                      <Link to="/business/dashboard" className={styles['dropdown-item']}>
+                    {user.role === 'COMPANY' && !isLockedToCompanyInfo && (
+                      <Link 
+                        to="/company/dashboard" 
+                        className={styles['dropdown-item']}
+                      >
                         <BuildingOfficeIcon className="w-4 h-4" />
                         {t('nav.dashboard')}
                       </Link>
                     )}
-                    <Link to="/profile" className={styles['dropdown-item']}>
-                      {t('nav.profileFull')}
-                    </Link>
-                    <Link to="/business-info" className={styles['dropdown-item']}>
-                      {t('nav.businessInfo')}
-                    </Link>
+                    {!isLockedToCompanyInfo ? (
+                      <Link 
+                        to="/profile" 
+                        className={styles['dropdown-item']}
+                      >
+                        {t('nav.profileFull')}
+                      </Link>
+                    ) : (
+                      <button onClick={disableIfPending} className={`${styles['dropdown-item']}${disabledClass}`}>
+                        {t('nav.profileFull')}
+                      </button>
+                    )}
+                    {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}
                     </button>
@@ -329,37 +397,41 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       <div className={`${styles['mobile-menu']} ${isMenuOpen ? styles.open : ''}`}>
         <div className={styles['mobile-nav-links']}>
-          <Link
-            to="/"
-            className={`${styles['mobile-nav-link']} ${isActive('/') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.home')}
-          </Link>
+          {!isLockedToCompanyInfo && (
+            <>
+              <Link
+                to="/"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.home')}
+              </Link>
 
-          <Link
-            to="/forum"
-            className={`${styles['mobile-nav-link']} ${isActive('/forum') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.forum')}
-          </Link>
+              <Link
+                to="/forum"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.forum')}
+              </Link>
 
-          <Link
-            to="/tour"
-            className={`${styles['mobile-nav-link']} ${isActive('/tour') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.tourBooking')}
-          </Link>
+              <Link
+                to="/tour"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.tourBooking')}
+              </Link>
 
-          <Link
-            to="/news"
-            className={`${styles['mobile-nav-link']} ${isActive('/news') ? styles.active : ''}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.news')}
-          </Link>
+              <Link
+                to="/news"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.news')}
+              </Link>
+            </>
+          )}
 
           {user && (
             <div className={styles['mobile-user-section']}>
@@ -382,10 +454,12 @@ const Navbar = () => {
       </div>
 
       {/* Chat Box */}
-      <ChatBox 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+      {!isLockedToCompanyInfo && (
+        <ChatBox 
+          isOpen={chatState.isChatBoxOpen} 
+          onClose={chatActions.closeChatBox} 
+        />
+      )}
 
       {/* Premium Modal */}
       <PremiumModal 

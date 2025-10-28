@@ -13,6 +13,7 @@
 		"payment": "Payment",
 		"dashboard": "Dashboard",
 		"businessInfo": "Business Info",
+		"companyInfo": "Company Info",
 		"login": "Login",
 		"logout": "Logout",
 		"register": "Register",
@@ -306,7 +307,7 @@
 		"info_submit_success": "Business information submitted successfully!",
 		"info_submit_failed": "An error occurred while submitting information. Please try again."
 	},
-	"business": {
+  "company": {
 		"loading": "Loading...",
 		"notFoundTitle": "Registration information not found",
 		"backToRegister": "Back to register",
@@ -780,6 +781,9 @@
 		"auth": {
 			"login_success": "Login successful!",
 			"login_failed": "Login failed. Please try again.",
+			"invalid_credentials": "Login failed. Please check your email or password.",
+			"wrong_password": "Incorrect password.",
+			"email_not_found": "Email does not exist.",
 			"register_success": "Registration successful! Please check your email to verify your account.",
 			"email_already_exists": "This email is already registered",
 			"google_connection_failed": "Cannot connect to Google. Please try again.",
@@ -792,7 +796,11 @@
 			"otp_verify_success": "OTP verification successful!",
 			"general_error": "An error occurred. Please try again."
 		},
-		"forum": {
+    "company": {
+      "info_submit_success": "Company information submitted successfully!",
+      "info_submit_failed": "An error occurred while submitting information. Please try again."
+    },
+    "forum": {
 			"post_update_success": "Post updated successfully!",
 			"post_create_success": "Post created successfully!",
 			"post_update_failed": "Failed to update post. Please try again.",
@@ -1285,6 +1293,7 @@
 	"bookingHistory": {
 		"title": "Booking History",
 		"subtitle": "View all your tour bookings",
+		"backButton": "Back",
 		"loading": "Loading booking history...",
 		"loginRequired": {
 			"title": "Login Required",
@@ -1955,14 +1964,15 @@
       "reloading": "Loading..."
     }
   },
-  "businessDashboard": {
+  "companyDashboard": {
     "sidebar": {
-      "title": "Business Dashboard",
+			"title": "Business Dashboard",
       "dashboard": "Dashboard",
       "tourManagement": "Tour Management",
       "orders": "Orders",
       "analytics": "Analytics",
-      "businessInfo": "Business Info"
+			"businessInfo": "Business Info",
+			"companyInfo": "Company Info"
     },
     "welcome": {
       "title": "Welcome to your Business Dashboard",

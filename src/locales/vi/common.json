@@ -13,6 +13,7 @@
 		"payment": "Thanh toán",
 		"dashboard": "Bảng Điều Khiển",
 		"businessInfo": "Thông tin doanh nghiệp",
+		"companyInfo": "Thông tin công ty",
 		"login": "Đăng nhập",
 		"logout": "Đăng xuất",
 		"register": "Đăng ký",
@@ -306,7 +307,7 @@
 		"info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
 		"info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
 	},
-	"business": {
+  "company": {
 		"loading": "Đang tải...",
 		"notFoundTitle": "Không tìm thấy thông tin đăng ký",
 		"backToRegister": "Quay lại đăng ký",
@@ -783,6 +784,9 @@
 		"auth": {
 			"login_success": "Đăng nhập thành công!",
 			"login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
+			"invalid_credentials": "Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.",
+			"wrong_password": "Sai mật khẩu.",
+			"email_not_found": "Email không tồn tại.",
 			"register_success": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
 			"email_already_exists": "Email này đã được đăng ký",
 			"google_connection_failed": "Không thể kết nối với Google. Vui lòng thử lại.",
@@ -795,7 +799,11 @@
 			"otp_verify_success": "Xác thực OTP thành công!",
 			"general_error": "Có lỗi xảy ra. Vui lòng thử lại."
 		},
-		"forum": {
+    "company": {
+      "info_submit_success": "Thông tin công ty đã được gửi thành công!",
+      "info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
+    },
+    "forum": {
 			"post_update_success": "Cập nhật bài viết thành công!",
 			"post_create_success": "Tạo bài viết thành công!",
 			"post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại.",
@@ -1288,6 +1296,7 @@
 	"bookingHistory": {
 		"title": "Lịch sử đặt tour",
 		"subtitle": "Xem lại tất cả các tour bạn đã đặt",
+		"backButton": "Quay lại",
 		"loading": "Đang tải lịch sử đặt tour...",
 		"loginRequired": {
 			"title": "Cần đăng nhập",
@@ -1956,14 +1965,15 @@
       "close": "Đóng"
     }
   },
-  "businessDashboard": {
+  "companyDashboard": {
     "sidebar": {
       "title": "Bảng Điều Khiển Doanh Nghiệp",
       "dashboard": "Bảng Điều Khiển",
       "tourManagement": "Quản Lý Tour",
       "orders": "Đơn Hàng",
       "analytics": "Phân Tích",
-      "businessInfo": "Thông Tin Doanh Nghiệp"
+			"businessInfo": "Thông Tin Doanh Nghiệp",
+			"companyInfo": "Thông Tin Công Ty"
     },
     "welcome": {
       "title": "Chào mừng đến với Bảng Điều Khiển Doanh Nghiệp",

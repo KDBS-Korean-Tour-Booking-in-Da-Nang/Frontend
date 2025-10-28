@@ -12,6 +12,34 @@
 /* Header */
 .booking-history-header {
   margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.back-button:active {
+  transform: translateY(0);
 }
 
 .booking-history-title {
@@ -270,6 +298,17 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .booking-history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .back-button {
+    padding: 10px 16px;
+    font-size: 0.8rem;
+  }
+  
   .booking-history-title {
     font-size: 1.75rem;
   }

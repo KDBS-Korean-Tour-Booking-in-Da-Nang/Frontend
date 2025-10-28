@@ -35,14 +35,12 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
 
   useEffect(() => {
-    // Always fetch reaction count, dislike count and save count for all users (including guests)
-    fetchReactionCount();
-    fetchDislikeCount();
+    // Always fetch reaction summary and save count for all users (including guests)
+    fetchReactionSummary();
     fetchSaveCount();
     
     // Only check user-specific data if user is logged in
     if (user) {
-      checkUserReaction();
       checkIfSaved();
       checkIfReported();
     }
@@ -207,7 +205,10 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         
         if (response.ok) {
           setIsLiked(true);
-          if (isDisliked) setIsDisliked(false);
+          if (isDisliked) {
+            setIsDisliked(false);
+            setDislikeCount(prev => Math.max(0, prev - 1));
+          }
           setLikeCount(prev => prev + 1);
         }
       }
@@ -269,48 +270,27 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     setCommentCount(count);
   };
 
-  const checkUserReaction = async () => {
+  const fetchReactionSummary = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_USER(post.forumPostId, user.email), {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      // No authentication required for public reaction summary
+      const userEmail = user?.email || null;
+      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_SUMMARY(post.forumPostId, userEmail));
+      if (response.ok) {
+        const summary = await response.json();
+        setLikeCount(summary.likeCount || 0);
+        setDislikeCount(summary.dislikeCount || 0);
+        
+        // Set user's reaction status if logged in
+        if (user && summary.userReaction) {
+          setIsLiked(summary.userReaction === 'LIKE');
+          setIsDisliked(summary.userReaction === 'DISLIKE');
         }
-      });
-      if (response.ok) {
-        const hasReacted = await response.json();
-        setIsLiked(hasReacted);
       }
     } catch (error) {
-      console.error('Error checking user reaction:', error);
+      console.error('Error fetching reaction summary:', error);
     }
   };
 
-  const fetchReactionCount = async () => {
-    try {
-      // No authentication required for public reaction count
-      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_COUNT(post.forumPostId));
-      if (response.ok) {
-        const count = await response.json();
-        setLikeCount(count);
-      }
-    } catch (error) {
-      console.error('Error fetching reaction count:', error);
-    }
-  };
-
-  const fetchDislikeCount = async () => {
-    try {
-      // No authentication required for public dislike count
-      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_DISLIKE_COUNT(post.forumPostId));
-      if (response.ok) {
-        const count = await response.json();
-        setDislikeCount(count);
-      }
-    } catch (error) {
-      console.error('Error fetching dislike count:', error);
-    }
-  };
 
   const checkIfSaved = async () => {
     try {

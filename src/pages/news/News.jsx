@@ -43,7 +43,7 @@ const News = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" style={{ marginTop: '30px' }}>
       {/* Header Section */}
       <div className="bg-gradient-to-r from-primary to-primary-light text-white py-16 shadow-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

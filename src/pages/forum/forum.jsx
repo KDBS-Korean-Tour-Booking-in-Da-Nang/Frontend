@@ -15,8 +15,8 @@ const Forum = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const [showSavedPostsModal, setShowSavedPostsModal] = useState(false);
   const [isMyPostsMode, setIsMyPostsMode] = useState(false);
+  const [showSavedPostsModal, setShowSavedPostsModal] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -295,6 +295,10 @@ const Forum = () => {
   };
 
   const clearAllFilters = () => {
+    // Close single post view if open
+    setSelectedPostId(null);
+    setSinglePost(null);
+    
     setSearchKeyword('');
     setSelectedHashtags([]);
     setCurrentPage(0);
@@ -308,7 +312,30 @@ const Forum = () => {
   };
 
   const handleMyPostsClick = () => {
+    // Close single post view if open
+    setSelectedPostId(null);
+    setSinglePost(null);
+    
     setIsMyPostsMode(true);
+    setShowSavedPostsModal(false); // Close saved posts modal if open
+    setIsSearchMode(false);
+    setSearchKeyword('');
+    setSelectedHashtags([]);
+    setCurrentPage(0);
+    
+    // Clear localStorage
+    localStorage.removeItem('forum-selected-hashtags');
+    localStorage.removeItem('forum-search-keyword');
+    localStorage.removeItem('forum-search-mode');
+  };
+
+  const handleSavedPostsClick = () => {
+    // Close single post view if open
+    setSelectedPostId(null);
+    setSinglePost(null);
+    
+    setShowSavedPostsModal(true);
+    setIsMyPostsMode(false); // Close my posts mode if open
     setIsSearchMode(false);
     setSearchKeyword('');
     setSelectedHashtags([]);
@@ -386,7 +413,7 @@ const Forum = () => {
                 <div className={styles['header-buttons']}>
                   <button 
                     className={styles['saved-posts-btn']}
-                    onClick={() => setShowSavedPostsModal(true)}
+                    onClick={handleSavedPostsClick}
                   >
                     {t('forum.sidebar.savedPosts')}
                   </button>
@@ -491,6 +518,7 @@ const Forum = () => {
               </button>
             </div>
           )}
+
           
           {isLoading && currentPage === 0 ? (
             <div className={styles['loading-container']}>

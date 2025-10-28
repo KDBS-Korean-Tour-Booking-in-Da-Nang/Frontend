@@ -442,11 +442,13 @@ const BookingWizardContent = () => {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className={styles['tour-booking-wizard']}>
-        <div className={styles['step-content']}>
-          <div className={styles['loading-container']}>
-            <div className={styles['loading-spinner']}></div>
-            <p>{t('bookingWizard.auth.checking')}</p>
+      <div className={styles['wizard-fullscreen-bg']}>
+        <div className={styles['tour-booking-wizard']}>
+          <div className={styles['step-content']}>
+            <div className={styles['loading-container']}>
+              <div className={styles['loading-spinner']}></div>
+              <p>{t('bookingWizard.auth.checking')}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -456,18 +458,20 @@ const BookingWizardContent = () => {
   // Show login required message if not authenticated
   if (!user) {
     return (
-      <div className={styles['tour-booking-wizard']}>
-        <div className={styles['step-content']}>
-          <div className={styles['auth-required']}>
-            <h2>🔒 {t('bookingWizard.auth.loginRequiredTitle')}</h2>
-            <p>{t('bookingWizard.auth.loginRequiredMessage')}</p>
-            <button 
-              type="button"
-              className={styles['btn-primary']}
-              onClick={() => navigate('/login')}
-            >
-              {t('bookingWizard.auth.loginButton')}
-            </button>
+      <div className={styles['wizard-fullscreen-bg']}>
+        <div className={styles['tour-booking-wizard']}>
+          <div className={styles['step-content']}>
+            <div className={styles['auth-required']}>
+              <h2>🔒 {t('bookingWizard.auth.loginRequiredTitle')}</h2>
+              <p>{t('bookingWizard.auth.loginRequiredMessage')}</p>
+              <button 
+                type="button"
+                className={styles['btn-primary']}
+                onClick={() => navigate('/login')}
+              >
+                {t('bookingWizard.auth.loginButton')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -477,90 +481,92 @@ const BookingWizardContent = () => {
   // Note: Success and error handling is now done via redirect to SuccessPage/FailPage
 
   return (
-    <div className={styles['tour-booking-wizard']}>
-      {/* Progress Bar */}
-      <div className={styles['progress-container']}>
-        <div className={styles['progress-bar']}>
-          <div 
-            className={styles['progress-fill']} 
-            style={{ width: `${(currentStep / 3) * 100}%` }}
-          />
+    <div className={styles['wizard-fullscreen-bg']}>
+      <div className={styles['tour-booking-wizard']}>
+        {/* Progress Bar */}
+        <div className={styles['progress-container']}>
+          <div className={styles['progress-bar']}>
+            <div 
+              className={styles['progress-fill']} 
+              style={{ width: `${(currentStep / 3) * 100}%` }}
+            />
+          </div>
+          <div className={styles['progress-steps']}>
+            {STEPS.map((step) => (
+              <button 
+                key={step.id} 
+                type="button"
+                className={(() => {
+                  const base = styles['progress-step'];
+                  if (currentStep === step.id) return `${base} ${styles.active}`;
+                  if (isStepCompletedByValidation(step.id)) return `${base} ${styles.completed}`;
+                  return base;
+                })()}
+                onClick={() => handleStepClick(step.id)}
+              >
+                <div className={styles['step-number']}>{step.id}</div>
+                <div className={styles['step-info']}>
+                  <div className={styles['step-title']}>{t(step.titleKey)}</div>
+                  <div className={styles['step-description']}>{t(step.descKey)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className={styles['progress-steps']}>
-          {STEPS.map((step) => (
+
+        {/* Step Content */}
+        <div className={styles['step-content']}>
+          {renderCurrentStep()}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className={styles['step-navigation']}>
+          <button 
+            type="button" 
+            className={styles['btn-secondary']} 
+            onClick={handleBack}
+            disabled={currentStep === 1}
+          >
+            {t('bookingWizard.navigation.back')}
+          </button>
+          
+          {currentStep < 3 ? (
             <button 
-              key={step.id} 
-              type="button"
-              className={(() => {
-                const base = styles['progress-step'];
-                if (currentStep === step.id) return `${base} ${styles.active}`;
-                if (isStepCompletedByValidation(step.id)) return `${base} ${styles.completed}`;
-                return base;
-              })()}
-              onClick={() => handleStepClick(step.id)}
+              type="button" 
+              className={styles['btn-primary']} 
+              onClick={handleNext}
             >
-              <div className={styles['step-number']}>{step.id}</div>
-              <div className={styles['step-info']}>
-                <div className={styles['step-title']}>{t(step.titleKey)}</div>
-                <div className={styles['step-description']}>{t(step.descKey)}</div>
-              </div>
+              {t('bookingWizard.navigation.next')}
             </button>
-          ))}
+          ) : (
+            <button 
+              type="button" 
+              className={styles['btn-success']} 
+              onClick={handleConfirm}
+              disabled={booking.loading}
+            >
+              {(() => {
+                if (booking.loading) {
+                  return (
+                    <>
+                      <span className={styles['loading-spinner-small']}></span>
+                      {' '}{t('bookingWizard.processing')}
+                    </>
+                  );
+                }
+                return t('bookingWizard.navigation.confirm');
+              })()}
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Step Content */}
-      <div className={styles['step-content']}>
-        {renderCurrentStep()}
+        {/* Confirm Leave Modal */}
+        <ConfirmLeaveModal
+          open={showLeaveModal}
+          onCancel={handleCancelLeave}
+          onConfirm={handleConfirmLeave}
+        />
       </div>
-
-      {/* Navigation Buttons */}
-      <div className={styles['step-navigation']}>
-        <button 
-          type="button" 
-          className={styles['btn-secondary']} 
-          onClick={handleBack}
-          disabled={currentStep === 1}
-        >
-          {t('bookingWizard.navigation.back')}
-        </button>
-        
-        {currentStep < 3 ? (
-          <button 
-            type="button" 
-            className={styles['btn-primary']} 
-            onClick={handleNext}
-          >
-            {t('bookingWizard.navigation.next')}
-          </button>
-        ) : (
-          <button 
-            type="button" 
-            className={styles['btn-success']} 
-            onClick={handleConfirm}
-            disabled={booking.loading}
-          >
-            {(() => {
-              if (booking.loading) {
-                return (
-                  <>
-                    <span className={styles['loading-spinner-small']}></span>
-                    {' '}{t('bookingWizard.processing')}
-                  </>
-                );
-              }
-              return t('bookingWizard.navigation.confirm');
-            })()}
-          </button>
-        )}
-      </div>
-
-      {/* Confirm Leave Modal */}
-      <ConfirmLeaveModal
-        open={showLeaveModal}
-        onCancel={handleCancelLeave}
-        onConfirm={handleConfirmLeave}
-      />
     </div>
   );
 };

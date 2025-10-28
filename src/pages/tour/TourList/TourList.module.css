@@ -1,6 +1,6 @@
 .tour-list-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #D4E8FF 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
 }
 
 /* Hero Section */

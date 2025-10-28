@@ -44,51 +44,88 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const remembered = localStorage.getItem('rememberMe') === 'true';
-    rememberRef.current = remembered;
+    let mounted = true;
+    let cleanupFn = null;
 
-    const storage = getStorageByRemember(remembered);
-    const savedUser = storage.getItem('user');
-    const token = storage.getItem('token');
+    // Use requestAnimationFrame to defer the initialization
+    // This allows the UI to render first before running auth checks
+    const rafId = requestAnimationFrame(() => {
+      if (!mounted) return;
 
-    // For remember me, also verify expiry
-    if (remembered) {
-      const expiry = localStorage.getItem('tokenExpiry');
-      if (expiry && Date.now() > Number(expiry)) {
-        // Expired
-        logout();
-      } else if (savedUser && token) {
-        setUser(JSON.parse(savedUser));
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      rememberRef.current = remembered;
+
+      const storage = getStorageByRemember(remembered);
+      const savedUser = storage.getItem('user');
+      const token = storage.getItem('token');
+
+      // For remember me, also verify expiry
+      if (remembered) {
+        const expiry = localStorage.getItem('tokenExpiry');
+        if (expiry && Date.now() > Number(expiry)) {
+          // Expired - clear it
+          if (mounted) {
+            setUser(null);
+            setLoading(false);
+          }
+          return;
+        } else if (savedUser && token) {
+          try {
+            if (mounted) {
+              setUser(JSON.parse(savedUser));
+            }
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      } else {
+        if (savedUser && token) {
+          try {
+            if (mounted) {
+              setUser(JSON.parse(savedUser));
+            }
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
       }
-    } else {
-      if (savedUser && token) {
-        setUser(JSON.parse(savedUser));
+      
+      if (mounted) {
+        setLoading(false);
       }
-    }
-    setLoading(false);
 
-    // Setup activity listeners for inactivity logout (non-remembered only)
-    const events = ['mousemove', 'keydown', 'click', 'touchstart'];
-    events.forEach((evt) => window.addEventListener(evt, handleActivity));
-    // Start timer if applicable
-    if (!remembered && savedUser && token) {
-      startInactivityTimer();
-    }
+      // Setup activity listeners for inactivity logout (non-remembered only)
+      const events = ['mousemove', 'keydown', 'click', 'touchstart'];
+      events.forEach((evt) => window.addEventListener(evt, handleActivity));
+      // Start timer if applicable
+      if (!remembered && savedUser && token) {
+        startInactivityTimer();
+      }
 
-    // Listen for logout across tabs
-    const onStorage = (e) => {
-      if (e.key === 'forceLogout' && e.newValue) {
-        // Another tab triggered logout
-        setUser(null);
+      // Listen for logout across tabs
+      const onStorage = (e) => {
+        if (e.key === 'forceLogout' && e.newValue && mounted) {
+          // Another tab triggered logout
+          setUser(null);
+          clearInactivityTimer();
+        }
+      };
+      window.addEventListener('storage', onStorage);
+
+      // Store cleanup function
+      cleanupFn = () => {
+        events.forEach((evt) => window.removeEventListener(evt, handleActivity));
+        window.removeEventListener('storage', onStorage);
         clearInactivityTimer();
-      }
-    };
-    window.addEventListener('storage', onStorage);
+      };
+    });
 
     return () => {
-      events.forEach((evt) => window.removeEventListener(evt, handleActivity));
-      window.removeEventListener('storage', onStorage);
-      clearInactivityTimer();
+      mounted = false;
+      cancelAnimationFrame(rafId);
+      if (cleanupFn) {
+        cleanupFn();
+      }
     };
   }, []);
 
@@ -102,6 +139,7 @@ export const AuthProvider = ({ children }) => {
     storage.setItem('user', JSON.stringify(userData));
     if (token) {
       storage.setItem('token', token);
+      localStorage.setItem('accessToken', token); // For chat API
     }
     if (remember) {
       const expiryAt = Date.now() + REMEMBER_ME_EXPIRY_MS;
@@ -116,25 +154,8 @@ export const AuthProvider = ({ children }) => {
       startInactivityTimer();
     }
 
-    // Handle return after login
-    const returnAfterLogin = localStorage.getItem('returnAfterLogin');
-    if (returnAfterLogin) {
-      localStorage.removeItem('returnAfterLogin');
-      // Use setTimeout to ensure the login state is updated before navigation
-      setTimeout(() => {
-        window.location.href = returnAfterLogin;
-      }, 100);
-    } else {
-      // Default redirect based on user role
-      setTimeout(() => {
-        if (userData.role === 'COMPANY') {
-          window.location.href = '/business/dashboard';
-        } else if (userData.role === 'ADMIN' || userData.role === 'STAFF') {
-          window.location.href = '/admin';
-        }
-        // For USER role, stay on current page or go to homepage
-      }, 100);
-    }
+    // Note: Navigation is handled by the component that calls login
+    // No automatic redirects here to avoid page reloads
   };
 
   const logout = () => {
@@ -143,6 +164,7 @@ export const AuthProvider = ({ children }) => {
     try {
       localStorage.removeItem('user');
       localStorage.removeItem('token');
+      localStorage.removeItem('accessToken'); // Clear chat token
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('rememberMe');
     } catch {}

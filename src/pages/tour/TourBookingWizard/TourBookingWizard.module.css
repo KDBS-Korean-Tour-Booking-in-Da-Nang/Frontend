@@ -1,11 +1,33 @@
+/* Ensure body and html have no background */
+:global(body), :global(html) {
+  background: transparent !important;
+}
+
+.wizard-fullscreen-bg {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
 .tour-booking-wizard {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  min-height: 100vh;
 }
 
 /* Progress Bar */
 .progress-container {
+  margin-top: 80px;
   margin-bottom: 40px;
 }
 
@@ -430,6 +452,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .progress-container {
+    margin-top: 60px;
+  }
+  
   .tour-booking-wizard .progress-steps {
     flex-direction: column;
     gap: 12px;

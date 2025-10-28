@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { Modal } from '../../../components';
 import { API_ENDPOINTS } from '../../../config/api';
+import { updateUserProfile, validateUserProfile } from '../../../services/userService';
 import { 
   PencilIcon, 
   EyeIcon, 
@@ -12,15 +15,22 @@ import {
   HeartIcon,
   CreditCardIcon,
   BellIcon,
-  StarIcon
+  StarIcon,
+  ChevronDownIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/react/24/outline';
 import styles from './UserProfile.module.css';
 
 const UserProfile = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, updateUser, getToken } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { showSuccess, showError } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [editForm, setEditForm] = useState({
     name: user?.username || user?.name || '',
     phone: user?.phone || '',
@@ -28,57 +38,30 @@ const UserProfile = () => {
     gender: user?.gender || '',
     cccd: user?.cccd || ''
   });
-  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '/default-avatar.png');
   const [avatarFile, setAvatarFile] = useState(null);
   const [premiumStatus, setPremiumStatus] = useState(null);
   const [premiumLoading, setPremiumLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Check if user logged in via OAuth (Google/Naver)
-  // Multiple detection methods for OAuth
-  const userProvider = user?.provider || user?.authProvider || user?.loginProvider || user?.oauthProvider;
-  const hasGoogleAvatar = user?.avatar && (user.avatar.includes('googleusercontent.com') || user.avatar.includes('googleapis.com'));
-  const hasNaverAvatar = user?.avatar && user.avatar.includes('naver.com');
-  
-  // Check if user has OAuth-style avatar (external URL)
-  const hasExternalAvatar = user?.avatar && (user.avatar.startsWith('http') && !user.avatar.includes('localhost'));
-  
-  // OAuth detection logic
-  const isOAuthByProvider = userProvider && (
-    userProvider.toLowerCase().includes('google') || 
-    userProvider.toLowerCase().includes('naver') ||
-    userProvider.toLowerCase().includes('oauth')
-  );
-  
-  const isOAuthByAvatar = hasGoogleAvatar || hasNaverAvatar || hasExternalAvatar;
-  
-  // Force OAuth detection if user has external avatar (Google/Naver style)
-  const forceOAuthDetection = user?.avatar && (
-    user.avatar.includes('googleusercontent.com') || 
-    user.avatar.includes('googleapis.com') ||
-    user.avatar.includes('naver.com') ||
-    (user.avatar.startsWith('https://') && !user.avatar.includes('localhost'))
-  );
-  
-  // Final OAuth check - if either provider or avatar indicates OAuth
-  const finalIsOAuthUser = isOAuthByProvider || isOAuthByAvatar || forceOAuthDetection;
-  const finalIsGoogleUser = (userProvider && userProvider.toLowerCase().includes('google')) || hasGoogleAvatar || (user?.avatar && user.avatar.includes('google'));
-  const finalIsNaverUser = (userProvider && userProvider.toLowerCase().includes('naver')) || hasNaverAvatar || (user?.avatar && user.avatar.includes('naver'));
-  
-  // Debug: Log user info to console
-  console.log('=== USER PROFILE DEBUG ===');
-  console.log('User object:', user);
-  console.log('User provider:', userProvider);
-  console.log('User avatar:', user?.avatar);
-  console.log('Has Google avatar:', hasGoogleAvatar);
-  console.log('Has Naver avatar:', hasNaverAvatar);
-  console.log('Has external avatar:', hasExternalAvatar);
-  console.log('Force OAuth detection:', forceOAuthDetection);
-  console.log('Is OAuth by provider:', isOAuthByProvider);
-  console.log('Is OAuth by avatar:', isOAuthByAvatar);
-  console.log('Final is OAuth user:', finalIsOAuthUser);
-  console.log('Final is Google user:', finalIsGoogleUser);
-  console.log('Final is Naver user:', finalIsNaverUser);
-  console.log('========================');
+  // All users can change avatar regardless of login method
+
+  // Update editForm when user data changes (after successful update)
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        name: user?.username || user?.name || '',
+        phone: user?.phone || '',
+        dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+        gender: user?.gender || '',
+        cccd: user?.cccd || ''
+      });
+      // Only update avatarPreview if user.avatar has actually changed and no file is selected
+      if (user.avatar !== avatarPreview && !avatarFile) {
+        setAvatarPreview(user?.avatar || '/default-avatar.png');
+      }
+    }
+  }, [user, avatarPreview, !!avatarFile]); // Use !!avatarFile to convert to boolean
 
   // Fetch premium status
   useEffect(() => {
@@ -138,6 +121,20 @@ const UserProfile = () => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     
+    // Validate file
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (file.size > maxSize) {
+      showError('Kích thước ảnh không được vượt quá 5MB');
+      return;
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+      showError('Định dạng ảnh không được hỗ trợ (chỉ chấp nhận JPG, PNG, GIF, WebP)');
+      return;
+    }
+    
     // Save the file for later upload
     setAvatarFile(file);
     
@@ -149,19 +146,110 @@ const UserProfile = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const updatedUser = {
-      ...user,
-      ...editForm,
-      avatar: avatarPreview
+    
+    // Prepare user data for API
+    const userData = {
+      name: editForm.name,
+      email: user?.email, // Keep original email
+      phone: editForm.phone,
+      dob: editForm.dob,
+      gender: editForm.gender,
+      cccd: editForm.cccd,
+      avatarFile: avatarFile // Include avatar file if selected
     };
-    updateUser(updatedUser);
-    setIsEditModalOpen(false);
+    
+    // Validate user data
+    const validation = validateUserProfile(userData);
+    if (!validation.isValid) {
+      // Only show toast error, don't set updateError state
+      const firstError = Object.values(validation.errors)[0];
+      if (firstError) {
+        showError(firstError);
+      }
+      return;
+    }
+    
+    try {
+      setIsUpdating(true);
+      const token = getToken();
+      
+      if (!token) {
+        throw new Error('Không tìm thấy token xác thực');
+      }
+      
+      // Call API to update user profile
+      const result = await updateUserProfile(userData, token);
+      
+      // Use avatar URL from backend response if available, otherwise keep current
+      const newAvatarUrl = result?.avatar || user.avatar || '/default-avatar.png';
+      
+      // Update local user state with the response
+      const updatedUser = {
+        ...user,
+        username: editForm.name, // Map name to username for backend compatibility
+        name: editForm.name,
+        phone: editForm.phone,
+        dob: editForm.dob,
+        gender: editForm.gender,
+        cccd: editForm.cccd,
+        avatar: newAvatarUrl
+      };
+      
+      updateUser(updatedUser);
+      showSuccess('Cập nhật thông tin thành công!');
+      
+      // Clear avatar file after successful update
+      setAvatarFile(null);
+      
+      // Close modal immediately after successful update
+      setIsEditModalOpen(false);
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      const errorMessage = error.message || 'Có lỗi xảy ra khi cập nhật thông tin';
+      // Only show toast error, don't set updateError state
+      showError(errorMessage);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const getInitials = (name) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+  };
+
+  const getLanguageName = (lang) => {
+    const languages = {
+      'vi': 'Tiếng Việt',
+      'en': 'English',
+      'ko': '한국어'
+    };
+    return languages[lang] || 'Tiếng Việt';
+  };
+
+  const getFlagFileName = (lang) => {
+    const flagMap = {
+      'vi': 'VN',
+      'en': 'EN',
+      'ko': 'KR'
+    };
+    return flagMap[lang] || 'VN';
+  };
+
+  const getThemeName = (currentTheme) => {
+    return currentTheme === 'light' ? 'Sáng' : 'Tối';
+  };
+
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    setShowLanguageDropdown(false);
+  };
+
+  const changeTheme = (newTheme) => {
+    setTheme(newTheme);
+    setShowThemeDropdown(false);
   };
 
   const renderContent = () => {
@@ -200,7 +288,7 @@ const UserProfile = () => {
             <div className={styles['info-group']}>
               <label className={styles['info-label']}>Giới tính</label>
               <div className={`${styles['info-value']} ${!user?.gender ? styles['empty'] : ''}`}>
-                {user?.gender || 'Chưa cập nhật'}
+                {user?.gender ? (user.gender === 'M' ? 'Nam' : user.gender === 'F' ? 'Nữ' : user.gender === 'O' ? 'Khác' : user.gender) : 'Chưa cập nhật'}
               </div>
             </div>
             
@@ -250,17 +338,90 @@ const UserProfile = () => {
       case 'settings':
         return (
           <div className={styles['profile-info']}>
-            <div className={styles['info-group']}>
+            {/* Language Selector */}
+            <div className={styles['setting-group']}>
               <label className={styles['info-label']}>Ngôn ngữ</label>
-              <div className={styles['info-value']}>
-                Tiếng Việt
+              <div className={styles['dropdown-container']}>
+                <button 
+                  className={styles['setting-dropdown']}
+                  onClick={() => {
+                    setShowLanguageDropdown(!showLanguageDropdown);
+                    setShowThemeDropdown(false);
+                  }}
+                >
+                  <img 
+                    src={`/${getFlagFileName(i18n.language)}.png`} 
+                    alt={i18n.language} 
+                    className={styles['flag-icon']}
+                  />
+                  <span>{getLanguageName(i18n.language)}</span>
+                  <ChevronDownIcon className={styles['chevron-icon']} />
+                </button>
+                {showLanguageDropdown && (
+                  <div className={styles['dropdown-menu']}>
+                    <button 
+                      className={`${styles['dropdown-option']} ${i18n.language === 'vi' ? styles['active'] : ''}`}
+                      onClick={() => changeLanguage('vi')}
+                    >
+                      <img src="/VN.png" alt="VN" className={styles['flag-icon']} />
+                      <span>Tiếng Việt</span>
+                    </button>
+                    <button 
+                      className={`${styles['dropdown-option']} ${i18n.language === 'en' ? styles['active'] : ''}`}
+                      onClick={() => changeLanguage('en')}
+                    >
+                      <img src="/EN.png" alt="EN" className={styles['flag-icon']} />
+                      <span>English</span>
+                    </button>
+                    <button 
+                      className={`${styles['dropdown-option']} ${i18n.language === 'ko' ? styles['active'] : ''}`}
+                      onClick={() => changeLanguage('ko')}
+                    >
+                      <img src="/KR.png" alt="KR" className={styles['flag-icon']} />
+                      <span>한국어</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             
-            <div className={styles['info-group']}>
+            {/* Theme Selector */}
+            <div className={styles['setting-group']}>
               <label className={styles['info-label']}>Chủ đề</label>
-              <div className={styles['info-value']}>
-                Sáng
+              <div className={styles['dropdown-container']}>
+                <button 
+                  className={styles['setting-dropdown']}
+                  onClick={() => {
+                    setShowThemeDropdown(!showThemeDropdown);
+                    setShowLanguageDropdown(false);
+                  }}
+                >
+                  {theme === 'light' ? (
+                    <SunIcon className={styles['theme-icon']} />
+                  ) : (
+                    <MoonIcon className={styles['theme-icon']} />
+                  )}
+                  <span>{getThemeName(theme)}</span>
+                  <ChevronDownIcon className={styles['chevron-icon']} />
+                </button>
+                {showThemeDropdown && (
+                  <div className={styles['dropdown-menu']}>
+                    <button 
+                      className={`${styles['dropdown-option']} ${theme === 'light' ? styles['active'] : ''}`}
+                      onClick={() => changeTheme('light')}
+                    >
+                      <SunIcon className={styles['theme-icon']} />
+                      <span>Sáng</span>
+                    </button>
+                    <button 
+                      className={`${styles['dropdown-option']} ${theme === 'dark' ? styles['active'] : ''}`}
+                      onClick={() => changeTheme('dark')}
+                    >
+                      <MoonIcon className={styles['theme-icon']} />
+                      <span>Tối</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -361,18 +522,15 @@ const UserProfile = () => {
                   className={styles['avatar']} 
                 />
               ) : (
-                <div className={styles['avatar-placeholder']}>
-                  {getInitials(user.username || user.name)}
-                </div>
+                <img 
+                  src="/default-avatar.png" 
+                  alt="default avatar" 
+                  className={styles['avatar']} 
+                />
               )}
             </div>
-            <h3 className={styles['user-name']}>{user.username || user.name}</h3>
-            <p className={styles['user-email']}>{user.email}</p>
-            {finalIsOAuthUser && (
-              <p className={styles['oauth-provider']}>
-                Đăng nhập qua {finalIsGoogleUser ? 'Google' : 'Naver'}
-              </p>
-            )}
+             <h3 className={styles['user-name']}>{user.username || user.name}</h3>
+             <p className={styles['user-email']}>{user.email}</p>
           </div>
           
           <ul className={styles['sidebar-menu']}>
@@ -402,7 +560,20 @@ const UserProfile = () => {
             {activeTab === 'profile' && (
               <button
                 className={styles['edit-button']}
-                onClick={() => setIsEditModalOpen(true)}
+                onClick={() => {
+                  // Reset form to current user data when opening modal
+                  setEditForm({
+                    name: user?.username || user?.name || '',
+                    phone: user?.phone || '',
+                    dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+                    gender: user?.gender || '',
+                    cccd: user?.cccd || ''
+                  });
+                  // Keep current avatar, don't reset to default
+                  setAvatarPreview(user?.avatar || '/default-avatar.png');
+                  setAvatarFile(null);
+                  setIsEditModalOpen(true);
+                }}
               >
                 <PencilIcon className={styles['edit-icon']} />
                 Chỉnh sửa
@@ -417,10 +588,27 @@ const UserProfile = () => {
       {/* Edit Modal */}
       <Modal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setAvatarFile(null);
+          // Reset form to current user data when closing modal
+          setEditForm({
+            name: user?.username || user?.name || '',
+            phone: user?.phone || '',
+            dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+            gender: user?.gender || '',
+            cccd: user?.cccd || ''
+          });
+          // Keep current avatar, don't reset to default
+          setAvatarPreview(user?.avatar || '/default-avatar.png');
+        }}
         title="Chỉnh sửa thông tin"
         size="lg"
       >
+        {/* Success messages removed - only show toast notifications */}
+
+        {/* Error messages removed - only show toast notifications */}
+
         <form onSubmit={handleEditSubmit} className="space-y-4">
            <div className={styles['avatar-upload']}>
              {/* Show avatar preview (current or newly selected) */}
@@ -431,54 +619,24 @@ const UserProfile = () => {
                  className={styles['avatar-preview']} 
                />
              ) : (
-               <div className={styles['avatar-preview-placeholder']}>
-                 {getInitials(editForm.name)}
-               </div>
+               <img 
+                 src="/default-avatar.png" 
+                 alt="default avatar" 
+                 className={styles['avatar-preview']} 
+               />
              )}
              
-             {/* OAuth users cannot change avatar */}
-             {finalIsOAuthUser ? (
-               <div className={styles['oauth-avatar-info']}>
-                 <div className={styles['oauth-avatar-badge']}>
-                   {finalIsGoogleUser && (
-                     <div className={styles['google-badge']}>
-                       <svg width="20" height="20" viewBox="0 0 24 24">
-                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                       </svg>
-                     </div>
-                   )}
-                   {finalIsNaverUser && (
-                     <div className={styles['naver-badge']}>
-                       <svg width="20" height="20" viewBox="0 0 24 24">
-                         <path fill="#03C75A" d="M16.273 12.845 7.376 0H0v24h7.726V11.156L16.624 24H24V0h-7.727v12.845Z"/>
-                       </svg>
-                     </div>
-                   )}
-                 </div>
-                 <p className={styles['oauth-avatar-text']}>
-                   Ảnh đại diện được đồng bộ từ {finalIsGoogleUser ? 'Google' : 'Naver'}
-                 </p>
-                 <p className={styles['oauth-avatar-note']}>
-                   Để thay đổi ảnh đại diện, vui lòng cập nhật trên {finalIsGoogleUser ? 'Google' : 'Naver'}
-                 </p>
-               </div>
-             ) : (
-               <>
-                 <input 
-                   type="file" 
-                   accept="image/*" 
-                   onChange={handleAvatarChange} 
-                   id="avatar-upload"
-                   className={styles['file-input']}
-                 />
-                 <label htmlFor="avatar-upload" className={styles['file-label']}>
-                   Chọn ảnh đại diện
-                 </label>
-               </>
-             )}
+              {/* All users can change avatar */}
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleAvatarChange} 
+                id="avatar-upload"
+                className={styles['file-input']}
+              />
+              <label htmlFor="avatar-upload" className={styles['file-label']}>
+                Chọn ảnh đại diện
+              </label>
            </div>
 
           <div className={styles['form-group']}>
@@ -549,9 +707,9 @@ const UserProfile = () => {
               className={styles['form-select']}
             >
               <option value="">Chưa cập nhật</option>
-              <option value="male">Nam</option>
-              <option value="female">Nữ</option>
-              <option value="other">Khác</option>
+              <option value="M">Nam</option>
+              <option value="F">Nữ</option>
+              <option value="O">Khác</option>
             </select>
           </div>
 
@@ -572,16 +730,41 @@ const UserProfile = () => {
           <div className={styles['form-actions']}>
             <button
               type="button"
-              onClick={() => setIsEditModalOpen(false)}
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setAvatarFile(null);
+                // Reset form to current user data when canceling
+                setEditForm({
+                  name: user?.username || user?.name || '',
+                  phone: user?.phone || '',
+                  dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+                  gender: user?.gender || '',
+                  cccd: user?.cccd || ''
+                });
+                // Keep current avatar, don't reset to default
+                setAvatarPreview(user?.avatar || '/default-avatar.png');
+              }}
               className={styles['btn-secondary']}
+              disabled={isUpdating}
             >
               Hủy
             </button>
             <button
               type="submit"
               className={styles['btn-primary']}
+              disabled={isUpdating}
             >
-              Lưu thay đổi
+              {isUpdating ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Đang cập nhật...
+                </div>
+              ) : (
+                'Lưu thay đổi'
+              )}
             </button>
           </div>
         </form>

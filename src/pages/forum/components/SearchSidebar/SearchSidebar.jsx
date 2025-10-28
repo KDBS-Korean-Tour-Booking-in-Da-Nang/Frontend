@@ -587,31 +587,6 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
         </div>
       </div>
 
-      <div className={styles['trending-section']}>
-        <h3 className={styles['sidebar-title']}>{t('forum.sidebar.trendingTopics')}</h3>
-        <div className={styles['trending-topics']}>
-          <div className={styles['trending-topic']}>
-            <span className={styles['topic-number']}>1</span>
-            <span className={styles['topic-text']}>{t('forum.trendingTopics.ai')}</span>
-          </div>
-          <div className={styles['trending-topic']}>
-            <span className={styles['topic-number']}>2</span>
-            <span className={styles['topic-text']}>{t('forum.trendingTopics.startup')}</span>
-          </div>
-          <div className={styles['trending-topic']}>
-            <span className={styles['topic-number']}>3</span>
-            <span className={styles['topic-text']}>{t('forum.trendingTopics.marketing')}</span>
-          </div>
-          <div className={styles['trending-topic']}>
-            <span className={styles['topic-number']}>4</span>
-            <span className={styles['topic-text']}>{t('forum.trendingTopics.finance')}</span>
-          </div>
-          <div className={styles['trending-topic']}>
-            <span className={styles['topic-number']}>5</span>
-            <span className={styles['topic-text']}>{t('forum.trendingTopics.design')}</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

@@ -119,16 +119,27 @@ const NewsManagement = () => {
     }
   };
 
-  // Check if user has admin or staff role (backend uses uppercase)
-  // Don't show access denied if user is logging out
-  if (!isLoggingOut && (!user || (user.role !== 'ADMIN' && user.role !== 'STAFF'))) {
+  // Show loading state while logging out or when user is null during logout process
+  if (isLoggingOut || (!user && !isLoggingOut)) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('newsManagement.logout.loggingOut')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has staff role only (backend uses uppercase)
+  if (user && user.role !== 'STAFF') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
           <ExclamationTriangleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('newsManagement.accessDenied.title')}</h2>
           <p className="text-gray-600 mb-4">
-            {t('newsManagement.accessDenied.message')}
+            Only staff members can access this page. Please login with a staff account.
           </p>
           {/* Debug info */}
           <div className="mb-4 p-3 bg-gray-100 rounded text-xs text-left">
@@ -147,21 +158,9 @@ const NewsManagement = () => {
               onClick={() => navigate('/staff-login')}
               className="w-full bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg transition-colors shadow-primary"
             >
-              {t('newsManagement.accessDenied.staffLogin')}
+              Staff Login
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading state while logging out
-  if (isLoggingOut) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('newsManagement.logout.loggingOut')}</p>
         </div>
       </div>
     );
@@ -247,7 +246,7 @@ const NewsManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       {/* Custom styles for article content images */}
       <style dangerouslySetInnerHTML={{
         __html: `
@@ -263,128 +262,8 @@ const NewsManagement = () => {
           }
         `
       }} />
-      {/* Staff/Admin Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="w-full">
-          <div className="flex items-center justify-between h-16 px-4">
-            {/* Left - Brand */}
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">{t('newsManagement.title')}</h1>
-            </div>
-            
-            {/* Right - Language Switcher and User Info */}
-            <div className="flex items-center space-x-4">
-              {/* Language Switcher */}
-              <div className="relative language-dropdown">
-                <button
-                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                >
-                  <span>{i18n.language?.toUpperCase() || 'VI'}</span>
-                  <ChevronDownIcon className="w-4 h-4" />
-                </button>
-                
-                {showLanguageDropdown && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                    <button
-                      onClick={() => changeLanguage('vi')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      {t('lang.vi')}
-                    </button>
-                    <button
-                      onClick={() => changeLanguage('en')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      {t('lang.en')}
-                    </button>
-                    <button
-                      onClick={() => changeLanguage('ko')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      {t('lang.ko')}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* User Info with Dropdown */}
-              <div className="relative user-dropdown">
-                <button
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center space-x-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
-                >
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.name || user.email}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {user.role === 'ADMIN' ? t('newsManagement.roles.admin') : t('newsManagement.roles.staff')}
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-semibold text-sm">
-                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                  <ChevronDownIcon className="w-4 h-4 text-gray-500" />
-                </button>
-
-                {/* Dropdown Menu */}
-                {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                        logout();
-                        showSuccess(t('newsManagement.messages.logoutSuccess'));
-                        setShowUserDropdown(false);
-                        setIsLoggingOut(true);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      {t('newsManagement.buttons.logout')}
-                    </button>
-                  </div>
-                </div>
-              )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Full-width layout with sidebar space */}
-      <div className="flex">
-        {/* Sidebar space (for future sidebar menu) */}
-        <div className="w-64 bg-white shadow-sm border-r border-gray-200 hidden lg:block">
-          <div className="p-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-                <DocumentTextIcon className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('newsManagement.sidebar.title')}</h2>
-              <p className="text-sm text-gray-600">{t('newsManagement.sidebar.subtitle')}</p>
-            </div>
-            
-            {/* Future menu items */}
-            <div className="mt-8 space-y-2">
-              <div className="p-3 bg-secondary border-l-4 border-primary rounded-r-lg">
-                <span className="text-sm font-medium text-primary">{t('newsManagement.sidebar.news')}</span>
-              </div>
-              <div className="p-3 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
-                <span className="text-sm">{t('newsManagement.sidebar.statistics')}</span>
-              </div>
-              <div className="p-3 text-gray-600 hover:bg-gray-50 rounded-lg cursor-pointer">
-                <span className="text-sm">{t('newsManagement.sidebar.settings')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main content area */}
-        <div className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
+      {/* Main content area (no header/sidebar) */}
+      <div className="max-w-7xl mx-auto py-6">
             {/* Header Section */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -676,8 +555,6 @@ const NewsManagement = () => {
                 ← {t('newsManagement.buttons.backToNews')}
               </button>
             </div>
-          </div>
-        </div>
       </div>
 
       {/* Article Detail Modal */}

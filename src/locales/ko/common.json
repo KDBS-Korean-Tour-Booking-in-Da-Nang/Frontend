@@ -13,6 +13,7 @@
 		"payment": "결제",
 		"dashboard": "대시보드",
 		"businessInfo": "사업자 정보",
+		"companyInfo": "회사 정보",
 		"login": "로그인",
 		"logout": "로그아웃",
 		"register": "회원가입",
@@ -306,7 +307,7 @@
 		"info_submit_success": "사업자 정보가 성공적으로 제출되었습니다!",
 		"info_submit_failed": "정보 제출 중 오류가 발생했습니다. 다시 시도해주세요."
 	},
-	"business": {
+  "company": {
 		"loading": "로딩 중...",
 		"notFoundTitle": "등록 정보를 찾을 수 없습니다",
 		"backToRegister": "회원가입으로 돌아가기",
@@ -779,6 +780,9 @@
 		"auth": {
 			"login_success": "로그인 성공!",
 			"login_failed": "로그인 실패. 다시 시도해주세요.",
+			"invalid_credentials": "로그인 실패. 이메일 또는 비밀번호를 확인해주세요.",
+			"wrong_password": "비밀번호가 올바르지 않습니다.",
+			"email_not_found": "이메일이 존재하지 않습니다.",
 			"register_success": "회원가입 성공! 계정을 인증하려면 이메일을 확인해주세요.",
 			"email_already_exists": "이 이메일은 이미 등록되어 있습니다",
 			"google_connection_failed": "Google에 연결할 수 없습니다. 다시 시도해주세요.",
@@ -791,7 +795,11 @@
 			"otp_verify_success": "OTP 인증 성공!",
 			"general_error": "오류가 발생했습니다. 다시 시도해주세요."
 		},
-		"forum": {
+    "company": {
+      "info_submit_success": "회사 정보가 성공적으로 제출되었습니다!",
+      "info_submit_failed": "정보 제출 중 오류가 발생했습니다. 다시 시도해주세요."
+    },
+    "forum": {
 			"post_update_success": "게시물이 성공적으로 업데이트되었습니다!",
 			"post_create_success": "게시물이 성공적으로 생성되었습니다!",
 			"post_update_failed": "게시물 업데이트 실패. 다시 시도해주세요.",
@@ -1283,6 +1291,7 @@
 	"bookingHistory": {
 		"title": "예약 내역",
 		"subtitle": "모든 투어 예약을 확인하세요",
+		"backButton": "뒤로",
 		"loading": "예약 내역을 불러오는 중...",
 		"loginRequired": {
 			"title": "로그인 필요",
@@ -1943,14 +1952,15 @@
       "close": "닫기"
     }
   },
-  "businessDashboard": {
+  "companyDashboard": {
     "sidebar": {
       "title": "비즈니스 대시보드",
       "dashboard": "대시보드",
       "tourManagement": "투어 관리",
       "orders": "주문",
       "analytics": "분석",
-      "businessInfo": "비즈니스 정보"
+			"businessInfo": "비즈니스 정보",
+			"companyInfo": "회사 정보"
     },
     "welcome": {
       "title": "비즈니스 대시보드에 오신 것을 환영합니다",

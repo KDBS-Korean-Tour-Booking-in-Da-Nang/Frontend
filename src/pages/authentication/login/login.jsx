@@ -79,6 +79,39 @@ const Login = () => {
     }
   };
 
+  const mapLoginErrorToI18nKey = (message) => {
+    const msg = String(message || '').toLowerCase();
+    // Email not found variants
+    if (
+      msg.includes('email has not existed') ||
+      msg.includes('email not exist') ||
+      msg.includes('email does not exist') ||
+      msg.includes('user not found') ||
+      msg.includes('no such user')
+    ) {
+      return 'toast.auth.email_not_found';
+    }
+    // Wrong password variants
+    if (
+      msg.includes('password not match') ||
+      msg.includes('wrong password') ||
+      msg.includes('invalid password') ||
+      msg.includes('bad credentials') ||
+      msg.includes('incorrect password')
+    ) {
+      return 'toast.auth.wrong_password';
+    }
+    // Generic invalid credentials phrasing
+    if (
+      msg.includes('login failed. please check your email or password') ||
+      msg.includes('invalid credentials') ||
+      msg.includes('check your email or password')
+    ) {
+      return 'toast.auth.invalid_credentials';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -129,6 +162,7 @@ const Login = () => {
             id: data.result.user.userId,
             email: data.result.user.email,
             role: data.result.user.role,
+            status: data.result.user.status,
             name: data.result.user.username,
             avatar: data.result.user.avatar,
             isPremium: data.result.user.isPremium,
@@ -137,7 +171,41 @@ const Login = () => {
 
           login(user, token, rememberMe);
           showSuccess('toast.auth.login_success');
-          navigate('/');
+          
+          // Navigate based on user role and any saved return path
+          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to company-info
+          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING') {
+            // Keep onboarding flags for pending flow
+            window.location.href = '/company-info';
+            return;
+          }
+
+          // Clear any stale onboarding flags for non-pending users
+          if (!(user.role === 'COMPANY' || user.role === 'BUSINESS') || user.status !== 'COMPANY_PENDING') {
+            localStorage.removeItem('registration_intent');
+            localStorage.removeItem('company_onboarding_pending');
+          }
+          const returnAfterLogin = localStorage.getItem('returnAfterLogin');
+          if (returnAfterLogin) {
+            localStorage.removeItem('returnAfterLogin');
+            if (user.role === 'COMPANY') {
+              window.location.href = returnAfterLogin;
+              return;
+            }
+            // Non-company users are sent to homepage
+            window.location.href = '/';
+            return;
+          }
+
+          // Default navigation by role
+          if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
+            window.location.href = '/company/dashboard';
+          } else if (user.role === 'ADMIN' || user.role === 'STAFF') {
+            window.location.href = '/admin';
+          } else {
+            // Regular user goes to homepage
+            window.location.href = '/';
+          }
         } else {
           // Fallback to mock data if user info not available
           const user = {
@@ -148,10 +216,15 @@ const Login = () => {
           };
           login(user, token, rememberMe);
           showSuccess('toast.auth.login_success');
-          navigate('/');
+          window.location.href = '/';
         }
       } else {
-        showError(data.message || 'toast.auth.login_failed');
+        const mapped = mapLoginErrorToI18nKey(data.message);
+        if (mapped) {
+          showError(mapped);
+        } else {
+          showError(data.message || 'toast.auth.login_failed');
+        }
       }
     } catch (err) {
       showError(t('auth.login.error') || 'toast.auth.general_error');

@@ -23,7 +23,7 @@ export const API_ENDPOINTS = {
   REACTIONS_DELETE: `${BaseURL}/api/reactions/delete`,
   REACTIONS_POST_USER: (postId, userEmail) => `${BaseURL}/api/reactions/post/${postId}/user/${encodeURIComponent(userEmail)}`,
   REACTIONS_POST_COUNT: (postId) => `${BaseURL}/api/reactions/post/${postId}/count`,
-  REACTIONS_POST_DISLIKE_COUNT: (postId) => `${BaseURL}/api/reactions/post/${postId}/dislike-count`,
+  REACTIONS_POST_SUMMARY: (postId, userEmail) => `${BaseURL}/api/reactions/post/${postId}/summary${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`,
   REACTIONS_COMMENT_SUMMARY: (commentId, userEmail) => `${BaseURL}/api/reactions/comment/${commentId}/summary${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`,
   
   // Saved Posts
@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
   
   // Users
   USERS: `${BaseURL}/api/users`,
+  UPDATE_USER: `${BaseURL}/api/users/update`,
   
   // Tours
   TOURS: `${BaseURL}/api/tour`,

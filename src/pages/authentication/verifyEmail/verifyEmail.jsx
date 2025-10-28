@@ -82,9 +82,40 @@ const VerifyEmail = () => {
         
         // Keep loading spinner visible until redirect occurs
         // Auto navigate based on role after 2 seconds
-        setTimeout(() => {
+        setTimeout(async () => {
+          // Auto-login after verify if registration intent is business
           if (role === 'business') {
-            navigate('/business-info', { state: { type: 'success' } });
+            try {
+              const email = sessionStorage.getItem('post_reg_email');
+              const password = sessionStorage.getItem('post_reg_password');
+              if (email && password) {
+                const resp = await fetch('/api/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, password })
+                });
+                const data = await resp.json();
+                if ((data.code === 1000 || data.code === 0) && data.result) {
+                  const token = data.result.token;
+                  const userObj = data.result.user ? {
+                    id: data.result.user.userId,
+                    email: data.result.user.email,
+                    role: data.result.user.role,
+                    status: data.result.user.status,
+                    name: data.result.user.username,
+                    avatar: data.result.user.avatar,
+                    isPremium: data.result.user.isPremium,
+                    balance: data.result.user.balance
+                  } : null;
+                  if (userObj) {
+                    // Ghi nhớ theo lựa chọn mặc định (không remember)
+                    login(userObj, token, false);
+                  }
+                }
+              }
+            } catch {}
+            // Điều hướng tới trang upload company info
+            navigate('/company-info', { replace: true, state: { type: 'success' } });
           } else {
             navigate('/login', { state: { type: 'success' } });
           }

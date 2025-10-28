@@ -93,7 +93,13 @@ const StaffLogin = () => {
 
               login(user, token, false);
               showSuccess('Đăng nhập thành công!');
-              navigate('/staff/news-management');
+              
+              // Redirect based on role
+              if (userData.role === 'ADMIN') {
+                navigate('/admin');
+              } else if (userData.role === 'STAFF') {
+                navigate('/staff/news-management');
+              }
         } else {
           showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN và STAFF mới được phép đăng nhập vào trang quản lý.`);
         }

@@ -134,6 +134,8 @@ const Register = () => {
     }
 
     try {
+      // Map frontend role to backend enum
+      const backendRole = (formData.role === 'business') ? 'COMPANY' : 'USER';
       const response = await fetch('/api/users/register', {
         method: 'POST',
         headers: {
@@ -143,6 +145,7 @@ const Register = () => {
           username: formData.username,
           email: formData.email,
           password: formData.password,
+          role: backendRole,
         }),
       });
 
@@ -151,6 +154,13 @@ const Register = () => {
       if ((data.code === 1000 || data.code === 0)) {
         // Lưu email vào localStorage
         localStorage.setItem('userEmail', formData.email);
+        // Lưu ý định vai trò đã chọn để điều hướng sau xác thực
+        localStorage.setItem('registration_intent', formData.role);
+        // Lưu tạm email/password để auto-login sau khi verify (session only)
+        try {
+          sessionStorage.setItem('post_reg_email', formData.email);
+          sessionStorage.setItem('post_reg_password', formData.password);
+        } catch {}
         
         // Show success message
         showSuccess('toast.auth.register_success');

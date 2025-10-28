@@ -41,7 +41,7 @@ const NewsDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{ marginTop: '30px' }}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">{t('newsDetail.loading')}</p>
@@ -52,7 +52,7 @@ const NewsDetail = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{ marginTop: '30px' }}>
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
           <DocumentTextIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('newsDetail.errorTitle')}</h2>
@@ -78,7 +78,7 @@ const NewsDetail = () => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" style={{ marginTop: '30px' }}>
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
           <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('newsDetail.notFoundTitle')}</h2>
@@ -110,7 +110,7 @@ const NewsDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" style={{ marginTop: '30px' }}>
       {/* Custom styles for article content images */}
       <style jsx>{`
         .article-content img {

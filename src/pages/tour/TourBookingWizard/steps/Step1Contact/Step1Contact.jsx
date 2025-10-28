@@ -467,63 +467,67 @@ const Step1Contact = () => {
   const parseAndConvertDate = (dateString, fromLanguage, toLanguage) => {
     if (!dateString) return '';
     
-    
-    
     try {
-      let day, month, year;
-      
-      // Parse based on source language
-      switch (fromLanguage) {
-        case 'vi': // DD/MM/YYYY
-          const viParts = dateString.split('/');
-          if (viParts.length === 3) {
-            day = viParts[0];
-            month = viParts[1];
-            year = viParts[2];
-            
+      // Normalize detection if fromLanguage not provided
+      let detectedFrom = fromLanguage;
+      if (!detectedFrom) {
+        if (dateString.includes('.')) {
+          detectedFrom = 'ko';
+        } else if (dateString.includes('/')) {
+          const parts = dateString.split('/');
+          if (parts.length === 3) {
+            const first = parseInt(parts[0], 10);
+            const second = parseInt(parts[1], 10);
+            // If first <= 12 and second <= 31, ambiguous; prefer 'vi' when first > 12 else 'en'
+            detectedFrom = (first > 12) ? 'vi' : 'en';
           }
-          break;
-        case 'en': // MM/DD/YYYY
-          const enParts = dateString.split('/');
-          if (enParts.length === 3) {
-            month = enParts[0];
-            day = enParts[1];
-            year = enParts[2];
-            
-          }
-          break;
-        case 'ko': // YYYY.MM.DD
-          const koParts = dateString.split('.');
-          if (koParts.length === 3) {
-            year = koParts[0];
-            month = koParts[1];
-            day = koParts[2];
-            
-          }
-          break;
+        }
       }
-      
-      if (!day || !month || !year) { return dateString; }
-      
-      // Convert to target format
-      let result;
+
+      // Parse into Date components (YYYY, MM, DD)
+      const parseParts = (value, lang) => {
+        const sep = lang === 'ko' ? '.' : '/';
+        const parts = value.split(sep);
+        if (parts.length !== 3) return null;
+        let y, m, d;
+        switch (lang) {
+          case 'vi': // DD/MM/YYYY
+            d = parts[0]; m = parts[1]; y = parts[2];
+            break;
+          case 'en': // MM/DD/YYYY
+            m = parts[0]; d = parts[1]; y = parts[2];
+            break;
+          case 'ko': // YYYY.MM.DD
+            y = parts[0]; m = parts[1]; d = parts[2];
+            break;
+          default:
+            return null;
+        }
+        const year = y.padStart(4, '0');
+        const month = m.padStart(2, '0');
+        const day = d.padStart(2, '0');
+        const iso = `${year}-${month}-${day}`;
+        const date = new Date(iso);
+        if (isNaN(date.getTime())) return null;
+        return { year, month, day };
+      };
+
+      const srcLang = detectedFrom || toLanguage; // fallback
+      const parts = parseParts(dateString, srcLang);
+      if (!parts) return dateString;
+
+      const sep = toLanguage === 'ko' ? '.' : '/';
       switch (toLanguage) {
-        case 'vi': // DD/MM/YYYY
-          result = `${day}/${month}/${year}`;
-          break;
-        case 'en': // MM/DD/YYYY
-          result = `${month}/${day}/${year}`;
-          break;
-        case 'ko': // YYYY.MM.DD
-          result = `${year}.${month}.${day}`;
-          break;
+        case 'vi':
+          return `${parts.day}${sep}${parts.month}${sep}${parts.year}`;
+        case 'en':
+          return `${parts.month}${sep}${parts.day}${sep}${parts.year}`;
+        case 'ko':
+          return `${parts.year}${sep}${parts.month}${sep}${parts.day}`;
         default:
-          result = dateString;
+          return `${parts.year}-${parts.month}-${parts.day}`;
       }
-      
-      return result;
-    } catch (error) {
-      console.error('Error parsing date:', error);
+    } catch (_) {
       return dateString;
     }
   };
@@ -711,45 +715,25 @@ const Step1Contact = () => {
     const currentDob = contact.dob || plan.members.adult[0]?.dob;
     
     if (currentDob && currentDob.trim() !== '') {
-      // Check if the date is already in the correct format for current language
-      const separator = getDateSeparator();
-      const isAlreadyCorrectFormat = currentDob.includes(separator);
+      // Always try to convert when language changes, regardless of current format
+      // This ensures proper conversion between Vietnamese and English formats
       
-      // Only skip if the date is already in the correct format AND it's a complete date
-      if (isAlreadyCorrectFormat && currentDob.split(separator).length === 3) {
-        return;
-      }
-      
-      // Detect current format and convert to new language format
-      let fromLanguage = 'vi'; // Default
-      
-      // Detect format based on separators and structure
+      // Detect source language by separator and structure (same as Step2Details)
+      let fromLang = null;
       if (currentDob.includes('.')) {
-        fromLanguage = 'ko'; // YYYY.MM.DD
+        fromLang = 'ko';
       } else if (currentDob.includes('/')) {
         const parts = currentDob.split('/');
         if (parts.length === 3) {
-          // Check if first part is day (01-31) or month (01-12)
-          const firstPart = parseInt(parts[0]);
-          const secondPart = parseInt(parts[1]);
-          
-          // More sophisticated detection
-          if (firstPart > 12) {
-            fromLanguage = 'vi'; // DD/MM/YYYY (day > 12)
-          } else if (secondPart > 12) {
-            fromLanguage = 'en'; // MM/DD/YYYY (month/day, day > 12)
-          } else {
-            // Ambiguous case, try to detect by context
-            // If first part is 01-12 and second part is 01-12, assume MM/DD/YYYY for English
-            fromLanguage = 'en'; // Default to English for ambiguous cases
-          }
+          const first = parseInt(parts[0], 10);
+          const second = parseInt(parts[1], 10);
+          fromLang = (first > 12) ? 'vi' : 'en';
         }
       }
       
-      // Convert to current language format
-      const convertedDate = parseAndConvertDate(currentDob, fromLanguage, currentLanguage);
+      const convertedDate = parseAndConvertDate(currentDob, fromLang, currentLanguage);
       
-      if (convertedDate !== currentDob) {
+      if (convertedDate && convertedDate !== currentDob) {
         handleDateChange(convertedDate);
       }
     }

@@ -1,11 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './Homepage.module.css';
 import Footer from '../../../components/Footer/Footer';
+import { useToursAPI } from '../../../hooks/useToursAPI';
+import { API_ENDPOINTS } from '../../../config/api';
 
 const Homepage = () => {
   const { t } = useTranslation();
@@ -14,6 +16,21 @@ const Homepage = () => {
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState('');
   const timerRef = useRef(null);
+  
+  // Tours for TOP DESTINATIONS
+  const { tours, loading: toursLoading, error: toursError, fetchTours } = useToursAPI();
+  const [currentDestPage, setCurrentDestPage] = useState(0);
+  const [pageRatings, setPageRatings] = useState({}); // { tourId: avg }
+
+  const vnd = useRef(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }));
+  
+  // Gallery images state
+  const [galleryImages, setGalleryImages] = useState([
+    { src: '/tour1.jpg', alt: 'Left Top', loaded: false, error: false },
+    { src: '/tour2.jpg', alt: 'Right Top', loaded: false, error: false },
+    { src: '/tour3.jpg', alt: 'Left Bottom', loaded: false, error: false },
+    { src: '/TourDaNangBackground.jpg', alt: 'Right Tall', loaded: false, error: false }
+  ]);
 
   // Close success message
   const closeSuccessMessage = useCallback(() => {
@@ -24,7 +41,29 @@ const Homepage = () => {
     }
   }, []);
 
-  // Check for success message from navigation state or localStorage
+  // Handle image load and error
+  const handleImageLoad = (index) => {
+    setGalleryImages(prev => prev.map((img, i) => 
+      i === index ? { ...img, loaded: true, error: false } : img
+    ));
+  };
+
+  const handleImageError = (index) => {
+    setGalleryImages(prev => prev.map((img, i) => 
+      i === index ? { ...img, loaded: false, error: true } : img
+    ));
+  };
+
+  // Function to update gallery images (for future use)
+  const updateGalleryImages = (newImages) => {
+    setGalleryImages(newImages.map(img => ({
+      ...img,
+      loaded: false,
+      error: false
+    })));
+  };
+
+  // Check for success message from navigation state or localStorage (avoid route replace to prevent flicker)
   useEffect(() => {
     const oauthMessage = localStorage.getItem('oauth_success_message');
     if (oauthMessage) {
@@ -34,9 +73,12 @@ const Homepage = () => {
 
     if (location.state?.message && location.state?.type === 'success') {
       setSuccessMessage(location.state.message);
-      navigate(location.pathname, { replace: true });
+      // Clear state without triggering a route change/render cycle
+      try {
+        window.history.replaceState({}, document.title, location.pathname + location.search);
+      } catch {}
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, location.pathname, location.search]);
 
   // Auto-hide success message
   useEffect(() => {
@@ -53,116 +95,172 @@ const Homepage = () => {
   }, [successMessage]);
 
 
-  // GSAP animations
+  // Fetch tours for TOP DESTINATIONS
+  useEffect(() => {
+    fetchTours();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Ensure current page stays in range when tours change
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil((tours?.length || 0) / 3));
+    if (currentDestPage > totalPages - 1) {
+      setCurrentDestPage(0);
+    }
+  }, [tours, currentDestPage]);
+
+  const totalDestPages = Math.max(1, Math.ceil((tours?.length || 0) / 3));
+  const canPaginate = totalDestPages > 1;
+
+  const handlePrevDest = () => {
+    if (!canPaginate) return;
+    setCurrentDestPage((p) => (p - 1 + totalDestPages) % totalDestPages);
+  };
+
+  const handleNextDest = () => {
+    if (!canPaginate) return;
+    setCurrentDestPage((p) => (p + 1) % totalDestPages);
+  };
+
+  const currentDestItems = useMemo(() => {
+    const base = (tours || []).slice(currentDestPage * 3, currentDestPage * 3 + 3);
+    return base;
+  }, [tours, currentDestPage]);
+
+  const displayDestItems = useMemo(() => {
+    if (currentDestItems.length === 3) return currentDestItems;
+    return [
+      ...currentDestItems,
+      ...Array.from({ length: 3 - currentDestItems.length }, () => ({ isPlaceholder: true }))
+    ];
+  }, [currentDestItems]);
+
+  // Fetch average rating for tours on current page
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchRatings = async () => {
+      const ids = currentDestItems.filter((t) => t && !t.isPlaceholder && t.id).map((t) => t.id);
+      if (ids.length === 0) return setPageRatings({});
+      try {
+        const entries = await Promise.all(ids.map(async (id) => {
+          const res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(id), { signal: controller.signal });
+          if (!res.ok) return [id, null];
+          const list = await res.json();
+          if (!Array.isArray(list) || list.length === 0) return [id, 0];
+          const sum = list.reduce((acc, it) => acc + (Number(it.star) || 0), 0);
+          const avg = sum / list.length;
+          return [id, Number.isFinite(avg) ? Math.round(avg * 10) / 10 : 0];
+        }));
+        const map = Object.fromEntries(entries);
+        setPageRatings(map);
+      } catch {
+        // ignore
+      }
+    };
+    fetchRatings();
+    return () => controller.abort();
+  }, [currentDestPage, tours]);
+
+
+  // GSAP animations - optimized for faster initial display (defer to next frame)
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Hero section animations
-    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    
-    // Animate badge - only if element exists
-    const exploreBadge = document.querySelector('.explore-badge');
-    if (exploreBadge) {
-      heroTl.fromTo(exploreBadge, 
-        { y: 30, opacity: 0 }, 
-        { 
-          y: 0, 
-          opacity: 1, 
-          duration: 0.8,
-          onComplete: () => gsap.set(exploreBadge, { clearProps: 'transform' })
-        }
-      );
-    }
-    
-    // Animate headline parts - only if elements exist
-    const heroTitleSpans = document.querySelectorAll('.hero-title span');
-    if (heroTitleSpans.length > 0) {
-      heroTl.fromTo(heroTitleSpans, 
-        { y: 50, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.8, stagger: 0.2 }, '-=0.4'
-      );
-    }
-    
-    // Animate description and button together - only if elements exist
-    const heroDesc = document.querySelector('.hero-desc');
-    const bookNowBtn = document.querySelector('.book-now-btn');
-    
-    if (heroDesc && bookNowBtn) {
-      // Animate description and button simultaneously
-      heroTl.fromTo([heroDesc, bookNowBtn], 
-        { y: 30, opacity: 0, scale: 0.9 }, 
-        { 
-          y: 0, 
-          opacity: 1, 
-          scale: 1, 
-          duration: 0.8,
-          stagger: 0.1,
-          onComplete: () => {
-            gsap.set(heroDesc, { clearProps: 'transform' });
-            gsap.set(bookNowBtn, { clearProps: 'transform' });
+    // Use requestAnimationFrame to ensure DOM is ready
+    const rafId = requestAnimationFrame(() => {
+      // Also defer to microtask to avoid colliding with initial paint
+      Promise.resolve().then(() => {
+      // Hero section animations
+      const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      
+      // Animate badge - only if element exists
+      const exploreBadge = document.querySelector('.explore-badge');
+      if (exploreBadge) {
+        heroTl.fromTo(exploreBadge, 
+          { y: 30, opacity: 0 }, 
+          { 
+            y: 0, 
+            opacity: 1, 
+            duration: 0.6,
+            onComplete: () => gsap.set(exploreBadge, { clearProps: 'transform' })
           }
-        }, '-=0.6'
-      );
-    } else if (heroDesc) {
-      // Only animate description if button doesn't exist
-      heroTl.fromTo(heroDesc, 
-        { y: 30, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.8 }, '-=0.6'
-      );
-    } else if (bookNowBtn) {
-      // Only animate button if description doesn't exist
-      heroTl.fromTo(bookNowBtn, 
-        { y: 30, opacity: 0, scale: 0.9 }, 
-        { 
-          y: 0, 
-          opacity: 1, 
-          scale: 1, 
-          duration: 0.8,
-          onComplete: () => gsap.set(bookNowBtn, { clearProps: 'transform' })
-        }, '-=0.6'
-      );
-    }
+        );
+      }
+      
+      // Animate headline parts - only if elements exist
+      const heroTitleSpans = document.querySelectorAll('.hero-title span');
+      if (heroTitleSpans.length > 0) {
+        heroTl.fromTo(heroTitleSpans, 
+          { y: 50, opacity: 0 }, 
+          { y: 0, opacity: 1, duration: 0.6, stagger: 0.15 }, '-=0.4'
+        );
+      }
+      
+      // Animate description and button together - only if elements exist
+      const heroDesc = document.querySelector('.hero-desc');
+      const bookNowBtn = document.querySelector('.book-now-btn');
+      
+      if (heroDesc && bookNowBtn) {
+        // Animate description and button simultaneously
+        heroTl.fromTo([heroDesc, bookNowBtn], 
+          { y: 30, opacity: 0, scale: 0.9 }, 
+          { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1, 
+            duration: 0.6,
+            stagger: 0.1,
+            onComplete: () => {
+              gsap.set(heroDesc, { clearProps: 'transform' });
+              gsap.set(bookNowBtn, { clearProps: 'transform' });
+            }
+          }, '-=0.4'
+        );
+      } else if (heroDesc) {
+        // Only animate description if button doesn't exist
+        heroTl.fromTo(heroDesc, 
+          { y: 30, opacity: 0 }, 
+          { y: 0, opacity: 1, duration: 0.6 }, '-=0.4'
+        );
+      } else if (bookNowBtn) {
+        // Only animate button if description doesn't exist
+        heroTl.fromTo(bookNowBtn, 
+          { y: 30, opacity: 0, scale: 0.9 }, 
+          { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1, 
+            duration: 0.6,
+            onComplete: () => gsap.set(bookNowBtn, { clearProps: 'transform' })
+          }, '-=0.4'
+        );
+      }
 
-    // Gallery animations
-    const galleryTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      // Services section animations - animate immediately after hero
+      const serviceCards = gsap.utils.toArray('.service-card');
+      if (serviceCards.length > 0) {
+        // Add service cards animation to hero timeline
+        heroTl.fromTo(serviceCards, 
+          { y: 60, opacity: 0, scale: 0.9 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            ease: 'power2.out',
+            stagger: 0.12,
+            onComplete: () => {
+              serviceCards.forEach(el => gsap.set(el, { clearProps: 'transform' }));
+            }
+          }, '-=0.2' // Start slightly before hero animation ends
+        );
+      }
+      });
+    });
     
-    // Animate gallery images in grid order - only if elements exist
-    const galleryImages = document.querySelectorAll('.gallery-image');
-    if (galleryImages.length > 0) {
-      galleryTl.fromTo(galleryImages, 
-        { y: 40, opacity: 0, scale: 0.9 }, 
-        { 
-          y: 0, 
-          opacity: 1, 
-          scale: 1, 
-          duration: 0.8, 
-          stagger: 0.1,
-          ease: 'back.out(1.4)'
-        }
-      );
-    }
-
-    // Gallery animations đã được tối ưu cho layout mới
-
-    // Services section animations - animate immediately after hero
-    const serviceCards = gsap.utils.toArray('.service-card');
-    if (serviceCards.length > 0) {
-      // Add service cards animation to hero timeline
-      heroTl.fromTo(serviceCards, 
-        { y: 60, opacity: 0, scale: 0.9 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          ease: 'power2.out',
-          stagger: 0.15,
-          onComplete: () => {
-            serviceCards.forEach(el => gsap.set(el, { clearProps: 'transform' }));
-          }
-        }, '-=0.2' // Start slightly before hero animation ends
-      );
-    }
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
 
   }, []);
 
@@ -239,7 +337,10 @@ const Homepage = () => {
               </p>
 
               {/* Book Now Button */}
-              <button className="book-now-btn bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:scale-105 cursor-pointer w-full sm:w-auto">
+              <button 
+                className="book-now-btn bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:scale-105 cursor-pointer w-full sm:w-auto"
+                onClick={() => navigate('/tour')}
+              >
                 {t('home.hero.btnBookNow')}
               </button>
             </div>
@@ -251,22 +352,90 @@ const Homepage = () => {
               <div className="grid grid-cols-2 gap-[8px_12px] sm:gap-[12px_20px] items-start justify-items-stretch">
                 {/* Trái trên — Ô vuông */}
                 <figure className="relative overflow-hidden rounded-[15px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[1/1.12] mb-4 hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  <img src="/tour1.jpg" alt="Left Top" className="w-full h-full object-cover block"/>
+                  {galleryImages[0].error ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="text-center text-gray-500">
+                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-sm">No Image</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <img 
+                      src={galleryImages[0].src} 
+                      alt={galleryImages[0].alt} 
+                      className="w-full h-full object-cover block"
+                      onLoad={() => handleImageLoad(0)}
+                      onError={() => handleImageError(0)}
+                    />
+                  )}
                 </figure>
 
                 {/* Phải trên — Ô nhỏ ngang (bo tròn lớn) */}
                 <figure className="relative overflow-hidden rounded-[18px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[16/11] -mt-[4px] sm:-mt-[8px] translate-y-[-15px] sm:translate-y-[-30px] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  <img src="/tour2.jpg" alt="Right Top" className="w-full h-full object-cover block"/>
+                  {galleryImages[1].error ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="text-center text-gray-500">
+                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-sm">No Image</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <img 
+                      src={galleryImages[1].src} 
+                      alt={galleryImages[1].alt} 
+                      className="w-full h-full object-cover block"
+                      onLoad={() => handleImageLoad(1)}
+                      onError={() => handleImageError(1)}
+                    />
+                  )}
                 </figure>
 
                 {/* Trái dưới — Ô vuông */}
                 <figure className="relative overflow-hidden rounded-[15px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[1/1.12] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  <img src="/tour3.jpg" alt="Left Bottom" className="w-full h-full object-cover block"/>
+                  {galleryImages[2].error ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="text-center text-gray-500">
+                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-sm">No Image</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <img 
+                      src={galleryImages[2].src} 
+                      alt={galleryImages[2].alt} 
+                      className="w-full h-full object-cover block"
+                      onLoad={() => handleImageLoad(2)}
+                      onError={() => handleImageError(2)}
+                    />
+                  )}
                 </figure>
 
                 {/* Phải dưới — Ô CAO chiếm 2 hàng */}
                 <figure className="relative overflow-hidden rounded-[18px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[3/4] -mt-[50px] sm:-mt-[35px] translate-y-[-50px] sm:translate-y-[-105px] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  <img src="/TourDaNangBackground.jpg" alt="Right Tall" className="w-full h-full object-cover block"/>
+                  {galleryImages[3].error ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="text-center text-gray-500">
+                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-sm">No Image</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <img 
+                      src={galleryImages[3].src} 
+                      alt={galleryImages[3].alt} 
+                      className="w-full h-full object-cover block"
+                      onLoad={() => handleImageLoad(3)}
+                      onError={() => handleImageError(3)}
+                    />
+                  )}
                 </figure>
               </div>
             </div>
@@ -346,12 +515,12 @@ const Homepage = () => {
               
               {/* Navigation Arrows */}
               <div className="flex gap-3">
-                <button className="nav-arrow-btn w-12 h-12 bg-white border-2 border-gray-400 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500 transition-all duration-300">
+                <button onClick={handlePrevDest} aria-disabled={!canPaginate} disabled={!canPaginate} className="nav-arrow-btn w-12 h-12 bg-white border-2 border-gray-400 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100">
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <button className="nav-arrow-btn w-12 h-12 bg-blue-600 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:bg-blue-700 transition-all duration-300">
+                <button onClick={handleNextDest} aria-disabled={!canPaginate} disabled={!canPaginate} className="nav-arrow-btn w-12 h-12 bg-blue-600 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:bg-blue-700 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -361,94 +530,61 @@ const Homepage = () => {
 
             {/* Destination Cards */}
             <div className="grid md:grid-cols-3 gap-8 mb-8 max-w-5xl mx-auto">
-              {/* Card 1 - Indonesia */}
-              <div className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]">
-                <div className="relative h-64">
-                  <img 
-                    src="/tour1.jpg" 
-                    alt="Pandawa Beach, Bali Island" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {t('home.destinations.card1.location')}
-                    </span>
+              {displayDestItems.map((item, idx) => (
+                <div key={idx} className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]" onClick={() => {
+                  if (!item?.isPlaceholder && item?.id) {
+                    navigate(`/tour/${item.id}`);
+                  }
+                }}>
+                  <div className="relative h-64">
+                    {item?.isPlaceholder ? (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center" />
+                    ) : (
+                      <img src={item?.image || '/tour1.jpg'} alt={item?.title || 'Tour'} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute top-4 left-4">
+                      {!item?.isPlaceholder && (
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                          {item?.tourDeparturePoint || item?.category || 'Tour'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="p-6">
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">{t('home.destinations.card1.title')}</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-600 font-semibold text-lg">$30.99</span>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                      <span className="text-gray-700 font-medium text-xl">4.9</span>
+                  <div className="p-6">
+                    {item?.isPlaceholder ? (
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
+                    ) : (
+                      <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
+                    )}
+                    <div className="flex items-center justify-between">
+                      {item?.isPlaceholder ? (
+                        <>
+                          <span className="h-6 bg-gray-200 rounded w-24" />
+                          <span className="h-6 bg-gray-200 rounded w-12" />
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-blue-600 font-semibold text-lg">{vnd.current.format(Number(item?.price || 0))}</span>
+                          <div className="flex items-center gap-1">
+                            <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            <span className="text-gray-700 font-medium text-xl">{pageRatings[item.id] != null ? Number(pageRatings[item.id]).toFixed(1) : '0.0'}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Card 2 - Bangkok */}
-              <div className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]">
-                <div className="relative h-64">
-                  <img 
-                    src="/tour2.jpg" 
-                    alt="Bangkok City" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {t('home.destinations.card2.location')}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">{t('home.destinations.card2.title')}</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-600 font-semibold text-lg">$45.99</span>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                      <span className="text-gray-700 font-medium text-xl">4.8</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3 - Japan */}
-              <div className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]">
-                <div className="relative h-64">
-                  <img 
-                    src="/tour3.jpg" 
-                    alt="Tokyo, Japan" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {t('home.destinations.card3.location')}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">{t('home.destinations.card3.title')}</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-600 font-semibold text-lg">$65.99</span>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                      <span className="text-gray-700 font-medium text-xl">4.9</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* See All Button */}
             <div className="text-center">
-              <button className="bg-[#1a8eea] hover:bg-[#0f7bd4] text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 inline-flex items-center gap-2">
+              <button 
+                className="bg-[#1a8eea] hover:bg-[#0f7bd4] text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 inline-flex items-center gap-2"
+                onClick={() => navigate('/tour')}
+              >
                 See All
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

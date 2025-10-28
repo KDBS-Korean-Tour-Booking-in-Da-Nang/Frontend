@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
 import BookingHistoryCard from './BookingHistoryCard';
@@ -7,6 +8,7 @@ import styles from './BookingHistory.module.css';
 
 const BookingHistory = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,6 +178,13 @@ const BookingHistory = () => {
       <div className={styles['booking-history-wrapper']}>
         {/* Header */}
         <div className={styles['booking-history-header']}>
+          <button 
+            className={styles['back-button']}
+            onClick={() => navigate(-1)}
+            title={t('bookingHistory.backButton')}
+          >
+            ← {t('bookingHistory.backButton')}
+          </button>
           <h1 className={styles['booking-history-title']}>
             {t('bookingHistory.title')}
           </h1>

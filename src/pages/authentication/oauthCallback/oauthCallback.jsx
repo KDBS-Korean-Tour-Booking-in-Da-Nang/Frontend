@@ -6,7 +6,7 @@ import { useToast } from '../../../contexts/ToastContext';
 
 const OAuthCallback = () => {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { login, updateUser } = useAuth();
   const { showSuccess } = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -57,8 +57,8 @@ const OAuthCallback = () => {
         localStorage.removeItem('tokenExpiry');
       }
 
-      // Create user object from URL parameters
-      const user = {
+      // Base user object from URL parameters (status may be missing here)
+      const baseUser = {
         id: parseInt(userId),
         email: decodeURIComponent(email),
         role: role ? decodeURIComponent(role) : 'USER',
@@ -68,14 +68,73 @@ const OAuthCallback = () => {
         balance: balance ? parseFloat(balance) : 0
       };
 
-      // Login user
-      login(user, decodedToken, rememberMe);
+      // Login user with token first (to allow authenticated fetch)
+      login(baseUser, decodedToken, rememberMe);
+
+      // Try to enrich with latest role/status from backend
+      (async () => {
+        try {
+          const meRes = await fetch('/api/users/me', {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${decodedToken}`
+            }
+          });
+          if (meRes.ok) {
+            const meData = await meRes.json();
+            if ((meData.code === 1000 || meData.code === 0) && meData.result) {
+              const enrichedUser = {
+                id: meData.result.userId || baseUser.id,
+                email: meData.result.email || baseUser.email,
+                role: meData.result.role || baseUser.role,
+                status: meData.result.status,
+                name: meData.result.username || baseUser.name,
+                avatar: meData.result.avatar || baseUser.avatar,
+                isPremium: typeof meData.result.isPremium === 'boolean' ? meData.result.isPremium : baseUser.isPremium,
+                balance: typeof meData.result.balance === 'number' ? meData.result.balance : baseUser.balance
+              };
+              updateUser(enrichedUser);
+            }
+          }
+        } catch {}
+      })();
       
       // Show success toast
       showSuccess('toast.auth.login_success');
       
-      // Redirect nội bộ để tránh reload toàn bộ app
-      navigate('/', { replace: true });
+      // Navigate based on saved return path and role/status
+      const returnAfterLogin = localStorage.getItem('returnAfterLogin');
+      const currentUserRole = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).role) : baseUser.role;
+      const currentUserStatus = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).status) : undefined;
+
+      if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING') {
+        window.location.href = '/company-info';
+        return;
+      }
+      // Clear stale onboarding flags for non-pending users
+      if (!((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING')) {
+        localStorage.removeItem('registration_intent');
+        localStorage.removeItem('company_onboarding_pending');
+      }
+      if (returnAfterLogin) {
+        localStorage.removeItem('returnAfterLogin');
+        if (currentUserRole === 'COMPANY') {
+          window.location.href = returnAfterLogin;
+          return;
+        }
+        window.location.href = '/';
+        return;
+      }
+
+      // Default navigation by role
+      if (currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') {
+        window.location.href = '/company/dashboard';
+      } else if (currentUserRole === 'ADMIN' || currentUserRole === 'STAFF') {
+        window.location.href = '/admin';
+      } else {
+        // Regular user goes to homepage
+        window.location.href = '/';
+      }
       
     } catch (err) {
       // If there's an error, redirect to login with error

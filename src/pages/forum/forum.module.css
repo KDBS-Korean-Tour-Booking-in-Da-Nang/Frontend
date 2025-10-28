@@ -2,11 +2,11 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  margin-top: 30px;
+  padding-top: 30px;
 }
 
 .forum-header {
@@ -104,8 +104,12 @@
 }
 
 .back-button-container {
-  margin-bottom: 20px;
+  margin: 0 auto 20px auto;
   padding: 0 20px;
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .back-button {
@@ -225,7 +229,7 @@
 
 .forum-main {
   grid-area: main;
-  background: #f8fafc;
+  background: transparent;
 }
 
 .posts-feed {
@@ -518,13 +522,15 @@
   background: white;
   border-radius: 16px;
   padding: 20px 24px;
-  margin-bottom: 24px;
+  margin: 0 auto 24px auto;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  width: 100%;
+  max-width: 680px;
 }
 
 .search-info {

@@ -5,7 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   define: {
-    __BUILD_SESSION_ID__: JSON.stringify(Date.now().toString())
+    __BUILD_SESSION_ID__: JSON.stringify(Date.now().toString()),
+    // Chỉ cần global: 'globalThis' cho development
+    ...(process.env.NODE_ENV === 'development' && { global: 'globalThis' })
   },
   server: {
     port: 3000,
@@ -18,6 +20,11 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
         changeOrigin: true,
+      },
+      '/ws': {
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
+        changeOrigin: true,
+        ws: true
       }
     }
   }
