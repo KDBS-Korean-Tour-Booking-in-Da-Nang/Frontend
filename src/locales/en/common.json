@@ -753,6 +753,7 @@
 	},
 	"toast": {
 		"required": "{{field}} is required",
+		"name_required": "Name is required",
 		"login_required": "Please login to continue",
 		"save_success": "Save successful",
 		"save_error": "An error occurred while saving",

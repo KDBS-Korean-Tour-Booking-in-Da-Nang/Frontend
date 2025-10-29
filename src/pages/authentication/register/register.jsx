@@ -21,6 +21,7 @@ const Register = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const { showError, showSuccess, showBatch } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,16 +45,52 @@ const Register = () => {
     }
   }, []);
 
+  const isValidUsername = (val) => {
+    if (val === undefined || val === null) return false;
+    const trimmed = String(val).trim();
+    if (trimmed.length === 0) return true; // allow empty while editing
+    const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
+    return usernameRegex.test(trimmed);
+  };
+
+  const sanitizeUsername = (val) => {
+    const str = String(val || '');
+    // Keep letters (incl. accents), digits, and spaces only
+    let cleaned = str.replace(/[^A-Za-zÀ-ỹ\d\s]/g, '');
+    // Ensure first non-space char is a letter; drop leading digits
+    cleaned = cleaned.replace(/^\s*\d+/, '');
+    return cleaned;
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+const { name, value } = e.target;
+    if (name === 'username') {
+      const sanitized = sanitizeUsername(value);
+      setFormData(prev => ({ ...prev, username: sanitized }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
     
     // Clear email error when user starts typing
     if (name === 'email' && emailError) {
       setEmailError('');
+    }
+
+    // Real-time username validation
+    if (name === 'username') {
+      const trimmed = (sanitizeUsername(value) || '').trim();
+      if (!trimmed) {
+        setUsernameError(t('toast.name_required') || 'Không để trống tên');
+      } else {
+        if (!isValidUsername(trimmed)) {
+          setUsernameError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+        } else {
+          setUsernameError('');
+        }
+      }
     }
 
     // Real-time password validation
@@ -78,6 +115,37 @@ const Register = () => {
       } else {
         setConfirmPasswordError('');
       }
+    }
+  };
+
+  const handleUsernameBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return;
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const next = current.slice(0, start) + data + current.slice(end);
+    const nextSanitized = sanitizeUsername(next);
+    if (next !== nextSanitized || !isValidUsername(nextSanitized)) {
+      e.preventDefault();
+    }
+  };
+
+  const handleUsernamePaste = (e) => {
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const next = current.slice(0, start) + pasted + current.slice(end);
+    const nextSanitized = sanitizeUsername(next);
+    if (!isValidUsername(nextSanitized)) {
+      e.preventDefault();
+      const inserted = sanitizeUsername(pasted);
+      const fixed = current.slice(0, start) + inserted + current.slice(end);
+      setFormData(prev => ({ ...prev, username: fixed }));
+      setUsernameError(inserted ? '' : 'Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
     }
   };
 
@@ -113,6 +181,12 @@ const Register = () => {
     // Username validation
     if (!formData.username.trim()) {
       validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.register.username') } });
+    } else {
+      const trimmed = formData.username.trim();
+      const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
+      if (!usernameRegex.test(trimmed)) {
+        validationErrors.push('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+      }
     }
 
     // Password validation
@@ -259,9 +333,16 @@ const Register = () => {
                   autoComplete="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className={styles['form-input']}
+                  onBeforeInput={handleUsernameBeforeInput}
+                  onPaste={handleUsernamePaste}
+                  className={`${styles['form-input']} ${usernameError ? styles['input-error'] : ''}`}
                   placeholder={t('auth.register.usernamePlaceholder')}
                 />
+                {usernameError && (
+                  <div className={styles['field-error']}>
+                    {usernameError}
+                  </div>
+                )}
               </div>
 
               <div className={styles['form-group']}>
@@ -363,7 +444,7 @@ const Register = () => {
 
               <button
                 type="submit"
-                disabled={loading || emailError || passwordError || confirmPasswordError}
+                disabled={loading || emailError || passwordError || confirmPasswordError || !!usernameError}
                 className={styles['register-button']}
               >
                 {loading ? t('auth.register.submitting') : t('auth.register.submit')}

@@ -11,7 +11,7 @@ import { API_ENDPOINTS } from '../../../config/api';
 
 const Homepage = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState('');
@@ -141,9 +141,19 @@ const Homepage = () => {
     const fetchRatings = async () => {
       const ids = currentDestItems.filter((t) => t && !t.isPlaceholder && t.id).map((t) => t.id);
       if (ids.length === 0) return setPageRatings({});
+
+      // Skip fetching ratings if not authenticated and endpoint requires auth
+      const token = getToken && getToken();
+      if (!token) {
+        setPageRatings({});
+        return;
+      }
       try {
         const entries = await Promise.all(ids.map(async (id) => {
-          const res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(id), { signal: controller.signal });
+          const res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(id), {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${token}` }
+          });
           if (!res.ok) return [id, null];
           const list = await res.json();
           if (!Array.isArray(list) || list.length === 0) return [id, 0];
@@ -159,7 +169,7 @@ const Homepage = () => {
     };
     fetchRatings();
     return () => controller.abort();
-  }, [currentDestPage, tours]);
+  }, [currentDestPage, tours, getToken]);
 
 
   // GSAP animations - optimized for faster initial display (defer to next frame)

@@ -54,7 +54,15 @@ export const useToursAPI = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(API_ENDPOINTS.TOURS);
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      
+      const response = await fetch(API_ENDPOINTS.TOURS, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -80,7 +88,15 @@ export const useToursAPI = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(id));
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(id), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -137,8 +153,17 @@ export const useToursAPI = () => {
       setLoading(true);
       setError(null);
 
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+
       const url = `${API_ENDPOINTS.TOURS_SEARCH}?keyword=${encodeURIComponent(query)}&page=${page}&size=${size}`;
-      const response = await fetch(url, { signal });
+      const response = await fetch(url, { 
+        signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

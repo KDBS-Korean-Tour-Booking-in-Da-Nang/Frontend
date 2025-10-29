@@ -65,12 +65,14 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     }
   };
 
-  const filteredConversations = (state.conversations || []).filter(conv => {
-    const userName = conv.user?.username || conv.user?.userName || '';
-    const userEmail = conv.user?.email || conv.user?.userEmail || '';
-    return userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           userEmail.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const filteredConversations = (state.conversations || [])
+    .filter(conv => {
+      const userName = conv.user?.username || conv.user?.userName || '';
+      const preview = conv.lastMessage?.content || '';
+      return userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             preview.toLowerCase().includes(searchTerm.toLowerCase());
+    })
+    .sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
 
   const filteredUsers = (state.allUsers || [])
     // Exclude ADMIN, STAFF, and COMPANY with COMPANY_PENDING status
@@ -90,7 +92,41 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     });
 
   const getTabContent = () => {
-    // Only show users tab
+    // Conversations view with latest preview replacing email
+    if ((filteredConversations || []).length > 0) {
+      return (
+        <div className={styles.conversationsList}>
+          {filteredConversations.map((conv) => (
+            <div 
+              key={conv.user?.userName || conv.user?.username}
+              className={styles.conversationItem}
+              onClick={() => handleUserSelect(conv.user)}
+            >
+              <div className={styles.userAvatar}>
+                {conv.user?.avatar ? (
+                  <img src={conv.user.avatar} alt={conv.user.username || conv.user.userName} />
+                ) : (
+                  <UserIcon className="w-6 h-6" />
+                )}
+              </div>
+              <div className={styles.conversationContent}>
+                <div className={styles.conversationHeader}>
+                  <h4 className={styles.userName}>{conv.user?.username || conv.user?.userName}</h4>
+                  {conv.lastMessage?.timestamp && (
+                    <span className={styles.timestamp}>{formatTime(conv.lastMessage.timestamp)}</span>
+                  )}
+                </div>
+                <div className={styles.conversationFooter}>
+                  <p className={styles.lastMessage}>{conv.lastMessage?.content || ''}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Fallback to all users list if no conversations yet
     return (
       <div className={styles.usersList}>
         {filteredUsers.length === 0 ? (
@@ -114,7 +150,6 @@ const ChatDropdown = ({ isOpen, onClose }) => {
                   <UserIcon className="w-6 h-6" />
                 )}
               </div>
-              
               <div className={styles.userContent}>
                 <h4 className={styles.userName}>{user.username || user.userName}</h4>
                 <p className={styles.userEmail}>{user.email || user.userEmail}</p>

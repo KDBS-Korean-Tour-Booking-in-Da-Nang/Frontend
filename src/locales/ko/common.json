@@ -753,6 +753,7 @@
 	},
 	"toast": {
 		"required": "{{field}}는 필수입니다",
+		"name_required": "이름은 필수입니다",
 		"login_required": "계속하려면 로그인하세요",
 		"save_success": "저장 성공",
 		"save_error": "저장 중 오류가 발생했습니다",

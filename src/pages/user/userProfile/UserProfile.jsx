@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -34,7 +34,7 @@ const UserProfile = () => {
   const [editForm, setEditForm] = useState({
     name: user?.username || user?.name || '',
     phone: user?.phone || '',
-    dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+    dob: user?.dob ? (()=>{ try { return formatDateFromNormalizedSafe(user.dob); } catch { return ''; } })() : '',
     gender: user?.gender || '',
     cccd: user?.cccd || ''
   });
@@ -43,6 +43,11 @@ const UserProfile = () => {
   const [premiumStatus, setPremiumStatus] = useState(null);
   const [premiumLoading, setPremiumLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const isSocialProvider = (user?.authProvider === 'GOOGLE' || user?.authProvider === 'NAVER');
+  const [nameError, setNameError] = useState('');
+  const [dobError, setDobError] = useState('');
+  const [editingFields, setEditingFields] = useState(new Set());
+  const isDeletingRef = useRef(false);
 
   // All users can change avatar regardless of login method
 
@@ -52,16 +57,113 @@ const UserProfile = () => {
       setEditForm({
         name: user?.username || user?.name || '',
         phone: user?.phone || '',
-        dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+        dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
         gender: user?.gender || '',
         cccd: user?.cccd || ''
       });
-      // Only update avatarPreview if user.avatar has actually changed and no file is selected
-      if (user.avatar !== avatarPreview && !avatarFile) {
+      // Only update avatarPreview if no file is currently selected
+      // This ensures we don't override user's current avatar selection
+      if (!avatarFile) {
         setAvatarPreview(user?.avatar || '/default-avatar.png');
       }
     }
-  }, [user, avatarPreview, !!avatarFile]); // Use !!avatarFile to convert to boolean
+  }, [user, i18n.language]); // Reformat DOB on language change
+
+  const getDateSeparator = () => {
+    switch (i18n.language) {
+      case 'ko': return '.';
+      case 'vi':
+      case 'en':
+      default: return '/';
+    }
+  };
+
+  const formatDateFromNormalizedSafe = (val) => {
+    try {
+      let iso = '';
+      if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) iso = val; else if (val) {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) iso = d.toISOString().slice(0,10);
+      }
+      if (!iso) return '';
+      const [y,m,d] = iso.split('-');
+      const sep = getDateSeparator();
+      if (i18n.language === 'ko') return `${y}${sep}${m}${sep}${d}`;
+      if (i18n.language === 'vi') return `${d}${sep}${m}${sep}${y}`;
+      return `${m}${sep}${d}${sep}${y}`;
+    } catch { return ''; }
+  };
+
+  const parseDateFromDisplayToISO = (display) => {
+    if (!display) return '';
+    const sep = getDateSeparator();
+    const parts = display.split(sep);
+    if (parts.length !== 3) return '';
+    let y,m,d;
+    if (i18n.language === 'ko') { y=parts[0]; m=parts[1]; d=parts[2]; }
+    else if (i18n.language === 'vi') { d=parts[0]; m=parts[1]; y=parts[2]; }
+    else { m=parts[0]; d=parts[1]; y=parts[2]; }
+    if (!(y && m && d)) return '';
+    const iso = `${y.padStart(4,'0')}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    const test = new Date(iso);
+    return isNaN(test.getTime()) ? '' : iso;
+  };
+
+  const validateDob = (displayValue) => {
+    const iso = parseDateFromDisplayToISO(displayValue || '');
+    if (!displayValue || !iso) {
+      setDobError(t('booking.errors.dobInvalidFormat'));
+      return false;
+    }
+    const birth = new Date(iso);
+    const today = new Date();
+    // must be strictly in the past
+    if (birth.getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) {
+      setDobError(t('booking.errors.dobInvalidFormat'));
+      return false;
+    }
+    let age = today.getFullYear() - birth.getFullYear();
+    const md = today.getMonth() - birth.getMonth();
+    if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
+    if (age < 13) {
+      setDobError(t('profile.errors.mustBe13') || 'Bạn phải từ 13 tuổi trở lên');
+      return false;
+    }
+    if (age < 0 || age > 120) {
+      setDobError(t('booking.errors.dobInvalidFormat'));
+      return false;
+    }
+    setDobError('');
+    return true;
+  };
+
+  const formatDobInputOnType = (value) => {
+    if (!value) return '';
+    const sep = getDateSeparator();
+    const clean = value.replace(/[^\d\/\.]/g, '');
+    const prevEndsSep = (editForm.dob || '').endsWith(sep);
+    const parts = clean.split(sep);
+    // deletion mode
+    if (isDeletingRef.current) return clean;
+    // Allow incomplete parts without forcing
+    const incomplete = parts.some((p, idx)=>{
+      if (i18n.language === 'ko') return (idx===0 ? p.length>0 && p.length<4 : p.length>0 && p.length<2);
+      return p.length>0 && p.length<2;
+    });
+    if (incomplete) return clean;
+    // Auto-insert separators when parts complete
+    if (i18n.language === 'vi') {
+      if (parts.length===1 && parts[0].length===2) return parts[0]+sep;
+      if (parts.length===2 && parts[1].length===2) return parts[0]+sep+parts[1]+sep;
+    } else if (i18n.language === 'en') {
+      if (parts.length===1 && parts[0].length===2) return parts[0]+sep;
+      if (parts.length===2 && parts[1].length===2) return parts[0]+sep+parts[1]+sep;
+    } else { // ko YYYY.MM.DD
+      if (parts.length===1 && parts[0].length===4) return parts[0]+sep;
+      if (parts.length===2 && parts[1].length===2) return parts[0]+sep+parts[1]+sep;
+    }
+    return clean;
+  };
 
   // Fetch premium status
   useEffect(() => {
@@ -117,6 +219,73 @@ const UserProfile = () => {
     }));
   };
 
+  const isValidUsername = (val) => {
+    if (val === undefined || val === null) return false;
+    const trimmed = String(val).trim();
+    if (trimmed.length === 0) return false; // name cannot be empty in edit modal
+    const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
+    return usernameRegex.test(trimmed);
+  };
+
+  const sanitizeUsername = (val) => {
+    const str = String(val || '');
+    // Keep letters (incl. accents), digits, and spaces only
+    let cleaned = str.replace(/[^A-Za-zÀ-ỹ\d\s]/g, '');
+    // Ensure first non-space char is a letter; drop leading digits
+    cleaned = cleaned.replace(/^\s*\d+/, '');
+    return cleaned;
+  };
+
+  const handleNameChange = (e) => {
+    const input = e.target.value;
+    const sanitized = sanitizeUsername(input);
+    setEditForm(prev => ({ ...prev, name: sanitized }));
+    const trimmed = (sanitized || '').trim();
+    if (!trimmed) {
+      setNameError(t('toast.name_required') || 'Không để trống tên');
+    } else if (!isValidUsername(sanitized)) {
+      setNameError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+    } else {
+      setNameError('');
+    }
+  };
+
+  const handleNameBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return; // composition or control
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const next = current.slice(0, start) + data + current.slice(end);
+    const nextSanitized = sanitizeUsername(next);
+    if (next !== nextSanitized || !isValidUsername(nextSanitized)) {
+      e.preventDefault();
+    }
+  };
+
+  const handleNamePaste = (e) => {
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const next = current.slice(0, start) + pasted + current.slice(end);
+    const nextSanitized = sanitizeUsername(next);
+    if (!isValidUsername(nextSanitized)) {
+      e.preventDefault();
+      const inserted = sanitizeUsername(pasted);
+      const fixed = current.slice(0, start) + inserted + current.slice(end);
+      setEditForm(prev => ({ ...prev, name: fixed }));
+      const trimmedInserted = (inserted || '').trim();
+      if (!trimmedInserted) {
+        setNameError(t('toast.name_required') || 'Không để trống tên');
+      } else {
+        setNameError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+      }
+    }
+  };
+
   const handleAvatarChange = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -157,11 +326,32 @@ const UserProfile = () => {
       dob: editForm.dob,
       gender: editForm.gender,
       cccd: editForm.cccd,
-      avatarFile: avatarFile // Include avatar file if selected
+      avatarFile: avatarFile, // Include avatar file if selected
+      currentAvatarUrl: user?.avatar // Provide current avatar so FE can reattach if no new file
     };
+
+    // Real-time guard: name required
+    const trimmedName = (userData.name || '').trim();
+    if (!trimmedName) {
+      setNameError(t('toast.name_required') || 'Không để trống tên');
+      showError('toast.name_required');
+      return;
+    }
+
+    // Additional name validation for LOCAL users only
+    if (!isSocialProvider) {
+      const name = (userData.name || '').trim();
+      // Must start with a letter; allow letters (including accents), spaces, and digits after the first letter; no special characters
+      const nameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
+      if (!nameRegex.test(name)) {
+        showError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+        return;
+      }
+    }
     
-    // Validate user data
-    const validation = validateUserProfile(userData);
+    // Normalize DOB to ISO before validation
+    const normalizedDob = parseDateFromDisplayToISO(userData.dob || '');
+    const validation = validateUserProfile({ ...userData, dob: normalizedDob || '' });
     if (!validation.isValid) {
       // Only show toast error, don't set updateError state
       const firstError = Object.values(validation.errors)[0];
@@ -179,8 +369,8 @@ const UserProfile = () => {
         throw new Error('Không tìm thấy token xác thực');
       }
       
-      // Call API to update user profile
-      const result = await updateUserProfile(userData, token);
+      // Call API to update user profile with normalized DOB
+      const result = await updateUserProfile({ ...userData, dob: normalizedDob || '' }, token);
       
       // Use avatar URL from backend response if available, otherwise keep current
       const newAvatarUrl = result?.avatar || user.avatar || '/default-avatar.png';
@@ -191,7 +381,7 @@ const UserProfile = () => {
         username: editForm.name, // Map name to username for backend compatibility
         name: editForm.name,
         phone: editForm.phone,
-        dob: editForm.dob,
+        dob: normalizedDob || '',
         gender: editForm.gender,
         cccd: editForm.cccd,
         avatar: newAvatarUrl
@@ -565,11 +755,11 @@ const UserProfile = () => {
                   setEditForm({
                     name: user?.username || user?.name || '',
                     phone: user?.phone || '',
-                    dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+                    dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
                     gender: user?.gender || '',
                     cccd: user?.cccd || ''
                   });
-                  // Keep current avatar, don't reset to default
+                  // Set avatar preview to current user avatar
                   setAvatarPreview(user?.avatar || '/default-avatar.png');
                   setAvatarFile(null);
                   setIsEditModalOpen(true);
@@ -595,11 +785,11 @@ const UserProfile = () => {
           setEditForm({
             name: user?.username || user?.name || '',
             phone: user?.phone || '',
-            dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+            dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
             gender: user?.gender || '',
             cccd: user?.cccd || ''
           });
-          // Keep current avatar, don't reset to default
+          // Reset avatar preview to current user avatar
           setAvatarPreview(user?.avatar || '/default-avatar.png');
         }}
         title="Chỉnh sửa thông tin"
@@ -648,9 +838,15 @@ const UserProfile = () => {
               id="name"
               name="name"
               value={editForm.name}
-              onChange={handleEditChange}
+              onChange={handleNameChange}
+              onBeforeInput={handleNameBeforeInput}
+              onPaste={handleNamePaste}
               className={styles['form-input']}
+              readOnly={isSocialProvider}
             />
+            {!!nameError && !isSocialProvider && (
+              <div className={styles['field-hint']} style={{ color: '#e11d48' }}>{nameError}</div>
+            )}
           </div>
 
           <div className={styles['form-group']}>
@@ -685,14 +881,80 @@ const UserProfile = () => {
             <label htmlFor="dob" className={styles['form-label']}>
               Ngày sinh
             </label>
-            <input
-              type="date"
-              id="dob"
-              name="dob"
-              value={editForm.dob}
-              onChange={handleEditChange}
-              className={styles['form-input']}
-            />
+            <div className={styles['date-input-container']}>
+              <input
+                type="text"
+                id="dob"
+                name="dob"
+                value={editForm.dob}
+                onFocus={() => setEditingFields(prev => new Set(prev).add('dob'))}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const formatted = formatDobInputOnType(raw);
+                  setEditForm(prev => ({ ...prev, dob: formatted }));
+                  // real-time: only validate when looks like complete
+                  if (formatted.split(getDateSeparator()).join('').length >= 6) {
+                    validateDob(formatted);
+                  } else {
+                    setDobError('');
+                  }
+                }}
+                onKeyDown={(e) => { if (e.key === 'Backspace') isDeletingRef.current = true; else if (e.key.length===1) isDeletingRef.current = false; if (e.key==='Enter') e.currentTarget.blur(); }}
+                onBlur={(e) => {
+                  setEditingFields(prev => { const s=new Set(prev); s.delete('dob'); return s; });
+                  validateDob(e.target.value);
+                }}
+                className={`${styles['form-input']} ${styles['date-input']} ${dobError ? styles['error'] || '' : ''}`}
+                placeholder={(() => { const sep=getDateSeparator(); return i18n.language==='ko' ? `YYYY${sep}MM${sep}DD` : (i18n.language==='vi'?`DD${sep}MM${sep}YYYY`:`MM${sep}DD${sep}YYYY`); })()}
+                title={t('booking.step1.placeholders.dateFormat', { format: (()=>{ const sep=getDateSeparator(); return i18n.language==='ko' ? `YYYY${sep}MM${sep}DD` : (i18n.language==='vi'?`DD${sep}MM${sep}YYYY`:`MM${sep}DD${sep}YYYY`); })() })}
+              />
+              <input
+                type="date"
+                id="profile-dob-hidden"
+                className={styles['calendar-anchor-input']}
+                onChange={(e) => {
+                  const iso = e.target.value; // YYYY-MM-DD
+                  const display = formatDateFromNormalizedSafe(iso);
+                  setEditForm(prev => ({ ...prev, dob: display }));
+                  setEditingFields(prev => { const s=new Set(prev); s.delete('dob'); return s; });
+                  validateDob(display);
+                }}
+                min="1900-01-01"
+                max={(() => { const d=new Date(); d.setFullYear(d.getFullYear()-13); return d.toISOString().slice(0,10); })()}
+              />
+              <button
+                type="button"
+                className={styles['calendar-button']}
+                onClick={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  const hidden = document.getElementById('profile-dob-hidden');
+                  if (hidden) {
+                    hidden.style.pointerEvents = 'auto';
+                    hidden.focus();
+                    setTimeout(()=>{
+                      if (hidden.showPicker) {
+                        try {
+                          const p = hidden.showPicker();
+                          if (p && typeof p.catch === 'function') {
+                            p.catch(()=> hidden.click());
+                          }
+                        } catch {
+                          hidden.click();
+                        }
+                      } else {
+                        hidden.click();
+                      }
+                      // disable interactions again after opening
+                      setTimeout(()=>{ hidden.style.pointerEvents = 'none'; }, 0);
+                    }, 10);
+                  }
+                }}
+                title="Open date picker"
+              >📅</button>
+            </div>
+            {dobError && (
+              <div className={styles['field-hint']} style={{ color: '#e11d48' }}>{dobError}</div>
+            )}
           </div>
 
           <div className={styles['form-group']}>
@@ -737,11 +999,11 @@ const UserProfile = () => {
                 setEditForm({
                   name: user?.username || user?.name || '',
                   phone: user?.phone || '',
-                  dob: user?.dob ? new Date(user.dob).toISOString().slice(0, 10) : '',
+                  dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
                   gender: user?.gender || '',
                   cccd: user?.cccd || ''
                 });
-                // Keep current avatar, don't reset to default
+                // Reset avatar preview to current user avatar
                 setAvatarPreview(user?.avatar || '/default-avatar.png');
               }}
               className={styles['btn-secondary']}

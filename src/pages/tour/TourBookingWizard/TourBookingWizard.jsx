@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TourBookingProvider, useBooking } from '../../../contexts/TourBookingContext';
 import { formatBookingData, validateBookingData } from '../../../utils/bookingFormatter';
@@ -26,6 +26,7 @@ const BookingWizardContent = () => {
   const { t, i18n } = useTranslation();
   const { showError, showBatch } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const showErrorRef = useRef(showError);
   const { 
     resetBooking, 
     contact, 
@@ -42,6 +43,11 @@ const BookingWizardContent = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
+  
+  // Update ref when showError changes
+  useEffect(() => {
+    showErrorRef.current = showError;
+  }, [showError]);
   
   // Check if we're returning from payment page
   useEffect(() => {
@@ -118,14 +124,24 @@ const BookingWizardContent = () => {
       const loadTourPrices = async () => {
         try {
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+          
+          // Get token for authentication
+          const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+          
           const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
+              ...(token && { 'Authorization': `Bearer ${token}` })
             }
           });
           
           if (!response.ok) {
+            if (response.status === 401) {
+              console.error('Authentication failed - token may be expired');
+              showErrorRef.current('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+              return;
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           
@@ -141,6 +157,7 @@ const BookingWizardContent = () => {
           recalcTotal(prices);
         } catch (error) {
           console.error('Error loading tour prices for restoration:', error);
+          showErrorRef.current('Không thể tải thông tin tour. Vui lòng thử lại.');
         }
       };
       
@@ -209,7 +226,7 @@ const BookingWizardContent = () => {
   // Use custom hook for step validation
   const { getStepErrors, isStepCompleted, stepValidations } = useBookingStepValidation({ contact, plan, user });
 
-  // Authentication guard
+  // Authentication and role guard
   useEffect(() => {
     if (!authLoading && !user) {
       // Store current URL to return after login
@@ -217,6 +234,13 @@ const BookingWizardContent = () => {
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
+
+  // Block COMPANY role from booking
+  useEffect(() => {
+    if (!authLoading && user && user.role === 'COMPANY') {
+      showErrorRef.current('Tài khoản doanh nghiệp không thể đặt tour.');
+    }
+  }, [authLoading, user]);
 
   // Reset booking when component mounts or tourId changes
   useEffect(() => {
@@ -447,7 +471,7 @@ const BookingWizardContent = () => {
           <div className={styles['step-content']}>
             <div className={styles['loading-container']}>
               <div className={styles['loading-spinner']}></div>
-              <p>{t('bookingWizard.auth.checking')}</p>
+              <p>Đang kiểm tra xác thực...</p>
             </div>
           </div>
         </div>
@@ -470,6 +494,29 @@ const BookingWizardContent = () => {
                 onClick={() => navigate('/login')}
               >
                 {t('bookingWizard.auth.loginButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If COMPANY user, show blocked message and no wizard actions
+  if (user && user.role === 'COMPANY') {
+    return (
+      <div className={styles['wizard-fullscreen-bg']}>
+        <div className={styles['tour-booking-wizard']}>
+          <div className={styles['step-content']}>
+            <div className={styles['auth-required']}>
+              <h2>🚫 {t('bookingWizard.auth.accessDeniedTitle') || 'Không thể đặt tour'}</h2>
+              <p>{t('bookingWizard.auth.companyNotAllowed') || 'Tài khoản doanh nghiệp (COMPANY) không thể đặt tour. Vui lòng sử dụng tài khoản người dùng.'}</p>
+              <button 
+                type="button"
+                className={styles['btn-primary']}
+                onClick={() => navigate(`/tour/${tourId}`)}
+              >
+                {t('bookingWizard.navigation.backToTour') || 'Quay lại trang tour'}
               </button>
             </div>
           </div>

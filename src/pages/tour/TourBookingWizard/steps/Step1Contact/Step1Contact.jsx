@@ -647,8 +647,9 @@ const Step1Contact = () => {
       const newAutoFilledFields = new Set();
       
       // Map user data to contact fields
-      if (user.fullName) {
-        newContact.fullName = user.fullName;
+      const profileName = user.username || user.name || user.fullName;
+      if (profileName) {
+        newContact.fullName = profileName;
         newAutoFilledFields.add('fullName');
       }
       if (user.email) {
@@ -663,7 +664,49 @@ const Step1Contact = () => {
         newContact.address = user.address;
         newAutoFilledFields.add('address');
       }
-      
+      // Date of birth: if available in profile, normalize and put directly into contact
+      if (user.dob) {
+        try {
+          let iso = '';
+          if (/^\d{4}-\d{2}-\d{2}$/.test(user.dob)) {
+            iso = user.dob;
+          } else {
+            const d = new Date(user.dob);
+            if (!isNaN(d.getTime())) {
+              iso = d.toISOString().slice(0, 10);
+            }
+          }
+          if (iso) {
+            const displayDob = formatDateFromNormalized(iso);
+            if (displayDob) {
+              // set dob into contact object before committing state
+              newContact.dob = displayDob;
+              // also mirror to members
+              setMember('adult', 0, { dob: displayDob });
+              // mark as touched so error shows
+              setTouchedFields(prev => new Set(prev).add('dob'));
+              // validate 18+
+              const normalized = validateDateInput(displayDob);
+              if (normalized) {
+                const birth = new Date(normalized);
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const md = today.getMonth() - birth.getMonth();
+                if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
+                setErrors(prev => {
+                  const ne = { ...prev };
+                  if (age < 18) ne.dob = t('booking.errors.representativeTooYoung'); else delete ne.dob;
+                  return ne;
+                });
+              } else {
+                setErrors(prev => ({ ...prev, dob: t('booking.errors.dobInvalidFormat') }));
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      // commit new contact after composing all fields (including dob if any)
       setContact(newContact);
       setAutoFilledFields(newAutoFilledFields);
       

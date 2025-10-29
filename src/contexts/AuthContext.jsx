@@ -52,12 +52,36 @@ export const AuthProvider = ({ children }) => {
     const rafId = requestAnimationFrame(() => {
       if (!mounted) return;
 
+      // Force re-auth on frontend rebuild/restart: compare build session id
+      try {
+        const currentBuildId = (typeof __BUILD_SESSION_ID__ !== 'undefined') ? __BUILD_SESSION_ID__ : null;
+        const lastBuildId = localStorage.getItem('last_build_session_id');
+        if (currentBuildId && lastBuildId && currentBuildId !== lastBuildId) {
+          // Different FE runtime detected → clear persisted auth to require login again
+          try {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('accessToken');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+          } catch {}
+        }
+        if (currentBuildId && currentBuildId !== lastBuildId) {
+          localStorage.setItem('last_build_session_id', currentBuildId);
+        }
+      } catch {}
+
       const remembered = localStorage.getItem('rememberMe') === 'true';
       rememberRef.current = remembered;
 
-      const storage = getStorageByRemember(remembered);
-      const savedUser = storage.getItem('user');
-      const token = storage.getItem('token');
+      // Read from both storages to allow cross-tab sharing
+      const sessionUser = sessionStorage.getItem('user');
+      const sessionToken = sessionStorage.getItem('token');
+      const localUser = localStorage.getItem('user');
+      const localToken = localStorage.getItem('token');
+      // Prefer session-based values if present, else fall back to localStorage
+      const savedUser = sessionUser || localUser;
+      const token = sessionToken || localToken;
 
       // For remember me, also verify expiry
       if (remembered) {
@@ -81,8 +105,16 @@ export const AuthProvider = ({ children }) => {
       } else {
         if (savedUser && token) {
           try {
+            const parsed = JSON.parse(savedUser);
             if (mounted) {
-              setUser(JSON.parse(savedUser));
+              setUser(parsed);
+            }
+            // If we loaded from localStorage (no session values yet), mirror to session for current tab session semantics
+            if (!sessionUser || !sessionToken) {
+              try {
+                sessionStorage.setItem('user', JSON.stringify(parsed));
+                sessionStorage.setItem('token', token);
+              } catch {}
             }
           } catch (e) {
             console.error('Error parsing user data:', e);
@@ -102,12 +134,41 @@ export const AuthProvider = ({ children }) => {
         startInactivityTimer();
       }
 
-      // Listen for logout across tabs
+      // Listen for auth changes across tabs
       const onStorage = (e) => {
         if (e.key === 'forceLogout' && e.newValue && mounted) {
           // Another tab triggered logout
           setUser(null);
           clearInactivityTimer();
+          try {
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+          } catch {}
+        }
+        if (e.key === 'authLogin' && e.newValue && mounted) {
+          // Another tab completed login or updated credentials
+          const nowRemembered = localStorage.getItem('rememberMe') === 'true';
+          rememberRef.current = nowRemembered;
+          const sUser = sessionStorage.getItem('user');
+          const sToken = sessionStorage.getItem('token');
+          const lUser = localStorage.getItem('user');
+          const lToken = localStorage.getItem('token');
+          const nextUserStr = sUser || lUser;
+          const nextToken = sToken || lToken;
+          if (nextUserStr && nextToken) {
+            try {
+              const parsed = JSON.parse(nextUserStr);
+              setUser(parsed);
+              // Ensure current tab session mirrors state for non-remember sessions
+              if (!nowRemembered) {
+                try {
+                  sessionStorage.setItem('user', JSON.stringify(parsed));
+                  sessionStorage.setItem('token', nextToken);
+                } catch {}
+                startInactivityTimer();
+              }
+            } catch {}
+          }
         }
       };
       window.addEventListener('storage', onStorage);
@@ -153,6 +214,18 @@ export const AuthProvider = ({ children }) => {
       } catch {}
       startInactivityTimer();
     }
+
+    // Mirror state to sessionStorage for current tab; also persist to localStorage to allow other tabs to load
+    try {
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      if (token) sessionStorage.setItem('token', token);
+      // Also always keep a copy in localStorage so new tabs can hydrate immediately
+      localStorage.setItem('user', JSON.stringify(userData));
+      if (token) localStorage.setItem('token', token);
+      // Broadcast login to other tabs
+      localStorage.setItem('authLogin', String(Date.now()));
+      setTimeout(() => localStorage.removeItem('authLogin'), 0);
+    } catch {}
 
     // Note: Navigation is handled by the component that calls login
     // No automatic redirects here to avoid page reloads

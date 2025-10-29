@@ -276,11 +276,14 @@
 
 .no-posts {
   text-align: center;
-  padding: 60px 20px;
+  padding: 40px 20px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .no-posts h3 {
@@ -438,7 +441,8 @@
   }
   
   .no-posts {
-    padding: 40px 16px;
+    padding: 30px 16px;
+    max-width: 100%;
   }
   
   .no-posts h3 {

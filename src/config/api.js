@@ -86,14 +86,20 @@ export const getImageUrl = (imagePath) => {
 };
 
 // Helper function để tạo headers với auth token
+const normalizeBearer = (token) => {
+  if (!token) return undefined;
+  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+};
+
 export const createAuthHeaders = (token, additionalHeaders = {}) => {
   const headers = {
     'Content-Type': 'application/json',
     ...additionalHeaders
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  const bearer = normalizeBearer(token);
+  if (bearer) {
+    headers['Authorization'] = bearer;
   }
   
   return headers;
@@ -106,8 +112,9 @@ export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
     // Không set Content-Type cho FormData, browser sẽ tự động set với boundary
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  const bearer = normalizeBearer(token);
+  if (bearer) {
+    headers['Authorization'] = bearer;
   }
   
   return headers;

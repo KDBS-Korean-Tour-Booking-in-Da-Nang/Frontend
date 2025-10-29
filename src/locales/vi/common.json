@@ -756,6 +756,7 @@
 	},
 	"toast": {
 		"required": "{{field}} là bắt buộc",
+		"name_required": "Không để trống tên",
 		"login_required": "Vui lòng đăng nhập để tiếp tục",
 		"save_success": "Lưu thành công",
 		"save_error": "Có lỗi xảy ra khi lưu",

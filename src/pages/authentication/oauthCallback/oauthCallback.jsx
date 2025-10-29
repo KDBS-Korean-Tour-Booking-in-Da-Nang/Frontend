@@ -57,6 +57,11 @@ const OAuthCallback = () => {
         localStorage.removeItem('tokenExpiry');
       }
 
+      // Resolve provider set prior to redirect
+      const provider = localStorage.getItem('oauth_provider');
+      // Clean temp provider flag
+      localStorage.removeItem('oauth_provider');
+
       // Base user object from URL parameters (status may be missing here)
       const baseUser = {
         id: parseInt(userId),
@@ -65,7 +70,8 @@ const OAuthCallback = () => {
         name: username ? decodeURIComponent(username) : decodeURIComponent(email).split('@')[0],
         avatar: avatar ? decodeURIComponent(avatar) : null,
         isPremium: isPremium === 'true',
-        balance: balance ? parseFloat(balance) : 0
+        balance: balance ? parseFloat(balance) : 0,
+        authProvider: provider === 'GOOGLE' || provider === 'NAVER' ? provider : 'OAUTH'
       };
 
       // Login user with token first (to allow authenticated fetch)
@@ -91,7 +97,8 @@ const OAuthCallback = () => {
                 name: meData.result.username || baseUser.name,
                 avatar: meData.result.avatar || baseUser.avatar,
                 isPremium: typeof meData.result.isPremium === 'boolean' ? meData.result.isPremium : baseUser.isPremium,
-                balance: typeof meData.result.balance === 'number' ? meData.result.balance : baseUser.balance
+                balance: typeof meData.result.balance === 'number' ? meData.result.balance : baseUser.balance,
+                authProvider: baseUser.authProvider
               };
               updateUser(enrichedUser);
             }

@@ -79,6 +79,8 @@ const ActionTypes = {
   // Conversations
   SET_CONVERSATIONS: 'SET_CONVERSATIONS',
   UPDATE_CONVERSATION: 'UPDATE_CONVERSATION',
+  UPSERT_CONVERSATION: 'UPSERT_CONVERSATION',
+  SORT_CONVERSATIONS_BY_LATEST: 'SORT_CONVERSATIONS_BY_LATEST',
   
   // Users
   SET_ALL_USERS: 'SET_ALL_USERS',
@@ -217,7 +219,7 @@ const chatReducer = (state, action) => {
     case ActionTypes.SET_CONVERSATIONS:
       return {
         ...state,
-        conversations: action.payload,
+        conversations: (action.payload || []).sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0)),
         loadingConversations: false
       };
     
@@ -230,6 +232,26 @@ const chatReducer = (state, action) => {
             : conv
         )
       };
+
+    case ActionTypes.UPSERT_CONVERSATION: {
+      const payload = action.payload;
+      const key = payload.user.userName;
+      const existingIndex = state.conversations.findIndex(c => c.user.userName === key);
+      let updated = [];
+      if (existingIndex >= 0) {
+        updated = state.conversations.map((c, i) => i === existingIndex ? { ...c, ...payload } : c);
+      } else {
+        updated = [payload, ...state.conversations];
+      }
+      // sort by latest timestamp desc
+      updated.sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
+      return { ...state, conversations: updated };
+    }
+
+    case ActionTypes.SORT_CONVERSATIONS_BY_LATEST: {
+      const sorted = [...state.conversations].sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
+      return { ...state, conversations: sorted };
+    }
     
     case ActionTypes.SET_ALL_USERS:
       return {
@@ -383,6 +405,20 @@ export const ChatProvider = ({ children }) => {
                 id: message.id || `ws-${Date.now()}-${Math.random()}`
               };
               dispatch({ type: ActionTypes.ADD_MESSAGE, payload: messageWithOwnership });
+
+              // Upsert conversation for sender
+              const otherUserName = messageWithOwnership.senderName || messageWithOwnership.sender?.userName || messageSenderName;
+              const conversation = {
+                user: { userName: otherUserName, username: otherUserName, avatar: messageWithOwnership.sender?.avatar },
+                lastMessage: {
+                  content: messageWithOwnership.content,
+                  timestamp: messageWithOwnership.timestamp,
+                  senderName: otherUserName,
+                  receiverName: currentUserName
+                },
+                unreadCount: 0
+              };
+              dispatch({ type: ActionTypes.UPSERT_CONVERSATION, payload: conversation });
             }
           });
         } catch (wsError) {
@@ -558,6 +594,19 @@ export const ChatProvider = ({ children }) => {
         };
         
         dispatch({ type: ActionTypes.ADD_MESSAGE, payload: tempMessage });
+
+        // Update conversations immediately so dropdown shows latest preview and reorders to top
+        const upsertForSelf = {
+          user: { userName: receiverName, username: receiverName, avatar: state.activeChatUser?.avatar },
+          lastMessage: {
+            content: tempMessage.content,
+            timestamp: tempMessage.timestamp,
+            senderName: senderName,
+            receiverName: receiverName
+          },
+          unreadCount: 0
+        };
+        dispatch({ type: ActionTypes.UPSERT_CONVERSATION, payload: upsertForSelf });
         
         const messageData = {
           senderName: senderName,

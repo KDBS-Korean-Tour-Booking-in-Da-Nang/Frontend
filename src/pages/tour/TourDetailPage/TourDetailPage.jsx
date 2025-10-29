@@ -5,6 +5,7 @@ import { useToursAPI } from '../../../hooks/useToursAPI';
 import styles from './TourDetailPage.module.css';
 import { ShareTourModal, LoginRequiredModal } from '../../../components';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 import { useTourRated } from '../../../hooks/useTourRated';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
@@ -38,6 +39,7 @@ const TourDetailPage = () => {
   const { t } = useTranslation();
   const [tour, setTour] = useState(null);
   const { user } = useAuth();
+  const { showError } = useToast();
   const [openShare, setOpenShare] = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
   const { ratings, submitRating, updateRating, deleteRating, canRate, ratedByMe, myRating, refresh } = useTourRated(id);
@@ -143,6 +145,10 @@ const TourDetailPage = () => {
       setShowLoginRequired(true); 
       return; 
     }
+    if (user && user.role === 'COMPANY') {
+      showError('Tài khoản doanh nghiệp không thể đặt tour.');
+      return;
+    }
     navigate(`/tour/${id}/booking`);
   };
 
@@ -166,6 +172,8 @@ const TourDetailPage = () => {
     return { avg, dist, total };
   })();
   const formatAvg = (v) => (Math.round(v * 10) / 10).toFixed(1);
+
+  const isCompany = !!user && user.role === 'COMPANY';
 
   return (
     <div className={styles['tour-detail-page']}>
@@ -532,7 +540,15 @@ const TourDetailPage = () => {
                 </div>
 
                 <div className={styles['booking-actions']}>
-                  <button className={styles['book-now-btn']} onClick={handleBookNow}>
+                  <button 
+                    className={styles['book-now-btn']} 
+                    onClick={handleBookNow}
+                    disabled={isCompany}
+                    aria-disabled={isCompany ? 'true' : 'false'}
+                    tabIndex={isCompany ? -1 : 0}
+                    title={isCompany ? 'Tài khoản doanh nghiệp không thể đặt tour' : undefined}
+                    style={isCompany ? { pointerEvents: 'none', cursor: 'not-allowed', opacity: 0.6 } : undefined}
+                  >
                     {t('tourPage.detail.booking.bookNow')}
                   </button>
                   <button className={styles['contact-btn']}>

@@ -1,4 +1,4 @@
-import { API_ENDPOINTS, createAuthFormHeaders } from '../config/api';
+import { API_ENDPOINTS, createAuthFormHeaders, getAvatarUrl } from '../config/api';
 
 /**
  * Update user profile information
@@ -44,12 +44,28 @@ export const updateUserProfile = async (userData, token) => {
     const jsonBlob = new Blob([JSON.stringify(updateData)], { type: 'application/json' });
     formData.append('data', jsonBlob);
     
-    // Add avatar file only if user selected a new avatar
+    // Always include avatarImg because backend requires a non-null file for avatar processing
     if (userData.avatarFile && userData.avatarFile instanceof File) {
       formData.append('avatarImg', userData.avatarFile);
+    } else {
+      // Fallback: reuse existing avatar by fetching it as a Blob and re-uploading
+      // This preserves the current avatar without forcing users to pick a new one
+      const existingUrl = userData.currentAvatarUrl ? getAvatarUrl(userData.currentAvatarUrl) : null;
+      if (existingUrl) {
+        try {
+          const avatarResponse = await fetch(existingUrl, { credentials: 'omit' });
+          if (avatarResponse.ok) {
+            const avatarBlob = await avatarResponse.blob();
+            const ext = (avatarBlob.type && avatarBlob.type.split('/')[1]) || 'jpg';
+            const fileName = `current-avatar.${ext}`;
+            const file = new File([avatarBlob], fileName, { type: avatarBlob.type || 'image/jpeg' });
+            formData.append('avatarImg', file);
+          }
+        } catch (e) {
+          // If fetch fails, we skip attaching avatar; server may reject, but we avoid breaking here
+        }
+      }
     }
-    // Note: If no avatar file is provided, we don't send avatarImg part
-    // Backend will only update avatar if avatarImg is provided
     
     // Create headers with auth token
     const headers = createAuthFormHeaders(token);

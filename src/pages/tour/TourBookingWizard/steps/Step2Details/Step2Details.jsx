@@ -880,10 +880,14 @@ const Step2Details = () => {
       // Fetch tour data directly (public endpoint)
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
       
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      
       const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
       

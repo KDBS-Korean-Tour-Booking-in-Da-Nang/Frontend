@@ -400,6 +400,51 @@
   box-shadow: 0 0 0 3px rgba(26, 142, 234, 0.1);
 }
 
+/* Date input with inline calendar icon */
+.date-input-container {
+  position: relative;
+}
+
+.date-input {
+  padding-right: 44px; /* space for calendar icon */
+}
+
+.calendar-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.calendar-button:hover {
+  color: #111827;
+}
+
+/* Invisible anchor input to position native date picker under the icon */
+.calendar-anchor-input {
+  position: absolute;
+  left: 375px; /* align slightly inside the icon */
+  top: 55%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  pointer-events: none; /* enabled programmatically when opening */
+  z-index: 11;
+}
+
 .form-select {
   width: 100%;
   padding: 12px 16px;
@@ -409,6 +454,15 @@
   background: white;
   cursor: pointer;
   transition: all 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Custom chevron so we can fine-tune its position */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center; /* nhiph trái một chút từ mép phải */
+  background-size: 16px 16px;
+  padding-right: 44px; /* space for custom arrow */
 }
 
 .form-select:focus {

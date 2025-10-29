@@ -266,18 +266,14 @@ const ChatBox = ({ isOpen, onClose }) => {
     }
   }, [state.currentUser]); // Depend on currentUser
 
-  // Effect to scroll to bottom only once when opening a new chat
+  // Effect: whenever chatbox opens or messages arrive while open, ensure we are at the bottom
   useEffect(() => {
     if (!isOpen || state.loadingMessages) return;
-
-    const key = getActiveChatKey();
-    if (!key || initialScrolledRef.current[key]) return;
 
     if (state.messages.length > 0) {
       const s = messagesContainerRef.current;
       if (s) {
-        s.scrollTop = s.scrollHeight; // instant scroll to bottom
-        initialScrolledRef.current[key] = true; // mark as scrolled for this chat
+        s.scrollTop = s.scrollHeight; // instant scroll to bottom on open/reopen
       }
     }
   }, [isOpen, state.loadingMessages, state.activeChatUser, state.messages.length]);
@@ -473,6 +469,10 @@ const ChatBox = ({ isOpen, onClose }) => {
               state.messages.map((message, index) => {
                 const showDateHeader = shouldShowDateHeader(state.messages, index);
                 const isLastFromSender = isLastMessageFromSender(state.messages, index);
+                const prev = index > 0 ? state.messages[index - 1] : null;
+                const sameSender = prev && prev.isOwn === message.isOwn;
+                const closeInTime = prev && Math.abs(new Date(message.timestamp) - new Date(prev.timestamp)) < 2 * 60 * 1000; // 2 minutes
+                const compact = sameSender && closeInTime;
                 
                 return (
                   <React.Fragment key={`${message.id}-${index}-${message.timestamp}`}>
@@ -486,7 +486,7 @@ const ChatBox = ({ isOpen, onClose }) => {
                     {/* Message */}
                     <div 
                       data-mid={message.id}
-                      className={`${styles.message} ${message.isOwn ? styles.sent : styles.received}`}
+                      className={`${styles.message} ${compact ? styles.compact : ''} ${message.isOwn ? styles.sent : styles.received}`}
                       onMouseEnter={(e) => handleMouseEnter(message.id, e, message.timestamp)}
                       onMouseMove={handleMouseMove}
                       onMouseLeave={handleMouseLeave}

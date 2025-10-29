@@ -166,7 +166,8 @@ const Login = () => {
             name: data.result.user.username,
             avatar: data.result.user.avatar,
             isPremium: data.result.user.isPremium,
-            balance: data.result.user.balance
+            balance: data.result.user.balance,
+            authProvider: 'LOCAL'
           };
 
           login(user, token, rememberMe);
@@ -212,7 +213,8 @@ const Login = () => {
             id: Date.now(),
             email,
             role: 'user',
-            name: email.split('@')[0]
+            name: email.split('@')[0],
+            authProvider: 'LOCAL'
           };
           login(user, token, rememberMe);
           showSuccess('toast.auth.login_success');
@@ -240,8 +242,9 @@ const Login = () => {
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
         // Redirect to Google OAuth URL
-        // Persist remember-me preference for the callback handler
+        // Persist remember-me preference and provider for the callback handler
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
+        localStorage.setItem('oauth_provider', 'GOOGLE');
         window.location.href = data.result;
       } else {
         showError('toast.auth.google_connection_failed');
@@ -258,8 +261,9 @@ const Login = () => {
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
         // Redirect to Naver OAuth URL
-        // Persist remember-me preference for the callback handler
+        // Persist remember-me preference and provider for the callback handler
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
+        localStorage.setItem('oauth_provider', 'NAVER');
         window.location.href = data.result;
       } else {
         showError('toast.auth.naver_connection_failed');

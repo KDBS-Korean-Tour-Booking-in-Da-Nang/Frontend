@@ -252,8 +252,11 @@ const Forum = () => {
       );
       setEditingPost(null);
     } else {
-      // Add new post
-      setPosts(prev => [post, ...prev]);
+      // Only add new post if not in search mode or My Posts mode
+      // In search mode, new posts should not appear until user goes back to forum
+      if (!isSearchMode && !isMyPostsMode) {
+        setPosts(prev => [post, ...prev]);
+      }
     }
     // notify sidebar to refresh popular hashtags
     window.dispatchEvent(new Event('refresh-popular-hashtags'));
@@ -272,6 +275,9 @@ const Forum = () => {
     setIsSearchMode(true); // Set search mode
     setIsMyPostsMode(false); // Exit My Posts mode
     
+    // Clear posts cache to prevent showing stale data
+    postsCache.current.clear();
+    
     // Save to localStorage
     localStorage.setItem('forum-selected-hashtags', JSON.stringify([]));
     localStorage.setItem('forum-search-keyword', keyword);
@@ -287,6 +293,9 @@ const Forum = () => {
     setCurrentPage(0);
     setIsSearchMode(false); // Set filter mode
     setIsMyPostsMode(false); // Exit My Posts mode
+    
+    // Clear posts cache to prevent showing stale data
+    postsCache.current.clear();
     
     // Save to localStorage
     localStorage.setItem('forum-selected-hashtags', JSON.stringify(hashtagArray));
@@ -304,6 +313,9 @@ const Forum = () => {
     setCurrentPage(0);
     setIsSearchMode(false); // Reset to normal mode
     setIsMyPostsMode(false); // Exit My Posts mode
+    
+    // Clear posts cache to prevent showing stale data
+    postsCache.current.clear();
     
     // Clear localStorage
     localStorage.removeItem('forum-selected-hashtags');
@@ -323,6 +335,9 @@ const Forum = () => {
     setSelectedHashtags([]);
     setCurrentPage(0);
     
+    // Clear posts cache to prevent showing stale data
+    postsCache.current.clear();
+    
     // Clear localStorage
     localStorage.removeItem('forum-selected-hashtags');
     localStorage.removeItem('forum-search-keyword');
@@ -340,6 +355,9 @@ const Forum = () => {
     setSearchKeyword('');
     setSelectedHashtags([]);
     setCurrentPage(0);
+    
+    // Clear posts cache to prevent showing stale data
+    postsCache.current.clear();
     
     // Clear localStorage
     localStorage.removeItem('forum-selected-hashtags');
