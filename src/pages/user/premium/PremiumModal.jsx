@@ -75,67 +75,30 @@ const PremiumModal = ({ isOpen, onClose }) => {
     try {
       setLoading(true);
       const selectedPlanData = premiumPlans.find(plan => plan.id === selectedPlan);
-      
+
       const token = getToken();
-      
-      
       if (!token) {
         throw new Error(t('premium.errors.noToken'));
       }
-
       if (!user?.email) {
         throw new Error(t('premium.errors.noEmail'));
       }
 
-      // Tạo JSON request body theo đúng format backend mong đợi
-      const requestBody = {
-        durationInMonths: selectedPlanData.duration,
-        userEmail: user.email
-      };
-
-
-      const response = await fetch(API_ENDPOINTS.PREMIUM_PAYMENT, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Check if we have the required data - try different field names
-        const payUrl = data.payUrl || data.pay_url || data.paymentUrl || data.payment_url;
-        if (!payUrl) {
-          console.error('Missing payUrl in response:', data);
-          throw new Error(t('premium.errors.missingPayUrl'));
+      // Chỉ điều hướng đến trang thanh toán VNPay với dữ liệu gói; việc tạo transaction sẽ xảy ra khi bấm nút thanh toán trên trang đó
+      navigate('/payment/vnpay', {
+        state: {
+          premiumData: {
+            amount: selectedPlanData.priceValue,
+            planName: selectedPlanData.name,
+            duration: selectedPlanData.duration,
+            type: 'premium',
+            userEmail: user.email
+          }
         }
-        
-        // Navigate to payment page with premium data
-        navigate('/payment/vnpay', { 
-          state: { 
-            premiumData: {
-              orderId: data.orderId || data.order_id,
-              amount: selectedPlanData.priceValue,
-              planName: selectedPlanData.name,
-              duration: selectedPlanData.duration,
-              type: 'premium',
-              payUrl: payUrl,
-              orderInfo: data.orderInfo || data.order_info
-            }
-          } 
-        });
-        onClose();
-      } else {
-        const errorText = await response.text();
-        console.error('Premium payment failed:', response.status, errorText);
-        throw new Error(`Premium payment failed: ${response.status} ${errorText}`);
-      }
+      });
+      onClose();
     } catch (error) {
-      console.error('Error initiating premium payment:', error);
+      console.error('Error preparing premium payment:', error);
       alert(`${t('premium.errors.error')}: ${error.message}`);
     } finally {
       setLoading(false);

@@ -103,6 +103,17 @@ const VNPaySuccessPage = ({ paymentType }) => {
     }
   }, [location.search, location.state, showSuccess, toastShown]);
 
+  useEffect(() => {
+    // Mark booking purchased locally so history can reflect immediately
+    try {
+      if (transactionData?.paymentType === 'booking' && transactionData?.bookingData?.bookingId) {
+        const bId = transactionData.bookingData.bookingId;
+        localStorage.setItem(`bookingPurchased_${bId}`, 'true');
+        sessionStorage.removeItem('pendingBooking');
+      }
+    } catch (_) {}
+  }, [transactionData]);
+
   // useEffect(() => {
   //   if (!loading) {
   //     // Countdown timer
@@ -146,8 +157,12 @@ const VNPaySuccessPage = ({ paymentType }) => {
   };
 
   const handleViewBooking = () => {
-    // In a real app, this would navigate to a booking details page
-    navigate('/profile');
+    const bookingId = transactionData?.bookingData?.bookingId;
+    if (bookingId) {
+      navigate(`/user/booking/${bookingId}`);
+    } else {
+      navigate('/user/booking-history');
+    }
   };
 
   const formatDate = (dateString) => {

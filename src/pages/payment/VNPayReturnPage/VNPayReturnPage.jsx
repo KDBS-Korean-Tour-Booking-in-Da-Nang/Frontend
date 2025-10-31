@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../contexts/ToastContext';
 import styles from './VNPayReturnPage.module.css';
+import { cancelBooking } from '../../../services/bookingAPI';
 
 const VNPayReturnPage = () => {
   const location = useLocation();
@@ -10,6 +11,7 @@ const VNPayReturnPage = () => {
   const { t } = useTranslation();
   const { showSuccess, showError } = useToast();
   const [processing, setProcessing] = useState(true);
+  const { id: urlTourId } = useParams();
 
   useEffect(() => {
     // Parse URL parameters from VNPay return
@@ -57,6 +59,12 @@ const VNPayReturnPage = () => {
       // Determine payment status
       if (vnpResponseCode === '00' && vnpTransactionStatus === '00') {
         // Payment successful
+        // Clean ALL booking data keys for all tours
+        try {
+          Object.keys(localStorage)
+            .filter(k => k.startsWith('bookingData_') || k.startsWith('hasConfirmedLeave_'))
+            .forEach(k => localStorage.removeItem(k));
+        } catch(e) {/* silent */}
         if (premiumData) {
           showSuccess('Premium payment successful!');
           // Clear pending premium data
@@ -109,57 +117,46 @@ const VNPayReturnPage = () => {
         }
       } else {
         // Payment failed or cancelled
-        if (premiumData) {
-          showError('Premium payment failed!');
-          // Clear pending premium data
-          sessionStorage.removeItem('pendingPremiumPayment');
-          
-          // Redirect to fail page with premium data
-          setTimeout(() => {
-            navigate('/transaction-result', {
-              state: {
-                orderId: vnpTxnRef,
-                paymentMethod: 'vnpay',
-                responseCode: vnpResponseCode,
-                paymentType: 'premium',
-                premiumData: premiumData.premiumData,
-                paymentInfo: {
-                  orderInfo: vnpOrderInfo,
-                  amount: vnpAmount,
-                  transactionNo: vnpTransactionNo,
-                  responseCode: vnpResponseCode
-                }
-              }
-            });
-          }, 2000);
-        } else {
-          showError(t('payment.paymentFailedCancelled'));
-          
-          // Clear pending booking data
-          if (pendingBookingData) {
-            sessionStorage.removeItem('pendingBooking');
-          }
-          
-          // Redirect to fail page after a short delay
-          setTimeout(() => {
-            navigate('/transaction-result', {
-              state: {
-                orderId: vnpTxnRef,
-                paymentMethod: 'vnpay',
-                responseCode: vnpResponseCode,
-                paymentType: 'booking',
-                bookingData: bookingData?.bookingData,
-                tourId: bookingData?.tourId,
-                paymentInfo: {
-                  orderInfo: vnpOrderInfo,
-                  amount: vnpAmount,
-                  transactionNo: vnpTransactionNo,
-                  responseCode: vnpResponseCode
-                }
-              }
-            });
-          }, 2000);
+        const isCancelled = vnpResponseCode === '24' || vnpTransactionStatus === '24'; // User cancelled
+        const isFailed = vnpResponseCode !== '00' || vnpTransactionStatus !== '00';
+        
+        // Keep booking in PENDING to allow resume payment from history
+
+        const errorMessage = isCancelled 
+          ? t('payment.paymentCancelled') || 'Thanh toán đã bị hủy'
+          : t('payment.paymentFailed') || 'Thanh toán thất bại';
+        showError(errorMessage);
+        
+        // Clear pending booking data and any saved wizard data
+        if (pendingBookingData) {
+          sessionStorage.removeItem('pendingBooking');
         }
+        try {
+          Object.keys(localStorage)
+            .filter(k => k.startsWith('bookingData_') || k.startsWith('hasConfirmedLeave_'))
+            .forEach(k => localStorage.removeItem(k));
+        } catch(e) {/* silent */}
+        
+        // Redirect to fail page after a short delay
+        setTimeout(() => {
+          navigate('/transaction-result', {
+            state: {
+              orderId: vnpTxnRef,
+              paymentMethod: 'vnpay',
+              responseCode: vnpResponseCode,
+              paymentType: 'booking',
+              bookingData: bookingData?.bookingData,
+              tourId: bookingData?.tourId,
+              paymentInfo: {
+                orderInfo: vnpOrderInfo,
+                amount: vnpAmount,
+                transactionNo: vnpTransactionNo,
+                responseCode: vnpResponseCode,
+                transactionStatus: isCancelled ? 'CANCELLED' : 'FAILED'
+              }
+            }
+          });
+        }, 2000);
       }
     } else {
       // No VNPay parameters, just show loading

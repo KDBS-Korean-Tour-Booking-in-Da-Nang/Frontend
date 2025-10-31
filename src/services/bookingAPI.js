@@ -6,7 +6,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
  * @returns {Object} - Headers object with Authorization
  */
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  // Try multiple common token keys
+  const token =
+    localStorage.getItem('token') ||
+    sessionStorage.getItem('token') ||
+    localStorage.getItem('accessToken') ||
+    sessionStorage.getItem('accessToken');
   const headers = {
     'Content-Type': 'application/json',
   };
@@ -25,6 +30,8 @@ const getAuthHeaders = () => {
  */
 export const createBooking = async (bookingData) => {
   try {
+    console.log('Creating booking with data:', bookingData);
+    
     const response = await fetch(`${API_BASE_URL}/api/booking`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -33,6 +40,11 @@ export const createBooking = async (bookingData) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Booking creation failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData: errorData
+      });
       
       // Handle authentication errors
       if (response.status === 401) {
@@ -46,6 +58,7 @@ export const createBooking = async (bookingData) => {
     }
 
     const result = await response.json();
+    console.log('Booking created successfully:', result);
     return result;
   } catch (error) {
     console.error('Error creating booking:', error);
@@ -60,7 +73,8 @@ export const createBooking = async (bookingData) => {
  */
 export const getBookingById = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}`, {
+    // Correct endpoint per backend controller: /api/booking/id/{bookingId}
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -70,9 +84,7 @@ export const getBookingById = async (bookingId) => {
       
       // Handle authentication errors
       if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
+        // Do not clear token here to avoid logging user out during background checks
         throw new Error('Unauthenticated');
       }
       
@@ -162,22 +174,43 @@ export const createVNPayPayment = async (paymentData) => {
  */
 export const getBookingTotal = async (bookingId) => {
   try {
-    // First try without authentication (as per requirements)
-    let response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
+    // Always use authentication headers for booking total
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
     });
 
-    // If 401, try with authentication headers
-    if (response.status === 401) {
-      console.log('GET endpoint requires auth, retrying with authentication...');
-      response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      
+      // Handle authentication errors
+      if (response.status === 401) {
+        // Do not clear token here to avoid logging user out during background checks
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error fetching booking total:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get booking details by ID (for resume payment)
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Object>} - The booking details
+ */
+export const getBookingDetails = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -196,7 +229,49 @@ export const getBookingTotal = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching booking total:', error);
+    console.error('Error fetching booking details:', error);
+    throw error;
+  }
+};
+
+/**
+ * Cancel a booking by ID
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Object>} - The updated booking response
+ */
+export const cancelBooking = async (bookingId) => {
+  try {
+    // Try common RESTful cancel endpoint patterns
+    const endpoints = [
+      `${API_BASE_URL}/api/booking/${bookingId}/cancel`,
+      `${API_BASE_URL}/api/booking/cancel/${bookingId}`
+    ];
+    let lastError;
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+        });
+        if (response.ok) {
+          const result = await response.json().catch(() => ({}));
+          return result;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        // --- PATCH: suppress console noise ---
+        // lastError = new Error(errorData.message || `HTTP error! status: ${response.status}`); // OLD
+        lastError = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // Don't show any error in console here
+      } catch (err) {
+        // OLD: console.error('Error cancelling booking:', err);
+        lastError = err;
+        // No console log
+      }
+    }
+    throw lastError || new Error('Failed to cancel booking');
+  } catch (error) {
+    // PATCH: Don't log error
+    // OLD: console.error('Error cancelling booking:', error);
     throw error;
   }
 };

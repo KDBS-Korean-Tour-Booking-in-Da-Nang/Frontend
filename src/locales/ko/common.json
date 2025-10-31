@@ -781,9 +781,7 @@
 		"auth": {
 			"login_success": "로그인 성공!",
 			"login_failed": "로그인 실패. 다시 시도해주세요.",
-			"invalid_credentials": "로그인 실패. 이메일 또는 비밀번호를 확인해주세요.",
-			"wrong_password": "비밀번호가 올바르지 않습니다.",
-			"email_not_found": "이메일이 존재하지 않습니다.",
+			"invalid_credentials": "로그인 실패. 이메일 또는 비밀번호를 확인해주세.",
 			"register_success": "회원가입 성공! 계정을 인증하려면 이메일을 확인해주세요.",
 			"email_already_exists": "이 이메일은 이미 등록되어 있습니다",
 			"google_connection_failed": "Google에 연결할 수 없습니다. 다시 시도해주세요.",
@@ -794,7 +792,10 @@
 			"otp_resend_failed": "OTP 코드를 재전송할 수 없습니다. 다시 시도해주세요.",
 			"password_reset_email_sent": "비밀번호 재설정 이메일이 전송되었습니다!",
 			"otp_verify_success": "OTP 인증 성공!",
-			"general_error": "오류가 발생했습니다. 다시 시도해주세요."
+			"general_error": "오류가 발생했습니다. 다시 시도해주세요.",
+			"email_not_found": "로그인에 실패했습니다. 이메일을 확인해주세요.",
+			"wrong_password": "로그인에 실패했습니다. 비밀번호를 확인해주세요.",
+			"both_invalid": "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요."
 		},
     "company": {
       "info_submit_success": "회사 정보가 성공적으로 제출되었습니다!",
@@ -1780,7 +1781,7 @@
       "3months": "3개월"
     },
     "price": "{{amount}} VND",
-    "purchase": "구매",
+    "purchase": "구매 프리미엄",
     "validUntil": "유효 기간",
     "activeNoExpiry": "프리미엄 활성화됨 - 만료 날짜가 없습니다",
     "na": "N/A",

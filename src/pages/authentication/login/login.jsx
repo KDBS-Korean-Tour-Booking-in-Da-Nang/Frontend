@@ -81,34 +81,86 @@ const Login = () => {
 
   const mapLoginErrorToI18nKey = (message) => {
     const msg = String(message || '').toLowerCase();
-    // Email not found variants
+
+    // Tập từ khóa đa ngôn ngữ cho email/user và password
+    const emailKeywords = [
+      'email', 'user', 'mail',
+      // VI
+      'sai email', 'email không', 'không tồn tại', 'tài khoản', 'người dùng',
+      // KO (đơn giản hoá theo từ gốc)
+      '이메일', '사용자', '유저'
+    ];
+    const passwordKeywords = [
+      'password', 'credentials',
+      // VI
+      'mật khẩu', 'mat khau', 'sai mật khẩu', 'sai mat khau', 'không đúng',
+      // KO (đơn giản hoá theo từ gốc)
+      '비밀번호', '패스워드'
+    ];
+
+    const hasEmailKeyword = emailKeywords.some(k => msg.includes(k));
+    const hasPasswordKeyword = passwordKeywords.some(k => msg.includes(k));
+
+    // 1) Nếu thông điệp chứa đồng thời cả từ khóa email và password → both_invalid
+    if (hasEmailKeyword && hasPasswordKeyword) {
+      return { i18nKey: 'toast.auth.both_invalid', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email hoặc mật khẩu.' };
+    }
+
+    // 2) Email sai - mở rộng các biến thể
     if (
       msg.includes('email has not existed') ||
       msg.includes('email not exist') ||
       msg.includes('email does not exist') ||
       msg.includes('user not found') ||
-      msg.includes('no such user')
+      msg.includes('no such user') ||
+      msg.includes('wrong email') ||
+      // VI
+      msg.includes('email không tồn tại') ||
+      msg.includes('không tìm thấy email') ||
+      msg.includes('tài khoản không tồn tại') ||
+      msg.includes('người dùng không tồn tại') ||
+      // KO (đơn giản hoá)
+      msg.includes('이메일을 찾을 수') ||
+      msg.includes('사용자를 찾을 수') ||
+      hasEmailKeyword // fallback nếu chỉ có từ khóa email mà không có password
     ) {
-      return 'toast.auth.email_not_found';
+      return { i18nKey: 'toast.auth.email_not_found', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email.' };
     }
-    // Wrong password variants
+
+    // 3) Password sai - mở rộng các biến thể
     if (
       msg.includes('password not match') ||
       msg.includes('wrong password') ||
       msg.includes('invalid password') ||
       msg.includes('bad credentials') ||
-      msg.includes('incorrect password')
+      msg.includes('incorrect password') ||
+      // VI
+      msg.includes('sai mật khẩu') ||
+      msg.includes('mật khẩu không đúng') ||
+      // KO (đơn giản hoá)
+      msg.includes('비밀번호가 올바르지') ||
+      msg.includes('비밀번호가 틀렸') ||
+      hasPasswordKeyword // fallback nếu chỉ có từ khóa password mà không có email
     ) {
-      return 'toast.auth.wrong_password';
+      return { i18nKey: 'toast.auth.wrong_password', defaultMessage: 'Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.' };
     }
-    // Generic invalid credentials phrasing
+
+    // 4) Trường hợp backend trả thông điệp gộp chuẩn hoá
     if (
       msg.includes('login failed. please check your email or password') ||
+      msg.includes('both invalid') ||
+      msg.includes('invalid_credentials') ||
       msg.includes('invalid credentials') ||
-      msg.includes('check your email or password')
+      msg.includes('check your email or password') ||
+      // VI
+      msg.includes('email hoặc mật khẩu') ||
+      // KO (đơn giản hoá)
+      msg.includes('이메일 또는 비밀번호')
     ) {
-      return 'toast.auth.invalid_credentials';
+      return { i18nKey: 'toast.auth.both_invalid', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email hoặc mật khẩu.' };
     }
+
+    // fallback to generic error
     return null;
   };
 

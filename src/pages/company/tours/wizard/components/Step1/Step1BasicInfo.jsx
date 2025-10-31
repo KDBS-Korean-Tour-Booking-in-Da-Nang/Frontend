@@ -4,6 +4,8 @@ import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import styles from './Step1BasicInfo.module.css';
 
+const DEFAULT_NIGHTS_FOR_ONE_DAY = 0; // đổi thành 1 nếu muốn mặc định là 1 đêm
+
 const Step1BasicInfo = () => {
   const { t } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
@@ -148,7 +150,8 @@ const Step1BasicInfo = () => {
           const currentNights = formData.nights === '' ? '' : parseInt(formData.nights, 10);
           let newNights = currentNights;
           if (formData.nights === '') {
-            newNights = suggest;
+            // Khi người dùng nhập 1 ngày và ô nights đang rỗng → tự gán 0 (hoặc 1 nếu muốn)
+            newNights = (days === 1) ? DEFAULT_NIGHTS_FOR_ONE_DAY : suggest;
           } else if (!isNaN(currentNights)) {
             // Check if current nights value is within allowed range
             const allowedChoices = [Math.max(0, days - 1), days, days + 1];
@@ -161,7 +164,7 @@ const Step1BasicInfo = () => {
             }
           }
           // Apply both fields together
-          const updated = { ...formData, duration: String(days), nights: newNights };
+          const updated = { ...formData, duration: String(days), nights: String(newNights) };
           setFormData(updated);
           updateTourData(updated);
           return; // early return to avoid the generic update below
@@ -359,7 +362,7 @@ const Step1BasicInfo = () => {
           <p><strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}</p>
           <p><strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {localizeDeparturePoint(formData.departurePoint) || t('tourWizard.step1.summary.notEntered')}</p>
           <p><strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}</p>
-          <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights ? `${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}</p>
+          <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}</p>
           <p><strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.guests')}</p>
           
         </div>

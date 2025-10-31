@@ -20,6 +20,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       .trim();
   };
 
+  const isNonEmptyText = (value) => {
+    return String(value ?? '').trim().length > 0;
+  };
+
   // Helpers for numbers/date
   const preventInvalidNumberKeys = (e) => {
     if (['e','E','+','-','.'].includes(e.key)) e.preventDefault();
@@ -379,9 +383,43 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.tourName.trim()) {
-      showError('toast.tour.name_required');
+    // Strict validation: all inputs must be non-empty
+    const errors = [];
+    if (!isNonEmptyText(formData.tourName)) errors.push('Tên tour');
+    if (!isNonEmptyText(formData.tourDescription)) errors.push('Mô tả tour');
+    if (!isNonEmptyText(formData.tourDuration)) errors.push('Thời lượng tour');
+    if (!isNonEmptyText(formData.tourDeparturePoint)) errors.push('Điểm khởi hành');
+    if (!isNonEmptyText(formData.tourVehicle)) errors.push('Phương tiện');
+    if (!isNonEmptyText(formData.tourType)) errors.push('Loại tour');
+    if (!isNonEmptyText(formData.tourSchedule)) errors.push('Tóm tắt lịch trình');
+
+    const amount = parseInt(formData.amount);
+    const adultPrice = parseFloat(formData.adultPrice);
+    const childrenPrice = parseFloat(formData.childrenPrice);
+    const babyPrice = parseFloat(formData.babyPrice);
+    if (!Number.isFinite(amount) || amount < 1) errors.push('Số lượng chỗ (>=1)');
+    if (!Number.isFinite(adultPrice) || adultPrice < 0) errors.push('Giá người lớn (>=0)');
+    if (!Number.isFinite(childrenPrice) || childrenPrice < 0) errors.push('Giá trẻ em (>=0)');
+    if (!Number.isFinite(babyPrice) || babyPrice < 0) errors.push('Giá em bé (>=0)');
+
+    if (!Array.isArray(formData.itinerary) || formData.itinerary.length === 0) {
+      errors.push('Lịch trình (ít nhất 1 ngày)');
+    } else {
+      formData.itinerary.forEach((day, idx) => {
+        if (!isNonEmptyText(day.title)) errors.push(`Tiêu đề ngày ${idx + 1}`);
+        if (!isNonEmptyText(htmlToText(day.description))) errors.push(`Mô tả ngày ${idx + 1}`);
+        if (!isNonEmptyText(day.dayColor)) errors.push(`Màu ngày ${idx + 1}`);
+        if (!isNonEmptyText(day.titleAlignment)) errors.push(`Căn lề tiêu đề ngày ${idx + 1}`);
+      });
+    }
+
+    // Require cover image (either existing or newly uploaded)
+    if (!isNonEmptyText(formData.tourImgPath) && !formData.coverImageFile) {
+      errors.push('Ảnh bìa');
+    }
+
+    if (errors.length > 0) {
+      showError(`Vui lòng nhập đầy đủ: ${errors.join(', ')}`);
       return;
     }
 
@@ -418,10 +456,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourDeparturePoint: formData.tourDeparturePoint,
         tourVehicle: formData.tourVehicle,
         tourType: formData.tourType,
-        amount: parseInt(formData.amount) || 30,
-        adultPrice: parseFloat(formData.adultPrice) || 0,
-        childrenPrice: parseFloat(formData.childrenPrice) || 0,
-        babyPrice: parseFloat(formData.babyPrice) || 0,
+        amount: amount,
+        adultPrice: adultPrice,
+        childrenPrice: childrenPrice,
+        babyPrice: babyPrice,
         tourSchedule: formData.tourSchedule || '',
         contents: (formData.itinerary || []).map((day, index) => ({
           tourContentTitle: day.title || `Ngày ${index + 1}`,
@@ -537,6 +575,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     value={formData.tourDescription}
                     placeholder="Nhập mô tả văn bản (không chèn hình ảnh)..."
                     onChange={(e) => setFormData(prev => ({ ...prev, tourDescription: e.target.value }))}
+                    required
                   />
                 </div>
 
@@ -550,6 +589,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       value={formData.tourDuration}
                       onChange={handleInputChange}
                       placeholder={t('tourManagement.edit.basic.placeholders.tourDuration')}
+                      required
                     />
                   </div>
                   
@@ -561,6 +601,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       name="tourDeparturePoint"
                       value={formData.tourDeparturePoint}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                 </div>
@@ -574,6 +615,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       name="tourVehicle"
                       value={formData.tourVehicle}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                   
@@ -584,6 +626,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       name="tourType"
                       value={formData.tourType}
                       onChange={handleInputChange}
+                      required
                     >
                       <option value="">{t('tourManagement.edit.basic.placeholders.selectTourType')}</option>
                       <option value="resort">{t('common.tourTypes.resort')}</option>
@@ -610,6 +653,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                         value={formData.amount}
                         onChange={handleInputChange}
                         min="1"
+                        required
                       />
                     </div>
                     
@@ -649,6 +693,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                     value={formData.tourSchedule || ''}
                     onChange={handleInputChange}
                     placeholder="Nhập tóm tắt lịch trình tour..."
+                    required
                   />
                 </div>
                 
@@ -675,6 +720,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                               value={day.title || ''}
                               onChange={(e) => handleItineraryChange(index, 'title', e.target.value)}
                               placeholder={`Ngày ${day.dayNumber}`}
+                              required
                               style={{ textAlign: day.titleAlignment || 'left' }}
                             />
                             <div className={styles['title-controls']}>
@@ -839,6 +885,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       onKeyDown={preventInvalidNumberKeys}
                       onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => setFormData(prev => ({ ...prev, adultPrice: e.target.value.replace(/[^0-9]/g,'') }))}
+                      required
                     />
                   </div>
 
@@ -853,6 +900,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       onKeyDown={preventInvalidNumberKeys}
                       onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => setFormData(prev => ({ ...prev, childrenPrice: e.target.value.replace(/[^0-9]/g,'') }))}
+                      required
                     />
                   </div>
 
@@ -867,6 +915,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       onKeyDown={preventInvalidNumberKeys}
                       onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => setFormData(prev => ({ ...prev, babyPrice: e.target.value.replace(/[^0-9]/g,'') }))}
+                      required
                     />
                   </div>
                 </div>
@@ -889,6 +938,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       accept="image/*"
                       onChange={handleCoverImageChange}
                       className={styles['file-input']}
+                      required={!formData.tourImgPath}
                     />
                     
                     <div className={styles['current-image']}>

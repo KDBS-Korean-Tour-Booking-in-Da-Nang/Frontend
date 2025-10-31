@@ -303,9 +303,13 @@ const Navbar = () => {
                             className={`${styles['premium-icon']} ${premiumStatus?.isPremium ? styles['premium-active'] : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setIsPremiumModalOpen(true);
+                              // Chỉ mở modal khi user đã có premium để xem thông tin
+                              if (premiumStatus?.isPremium) {
+                                setIsPremiumModalOpen(true);
+                              }
                             }}
                             title={premiumStatus?.isPremium ? t('premium.title') : t('premium.title')}
+                            disabled={!premiumStatus?.isPremium}
                           >
                             <StarIcon />
                           </button>
@@ -335,6 +339,18 @@ const Navbar = () => {
                         {t('nav.profileFull')}
                       </button>
                     )}
+                    {/* Open Premium modal for purchase from dropdown, under Profile */}
+                    {!isLockedToCompanyInfo ? (
+                      <button 
+                        className={styles['dropdown-item']}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsPremiumModalOpen(true);
+                        }}
+                      >
+                        {t('premium.purchase')}
+                      </button>
+                    ) : null}
                     {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}

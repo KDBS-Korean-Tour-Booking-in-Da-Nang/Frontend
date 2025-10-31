@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
+import { getBookingById } from '../../../services/bookingAPI';
 import BookingHistoryCard from './BookingHistoryCard';
 import styles from './BookingHistory.module.css';
 
@@ -52,7 +53,39 @@ const BookingHistory = () => {
         }
         
         const data = await response.json();
-        setAllBookings(data);
+        // Merge local purchased markers so UI updates immediately after success
+        let merged = data.map(b => {
+          try {
+            const marker = localStorage.getItem(`bookingPurchased_${b.bookingId}`) === 'true';
+            if (marker && (!b.status || String(b.status).toUpperCase() !== 'PURCHASED')) {
+              return { ...b, status: 'PURCHASED', transactionStatus: b.transactionStatus || 'SUCCESS' };
+            }
+          } catch (_) {}
+          return b;
+        });
+        // Re-validate status from BE for items still pending
+        try {
+          const revalidated = await Promise.all(
+            merged.map(async (b) => {
+              const raw = (b.status || b.bookingStatus || '').toString().toUpperCase();
+              if (raw === 'PENDING') {
+                try {
+                  const full = await getBookingById(b.bookingId);
+                  const newStatus = (full?.bookingStatus || full?.status || '').toString().toUpperCase();
+                  if (newStatus && newStatus !== raw) {
+                    if (newStatus === 'PURCHASED') {
+                      try { localStorage.removeItem(`bookingPurchased_${b.bookingId}`); } catch(_) {}
+                    }
+                    return { ...b, status: newStatus };
+                  }
+                } catch (_) {}
+              }
+              return b;
+            })
+          );
+          merged = revalidated;
+        } catch (_) {}
+        setAllBookings(merged);
         
         // Calculate pagination
         const totalItems = data.length;
@@ -81,11 +114,33 @@ const BookingHistory = () => {
     // Apply filters
     let filteredBookings = [...allBookings];
 
+    // Normalizers for mixed BE formats (numeric / string) and different field names
+    const normalizeStatus = (status) => {
+      if (typeof status === 'number') return status === 1 ? 'purchased' : status === 2 ? 'cancelled' : 'pending';
+      if (status === '0') return 'pending';
+      if (status === '1') return 'purchased';
+      if (status === '2') return 'cancelled';
+      return String(status || 'pending').toLowerCase();
+    };
+    const normalizeTrx = (trx) => {
+      if (!trx && typeof trx !== 'number') return undefined;
+      if (typeof trx === 'number') return trx === 1 ? 'success' : trx === 2 ? 'failed' : trx === 3 ? 'cancelled' : 'pending';
+      return String(trx || '').toLowerCase();
+    };
+
     // Status filter
     if (statusFilter !== 'all') {
-      filteredBookings = filteredBookings.filter(booking => 
-        booking.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
+      filteredBookings = filteredBookings.filter(booking => {
+        const status = normalizeStatus(booking.status ?? booking.bookingStatus);
+        const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
+        if (statusFilter === 'purchased') {
+          return status === 'purchased' || status === 'confirmed' || trx === 'success';
+        }
+        if (statusFilter === 'pending') {
+          return status === 'pending' && trx !== 'success';
+        }
+        return status === statusFilter.toLowerCase();
+      });
     }
 
     // Date filter
@@ -117,9 +172,17 @@ const BookingHistory = () => {
     let filteredBookings = [...allBookings];
 
     if (statusFilter !== 'all') {
-      filteredBookings = filteredBookings.filter(booking => 
-        booking.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
+      filteredBookings = filteredBookings.filter(booking => {
+        const status = normalizeStatus(booking.status ?? booking.bookingStatus);
+        const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
+        if (statusFilter === 'purchased') {
+          return status === 'purchased' || status === 'confirmed' || trx === 'success';
+        }
+        if (statusFilter === 'pending') {
+          return status === 'pending' && trx !== 'success';
+        }
+        return status === statusFilter.toLowerCase();
+      });
     }
 
     if (dateFilter === 'newest') {
@@ -203,7 +266,7 @@ const BookingHistory = () => {
             >
               <option value="all">{t('bookingHistory.filters.allStatus')}</option>
               <option value="pending">{t('bookingHistory.status.pending')}</option>
-              <option value="confirmed">{t('bookingHistory.status.confirmed')}</option>
+              <option value="purchased">{t('bookingHistory.status.purchased') || t('bookingHistory.status.confirmed')}</option>
               <option value="cancelled">{t('bookingHistory.status.cancelled')}</option>
             </select>
           </div>

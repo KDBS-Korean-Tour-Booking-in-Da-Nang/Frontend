@@ -24,9 +24,31 @@ const BookingHistoryCard = ({ booking }) => {
     });
   };
 
+  const normalizeStatus = (status) => {
+    // Accept numeric codes 0/1/2 or strings
+    if (typeof status === 'number') {
+      return status === 1 ? 'PURCHASED' : status === 2 ? 'CANCELLED' : 'PENDING';
+    }
+    if (status === '0') return 'PENDING';
+    if (status === '1') return 'PURCHASED';
+    if (status === '2') return 'CANCELLED';
+    return String(status || 'PENDING').toUpperCase();
+  };
+
+  const normalizeTransaction = (trx) => {
+    if (!trx && typeof trx !== 'number') return undefined;
+    if (typeof trx === 'number') {
+      // Optional mapping if BE uses codes; default unknown
+      return trx === 1 ? 'SUCCESS' : trx === 2 ? 'FAILED' : trx === 3 ? 'CANCELLED' : 'PENDING';
+    }
+    // strings like success/Success
+    return String(trx).toUpperCase();
+  };
+
   const getStatusColor = (status) => {
     switch (status?.toUpperCase()) {
       case 'CONFIRMED':
+      case 'PURCHASED':
         return '#10B981';
       case 'PENDING':
         return '#F59E0B';
@@ -37,8 +59,41 @@ const BookingHistoryCard = ({ booking }) => {
     }
   };
 
+  const getTransactionStatusColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'SUCCESS':
+        return '#10B981';
+      case 'PENDING':
+        return '#F59E0B';
+      case 'FAILED':
+        return '#EF4444';
+      case 'CANCELLED':
+        return '#DC2626';
+      default:
+        return '#6B7280';
+    }
+  };
+
   const handleViewDetails = () => {
-    navigate(`/tour/${booking.tourId}`);
+    navigate(`/user/booking/${booking.bookingId}`);
+  };
+
+  // Compute effective booking status based on transaction
+  const effectiveStatus = (() => {
+    const trxRaw = booking?.transactionStatus ?? booking?.latestTransactionStatus;
+    const trx = normalizeTransaction(trxRaw);
+    if (trx === 'SUCCESS') return 'PURCHASED';
+    const rawStatus = booking?.status ?? booking?.bookingStatus;
+    return normalizeStatus(rawStatus);
+  })();
+
+  const handleResumePayment = () => {
+    navigate('/payment/vnpay', {
+      state: {
+        bookingId: booking.bookingId,
+        tourId: booking.tourId
+      }
+    });
   };
 
   return (
@@ -90,24 +145,43 @@ const BookingHistoryCard = ({ booking }) => {
       <div className={styles['booking-actions']}>
         <div 
           className={styles['status-badge']}
-          style={{ backgroundColor: getStatusColor(booking.status) }}
+          style={{ backgroundColor: getStatusColor(effectiveStatus) }}
         >
-          {t(`bookingHistory.status.${booking.status?.toLowerCase() || 'pending'}`)}
+          {t(`bookingHistory.status.${effectiveStatus?.toLowerCase() || 'pending'}`)}
         </div>
-        
+        {(booking?.transactionStatus || booking?.latestTransactionStatus) && (
+          <div 
+            className={styles['status-badge-secondary']}
+            style={{ backgroundColor: getTransactionStatusColor(normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus)) }}
+          >
+            {t('bookingHistory.card.transaction')}: {t(`bookingHistory.transactionStatus.${String(normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) || 'PENDING').toLowerCase()}`) || normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus)}
+          </div>
+        )}
         <button 
           className={styles['view-details-btn']}
           onClick={handleViewDetails}
         >
           {t('bookingHistory.card.viewDetails')}
         </button>
-        
-        <button 
-          className={styles['feedback-btn']}
-          disabled={true}
-        >
-          {t('bookingHistory.card.alreadyFeedbacked')}
-        </button>
+        {/* Resume payment button - only shown when pending and not paid */}
+        {String(effectiveStatus).toUpperCase() === 'PENDING' && 
+          (!normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) ||
+          normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) !== 'SUCCESS') && (
+          <button 
+            className={styles['resume-btn']}
+            onClick={handleResumePayment}
+          >
+            {t('bookingHistory.card.resumePayment') || 'Tiếp tục thanh toán'}
+          </button>
+        )}
+        {String(effectiveStatus).toUpperCase() === 'CANCELLED' && (
+          <button 
+            className={styles['cancelled-btn']}
+            disabled={true}
+          >
+            {t('bookingHistory.card.cancelled') || 'Đã hủy'}
+          </button>
+        )}
       </div>
     </div>
   );

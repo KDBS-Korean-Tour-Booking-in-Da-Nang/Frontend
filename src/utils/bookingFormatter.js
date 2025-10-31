@@ -154,9 +154,10 @@ export const formatDateForAPI = (displayDate, language = 'vi') => {
  * @param {Object} bookingContext - Frontend booking context data
  * @param {number} tourId - Tour ID
  * @param {string} language - Current language context ('vi', 'en', 'ko')
+ * @param {string} userEmail - Email of the user making the booking
  * @returns {Object} - Formatted booking data for API
  */
-export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
+export const formatBookingData = (bookingContext, tourId, language = 'vi', userEmail = '') => {
   const { contact, plan } = bookingContext;
   
   // Validate required fields
@@ -231,6 +232,8 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
   // Format the final booking data
   const bookingData = {
     tourId: parseInt(tourId),
+    userEmail: userEmail || contact.email.trim(), // Use user email or fallback to contact email
+    bookingStatus: 'PENDING', // Set initial status to PENDING
     contactName: contact.fullName.trim(),
     contactAddress: contact.address.trim(),
     contactPhone: contact.phone.trim(),

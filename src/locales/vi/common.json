@@ -785,9 +785,7 @@
 		"auth": {
 			"login_success": "Đăng nhập thành công!",
 			"login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
-			"invalid_credentials": "Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.",
-			"wrong_password": "Sai mật khẩu.",
-			"email_not_found": "Email không tồn tại.",
+			"invalid_credentials": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
 			"register_success": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
 			"email_already_exists": "Email này đã được đăng ký",
 			"google_connection_failed": "Không thể kết nối với Google. Vui lòng thử lại.",
@@ -798,7 +796,10 @@
 			"otp_resend_failed": "Không thể gửi lại mã OTP. Vui lòng thử lại.",
 			"password_reset_email_sent": "Email đặt lại mật khẩu đã được gửi!",
 			"otp_verify_success": "Xác thực OTP thành công!",
-			"general_error": "Có lỗi xảy ra. Vui lòng thử lại."
+			"general_error": "Có lỗi xảy ra. Vui lòng thử lại.",
+			"email_not_found": "Đăng nhập thất bại. vui lòng kiểm tra email.",
+			"wrong_password": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
+			"both_invalid": "Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu."
 		},
     "company": {
       "info_submit_success": "Thông tin công ty đã được gửi thành công!",
@@ -1321,7 +1322,10 @@
 			"totalAmount": "Tổng tiền",
 			"viewDetails": "Xem chi tiết",
 			"bookedOn": "Đặt ngày",
-			"alreadyFeedbacked": "Đã phản hồi"
+			"alreadyFeedbacked": "Đã phản hồi",
+			"transaction": "Giao dịch",
+			"resumePayment": "Tiếp tục thanh toán",
+			"cancelled": "Đã hủy"
 		},
 		"filters": {
 			"status": "Lọc theo trạng thái",
@@ -1333,6 +1337,13 @@
 		"status": {
 			"pending": "Chờ xác nhận",
 			"confirmed": "Đã xác nhận",
+			"cancelled": "Đã hủy",
+			"purchased": "Đã thanh toán"
+		},
+		"transactionStatus": {
+			"pending": "Chờ xử lý",
+			"success": "Thành công",
+			"failed": "Thất bại",
 			"cancelled": "Đã hủy"
 		}
 	},
@@ -1680,6 +1691,9 @@
 		"paymentCreationError": "Có lỗi xảy ra khi tạo thanh toán",
 		"paymentError": "Lỗi thanh toán",
 		"errorOccurred": "Có lỗi xảy ra",
+		"transactionTimeout": "Giao dịch đã hết hạn. Vui lòng thử lại hoặc hủy đặt tour.",
+		"paymentCancelled": "Thanh toán đã bị hủy",
+		"paymentFailed": "Thanh toán thất bại",
 		"loading": "Đang tải...",
 		"vnpayPayment": "Thanh toán VNPay",
 		"noBookingInfo": "Không tìm thấy thông tin đặt tour",
@@ -1793,7 +1807,7 @@
       "3months": "3 tháng"
     },
     "price": "{{amount}} vnđ",
-    "purchase": "Mua gói",
+    "purchase": "Mua gói Premium",
     "validUntil": "Hiệu lực đến",
     "activeNoExpiry": "Đang kích hoạt Premium - Không có ngày hết hạn",
     "na": "N/A",

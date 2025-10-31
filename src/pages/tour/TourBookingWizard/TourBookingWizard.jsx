@@ -366,7 +366,7 @@ const BookingWizardContent = () => {
     const currentLanguage = (i18n && i18n.language) ? i18n.language : 'vi';
     
     // Validate booking data before proceeding to payment
-    const bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage);
+    const bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
     const validation = validateBookingData(bookingData);
     
     if (!validation.isValid) {

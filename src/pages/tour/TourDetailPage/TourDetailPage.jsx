@@ -149,6 +149,12 @@ const TourDetailPage = () => {
       showError('Tài khoản doanh nghiệp không thể đặt tour.');
       return;
     }
+    // Clear any previous booking wizard data for this tour before starting a new booking
+    try {
+      localStorage.removeItem(`bookingData_${id}`);
+      localStorage.removeItem(`hasConfirmedLeave_${id}`);
+      sessionStorage.removeItem('pendingBooking');
+    } catch (_) {}
     navigate(`/tour/${id}/booking`);
   };
 
@@ -446,12 +452,12 @@ const TourDetailPage = () => {
                       {t('tourPage.detail.reviews.empty') || 'Chưa có đánh giá nào.'}
                     </div>
                   ) : (
-                    ratings.map((r)=>(
+                    ratings.map((r) => (
                       <div key={r.tourRatedId}
                            style={{border:'1px solid #e5e7eb', borderRadius:8, padding:12}}>
                         <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
                           <div style={{display:'flex', alignItems:'center', gap:8}}>
-                            {[1,2,3,4,5].map((s)=> (
+                            {[1,2,3,4,5].map((s) => (
                               <span key={s} style={{
                                 color: s <= (r.star || 0) ? '#f59e0b' : '#d1d5db', fontSize:16
                               }}>★</span>
@@ -459,6 +465,7 @@ const TourDetailPage = () => {
                           </div>
                           <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end'}}>
                             <span style={{color:'#9ca3af', fontSize:12}}>{new Date(r.createdAt).toLocaleString()}</span>
+                            {/* Tuỳ chọn nút sửa/xoá vẫn giữ nguyên cho user đã đăng nhập */}
                             {user && ([user.userId,user.id,user.user_id].filter(Boolean).some(mid => String(mid)===String(r.userId))) && (
                               <div style={{position:'relative', marginTop:4}} data-menu-id={r.tourRatedId}>
                                 <button
@@ -493,14 +500,11 @@ const TourDetailPage = () => {
                             )}
                           </div>
                         </div>
-                        {/* Reviewer info under stars */}
+                        {/* Reviewer info dưới stars, luôn hiện tên người đã đánh giá (hoặc Ẩn danh/User #id) */}
                         <div style={{display:'flex', alignItems:'center', gap:8, marginTop:8}}>
                           <img src={'/default-avatar.png'} alt="avatar" style={{width:24, height:24, borderRadius:'50%'}} />
                           <span style={{color:'#374151', fontWeight:600, fontSize:13}}>
-                            {(user && ([user.userId,user.id,user.user_id].filter(Boolean).some(mid => String(mid)===String(r.userId)))
-                              ? (user.fullName || user.username || user.name || user.email || 'Bạn')
-                              : `User #${r.userId}`)
-                            }
+                            {r.username || r.fullName || r.name || r.email || (r.userId ? `User #${r.userId}` : 'Ẩn danh')}
                           </span>
                         </div>
                         {r.comment && (

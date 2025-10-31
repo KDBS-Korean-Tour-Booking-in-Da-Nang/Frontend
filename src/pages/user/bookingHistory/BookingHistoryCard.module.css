@@ -72,6 +72,20 @@
   width: fit-content;
 }
 
+.status-badge-secondary {
+  color: white;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  display: inline-block;
+  width: fit-content;
+  margin-top: 4px;
+}
+
 /* Actions */
 .booking-actions {
   display: flex;
@@ -120,6 +134,37 @@
   cursor: not-allowed;
 }
 
+.resume-btn {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.resume-btn:hover {
+  background: #d97706;
+}
+
+.cancelled-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .booking-card {
@@ -139,7 +184,9 @@
   }
   
   .view-details-btn,
-  .feedback-btn {
+  .feedback-btn,
+  .resume-btn,
+  .cancelled-btn {
     flex: 1;
     text-align: center;
   }
