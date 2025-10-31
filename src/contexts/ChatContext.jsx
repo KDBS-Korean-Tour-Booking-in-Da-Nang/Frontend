@@ -159,11 +159,30 @@ const chatReducer = (state, action) => {
         loadingMessages: false
       };
     
-    case ActionTypes.ADD_MESSAGE:
+    case ActionTypes.ADD_MESSAGE: {
+      const incoming = action.payload;
+      // De-duplicate: skip if a very similar message already exists (same sender/ownership, same content, within 5s)
+      const alreadyExists = state.messages.some(existing => {
+        const sameOwnership = !!existing.isOwn === !!incoming.isOwn;
+        const sameContent = (existing.content || '') === (incoming.content || '');
+        const existingTs = new Date(existing.timestamp).getTime();
+        const incomingTs = new Date(incoming.timestamp).getTime();
+        const closeInTime = Math.abs(existingTs - incomingTs) <= 5000; // 5 seconds window
+        const existingSender = existing.sender?.userName || existing.senderName || '';
+        const incomingSender = incoming.sender?.userName || incoming.senderName || '';
+        const existingReceiver = existing.receiver?.userName || existing.receiverName || '';
+        const incomingReceiver = incoming.receiver?.userName || incoming.receiverName || '';
+        const sameDirection = existingSender === incomingSender && existingReceiver === incomingReceiver;
+        return sameOwnership && sameContent && closeInTime && sameDirection;
+      });
+      if (alreadyExists) {
+        return state;
+      }
       return {
         ...state,
-        messages: [...state.messages, action.payload]
+        messages: [...state.messages, incoming]
       };
+    }
     
     case ActionTypes.UPDATE_MESSAGE:
       return {
@@ -173,13 +192,30 @@ const chatReducer = (state, action) => {
         )
       };
     
-    case ActionTypes.PREPEND_MESSAGES:
-      // Filter out duplicate messages based on ID
-      const existingIds = new Set(state.messages.map(msg => msg.id));
-      const newMessages = action.payload.filter(msg => !existingIds.has(msg.id));
-      
+    case ActionTypes.PREPEND_MESSAGES: {
+      // Filter out duplicate messages based on ID or near-identical signature
+      const existing = state.messages;
+      const existingIds = new Set(existing.map(msg => msg.id));
+      const dedupedIncoming = (action.payload || []).filter(msg => {
+        if (existingIds.has(msg.id)) return false;
+        const existsSimilar = existing.some(e => {
+          const sameOwnership = !!e.isOwn === !!msg.isOwn;
+          const sameContent = (e.content || '') === (msg.content || '');
+          const eTs = new Date(e.timestamp).getTime();
+          const mTs = new Date(msg.timestamp).getTime();
+          const closeInTime = Math.abs(eTs - mTs) <= 5000;
+          const eSender = e.sender?.userName || e.senderName || '';
+          const mSender = msg.sender?.userName || msg.senderName || '';
+          const eReceiver = e.receiver?.userName || e.receiverName || '';
+          const mReceiver = msg.receiver?.userName || msg.receiverName || '';
+          const sameDirection = eSender === mSender && eReceiver === mReceiver;
+          return sameOwnership && sameContent && closeInTime && sameDirection;
+        });
+        return !existsSimilar;
+      });
+
       // Combine and sort all messages by timestamp
-      const combinedMessages = [...newMessages, ...state.messages];
+      const combinedMessages = [...dedupedIncoming, ...existing];
       const sortedMessages = combinedMessages.sort((a, b) => 
         new Date(a.timestamp) - new Date(b.timestamp)
       );
@@ -189,6 +225,7 @@ const chatReducer = (state, action) => {
         messages: sortedMessages,
         isLoadingMoreMessages: false
       };
+    }
     
     case ActionTypes.SET_CURRENT_PAGE:
       return {
@@ -407,7 +444,8 @@ export const ChatProvider = ({ children }) => {
               dispatch({ type: ActionTypes.ADD_MESSAGE, payload: messageWithOwnership });
 
               // Upsert conversation for sender
-              const otherUserName = messageWithOwnership.senderName || messageWithOwnership.sender?.userName || messageSenderName;
+              const rawOther = messageWithOwnership.senderName || messageWithOwnership.sender?.userName || messageSenderName;
+              const otherUserName = resolveLoginUsername(rawOther);
               const conversation = {
                 user: { userName: otherUserName, username: otherUserName, avatar: messageWithOwnership.sender?.avatar },
                 lastMessage: {
@@ -438,6 +476,32 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  // Resolve a safe login username from user object or name string
+  const resolveLoginUsername = (input) => {
+    if (!input) return '';
+    // If object with potential fields
+    if (typeof input === 'object') {
+      const direct = input.userName || input.username || input.name || '';
+      if (typeof direct === 'string' && direct.trim() && !direct.includes(' ')) return direct.trim();
+      const display = direct || input.fullName || input.userFullName || input.email || input.userEmail || '';
+      const match = (state.allUsers || []).find(u => (
+        u.userName === direct || u.username === direct || u.fullName === display || u.name === display
+      ));
+      if (match) return (match.userName || match.username || '').trim();
+      return (direct || '').trim();
+    }
+    // If plain string
+    if (typeof input === 'string') {
+      if (input.trim() && !input.includes(' ')) return input.trim();
+      const match = (state.allUsers || []).find(u => (
+        u.userName === input || u.username === input || u.fullName === input || u.name === input
+      ));
+      if (match) return (match.userName || match.username || '').trim();
+      return input.trim();
+    }
+    return '';
+  };
+
   // Initialize chat system using existing chat API
   useEffect(() => {
     // Check if user is logged in
@@ -462,6 +526,17 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
         // Clear ref when user logs out
         currentUserRef.current = null;
+        // Close chat UI and clear state when logging out
+        dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
+        dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
+        dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
+        dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: null });
+        dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
+        dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: [] });
+        try {
+          localStorage.removeItem('chatBoxState');
+          localStorage.removeItem('minimizedChats');
+        } catch {}
       }
     };
 
@@ -548,7 +623,7 @@ export const ChatProvider = ({ children }) => {
         
         const messages = await chatApiService.getConversation(
           state.currentUser.userName, 
-          user.username || user.userName,
+          resolveLoginUsername(user),
           0, // page 0 for latest messages
           25 // size 25 for initial load
         );
@@ -779,7 +854,7 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: user });
         
         const senderName = state.currentUser.userName || state.currentUser.username || state.currentUser.name;
-        const receiverName = user.userName || user.username || user.name;
+        const receiverName = resolveLoginUsername(user);
         
         const messages = await chatApiService.getConversationLegacy(senderName, receiverName);
         const formattedMessages = chatApiService.formatConversation(messages, state.currentUser);
@@ -806,7 +881,7 @@ export const ChatProvider = ({ children }) => {
         
         const nextPage = state.currentPage + 1;
         const senderName = state.currentUser.userName || state.currentUser.username || state.currentUser.name;
-        const receiverName = state.activeChatUser.userName || state.activeChatUser.username || state.activeChatUser.name;
+        const receiverName = resolveLoginUsername(state.activeChatUser);
         
         const messages = await chatApiService.getConversation(
           senderName, 

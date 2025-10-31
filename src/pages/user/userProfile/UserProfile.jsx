@@ -35,8 +35,7 @@ const UserProfile = () => {
     name: user?.username || user?.name || '',
     phone: user?.phone || '',
     dob: user?.dob ? (()=>{ try { return formatDateFromNormalizedSafe(user.dob); } catch { return ''; } })() : '',
-    gender: user?.gender || '',
-    cccd: user?.cccd || ''
+    gender: user?.gender || ''
   });
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '/default-avatar.png');
   const [avatarFile, setAvatarFile] = useState(null);
@@ -58,8 +57,7 @@ const UserProfile = () => {
         name: user?.username || user?.name || '',
         phone: user?.phone || '',
         dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
-        gender: user?.gender || '',
-        cccd: user?.cccd || ''
+        gender: user?.gender || ''
       });
       // Only update avatarPreview if no file is currently selected
       // This ensures we don't override user's current avatar selection
@@ -325,7 +323,6 @@ const UserProfile = () => {
       phone: editForm.phone,
       dob: editForm.dob,
       gender: editForm.gender,
-      cccd: editForm.cccd,
       avatarFile: avatarFile, // Include avatar file if selected
       currentAvatarUrl: user?.avatar // Provide current avatar so FE can reattach if no new file
     };
@@ -383,7 +380,6 @@ const UserProfile = () => {
         phone: editForm.phone,
         dob: normalizedDob || '',
         gender: editForm.gender,
-        cccd: editForm.cccd,
         avatar: newAvatarUrl
       };
       
@@ -482,12 +478,7 @@ const UserProfile = () => {
               </div>
             </div>
             
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>CCCD/CMND</label>
-              <div className={`${styles['info-value']} ${!user?.cccd ? styles['empty'] : ''}`}>
-                {user?.cccd || 'Chưa cập nhật'}
-              </div>
-            </div>
+            {/* CCCD/CMND field removed from profile view */}
           </div>
         );
 
@@ -756,8 +747,7 @@ const UserProfile = () => {
                     name: user?.username || user?.name || '',
                     phone: user?.phone || '',
                     dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
-                    gender: user?.gender || '',
-                    cccd: user?.cccd || ''
+                    gender: user?.gender || ''
                   });
                   // Set avatar preview to current user avatar
                   setAvatarPreview(user?.avatar || '/default-avatar.png');
@@ -842,9 +832,8 @@ const UserProfile = () => {
               onBeforeInput={handleNameBeforeInput}
               onPaste={handleNamePaste}
               className={styles['form-input']}
-              readOnly={isSocialProvider}
             />
-            {!!nameError && !isSocialProvider && (
+            {!!nameError && (
               <div className={styles['field-hint']} style={{ color: '#e11d48' }}>{nameError}</div>
             )}
           </div>
@@ -975,19 +964,7 @@ const UserProfile = () => {
             </select>
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="cccd" className={styles['form-label']}>
-              CCCD/CMND
-            </label>
-            <input
-              type="text"
-              id="cccd"
-              name="cccd"
-              value={editForm.cccd}
-              onChange={handleEditChange}
-              className={styles['form-input']}
-            />
-          </div>
+          {/* Removed CCCD/CMND update field as requested */}
 
           <div className={styles['form-actions']}>
             <button
@@ -1000,8 +977,7 @@ const UserProfile = () => {
                   name: user?.username || user?.name || '',
                   phone: user?.phone || '',
                   dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
-                  gender: user?.gender || '',
-                  cccd: user?.cccd || ''
+                  gender: user?.gender || ''
                 });
                 // Reset avatar preview to current user avatar
                 setAvatarPreview(user?.avatar || '/default-avatar.png');

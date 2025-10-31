@@ -15,6 +15,12 @@ class ChatApiService {
     this.baseURL = API_BASE_URL;
   }
 
+  // Encode a value for safe URL path segments
+  encodePath(value) {
+    if (value === undefined || value === null) return '';
+    return encodeURIComponent(String(value));
+  }
+
   // Get authorization headers
   getAuthHeaders() {
     const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -27,8 +33,10 @@ class ChatApiService {
   // Get conversation between two users with pagination
   async getConversation(user1, user2, page = 0, size = 25) {
     try {
+      const u1 = this.encodePath(user1);
+      const u2 = this.encodePath(user2);
       const response = await fetch(
-        `${this.baseURL}/api/chat/conversation/${user1}/${user2}?page=${page}&size=${size}`,
+        `${this.baseURL}/api/chat/conversation/${u1}/${u2}?page=${page}&size=${size}`,
         {
           method: 'GET',
           headers: this.getAuthHeaders()
@@ -50,8 +58,10 @@ class ChatApiService {
   // Get conversation between two users (legacy - for backward compatibility)
   async getConversationLegacy(user1, user2) {
     try {
+      const u1 = this.encodePath(user1);
+      const u2 = this.encodePath(user2);
       const response = await fetch(
-        `${this.baseURL}/api/chat/conversation/${user1}/${user2}`,
+        `${this.baseURL}/api/chat/conversation/${u1}/${u2}`,
         {
           method: 'GET',
           headers: this.getAuthHeaders()

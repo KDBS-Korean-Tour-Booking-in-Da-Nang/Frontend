@@ -91,45 +91,67 @@ const ChatDropdown = ({ isOpen, onClose }) => {
              userEmail.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-  const getTabContent = () => {
-    // Conversations view with latest preview replacing email
-    if ((filteredConversations || []).length > 0) {
-      return (
-        <div className={styles.conversationsList}>
-          {filteredConversations.map((conv) => (
-            <div 
-              key={conv.user?.userName || conv.user?.username}
-              className={styles.conversationItem}
-              onClick={() => handleUserSelect(conv.user)}
-            >
-              <div className={styles.userAvatar}>
-                {conv.user?.avatar ? (
-                  <img src={conv.user.avatar} alt={conv.user.username || conv.user.userName} />
-                ) : (
-                  <UserIcon className="w-6 h-6" />
-                )}
-              </div>
-              <div className={styles.conversationContent}>
-                <div className={styles.conversationHeader}>
-                  <h4 className={styles.userName}>{conv.user?.username || conv.user?.userName}</h4>
-                  {conv.lastMessage?.timestamp && (
-                    <span className={styles.timestamp}>{formatTime(conv.lastMessage.timestamp)}</span>
-                  )}
-                </div>
-                <div className={styles.conversationFooter}>
-                  <p className={styles.lastMessage}>{conv.lastMessage?.content || ''}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
+  // Merge all users with conversation previews; show all users and sort by latest message
+  const mergedUserList = (() => {
+    const convMap = new Map();
+    (state.conversations || []).forEach(conv => {
+      const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
+      if (!key) return;
+      const existing = convMap.get(key);
+      const currentTs = new Date(conv.lastMessage?.timestamp || 0).getTime();
+      const existingTs = existing ? new Date(existing.lastMessage?.timestamp || 0).getTime() : -1;
+      if (!existing || currentTs > existingTs) {
+        convMap.set(key, conv);
+      }
+    });
 
-    // Fallback to all users list if no conversations yet
+    // Start with all filtered users from the system
+    const list = filteredUsers.map(user => {
+      const key = (user.username || user.userName || '').toLowerCase();
+      const conv = convMap.get(key) || null;
+      return { user, lastMessage: conv?.lastMessage || null };
+    });
+
+    // Include any conversation users that are not in allUsers (fallback)
+    (state.conversations || []).forEach(conv => {
+      const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
+      if (!key) return;
+      const exists = list.some(item => (item.user.username || item.user.userName || '').toLowerCase() === key);
+      if (!exists) {
+        list.push({ user: conv.user, lastMessage: conv.lastMessage || null });
+      }
+    });
+
+    // Apply searchTerm against username/email and last message content
+    const searched = list.filter(item => {
+      const userName = item.user?.username || item.user?.userName || '';
+      const userEmail = item.user?.email || item.user?.userEmail || '';
+      const preview = item.lastMessage?.content || '';
+      const q = searchTerm.toLowerCase();
+      return userName.toLowerCase().includes(q) || userEmail.toLowerCase().includes(q) || preview.toLowerCase().includes(q);
+    });
+
+    // Sort: users with lastMessage first (desc by timestamp), then those without (alphabetical)
+    searched.sort((a, b) => {
+      const aHas = !!a.lastMessage?.timestamp;
+      const bHas = !!b.lastMessage?.timestamp;
+      if (aHas && bHas) {
+        return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
+      }
+      if (aHas) return -1;
+      if (bHas) return 1;
+      const an = (a.user?.username || a.user?.userName || '').toLowerCase();
+      const bn = (b.user?.username || b.user?.userName || '').toLowerCase();
+      return an.localeCompare(bn);
+    });
+
+    return searched;
+  })();
+
+  const getTabContent = () => {
     return (
-      <div className={styles.usersList}>
-        {filteredUsers.length === 0 ? (
+      <div className={styles.conversationsList}>
+        {mergedUserList.length === 0 ? (
           <div className={styles.emptyState}>
             <UserIcon className={styles.emptyIcon} />
             <p className={styles.emptyText}>
@@ -137,22 +159,29 @@ const ChatDropdown = ({ isOpen, onClose }) => {
             </p>
           </div>
         ) : (
-          filteredUsers.map((user) => (
+          mergedUserList.map((item) => (
             <div 
-              key={user.userId}
-              className={styles.userItem}
-              onClick={() => handleUserSelect(user)}
+              key={(item.user?.userId) || (item.user?.username || item.user?.userName)}
+              className={styles.conversationItem}
+              onClick={() => handleUserSelect(item.user)}
             >
               <div className={styles.userAvatar}>
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.username || user.userName} />
+                {item.user?.avatar ? (
+                  <img src={item.user.avatar} alt={item.user.username || item.user.userName} />
                 ) : (
                   <UserIcon className="w-6 h-6" />
                 )}
               </div>
-              <div className={styles.userContent}>
-                <h4 className={styles.userName}>{user.username || user.userName}</h4>
-                <p className={styles.userEmail}>{user.email || user.userEmail}</p>
+              <div className={styles.conversationContent}>
+                <div className={styles.conversationHeader}>
+                  <h4 className={styles.userName}>{item.user?.username || item.user?.userName}</h4>
+                  {item.lastMessage?.timestamp && (
+                    <span className={styles.timestamp}>{formatTime(item.lastMessage.timestamp)}</span>
+                  )}
+                </div>
+                <div className={styles.conversationFooter}>
+                  <p className={styles.lastMessage}>{item.lastMessage?.content || ''}</p>
+                </div>
               </div>
             </div>
           ))

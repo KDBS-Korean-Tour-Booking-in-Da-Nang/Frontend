@@ -881,8 +881,6 @@ const Step1Contact = () => {
           newErrors.email = t('booking.errors.emailRequired');
         } else if (!emailRegex.test(value)) {
           newErrors.email = t('booking.errors.emailInvalid');
-        } else if (user && user.email && value.trim().toLowerCase() !== user.email.toLowerCase()) {
-          newErrors.email = t('booking.errors.emailMismatch');
         } else {
           delete newErrors.email;
         }

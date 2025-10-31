@@ -58,7 +58,8 @@ const shouldShowTimestamp = (messages, currentIndex) => {
   const currentMessage = messages[currentIndex];
   const previousMessage = messages[currentIndex - 1];
   
-  if (!currentMessage.timestamp || !previousMessage.timestamp) return true;
+  // While streaming/live, timestamps might be missing; avoid inserting gaps
+  if (!currentMessage.timestamp || !previousMessage.timestamp) return false;
   
   const currentTime = new Date(currentMessage.timestamp);
   const previousTime = new Date(previousMessage.timestamp);
@@ -74,7 +75,8 @@ const shouldShowDateHeader = (messages, currentIndex) => {
   const currentMessage = messages[currentIndex];
   const previousMessage = messages[currentIndex - 1];
   
-  if (!currentMessage.timestamp || !previousMessage.timestamp) return true;
+  // While streaming/live, timestamps might be missing; do not add date headers
+  if (!currentMessage.timestamp || !previousMessage.timestamp) return false;
   
   const currentDate = new Date(currentMessage.timestamp).toDateString();
   const previousDate = new Date(previousMessage.timestamp).toDateString();
@@ -410,7 +412,7 @@ const ChatBox = ({ isOpen, onClose }) => {
             </div>
             <div className={styles.chatDetails}>
               <h3 className={styles.chatTitle}>
-                {state.activeChatUser?.userName || state.activeChatUser?.username || t('chat.title')}
+                {state.activeChatUser ? (state.activeChatUser.userName || state.activeChatUser.username) : ''}
               </h3>
               <span className={styles.chatStatus}>
                 {state.isConnected ? 'Đang hoạt động' : state.isConnecting ? 'Đang kết nối...' : 'Mất kết nối'}
@@ -471,11 +473,16 @@ const ChatBox = ({ isOpen, onClose }) => {
                 const isLastFromSender = isLastMessageFromSender(state.messages, index);
                 const prev = index > 0 ? state.messages[index - 1] : null;
                 const sameSender = prev && prev.isOwn === message.isOwn;
-                const closeInTime = prev && Math.abs(new Date(message.timestamp) - new Date(prev.timestamp)) < 2 * 60 * 1000; // 2 minutes
+                const closeInTime = prev && (
+                  // If timestamps are missing during live updates, consider them close to compact spacing
+                  (!message.timestamp || !prev.timestamp)
+                    ? true
+                    : Math.abs(new Date(message.timestamp) - new Date(prev.timestamp)) < 2 * 60 * 1000
+                ); // 2 minutes
                 const compact = sameSender && closeInTime;
                 
                 return (
-                  <React.Fragment key={`${message.id}-${index}-${message.timestamp}`}>
+                  <React.Fragment key={message.id ?? `i-${index}`}> 
                     {/* Date Header */}
                     {showDateHeader && (
                       <div className={styles.dateHeader}>
