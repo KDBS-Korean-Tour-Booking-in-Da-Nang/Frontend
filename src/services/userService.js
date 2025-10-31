@@ -180,8 +180,11 @@ export const validateUserProfile = (userData) => {
         age--;
       }
       
-      if (age < 0 || age > 120) {
-        errors.dob = 'Tuổi không hợp lệ (0-120 tuổi)';
+      // Require at least 13 years old, no strict upper limit (allow up to 150 for reasonable validation)
+      if (age < 13) {
+        errors.dob = 'Bạn phải từ 13 tuổi trở lên';
+      } else if (age > 150) {
+        errors.dob = 'Tuổi không hợp lệ';
       }
     }
   }

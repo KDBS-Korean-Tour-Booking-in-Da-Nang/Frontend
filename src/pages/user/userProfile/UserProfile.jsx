@@ -123,11 +123,13 @@ const UserProfile = () => {
     let age = today.getFullYear() - birth.getFullYear();
     const md = today.getMonth() - birth.getMonth();
     if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
+    // Require at least 13 years old
     if (age < 13) {
       setDobError(t('profile.errors.mustBe13') || 'Bạn phải từ 13 tuổi trở lên');
       return false;
     }
-    if (age < 0 || age > 120) {
+    // No upper age limit, just check for negative age (future date)
+    if (age < 0) {
       setDobError(t('booking.errors.dobInvalidFormat'));
       return false;
     }
@@ -911,7 +913,7 @@ const UserProfile = () => {
                   validateDob(display);
                 }}
                 min="1900-01-01"
-                max={(() => { const d=new Date(); d.setFullYear(d.getFullYear()-13); return d.toISOString().slice(0,10); })()}
+                max={(() => { const d=new Date(); return d.toISOString().slice(0,10); })()}
               />
               <button
                 type="button"

@@ -104,11 +104,26 @@ const VNPaySuccessPage = ({ paymentType }) => {
   }, [location.search, location.state, showSuccess, toastShown]);
 
   useEffect(() => {
-    // Mark booking purchased locally so history can reflect immediately
+    // Mark booking purchased locally and save booking data for history
     try {
       if (transactionData?.paymentType === 'booking' && transactionData?.bookingData?.bookingId) {
         const bId = transactionData.bookingData.bookingId;
+        const bookingData = transactionData.bookingData;
+        const tourId = transactionData.tourId;
+        
+        // Mark as purchased
         localStorage.setItem(`bookingPurchased_${bId}`, 'true');
+        
+        // Save booking data to localStorage (persistent) for history page
+        // This ensures booking shows up even after session ends
+        const bookingCache = {
+          bookingData: bookingData,
+          tourId: tourId,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(`bookingData_${bId}`, JSON.stringify(bookingCache));
+        
+        // Keep in sessionStorage temporarily for immediate merge, but it will be removed after merge
         sessionStorage.removeItem('pendingBooking');
       }
     } catch (_) {}

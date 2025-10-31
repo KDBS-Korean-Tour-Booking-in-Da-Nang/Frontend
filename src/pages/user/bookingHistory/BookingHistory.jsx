@@ -115,58 +115,94 @@ const BookingHistory = () => {
 
         // Merge purchased booking locally marked as purchased even if API doesn't return yet
         try {
-          // Prefer id from pendingBooking, otherwise scan local markers
-          const pendingStr = sessionStorage.getItem('pendingBooking');
-          let purchasedId = null;
-          if (pendingStr) {
-            const pendingObj = JSON.parse(pendingStr);
-            const bId = pendingObj?.bookingData?.bookingId;
-            if (bId && localStorage.getItem(`bookingPurchased_${bId}`) === 'true') {
-              purchasedId = bId;
+          // Find all booking IDs marked as purchased in localStorage
+          const purchasedIds = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('bookingPurchased_') && localStorage.getItem(key) === 'true') {
+              const bId = key.replace('bookingPurchased_', '');
+              const alreadyExists = merged.some(b => String(b.bookingId) === String(bId));
+              if (!alreadyExists) {
+                purchasedIds.push(bId);
+              }
             }
           }
-          if (!purchasedId) {
-            // Fallback: check a recent purchased id hint if your return handler set it
-            const recent = sessionStorage.getItem('recentPurchasedBookingId');
-            if (recent && localStorage.getItem(`bookingPurchased_${recent}`) === 'true') {
-              purchasedId = recent;
-            }
-          }
-          if (purchasedId && !merged.some(b => String(b.bookingId) === String(purchasedId))) {
-            // Synthesize a purchased entry so user can see it immediately
-            // Try to reuse minimal data from pendingBooking if available
+          
+          // For each purchased booking, try to get data from localStorage or fetch from API
+          for (const purchasedId of purchasedIds) {
             let synthesized = null;
+            
+            // Try to get from localStorage cache first
             try {
-              const p = pendingStr ? JSON.parse(pendingStr) : null;
-              const pd = p?.bookingData;
-              if (pd && String(pd.bookingId) === String(purchasedId)) {
-                synthesized = {
-                  bookingId: pd.bookingId,
-                  tourId: pd.tourId,
-                  contactName: pd.contactName || pd.contact?.fullName || '',
-                  contactPhone: pd.contactPhone || pd.contact?.phone || '',
-                  departureDate: pd.departureDate || pd.plan?.date || new Date().toISOString(),
-                  totalGuests: pd.totalGuests || pd.plan?.pax || 0,
-                  status: 'PURCHASED',
-                  transactionStatus: 'SUCCESS',
-                  createdAt: pd.createdAt || new Date().toISOString()
-                };
+              const cached = localStorage.getItem(`bookingData_${purchasedId}`);
+              if (cached) {
+                const cache = JSON.parse(cached);
+                const pd = cache.bookingData;
+                if (pd) {
+                  synthesized = {
+                    bookingId: pd.bookingId,
+                    tourId: cache.tourId || pd.tourId,
+                    contactName: pd.contactName || pd.contact?.fullName || '',
+                    contactPhone: pd.contactPhone || pd.contact?.phone || '',
+                    departureDate: pd.departureDate || pd.plan?.date || new Date().toISOString(),
+                    totalGuests: pd.totalGuests || pd.plan?.pax || 0,
+                    status: 'PURCHASED',
+                    transactionStatus: 'SUCCESS',
+                    createdAt: pd.createdAt || new Date().toISOString()
+                  };
+                }
               }
             } catch (_) {}
+            
+            // If no cache, try to fetch from API
             if (!synthesized) {
-              synthesized = {
-                bookingId: Number(purchasedId),
-                tourId: null,
-                contactName: '',
-                contactPhone: '',
-                departureDate: new Date().toISOString(),
-                totalGuests: 0,
-                status: 'PURCHASED',
-                transactionStatus: 'SUCCESS',
-                createdAt: new Date().toISOString()
-              };
+              try {
+                const fullBooking = await getBookingById(Number(purchasedId));
+                if (fullBooking) {
+                  synthesized = {
+                    bookingId: fullBooking.bookingId,
+                    tourId: fullBooking.tourId,
+                    contactName: fullBooking.contactName || '',
+                    contactPhone: fullBooking.contactPhone || '',
+                    departureDate: fullBooking.departureDate || new Date().toISOString(),
+                    totalGuests: fullBooking.totalGuests || 0,
+                    status: fullBooking.bookingStatus || fullBooking.status || 'PURCHASED',
+                    transactionStatus: 'SUCCESS',
+                    createdAt: fullBooking.createdAt || new Date().toISOString()
+                  };
+                  // Update cache with fetched data
+                  try {
+                    const bookingCache = {
+                      bookingData: fullBooking,
+                      tourId: fullBooking.tourId,
+                      timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem(`bookingData_${purchasedId}`, JSON.stringify(bookingCache));
+                  } catch (_) {}
+                  // Remove marker if API confirms it's purchased
+                  try {
+                    localStorage.removeItem(`bookingPurchased_${purchasedId}`);
+                  } catch (_) {}
+                }
+              } catch (_) {
+                // If API fetch fails, create minimal entry
+                synthesized = {
+                  bookingId: Number(purchasedId),
+                  tourId: null,
+                  contactName: '',
+                  contactPhone: '',
+                  departureDate: new Date().toISOString(),
+                  totalGuests: 0,
+                  status: 'PURCHASED',
+                  transactionStatus: 'SUCCESS',
+                  createdAt: new Date().toISOString()
+                };
+              }
             }
-            merged = [synthesized, ...merged];
+            
+            if (synthesized) {
+              merged = [synthesized, ...merged];
+            }
           }
         } catch (_) {}
 
