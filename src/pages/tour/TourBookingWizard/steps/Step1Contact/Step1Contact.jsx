@@ -584,25 +584,19 @@ const Step1Contact = () => {
       return null;
   };
 
-  // Simple date display function
+  // Date display function that actively converts to current language format
   const formatDateForDisplay = (dateString, fieldKey) => {
     if (!dateString || dateString === '') return '';
     
-    // If field is being edited, return as-is to allow editing
+    // If field is being edited, do not transform user input
     if (editingFields.has(fieldKey)) {
       return dateString;
     }
     
-    // If it's already a display format (contains separator), return as is
-    const separator = getDateSeparator();
-    if (dateString.includes(separator) || dateString.includes('/') || dateString.includes('.')) {
-      return dateString;
-    }
-    
-    // If it's a normalized date (YYYY-MM-DD), format it
+    // If normalized YYYY-MM-DD, format directly for current language
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [year, month, day] = dateString.split('-');
-      
+      const separator = getDateSeparator();
       switch (currentLanguage) {
         case 'vi': return `${day}${separator}${month}${separator}${year}`;
         case 'en': return `${month}${separator}${day}${separator}${year}`;
@@ -611,8 +605,13 @@ const Step1Contact = () => {
       }
     }
     
-    // For any other input, return as-is to allow editing
-    return dateString;
+    // Otherwise, try to parse existing string and convert to current language
+    try {
+      const converted = parseAndConvertDate(dateString, null, currentLanguage);
+      return converted || dateString;
+    } catch (_) {
+      return dateString;
+    }
   };
 
   const formatDateFromNormalized = (dateString) => {

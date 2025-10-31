@@ -559,21 +559,15 @@ const Step2Details = () => {
   const formatDateForDisplay = (dateString, fieldKey) => {
     if (!dateString) return '';
     
-    // If field is being edited, return as-is to allow editing
+    // If field is being edited, do not transform user input
     if (editingFields.has(fieldKey)) {
       return dateString;
     }
     
-    // If it's already a display format (contains separator), return as is
-    const separator = getDateSeparator();
-    if (dateString.includes(separator) || dateString.includes('/') || dateString.includes('.')) {
-      return dateString; // Return as-is for any display format
-    }
-    
-    // If it's a normalized date (YYYY-MM-DD), format it
+    // If normalized, format for current language
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [year, month, day] = dateString.split('-');
-      
+      const separator = getDateSeparator();
       switch (currentLanguage) {
         case 'vi': return `${day}${separator}${month}${separator}${year}`;
         case 'en': return `${month}${separator}${day}${separator}${year}`;
@@ -582,8 +576,13 @@ const Step2Details = () => {
       }
     }
     
-    // For any other input, return as-is to allow editing
-    return dateString;
+    // Otherwise, actively convert to the current language format
+    try {
+      const converted = parseAndConvertDate(dateString, null, currentLanguage);
+      return converted || dateString;
+    } catch (_) {
+      return dateString;
+    }
   };
 
   // Helper to convert between display formats across languages, reusing Step1 approach
@@ -1897,8 +1896,8 @@ const Step2Details = () => {
   const renderRepresentativeForm = () => {
     // Lấy tên từ contact, ngày sinh từ member (bookingGuest)
     const representativeName = contact?.fullName;
-    // Try to get DOB from contact first, then from plan.members.adult[0]
-    const representativeDob = contact?.dob || plan.members.adult[0]?.dob;
+  // Prefer member's DOB (kept in Step 2 and converted on language change), fallback to contact
+  const representativeDob = plan.members.adult[0]?.dob || contact?.dob;
     
     // Format date for display
     const displayDob = representativeDob ? formatDateForDisplay(representativeDob, 'representative-dob') : '';
