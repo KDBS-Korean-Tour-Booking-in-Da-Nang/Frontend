@@ -27,13 +27,16 @@ export const updateUserProfile = async (userData, token) => {
     if (userData.name && userData.name.trim()) {
       updateData.username = userData.name.trim(); // Backend expects 'username' field
     }
-    if (userData.phone && userData.phone.trim()) {
+    // Always include phone (even if empty) to allow clearing
+    if (userData.phone !== undefined && userData.phone !== null) {
       updateData.phone = userData.phone.trim();
     }
+    // Only include DOB if it's valid (non-empty and normalized)
     if (userData.dob && userData.dob.trim()) {
       updateData.dob = userData.dob.trim();
     }
-    if (userData.gender && userData.gender.trim()) {
+    // Always include gender (even if empty) to allow clearing
+    if (userData.gender !== undefined && userData.gender !== null) {
       updateData.gender = userData.gender.trim();
     }
     if (userData.cccd && userData.cccd.trim()) {
@@ -135,20 +138,31 @@ export const validateUserProfile = (userData) => {
   }
   
   // Validate phone (optional but if provided, should be valid)
-  if (userData.phone && userData.phone.trim()) {
+  if (userData.phone !== undefined && userData.phone !== null && userData.phone.trim()) {
     const cleanPhone = userData.phone.replace(/\s/g, '');
-    if (cleanPhone.length > 11) {
-      errors.phone = 'Số điện thoại không được vượt quá 11 ký tự';
+    // Allow empty string (for clearing)
+    if (cleanPhone.length === 0) {
+      // Empty phone is allowed, skip validation
+    } else if (cleanPhone.length > 20) {
+      errors.phone = 'Số điện thoại không được vượt quá 20 ký tự';
     } else {
-      const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
-      if (!phoneRegex.test(cleanPhone)) {
-        errors.phone = 'Số điện thoại không hợp lệ (định dạng: 0xxxxxxxxx hoặc +84xxxxxxxxx)';
+      // More flexible validation: allow Vietnamese format or international format
+      const vietnameseRegex = /^(\+84|0)[0-9]{9,10}$/;
+      const internationalRegex = /^\+[1-9]\d{1,14}$/; // E.164 format
+      if (!vietnameseRegex.test(cleanPhone) && !internationalRegex.test(cleanPhone)) {
+        // Only show error if phone is clearly invalid (too short or has invalid chars)
+        if (cleanPhone.length < 7 || !/^[\d+]+$/.test(cleanPhone)) {
+          errors.phone = 'Số điện thoại không hợp lệ';
+        }
+        // Otherwise, allow it (might be valid format we didn't anticipate)
       }
     }
   }
   
   // Validate date of birth (optional but if provided, should be valid)
-  if (userData.dob && userData.dob.trim()) {
+  // Only validate if DOB is provided and non-empty - allow empty DOB
+  if (userData.dob && userData.dob.trim() && userData.dob.trim().length > 0) {
+    // DOB should be in ISO format (YYYY-MM-DD) when passed here
     const dob = new Date(userData.dob);
     const today = new Date();
     const minDate = new Date('1900-01-01');

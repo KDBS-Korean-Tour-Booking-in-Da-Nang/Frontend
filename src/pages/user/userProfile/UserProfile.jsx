@@ -340,7 +340,17 @@ const UserProfile = () => {
     
     // Normalize DOB to ISO before validation
     const normalizedDob = parseDateFromDisplayToISO(userData.dob || '');
-    const validation = validateUserProfile({ ...userData, dob: normalizedDob || '' });
+    // Only validate DOB if user entered something - allow empty DOB
+    if (userData.dob && userData.dob.trim() && !normalizedDob) {
+      showError(t('booking.errors.dobInvalidFormat') || 'Ngày sinh không hợp lệ');
+      return;
+    }
+    // Prepare data for validation: use normalized DOB if available, otherwise empty
+    const dataForValidation = {
+      ...userData,
+      dob: normalizedDob || ''
+    };
+    const validation = validateUserProfile(dataForValidation);
     if (!validation.isValid) {
       // Only show toast error, don't set updateError state
       const firstError = Object.values(validation.errors)[0];
