@@ -1387,10 +1387,11 @@
   },
 	"booking": {
         "step1": {
-          "fields": {
+      "fields": {
             "fullName": "Họ và tên",
             "phone": "Số điện thoại",
             "email": "Email",
+            "gender": "Giới tính",
             "dob": "Ngày sinh",
             "address": "Địa chỉ",
             "pickupPoint": "Điểm đón",
@@ -1399,6 +1400,7 @@
           "placeholders": {
             "fullName": "Nhập họ và tên đầy đủ",
             "phone": "0123456789 hoặc +84123456789",
+            "chooseGender": "Chọn giới tính",
             "address": "Nhập địa chỉ đầy đủ",
             "pickupPoint": "Nhập điểm đón",
             "dateFormat": "Định dạng: {format}",

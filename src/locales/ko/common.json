@@ -1377,6 +1377,7 @@
             "fullName": "성명",
             "phone": "전화번호",
             "email": "이메일",
+            "gender": "성별",
             "dob": "생년월일",
             "address": "주소",
             "pickupPoint": "픽업 지점",
@@ -1385,6 +1386,7 @@
           "placeholders": {
             "fullName": "성명을 입력하세요",
             "phone": "0123456789 또는 +84123456789",
+            "chooseGender": "성별을 선택하세요",
             "address": "주소를 입력하세요",
             "pickupPoint": "픽업 지점을 입력하세요",
             "dateFormat": "형식: {format}",

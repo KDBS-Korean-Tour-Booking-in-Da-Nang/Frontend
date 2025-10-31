@@ -188,16 +188,20 @@ const BookingWizardContent = () => {
   useEffect(() => {
     const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
                    plan && (plan.date || plan.pax);
-    
+
     const handler = (e) => {
       if (!hasData) return;
       e.preventDefault();
       e.returnValue = '';
+      try {
+        // Mark as confirmed leave so next mount clears data
+        localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
+      } catch (_) {}
     };
-    
+
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [contact, plan]);
+  }, [contact, plan, tourId]);
 
   // Intercept clicks on navigation links like TourWizard
   useEffect(() => {

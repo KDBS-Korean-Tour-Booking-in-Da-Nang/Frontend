@@ -229,6 +229,19 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
     throw new Error('Some guests are missing required information (name and birth date)');
   }
   
+  // Determine departure date format from plan.date (supports object or string)
+  let formattedDepartureDate = '';
+  try {
+    if (typeof plan?.date === 'string') {
+      formattedDepartureDate = formatDateForAPI(plan.date, language);
+    } else if (plan?.date && typeof plan.date === 'object') {
+      formattedDepartureDate = formatDate(plan.date);
+    }
+  } catch (_) {
+    // leave as empty; validation will catch and surface a friendly message
+    formattedDepartureDate = '';
+  }
+
   // Format the final booking data
   const bookingData = {
     tourId: parseInt(tourId),
@@ -240,7 +253,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
     contactEmail: contact.email.trim(),
     pickupPoint: contact.pickupPoint?.trim() || '',
     note: contact.note?.trim() || '',
-    departureDate: formatDate(plan.date),
+    departureDate: formattedDepartureDate,
     adultsCount: plan.pax.adult,
     childrenCount: plan.pax.child,
     babiesCount: plan.pax.infant,

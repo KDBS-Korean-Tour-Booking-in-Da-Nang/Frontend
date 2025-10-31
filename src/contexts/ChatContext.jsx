@@ -475,6 +475,34 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_DISCONNECTED });
     }
   };
+  // Keep only minimal safe fields when persisting to storage
+  const pickMinimalUser = (user) => {
+    if (!user) return null;
+    const minimal = {
+      userName: user.userName || user.username || user.name || '',
+      username: user.username || user.userName || '',
+      avatar: user.avatar || null,
+      email: user.email || user.userEmail || null,
+      userEmail: user.userEmail || user.email || null
+    };
+    return minimal;
+  };
+
+  // Get freshest current user immediately after profile update (no F5)
+  const getLiveCurrentUser = () => {
+    const mapped = authUser ? {
+      userId: authUser.userId || authUser.id,
+      userName: authUser.username || authUser.userName || authUser.name,
+      userEmail: authUser.email || authUser.userEmail,
+      role: authUser.role || 'USER'
+    } : null;
+    if (mapped && mapped.userName && state.currentUser?.userName !== mapped.userName) {
+      dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: mapped });
+      currentUserRef.current = mapped;
+    }
+    return mapped || state.currentUser;
+  };
+
 
   // Resolve a safe login username from user object or name string
   const resolveLoginUsername = (input) => {
@@ -611,9 +639,10 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
         
         // Save chat state to localStorage for persistence
+        const minimalUser = pickMinimalUser(user);
         localStorage.setItem('chatBoxState', JSON.stringify({
           isOpen: true,
-          activeChatUser: user
+          activeChatUser: minimalUser
         }));
         
         // Load conversation from API with pagination (latest messages first)
@@ -621,13 +650,19 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CURRENT_PAGE, payload: 0 });
         dispatch({ type: ActionTypes.SET_HAS_MORE_MESSAGES, payload: true });
         
-        const messages = await chatApiService.getConversation(
-          state.currentUser.userName, 
-          resolveLoginUsername(user),
+        const liveUser = getLiveCurrentUser();
+        let receiver = resolveLoginUsername(user);
+        let messages = await chatApiService.getConversation(
+          liveUser.userName, 
+          receiver,
           0, // page 0 for latest messages
           25 // size 25 for initial load
         );
-        const formattedMessages = chatApiService.formatConversation(messages, state.currentUser);
+        // Defensive: if other user just renamed and backend rejects old name → reload users and retry once
+        if (!Array.isArray(messages)) {
+          // no-op; typical backend returns array. Keep as-is.
+        }
+        const formattedMessages = chatApiService.formatConversation(messages, liveUser);
         
         // Sort messages by timestamp (oldest first for display - newest at bottom)
         const sortedMessages = formattedMessages.sort((a, b) => 
@@ -637,9 +672,25 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
         
       } catch (error) {
-        console.error('Error opening chat with user:', error);
-        dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
-        dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
+        // One-shot retry with refreshed users in case receiver renamed mid-session
+        try {
+          await actions.loadAllUsers();
+          const liveUser = getLiveCurrentUser();
+          const receiver = resolveLoginUsername(user);
+          const messages = await chatApiService.getConversation(
+            liveUser.userName,
+            receiver,
+            0,
+            25
+          );
+          const formattedMessages = chatApiService.formatConversation(messages, liveUser);
+          const sortedMessages = formattedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
+        } catch (e2) {
+          console.error('Error opening chat with user:', e2);
+          dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
+          dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
+        }
       }
     },
 
@@ -647,7 +698,8 @@ export const ChatProvider = ({ children }) => {
       if (!state.activeChatUser || !content.trim()) return;
 
       try {
-        const senderName = state.currentUser?.userName || state.currentUser?.username || state.currentUser?.name || 'unknown';
+        const liveUser2 = getLiveCurrentUser();
+        const senderName = liveUser2?.userName || liveUser2?.username || liveUser2?.name || 'unknown';
         const receiverName = state.activeChatUser?.userName || state.activeChatUser?.username || state.activeChatUser?.name || 'unknown';
         
         // Add message to local state immediately (optimistic update)
@@ -773,8 +825,9 @@ export const ChatProvider = ({ children }) => {
           };
           dispatch({ type: ActionTypes.ADD_MINIMIZED_CHAT, payload: minimizedChat });
           
-          // Save minimized chats to localStorage
-          const updatedMinimizedChats = [...(state.minimizedChats || []), minimizedChat];
+          // Save minimized chats to localStorage with minimal user fields only (no messages)
+          const updatedMinimizedChats = [...(state.minimizedChats || []), minimizedChat]
+            .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
           localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
         }
       }
@@ -782,9 +835,10 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
       
       // Update saved chat state to reflect minimized state
+      const minimalUser = pickMinimalUser(state.activeChatUser);
       localStorage.setItem('chatBoxState', JSON.stringify({
         isOpen: false,
-        activeChatUser: state.activeChatUser,
+        activeChatUser: minimalUser,
         isMinimized: true
       }));
     },
@@ -799,20 +853,30 @@ export const ChatProvider = ({ children }) => {
       if (minimizedChat) {
         // Set as active chat
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: minimizedChat.user });
-        dispatch({ type: ActionTypes.SET_MESSAGES, payload: minimizedChat.messages });
+        // If we don't have messages (because we don't persist them), load from API; else restore
+        if (Array.isArray(minimizedChat.messages) && minimizedChat.messages.length > 0) {
+          dispatch({ type: ActionTypes.SET_MESSAGES, payload: minimizedChat.messages });
+        } else {
+          dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
+          // Fire and forget load
+          actions.loadConversation(minimizedChat.user);
+        }
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
         // Remove from minimized chats
         dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
         
         // Save restored chat state to localStorage
+        const minimalUser = pickMinimalUser(minimizedChat.user);
         localStorage.setItem('chatBoxState', JSON.stringify({
           isOpen: true,
-          activeChatUser: minimizedChat.user
+          activeChatUser: minimalUser
         }));
         
         // Update minimized chats in localStorage
-        const updatedMinimizedChats = state.minimizedChats.filter(chat => chat.userId !== userId);
+        const updatedMinimizedChats = state.minimizedChats
+          .filter(chat => chat.userId !== userId)
+          .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
         if (updatedMinimizedChats.length > 0) {
           localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
         } else {
@@ -837,8 +901,9 @@ export const ChatProvider = ({ children }) => {
     loadConversations: async () => {
       try {
         dispatch({ type: ActionTypes.SET_LOADING_CONVERSATIONS, payload: true });
-        const messages = await chatApiService.getAllMessagesFromUser(state.currentUser.userName);
-        const conversations = chatApiService.getConversationsList(messages, state.currentUser);
+        const liveUser = getLiveCurrentUser();
+        const messages = await chatApiService.getAllMessagesFromUser(liveUser.userName);
+        const conversations = chatApiService.getConversationsList(messages, liveUser);
         dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: conversations });
       } catch (error) {
         dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: [] });
@@ -847,17 +912,18 @@ export const ChatProvider = ({ children }) => {
 
     // Load conversation with a specific user
     loadConversation: async (user) => {
-      if (!user || !state.currentUser) return;
+      if (!user || !getLiveCurrentUser()) return;
 
       try {
         dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: true });
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: user });
         
-        const senderName = state.currentUser.userName || state.currentUser.username || state.currentUser.name;
+        const liveUser = getLiveCurrentUser();
+        const senderName = liveUser.userName || liveUser.username || liveUser.name;
         const receiverName = resolveLoginUsername(user);
         
         const messages = await chatApiService.getConversationLegacy(senderName, receiverName);
-        const formattedMessages = chatApiService.formatConversation(messages, state.currentUser);
+        const formattedMessages = chatApiService.formatConversation(messages, liveUser);
         
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: formattedMessages });
         
@@ -872,7 +938,7 @@ export const ChatProvider = ({ children }) => {
 
     // Load more messages for infinite scroll
     loadMoreMessages: async () => {
-      if (!state.activeChatUser || !state.currentUser || state.isLoadingMoreMessages || !state.hasMoreMessages) {
+      if (!state.activeChatUser || !getLiveCurrentUser() || state.isLoadingMoreMessages || !state.hasMoreMessages) {
         return;
       }
 
@@ -880,7 +946,8 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_LOADING_MORE_MESSAGES, payload: true });
         
         const nextPage = state.currentPage + 1;
-        const senderName = state.currentUser.userName || state.currentUser.username || state.currentUser.name;
+        const liveUser = getLiveCurrentUser();
+        const senderName = liveUser.userName || liveUser.username || liveUser.name;
         const receiverName = resolveLoginUsername(state.activeChatUser);
         
         const messages = await chatApiService.getConversation(
@@ -965,7 +1032,12 @@ export const ChatProvider = ({ children }) => {
       try {
         const savedMinimizedChats = localStorage.getItem('minimizedChats');
         if (savedMinimizedChats) {
-          const minimizedChats = JSON.parse(savedMinimizedChats);
+          const minimizedChats = (JSON.parse(savedMinimizedChats) || []).map(c => ({
+            userId: c.userId,
+            user: c.user, // already minimal
+            messages: [],
+            timestamp: c.timestamp || Date.now()
+          }));
           dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: minimizedChats });
         }
       } catch (error) {

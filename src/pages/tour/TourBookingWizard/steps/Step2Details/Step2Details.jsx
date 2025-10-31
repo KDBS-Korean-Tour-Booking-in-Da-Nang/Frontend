@@ -1947,24 +1947,23 @@ const Step2Details = () => {
               />
             </div>
 
-            {/* Gender - Editable */}
+            {/* Gender - Read Only (from Step 1) */}
             <div className={styles['form-group']}>
-              <label htmlFor="representative-gender" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
-              <select
-                id="representative-gender"
-                value={plan.members.adult[0]?.gender || ''}
-                onChange={(e) => setMember('adult', 0, { gender: e.target.value })}
-                onBlur={() => setTouchedFields(prev => new Set(prev).add('representative_gender'))}
-                className={`${styles['form-select']} ${errors['member_0_gender'] && touchedFields.has('representative_gender') ? styles['error'] : ''}`}
-              >
-                <option value="">{t('booking.step2.placeholders.chooseGender')}</option>
-                <option value="male">{t('profile.genderOptions.male')}</option>
-                <option value="female">{t('profile.genderOptions.female')}</option>
-                <option value="other">{t('profile.genderOptions.other')}</option>
-              </select>
-              {errors['member_0_gender'] && touchedFields.has('representative_gender') && (
-                <span className={styles['form-error']}>{errors['member_0_gender']}</span>
-              )}
+              <label className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
+              <input
+                type="text"
+                value={(() => {
+                  const g = plan.members.adult[0]?.gender || contact?.gender || '';
+                  if (!g) return '';
+                  if (g === 'male') return t('profile.genderOptions.male');
+                  if (g === 'female') return t('profile.genderOptions.female');
+                  if (g === 'other') return t('profile.genderOptions.other');
+                  return g;
+                })()}
+                readOnly
+                className={`${styles['form-input']} ${styles['read-only']}`}
+                placeholder={t('booking.step2.placeholders.chooseGender')}
+              />
             </div>
 
             {/* Nationality - Editable */}

@@ -663,6 +663,22 @@ const Step1Contact = () => {
         newContact.address = user.address;
         newAutoFilledFields.add('address');
       }
+      // Map gender from user profile (backend uses M/F/O)
+      if (user.gender) {
+        const mappedGender = (g => {
+          const u = String(g).toUpperCase();
+          if (u === 'M') return 'male';
+          if (u === 'F') return 'female';
+          if (u === 'O') return 'other';
+          return '';
+        })(user.gender);
+        if (mappedGender) {
+          newContact.gender = mappedGender;
+          newAutoFilledFields.add('gender');
+          // Mirror to representative member in Step 2
+          setMember('adult', 0, { gender: mappedGender });
+        }
+      }
       // Date of birth: if available in profile, normalize and put directly into contact
       if (user.dob) {
         try {
@@ -1054,8 +1070,15 @@ const Step1Contact = () => {
         processedValue = value.replace(/[^0-9]/g, '');
       }
     }
+    // No special processing for gender; also mirror to representative member
+    else if (name === 'gender') {
+      // Keep as provided (male/female/other)
+    }
     
     setContact({ [name]: processedValue });
+    if (name === 'gender') {
+      setMember('adult', 0, { gender: processedValue });
+    }
     
     // Mark field as touched
     setTouchedFields(prev => new Set(prev).add(name));
@@ -1170,6 +1193,26 @@ const Step1Contact = () => {
             {errors.email && (
               <span className={styles['form-error']}>{errors.email}</span>
             )}
+          </div>
+
+          {/* Gender Field */}
+          <div className={styles['form-group']}>
+            <label htmlFor="gender" className={styles['form-label']}>
+              {t('booking.step1.fields.gender')}
+            </label>
+            <select
+              id="gender"
+              name="gender"
+              value={contact.gender || ''}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              className={`${styles['form-select']} ${autoFilledFields.has('gender') ? styles['auto-filled'] : ''}`}
+            >
+              <option value="">{t('profile.genderOptions.unknown')}</option>
+              <option value="male">{t('profile.genderOptions.male')}</option>
+              <option value="female">{t('profile.genderOptions.female')}</option>
+              <option value="other">{t('profile.genderOptions.other')}</option>
+            </select>
           </div>
 
           <div className={styles['form-group']}>

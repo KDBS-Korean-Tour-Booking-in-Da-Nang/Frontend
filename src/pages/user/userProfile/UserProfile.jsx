@@ -219,18 +219,19 @@ const UserProfile = () => {
 
   const isValidUsername = (val) => {
     if (val === undefined || val === null) return false;
-    const trimmed = String(val).trim();
+    const trimmed = String(val).normalize('NFC').trim();
     if (trimmed.length === 0) return false; // name cannot be empty in edit modal
-    const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
+    // Start with a letter; allow any letters (all languages), combining marks, digits, and spaces
+    const usernameRegex = /^\p{L}[\p{L}\p{M}\p{N}\s]*$/u;
     return usernameRegex.test(trimmed);
   };
 
   const sanitizeUsername = (val) => {
-    const str = String(val || '');
-    // Keep letters (incl. accents), digits, and spaces only
-    let cleaned = str.replace(/[^A-Za-zÀ-ỹ\d\s]/g, '');
-    // Ensure first non-space char is a letter; drop leading digits
-    cleaned = cleaned.replace(/^\s*\d+/, '');
+    const str = String(val || '').normalize('NFC');
+    // Keep Unicode letters, combining marks, digits, and spaces only
+    let cleaned = str.replace(/[^\p{L}\p{M}\p{N}\s]/gu, '');
+    // Ensure the first non-space character is a letter; drop leading digits
+    cleaned = cleaned.replace(/^[\s\p{N}]+/u, '');
     return cleaned;
   };
 
@@ -248,18 +249,9 @@ const UserProfile = () => {
     }
   };
 
-  const handleNameBeforeInput = (e) => {
-    const { data } = e;
-    if (data == null) return; // composition or control
-    const target = e.target;
-    const start = target.selectionStart;
-    const end = target.selectionEnd;
-    const current = target.value;
-    const next = current.slice(0, start) + data + current.slice(end);
-    const nextSanitized = sanitizeUsername(next);
-    if (next !== nextSanitized || !isValidUsername(nextSanitized)) {
-      e.preventDefault();
-    }
+  const handleNameBeforeInput = () => {
+    // Allow IME composition and let onChange sanitize/validate.
+    // Intentionally left empty to avoid blocking Vietnamese diacritics input.
   };
 
   const handleNamePaste = (e) => {

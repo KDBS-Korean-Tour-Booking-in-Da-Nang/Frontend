@@ -1379,6 +1379,7 @@
             "fullName": "Full Name",
             "phone": "Phone Number",
             "email": "Email",
+        "gender": "Gender",
             "dob": "Date of Birth",
             "address": "Address",
             "pickupPoint": "Pickup Point",
@@ -1387,6 +1388,7 @@
           "placeholders": {
             "fullName": "Enter full name",
             "phone": "0123456789 or +84123456789",
+        "chooseGender": "Select gender",
             "address": "Enter full address",
             "pickupPoint": "Enter pickup point",
             "dateFormat": "Format: {format}",

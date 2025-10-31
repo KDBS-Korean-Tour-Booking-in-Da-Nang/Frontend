@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   ChatBubbleLeftRightIcon,
   UserIcon,
@@ -12,8 +13,15 @@ import styles from './ChatDropdown.module.css';
 const ChatDropdown = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const { state, actions } = useChat();
+  const { user: authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab] = useState('users');
+
+  // Resolve current user's login name to filter out self from lists
+  const currentLoginName = (() => {
+    const n = state.currentUser?.userName || state.currentUser?.username || state.currentUser?.name || authUser?.username || authUser?.userName || authUser?.name || '';
+    return (n || '').toLowerCase();
+  })();
 
   const dropdownRef = useRef(null);
 
@@ -66,6 +74,11 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   };
 
   const filteredConversations = (state.conversations || [])
+    // Exclude current user from conversations list (can happen after rename)
+    .filter(conv => {
+      const other = (conv.user?.username || conv.user?.userName || '').toLowerCase();
+      return other && other !== currentLoginName;
+    })
     .filter(conv => {
       const userName = conv.user?.username || conv.user?.userName || '';
       const preview = conv.lastMessage?.content || '';
@@ -83,6 +96,11 @@ const ChatDropdown = ({ isOpen, onClose }) => {
       if (role === 'COMPANY' && status === 'COMPANY_PENDING') return false;
       return true;
     })
+    // Exclude current user from users list
+    .filter(user => {
+      const uname = (user.username || user.userName || '').toLowerCase();
+      return uname && uname !== currentLoginName;
+    })
     // Apply search filtering
     .filter(user => {
       const userName = user.username || user.userName || '';
@@ -97,6 +115,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     (state.conversations || []).forEach(conv => {
       const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
       if (!key) return;
+      if (key === currentLoginName) return; // never include self
       const existing = convMap.get(key);
       const currentTs = new Date(conv.lastMessage?.timestamp || 0).getTime();
       const existingTs = existing ? new Date(existing.lastMessage?.timestamp || 0).getTime() : -1;
@@ -116,6 +135,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     (state.conversations || []).forEach(conv => {
       const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
       if (!key) return;
+      if (key === currentLoginName) return; // skip self
       const exists = list.some(item => (item.user.username || item.user.userName || '').toLowerCase() === key);
       if (!exists) {
         list.push({ user: conv.user, lastMessage: conv.lastMessage || null });

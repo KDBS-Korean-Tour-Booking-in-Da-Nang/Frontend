@@ -85,17 +85,45 @@ const BookingHistory = () => {
           );
           merged = revalidated;
         } catch (_) {}
+        // Merge pending booking from session (created on VNPay page) if user left mid-payment
+        try {
+          const pendingStr = sessionStorage.getItem('pendingBooking');
+          if (pendingStr) {
+            const pendingObj = JSON.parse(pendingStr);
+            const pendingData = pendingObj?.bookingData;
+            if (pendingData && pendingData.bookingId && pendingData.userEmail) {
+              const belongsToUser = String(pendingData.userEmail).toLowerCase() === String(user.email).toLowerCase();
+              const alreadyExists = merged.some(b => String(b.bookingId) === String(pendingData.bookingId));
+              if (belongsToUser && !alreadyExists) {
+                // Normalize minimal fields that BookingHistoryCard expects
+                const synthesized = {
+                  bookingId: pendingData.bookingId,
+                  tourId: pendingData.tourId,
+                  contactName: pendingData.contactName || pendingData.contact?.fullName || '',
+                  contactPhone: pendingData.contactPhone || pendingData.contact?.phone || '',
+                  departureDate: pendingData.departureDate || pendingData.plan?.date || new Date().toISOString(),
+                  totalGuests: pendingData.totalGuests || pendingData.plan?.pax || 0,
+                  status: 'PENDING',
+                  transactionStatus: pendingData.transactionStatus || 'PENDING',
+                  createdAt: pendingData.createdAt || new Date().toISOString()
+                };
+                merged = [synthesized, ...merged];
+              }
+            }
+          }
+        } catch (_) {}
+
         setAllBookings(merged);
         
         // Calculate pagination
-        const totalItems = data.length;
+        const totalItems = merged.length;
         const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
         setTotalPages(totalPagesCount);
         
         // Set initial page data
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        setBookings(data.slice(startIndex, endIndex));
+        setBookings(merged.slice(startIndex, endIndex));
       } catch (err) {
         console.error('Error fetching booking history:', err);
         setError(err.message);
