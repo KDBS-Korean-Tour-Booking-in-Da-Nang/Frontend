@@ -632,8 +632,8 @@ const Step1Contact = () => {
 
   // Simple date change handler
   const handleDateChange = (value) => {
-    // Update both contact and member data
-    setContact(prev => ({ ...prev, dob: value }));
+    // Update both contact and member data (merge manually; setContact expects plain object)
+    setContact({ ...contact, dob: value });
     setMember('adult', 0, { dob: value });
   };
   
@@ -663,13 +663,17 @@ const Step1Contact = () => {
         newContact.address = user.address;
         newAutoFilledFields.add('address');
       }
-      // Map gender from user profile (backend uses M/F/O)
+      // Map gender from user profile (handle M/F/O, MALE/FEMALE/OTHER, and lowercase)
       if (user.gender) {
         const mappedGender = (g => {
-          const u = String(g).toUpperCase();
-          if (u === 'M') return 'male';
-          if (u === 'F') return 'female';
-          if (u === 'O') return 'other';
+          const u = String(g).trim().toUpperCase();
+          if (u === 'M' || u === 'MALE') return 'male';
+          if (u === 'F' || u === 'FEMALE') return 'female';
+          if (u === 'O' || u === 'OTHER') return 'other';
+          if (u === 'NAM') return 'male';
+          if (u === 'NỮ' || u === 'NU') return 'female';
+          if (u === 'KHÁC' || u === 'KHAC') return 'other';
+          if (u === 'MALE' || u === 'FEMALE' || u === 'OTHER') return u.toLowerCase();
           return '';
         })(user.gender);
         if (mappedGender) {
@@ -1075,7 +1079,8 @@ const Step1Contact = () => {
       // Keep as provided (male/female/other)
     }
     
-    setContact({ [name]: processedValue });
+    // Merge manually; avoid functional updater to match setContact API
+    setContact({ ...contact, [name]: processedValue });
     if (name === 'gender') {
       setMember('adult', 0, { gender: processedValue });
     }

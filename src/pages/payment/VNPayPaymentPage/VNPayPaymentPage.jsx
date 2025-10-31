@@ -232,12 +232,7 @@ const VNPayPaymentPage = () => {
       return;
     }
 
-    // Validate that user email matches contact email
-    if (bookingData && user.email !== bookingData.contactEmail) {
-      showError(t('payment.emailMismatch'));
-      navigate('/tour');
-      return;
-    }
+    // Allow contact email to differ from account email (no blocking)
 
     // Create booking immediately on page load if not resuming
     const createBookingOnMount = async () => {

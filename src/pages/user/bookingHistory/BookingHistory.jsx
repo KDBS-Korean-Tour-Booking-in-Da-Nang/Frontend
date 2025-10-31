@@ -113,6 +113,63 @@ const BookingHistory = () => {
           }
         } catch (_) {}
 
+        // Merge purchased booking locally marked as purchased even if API doesn't return yet
+        try {
+          // Prefer id from pendingBooking, otherwise scan local markers
+          const pendingStr = sessionStorage.getItem('pendingBooking');
+          let purchasedId = null;
+          if (pendingStr) {
+            const pendingObj = JSON.parse(pendingStr);
+            const bId = pendingObj?.bookingData?.bookingId;
+            if (bId && localStorage.getItem(`bookingPurchased_${bId}`) === 'true') {
+              purchasedId = bId;
+            }
+          }
+          if (!purchasedId) {
+            // Fallback: check a recent purchased id hint if your return handler set it
+            const recent = sessionStorage.getItem('recentPurchasedBookingId');
+            if (recent && localStorage.getItem(`bookingPurchased_${recent}`) === 'true') {
+              purchasedId = recent;
+            }
+          }
+          if (purchasedId && !merged.some(b => String(b.bookingId) === String(purchasedId))) {
+            // Synthesize a purchased entry so user can see it immediately
+            // Try to reuse minimal data from pendingBooking if available
+            let synthesized = null;
+            try {
+              const p = pendingStr ? JSON.parse(pendingStr) : null;
+              const pd = p?.bookingData;
+              if (pd && String(pd.bookingId) === String(purchasedId)) {
+                synthesized = {
+                  bookingId: pd.bookingId,
+                  tourId: pd.tourId,
+                  contactName: pd.contactName || pd.contact?.fullName || '',
+                  contactPhone: pd.contactPhone || pd.contact?.phone || '',
+                  departureDate: pd.departureDate || pd.plan?.date || new Date().toISOString(),
+                  totalGuests: pd.totalGuests || pd.plan?.pax || 0,
+                  status: 'PURCHASED',
+                  transactionStatus: 'SUCCESS',
+                  createdAt: pd.createdAt || new Date().toISOString()
+                };
+              }
+            } catch (_) {}
+            if (!synthesized) {
+              synthesized = {
+                bookingId: Number(purchasedId),
+                tourId: null,
+                contactName: '',
+                contactPhone: '',
+                departureDate: new Date().toISOString(),
+                totalGuests: 0,
+                status: 'PURCHASED',
+                transactionStatus: 'SUCCESS',
+                createdAt: new Date().toISOString()
+              };
+            }
+            merged = [synthesized, ...merged];
+          }
+        } catch (_) {}
+
         setAllBookings(merged);
         
         // Calculate pagination
