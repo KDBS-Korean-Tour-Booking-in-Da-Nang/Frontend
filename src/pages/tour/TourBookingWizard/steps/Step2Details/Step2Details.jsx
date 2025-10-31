@@ -758,34 +758,15 @@ const Step2Details = () => {
   // Helper function to determine if ID is required based on age and nationality
   const isIdRequired = (dob, nationality) => {
     if (!dob || !nationality) return false;
-    
     const age = calculateAge(dob);
     if (age === null) return false;
-    
-    // For Vietnamese nationality (tour nội địa) - compare with country code VN
-    if (nationality === 'VN') {
-      // Em bé (0 - dưới 2 tuổi): Không bắt buộc CCCD/CMND
-      if (age < 2) return false;
-      
-      // Trẻ em (2 - dưới 14 tuổi): Không bắt buộc CCCD/CMND
-      if (age >= 2 && age < 14) return false;
-      
-      // Trẻ em (14 - dưới 16 tuổi): Bắt buộc CCCD (vì đã có thể làm CCCD)
-      if (age >= 14 && age < 16) return true;
-      
-      // Người lớn (16 tuổi trở lên): Bắt buộc CCCD/CMND
-      if (age >= 16) return true;
-    }
-    
-    // For other nationalities: Always require passport
+    // Temporarily disable Vietnam-specific logic; require passport/ID for all
     return true;
   };
 
-  // List of countries (codes) with i18n labels
-  const countries = [
-    'VN','KR','JP','CN','US','GB','FR','DE','TH','SG','MY','PH','ID','LA','KH','AU','CA'
-  ].map(code => ({ code, label: t(`booking.step2.countries.${code}`) }))
-   .sort((a,b) => a.label.localeCompare(b.label));
+  // List of countries (codes) with i18n labels - keep only Korea
+  const countries = ['KR']
+    .map(code => ({ code, label: t(`booking.step2.countries.${code}`) }));
 
   // Sync contact data with representative member (adult[0]) on mount and when contact changes
   useEffect(() => {

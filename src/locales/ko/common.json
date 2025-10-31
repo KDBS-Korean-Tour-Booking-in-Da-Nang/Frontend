@@ -1198,6 +1198,7 @@
 			"errorTitle": "오류가 발생했습니다",
 			"backToList": "투어 목록으로 돌아가기",
 			"back": "목록으로 돌아가기",
+			"backToManagement": "투어 관리",
 			"badge": "투어",
 			"overview": {
 				"title": "투어 개요",
@@ -1426,23 +1427,7 @@
 				"idNumberPassport": "여권 번호"
 			},
 			"countries": {
-				"VN": "베트남",
-				"KR": "대한민국",
-				"JP": "일본",
-				"CN": "중국",
-				"US": "미국",
-				"GB": "영국",
-				"FR": "프랑스",
-				"DE": "독일",
-				"TH": "태국",
-				"SG": "싱가포르",
-				"MY": "말레이시아",
-				"PH": "필리핀",
-				"ID": "인도네시아",
-				"LA": "라오스",
-				"KH": "캄보디아",
-				"AU": "호주",
-				"CA": "캐나다"
+				"KR": "대한민국"
 			},
 			"placeholders": {
 				"fullName": "성명을 입력하세요",
@@ -1535,11 +1520,11 @@
 				"dobInFuture": "생년월일은 미래일 수 없습니다",
 				"dobInvalidFormat": "날짜 형식이 올바르지 않습니다 (YYYY-MM-DD 형식 사용)",
 				"dobTooOld": "생년월일이 유효하지 않습니다 (나이는 ≤ 120세)",
-				"adultTooYoung": "성인은 출발일 기준 12세 이상이어야 합니다",
-				"representativeTooYoung": "대표자는 출발일 기준 18세 이상이어야 합니다",
-				"childTooYoung": "아이는 출발일 기준 2세 이상이어야 합니다",
-				"childTooOld": "아이는 출발일 기준 12세 미만이어야 합니다",
-				"infantTooOld": "유아는 출발일 기준 2세 미만이어야 합니다",
+				"adultTooYoung": "성인은 성인 항목에서 만 12세 이상이어야 합니다.",
+				"representativeTooYoung": "대표자는 대표자 항목에서 만 18세 이상이어야 합니다.",
+				"childTooYoung": "아이는 어린이 항목에서 만 2세 이상이어야 합니다.",
+				"childTooOld": "아이는 어린이 항목에서 만 12세 미만이어야 합니다.",
+				"infantTooOld": "유아는 유아 항목에서 만 2세 미만이어야 합니다.",
 				"genderRequired": "성별은 필수입니다",
 				"nationalityRequired": "국적은 필수입니다",
 				"idRequired": "신분증/여권 번호는 필수입니다"

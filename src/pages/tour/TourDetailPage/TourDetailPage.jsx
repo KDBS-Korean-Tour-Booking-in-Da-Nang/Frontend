@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import styles from './TourDetailPage.module.css';
 import { ShareTourModal, LoginRequiredModal } from '../../../components';
@@ -40,6 +40,7 @@ const TourDetailPage = () => {
   const [tour, setTour] = useState(null);
   const { user } = useAuth();
   const { showError } = useToast();
+  const location = useLocation();
   const [openShare, setOpenShare] = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
   const { ratings, submitRating, updateRating, deleteRating, canRate, ratedByMe, myRating, refresh } = useTourRated(id);
@@ -162,6 +163,10 @@ const TourDetailPage = () => {
     navigate('/tour');
   };
 
+  const handleBackToManagement = () => {
+    navigate('/company/tours');
+  };
+
   const handleShare = () => {
     if (!user) { setShowLoginRequired(true); return; }
     setOpenShare(true);
@@ -180,6 +185,7 @@ const TourDetailPage = () => {
   const formatAvg = (v) => (Math.round(v * 10) / 10).toFixed(1);
 
   const isCompany = !!user && user.role === 'COMPANY';
+  const fromManagement = !!(location && location.state && location.state.fromManagement);
 
   return (
     <div className={styles['tour-detail-page']}>
@@ -192,12 +198,21 @@ const TourDetailPage = () => {
         
         <div className={styles['hero-content']}>
           <div className={styles['container']}>
-            <button onClick={handleBackToList} className={styles['back-button']}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              {t('tourPage.detail.back')}
-            </button>
+            {isCompany && fromManagement ? (
+              <button onClick={handleBackToManagement} className={styles['back-button']}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                {t('tourPage.detail.backToManagement')}
+              </button>
+            ) : (
+              <button onClick={handleBackToList} className={styles['back-button']}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                {t('tourPage.detail.back')}
+              </button>
+            )}
             
             <div className={styles['hero-info']}>
               <div className={styles['hero-badge']}>

@@ -335,7 +335,7 @@
 .tour-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
 }
 
@@ -344,9 +344,10 @@
 }
 
 .action-buttons {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
-  flex: 1;
+  width: 100%;
 }
 
 /* Toggle Switch */
@@ -442,6 +443,33 @@
   gap: 0.5rem;
   transition: all 0.2s ease;
   flex: 1;
+}
+
+/* Share Button */
+.share-btn {
+  background: transparent;
+  border: 1px solid #0ea5e9;
+  color: #0284c7;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.share-btn:hover {
+  background: #0ea5e9;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.share-icon {
+  font-size: 0.875rem;
 }
 
 .delete-btn:hover {

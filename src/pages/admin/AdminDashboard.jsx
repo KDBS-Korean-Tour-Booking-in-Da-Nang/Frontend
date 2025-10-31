@@ -9,8 +9,13 @@ import UserManagement from './UserManagement/UserManagement';
 import ReportManagement from './ReportManagement/ReportManagement';
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
+
+  // Avoid flicker: wait for auth to resolve before role-checking
+  if (loading) {
+    return null;
+  }
 
   // Check if user has admin role
   if (!user || user.role !== 'ADMIN') {

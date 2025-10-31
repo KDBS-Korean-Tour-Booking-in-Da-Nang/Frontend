@@ -482,68 +482,7 @@ const Step2Itinerary = () => {
 
       {/* Itinerary Days */}
       <div className={styles['itinerary-section']}>
-        {/* Main Header - Customizable Color Bar */}
-        <div className={styles['itinerary-main-header']}>
-          <div 
-            className={styles['main-title-container']}
-            style={{
-              background: `linear-gradient(135deg, ${formData.mainSectionColor}, ${adjustColor(formData.mainSectionColor, -20)})`,
-              boxShadow: `0 4px 15px ${formData.mainSectionColor}40`
-            }}
-          >
-            <div className={styles['single-day-title-container']}>
-              <input
-                type="text"
-                className={styles['single-day-title-input']}
-                value={formData.mainSectionTitle}
-                onChange={(e) => updateFormData('mainSectionTitle', e.target.value)}
-                placeholder={t('tourWizard.step2.placeholders.sectionTitle')}
-                title={t('tourWizard.step2.titles.editSectionTitle')}
-              />
-              {formData.mainSectionTitle !== t('tourWizard.step2.itinerary.mainSectionTitle') && (
-                <button
-                  type="button"
-                  className={styles['reset-title-btn']}
-                  onClick={() => updateFormData('mainSectionTitle', t('tourWizard.step2.itinerary.mainSectionTitle'))}
-                  title={t('tourWizard.step2.titles.resetDefault')}
-                >
-                  ↺
-                </button>
-              )}
-            </div>
-            <div className={styles['color-picker-container']}>
-              <div className={styles['color-presets']}>
-                {[
-                  '#e91e63', // Pink
-                  '#2196f3', // Blue
-                  '#4caf50', // Green
-                  '#ff9800'  // Orange
-                ].map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`${styles['color-preset']} ${formData.mainSectionColor === color ? styles['active'] : ''}`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => updateFormData('mainSectionColor', color)}
-                    title={`Chọn màu ${color}`}
-                  />
-                ))}
-              </div>
-              <button
-                type="button"
-                className={styles['custom-color-btn']}
-                title="Tùy chỉnh màu sắc"
-                onClick={() => {
-                  setCurrentTarget('main');
-                  setCustomColor(formData.mainSectionColor);
-                  setShowCustomColorPicker(true);
-                }}
-              >
-                🎯
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Main Header hidden as requested */}
 
         {/* Custom Color Picker Modal */}
         {showCustomColorPicker && (

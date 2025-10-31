@@ -1200,6 +1200,7 @@
 			"errorTitle": "An error occurred",
 			"backToList": "Back to tour list",
 			"back": "Back to list",
+			"backToManagement": "Manage tours",
 			"badge": "Tour",
 			"overview": {
 				"title": "Tour overview",
@@ -1428,23 +1429,7 @@
 				"idNumberPassport": "Passport Number"
 			},
 			"countries": {
-				"VN": "Vietnam",
-				"KR": "Korea",
-				"JP": "Japan",
-				"CN": "China",
-				"US": "United States",
-				"GB": "United Kingdom",
-				"FR": "France",
-				"DE": "Germany",
-				"TH": "Thailand",
-				"SG": "Singapore",
-				"MY": "Malaysia",
-				"PH": "Philippines",
-				"ID": "Indonesia",
-				"LA": "Laos",
-				"KH": "Cambodia",
-				"AU": "Australia",
-				"CA": "Canada"
+				"KR": "Korea"
 			},
 			"placeholders": {
 				"fullName": "Enter full name",
@@ -1537,11 +1522,11 @@
 				"dobInFuture": "Date of birth cannot be in the future",
 				"dobInvalidFormat": "Invalid date format (use YYYY-MM-DD)",
 				"dobTooOld": "Invalid date of birth (age must be ≤ 120)",
-				"adultTooYoung": "Adult must be ≥ 12 years old at departure date",
-				"representativeTooYoung": "Representative must be ≥ 18 years old at departure date",
-				"childTooYoung": "Child must be ≥ 2 years old at departure date",
-				"childTooOld": "Child must be < 12 years old at departure date",
-				"infantTooOld": "Infant must be < 2 years old at departure date",
+				"adultTooYoung": "Adult must be ≥ 12 years old in the Adult section.",
+				"representativeTooYoung": "Representative must be ≥ 18 years old in the Representative section.",
+				"childTooYoung": "Child must be ≥ 2 years old in the Children section.",
+				"childTooOld": "Child must be < 12 years old in the Children section.",
+				"infantTooOld": "Infant must be < 2 years old in the Infant section.",
 				"genderRequired": "Gender is required",
 				"nationalityRequired": "Nationality is required",
 				"idRequired": "ID/Passport number is required"

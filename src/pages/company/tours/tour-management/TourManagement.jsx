@@ -5,6 +5,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import EditTourModal from '../wizard/modals/EditTourModal';
 import DeleteConfirmModal from '../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import ShareTourModal from '../../../../components/modals/ShareTourModal/ShareTourModal';
 import styles from './TourManagement.module.css';
 import { API_ENDPOINTS, getImageUrl } from '../../../../config/api';
 
@@ -20,6 +21,8 @@ const TourManagement = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareTourId, setShareTourId] = useState(null);
   
   // Update ref when showError changes
   useEffect(() => {
@@ -84,18 +87,11 @@ const TourManagement = () => {
     }
   };
 
-  const handleToggleStatus = (tourId, currentStatus) => {
-    const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    
-    // Update local state only (for demo purposes)
-    setTours(tours.map(tour => 
-      tour.id === tourId 
-        ? { ...tour, tourStatus: newStatus }
-        : tour
-    ));
-    
-    showSuccess(newStatus === 'ACTIVE' ? 'toast.tour.activate_success' : 'toast.tour.deactivate_success');
+  const openTourDetail = (tourId) => {
+    navigate(`/tour/${tourId}`, { state: { fromManagement: true } });
   };
+
+  // Removed toggle status UI per request
 
   const handleDeleteTour = (tourId) => {
     const tour = tours.find(t => t.id === tourId);
@@ -251,7 +247,15 @@ const TourManagement = () => {
         ) : (
           <div className={styles['tours-grid']}>
             {tours.map((tour) => (
-              <div key={tour.id} className={styles['tour-card']}>
+              <div 
+                key={tour.id} 
+                className={styles['tour-card']}
+                onClick={() => openTourDetail(tour.id)}
+                style={{ cursor: 'pointer' }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') openTourDetail(tour.id); }}
+              >
                 {/* Tour Image */}
                 <div className={styles['tour-image-container']} style={{height: '250px'}}>
                   {tour.tourImgPath ? (
@@ -273,7 +277,7 @@ const TourManagement = () => {
                 </div>
 
                 {/* Tour Info */}
-                <div className={styles['tour-info']}>
+                  <div className={styles['tour-info']}>
                   <h3 className={styles['tour-name']}>{tour.tourName}</h3>
                   
                   <div className={styles['tour-price']}>
@@ -298,20 +302,9 @@ const TourManagement = () => {
 
                   {/* Controls */}
                   <div className={styles['tour-controls']}>
-                    <div className={styles['toggle-container']}>
-                      <label className={styles['toggle-switch']}>
-                        <input
-                          type="checkbox"
-                          checked={tour.tourStatus === 'ACTIVE'}
-                          onChange={() => handleToggleStatus(tour.id, tour.tourStatus)}
-                        />
-                        <span className={styles['toggle-slider']}></span>
-                      </label>
-                    </div>
-                    
                     <div className={styles['action-buttons']}>
                       <button 
-                        onClick={() => handleEditTour(tour.id)}
+                        onClick={(e) => { e.stopPropagation(); handleEditTour(tour.id); }}
                         className={styles['edit-btn']}
                       >
                         <span className={styles['edit-icon']}>✏️</span>
@@ -319,11 +312,19 @@ const TourManagement = () => {
                       </button>
                       
                       <button 
-                        onClick={() => handleDeleteTour(tour.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteTour(tour.id); }}
                         className={styles['delete-btn']}
                       >
                         <span className={styles['delete-icon']}>🗑️</span>
                         {t('tourManagement.actions.delete')}
+                      </button>
+                      
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
+                        className={styles['share-btn']}
+                      >
+                        <span className={styles['share-icon']}>🔗</span>
+                        {t('tourCard.share') || 'Chia sẻ'}
                       </button>
                     </div>
                   </div>
@@ -356,6 +357,16 @@ const TourManagement = () => {
         title={t('tourManagement.modals.delete.title')}
         message={t('tourManagement.modals.delete.message', { name: selectedTour?.tourName || '' })}
         itemName={t('tourManagement.modals.delete.itemName')}
+      />
+
+      {/* Share Tour Modal */}
+      <ShareTourModal 
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        tourId={shareTourId}
+        onShared={() => {
+          setShareOpen(false);
+        }}
       />
     </div>
   );

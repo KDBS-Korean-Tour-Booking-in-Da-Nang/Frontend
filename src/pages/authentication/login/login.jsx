@@ -466,15 +466,7 @@ const Login = () => {
               </Link>
             </div>
 
-            <div className={styles['staff-login']}>
-              <Link
-                to="/staff-login"
-                className={styles['staff-button']}
-              >
-                <ShieldCheckIcon className="h-4 w-4" />
-                {t('auth.login.staffAdminLogin')}
-              </Link>
-            </div>
+            {/* Staff/Admin quick login link removed as requested */}
           </div>
 
           {/* Illustration Section */}

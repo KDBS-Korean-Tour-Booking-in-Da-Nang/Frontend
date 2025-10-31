@@ -1203,6 +1203,7 @@
 			"errorTitle": "Đã xảy ra lỗi",
 			"backToList": "Quay lại danh sách tour",
 			"back": "Quay lại danh sách",
+			"backToManagement": "Quản lý tour",
 			"badge": "Tour du lịch",
 			"overview": {
 				"title": "Tổng quan tour",
@@ -1440,23 +1441,7 @@
 				"idNumberPassport": "Số hộ chiếu"
 			},
 			"countries": {
-				"VN": "Việt Nam",
-				"KR": "Hàn Quốc",
-				"JP": "Nhật Bản",
-				"CN": "Trung Quốc",
-				"US": "Hoa Kỳ",
-				"GB": "Vương quốc Anh",
-				"FR": "Pháp",
-				"DE": "Đức",
-				"TH": "Thái Lan",
-				"SG": "Singapore",
-				"MY": "Malaysia",
-				"PH": "Philippines",
-				"ID": "Indonesia",
-				"LA": "Lào",
-				"KH": "Campuchia",
-				"AU": "Australia",
-				"CA": "Canada"
+				"KR": "Hàn Quốc"
 			},
 			"placeholders": {
 				"fullName": "Nhập họ và tên",
@@ -1549,11 +1534,11 @@
 				"dobInFuture": "Ngày sinh không được ở tương lai",
 				"dobInvalidFormat": "Định dạng ngày sinh không hợp lệ (sử dụng YYYY-MM-DD)",
 				"dobTooOld": "Ngày sinh không hợp lệ (tuổi phải ≤ 120)",
-				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
-				"representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại ngày khởi hành",
-				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
-				"childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
-				"infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
+				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại mục người lớn.",
+				"representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại mục người đại diện.",
+				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại mục trẻ em.",
+				"childTooOld": "Trẻ em phải < 12 tuổi tại mục trẻ em.",
+				"infantTooOld": "Em bé phải < 2 tuổi tại mục em bé.",
 				"genderRequired": "Giới tính là bắt buộc",
 				"nationalityRequired": "Quốc tịch là bắt buộc",
 				"idRequired": "Số giấy tờ là bắt buộc"

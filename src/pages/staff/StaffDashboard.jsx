@@ -4,8 +4,13 @@ import StaffLayout from './StaffLayout';
 import NewsManagement from '../staff/news-management/NewsManagement';
 
 const StaffDashboard = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
+
+  // Avoid flicker on refresh: wait for auth to finish
+  if (loading) {
+    return null;
+  }
 
   // Only allow STAFF role
   if (!user || user.role !== 'STAFF') {

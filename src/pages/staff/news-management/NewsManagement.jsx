@@ -8,7 +8,7 @@ import articleService from '../../../services/articleService';
 import { extractTextFromHtml, getArticleSummary, extractFirstImageUrl, htmlToJsx } from '../../../utils/htmlConverter';
 
 const NewsManagement = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { showSuccess, showError } = useToast();
@@ -118,6 +118,11 @@ const NewsManagement = () => {
       showError(t('newsManagement.messages.crawlError'));
     }
   };
+
+  // Avoid access-denied flicker on refresh: wait for auth to resolve
+  if (authLoading) {
+    return null;
+  }
 
   // Show loading state while logging out or when user is null during logout process
   if (isLoggingOut || (!user && !isLoggingOut)) {
