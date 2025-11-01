@@ -1,3 +1,89 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS Variables for consistent color management */
+:root {
+  --color-primary: #1a8eea;
+  --color-primary-hover: #1471c4;
+  --color-primary-light: #3ba0f2;
+  --color-secondary: #D4E8FF;
+  --color-primary-rgba-10: rgba(26, 142, 234, 0.1);
+  --color-primary-rgba-30: rgba(26, 142, 234, 0.3);
+  --color-primary-rgba-40: rgba(26, 142, 234, 0.4);
+  --page-gradient: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
+  
+  /* Light theme colors (default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+}
+
+/* Dark theme colors */
+[data-theme="dark"] {
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --page-gradient: linear-gradient(135deg, #1f2937 0%, #111827 30%, #0f172a 70%, #1e1b4b 100%);
+}
+
+/* Page gradient background - non-intrusive approach */
+.page-gradient {
+  position: relative;
+  isolation: isolate;            /* tạo stacking context riêng */
+  min-height: 100vh;
+}
+
+.page-gradient::before {
+  content: "";
+  position: fixed;               /* phủ toàn màn */
+  inset: 0;
+  z-index: -1;                   /* luôn ở sau mọi thứ */
+  background: var(--page-gradient);
+}
+
+/* Utility classes for primary colors */
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-primary-hover {
+  background-color: var(--color-primary-hover);
+}
+
+.bg-primary-light {
+  background-color: var(--color-primary-light);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-primary-hover {
+  color: var(--color-primary-hover);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-primary-hover {
+  border-color: var(--color-primary-hover);
+}
+
+/* Shadow utilities */
+.shadow-primary {
+  box-shadow: 0 4px 15px var(--color-primary-rgba-30);
+}
+
+.shadow-primary-hover {
+  box-shadow: 0 4px 12px var(--color-primary-rgba-40);
+}

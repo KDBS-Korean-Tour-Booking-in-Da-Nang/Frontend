@@ -1,0 +1,274 @@
+.login-required-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.login-required-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+.login-required-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e4e6eb;
+}
+
+.login-required-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1c1e21;
+}
+
+.login-required-modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #65676b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.login-required-modal-close:hover {
+  background-color: #f0f2f5;
+  color: #1c1e21;
+}
+
+.login-required-modal-body {
+  padding: 24px;
+  text-align: center;
+}
+
+.login-required-modal-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.login-required-modal-message {
+  margin: 0;
+  font-size: 16px;
+  color: #65676b;
+  line-height: 1.5;
+}
+
+.login-required-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  justify-content: flex-end;
+}
+
+.login-required-modal-cancel,
+.login-required-modal-login {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  min-width: 80px;
+}
+
+.login-required-modal-cancel {
+  background-color: #f0f2f5;
+  color: #65676b;
+}
+
+.login-required-modal-cancel:hover {
+  background-color: #e4e6eb;
+  color: #1c1e21;
+}
+
+.login-required-modal-login {
+  background-color: #1877f2;
+  color: white;
+}
+
+.login-required-modal-login:hover {
+  background-color: #166fe5;
+}
+
+.login-required-modal-login:active {
+  background-color: #1461d1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-required-modal {
+    width: 92%;
+    max-width: 380px;
+    margin: 16px;
+  }
+  
+  .login-required-modal-header {
+    padding: 18px 22px 14px;
+  }
+  
+  .login-required-modal-title {
+    font-size: 17px;
+  }
+  
+  .login-required-modal-body {
+    padding: 22px;
+  }
+  
+  .login-required-modal-icon {
+    font-size: 44px;
+    margin-bottom: 14px;
+  }
+  
+  .login-required-modal-message {
+    font-size: 15px;
+  }
+  
+  .login-required-modal-footer {
+    padding: 14px 22px 22px;
+    gap: 10px;
+  }
+  
+  .login-required-modal-cancel,
+  .login-required-modal-login {
+    padding: 11px 18px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-required-modal {
+    width: 95%;
+    margin: 12px;
+    max-width: none;
+  }
+  
+  .login-required-modal-header {
+    padding: 16px 18px 12px;
+  }
+  
+  .login-required-modal-title {
+    font-size: 16px;
+  }
+  
+  .login-required-modal-close {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+  
+  .login-required-modal-body {
+    padding: 18px;
+  }
+  
+  .login-required-modal-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  
+  .login-required-modal-message {
+    font-size: 14px;
+  }
+  
+  .login-required-modal-footer {
+    padding: 12px 18px 18px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .login-required-modal-cancel,
+  .login-required-modal-login {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-required-modal {
+    width: 98%;
+    margin: 8px;
+  }
+  
+  .login-required-modal-header {
+    padding: 14px 16px 10px;
+  }
+  
+  .login-required-modal-title {
+    font-size: 15px;
+  }
+  
+  .login-required-modal-close {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+  }
+  
+  .login-required-modal-body {
+    padding: 16px;
+  }
+  
+  .login-required-modal-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+  
+  .login-required-modal-message {
+    font-size: 13px;
+  }
+  
+  .login-required-modal-footer {
+    padding: 10px 16px 16px;
+  }
+  
+  .login-required-modal-cancel,
+  .login-required-modal-login {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}

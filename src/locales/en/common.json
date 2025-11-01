@@ -1,11 +1,19 @@
 {
-	"brand": "Da Nang - Korea Tour",
+	"brand": "Korea - Da Nang Booking System",
 	"nav": {
 		"home": "Home",
+		"forum": "Forum",
+		"tours": "Tours",
+		"tourBooking": "Tour Booking",
+		"news": "News",
+		"selfTravel": "Self-Travel",
+		"contact": "Contact",
 		"admin": "Admin Dashboard",
 		"profile": "Profile",
 		"payment": "Payment",
+		"dashboard": "Dashboard",
 		"businessInfo": "Business Info",
+		"companyInfo": "Company Info",
 		"login": "Login",
 		"logout": "Logout",
 		"register": "Register",
@@ -17,11 +25,59 @@
 		"en": "English",
 		"ko": "Korean"
 	},
+	"common": {
+		"close": "Close",
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"processing": "Processing...",
+		"item": "item",
+		"modal": {
+			"confirmLeave": {
+				"title": "Leave the tour wizard?",
+				"message": "If you exit now, your entered data will not be saved.",
+				"stay": "Stay",
+				"leave": "Leave"
+			}
+		},
+		"deleteConfirm": {
+			"title": "Confirm Delete",
+			"message": "Are you sure you want to delete this {{item}}? This action cannot be undone.",
+			"warning": "This action cannot be undone."
+		}
+		,
+		"tourTypes": {
+			"resort": "Resort",
+			"culture": "Culture",
+			"adventure": "Adventure",
+			"teamBuilding": "Team Building",
+			"food": "Food",
+			"photography": "Photography",
+			"religious": "Religious",
+			"other": "Other"
+		}
+		,
+		"departurePoints": {
+			"daNang": "Da Nang"
+		},
+		"vehicles": {
+			"tourBus": "Tour Bus"
+		}
+	},
 	"auth": {
+		"loginRequired": {
+			"title": "Please login to perform",
+			"message": "Please login to perform this action."
+		},
 		"common": {
 			"email": "Email",
+			"form": {
+				"email": {
+					"invalid": "Invalid email format"
+				}
+			},
 			"password": "Password",
 			"rememberMe": "Remember me",
+			"rememberPassword": "Remember password?",
 			"or": "Or",
 			"otp": "OTP Code",
 			"otpPlaceholder": "000000",
@@ -37,6 +93,8 @@
 		"login": {
 			"title": "Login",
 			"subtitle": "Welcome back",
+			"illustrationTitle": "Welcome to KDBS",
+			"illustrationSubtitle": "Your gateway to amazing Korea - Da Nang tours",
 			"submit": "Login",
 			"submitting": "Logging in...",
 			"loginWithGoogle": "Sign in with Google",
@@ -52,6 +110,9 @@
 		},
 		"register": {
 			"title": "Create account",
+			"headerSubtitle": "Create a new account to get started",
+            "illustrationTitle": "Join KDBS Today",
+            "illustrationSubtitle": "Start your amazing Korea - Da Nang journey",
 			"username": "Username",
 			"usernamePlaceholder": "Enter username",
 			"password": "Password",
@@ -67,7 +128,7 @@
 			"login": "Login",
 			"errors": {
 				"passwordMismatch": "Passwords do not match",
-				"passwordMinLength": "Password must be at least 6 characters",
+				"passwordMinLength": "Password must be at least 8 characters",
 				"usernameRequired": "Username is required",
 				"registerFailed": "Registration failed. Please try again."
 			}
@@ -116,37 +177,117 @@
 	},
 	"home": {
 		"hero": {
-			"titleLead": "Tours",
-			"titleEmph": "Da Nang - Korea",
-			"desc": "Explore Da Nang's beauty and Korean culture with high-quality tours.",
-			"btnPayment": "Payment",
-			"btnProfile": "Profile",
-			"btnRegister": "Register",
-			"btnLogin": "Login"
+			"badge": "Explore Da Nang with us",
+			"titleFrom": "From",
+			"titleSoutheast": "Southeast Korea",
+			"titleTo": "to Da Nang",
+			"desc": "Stay updated with the latest travel tips, suggestions and offers.",
+			"btnBookNow": "Book Now"
 		},
-		"welcome": {
-			"heading": "Welcome to",
-			"subheading": "Da Nang - Korea Tours"
+		"services": {
+			"sectionTitle": "SERVICES",
+			"headline": "Why use KDBS",
+			"card1": {
+				"title": "Everything you need",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			},
+			"card2": {
+				"title": "Flexible booking",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			},
+			"card3": {
+				"title": "AI Integration",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			}
+		},
+		"destinations": {
+			"sectionTitle": "TOP DESTINATIONS",
+			"headline": "Discover the top highlights",
+			"seeAll": "See all",
+			"card1": {
+				"location": "Indonesia",
+				"title": "Pandawa Beach, Bali Island",
+				"rating": "4.9"
+			},
+			"card2": {
+				"location": "Bangkok",
+				"title": "Bangkok City, Thailand",
+				"rating": "4.8"
+			},
+			"card3": {
+				"location": "Japan",
+				"title": "Tokyo City, Japan",
+				"rating": "4.9"
+			}
 		},
 		"features": {
-			"sectionTitle": "Features",
-			"headline": "Best service for you",
-			"blurb": "Modern tour management with many useful features",
-			"securityTitle": "Secure",
-			"securityDesc": "Multi-layer security ensures safe personal and payment info.",
-			"speedTitle": "Fast",
-			"speedDesc": "Optimized UI for quick actions and time-saving.",
-			"reliableTitle": "Reliable",
-			"reliableDesc": "Built with modern, reliable technologies.",
-			"friendlyTitle": "Friendly",
-			"friendlyDesc": "User-friendly interface for everyone."
+			"sectionTitle": "MAIN FEATURES",
+			"headline": "We provide the best service",
+			"desc": "Hello! Travelo is here to help you find your dream vacation. Easy, you just need to find where you want to go and buy tickets.",
+			"card1": {
+				"title": "Choose multiple locations",
+				"desc": "Choose your favorite location"
+			},
+			"card2": {
+				"title": "Schedule your trip",
+				"desc": "Set the date you want"
+			},
+			"card3": {
+				"title": "Big discounts",
+				"desc": "Get discounts for all services"
+			}
 		},
-		"cta": {
-			"title1": "Ready to start?",
-			"title2": "Sign up today.",
-			"desc": "Join us to explore amazing destinations.",
-			"btn": "Sign up for free"
+		"testimonials": {
+			"sectionTitle": "TESTIMONIALS",
+			"headline": "Trust our customers",
+			"name": "Irfan Rahmat",
+			"role": "Travel enthusiast",
+			"review": "I love Travelo, this is the best place to buy tickets and help you find your dream vacation."
+		},
+		"newsletter": {
+			"sectionTitle": "NEWSLETTER SIGNUP",
+			"headline": "Prepare yourself and let's explore the beauty of the world",
+			"emailPlaceholder": "Your email",
+			"btnSubscribe": "Subscribe"
 		}
+	},
+	"footer": {
+		"company": {
+			"title": "Company",
+			"about": "About Us",
+			"careers": "Careers",
+			"press": "Press",
+			"blog": "Blog"
+		},
+		"support": {
+			"title": "Support",
+			"help": "Help Center",
+			"contact": "Contact",
+			"status": "Status",
+			"community": "Community"
+		},
+		"legal": {
+			"title": "Legal",
+			"privacy": "Privacy Policy",
+			"terms": "Terms of Service",
+			"cookies": "Cookie Policy",
+			"gdpr": "GDPR"
+		},
+		"social": {
+			"title": "Social Media",
+			"facebook": "Facebook",
+			"twitter": "Twitter",
+			"instagram": "Instagram",
+			"linkedin": "LinkedIn"
+		},
+		"newsletter": {
+			"title": "Newsletter Subscription",
+			"desc": "Get updates on the latest tours and special offers.",
+			"emailPlaceholder": "Enter your email",
+			"subscribe": "Subscribe"
+		},
+		"copyright": "© 2024 KDBS. All rights reserved.",
+		"rights": "All rights reserved."
 	},
 	"pending": {
 		"title": "Pending Approval",
@@ -162,9 +303,11 @@
 		"note1": "Approval usually takes 1-3 business days.",
 		"note2": "You will receive an email once approved.",
 		"btnHome": "Go to Home",
-		"btnLogout": "Logout"
+		"btnLogout": "Logout",
+		"info_submit_success": "Business information submitted successfully!",
+		"info_submit_failed": "An error occurred while submitting information. Please try again."
 	},
-	"business": {
+  "company": {
 		"loading": "Loading...",
 		"notFoundTitle": "Registration information not found",
 		"backToRegister": "Back to register",
@@ -314,74 +457,15 @@
 		"cancel": "Cancel",
 		"saveChanges": "Save changes"
 	},
-	"payment": {
-		"loginRequired": "Please login to use payment services",
-		"heading": "Payment Management",
-		"subtitle": "Deposit, withdraw and view history",
-		"tabs": {
-			"deposit": "Deposit",
-			"withdraw": "Withdraw",
-			"history": "History"
-		},
-		"deposit": {
-			"title": "Deposit to account",
-			"amountLabel": "Amount (VND)",
-			"placeholder": "Enter amount (min 10,000 VND)",
-			"minError": "Minimum amount is 10,000 VND",
-			"paymentInfoTitle": "Payment information",
-			"bank": "• Bank: Vietcombank",
-			"account": "• Account number: 1234567890",
-			"holder": "• Account holder: DA NANG KOREA TOURS",
-			"content": "• Content: NAP_[PHONE]",
-			"submit": "Deposit",
-			"submitting": "Processing...",
-			"success": "Deposit successful!",
-			"failed": "Deposit failed. Please try again."
-		},
-		"withdraw": {
-			"title": "Withdraw from account",
-			"amountLabel": "Amount (VND)",
-			"accountNumber": "Bank account number",
-			"accountHolder": "Account holder name",
-			"placeholderAmount": "Enter amount (min 50,000 VND)",
-			"submit": "Withdraw",
-			"submitting": "Processing...",
-			"success": "Withdrawal request submitted!",
-			"failed": "Withdrawal failed. Please try again."
-		},
-		"history": {
-			"title": "Transaction history",
-			"headers": {
-				"type": "Type",
-				"amount": "Amount",
-				"status": "Status",
-				"bank": "Bank",
-				"paymentId": "Payment ID",
-				"date": "Date"
-			},
-			"type": {
-				"deposit": "Deposit",
-				"withdraw": "Withdraw"
-			},
-			"status": {
-				"completed": "Completed",
-				"pending": "Pending",
-				"failed": "Failed",
-				"unknown": "Unknown"
-			}
-		}
-	},
 	"oauth": {
 		"successLogin": "Login successful!",
 		"missingInfo": "Missing required authentication info",
 		"failed": "OAuth verification failed: {{message}}"
 	},
-	"common": {
-		"close": "Close"
-	},
 	"staffLogin": {
 		"title": "Staff/Admin Login",
 		"subtitle": "Access the management system",
+		"username": "Username",
 		"email": "Email",
 		"password": "Password",
 		"submit": "Login",
@@ -395,7 +479,1560 @@
 			"staff": "Staff:",
 			"password": "Password: (any)"
 		}
+	},
+	"forum": {
+		"title": "Forum",
+		"shareTour": {
+			"title": "Share tour to forum",
+			"captionPlaceholder": "Write your thoughts...",
+			"shareNow": "Share"
+		},
+		"createPost": {
+			"placeholder": "What's on your mind?",
+			"title": "Create New Post",
+			"editTitle": "Edit Post",
+			"titleLabel": "Title",
+			"titlePlaceholder": "Enter post title...",
+			"contentLabel": "Content",
+			"contentPlaceholder": "Share your thoughts...",
+			"hashtagsLabel": "Hashtags",
+			"hashtagsPlaceholder": "Enter hashtags (separated by commas)...",
+			"imagesLabel": "Images",
+			"addImages": "Add Images",
+			"removeImage": "Remove Image",
+			"submit": "Post",
+			"submitting": "Posting...",
+			"update": "Update",
+			"updating": "Updating...",
+			"cancel": "Cancel",
+			"errors": {
+				"titleRequired": "Please enter a title",
+				"contentRequired": "Please enter content",
+				"titleMinLength": "Title must be at least 5 characters",
+				"contentMinLength": "Content must be at least 10 characters",
+				"imageSize": "Image size must not exceed 5MB",
+				"imageFormat": "Only JPG, PNG, GIF formats are supported",
+				"updateError": "Error occurred while updating post",
+				"submitError": "Error occurred while posting",
+				"imageEditNote": "Cannot change images when editing post"
+			},
+			"imageUploadDisabled": "Cannot upload images",
+			"imageUploadDisabledReason": "When posting with links, you cannot upload images at the same time.",
+			"existingImagesRemoved": "Images have been removed",
+			"existingImagesRemovedReason": "Uploaded images will be removed when you enter links in the content."
+		},
+		"post": {
+			"loading": "Loading posts...",
+			"noPosts": "No posts found",
+			"noPostsDesc": "Be the first to share something!",
+			"createFirst": "Create first post",
+			"loadMore": "Load more posts",
+			"loadingMore": "Loading...",
+			"noMorePosts": "No more posts to load",
+			"backToList": "← Back to list",
+			"edit": "Edit",
+			"delete": "Delete",
+			"report": "Report",
+			"save": "Save",
+			"unsave": "Unsave",
+			"like": "Like",
+			"dislike": "Dislike",
+			"comment": "Comment",
+			"comments": "Comments",
+			"reply": "Reply",
+			"showReplies": "Show replies",
+			"hideReplies": "Hide replies",
+			"ago": "ago",
+			"justNow": "Just now",
+			"minutes": "minutes",
+			"hours": "hours",
+			"days": "days",
+			"weeks": "weeks",
+			"months": "months",
+			"years": "years",
+			"deleteConfirm": "Are you sure you want to delete this post?",
+			"deleteSuccess": "Post deleted successfully",
+			"deleteError": "Unable to delete post. Please try again.",
+			"saveSuccess": "Post saved",
+			"unsaveSuccess": "Post unsaved",
+			"likeSuccess": "Post liked",
+			"unlikeSuccess": "Post unliked"
+		},
+		"comments": {
+			"placeholder": "Write a comment...",
+			"submit": "Comment",
+			"submitting": "Submitting...",
+			"edit": "Edit",
+			"delete": "Delete",
+			"reply": "Reply",
+			"report": "Report",
+			"editPlaceholder": "Edit comment...",
+			"replyPlaceholder": "Write a reply...",
+			"update": "Update",
+			"updating": "Updating...",
+			"cancel": "Cancel",
+			"deleteConfirm": "Are you sure you want to delete this comment?",
+			"deleteSuccess": "Comment deleted",
+			"deleteError": "Unable to delete comment. Please try again.",
+			"updateSuccess": "Comment updated",
+			"updateError": "Unable to update comment. Please try again.",
+			"submitSuccess": "Comment added",
+			"submitError": "Unable to add comment. Please try again.",
+			"hideComments": "Hide comments",
+			"showMore": "Show more",
+			"noComments": "No comments yet. Be the first to comment!",
+			"reported": "Reported"
+		},
+		"search": {
+			"title": "Search Posts",
+			"placeholder": "Search posts...",
+			"searchButton": "Search",
+			"clearButton": "Clear search",
+			"noResults": "No results found",
+			"backToForum": "Back to Forum",
+			"headerTitle": "Search Results",
+			"postCount": "posts",
+			"popularHashtags": "Popular Hashtags",
+			"recentSearches": "Recent Searches",
+			"clearRecent": "Clear History",
+			"by": "by",
+			"user": "user",
+			"posts": "posts"
+		},
+		"sidebar": {
+			"savedPosts": "📚 Saved Posts",
+			"myPosts": "📝 My Posts",
+			"trendingTopics": "Trending Topics",
+			"onlineUsers": "Online Users",
+			"follow": "Follow",
+			"unfollow": "Unfollow",
+			"viewProfile": "View Profile",
+			"seeAllSuggestions": "See all suggestions",
+			"mockUsers": {
+				"user1": "John Smith",
+				"user2": "Sarah Johnson",
+				"user3": "Mike Wilson",
+				"user4": "Emily Davis",
+				"user5": "David Brown"
+			}
+		},
+		"trendingTopics": {
+			"ai": "Latest AI Technology",
+			"startup": "Successful Startup",
+			"marketing": "Digital Marketing",
+			"finance": "Financial Investment",
+			"design": "UX/UI Design"
+		},
+		"modals": {
+			"savedPosts": {
+				"title": "📚 Saved Posts",
+				"noSavedPosts": "You haven't saved any posts yet",
+				"noSavedPostsDesc": "Save interesting posts to view them later!",
+				"close": "Close",
+				"loadError": "Unable to load saved posts list",
+				"retry": "Retry",
+				"clickToView": "Click to view post",
+				"savedAt": "Saved at",
+				"note": "Note",
+				"unsave": "Unsave",
+				"previous": "Previous",
+				"next": "Next",
+				"pageInfo": "Page {{current}} / {{total}} ({{count}} posts)"
+			},
+			"reactions": {
+				"title": "👍 Reacted Posts",
+				"noReactions": "You haven't reacted to any posts yet",
+				"noReactionsDesc": "Like and comment to interact with the community!",
+				"close": "Close",
+				"all": "All",
+				"liked": "Liked",
+				"disliked": "Disliked",
+				"reacted": "Reacted",
+				"clickToView": "Click to view post",
+				"post": "Post",
+				"comment": "Comment",
+				"removeReaction": "Remove reaction"
+			},
+			"report": {
+				"title": "Report Post",
+				"reason": "Report Reason",
+				"selectReason": "Please select a reason for reporting:",
+				"selectReasonError": "Please select at least one reason for reporting",
+				"additionalDescription": "Additional Description (Optional):",
+				"descriptionPlaceholder": "Describe the reason for reporting in detail...",
+				"submit": "Submit Report",
+				"submitting": "Submitting...",
+				"submitError": "An error occurred while reporting the post. Please try again.",
+				"cancel": "Cancel",
+				"success": "Report submitted successfully",
+				"error": "Unable to submit report. Please try again.",
+				"loginRequired": "Please login to report posts",
+				"reasons": {
+					"spam": "Spam",
+					"spamDesc": "Spam content or inappropriate advertising",
+					"inappropriate": "Inappropriate Content",
+					"inappropriateDesc": "Content that may be offensive or inappropriate",
+					"violence": "Violence",
+					"violenceDesc": "Content containing violence or threats",
+					"harassment": "Harassment",
+					"harassmentDesc": "Harassment or bullying of others",
+					"hateSpeech": "Hate Speech",
+					"hateSpeechDesc": "Hate speech or discrimination",
+					"falseInfo": "False Information",
+					"falseInfoDesc": "Misleading or false information",
+					"copyright": "Copyright Violation",
+					"copyrightDesc": "Copyright or intellectual property violation",
+					"other": "Other",
+					"otherDesc": "Other reason"
+				}
+			},
+			"reportSuccess": {
+				"title": "Report submitted successfully!",
+				"message": "Thank you for reporting. We will review and process your report as soon as possible.",
+				"adminNote": "Please wait for admin review!",
+				"autoClose": "Auto close in {{seconds}}s",
+				"understood": "Understood"
+			}
+		},
+		"guest": {
+			"welcome": "👋 Welcome to the forum!",
+			"loginPrompt": "Login to join discussions and share your thoughts.",
+			"loginLink": "Login",
+			"loginToSave": "Login to save posts",
+			"loginToReact": "Login to react",
+			"loginToComment": "Login to comment",
+			"searchAndFilter": "💡 You can search posts and filter by hashtags without logging in!"
+		},
+		"filter": {
+			"clearAll": "Clear all filters",
+			"selected": "selected"
+		},
+		"hashtag": {
+			"clickToFilter": "Click to filter posts by this hashtag",
+			"headerTitle": "Filter by Hashtag",
+			"postCount": "posts",
+			"backToForum": "Back to Forum"
+		},
+		"errors": {
+			"loadPosts": "Unable to load posts. Please try again.",
+			"loadComments": "Unable to load comments. Please try again.",
+			"networkError": "Connection error. Please check your internet and try again.",
+			"unauthorized": "You need to login to perform this action.",
+			"forbidden": "You don't have permission to perform this action.",
+			"notFound": "Requested content not found.",
+			"serverError": "Server error. Please try again later."
+		},
+		"mockPosts": {
+			"ai": {
+				"title": "Latest AI Technology 2025",
+				"content": "AI is developing at a rapid pace. New technologies like GPT-5, Claude 4 are changing how we work and learn.",
+				"comment": "Great post! AI is really changing the world."
+			},
+			"startup": {
+				"title": "Startup Success: Lessons from Failure",
+				"content": "Failure is not the end, but a stepping stone to success. Let's share valuable lessons from failed startups."
+			},
+			"marketing": {
+				"title": "Digital Marketing in the 4.0 Era",
+				"content": "Digital marketing is becoming the main trend. Traditional marketing strategies need to be updated to fit the digital age."
+			}
+		},
+		"myPosts": {
+			"title": "My Posts",
+			"empty": "You haven't created any posts yet. Create your first post!",
+			"emptyDesc": "Share your ideas and experiences with the community.",
+			"headerTitle": "My Posts",
+			"postCount": "posts",
+			"backToForum": "Back to Forum"
+		}
+	},
+	"forum.shareTour": {
+		"title": "Share tour to forum",
+		"captionPlaceholder": "Write your thoughts...",
+		"shareNow": "Share"
+	},
+	"toast": {
+		"required": "{{field}} is required",
+		"name_required": "Name is required",
+		"login_required": "Please login to continue",
+		"save_success": "Save successful",
+		"save_error": "An error occurred while saving",
+		"invalid_past_deadline": "Booking deadline cannot be in the past. Adjusted to current time.",
+		"max_capacity_range": "Maximum capacity must be between 1 and 9999.",
+		"company_only": "Only Company accounts can perform this action.",
+		"field_invalid": "Invalid value",
+		"tour": {
+			"upload_image_failed": "Unable to upload image. Please try again.",
+			"file_size_exceeded": "File size must not exceed 5MB",
+			"invalid_file_format": "Only image files are allowed",
+			"itinerary_required": "Must have at least 1 day in itinerary.",
+			"name_required": "Tour name is required",
+			"user_info_not_found": "User information not found. Please login again.",
+			"user_email_not_found": "User email not found. Please login again.",
+			"create_success": "Tour created successfully!",
+			"delete_success": "Tour deleted successfully",
+			"delete_error": "An error occurred while deleting tour",
+			"load_failed": "Unable to load tour list",
+			"load_error": "An error occurred while loading tour list",
+			"activate_success": "Tour activated",
+			"deactivate_success": "Tour deactivated",
+			"cannot_delete_content": "Cannot delete content"
+		},
+  
+		"auth": {
+			"login_success": "Login successful!",
+			"login_failed": "Login failed. Please try again.",
+			"invalid_credentials": "Login failed. Please check your password.",
+			"register_success": "Registration successful! Please check your email to verify your account.",
+			"email_already_exists": "This email is already registered",
+			"google_connection_failed": "Cannot connect to Google. Please try again.",
+			"naver_connection_failed": "Cannot connect to Naver. Please try again.",
+			"email_verify_success": "Email verification successful!",
+			"email_verify_failed": "Email verification failed. Please try again.",
+			"otp_sent_success": "New OTP code has been sent!",
+			"otp_resend_failed": "Unable to resend OTP code. Please try again.",
+			"password_reset_email_sent": "Password reset email has been sent!",
+			"otp_verify_success": "OTP verification successful!",
+			"general_error": "An error occurred. Please try again.",
+			"email_not_found": "Login failed. Please check your email.",
+			"wrong_password": "Login failed. Please check your password.",
+			"both_invalid": "Login failed. Please check your email or password."
+		},
+    "company": {
+      "info_submit_success": "Company information submitted successfully!",
+      "info_submit_failed": "An error occurred while submitting information. Please try again."
+    },
+    "forum": {
+			"post_update_success": "Post updated successfully!",
+			"post_create_success": "Post created successfully!",
+			"post_update_failed": "Failed to update post. Please try again.",
+			"post_create_failed": "Failed to create post. Please try again."
+		}
+	},
+	"tourWizard": {
+		"steps": {
+			"step1": {
+				"title": "Basic Information",
+				"description": "Enter basic tour information"
+			},
+			"step2": {
+				"title": "Itinerary",
+				"description": "Set up detailed itinerary"
+			},
+			"step3": {
+				"title": "Pricing & Policies",
+				"description": "Set up pricing and policies"
+			},
+			"step4": {
+				"title": "Images",
+				"description": "Upload images and attachments"
+			}
+		},
+		"navigation": {
+			"back": "Back",
+			"next": "Next",
+			"complete": "Complete",
+			"creating": "Creating..."
+		},
+		"step1": {
+			"title": "Basic Information",
+			"subtitle": "Enter basic tour information",
+            "fields": {
+                "tourName": "Tour Name",
+                "tourType": "Tour Type",
+                "departurePoint": "Departure Point *",
+                "vehicle": "Vehicle *",
+                "duration": "Duration (Days)",
+                "nights": "Nights",
+                "maxCapacity": "Max Capacity",
+                "bookingDeadline": "Booking Deadline"
+            },
+			"placeholders": {
+				"tourName": "Example: Da Nang - Hoi An 3D2N Tour, Korea 5D4N Tour",
+				"duration": "Example: 3",
+				"nights": "Example: 2",
+				"maxCapacity": "Example: 30",
+				"bookingDeadline": "Select booking deadline date and time"
+			},
+			"help": {
+				"departurePoint": "All tours depart from Da Nang",
+				"vehicle": "Default vehicle: Tourist Bus",
+				"bookingDeadline": "Deadline for customers to book the tour"
+			},
+			"hints": {
+				"nightsSuggestion": "Suggestion: {{suggest}} night(s) (for {{days}} day(s)).",
+				"allowedNights": "Allowed: {{allowed}} night(s)."
+			},
+			"summary": {
+				"title": "Information Summary",
+				"tourName": "Tour Name:",
+				"tourType": "Tour Type:",
+				"departurePoint": "Departure Point:",
+				"vehicle": "Vehicle:",
+				"duration": "Duration:",
+				"days": "day(s)",
+				"nights": "night(s)",
+				"maxCapacity": "Max Capacity:",
+				"bookingDeadline": "Booking Deadline:",
+				"notEntered": "Not entered",
+				"notSelected": "Not selected",
+				"guests": "guests"
+			}
+		},
+		"step2": {
+			"prefix": {
+				"day": "DAY {{n}}",
+				"chapter": "CHAPTER {{n}}",
+				"session": "SESSION {{n}}"
+			},
+			"title": "Detailed Itinerary",
+			"subtitle": "Set up detailed daily itinerary",
+			"fields": {
+				"tourSchedule": "Schedule Summary"
+			},
+			"tourSchedule": {
+				"description": "Enter a summary of the tour schedule (e.g., Hue - Gala Dinner - Thanh Tan - Teambuilding)",
+				"placeholder": "Enter tour schedule summary..."
+			},
+			"placeholders": {
+				"dayTitle": "Enter day title (e.g., DAY 1 - DA NANG – HUE - GALA DINNER)",
+				"sectionTitle": "Enter section title (e.g., DESTINATIONS & ITINERARY)"
+			},
+			"day": {
+				"defaultMeal": "Lunch – Dinner"
+			},
+			"activities": {
+				"label": "Activities & Locations"
+			},
+			"images": {
+				"label": "Illustrative Images (max 5 images)"
+			},
+			"actions": {
+				"addContentAfter": "Add content after",
+				"addContent": "+ Add content",
+				"removeThis": "Remove this content",
+				"removeContent": "− Remove content"
+			},
+			"services": {
+				"title": "Included Services",
+				"add": "+ Add Service",
+				"types": {
+					"food": "Food & Beverage",
+					"ticket": "Admission Tickets",
+					"transport": "Transportation",
+					"other": "Other"
+				},
+				"placeholders": {
+					"name": "Service name",
+					"price": "Price (VND)"
+				}
+			},
+			"instructions": {
+				"title": "💡 Instructions:",
+				"description": "You can fully customize all titles in the itinerary:",
+				"customizable": "🔧 Customizable sections:",
+				"sectionTitle": "Section title:",
+				"dayTitle": "Day title:",
+				"examples": "📝 Day title examples:"
+			},
+			"examples": {
+				"c1": "DA NANG – HUE - GALA DINNER",
+				"c2": "HOI AN - THANH HA POTTERY VILLAGE",
+				"c3": "BA NA HILLS - GOLDEN BRIDGE",
+				"c4": "DA NANG CITY TOUR"
+			},
+            "tourDescription": {
+                "title": "Tour Description",
+				"description": "Overall description of the tour, highlights and benefits for customers",
+				"placeholder": "Enter text description (no images)..."
+			},
+			"itinerary": {
+				"mainSectionTitle": "DESTINATIONS & ITINERARY",
+                "activities": "Activities & Locations",
+				"images": "Illustrative Images (max 5 images)",
+				"services": "Included Services",
+				"addService": "+ Add Service",
+				"addDay": "+ Add Day",
+				"removeDay": "− Remove Day",
+				"serviceTypes": {
+					"food": "Food & Beverage",
+					"ticket": "Admission Tickets",
+					"transport": "Transportation",
+					"other": "Other"
+				},
+				"servicePlaceholders": {
+					"name": "Service name",
+					"price": "Price (VND)"
+				}
+			},
+			"titles": {
+				"editSectionTitle": "Edit section title",
+				"editDayTitle": "Edit day title",
+				"resetDefault": "Reset to default",
+				"clearDayTitle": "Clear day title"
+			},
+			"alignment": {
+				"left": "Left align",
+				"center": "Center align",
+				"right": "Right align"
+			},
+			"color": {
+				"choose": "Choose color {{color}}",
+				"customize": "Customize colors"
+			},
+			"colorPicker": {
+				"title": "Customize Colors",
+				"apply": "Apply",
+				"cancel": "Cancel"
+			}
+		},
+		"step3": {
+			"title": "Pricing & Policies",
+			"subtitle": "Set up tour pricing and policies",
+			"pricing": {
+                "title": "Tour Pricing",
+                "adultPrice": "Adult Price (≥ 12 years)",
+				"childrenPrice": "Children Price (2-11 years)",
+				"babyPrice": "Baby Price (under 2 years)",
+				"unit": "VND / person",
+				"unitChildren": "VND / child",
+				"unitBaby": "VND / baby",
+				"placeholders": {
+					"adultPrice": "Example: 2500000",
+					"childrenPrice": "Example: 1800000",
+					"babyPrice": "Example: 500000"
+				},
+				"error": "Please enter adult price"
+			},
+			"summary": {
+				"title": "Price Summary",
+				"adult": "Adult:",
+				"children": "Children:",
+				"baby": "Baby:"
+			},
+			"surcharges": {
+				"title": "Surcharges",
+				"add": "+ Add Surcharge",
+				"types": {
+					"holiday": "Holidays",
+					"weekend": "Weekends",
+					"singleRoom": "Single Room",
+					"peakSeason": "Peak Season",
+					"other": "Other"
+				},
+				"placeholders": {
+					"name": "Surcharge name",
+					"percentage": "Percentage (%)"
+				},
+				"description": "Surcharge description"
+			},
+			"policies": {
+				"title": "Policies",
+				"surchargePolicy": "Surcharge Policy",
+				"cancellationPolicy": "Cancellation/Refund Policy *",
+				"placeholders": {
+					"surchargePolicy": "Enter surcharge policy...",
+					"cancellationPolicy": "Enter cancellation/refund policy..."
+				}
+			}
+		},
+		"step4": {
+			"title": "Images & Attachments",
+			"thumbnail": {
+				"title": "Tour Cover Image",
+				"changeImage": "Change Image",
+				"selectImage": "Click to select cover image",
+				"supportedFormats": "Supported: JPG, PNG, GIF, WebP, SVG",
+				"recommendedSize": "Recommended size: 1200x800px (max 10MB)"
+			},
+			"preview": {
+				"title": "Tour Preview",
+				"infoTitle": "Tour preview information:",
+				"fields": {
+					"tourName": "Tour Name:",
+					"duration": "Duration:",
+					"adultPrice": "Adult Price:",
+					"image": "Image:",
+					"status": "Status:"
+				},
+				"values": {
+					"notSet": "No name set",
+					"noPrice": "No price set",
+					"uploaded": "Uploaded",
+					"notUploaded": "Not uploaded",
+					"willShow": "Will show in tour list"
+				}
+			}
+		}
+	},
+	"bookingWizard": {
+		"steps": {
+			"step1": { "title": "Contact Information", "description": "Enter your contact information" },
+			"step2": { "title": "Tour Details", "description": "Select date and group information" },
+			"step3": { "title": "Confirm", "description": "Review and confirm booking" }
+		},
+		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking" },
+		"auth": {
+			"checking": "Checking authentication...",
+			"loginRequiredTitle": "Login Required",
+			"loginRequiredMessage": "You need to login to book a tour.",
+			"loginButton": "Login"
+		},
+		"processing": "Processing..."
+	},
+	"tourManagement": {
+		"title": "Tour Management",
+		"createNew": "Create New Tour",
+		"header": {
+			"title": "Tour List",
+			"addNew": "Add New Tour"
+		},
+		"loading": {
+			"user": "Loading user information...",
+			"tours": "Loading tours..."
+		},
+		"accessDenied": {
+			"title": "Access Denied",
+			"message": "You need business permissions to access this page."
+		},
+		"actions": {
+			"edit": "Edit",
+			"delete": "Delete",
+			"activate": "Activate",
+			"deactivate": "Deactivate"
+		},
+		"status": {
+			"active": "Active",
+			"inactive": "Inactive"
+		},
+		"statusBadge": {
+			"ACTIVE": "ACTIVE",
+			"INACTIVE": "INACTIVE",
+			"NOT_APPROVED": "PENDING",
+			"DRAFT": "DRAFT",
+			"UNKNOWN": "UNKNOWN"
+		},
+		"card": {
+			"priceLabel": "PRICE/PERSON",
+			"durationLabel": "DURATION:",
+			"capacityLabel": "CAPACITY:",
+			"capacityUnit": "guests",
+			"departureLabel": "DEPARTURE:",
+			"durationZero": "0 days",
+			"durationDays": "{{days}} days"
+		},
+		"empty": {
+			"title": "No tours yet",
+			"description": "Start creating your first tour",
+			"createFirst": "Create First Tour"
+		},
+		"modals": {
+			"delete": {
+				"title": "Confirm delete tour",
+				"message": "Are you sure you want to delete tour \"{{name}}\"?",
+				"itemName": "this tour"
+			}
+		},
+		"edit": {
+			"title": "Edit tour",
+			"saving": "Saving...",
+			"save": "Save changes",
+			"tabs": {
+				"basic": "Basic Info",
+				"itinerary": "Itinerary",
+				"pricing": "Pricing & Policies",
+				"media": "Media"
+			},
+			"basic": {
+				"title": "Basic Information",
+				"priceCapacityTitle": "Pricing & Capacity",
+				"fields": {
+					"tourName": "Tour Name *",
+					"tourDescription": "Tour Description",
+					"tourDuration": "Duration",
+					"tourDeparturePoint": "Departure Point",
+					"tourVehicle": "Vehicle",
+					"tourType": "Tour Type",
+					"amount": "Capacity (people)",
+					"tourStatus": "Status",
+					"bookingDeadline": "Booking Deadline"
+				},
+				"placeholders": {
+					"tourDuration": "Ex: 5 days 4 nights",
+					"selectTourType": "Select tour type"
+				}
+			},
+			"itinerary": {
+				"title": "Tour itinerary",
+				"dailyTitle": "Daily itinerary",
+				"dayN": "Day {{day}}",
+				"fields": {
+					"dayTitle": "Day title",
+					"dayDescription": "Detailed description"
+				},
+				"actions": {
+					"addDay": "+ Add day",
+					"removeDay": "− Remove day"
+				}
+			},
+			"pricing": {
+				"title": "Pricing & Policies",
+				"fields": {
+					"adultPrice": "Adult Price (₫)",
+					"childrenPrice": "Children Price (₫)",
+					"babyPrice": "Baby Price (₫)",
+					"surchargePolicy": "Surcharge Policy",
+					"cancellationPolicy": "Cancellation Policy"
+				}
+			},
+			"media": {
+				"title": "Tour cover image",
+				"coverLabel": "Tour cover image",
+				"changeImage": "Change image",
+				"selectImage": "Select cover image",
+				"hint": "Supported: JPG, PNG, GIF. Max size: 5MB"
+			}
+		}
+	},
+	"tourPage": {
+		"detail": {
+			"loading": "Loading tour information...",
+			"errorTitle": "An error occurred",
+			"backToList": "Back to tour list",
+			"back": "Back to list",
+			"backToManagement": "Manage tours",
+			"badge": "Tour",
+			"overview": {
+				"title": "Tour overview",
+				"departVehicle": "Depart from {{departure}} by {{vehicle}}.",
+				"adultPrice": "Adult price",
+				"childrenPrice": "Children price",
+				"babyPrice": "Baby price",
+				"free": "Free",
+				"amount": "Capacity",
+				"availableDates": "Departure dates"
+			},
+			"highlights": {
+				"title": "Tour highlights",
+				"items": {
+					"historyTitle": "Visit historical sites",
+					"historyDesc": "Explore famous historical sites with professional guides",
+					"foodTitle": "Local cuisine",
+					"foodDesc": "Enjoy famous local specialties",
+					"photoTitle": "Memorable photos",
+					"photoDesc": "Capture moments at iconic check-in spots",
+					"giftTitle": "Souvenir shopping",
+					"giftDesc": "Free time to buy meaningful souvenirs"
+				}
+			},
+			"itinerary": {
+				"header": "DESTINATIONS & ITINERARY",
+				"updating": "Itinerary is being updated.",
+				"day": "Day {{index}}"
+			},
+			"gallery": {
+				"title": "Tour gallery"
+			},
+        "reviews": {
+            "title": "Ratings & Reviews",
+            "placeholder": "Share your experience...",
+            "submit": "Submit review",
+            "cannotRate": "You are not eligible to rate this tour.",
+            "empty": "No reviews yet.",
+            "edit": "Edit",
+            "delete": "Delete",
+            "editPrompt": "Edit your comment:",
+            "editStarPrompt": "Edit stars (1-5):",
+            "deleteConfirm": "Delete this review?"
+        },
+			"booking": {
+				"price": "Tour price",
+				"includedNote": "Price includes taxes and service fees",
+				"children": "Children",
+				"baby": "Baby",
+				"bookNow": "Book now",
+				"contact": "Contact support",
+				"infoTitle": "Booking information",
+				"infos": [
+					"✓ 24/7 booking support",
+					"✓ Secure payment",
+					"✓ Free cancellation 24h before departure",
+					"✓ Free travel insurance",
+					"✓ Professional tour guides",
+					"✓ Comfortable tourist bus"
+				],
+				"contactTitle": "Contact to book"
+			}
+		}
+	},
+	"tourList": {
+		"hero": {
+			"title": "Da Nang tours - domestic and international highlights",
+			"desc": "We bring the best quality tours at reasonable prices for a true travel experience."
+		},
+		"search": {
+			"placeholder": "Search tours..."
+		},
+		"historyBooking": {
+			"title": "Booking History"
+		},
+		"categories": {
+			"all": "All tours",
+			"domestic": "Domestic tours",
+			"international": "International tours",
+			"dayTour": "Day tours"
+		},
+		"loading": "Loading tours...",
+		"error": {
+			"title": "An error occurred",
+			"retry": "Retry"
+		},
+		"empty": {
+			"title": "No tours found",
+			"desc": "Try a different keyword or select another category."
+		},
+		"loadMore": "Load more"
+	},
+	"bookingHistory": {
+		"title": "Booking History",
+		"subtitle": "View all your tour bookings",
+		"backButton": "Back",
+		"loading": "Loading booking history...",
+		"loginRequired": {
+			"title": "Login Required",
+			"message": "Please login to view your booking history."
+		},
+		"error": {
+			"title": "An Error Occurred",
+			"retry": "Try Again"
+		},
+		"empty": {
+			"title": "No Bookings Yet",
+			"message": "You haven't booked any tours yet. Explore our amazing tours!"
+		},
+		"card": {
+			"bookingId": "Booking ID",
+			"departureDate": "Departure Date",
+			"totalGuests": "Total Guests",
+			"guests": "guests",
+			"contactName": "Contact Name",
+			"contactPhone": "Contact Phone",
+			"totalAmount": "Total Amount",
+			"viewDetails": "View Details",
+			"bookedOn": "Booked On",
+			"alreadyFeedbacked": "Already Feedbacked"
+		},
+		"filters": {
+			"status": "Filter by Status",
+			"date": "Filter by Date",
+			"allStatus": "All Status",
+			"newestDate": "Newest Date",
+			"oldestDate": "Oldest Date"
+		},
+		"status": {
+			"pending": "Pending",
+			"confirmed": "Confirmed",
+			"cancelled": "Cancelled"
+		}
+	},
+	"tourCard": {
+		"welcome": {
+			"explore": "Explore",
+			"dream": "Dream Destination"
+		},
+		"viewDetails": "View Details",
+		"sampleTitle": "Sample Tour",
+		"featured": "Featured",
+		"children": "Children:",
+		"baby": "Baby:",
+		"details": "DETAILS",
+		"share": "Share",
+		"duration": {
+			"template": "{{days}} day{{daysSuffix}} {{nights}} night{{nightsSuffix}}"
+		}
+	},
+	"businessNav": {
+		"brandSuffix": "Business",
+		"title": "Business Management",
+		"roleSuffix": "Business",
+		"mobileSectionTitle": "Business Management",
+		"dropdown": {
+			"manageToursTitle": "Manage Tours",
+			"manageToursDesc": "Create and manage tours",
+			"analyticsTitle": "Analytics & Reports",
+			"analyticsDesc": "View revenue and stats",
+			"ordersTitle": "Manage Orders",
+			"ordersDesc": "View and process orders"
+		}
+	},
+  "profileRole": {
+    "USER": "User",
+    "COMPANY": "Company",
+    "BUSINESS": "Business",
+    "ADMIN": "Admin",
+    "STAFF": "Staff",
+    "UNKNOWN": "Unknown"
+  },
+	"booking": {
+        "step1": {
+          "fields": {
+            "fullName": "Full Name",
+            "phone": "Phone Number",
+            "email": "Email",
+        "gender": "Gender",
+            "dob": "Date of Birth",
+            "address": "Address",
+            "pickupPoint": "Pickup Point",
+            "note": "Note"
+          },
+          "placeholders": {
+            "fullName": "Enter full name",
+            "phone": "0123456789 or +84123456789",
+        "chooseGender": "Select gender",
+            "address": "Enter full address",
+            "pickupPoint": "Enter pickup point",
+            "dateFormat": "Format: {format}",
+            "note": "Additional note (optional)"
+          },
+          "sectionTitle": "Contact information",
+          "usePersonalInfo": "Use personal info from my account",
+          "autoFillNotice": "Account info will be auto-filled into corresponding fields. You can edit any field if needed. Empty fields will remain blank."
+        },
+		"step2": {
+			"loading": "Loading tour prices...",
+			"sections": {
+				"dateTitle": "Departure Date",
+				"paxTitle": "Total Guests",
+				"membersTitle": "Group Members",
+				"summaryTitle": "Price Summary"
+			},
+			"representative": {
+				"title": "Representative",
+				"label": "Representative"
+			},
+			"summary": { "totalLabel": "Total Payment" },
+			"common": {
+				"noPrice": "No price set",
+				"free": "Free"
+			},
+			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year" },
+			"pax": {
+				"adult": "Adult",
+				"child": "Children",
+				"infant": "Baby",
+				"adultMinHint": "At least 1 adult is required"
+			},
+			"labels": {
+				"fullName": "Full Name",
+				"dob": "Date of Birth",
+				"gender": "Gender",
+				"nationality": "Nationality",
+				"idNumberCCCD": "Citizen ID Number",
+				"idNumberPassport": "Passport Number"
+			},
+			"countries": {
+				"KR": "Korea"
+			},
+			"placeholders": {
+				"fullName": "Enter full name",
+				"chooseGender": "Select gender",
+				"chooseNationality": "Select nationality",
+				"idVietnam": "Digits only: 12 digits (CCCD) or 9 digits (CMND/CMT)",
+				"idPassport": "Enter passport number (6-9 characters)",
+				"dateFormat": "Enter in {{format}} format"
+			},
+			"datePicker": {
+				"open": "Open date picker"
+			},
+			"idInfo": {
+				"baby": "Infants under 2: Only name + DOB. If flying, birth certificate required.",
+				"child": "Children 2-12: ID not required. If flying, birth certificate required.",
+				"teen": "Children 14-16: May have ID but not required. If flying, birth certificate required.",
+				"adult": "Adults under 14: ID not required. If flying, birth certificate required."
+			},
+			"fields": {
+				"date": "Departure Date",
+				"adultPax": "Adult Count",
+				"adultName1": "Adult 1 Name",
+				"adultName2": "Adult 2 Name",
+				"adultName3": "Adult 3 Name",
+				"adultName4": "Adult 4 Name",
+				"adultDob1": "Adult 1 Date of Birth",
+				"adultDob2": "Adult 2 Date of Birth",
+				"adultDob3": "Adult 3 Date of Birth",
+				"adultDob4": "Adult 4 Date of Birth",
+				"childName1": "Child 1 Name",
+				"childName2": "Child 2 Name",
+				"childName3": "Child 3 Name",
+				"childName4": "Child 4 Name",
+				"childDob1": "Child 1 Date of Birth",
+				"childDob2": "Child 2 Date of Birth",
+				"childDob3": "Child 3 Date of Birth",
+				"childDob4": "Child 4 Date of Birth",
+				"infantName1": "Infant 1 Name",
+				"infantName2": "Infant 2 Name",
+				"infantName3": "Infant 3 Name",
+				"infantName4": "Infant 4 Name",
+				"infantDob1": "Infant 1 Date of Birth",
+				"infantDob2": "Infant 2 Date of Birth",
+				"infantDob3": "Infant 3 Date of Birth",
+				"infantDob4": "Infant 4 Date of Birth",
+				"adultGender1": "Adult 1 Gender",
+				"adultGender2": "Adult 2 Gender",
+				"adultGender3": "Adult 3 Gender",
+				"adultGender4": "Adult 4 Gender",
+				"adultNationality1": "Adult 1 Nationality",
+				"adultNationality2": "Adult 2 Nationality",
+				"adultNationality3": "Adult 3 Nationality",
+				"adultNationality4": "Adult 4 Nationality",
+				"adultIdNumber1": "Adult 1 ID/Passport",
+				"adultIdNumber2": "Adult 2 ID/Passport",
+				"adultIdNumber3": "Adult 3 ID/Passport",
+				"adultIdNumber4": "Adult 4 ID/Passport",
+				"childGender1": "Child 1 Gender",
+				"childGender2": "Child 2 Gender",
+				"childGender3": "Child 3 Gender",
+				"childGender4": "Child 4 Gender",
+				"childNationality1": "Child 1 Nationality",
+				"childNationality2": "Child 2 Nationality",
+				"childNationality3": "Child 3 Nationality",
+				"childNationality4": "Child 4 Nationality",
+				"childIdNumber1": "Child 1 ID/Passport",
+				"childIdNumber2": "Child 2 ID/Passport",
+				"childIdNumber3": "Child 3 ID/Passport",
+				"childIdNumber4": "Child 4 ID/Passport",
+				"infantGender1": "Infant 1 Gender",
+				"infantGender2": "Infant 2 Gender",
+				"infantGender3": "Infant 3 Gender",
+				"infantGender4": "Infant 4 Gender",
+				"infantNationality1": "Infant 1 Nationality",
+				"infantNationality2": "Infant 2 Nationality",
+				"infantNationality3": "Infant 3 Nationality",
+				"infantNationality4": "Infant 4 Nationality",
+				"infantIdNumber1": "Infant 1 ID/Passport",
+				"infantIdNumber2": "Infant 2 ID/Passport",
+				"infantIdNumber3": "Infant 3 ID/Passport",
+				"infantIdNumber4": "Infant 4 ID/Passport"
+			},
+			"errors": {
+				"dateRequired": "Please select a departure date",
+				"dateInPast": "Departure date cannot be in the past",
+				"dateOverOneMonth": "Departure date must be within 1 month",
+				"fullNameRequired": "Full name is required",
+				"fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
+				"dobRequired": "Date of birth is required",
+				"dobInFuture": "Date of birth cannot be in the future",
+				"dobInvalidFormat": "Invalid date format (use YYYY-MM-DD)",
+				"dobTooOld": "Invalid date of birth (age must be ≤ 120)",
+				"adultTooYoung": "Adult must be ≥ 12 years old in the Adult section.",
+				"representativeTooYoung": "Representative must be ≥ 18 years old in the Representative section.",
+				"childTooYoung": "Child must be ≥ 2 years old in the Children section.",
+				"childTooOld": "Child must be < 12 years old in the Children section.",
+				"infantTooOld": "Infant must be < 2 years old in the Infant section.",
+				"genderRequired": "Gender is required",
+				"nationalityRequired": "Nationality is required",
+				"idRequired": "ID/Passport number is required"
+			},
+			"validation": {
+				"vietnameseId": "Vietnamese ID must be 12 digits (CCCD) or 9 digits (CMND/CMT)",
+				"passport": "Passport number must be 6-9 characters (letters and numbers)"
+			},
+			"toast": {
+				"dateRequired": "Please select a departure date",
+				"adultPaxRequired": "Adult count must be greater than 0",
+				"representativeNameRequired": "Please enter representative name",
+				"representativeDobRequired": "Please enter representative date of birth",
+				"representativeGenderRequired": "Please select representative gender",
+				"representativeNationalityRequired": "Please select representative nationality",
+				"adultNameRequiredGeneric": "Please enter adult name",
+				"adultDobRequiredGeneric": "Please enter adult date of birth",
+				"adultGenderRequiredGeneric": "Please select adult gender",
+				"adultNationalityRequiredGeneric": "Please select adult nationality",
+				"childNameRequiredGeneric": "Please enter child name",
+				"childDobRequiredGeneric": "Please enter child date of birth",
+				"childGenderRequiredGeneric": "Please select child gender",
+				"childNationalityRequiredGeneric": "Please select child nationality",
+				"infantNameRequiredGeneric": "Please enter infant name",
+				"infantDobRequiredGeneric": "Please enter infant date of birth",
+				"infantGenderRequiredGeneric": "Please select infant gender",
+				"infantNationalityRequiredGeneric": "Please select infant nationality",
+				"representativeIdRequired": "Please enter representative ID",
+				"representativeIdRequiredPassport": "Please enter representative passport",
+				"representativeIdInvalidFormat": "Representative ID format is invalid",
+				"representativeIdInvalidFormatPassport": "Representative passport format is invalid",
+				"adultIdRequiredGeneric": "Please enter adult ID",
+				"adultIdRequiredGenericPassport": "Please enter adult passport",
+				"adultIdInvalidFormatGeneric": "Adult ID format is invalid",
+				"adultIdInvalidFormatGenericPassport": "Adult passport format is invalid",
+				"childIdRequiredGeneric": "Please enter child ID",
+				"childIdRequiredGenericPassport": "Please enter child passport",
+				"childIdInvalidFormatGeneric": "Child ID format is invalid",
+				"childIdInvalidFormatGenericPassport": "Child passport format is invalid",
+				"infantIdRequiredGeneric": "Please enter infant ID",
+				"infantIdRequiredGenericPassport": "Please enter infant passport",
+				"infantIdInvalidFormatGeneric": "Infant ID format is invalid",
+				"infantIdInvalidFormatGenericPassport": "Infant passport format is invalid"
+			}
+		},
+		"step3": {
+			"sections": {
+				"contact": "Contact Information",
+				"tour": "Tour Information",
+				"members": "Group Members",
+				"price": "Price Summary"
+			},
+			"labels": {
+				"fullName": "Full Name",
+				"phone": "Phone Number",
+				"email": "Email",
+				"address": "Address",
+				"pickupPoint": "Pickup Point",
+				"note": "Note",
+				"departureDate": "Departure Date",
+				"totalGuests": "Total Guests",
+				"adult": "Adult",
+				"child": "Children",
+				"infant": "Baby",
+				"notSet": "Not set",
+				"totalPrice": "Total Payment"
+			},
+			"table": {
+				"index": "#",
+				"fullName": "Full Name",
+				"dob": "Date of Birth",
+				"gender": "Gender",
+				"nationality": "Nationality",
+				"idNumber": "ID/Passport Number"
+			}
+		},
+		"tourPreview": {
+			"loading": "Loading tour information...",
+			"fallback": {
+				"apiError": "Cannot connect to API, showing sample data",
+				"title": "Da Nang Tour",
+				"duration": "1 day 1 night",
+				"departure": "Da Nang",
+				"vehicle": "Tour Bus",
+				"schedule": "Explore the beautiful landscapes of Da Nang with unique local cultural experiences and traditional cuisine."
+			},
+			"placeholder": { "title": "Explore", "subtitle": "Dream Destination" },
+			"durationTemplate": "{{days}} days {{nights}} nights",
+			"labels": {
+				"code": "Tour Code:",
+				"duration": "Duration:",
+				"departure": "Departure:",
+				"vehicle": "Vehicle:",
+				"category": "Category:",
+				"schedule": "Schedule:",
+				"noSchedule": "No schedule",
+				"notAvailable": "N/A"
+			},
+			"categories": { "standard": "Standard" }
+		},
+        "errors": {
+          "fullNameRequired": "Full name is required",
+          "fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
+          "phoneRequired": "Phone number is required",
+          "phoneInvalid": "Invalid phone number (e.g., 0123456789 or +84 705327671)",
+          "emailRequired": "Email is required",
+          "emailInvalid": "Invalid email",
+          "emailMismatch": "Email does not match your account. Please use the registered email.",
+          "dobRequired": "Date of birth is required",
+          "dobInvalidFormat": "Invalid date of birth format",
+          "representativeTooYoung": "Representative must be ≥ 18 years old",
+          "addressRequired": "Address is required",
+          "pickupPointRequired": "Pickup point is required"
+        }
+	},
+	"payment": {
+		"processing": "Processing payment result...",
+		"unknownResult": "Unknown result",
+		"cannotDetermine": "Cannot determine payment result. Please try again.",
+		"backToTour": "Back to tour page",
+		"cannotCalculateTotal": "Cannot calculate total amount. Please try again.",
+		"emailMismatch": "User email does not match contact email",
+		"invalidPaymentInfo": "Invalid payment information",
+		"cannotCreatePaymentLink": "Cannot create VNPay payment link",
+		"sessionExpired": "Session has expired. Please login again.",
+		"paymentCreationError": "Error occurred while creating payment",
+		"paymentError": "Payment error",
+		"errorOccurred": "An error occurred",
+		"loading": "Loading...",
+		"vnpayPayment": "VNPay Payment",
+		"noBookingInfo": "No booking information found",
+		"pleaseBookFirst": "Please book a tour before making payment.",
+		"vnpayTitle": "VNPay Payment",
+		"completePaymentToConfirm": "Complete payment to confirm tour booking",
+		"bookingInfo": "Booking Information",
+		"tourName": "Tour Name",
+		"departureDate": "Departure Date",
+		"guestCount": "Guest Count",
+		"guests": "guests",
+		"contactPerson": "Contact Person",
+		"totalPayment": "Total Payment",
+		"calculating": "Calculating...",
+		"retry": "Retry",
+		"paymentInfo": "Payment Information",
+		"vnpayDescription": "Payment is processed by VNPay - Trusted electronic payment gateway",
+		"supportedPaymentMethods": "Supports payment via ATM cards, Internet Banking, E-wallet",
+		"securePayment": "Payment information is encrypted and secure",
+		"confirmationEmail": "After successful payment, you will receive a confirmation email",
+		"paymentFailed": "Payment failed. Please try again.",
+		"transactionInfo": "Transaction Information",
+		"transactionId": "Transaction ID",
+		"paymentMethod": "Payment Method",
+		"responseCode": "Response Code",
+		"errorDetails": "Error Details",
+		"suggestions": "Suggestions",
+		"retryPayment": "Retry Payment",
+		"viewTour": "View Tour",
+		"goHome": "Go Home",
+		"needSupport": "Need Support",
+		"contactUs": "If the problem persists, please contact us",
+		"supportEmail": "Support Email",
+		"paymentSuccess": "Payment successful! Tour booking completed.",
+		"paymentSuccessTitle": "Payment successful!",
+		"paymentSuccessMessage": "Thank you for your payment. Your tour booking has been successfully completed.",
+		"bookingId": "Booking ID",
+		"totalGuests": "Total Guests",
+		"phoneNumber": "Phone Number",
+		"bookingTime": "Booking Time",
+		"guestList": "Guest List",
+		"fullName": "Full Name",
+		"birthDate": "Birth Date",
+		"gender": "Gender",
+		"nationality": "Nationality",
+		"guestType": "Guest Type",
+		"idPassport": "ID/Passport",
+		"emailSent": "We have sent a payment confirmation email and tour booking details to your email address.",
+		"customerSupport": "Customer Support",
+		"contactHotline": "If you have any questions, please contact hotline",
+		"transactionProcessed": "Transaction has been successfully processed through VNPay. You can check transaction history in your account.",
+		"noPaymentInfo": "No payment information found. Please",
+		"cancel": "Cancel",
+		"paymentSuccessRedirect": "Payment successful! Redirecting...",
+		"paymentFailedCancelled": "Payment failed or cancelled",
+		"male": "Male",
+		"female": "Female",
+		"other": "Other",
+		"adult": "Adult",
+		"child": "Child",
+		"baby": "Baby",
+		"paymentCancelledFailed": "Payment has been cancelled or failed",
+		"paymentSuspicious": "Money deducted successfully, transaction is suspicious (related to fraud, unusual transaction)",
+		"paymentNotRegistered": "Transaction failed because: Customer's Card/Account is not registered for InternetBanking service",
+		"paymentVerificationFailed": "Card/Account information verification failed more than 3 times",
+		"paymentExpired": "Payment waiting time has expired. Please retry the transaction",
+		"paymentCancelled": "Transaction cancelled",
+		"paymentUserCancelled": "Customer cancelled transaction",
+		"paymentInsufficientBalance": "Account has insufficient balance to perform transaction",
+		"paymentExceedLimit": "Account has exceeded daily transaction limit",
+		"paymentBankMaintenance": "Payment bank is under maintenance",
+		"paymentWrongPassword": "Entered wrong payment password more than allowed times",
+		"paymentFailedWithCode": "Payment failed with error code",
+		"errorCancelled": "Payment has been cancelled",
+		"errorInsufficientBalance": "Insufficient balance",
+		"errorMaintenance": "System is under maintenance",
+		"errorWrongPassword": "Wrong password",
+		"errorVerificationFailed": "Verification failed",
+		"errorGeneral": "Payment failed",
+		"errorMessageCancelled": "You have cancelled the transaction or the transaction has been cancelled. Please try again if you want to continue booking the tour.",
+		"errorMessageInsufficient": "Your account has insufficient balance to perform the transaction. Please add more money and try again.",
+		"errorMessageMaintenance": "Banking system is under maintenance. Please try again in a few minutes.",
+		"errorMessagePassword": "You have entered the wrong password more than allowed times. Please try again later or contact the bank.",
+		"errorMessageVerification": "Authentication information is incorrect. Please check your card/account information again.",
+		"errorMessageGeneral": "An error occurred during the payment process. Please try again or contact support.",
+		"suggestionRetryPayment": "Retry payment",
+		"suggestionCheckCardInfo": "Check card/account information",
+		"suggestionContactBank": "Contact bank if necessary",
+		"suggestionAddMoney": "Add more money to account",
+		"suggestionUseOtherCard": "Use another card/account",
+		"suggestionCheckLimit": "Check transaction limit",
+		"suggestionRetryLater": "Try again after 15-30 minutes",
+		"suggestionUseOtherMethod": "Use another payment method",
+		"suggestionContactSupport": "Contact support if necessary",
+		"suggestionRetryAfter30min": "Try again after 30 minutes",
+		"suggestionResetPassword": "Contact bank to reset password",
+		"suggestionUseOtherCardAccount": "Use another card/account",
+		"suggestionCheckCardInfoAgain": "Check card information again",
+		"suggestionEnsureCardActive": "Ensure card is activated",
+		"suggestionContactBankSupport": "Contact bank for support",
+		"suggestionCheckInternet": "Check internet connection",
+		"suggestionContactSupportIfIssue": "Contact support if issue persists",
+		"technicalDetails": "Technical Details (Development)"
 	}
+  ,
+  "premium": {
+    "title": "Premium",
+    "subscriptionTitle": "Premium Subscription",
+    "plans": {
+      "1month": "1 month",
+      "3months": "3 months"
+    },
+    "price": "{{amount}} VND",
+    "purchase": "Purchase Premium",
+    "validUntil": "Valid until",
+    "activeNoExpiry": "Active Premium - No expiration date available",
+    "na": "N/A",
+    "errors": {
+      "noToken": "No authentication token found. Please login again.",
+      "noEmail": "User email not found. Please login again.",
+      "missingPayUrl": "VNPay payment URL not found in response",
+      "error": "Error"
+    }
+  },
+  "news": {
+    "title": "News",
+    "hero": {
+      "title": "Exciting Travel Information About Attractive Destinations",
+      "subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences"
+    },
+    "loading": "Loading articles...",
+    "loadingMore": "Loading...",
+    "loadMore": "Load More",
+    "noArticles": "No articles yet",
+    "noArticlesDesc": "Please come back later to see the latest articles!",
+    "noImage": "No image",
+    "category": "News",
+    "readMore": "Details",
+    "sidebar": {
+      "title": "TOUR CATEGORIES",
+      "domestic": {
+        "title": "Domestic Tours",
+        "north": "Northern Tours",
+        "central": "Central Tours",
+        "south": "Southern Tours",
+        "teambuilding": "Team Building Tours"
+      },
+      "international": {
+        "title": "International Tours",
+        "japan": "Japan Tours",
+        "singapore": "Singapore Malaysia Indonesia Tours",
+        "thailand": "Thailand Tours",
+        "taiwan": "Taiwan Tours",
+        "korea": "Korea Tours",
+        "china": "China Tours",
+        "laos": "Laos Cambodia Tours"
+      },
+      "dayTours": {
+        "title": "Day Tours",
+        "hue": "Hue Tour",
+        "baNa": "Ba Na Tour",
+        "hoiAn": "Hoi An Tour",
+        "mySon": "My Son Tour",
+        "sonTra": "Son Tra Tour",
+        "daNangCompany": "Da Nang Company Tour",
+        "chamIsland": "Cham Island Tour",
+        "daNangExplore": "Da Nang Exploration Tour"
+      },
+      "daNangTours": {
+        "title": "Da Nang Tourism Tours",
+        "1day": "Da Nang 1 Day Tour",
+        "2days": "Da Nang 2 Days 1 Night Tour",
+        "3days": "Da Nang 3 Days 2 Nights Tour",
+        "4days": "Da Nang 4 Days 3 Nights Tour",
+        "5days": "Da Nang 5 Days 4 Nights Tour",
+        "6days": "Da Nang 6 Days 5 Nights Tour",
+        "7days": "Da Nang 7 Days 6 Nights Tour",
+        "8days": "Da Nang 8 Days 7 Nights Tour"
+      },
+      "events": {
+        "title": "Featured Event Tours",
+        "tet": "Tet Tour",
+        "festival": "Festival Tour"
+      }
+    }
+  },
+  "newsDetail": {
+    "backToNews": "Back",
+    "news": "News",
+    "loading": "Loading article...",
+    "errorTitle": "Error loading article",
+    "errorMessage": "Unable to load article. Please try again later.",
+    "retry": "Retry",
+    "backToNewsPage": "Back to News Page",
+    "notFoundTitle": "Article not found",
+    "notFoundMessage": "The article you are looking for does not exist or has been deleted.",
+    "category": "News",
+    "publishedAt": "Published at",
+    "backToTop": "↑ Back to top",
+    "viewMoreNews": "← View more news",
+    "contentUpdating": "Article content is being updated..."
+  },
+  "newsManagement": {
+    "title": "News Management",
+    "subtitle": "Crawl and manage news articles from various sources",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You need administrator or staff permissions to access this page.",
+      "goHome": "Go Home",
+      "staffLogin": "Staff Login"
+    },
+    "logout": {
+      "loggingOut": "Logging out..."
+    },
+    "messages": {
+      "autoCrawlSuccess": "Successfully auto-crawled {{count}} new articles!",
+      "crawlSuccess": "Successfully crawled {{count}} new articles!",
+      "crawlError": "Error occurred while crawling news",
+      "crawlErrorDesc": "Error occurred while crawling news. Please try again later.",
+      "noNewArticles": "No new articles!",
+      "noNewArticlesDesc": "No new articles. All articles have been updated or already exist in the system.",
+      "selectArticles": "Please select at least one article",
+      "approved": "approved",
+      "unapproved": "unapproved",
+      "statusUpdateSuccess": "{{action}} {{count}} articles",
+      "statusUpdateError": "Error occurred while updating status",
+      "logoutSuccess": "Successfully logged out!"
+    },
+    "buttons": {
+      "crawlNews": "Crawl New News",
+      "crawling": "Crawling news...",
+      "loading": "Loading...",
+      "reloadList": "Reload List",
+      "approve": "Approve",
+      "unapprove": "Unapprove",
+      "viewDetails": "View Details",
+      "logout": "Logout",
+      "backToNews": "Back to News Page"
+    },
+    "status": {
+      "approved": "Approved",
+      "pending": "Pending"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "staff": "Staff"
+    },
+    "sidebar": {
+      "title": "Management",
+      "subtitle": "News & Articles",
+      "news": "News",
+      "statistics": "Statistics",
+      "settings": "Settings"
+    },
+    "welcome": {
+      "title": "Welcome, {{name}}!",
+      "description": "Manage and update news for the website",
+      "autoCrawl": "System automatically crawls new articles at 00:00 daily"
+    },
+    "articles": {
+      "title": "Article Management ({{count}} articles)",
+      "selectAll": "Select All",
+      "selectedCount": "{{count}} articles selected"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}} articles",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "noArticles": {
+      "message": "No articles yet. Start by crawling news!"
+    },
+    "instructions": {
+      "title": "Usage Instructions",
+      "crawlButton": "Click \"Crawl New News\" button to automatically collect articles from Danangxanh",
+      "autoCrawl": "System automatically crawls new articles at 00:00 daily",
+      "noDuplicates": "Duplicate articles will not be added to the system",
+      "approvedDisplay": "Approved articles will be displayed on the public news page",
+      "accessControl": "Only admins and staff can perform this function"
+    },
+    "modal": {
+      "title": "Article Details",
+      "source": "Article Source:",
+      "close": "Close"
+    },
+    "role": {
+      "admin": "Administrator",
+      "staff": "Staff"
+    },
+    "actions": {
+      "crawlNews": "Crawl New News",
+      "crawling": "Crawling news...",
+      "reloadList": "Reload List",
+      "reloading": "Loading..."
+    }
+  },
+  "companyDashboard": {
+    "sidebar": {
+			"title": "Business Dashboard",
+      "dashboard": "Dashboard",
+      "tourManagement": "Tour Management",
+      "orders": "Orders",
+      "analytics": "Analytics",
+			"businessInfo": "Business Info",
+			"companyInfo": "Company Info"
+    },
+    "welcome": {
+      "title": "Welcome to your Business Dashboard",
+      "subtitle": "Manage your tours, track analytics, and grow your business",
+      "createTour": "Create New Tour"
+    },
+    "stats": {
+      "totalTours": "Total Tours",
+      "totalBookings": "Total Bookings",
+      "totalRevenue": "Total Revenue",
+      "totalViews": "Total Views"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createTour": "Create New Tour",
+      "createTourDesc": "Add a new tour to your collection",
+      "viewAnalytics": "View Analytics",
+      "viewAnalyticsDesc": "Check your business performance",
+      "manageOrders": "Manage Orders",
+      "manageOrdersDesc": "View and manage bookings",
+      "businessInfo": "Business Info",
+      "businessInfoDesc": "Update your business details"
+    },
+    "charts": {
+      "bookingTrends": "Booking Trends",
+      "revenueChart": "Revenue Chart",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "chartPlaceholder": "Chart will be displayed here"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "close": "Close",
+    "empty": "No notifications yet",
+    "delete": "Delete",
+    "viewAll": "View All Notifications",
+    "newBooking": {
+      "title": "New Booking",
+      "message": "You have a new tour booking from John Doe"
+    },
+    "paymentReceived": {
+      "title": "Payment Received",
+      "message": "Payment of $150 has been received for tour booking"
+    },
+    "tourUpdate": {
+      "title": "Tour Update Required",
+      "message": "Please update your tour information"
+    },
+    "systemUpdate": {
+      "title": "System Update",
+      "message": "New features available in your dashboard"
+    }
+  },
+  "chat": {
+    "title": "Customer Support",
+    "status": "Online",
+    "call": "Call",
+    "video": "Video Call",
+    "more": "More Options",
+    "close": "Close Chat",
+    "emoji": "Add Emoji",
+    "send": "Send Message",
+    "placeholder": "Type your message..."
+  }
 }
+
 
 

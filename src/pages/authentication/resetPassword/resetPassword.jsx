@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import './resetPassword.css';
+import { LockClosedIcon } from '@heroicons/react/24/outline';
+import styles from './resetPassword.module.css';
 
 const ResetPassword = () => {
   const { t } = useTranslation();
@@ -18,6 +19,25 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  // When success becomes true, redirect to login after a short delay
+  useEffect(() => {
+    if (!success) return;
+    setRedirectCountdown(5);
+    const interval = setInterval(() => {
+      setRedirectCountdown(prev => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    const timer = setTimeout(() => {
+      navigate('/login', { replace: true });
+    }, 5000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [success, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +45,30 @@ const ResetPassword = () => {
       ...prev,
       [name]: value
     }));
+
+    // Real-time password validation
+    if (name === 'newPassword') {
+      if (value.length > 0 && value.length < 8) {
+        setPasswordError(t('auth.reset.errors.passwordMinLength'));
+      } else {
+        setPasswordError('');
+      }
+      // Also check confirm password if it has value
+      if (formData.confirmPassword && formData.confirmPassword !== value) {
+        setConfirmPasswordError(t('auth.reset.errors.passwordMismatch'));
+      } else if (formData.confirmPassword && formData.confirmPassword === value) {
+        setConfirmPasswordError('');
+      }
+    }
+
+    // Real-time confirm password validation
+    if (name === 'confirmPassword') {
+      if (value && formData.newPassword && value !== formData.newPassword) {
+        setConfirmPasswordError(t('auth.reset.errors.passwordMismatch'));
+      } else {
+        setConfirmPasswordError('');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -75,17 +119,19 @@ const ResetPassword = () => {
 
   if (!email || !verified || !otpCode) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="page-gradient">
+        <div className={`${styles['precondition-container']} min-h-screen flex items-center justify-center py-8`}>
+          <div className={`${styles['precondition-content']} w-full max-w-[500px] px-4`}>
+          <h2 className={styles['precondition-title']}>
             {t('auth.reset.preconditionTitle')}
           </h2>
           <Link
             to="/forgot-password"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className={styles['precondition-button']}
           >
             {t('auth.reset.backToForgot')}
           </Link>
+          </div>
         </div>
       </div>
     );
@@ -93,30 +139,23 @@ const ResetPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                {t('auth.reset.successTitle')}
-              </h3>
-              <p className="mt-2 text-sm text-gray-600">
-                {t('auth.reset.successSubtitle')}
-              </p>
-              <div className="mt-6">
-                <Link
-                  to="/login"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {t('auth.reset.login')}
-                </Link>
-              </div>
-            </div>
+      <div className="page-gradient">
+        <div className={`${styles['success-container']} min-h-screen flex items-center justify-center py-8`}>
+          <div className={`${styles['success-content']} w-full max-w-[500px] px-4`}>
+          <div className={styles['success-icon']}>
+            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className={styles['success-title']}>
+            {t('auth.reset.successTitle')}
+          </h3>
+          <p className={styles['success-subtitle']}>
+            {t('auth.reset.successSubtitle')}
+          </p>
+          <p className={styles['success-subtitle']}>
+            {`Redirecting to login in ${redirectCountdown}s...`}
+          </p>
           </div>
         </div>
       </div>
@@ -124,79 +163,92 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {t('auth.reset.title')}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.reset.subtitle', { email })}
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+    <div className="page-gradient">
+      <div className={`${styles['reset-container']} min-h-screen flex items-center justify-center py-8`}>
+        <div className={`${styles['reset-content']} w-full max-w-[450px] px-4`}>
+          <div className={styles['reset-form-section']}>
+            <div className={styles['reset-header']}>
+              <div className={styles['reset-logo']}>
+              <LockClosedIcon className="h-8 w-8 text-white" />
+            </div>
+            <h2 className={styles['reset-title']}>
+              {t('auth.reset.title')}
+            </h2>
+            <p className={styles['reset-subtitle']}>
+              {t('auth.reset.subtitle', { email })}
+            </p>
+          </div>
+          <form className={styles['reset-form']} onSubmit={handleSubmit}>
+            <div className={styles['form-group']}>
+              <label htmlFor="newPassword" className={styles['form-label']}>
                 {t('auth.reset.newPassword')}
               </label>
-              <div className="mt-1">
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+              <input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.newPassword}
+                onChange={handleChange}
+                className={`${styles['form-input']} ${passwordError ? styles['input-error'] : ''}`}
+                placeholder="••••••••"
+              />
+              {passwordError && (
+                <div className={styles['field-error']}>
+                  {passwordError}
+                </div>
+              )}
             </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text.sm font-medium text-gray-700">
+            <div className={styles['form-group']}>
+              <label htmlFor="confirmPassword" className={styles['form-label']}>
                 {t('auth.reset.confirmNewPassword')}
               </label>
-              <div className="mt-1">
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`${styles['form-input']} ${confirmPasswordError ? styles['input-error'] : ''}`}
+                placeholder="••••••••"
+              />
+              {confirmPasswordError && (
+                <div className={styles['field-error']}>
+                  {confirmPasswordError}
+                </div>
+              )}
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+              <div className={styles['error-message']}>
                 {error}
               </div>
             )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? t('auth.reset.submitting') : t('auth.reset.submit')}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading || passwordError || confirmPasswordError}
+              className={styles['reset-button']}
+            >
+              {loading ? t('auth.reset.submitting') : t('auth.reset.submit')}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className={styles['login-link']}>
+            <span className={styles['login-text']}>
+              {t('auth.common.rememberPassword')}{' '}
+            </span>
             <Link
               to="/login"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className={styles['login-link-text']}
             >
               {t('auth.common.backToLogin')}
             </Link>
+          </div>
           </div>
         </div>
       </div>

@@ -1,0 +1,485 @@
+/* Root */
+.homepage-root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #fef2f2 100%);
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 80px 24px;
+}
+
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  width: 100%;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.explore-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.play-icon {
+  width: 20px;
+  height: 20px;
+  background: #ef4444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.hero-from {
+  display: block;
+  color: #64748b;
+}
+
+.hero-southeast {
+  display: block;
+  color: #1e293b;
+}
+
+.hero-to {
+  display: block;
+  color: #ef4444;
+}
+
+.hero-desc {
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.book-now-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: fit-content;
+}
+
+.book-now-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.hero-right {
+  position: relative;
+  height: 500px;
+}
+
+.gallery-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 16px;
+}
+
+.gallery-image {
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-image:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+  transform: translate(-10px, -10px);
+}
+
+.gallery-image:nth-child(2) {
+  grid-column: 2;
+  grid-row: 1;
+  transform: translate(10px, -5px);
+}
+
+.gallery-image:nth-child(3) {
+  grid-column: 1;
+  grid-row: 2;
+  transform: translate(-5px, 10px);
+}
+
+.gallery-image:nth-child(4) {
+  grid-column: 2;
+  grid-row: 2;
+  transform: translate(5px, 5px);
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+  border-radius: 12px;
+}
+
+/* Decorative Elements */
+.airplane-blue {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #3b82f6;
+  z-index: 10;
+}
+
+.location-yellow {
+  position: absolute;
+  top: 40px;
+  right: 60px;
+  color: #f59e0b;
+  z-index: 10;
+}
+
+.airplane-red {
+  position: absolute;
+  bottom: 120px;
+  right: 30px;
+  color: #ef4444;
+  z-index: 10;
+}
+
+.location-blue {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: #3b82f6;
+  z-index: 10;
+}
+
+.line-blue {
+  position: absolute;
+  top: 40px;
+  right: 50px;
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, transparent);
+  transform: rotate(-15deg);
+  z-index: 5;
+}
+
+.line-red {
+  position: absolute;
+  bottom: 140px;
+  right: 40px;
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, #ef4444, transparent);
+  transform: rotate(-20deg);
+  z-index: 5;
+}
+
+/* Tours */
+.tours {
+  padding: 40px 16px;
+}
+
+.toursGrid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.tourCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.tourImg {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.tourInfo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%);
+  color: #fff;
+}
+
+.tourTitle {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* ===== Gallery layout ===== */
+.galleryWrap{
+  position: relative;
+  max-width: 700px;            /* tuỳ ý */
+  min-height: 450px;
+}
+
+/* Lưới 2 cột với biến khoảng cách & độ nâng cột phải */
+.galleryGrid{
+  --gap-v: 20px;               /* khoảng cách dọc giữa các hình - giảm để gần nhau hơn */
+  --gap-h: 35px;               /* khoảng cách ngang giữa 2 cột */
+  --lift-right: 120px;         /* Tăng độ nâng cột phải */
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-v) var(--gap-h);
+  align-items: start;
+  justify-items: stretch;
+}
+
+.card{
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(2,6,23,.12);
+  background: #eef2f7;
+}
+.img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* (1) & (3): kéo dài xuống một chút (cao hơn hình vuông) */
+.galleryGrid figure:nth-child(1),
+.galleryGrid figure:nth-child(3){
+  aspect-ratio: 1 / 1.12;      /* 1:1.12 ≈ "dài" hơn một chút */
+}
+
+/* (2): đúng kích thước, chỉ nâng lên */
+.galleryGrid figure:nth-child(2){
+  aspect-ratio: 16 / 11;       /* giữ nguyên size ảnh 2 */
+  transform: translateY(-180px); /* Đẩy lên cao hơn nữa */
+}
+
+/* (4): đúng kích thước (tall) & nâng lên; 
+   Điều chỉnh để hình 4 lên ngang gạch đỏ */
+.galleryGrid figure:nth-child(4){
+  aspect-ratio: 3 / 4;         /* giữ ảnh 4 cao */
+  transform: translateY(-150px); /* Giảm để khoảng cách giống cột trái */
+  /* nếu muốn bo mềm hơn cho cột phải: */
+  border-radius: 22px;
+}
+
+/* Mobile: xếp dọc, bỏ nâng cột phải */
+@media (max-width: 767px){
+  .galleryGrid{
+    grid-template-columns: 1fr;
+    --lift-right: 0px;
+    --gap-v: 24px;
+    --gap-h: 24px;
+  }
+  .galleryGrid figure{ 
+    transform: none; /* Bỏ transform trên mobile */
+  }
+}
+
+/* Transform đã được áp dụng cho hình 2 và 4 */
+
+/* Utility for subtle float animation on cards if needed */
+.floatIn {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+  
+  .hero-right {
+    height: 400px;
+  }
+  
+  .gallery-container {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 16px;
+    min-height: auto;
+  }
+  
+  .hero-title {
+    font-size: 36px;
+  }
+  
+  .hero-desc {
+    font-size: 16px;
+  }
+  
+  .hero-right {
+    height: 350px;
+  }
+  
+  .gallery-container {
+    gap: 12px;
+  }
+  
+  .gallery-image {
+    border-radius: 8px;
+  }
+  
+  .airplane-blue,
+  .location-yellow,
+  .airplane-red,
+  .location-blue {
+    display: none;
+  }
+  
+  .line-blue,
+  .line-red {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 28px;
+  }
+  
+  .hero-desc {
+    font-size: 14px;
+  }
+  
+  .book-now-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+  
+  .hero-right {
+    height: 300px;
+  }
+  
+  .gallery-container {
+    gap: 8px;
+  }
+}
+
+/* reset UA style gây hở trên đầu mỗi card */
+figure { margin: 0; }
+
+/* Component-specific background protection */
+.service-card {
+  background-color: white !important;
+}
+
+.destination-card {
+  background-color: white !important;
+}
+
+.feature-card {
+  background-color: white !important;
+}
+
+.testimonial-card {
+  background-color: white !important;
+}
+
+/* Navigation arrows */
+.nav-arrow-btn.bg-white {
+  background-color: white !important;
+}
+
+.nav-arrow-btn.bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+/* Buttons and badges */
+.book-now-btn {
+  background-color: #2563eb !important;
+  transition: all 0.3s ease !important;
+}
+
+.book-now-btn:hover {
+  background-color: #1d4ed8 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3) !important;
+}
+
+.explore-badge {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.3s ease !important;
+}
+
+.explore-badge:hover {
+  background-color: rgba(255, 255, 255, 1) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Service cards hover effects */
+.service-card {
+  transition: all 0.3s ease !important;
+}
+
+.service-card:hover {
+  transform: translateY(-8px) scale(1.05) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 1 & 3 – điều chỉnh khoảng cách cột trái */
+.galleryGrid figure:nth-child(1){
+  margin-bottom: 20px;    /* tạo khoảng cách dưới hình 1 */
+}
+
+.galleryGrid figure:nth-child(3){
+  margin-top: 0px;        /* hình 3 giữ nguyên vị trí */
+}
+
+/* 2 & 4 – giữ kích thước hiện tại nhưng nâng vị trí lên cao hơn 1 & 3 */
+.galleryGrid figure:nth-child(2){
+  margin-top: -60px;      /* đẩy hình 2 lên cao hơn nhiều */
+}
+
+.galleryGrid figure:nth-child(4){
+  margin-top: -180px;     /* điều chỉnh để khoảng cách giống cột trái */
+}

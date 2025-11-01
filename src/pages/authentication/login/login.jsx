@@ -2,18 +2,22 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { UserCircleIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
-import './login.css';
+import { validateEmail } from '../../../utils/emailValidator';
+import gsap from 'gsap';
+import styles from './login.module.css';
 
 const Login = () => {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  // emailError stores an error code, not translated text, so it reacts to language changes
+  const [emailError, setEmailError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -21,33 +25,171 @@ const Login = () => {
   // Check for success message from navigation state
   useEffect(() => {
     if (location.state?.message && location.state?.type === 'success') {
-      setSuccessMessage(location.state.message);
+      showSuccess(location.state.message);
       // Clear the state to prevent showing message again on refresh
       navigate(location.pathname, { replace: true });
-      
-      // Auto clear success message after 5 seconds
-      const timer = setTimeout(() => {
-        setSuccessMessage('');
-      }, 5000);
-      
-      return () => clearTimeout(timer);
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, showSuccess]);
 
   // Check for error from URL parameters (OAuth callback errors)
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      showError(decodeURIComponent(errorParam));
       // Clear the error parameter from URL
       navigate(location.pathname, { replace: true });
     }
-  }, [searchParams, navigate, location.pathname]);
+  }, [searchParams, navigate, location.pathname, showError]);
+
+  // GSAP animations
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    // Animate login form section sliding in from right
+    const loginForm = document.querySelector(`.${styles['login-form-section']}`);
+    const illustrationSection = document.querySelector(`.${styles['illustration-section']}`);
+    
+    if (loginForm) {
+      gsap.set(loginForm, { x: '100%', opacity: 0 });
+      tl.to(loginForm, { x: 0, opacity: 1, duration: 0.8 });
+    }
+    
+    if (illustrationSection) {
+      gsap.set(illustrationSection, { x: '100%', opacity: 0 });
+      tl.to(illustrationSection, { x: 0, opacity: 1, duration: 0.8 }, '-=0.4');
+    }
+  }, []);
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    // Clear email error when user starts typing
+    if (emailError) {
+      setEmailError('');
+    }
+  };
+
+  const handleEmailBlur = () => {
+    if (email.trim()) {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        setEmailError('invalid');
+      } else {
+        setEmailError('');
+      }
+    }
+  };
+
+  const mapLoginErrorToI18nKey = (message) => {
+    const msg = String(message || '').toLowerCase();
+
+    // Tập từ khóa đa ngôn ngữ cho email/user và password
+    const emailKeywords = [
+      'email', 'user', 'mail',
+      // VI
+      'sai email', 'email không', 'không tồn tại', 'tài khoản', 'người dùng',
+      // KO (đơn giản hoá theo từ gốc)
+      '이메일', '사용자', '유저'
+    ];
+    const passwordKeywords = [
+      'password', 'credentials',
+      // VI
+      'mật khẩu', 'mat khau', 'sai mật khẩu', 'sai mat khau', 'không đúng',
+      // KO (đơn giản hoá theo từ gốc)
+      '비밀번호', '패스워드'
+    ];
+
+    const hasEmailKeyword = emailKeywords.some(k => msg.includes(k));
+    const hasPasswordKeyword = passwordKeywords.some(k => msg.includes(k));
+
+    // 1) Nếu thông điệp chứa đồng thời cả từ khóa email và password → both_invalid
+    if (hasEmailKeyword && hasPasswordKeyword) {
+      return { i18nKey: 'toast.auth.both_invalid', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email hoặc mật khẩu.' };
+    }
+
+    // 2) Email sai - mở rộng các biến thể
+    if (
+      msg.includes('email has not existed') ||
+      msg.includes('email not exist') ||
+      msg.includes('email does not exist') ||
+      msg.includes('user not found') ||
+      msg.includes('no such user') ||
+      msg.includes('wrong email') ||
+      // VI
+      msg.includes('email không tồn tại') ||
+      msg.includes('không tìm thấy email') ||
+      msg.includes('tài khoản không tồn tại') ||
+      msg.includes('người dùng không tồn tại') ||
+      // KO (đơn giản hoá)
+      msg.includes('이메일을 찾을 수') ||
+      msg.includes('사용자를 찾을 수') ||
+      hasEmailKeyword // fallback nếu chỉ có từ khóa email mà không có password
+    ) {
+      return { i18nKey: 'toast.auth.email_not_found', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email.' };
+    }
+
+    // 3) Password sai - mở rộng các biến thể
+    if (
+      msg.includes('password not match') ||
+      msg.includes('wrong password') ||
+      msg.includes('invalid password') ||
+      msg.includes('bad credentials') ||
+      msg.includes('incorrect password') ||
+      // VI
+      msg.includes('sai mật khẩu') ||
+      msg.includes('mật khẩu không đúng') ||
+      // KO (đơn giản hoá)
+      msg.includes('비밀번호가 올바르지') ||
+      msg.includes('비밀번호가 틀렸') ||
+      hasPasswordKeyword // fallback nếu chỉ có từ khóa password mà không có email
+    ) {
+      return { i18nKey: 'toast.auth.wrong_password', defaultMessage: 'Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.' };
+    }
+
+    // 4) Trường hợp backend trả thông điệp gộp chuẩn hoá
+    if (
+      msg.includes('login failed. please check your email or password') ||
+      msg.includes('both invalid') ||
+      msg.includes('invalid_credentials') ||
+      msg.includes('invalid credentials') ||
+      msg.includes('check your email or password') ||
+      // VI
+      msg.includes('email hoặc mật khẩu') ||
+      // KO (đơn giản hoá)
+      msg.includes('이메일 또는 비밀번호')
+    ) {
+      return { i18nKey: 'toast.auth.both_invalid', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email hoặc mật khẩu.' };
+    }
+
+    // fallback to generic error
+    return null;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setEmailError('');
+
+    // Email validation
+    if (!email.trim()) {
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
+      setLoading(false);
+      return;
+    }
+    {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        showError(t('auth.common.form.email.invalid'));
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Password validation
+    if (!password.trim()) {
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.password') } });
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -72,35 +214,74 @@ const Login = () => {
             id: data.result.user.userId,
             email: data.result.user.email,
             role: data.result.user.role,
+            status: data.result.user.status,
             name: data.result.user.username,
             avatar: data.result.user.avatar,
             isPremium: data.result.user.isPremium,
-            balance: data.result.user.balance
+            balance: data.result.user.balance,
+            authProvider: 'LOCAL'
           };
 
           login(user, token, rememberMe);
-          navigate('/', { 
-            state: { 
-              message: 'Đăng nhập thành công!', 
-              type: 'success' 
-            } 
-          });
+          showSuccess('toast.auth.login_success');
+          
+          // Navigate based on user role and any saved return path
+          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to company-info
+          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING') {
+            // Keep onboarding flags for pending flow
+            window.location.href = '/company-info';
+            return;
+          }
+
+          // Clear any stale onboarding flags for non-pending users
+          if (!(user.role === 'COMPANY' || user.role === 'BUSINESS') || user.status !== 'COMPANY_PENDING') {
+            localStorage.removeItem('registration_intent');
+            localStorage.removeItem('company_onboarding_pending');
+          }
+          const returnAfterLogin = localStorage.getItem('returnAfterLogin');
+          if (returnAfterLogin) {
+            localStorage.removeItem('returnAfterLogin');
+            if (user.role === 'COMPANY') {
+              window.location.href = returnAfterLogin;
+              return;
+            }
+            // Non-company users are sent to homepage
+            window.location.href = '/';
+            return;
+          }
+
+          // Default navigation by role
+          if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
+            window.location.href = '/company/dashboard';
+          } else if (user.role === 'ADMIN' || user.role === 'STAFF') {
+            window.location.href = '/admin';
+          } else {
+            // Regular user goes to homepage
+            window.location.href = '/';
+          }
         } else {
           // Fallback to mock data if user info not available
           const user = {
             id: Date.now(),
             email,
             role: 'user',
-            name: email.split('@')[0]
+            name: email.split('@')[0],
+            authProvider: 'LOCAL'
           };
           login(user, token, rememberMe);
-          navigate('/');
+          showSuccess('toast.auth.login_success');
+          window.location.href = '/';
         }
       } else {
-        setError(data.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+        const mapped = mapLoginErrorToI18nKey(data.message);
+        if (mapped) {
+          showError(mapped);
+        } else {
+          showError(data.message || 'toast.auth.login_failed');
+        }
       }
     } catch (err) {
-      setError(t('auth.login.error'));
+      showError(t('auth.login.error') || 'toast.auth.general_error');
     } finally {
       setLoading(false);
     }
@@ -113,14 +294,15 @@ const Login = () => {
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
         // Redirect to Google OAuth URL
-        // Persist remember-me preference for the callback handler
+        // Persist remember-me preference and provider for the callback handler
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
+        localStorage.setItem('oauth_provider', 'GOOGLE');
         window.location.href = data.result;
       } else {
-        setError('Không thể kết nối với Google. Vui lòng thử lại.');
+        showError('toast.auth.google_connection_failed');
       }
     } catch (err) {
-      setError(t('auth.login.oauthErrorGoogle'));
+      showError('toast.auth.google_connection_failed');
     }
   };
 
@@ -131,108 +313,97 @@ const Login = () => {
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
         // Redirect to Naver OAuth URL
-        // Persist remember-me preference for the callback handler
+        // Persist remember-me preference and provider for the callback handler
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
+        localStorage.setItem('oauth_provider', 'NAVER');
         window.location.href = data.result;
       } else {
-        setError('Không thể kết nối với Naver. Vui lòng thử lại.');
+        showError('toast.auth.naver_connection_failed');
       }
     } catch (err) {
-      setError(t('auth.login.oauthErrorNaver'));
+      showError('toast.auth.naver_connection_failed');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <UserCircleIcon className="h-8 w-8 text-white" />
-          </div>
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {t('auth.login.title')}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.login.subtitle')}
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                {t('auth.common.email')}
-              </label>
-              <div className="mt-1">
+    <div className="page-gradient">
+      <div className={`${styles['login-container']} min-h-screen flex items-start justify-center py-8`}>
+      <div className={`${styles['login-content']} w-full max-w-[1000px] px-4`}>
+        <div className={`${styles['login-grid']} grid grid-cols-1 lg:grid-cols-2 gap-6`}>
+          {/* Login Form Section */}
+          <div className={styles['login-form-section']}>
+            <div className={styles['login-header']}>
+              <div className={styles['login-logo']}>
+                <UserCircleIcon className="h-8 w-8 text-white" />
+              </div>
+              <h2 className={styles['login-title']}>
+                {t('auth.login.title')}
+              </h2>
+              <p className={styles['login-subtitle']}>
+                {t('auth.login.subtitle')}
+              </p>
+            </div>
+            <form className={styles['login-form']} onSubmit={handleSubmit}>
+              <div className={styles['form-group']}>
+                <label htmlFor="email" className={styles['form-label']}>
+                  {t('auth.common.email')}
+                </label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  className={`${styles['form-input']} ${emailError ? styles['input-error'] : ''}`}
                   placeholder="user@example.com"
                 />
+                {emailError && (
+                  <div className={styles['field-error']}>
+                    {emailError === 'invalid' ? (t('auth.common.form.email.invalid') || 'lỗi sai email không đúng định dạng') : ''}
+                  </div>
+                )}
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                {t('auth.common.password')}
-              </label>
-              <div className="mt-1">
+              <div className={styles['form-group']}>
+                <label htmlFor="password" className={styles['form-label']}>
+                  {t('auth.common.password')}
+                </label>
                 <input
                   id="password"
                   name="password"
                   type="password"
                   autoComplete="current-password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className={styles['form-input']}
                   placeholder="••••••••"
                 />
               </div>
-            </div>
 
-            <div className="flex items-center">
-              <input
-                id="rememberMe"
-                name="rememberMe"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
-                {t('auth.common.rememberMe')}
-              </label>
-            </div>
-
-            {successMessage && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                {successMessage}
+              <div className={styles['remember-me']}>
+                <input
+                  id="rememberMe"
+                  name="rememberMe"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className={styles['remember-checkbox']}
+                />
+                <label htmlFor="rememberMe" className={styles['remember-label']}>
+                  {t('auth.common.rememberMe')}
+                </label>
               </div>
-            )}
-            
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
 
-            <div>
+
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                disabled={loading || emailError}
+                className={styles['login-button']}
               >
                 {loading ? (
-                  <div className="flex items-center">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     {t('auth.login.submitting')}
                   </div>
@@ -240,77 +411,105 @@ const Login = () => {
                   t('auth.login.submit')
                 )}
               </button>
-            </div>
-          </form>
+            </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">{t('auth.common.or')}</span>
-              </div>
+            <div className={styles['divider']}>
+              <div className={styles['divider-line']}></div>
+              <span className={styles['divider-text']}>{t('auth.common.or')}</span>
+              <div className={styles['divider-line']}></div>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className={styles['oauth-buttons']}>
               <button
                 onClick={handleGoogleLogin}
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                className={`${styles['oauth-button']} ${styles['google']}`}
               >
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 {t('auth.login.loginWithGoogle')}
               </button>
 
               <button
                 onClick={handleNaverLogin}
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                className={styles['oauth-button']}
               >
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path fill="#03C75A" d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/>
                 </svg>
                 {t('auth.login.loginWithNaver')}
               </button>
             </div>
+
+            <div className={styles['forgot-password']}>
+              <Link
+                to="/forgot-password"
+                className={styles['forgot-link']}
+              >
+                {t('auth.login.forgotPassword')}
+              </Link>
+            </div>
+
+            <div className={styles['register-link']}>
+              <span className={styles['register-text']}>
+                {t('auth.login.noAccount')}{' '}
+              </span>
+              <Link
+                to="/register"
+                state={{ fromLogin: true }}
+                className={styles['register-link-text']}
+              >
+                {t('auth.login.registerNow')}
+              </Link>
+            </div>
+
+            {/* Staff/Admin quick login link removed as requested */}
           </div>
 
-          <div className="mt-6 text-center">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
-            >
-              {t('auth.login.forgotPassword')}
-            </Link>
-          </div>
+          {/* Illustration Section */}
+          <div className={styles['illustration-section']}>
+            <h1 className={styles['illustration-title']}>
+              {t('auth.login.illustrationTitle')}
+            </h1>
+            <p className={styles['illustration-subtitle']}>
+              {t('auth.login.illustrationSubtitle')}
+            </p>
+            
+            <div className={styles['travel-items']}>
+              <div className={styles['travel-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                </svg>
+              </div>
+              <div className={styles['travel-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17 4h3c.55 0 1 .45 1 1s-.45 1-1 1h-3v2h3c.55 0 1 .45 1 1s-.45 1-1 1h-3v2h3c.55 0 1 .45 1 1s-.45 1-1 1h-3v2c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2v-2H4c-.55 0-1-.45-1-1s.45-1 1-1h3v-2H4c-.55 0-1-.45-1-1s.45-1 1-1h3V8H4c-.55 0-1-.45-1-1s.45-1 1-1h3V4c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2z"/>
+                </svg>
+              </div>
+              <div className={styles['travel-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+              </div>
+              <div className={styles['travel-item']}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+            </div>
 
-          <div className="mt-4 text-center">
-            <span className="text-sm text-gray-600">
-              {t('auth.login.noAccount')}{' '}
-            </span>
-            <Link
-              to="/register"
-              className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
-            >
-              {t('auth.login.registerNow')}
-            </Link>
-          </div>
-
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <Link
-              to="/staff-login"
-              className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-            >
-              <ShieldCheckIcon className="h-4 w-4 mr-2" />
-              {t('auth.login.staffAdminLogin')}
-            </Link>
+            <div className={styles['character']}>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

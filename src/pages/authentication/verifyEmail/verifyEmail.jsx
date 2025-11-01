@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import './verifyEmail.css';
+import { useToast } from '../../../contexts/ToastContext';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import styles from './verifyEmail.module.css';
 
 const VerifyEmail = () => {
   const { t } = useTranslation();
@@ -12,6 +14,7 @@ const VerifyEmail = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const { login } = useAuth();
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -40,13 +43,20 @@ const VerifyEmail = () => {
     return () => clearInterval(timer);
   }, [email, navigate]);
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    // Validation
     if (!otp.trim()) {
-      setError(t('auth.common.otp'));
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
+      setLoading(false);
+      return;
+    }
+    if (otp.length !== 6) {
+      showError(t('auth.verify.error'));
       setLoading(false);
       return;
     }
@@ -68,30 +78,54 @@ const VerifyEmail = () => {
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
         // Verification successful - show success message and redirect based on role
         setError(''); // Clear any previous errors
+        showSuccess('toast.auth.email_verify_success');
         
-        // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm mb-4';
-        successMessage.innerHTML = t('auth.verify.successBanner');
-        
-        // Insert success message before the form
-        const form = document.querySelector('form');
-        form.parentNode.insertBefore(successMessage, form);
-        
+        // Keep loading spinner visible until redirect occurs
         // Auto navigate based on role after 2 seconds
-        setTimeout(() => {
+        setTimeout(async () => {
+          // Auto-login after verify if registration intent is business
           if (role === 'business') {
-            navigate('/business-info', { state: { type: 'success' } });
+            try {
+              const email = sessionStorage.getItem('post_reg_email');
+              const password = sessionStorage.getItem('post_reg_password');
+              if (email && password) {
+                const resp = await fetch('/api/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, password })
+                });
+                const data = await resp.json();
+                if ((data.code === 1000 || data.code === 0) && data.result) {
+                  const token = data.result.token;
+                  const userObj = data.result.user ? {
+                    id: data.result.user.userId,
+                    email: data.result.user.email,
+                    role: data.result.user.role,
+                    status: data.result.user.status,
+                    name: data.result.user.username,
+                    avatar: data.result.user.avatar,
+                    isPremium: data.result.user.isPremium,
+                    balance: data.result.user.balance
+                  } : null;
+                  if (userObj) {
+                    // Ghi nhớ theo lựa chọn mặc định (không remember)
+                    login(userObj, token, false);
+                  }
+                }
+              }
+            } catch {}
+            // Điều hướng tới trang upload company info
+            navigate('/company-info', { replace: true, state: { type: 'success' } });
           } else {
             navigate('/login', { state: { type: 'success' } });
           }
         }, 2000);
       } else {
-        setError(data.message || t('auth.verify.error'));
+        showError(data.message || 'toast.auth.email_verify_failed');
+        setLoading(false);
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
-    } finally {
+      showError('toast.auth.email_verify_failed');
       setLoading(false);
     }
   };
@@ -125,76 +159,100 @@ const VerifyEmail = () => {
             return prev - 1;
           });
         }, 1000);
+        showSuccess('toast.auth.otp_sent_success');
       } else {
-        setError(data.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.');
+        showError(data.message || 'toast.auth.otp_resend_failed');
       }
     } catch (err) {
-      setError('Không thể gửi lại mã OTP. Vui lòng thử lại.');
+      showError('toast.auth.otp_resend_failed');
     } finally {
       setResendLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{t('auth.verify.title')}</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">{t('auth.verify.subtitle', { email })}</p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700">{t('auth.verify.label')}</label>
-              <div className="mt-1">
-                <input
-                  id="otp"
-                  name="otp"
-                  type="text"
-                  required
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
-                  placeholder={t('auth.common.otpPlaceholder')}
-                  maxLength="6"
-                />
-              </div>
-              <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
+    <div className="page-gradient">
+      <div className={`${styles['verify-container']} min-h-screen flex items-center justify-center py-8`}>
+        <div className={`${styles['verify-content']} w-full max-w-[450px] px-4`}>
+          <div className={styles['verify-form-section']}>
+            <div className={styles['verify-header']}>
+            <div className={styles['verify-logo']}>
+              <EnvelopeIcon className="h-8 w-8 text-white" />
+            </div>
+            <h2 className={styles['verify-title']}>
+              {t('auth.verify.title')}
+            </h2>
+            <p className={styles['verify-subtitle']}>
+              {t('auth.verify.subtitle', { email })}
+            </p>
+            </div>
+          <form className={styles['verify-form']} onSubmit={handleSubmit}>
+            <div className={styles['form-group']}>
+              <label htmlFor="otp" className={styles['form-label']}>
+                {t('auth.verify.label')}
+              </label>
+              <input
+                id="otp"
+                name="otp"
+                type="text"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className={`${styles['form-input']} ${styles['otp-input']}`}
+                placeholder={t('auth.common.otpPlaceholder')}
+                maxLength="6"
+              />
+              <p className={styles['verify-subtitle']}>{t('auth.verify.helper')}</p>
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className={styles['error-message']}>
+                {error}
+              </div>
             )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? t('auth.verify.submitting') : t('auth.verify.submit')}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`${styles['verify-button']} ${loading ? styles['loading'] : ''}`}
+              aria-busy={loading}
+              aria-live="polite"
+            >
+              {loading ? (
+                <span className={styles['spinner']} aria-hidden="true"></span>
+              ) : (
+                t('auth.verify.submit')
+              )}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className={styles['resend-section']}>
+            <p className={styles['resend-text']}>
               {t('auth.common.notReceivedCode')}{' '}
               {countdown > 0 ? (
-                <span className="text-gray-400">{t('auth.common.resendIn', { seconds: countdown })}</span>
+                <span className={styles['resend-text']}>
+                  {t('auth.common.resendIn', { seconds: countdown })}
+                </span>
               ) : (
-                <button onClick={handleResendOTP} disabled={resendLoading} className="text-blue-600 hover:text-blue-500 disabled:opacity-50">
+                <button
+                  onClick={handleResendOTP}
+                  disabled={resendLoading}
+                  className={styles['resend-button']}
+                >
                   {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
                 </button>
               )}
             </p>
           </div>
 
-          <div className="mt-6 text-center">
-            <button onClick={() => navigate('/register')} className="text-sm text-gray-600 hover:text-gray-500">
+          <div className={styles['register-link']}>
+            <button
+              onClick={() => navigate('/register')}
+              className={styles['back-button']}
+            >
               {t('auth.common.backToRegister')}
             </button>
+          </div>
           </div>
         </div>
       </div>

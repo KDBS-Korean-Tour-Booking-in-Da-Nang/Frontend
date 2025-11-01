@@ -1,0 +1,152 @@
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
+import { API_ENDPOINTS, createAuthFormHeaders, getImageUrl, BaseURL } from '../../../config/api';
+import styles from './ShareTourModal.module.css';
+
+const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
+  const { t } = useTranslation();
+  const { user, getToken } = useAuth();
+  const { showError } = useToast();
+
+  const [caption, setCaption] = useState('');
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !tourId) {
+      setPreview(null);
+      return;
+    }
+    
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
+        if (!res.ok) throw new Error('Failed to load tour preview');
+        const data = await res.json();
+        
+        if (isMounted) {
+          setPreview({
+            title: data.tourName || '',
+            summary: data.tourDescription || '',
+            thumbnailUrl: getImageUrl(data.tourImgPath),
+            linkUrl: `${BaseURL}/tour/${tourId}`
+          });
+        }
+      } catch (e) {
+        console.error(e);
+        if (isMounted) {
+          showError('toast.forum.post_create_failed');
+        }
+      }
+    })();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, tourId]);
+
+  const createPost = async () => {
+    if (!user) {
+      showError('auth.loginRequired.title');
+      return;
+    }
+    try {
+      setLoading(true);
+      const token = getToken();
+      const formData = new FormData();
+      formData.append('userEmail', user.email);
+      // Body: caption + linkUrl (để FE nhận diện và render preview), FE sẽ ẩn dòng link khi hiển thị
+      formData.append('title', '');
+      const parts = [];
+      if ((caption || '').trim()) parts.push((caption || '').trim());
+      if ((preview?.linkUrl || '').trim()) parts.push(preview.linkUrl.trim());
+      const content = parts.join('\n');
+      formData.append('content', content || ' ');
+      // Embed link metadata into content fields so backend stores them as normal post
+      formData.append('metadata', JSON.stringify({
+        linkType: 'TOUR',
+        linkRefId: String(tourId),
+        title: preview?.title || '',
+        summary: preview?.summary || '',
+        thumbnailUrl: preview?.thumbnailUrl || '',
+        linkUrl: preview?.linkUrl || ''
+      }));
+
+      // Download thumbnail and append as file if available
+      if (preview?.thumbnailUrl) {
+        try {
+          const imgRes = await fetch(preview.thumbnailUrl);
+          const blob = await imgRes.blob();
+          const file = new File([blob], 'thumbnail.jpg', { type: blob.type || 'image/jpeg' });
+          formData.append('imageUrls', file);
+        } catch (e) {
+          console.warn('Failed to fetch thumbnail, continue without image');
+        }
+      }
+
+      const headers = createAuthFormHeaders(token);
+      const res = await fetch(API_ENDPOINTS.POSTS, { method: 'POST', headers, body: formData });
+      if (!res.ok) throw new Error('create post failed');
+      const post = await res.json();
+      onShared && onShared(post);
+      onClose && onClose();
+    } catch (e) {
+      console.error(e);
+      showError('toast.forum.post_create_failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles['overlay']} onClick={onClose}>
+      <div className={styles['modal']} onClick={(e) => e.stopPropagation()}> 
+        <div className={styles['header']}>
+          <h3>{t('forum.shareTour.title') || 'Chia sẻ tour lên diễn đàn'}</h3>
+          <button className={styles['close']} onClick={onClose}>×</button>
+        </div>
+        <div className={styles['body']}>
+          {preview ? (
+            <div className={styles['preview-card']}>
+              <div className={styles['thumb-wrap']}>
+                {preview.thumbnailUrl ? (
+                  <img src={preview.thumbnailUrl} alt={preview.title} />
+                ) : (
+                  <div className={styles['thumb-placeholder']}>No image</div>
+                )}
+              </div>
+              <div className={styles['meta']}>
+                <div className={styles['title']}>{preview.title}</div>
+                <div className={styles['summary']}>{preview.summary}</div>
+                <div className={styles['link']}>{preview.linkUrl}</div>
+              </div>
+            </div>
+          ) : (
+            <div className={styles['loading']}>Loading...</div>
+          )}
+
+          <textarea
+            className={styles['caption']}
+            rows={4}
+            placeholder={t('forum.shareTour.captionPlaceholder') || 'Viết cảm nghĩ của bạn...'}
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+          />
+        </div>
+        <div className={styles['footer']}>
+          <button className={styles['cancel']} onClick={onClose} disabled={loading}>{t('common.cancel') || 'Hủy'}</button>
+          <button className={styles['share']} onClick={createPost} disabled={loading || !preview}>{t('forum.shareTour.shareNow') || 'Chia sẻ'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ShareTourModal;
+
+

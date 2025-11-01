@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import './forgotPassword.css';
+import { useToast } from '../../../contexts/ToastContext';
+import { KeyIcon } from '@heroicons/react/24/outline';
+import styles from './forgotPassword.module.css';
 
 const ForgotPassword = () => {
   const { t } = useTranslation();
@@ -12,26 +14,21 @@ const ForgotPassword = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [verified, setVerified] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [countdown, setCountdown] = useState(0);
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccessMessage('');
 
-    // Basic validation
     if (!email.trim()) {
-      setError(t('auth.forgot.error'));
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
       setLoading(false);
       return;
     }
-
     if (!email.includes('@')) {
-      setError(t('auth.forgot.error'));
+      showError(t('auth.common.form.email.invalid'));
       setLoading(false);
       return;
     }
@@ -50,14 +47,14 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        setSuccessMessage(t('auth.forgot.success'));
+        showSuccess('toast.auth.password_reset_email_sent');
         setSent(true);
         setCountdown(60);
       } else {
-        setError(data.message || t('auth.forgot.error'));
+        showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {
-      setError(t('auth.forgot.error'));
+      showError('toast.auth.general_error');
     } finally {
       setLoading(false);
     }
@@ -82,17 +79,14 @@ const ForgotPassword = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setOtpLoading(true);
-    setError('');
-    setSuccessMessage('');
 
     if (!otp.trim()) {
-      setError(t('auth.common.otp'));
+      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
       setOtpLoading(false);
       return;
     }
-
     if (otp.length !== 6) {
-      setError(t('auth.common.otp'));
+      showError(t('auth.verify.error'));
       setOtpLoading(false);
       return;
     }
@@ -107,25 +101,21 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
-        // OTP verified successfully, navigate to reset password
-        setVerified(true);
-        setSuccessMessage(t('auth.verify.successBanner'));
-        
-        // Navigate to reset password after 2 seconds
-        setTimeout(() => {
-          navigate('/reset-password', { 
-            state: { 
-              email: email,
-              verified: true,
-              otpCode: otp // Pass the verified OTP
-            } 
-          });
-        }, 2000);
+        // OTP verified successfully, navigate to reset password immediately
+        showSuccess('toast.auth.otp_verify_success');
+        navigate('/reset-password', {
+          replace: true,
+          state: {
+            email: email,
+            verified: true,
+            otpCode: otp
+          }
+        });
       } else {
-        setError(data.message || t('auth.verify.error'));
+        showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      showError('toast.auth.general_error');
     } finally {
       setOtpLoading(false);
     }
@@ -133,8 +123,6 @@ const ForgotPassword = () => {
 
   const handleResendOTP = async () => {
     setResendLoading(true);
-    setError('');
-    setSuccessMessage('');
 
     try {
       const response = await fetch('/api/auth/forgot-password/request', {
@@ -150,15 +138,15 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        setSuccessMessage(t('auth.forgot.success'));
+        showSuccess('toast.auth.otp_sent_success');
         
         // Reset countdown
         setCountdown(60);
       } else {
-        setError(data.message || t('auth.verify.failed'));
+        showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {
-      setError(t('auth.verify.failed'));
+      showError('toast.auth.general_error');
     } finally {
       setResendLoading(false);
     }
@@ -167,74 +155,61 @@ const ForgotPassword = () => {
   // Show OTP form after email is sent
   if (sent && !verified) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {t('auth.verify.title')}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t('auth.verify.subtitle', { email })}
-          </p>
-        </div>
-
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <form className="space-y-6" onSubmit={handleVerifyOTP}>
-              <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+      <div className="page-gradient">
+        <div className={`${styles['forgot-container']} min-h-screen flex items-center justify-center py-8`}>
+          <div className={`${styles['forgot-content']} w-full max-w-[450px] px-4`}>
+            <div className={styles['forgot-form-section']}>
+              <div className={styles['forgot-header']}>
+              <div className={styles['forgot-logo']}>
+                <KeyIcon className="h-8 w-8 text-white" />
+              </div>
+              <h2 className={styles['forgot-title']}>
+                {t('auth.verify.title')}
+              </h2>
+              <p className={styles['forgot-subtitle']}>
+                {t('auth.verify.subtitle', { email })}
+              </p>
+              </div>
+            <form className={styles['forgot-form']} onSubmit={handleVerifyOTP}>
+              <div className={styles['form-group']}>
+                <label htmlFor="otp" className={styles['form-label']}>
                   {t('auth.common.otp')}
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="otp"
-                    name="otp"
-                    type="text"
-                    required
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
-                    placeholder={t('auth.common.otpPlaceholder')}
-                    maxLength="6"
-                  />
-                </div>
-                <p className="mt-2 text-sm text-gray-500">{t('auth.verify.helper')}</p>
+                <input
+                  id="otp"
+                  name="otp"
+                  type="text"
+                  required
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className={`${styles['form-input']} ${styles['otp-input']}`}
+                  placeholder={t('auth.common.otpPlaceholder')}
+                  maxLength="6"
+                />
+                <p className={styles['forgot-subtitle']}>{t('auth.verify.helper')}</p>
               </div>
 
-              {successMessage && (
-                <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                  {successMessage}
-                </div>
-              )}
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                  {error}
-                </div>
-              )}
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={otpLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {otpLoading ? t('auth.verify.submitting') : t('auth.verify.submit')}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={otpLoading}
+                className={styles['forgot-button']}
+              >
+                {otpLoading ? t('auth.verify.submitting') : t('auth.verify.submit')}
+              </button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+            <div className={styles['resend-section']}>
+              <p className={styles['resend-text']}>
                 {t('auth.common.notReceivedCode')}{' '}
                 {countdown > 0 ? (
-                  <span className="text-gray-400">
+                  <span className={styles['resend-text']}>
                     {t('auth.common.resendIn', { seconds: countdown })}
                   </span>
                 ) : (
                   <button
                     onClick={handleResendOTP}
                     disabled={resendLoading}
-                    className="text-blue-600 hover:text-blue-500 disabled:opacity-50"
+                    className={styles['resend-button']}
                   >
                     {resendLoading ? t('auth.verify.resending') : t('auth.verify.resend')}
                   </button>
@@ -242,89 +217,77 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            <div className="mt-6 text-center">
+            <div className={styles['login-link']}>
               <button
                 onClick={() => {
                   setSent(false);
                   setOtp('');
-                  setError('');
-                  setSuccessMessage('');
                   setCountdown(0);
                 }}
-                className="text-sm text-gray-600 hover:text-gray-500"
+                className={styles['back-button']}
               >
                 {t('auth.common.backToForgot')}
               </button>
             </div>
-          </div>
+        </div>
         </div>
       </div>
+    </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {t('auth.forgot.title')}
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          {t('auth.forgot.subtitle')}
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+    <div className="page-gradient">
+      <div className={`${styles['forgot-container']} min-h-screen flex items-center justify-center py-8`}>
+        <div className={`${styles['forgot-content']} w-full max-w-[450px] px-4`}>
+          <div className={styles['forgot-form-section']}>
+            <div className={styles['forgot-header']}>
+              <div className={styles['forgot-logo']}>
+              <KeyIcon className="h-8 w-8 text-white" />
+            </div>
+            <h2 className={styles['forgot-title']}>
+              {t('auth.forgot.title')}
+            </h2>
+            <p className={styles['forgot-subtitle']}>
+              {t('auth.forgot.subtitle')}
+            </p>
+          </div>
+          <form className={styles['forgot-form']} onSubmit={handleSubmit}>
+            <div className={styles['form-group']}>
+              <label htmlFor="email" className={styles['form-label']}>
                 {t('auth.common.email')}
               </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={styles['form-input']}
+                placeholder="user@example.com"
+              />
             </div>
 
-            {successMessage && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
-                {successMessage}
-              </div>
-            )}
-            
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? t('auth.forgot.sending') : t('auth.forgot.submit')}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={styles['forgot-button']}
+            >
+              {loading ? t('auth.forgot.sending') : t('auth.forgot.submit')}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className={styles['login-link']}>
             <Link
               to="/login"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className={styles['login-link-text']}
             >
               {t('auth.common.backToLogin')}
             </Link>
           </div>
+        </div>
         </div>
       </div>
     </div>

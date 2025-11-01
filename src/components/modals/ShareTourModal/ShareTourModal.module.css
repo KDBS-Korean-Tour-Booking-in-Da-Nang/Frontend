@@ -1,0 +1,320 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  width: 720px;
+  max-width: 95vw;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.body {
+  padding: 16px 20px;
+}
+
+.preview-card {
+  display: flex;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.thumb-wrap {
+  width: 180px;
+  height: 120px;
+  background: #eef2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-placeholder {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.meta {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  font-weight: 700;
+  color: #111827;
+}
+
+.summary {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.link {
+  color: #1a8eea;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.caption {
+  margin-top: 14px;
+  width: 100%;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel {
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.share {
+  border: none;
+  background: linear-gradient(135deg, #1a8eea, #1478c3);
+  color: white;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.loading { padding: 20px; color: #6b7280; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal {
+    width: 90vw;
+    max-width: 650px;
+  }
+  
+  .header {
+    padding: 14px 18px;
+  }
+  
+  .header h3 {
+    font-size: 16px;
+  }
+  
+  .body {
+    padding: 14px 18px;
+  }
+  
+  .preview-card {
+    gap: 10px;
+  }
+  
+  .thumb-wrap {
+    width: 160px;
+    height: 100px;
+  }
+  
+  .meta {
+    padding: 8px 10px;
+    gap: 4px;
+  }
+  
+  .title {
+    font-size: 14px;
+  }
+  
+  .summary {
+    font-size: 13px;
+  }
+  
+  .link {
+    font-size: 11px;
+  }
+  
+  .caption {
+    margin-top: 12px;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  
+  .footer {
+    padding: 10px 18px 14px;
+  }
+  
+  .cancel,
+  .share {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    width: 95vw;
+    max-width: none;
+    margin: 10px;
+  }
+  
+  .header {
+    padding: 12px 16px;
+  }
+  
+  .header h3 {
+    font-size: 15px;
+  }
+  
+  .close {
+    font-size: 18px;
+  }
+  
+  .body {
+    padding: 12px 16px;
+  }
+  
+  .preview-card {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .thumb-wrap {
+    width: 100%;
+    height: 120px;
+  }
+  
+  .meta {
+    padding: 6px 8px;
+    gap: 3px;
+  }
+  
+  .title {
+    font-size: 13px;
+  }
+  
+  .summary {
+    font-size: 12px;
+  }
+  
+  .link {
+    font-size: 10px;
+  }
+  
+  .caption {
+    margin-top: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    min-height: 80px;
+  }
+  
+  .footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 16px 12px;
+  }
+  
+  .cancel,
+  .share {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal {
+    width: 98vw;
+    margin: 5px;
+  }
+  
+  .header {
+    padding: 10px 14px;
+  }
+  
+  .header h3 {
+    font-size: 14px;
+  }
+  
+  .close {
+    font-size: 16px;
+  }
+  
+  .body {
+    padding: 10px 14px;
+  }
+  
+  .thumb-wrap {
+    height: 100px;
+  }
+  
+  .meta {
+    padding: 5px 7px;
+  }
+  
+  .title {
+    font-size: 12px;
+  }
+  
+  .summary {
+    font-size: 11px;
+  }
+  
+  .link {
+    font-size: 9px;
+  }
+  
+  .caption {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-height: 70px;
+  }
+  
+  .footer {
+    padding: 6px 14px 10px;
+  }
+  
+  .cancel,
+  .share {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+
