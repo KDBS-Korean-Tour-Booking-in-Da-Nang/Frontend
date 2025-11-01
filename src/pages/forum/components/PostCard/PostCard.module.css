@@ -91,6 +91,7 @@
 }
 
 .post-user-info {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -113,6 +114,11 @@
   font-weight: 600;
   color: #1c1e21;
   font-size: 15px;
+  transition: text-decoration 0.2s;
+}
+
+.post-user-info:hover .username {
+  text-decoration: underline;
 }
 
 .post-time {

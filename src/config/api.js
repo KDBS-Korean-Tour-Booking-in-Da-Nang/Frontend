@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
   REPORTS: `${BaseURL}/api/reports`,
   REPORTS_CREATE: `${BaseURL}/api/reports/create`,
   REPORTS_CHECK: `${BaseURL}/api/reports/check`,
+  REPORTS_ADMIN_ALL: `${BaseURL}/api/reports/admin/all`,
   
   // Hashtags
   HASHTAGS: `${BaseURL}/api/hashtags`,
@@ -81,6 +82,13 @@ export const getAvatarUrl = (avatar) => {
 // Helper function để xử lý image URLs
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+};
+
+// Helper function để xử lý tour image URLs với fallback về default tour image
+export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') => {
+  if (!imagePath) return defaultImage;
   if (imagePath.startsWith('http')) return imagePath;
   return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
 };

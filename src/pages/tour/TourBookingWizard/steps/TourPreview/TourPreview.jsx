@@ -189,6 +189,9 @@ const TourPreview = () => {
               src={getImageUrl(tour.image)} 
               alt={tour.title}
               className={styles['tour-thumbnail']}
+              onError={(e) => {
+                e.target.src = '/default-Tour.jpg';
+              }}
             />
           ) : (
             <div className={styles['tour-placeholder']}>

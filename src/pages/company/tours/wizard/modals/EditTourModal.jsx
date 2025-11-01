@@ -959,7 +959,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             className={styles['preview-image']}
                             onError={(e) => {
                               console.log('Image load error:', formData.tourImgPath);
-                              e.target.style.display = 'none';
+                              e.target.src = '/default-Tour.jpg';
                             }}
                             onLoad={() => {
                               console.log('Image loaded successfully:', formData.tourImgPath);

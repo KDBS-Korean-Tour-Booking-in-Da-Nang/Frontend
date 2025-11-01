@@ -8,6 +8,8 @@ import {
   BuildingOfficeIcon, 
   UserGroupIcon,
   DocumentTextIcon,
+  MapPinIcon,
+  ChatBubbleLeftRightIcon,
   Bars3Icon,
   XMarkIcon,
   BellIcon,
@@ -56,16 +58,24 @@ const AdminLayout = ({ children }) => {
       items: [
         { name: 'Dashboard', to: '/admin', icon: ChartBarIcon },
         { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
-        { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
-        { name: 'User Management', to: '/admin/user', icon: UsersIcon },
+        { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },
+        { name: 'Forum Management', to: '/admin/forum', icon: ChatBubbleLeftRightIcon },
+        // { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
+        // { name: 'User Management', to: '/admin/user', icon: UsersIcon },
         { name: 'Report Management', to: '/admin/report', icon: DocumentTextIcon },
+      ],
+    },
+    {
+      title: 'LIÊN HỆ',
+      items: [
+        { name: 'Liên hệ khách hàng', to: '/admin/contact', icon: ChatBubbleLeftRightIcon },
       ],
     },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/staff-login');
+    navigate('/admin/login');
   };
 
   return (
@@ -96,6 +106,7 @@ const AdminLayout = ({ children }) => {
                     <li key={item.name}>
                       <NavLink
                         to={item.to}
+                        end={item.to === '/admin'}
                         className={({ isActive }) => [
                           'flex items-center gap-3 rounded-lg transition-colors duration-150',
                           'text-[15px] leading-6 px-3 py-3',

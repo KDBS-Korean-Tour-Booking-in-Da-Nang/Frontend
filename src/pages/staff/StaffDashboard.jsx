@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import StaffLayout from './StaffLayout';
 import NewsManagement from '../staff/news-management/NewsManagement';
+import CustomerContact from './CustomerContact/CustomerContact';
 
 const StaffDashboard = () => {
   const { user, loading } = useAuth();
@@ -27,7 +28,7 @@ const StaffDashboard = () => {
               Go to Homepage
             </button>
             <button
-              onClick={() => window.location.href = '/staff-login'}
+              onClick={() => window.location.href = '/staff/login'}
               className="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
             >
               Staff Login
@@ -42,6 +43,7 @@ const StaffDashboard = () => {
     <StaffLayout>
       <Routes>
         <Route path="/news-management" element={<NewsManagement />} />
+        <Route path="/contact" element={<CustomerContact />} />
         <Route path="*" element={<Navigate to="/staff/news-management" replace />} />
       </Routes>
     </StaffLayout>

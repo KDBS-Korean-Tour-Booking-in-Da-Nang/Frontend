@@ -14,7 +14,8 @@ import {
   ChevronDownIcon,
   Cog6ToothIcon,
   LifebuoyIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 
 const StaffLayout = ({ children }) => {
@@ -53,11 +54,17 @@ const StaffLayout = ({ children }) => {
         { name: 'News Management', to: '/staff/news-management', icon: NewspaperIcon },
       ],
     },
+    {
+      title: 'LIÊN HỆ',
+      items: [
+        { name: 'Liên hệ khách hàng', to: '/staff/contact', icon: ChatBubbleLeftRightIcon },
+      ],
+    },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/staff-login');
+    navigate('/staff/login');
   };
 
   return (
@@ -88,6 +95,7 @@ const StaffLayout = ({ children }) => {
                     <li key={item.name}>
                       <NavLink
                         to={item.to}
+                        end={item.to === '/staff/news-management'}
                         className={({ isActive }) => [
                           'flex items-center gap-3 rounded-lg transition-colors duration-150',
                           'text-[15px] leading-6 px-3 py-3',

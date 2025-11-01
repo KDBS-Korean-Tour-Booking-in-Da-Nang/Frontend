@@ -63,10 +63,10 @@ const TourCard = ({ tour }) => {
     <div className={styles['tour-card']} onClick={handleCardClick}>
       <div className={styles['tour-card-image']}>
         <img 
-          src={tour.image || '/default-tour.jpg'} 
+          src={tour.image || '/default-Tour.jpg'} 
           alt={tour.title} 
           onError={(e) => {
-            e.target.src = '/default-tour.jpg';
+            e.target.src = '/default-Tour.jpg';
           }}
         />
         {tour.featured && (

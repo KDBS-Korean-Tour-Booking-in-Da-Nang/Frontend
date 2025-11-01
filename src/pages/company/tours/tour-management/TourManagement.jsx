@@ -263,6 +263,9 @@ const TourManagement = () => {
                       src={getImageSrc(tour.tourImgPath)} 
                       alt={tour.tourName}
                       className={styles['tour-image']}
+                      onError={(e) => {
+                        e.target.src = '/default-Tour.jpg';
+                      }}
                     />
                   ) : (
                     <div className={styles['tour-image-placeholder']}>

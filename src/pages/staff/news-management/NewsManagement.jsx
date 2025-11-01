@@ -160,7 +160,7 @@ const NewsManagement = () => {
               {t('newsManagement.accessDenied.goHome')}
             </button>
             <button
-              onClick={() => navigate('/staff-login')}
+              onClick={() => navigate('/staff/login')}
               className="w-full bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg transition-colors shadow-primary"
             >
               Staff Login

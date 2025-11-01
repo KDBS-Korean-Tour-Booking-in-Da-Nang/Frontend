@@ -31,6 +31,7 @@
 		"delete": "Delete",
 		"processing": "Processing...",
 		"item": "item",
+		"sendMessage": "Send Message",
 		"modal": {
 			"confirmLeave": {
 				"title": "Leave the tour wizard?",

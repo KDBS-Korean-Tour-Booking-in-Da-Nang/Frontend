@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { API_ENDPOINTS, createAuthFormHeaders, getImageUrl, BaseURL } from '../../../config/api';
+import { API_ENDPOINTS, createAuthFormHeaders, getTourImageUrl, BaseURL } from '../../../config/api';
 import styles from './ShareTourModal.module.css';
 
 const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
@@ -31,7 +31,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           setPreview({
             title: data.tourName || '',
             summary: data.tourDescription || '',
-            thumbnailUrl: getImageUrl(data.tourImgPath),
+            thumbnailUrl: getTourImageUrl(data.tourImgPath || data.thumbnailUrl),
             linkUrl: `${BaseURL}/tour/${tourId}`
           });
         }
@@ -115,7 +115,13 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
             <div className={styles['preview-card']}>
               <div className={styles['thumb-wrap']}>
                 {preview.thumbnailUrl ? (
-                  <img src={preview.thumbnailUrl} alt={preview.title} />
+                  <img 
+                    src={preview.thumbnailUrl} 
+                    alt={preview.title}
+                    onError={(e) => {
+                      e.target.src = '/default-Tour.jpg';
+                    }}
+                  />
                 ) : (
                   <div className={styles['thumb-placeholder']}>No image</div>
                 )}

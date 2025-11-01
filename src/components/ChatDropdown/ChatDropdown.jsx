@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-  ChatBubbleLeftRightIcon,
   UserIcon,
   XMarkIcon,
   MagnifyingGlassIcon
@@ -11,11 +9,9 @@ import { useChat } from '../../contexts/ChatContext';
 import styles from './ChatDropdown.module.css';
 
 const ChatDropdown = ({ isOpen, onClose }) => {
-  const { t } = useTranslation();
   const { state, actions } = useChat();
   const { user: authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTab] = useState('users');
 
   // Resolve current user's login name to filter out self from lists
   const currentLoginName = (() => {
@@ -26,11 +22,9 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    // Load conversations and users when dropdown opens
+    // Load conversations when dropdown opens (only users with conversations will show)
     if (isOpen) {
       actions.loadConversations();
-      // Load real users from database
-      actions.loadAllUsers();
     }
   }, [isOpen]);
 
@@ -87,86 +81,11 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     })
     .sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
 
-  const filteredUsers = (state.allUsers || [])
-    // Exclude ADMIN, STAFF, and COMPANY with COMPANY_PENDING status
-    .filter(user => {
-      const role = (user.role || user.userRole || '').toUpperCase();
-      const status = (user.status || user.userStatus || '').toUpperCase();
-      if (role === 'ADMIN' || role === 'STAFF') return false;
-      if (role === 'COMPANY' && status === 'COMPANY_PENDING') return false;
-      return true;
-    })
-    // Exclude current user from users list
-    .filter(user => {
-      const uname = (user.username || user.userName || '').toLowerCase();
-      return uname && uname !== currentLoginName;
-    })
-    // Apply search filtering
-    .filter(user => {
-      const userName = user.username || user.userName || '';
-      const userEmail = user.email || user.userEmail || '';
-      return userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             userEmail.toLowerCase().includes(searchTerm.toLowerCase());
-    });
-
-  // Merge all users with conversation previews; show all users and sort by latest message
-  const mergedUserList = (() => {
-    const convMap = new Map();
-    (state.conversations || []).forEach(conv => {
-      const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
-      if (!key) return;
-      if (key === currentLoginName) return; // never include self
-      const existing = convMap.get(key);
-      const currentTs = new Date(conv.lastMessage?.timestamp || 0).getTime();
-      const existingTs = existing ? new Date(existing.lastMessage?.timestamp || 0).getTime() : -1;
-      if (!existing || currentTs > existingTs) {
-        convMap.set(key, conv);
-      }
-    });
-
-    // Start with all filtered users from the system
-    const list = filteredUsers.map(user => {
-      const key = (user.username || user.userName || '').toLowerCase();
-      const conv = convMap.get(key) || null;
-      return { user, lastMessage: conv?.lastMessage || null };
-    });
-
-    // Include any conversation users that are not in allUsers (fallback)
-    (state.conversations || []).forEach(conv => {
-      const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
-      if (!key) return;
-      if (key === currentLoginName) return; // skip self
-      const exists = list.some(item => (item.user.username || item.user.userName || '').toLowerCase() === key);
-      if (!exists) {
-        list.push({ user: conv.user, lastMessage: conv.lastMessage || null });
-      }
-    });
-
-    // Apply searchTerm against username/email and last message content
-    const searched = list.filter(item => {
-      const userName = item.user?.username || item.user?.userName || '';
-      const userEmail = item.user?.email || item.user?.userEmail || '';
-      const preview = item.lastMessage?.content || '';
-      const q = searchTerm.toLowerCase();
-      return userName.toLowerCase().includes(q) || userEmail.toLowerCase().includes(q) || preview.toLowerCase().includes(q);
-    });
-
-    // Sort: users with lastMessage first (desc by timestamp), then those without (alphabetical)
-    searched.sort((a, b) => {
-      const aHas = !!a.lastMessage?.timestamp;
-      const bHas = !!b.lastMessage?.timestamp;
-      if (aHas && bHas) {
-        return new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp);
-      }
-      if (aHas) return -1;
-      if (bHas) return 1;
-      const an = (a.user?.username || a.user?.userName || '').toLowerCase();
-      const bn = (b.user?.username || b.user?.userName || '').toLowerCase();
-      return an.localeCompare(bn);
-    });
-
-    return searched;
-  })();
+  // Transform conversations to user list format - only show users with conversations
+  const mergedUserList = filteredConversations.map(conv => ({
+    user: conv.user,
+    lastMessage: conv.lastMessage
+  }));
 
   const getTabContent = () => {
     return (

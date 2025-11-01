@@ -1,12 +1,10 @@
 .search-sidebar {
   background: white;
+  border: 1px solid #e2e8f0;
   border-radius: 0;
   padding: 20px;
   box-shadow: none;
-  border: none;
-  height: fit-content;
-  position: static;
-  top: auto;
+  overflow: auto;
 }
 
 .sidebar-title {
@@ -399,10 +397,22 @@
   line-height: 1.4;
 }
 
+/* chế độ cố định theo viewport */
+.fixed {
+  position: fixed; /* left/top/width/height cấp qua inline style */
+  z-index: 9; /* dưới header nổi nếu có */
+}
+
 @media (max-width: 1024px) {
   .search-sidebar {
     position: static;
     margin-bottom: 20px;
+  }
+
+  .fixed {
+    position: static;
+    width: auto;
+    height: auto;
   }
 }
 

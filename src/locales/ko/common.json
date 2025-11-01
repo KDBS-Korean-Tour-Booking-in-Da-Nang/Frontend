@@ -31,6 +31,7 @@
 		"delete": "삭제",
 		"processing": "처리 중...",
 		"item": "항목",
+		"sendMessage": "메시지 보내기",
 		"modal": {
 			"confirmLeave": {
 				"title": "투어 마법사를 나가시겠습니까?",

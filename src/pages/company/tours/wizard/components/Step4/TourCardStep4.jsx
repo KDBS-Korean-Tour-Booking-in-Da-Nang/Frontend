@@ -27,6 +27,11 @@ const TourCardStep4 = ({ tour, onClick, showActions = false }) => {
           <img 
             src={getImageSrc(tour.thumbnail)} 
             alt={tour.tourName}
+            onError={(e) => {
+              if (!(tour.thumbnail instanceof File)) {
+                e.target.src = '/default-Tour.jpg';
+              }
+            }}
           />
         ) : (
           <div className={styles['tour-card-placeholder']}>

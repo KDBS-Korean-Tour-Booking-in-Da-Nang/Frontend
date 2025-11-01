@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_ENDPOINTS, getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getImageUrl, getTourImageUrl } from '../config/api';
 
 // Helper function to strip HTML tags from text
 const stripHtmlTags = (html) => {
@@ -27,7 +27,7 @@ export const useToursAPI = () => {
     title: stripHtmlTags(tour.tourName),
     duration: tour.tourDuration,
     price: tour.adultPrice ? Number(tour.adultPrice) : 0,
-    image: getImageUrl(tour.tourImgPath),
+    image: getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl),
     description: stripHtmlTags(tour.tourDescription),
     descriptionHtml: tour.tourDescription || '',
     category: mapTourTypeToCategory(tour.tourType),

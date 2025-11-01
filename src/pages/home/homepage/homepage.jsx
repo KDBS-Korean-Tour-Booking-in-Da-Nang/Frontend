@@ -550,7 +550,14 @@ const Homepage = () => {
                     {item?.isPlaceholder ? (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center" />
                     ) : (
-                      <img src={item?.image || '/tour1.jpg'} alt={item?.title || 'Tour'} className="w-full h-full object-cover" />
+                      <img 
+                        src={item?.image || '/default-Tour.jpg'} 
+                        alt={item?.title || 'Tour'} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = '/default-Tour.jpg';
+                        }}
+                      />
                     )}
                     <div className="absolute top-4 left-4">
                       {!item?.isPlaceholder && (

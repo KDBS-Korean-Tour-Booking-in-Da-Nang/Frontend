@@ -27,6 +27,28 @@ const Forum = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const observerRef = useRef();
   const lastPostElementRef = useRef();
+  const leftSlotRef = useRef(null);
+  const headerRef = useRef(null);
+  const [fixedSBStyle, setFixedSBStyle] = useState({});
+
+  const measure = useCallback(() => {
+    const slot = leftSlotRef.current;
+    const header = headerRef.current;
+    if (!slot) return;
+
+    const slotRect = slot.getBoundingClientRect();
+    // Lấy đỉnh của header thay vì đáy
+    const headerTop = header ? header.getBoundingClientRect().top : 0;
+
+    const MIN_TOP = 16; // khoảng cách an toàn với viền trên viewport
+    const top = Math.max(MIN_TOP, Math.round(headerTop));
+
+    const left = Math.round(slotRect.left);
+    const width = Math.round(slotRect.width);
+    const height = window.innerHeight - top - 16;
+
+    setFixedSBStyle({ position: 'fixed', top, left, width, height });
+  }, []);
 
   const showSinglePost = async (postId) => {
     setSelectedPostId(postId);
@@ -79,6 +101,24 @@ const Forum = () => {
     
     setIsSearchMode(savedSearchMode);
   }, []);
+
+  // Measure and update fixed sidebar position
+  useEffect(() => {
+    const onResize = () => measure();
+    const onScroll = () => measure();
+    setTimeout(measure, 0);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onScroll, true);
+    };
+  }, [measure]);
+
+  // Re-measure when user/login or header changes
+  useEffect(() => {
+    setTimeout(measure, 0);
+  }, [user, measure]);
 
   useEffect(() => {
     fetchPosts();
@@ -417,7 +457,7 @@ const Forum = () => {
       <div className={styles['forum-content']}>
         {/* Header: HÀNG 1 của grid */}
         {user ? (
-          <div className={styles['forum-header']}>
+          <div id="forum-header" ref={headerRef} className={styles['forum-header']}>
             <div className={styles['forum-header__inner']}>
               <div className={styles['create-post-section']}>
                 <div className={styles['create-post-input']} onClick={() => setShowPostModal(true)}>
@@ -446,7 +486,7 @@ const Forum = () => {
             </div>
           </div>
         ) : (
-          <div className={`${styles['forum-header']} ${styles['guest-notice']}`}>
+          <div id="forum-header" ref={headerRef} className={`${styles['forum-header']} ${styles['guest-notice']}`}>
             <div className={styles['forum-header__inner']}>
               <div className={styles['guest-message']}>
                 <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
@@ -455,14 +495,12 @@ const Forum = () => {
             </div>
           </div>
         )}
-      {/* Left Sidebar - Search */}
-        <div className={`${styles['forum-sidebar']} ${styles['left']}`}>
-      <SearchSidebar 
-            onSearch={handleSearch}
-            onHashtagFilter={handleHashtagFilter}
-            selectedHashtags={selectedHashtags}
-          />
-        </div>
+      {/* LEFT PLACEHOLDER – chỉ là khung giữ chỗ */}
+        <div
+          className={`${styles['forum-sidebar']} ${styles['left']}`}
+          ref={leftSlotRef}
+          aria-hidden
+        />
 
         {/* Main Content - Posts Feed */}
         <div className={styles['forum-main']}>
@@ -653,6 +691,14 @@ const Forum = () => {
         />
       )}
 
+      {/* SIDEBAR THẬT – đặt fixed theo viewport */}
+      <SearchSidebar
+        mode="fixed"
+        fixedStyle={fixedSBStyle}
+        onSearch={handleSearch}
+        onHashtagFilter={handleHashtagFilter}
+        selectedHashtags={selectedHashtags}
+      />
     </div>
   );
 };

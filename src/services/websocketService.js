@@ -12,6 +12,11 @@ class WebSocketService {
   }
 
   connect(username) {
+    // Always disconnect first if connected to ensure clean reconnection
+    if (this.isConnected && this.stompClient) {
+      this.disconnect();
+    }
+    
     if (this.isConnected) {
       return Promise.resolve();
     }

@@ -2,6 +2,8 @@
   border-top: 1px solid #f0f2f5;
   background-color: #f8f9fa;
   overflow: visible; /* ensure inner dropdowns are not clipped */
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .comment-input-container {
@@ -9,6 +11,8 @@
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid #f0f2f5;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .comment-user-avatar {
@@ -71,81 +75,125 @@
 
 .comments-list {
   padding: 0 20px;
+  border-bottom: 1px solid #f0f2f5;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
+/* 2-column skeleton for each comment */
 .comment-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 40px 1fr; /* avatar column + content */
   gap: 12px;
   padding: 16px 0;
   border-bottom: 1px solid #f0f2f5;
+  align-items: flex-start;
 }
 
 .comment-item:last-child {
   border-bottom: none;
 }
 
+.comment-left {
+  grid-column: 1 / 2;
+  display: flex;
+  align-items: flex-start;
+}
+
+.comment-right {
+  grid-column: 2 / 3;
+  min-width: 0;
+}
+
+/* Reply indent theo avatar col + gap */
 .reply-item {
-  margin-left: 20px;
-  border-left: 2px solid #e4e6eb;
-  padding-left: 16px;
+  grid-column: 1 / -1;
+  margin-left: 52px; /* 40px avatar + 12px gap */
+  border-left: none;       /* bỏ viền cũ */
+  padding-left: 0;         /* bỏ padding cũ */
 }
 
+/* Replies container không thêm một tầng viền mới; giữ thẳng hàng với right col */
 .replies-container {
-  margin-top: 8px;
-  border-left: 2px solid #e4e6eb;
-  margin-left: 20px;
-  padding-left: 16px;
+  margin-top: 6px;
+  margin-left: 52px; /* cùng gutter */
+  border-left: none;
+  padding-left: 0;
 }
 
-.nested-reply-item {
-  margin-left: 20px;
-  border-left: 2px solid #e4e6eb;
-  padding-left: 16px;
-}
-
+/* Avatar giữ nguyên */
 .comment-avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #e4e6eb;
   flex-shrink: 0;
 }
 
-.comment-content {
-  flex: 1;
-  min-width: 0;
+/* Bubble look (username + content chung 1 khối) */
+.comment-bubble {
+  display: inline-block;
+  max-width: 100%;
+  background: #f0f2f5;
+  border-radius: 18px;
+  padding: 8px 12px;
+  line-height: 1.4;
 }
 
+/* Hàng trên của bubble: username • (spacer) • time • menu */
 .comment-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 4px;  /* tách khỏi content phía dưới */
 }
 
 .comment-username {
   font-weight: 600;
   font-size: 13px;
   color: #1c1e21;
+  margin-right: 6px;
 }
 
-.comment-time {
-  color: #65676b;
-  font-size: 12px;
+/* đẩy time + menu sang phải trong phạm vi bubble */
+.comment-header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .comment-text {
   font-size: 14px;
   color: #1c1e21;
-  line-height: 1.4;
-  margin-bottom: 8px;
   word-wrap: break-word;
 }
 
-.comment-actions {
+/* Meta/actions line đặt ngay dưới bubble */
+.comment-meta-row {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  min-height: 28px;
+}
+
+.comment-time {
+  color: #65676b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.comment-actions { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+}
+
+/* menu đã có style cũ; bỏ margin-left:auto trong meta-row */
+.comment-actions-menu {
+  position: relative;
 }
 
 .comment-action-btn {
@@ -278,6 +326,9 @@
   padding: 32px 20px;
   text-align: center;
   color: #65676b;
+  border-bottom: 1px solid #f0f2f5;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .no-comments p {
@@ -301,13 +352,6 @@
   margin-left: 20px;
 }
 
-/* Comment actions menu */
-.comment-actions-menu {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
 .comment-more-btn {
   background: none;
@@ -348,6 +392,8 @@
   transform: translateY(-10px);
   transition: all 0.2s;
 }
+
+/* Dropdown đã có z-index cao; giữ nguyên */
 
 .comment-dropdown.show {
   opacity: 1;

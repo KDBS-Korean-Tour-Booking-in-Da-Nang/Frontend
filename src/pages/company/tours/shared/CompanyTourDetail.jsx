@@ -29,7 +29,14 @@ export default function CompanyTourDetail() {
       </div>
 
       {tour.thumbnailUrl ? (
-        <img src={tour.thumbnailUrl} alt={tour.title} className="w-full h-64 object-cover rounded mb-4" />
+        <img 
+          src={tour.thumbnailUrl} 
+          alt={tour.title} 
+          className="w-full h-64 object-cover rounded mb-4"
+          onError={(e) => {
+            e.target.src = '/default-Tour.jpg';
+          }}
+        />
       ) : null}
 
       <div className="text-gray-600 mb-2">Giá: {Number(tour.price).toLocaleString()} VND • {tour.durationDays} ngày</div>

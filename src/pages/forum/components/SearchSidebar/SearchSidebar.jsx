@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { BaseURL, API_ENDPOINTS } from '../../../../config/api';
 import styles from './SearchSidebar.module.css';
 
-const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
+const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
   const { t } = useTranslation();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [popularHashtags, setPopularHashtags] = useState([]);
@@ -454,7 +454,11 @@ const SearchSidebar = ({ onSearch, onHashtagFilter, selectedHashtags: externalSe
   }, []);
 
   return (
-    <div className={styles['search-sidebar']} ref={rootRef}>
+    <div
+      className={`${styles['search-sidebar']} ${mode === 'fixed' ? styles['fixed'] : ''}`}
+      style={mode === 'fixed' ? fixedStyle : undefined}
+      ref={rootRef}
+    >
       <div className={styles['search-section']}>
         <h3 className={styles['sidebar-title']}>{t('forum.search.title')}</h3>
         <form onSubmit={handleSearch} className={styles['search-form']}>

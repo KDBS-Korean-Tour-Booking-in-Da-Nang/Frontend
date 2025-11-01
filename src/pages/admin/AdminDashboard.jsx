@@ -7,6 +7,9 @@ import StaffManagement from './StaffManagement/StaffManagement';
 import CompanyManagement from './CompanyManagement/CompanyManagement';
 import UserManagement from './UserManagement/UserManagement';
 import ReportManagement from './ReportManagement/ReportManagement';
+import TourManagement from './TourManagement/TourManagement';
+import ForumManagement from './ForumManagement/ForumManagement';
+import CustomerContact from './CustomerContact/CustomerContact';
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
@@ -39,10 +42,10 @@ const AdminDashboard = () => {
               Go to Homepage
             </button>
             <button
-              onClick={() => window.location.href = '/staff-login'}
+              onClick={() => window.location.href = '/admin/login'}
               className="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
             >
-              Staff Login
+              Admin Login
             </button>
           </div>
         </div>
@@ -58,6 +61,9 @@ const AdminDashboard = () => {
         <Route path="/company" element={<CompanyManagement />} />
         <Route path="/user" element={<UserManagement />} />
         <Route path="/report" element={<ReportManagement />} />
+        <Route path="/tour" element={<TourManagement />} />
+        <Route path="/forum" element={<ForumManagement />} />
+        <Route path="/contact" element={<CustomerContact />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>

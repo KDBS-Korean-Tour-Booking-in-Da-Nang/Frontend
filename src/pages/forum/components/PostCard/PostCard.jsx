@@ -7,6 +7,7 @@ import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
+import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import { DeleteConfirmModal, LoginRequiredModal } from '../../../../components';
 import styles from './PostCard.module.css';
 
@@ -33,6 +34,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [tourLinkPreview, setTourLinkPreview] = useState(null);
   const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
+  const userInfoRef = useRef(null);
 
   useEffect(() => {
     // Always fetch reaction summary and save count for all users (including guests)
@@ -560,6 +562,9 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                 alt={tourLinkPreview.title}
                 loading="eager"
                 decoding="async"
+                onError={(e) => {
+                  e.target.src = '/default-Tour.jpg';
+                }}
               />
             ) : (
               <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
@@ -672,7 +677,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     <>
     <div className={styles['post-card']} id={`post-${post.postId}`}>
       <div className={styles['post-header']}>
-        <div className={styles['post-user-info']}>
+        <div className={styles['post-user-info']} ref={userInfoRef}>
           <img 
             src={resolveImageUrl(post.userAvatar) || defaultAvatar} 
             alt={post.username}
@@ -682,6 +687,16 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             <div className={styles['username']}>{post.username}</div>
             <div className={styles['post-time']}>{formatTime(post.createdAt)}</div>
           </div>
+          <UserHoverCard 
+            user={{
+              username: post.username,
+              userAvatar: post.userAvatar,
+              userEmail: post.userEmail,
+              userId: post.userId
+            }}
+            triggerRef={userInfoRef}
+            position="bottom"
+          />
         </div>
         
         <div className={styles['post-actions-header']}>

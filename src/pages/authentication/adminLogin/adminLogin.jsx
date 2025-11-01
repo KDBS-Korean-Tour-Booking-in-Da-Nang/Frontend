@@ -4,7 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
-const StaffLogin = () => {
+const AdminLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,8 +78,8 @@ const StaffLogin = () => {
         const token = data.result.token;
         const userData = data.result.user;
 
-        // Check if user has staff role only
-        if (userData.role === 'STAFF') {
+        // Check if user has admin role only
+        if (userData.role === 'ADMIN') {
           const user = {
             id: userData.userId,
             role: userData.role,
@@ -92,10 +92,10 @@ const StaffLogin = () => {
           login(user, token, false);
           showSuccess('Đăng nhập thành công!');
           
-          // Redirect to staff dashboard
-          navigate('/staff/news-management');
+          // Redirect to admin dashboard
+          navigate('/admin');
         } else {
-          showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ STAFF mới được phép đăng nhập vào trang quản lý.`);
+          showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN mới được phép đăng nhập vào trang quản trị.`);
         }
       } else {
         // Handle API error response
@@ -120,12 +120,12 @@ const StaffLogin = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-600 rounded-lg flex items-center justify-center">
             <ShieldCheckIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
           </div>
         </div>
-        <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">Đăng nhập Staff</h2>
-        <p className="mt-2 text-center text-xs sm:text-sm text-gray-600 px-4">Vui lòng đăng nhập bằng tài khoản Staff</p>
+        <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">Đăng nhập Admin</h2>
+        <p className="mt-2 text-center text-xs sm:text-sm text-gray-600 px-4">Vui lòng đăng nhập bằng tài khoản Admin</p>
       </div>
 
       <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -142,7 +142,7 @@ const StaffLogin = () => {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
                   placeholder="admin"
                 />
               </div>
@@ -159,7 +159,7 @@ const StaffLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
                   placeholder="••••••••"
                 />
               </div>
@@ -175,7 +175,7 @@ const StaffLogin = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
               >
                 {loading ? (
                   <div className="flex items-center">
@@ -216,4 +216,5 @@ const StaffLogin = () => {
   );
 };
 
-export default StaffLogin; 
+export default AdminLogin;
+

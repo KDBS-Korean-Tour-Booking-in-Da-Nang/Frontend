@@ -192,7 +192,13 @@ const TourDetailPage = () => {
       {/* Hero Section */}
       <div className={styles['tour-hero-section']}>
         <div className={styles['hero-background']}>
-          <img src={tour.image} alt={tour.title} />
+          <img 
+            src={tour.image || '/default-Tour.jpg'} 
+            alt={tour.title}
+            onError={(e) => {
+              e.target.src = '/default-Tour.jpg';
+            }}
+          />
           <div className={styles['hero-overlay']}></div>
         </div>
         
@@ -370,9 +376,15 @@ const TourDetailPage = () => {
               <div className={styles['tour-gallery']}>
                 <h2>{t('tourPage.detail.gallery.title')}</h2>
                 <div className={styles['gallery-grid']}>
-                  {[tour.image, ...(tour.gallery || [])].filter(Boolean).slice(0,4).map((img, idx) => (
+                  {[tour.image || '/default-Tour.jpg', ...(tour.gallery || [])].filter(Boolean).slice(0,4).map((img, idx) => (
                     <div className={styles['gallery-item']} key={idx}>
-                      <img src={img} alt={`Gallery ${idx+1}`} />
+                      <img 
+                        src={img} 
+                        alt={`Gallery ${idx+1}`}
+                        onError={(e) => {
+                          e.target.src = '/default-Tour.jpg';
+                        }}
+                      />
                       <div className={styles['gallery-overlay']}>
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

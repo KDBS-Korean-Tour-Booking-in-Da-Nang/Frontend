@@ -31,6 +31,7 @@
 		"delete": "Xóa",
 		"processing": "Đang xử lý...",
 		"item": "mục này",
+		"sendMessage": "Gửi tin nhắn",
 		"modal": {
 			"confirmLeave": {
 				"title": "Rời khỏi trình tạo tour?",

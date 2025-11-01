@@ -12,6 +12,7 @@ import { useAuth } from './contexts/AuthContext';
 import Homepage from './pages/home/homepage/homepage';
 import Login from './pages/authentication/login/login';
 import StaffLogin from './pages/authentication/staffLogin/staffLogin';
+import AdminLogin from './pages/authentication/adminLogin/adminLogin';
 import Register from './pages/authentication/register/register';
 import VerifyEmail from './pages/authentication/verifyEmail/verifyEmail';
 import OAuthCallback from './pages/authentication/oauthCallback/oauthCallback';
@@ -113,7 +114,8 @@ function AppContent() {
         <Routes>
                   <Route path="/" element={<Homepage />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/staff-login" element={<StaffLogin />} />
+                  <Route path="/staff/login" element={<StaffLogin />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
                   <Route path="/google/callback" element={<OAuthCallback />} />

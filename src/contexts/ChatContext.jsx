@@ -161,23 +161,51 @@ const chatReducer = (state, action) => {
     
     case ActionTypes.ADD_MESSAGE: {
       const incoming = action.payload;
-      // De-duplicate: skip if a very similar message already exists (same sender/ownership, same content, within 5s)
+      
+      // Stronger de-duplication: check by ID first, then by content + sender + time
+      if (incoming.id) {
+        const existsById = state.messages.some(existing => existing.id === incoming.id);
+        if (existsById) {
+          return state;
+        }
+      }
+      
+      // De-duplicate: skip if a very similar message already exists (same sender/ownership, same content, within 3s)
       const alreadyExists = state.messages.some(existing => {
+        // Skip temp messages in comparison (they will be replaced)
+        if (existing.id && typeof existing.id === 'string' && existing.id.startsWith('temp-')) {
+          return false;
+        }
+        
         const sameOwnership = !!existing.isOwn === !!incoming.isOwn;
-        const sameContent = (existing.content || '') === (incoming.content || '');
+        const sameContent = (existing.content || '').trim() === (incoming.content || '').trim();
+        if (!sameContent || !sameOwnership) {
+          return false;
+        }
+        
         const existingTs = new Date(existing.timestamp).getTime();
         const incomingTs = new Date(incoming.timestamp).getTime();
-        const closeInTime = Math.abs(existingTs - incomingTs) <= 5000; // 5 seconds window
-        const existingSender = existing.sender?.userName || existing.senderName || '';
-        const incomingSender = incoming.sender?.userName || incoming.senderName || '';
-        const existingReceiver = existing.receiver?.userName || existing.receiverName || '';
-        const incomingReceiver = incoming.receiver?.userName || incoming.receiverName || '';
+        const closeInTime = Math.abs(existingTs - incomingTs) <= 3000; // 3 seconds window (reduced from 5s)
+        
+        if (!closeInTime) {
+          return false;
+        }
+        
+        const existingSender = (existing.sender?.userName || existing.senderName || '').toLowerCase();
+        const incomingSender = (incoming.sender?.userName || incoming.senderName || '').toLowerCase();
+        const existingReceiver = (existing.receiver?.userName || existing.receiverName || '').toLowerCase();
+        const incomingReceiver = (incoming.receiver?.userName || incoming.receiverName || '').toLowerCase();
+        
+        // Check same direction (sender->receiver)
         const sameDirection = existingSender === incomingSender && existingReceiver === incomingReceiver;
-        return sameOwnership && sameContent && closeInTime && sameDirection;
+        
+        return sameDirection;
       });
+      
       if (alreadyExists) {
         return state;
       }
+      
       return {
         ...state,
         messages: [...state.messages, incoming]
@@ -254,9 +282,18 @@ const chatReducer = (state, action) => {
       };
     
     case ActionTypes.SET_CONVERSATIONS:
+      // Update cache when conversations are set
+      const sortedConversations = (action.payload || []).sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
+      try {
+        localStorage.setItem('chatConversations', JSON.stringify(sortedConversations));
+        localStorage.setItem('chatConversationsTimestamp', String(Date.now()));
+      } catch (cacheError) {
+        // Ignore cache errors
+      }
+      
       return {
         ...state,
-        conversations: (action.payload || []).sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0)),
+        conversations: sortedConversations,
         loadingConversations: false
       };
     
@@ -272,8 +309,8 @@ const chatReducer = (state, action) => {
 
     case ActionTypes.UPSERT_CONVERSATION: {
       const payload = action.payload;
-      const key = payload.user.userName;
-      const existingIndex = state.conversations.findIndex(c => c.user.userName === key);
+      const key = payload.user.userName || payload.user.username;
+      const existingIndex = state.conversations.findIndex(c => (c.user.userName || c.user.username) === key);
       let updated = [];
       if (existingIndex >= 0) {
         updated = state.conversations.map((c, i) => i === existingIndex ? { ...c, ...payload } : c);
@@ -282,6 +319,15 @@ const chatReducer = (state, action) => {
       }
       // sort by latest timestamp desc
       updated.sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
+      
+      // Update cache immediately
+      try {
+        localStorage.setItem('chatConversations', JSON.stringify(updated));
+        localStorage.setItem('chatConversationsTimestamp', String(Date.now()));
+      } catch (cacheError) {
+        // Ignore cache errors
+      }
+      
       return { ...state, conversations: updated };
     }
 
@@ -379,10 +425,47 @@ const chatReducer = (state, action) => {
 
 // Provider component
 export const ChatProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(chatReducer, initialState);
-  const { user: authUser, getToken } = useAuth();
+  // Load cached users and conversations immediately for instant display
+  const getCachedUsers = () => {
+    try {
+      const cachedUsers = localStorage.getItem('chatAllUsers');
+      const cacheTimestamp = localStorage.getItem('chatAllUsersTimestamp');
+      const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
+      
+      // Use cache if less than 5 minutes old
+      if (cachedUsers && cacheAge < 5 * 60 * 1000) {
+        return JSON.parse(cachedUsers);
+      }
+    } catch (error) {
+      // Ignore cache errors
+    }
+    return [];
+  };
   
-  console.log('ChatProvider initialized with user:', authUser);
+  const getCachedConversations = () => {
+    try {
+      const cachedConversations = localStorage.getItem('chatConversations');
+      const cacheTimestamp = localStorage.getItem('chatConversationsTimestamp');
+      const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
+      
+      // Use cache if less than 2 minutes old (conversations change more frequently)
+      if (cachedConversations && cacheAge < 2 * 60 * 1000) {
+        return JSON.parse(cachedConversations);
+      }
+    } catch (error) {
+      // Ignore cache errors
+    }
+    return [];
+  };
+  
+  const initialStateWithCache = {
+    ...initialState,
+    allUsers: getCachedUsers(), // Load from cache immediately
+    conversations: getCachedConversations() // Load conversations from cache immediately
+  };
+  
+  const [state, dispatch] = useReducer(chatReducer, initialStateWithCache);
+  const { user: authUser, getToken } = useAuth();
   
   // Use ref to store current user for WebSocket handlers
   const currentUserRef = useRef(null);
@@ -392,44 +475,37 @@ export const ChatProvider = ({ children }) => {
     try {
       dispatch({ type: ActionTypes.SET_CONNECTING });
       
-      // Get current user from AuthContext (from login)
+      // Get current user from AuthContext (from login) - always get fresh
       const token = getToken();
       
       if (token && authUser) {
-        let currentUser = null;
+        // Always create fresh currentUser from authUser
+        const currentUser = {
+          userId: authUser.userId || authUser.id,
+          userName: authUser.username || authUser.userName || authUser.name,
+          userEmail: authUser.email || authUser.userEmail,
+          role: authUser.role || 'USER'
+        };
         
-        // Use user data from AuthContext
-        if (authUser) {
-          currentUser = {
-            userId: authUser.userId || authUser.id,
-            userName: authUser.username || authUser.userName || authUser.name,
-            userEmail: authUser.email || authUser.userEmail,
-            role: authUser.role || 'USER'
-          };
-        } else {
-          // Fallback to mock user if no auth user
-          currentUser = {
-            userId: 2,
-            userName: 'ttinh2852',
-            userEmail: 'ttinh2852@gmail.com',
-            role: 'USER'
-          };
-        }
-        
+        // Always update currentUser to ensure it's the latest
         dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: currentUser });
         // Update ref for WebSocket handlers
         currentUserRef.current = currentUser;
         
         try {
-          // Connect to WebSocket
+          // Connect to WebSocket with current user's username
           const username = currentUser.userName || currentUser.username || currentUser.name || 'unknown';
+          
           await websocketService.connect(username);
           dispatch({ type: ActionTypes.SET_CONNECTED });
+          // Set websocketAvailable to true when connection succeeds
+          dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
           
-          // Subscribe to user messages
-          websocketService.subscribeToUserMessages(username, (message) => {
-            // Only add messages that are not from current user to avoid duplicates
-            const currentUserName = currentUser.userName || currentUser.username || currentUser.name;
+          // Subscribe to user messages - use the exact username used for connection
+          const subscriptionResult = websocketService.subscribeToUserMessages(username, (message) => {
+            // Get fresh currentUser from ref (updated when user changes)
+            const freshCurrentUser = currentUserRef.current || currentUser;
+            const currentUserName = freshCurrentUser.userName || freshCurrentUser.username || freshCurrentUser.name;
             // Backend sends ChatMessageRequest with senderName field directly
             const messageSenderName = message.senderName || message.sender?.userName || message.sender?.username || message.sender?.name;
             
@@ -452,13 +528,21 @@ export const ChatProvider = ({ children }) => {
                   content: messageWithOwnership.content,
                   timestamp: messageWithOwnership.timestamp,
                   senderName: otherUserName,
-                  receiverName: currentUserName
+                  receiverName: currentUserName,
+                  isOwn: false, // Message from other user
+                  sender: messageWithOwnership.sender
                 },
                 unreadCount: 0
               };
               dispatch({ type: ActionTypes.UPSERT_CONVERSATION, payload: conversation });
             }
           });
+          
+          if (!subscriptionResult) {
+            dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: false });
+          } else {
+            dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
+          }
         } catch (wsError) {
           // Set as connected anyway for UI purposes, but disable real-time features
           dispatch({ type: ActionTypes.SET_CONNECTED });
@@ -490,16 +574,27 @@ export const ChatProvider = ({ children }) => {
 
   // Get freshest current user immediately after profile update (no F5)
   const getLiveCurrentUser = () => {
+    // Always get fresh from authUser, don't rely on cached state
     const mapped = authUser ? {
       userId: authUser.userId || authUser.id,
       userName: authUser.username || authUser.userName || authUser.name,
       userEmail: authUser.email || authUser.userEmail,
       role: authUser.role || 'USER'
     } : null;
-    if (mapped && mapped.userName && state.currentUser?.userName !== mapped.userName) {
-      dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: mapped });
-      currentUserRef.current = mapped;
+    
+    // Always update if mapped exists and is different from current
+    if (mapped && mapped.userName) {
+      const currentUserName = state.currentUser?.userName || '';
+      const mappedUserName = mapped.userName || '';
+      if (currentUserName !== mappedUserName || 
+          state.currentUser?.userId !== mapped.userId ||
+          state.currentUser?.role !== mapped.role) {
+        dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: mapped });
+        currentUserRef.current = mapped;
+      }
     }
+    
+    // Always return fresh mapped user if available, otherwise fallback to state
     return mapped || state.currentUser;
   };
 
@@ -534,41 +629,42 @@ export const ChatProvider = ({ children }) => {
   useEffect(() => {
     // Check if user is logged in
     if (authUser && getToken()) {
-      initializeConnection();
+      // Small delay to ensure cleanup completes before re-initializing
+      const timer = setTimeout(() => {
+        initializeConnection();
+      }, 100);
+      return () => clearTimeout(timer);
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when authUser changes
     return () => {
       websocketService.disconnect();
+      // Reset currentUser when user changes
+      dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
     };
-  }, []);
+  }, [authUser?.userId, authUser?.username, authUser?.userName, authUser?.name]); // Re-initialize when user changes
 
-  // Listen for auth changes
+  // Listen for auth changes (only handle logout, initialization is handled above)
   useEffect(() => {
-    const handleAuthChange = () => {
-      if (authUser && getToken() && !state.isConnected) {
-        initializeConnection();
-      } else if (!authUser) {
-        websocketService.disconnect();
-        dispatch({ type: ActionTypes.SET_DISCONNECTED });
-        dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
-        // Clear ref when user logs out
-        currentUserRef.current = null;
-        // Close chat UI and clear state when logging out
-        dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
-        dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
-        dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
-        dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: null });
-        dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
-        dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: [] });
-        try {
-          localStorage.removeItem('chatBoxState');
-          localStorage.removeItem('minimizedChats');
-        } catch {}
-      }
-    };
-
-    handleAuthChange();
+    if (!authUser) {
+      // User logged out - cleanup
+      websocketService.disconnect();
+      dispatch({ type: ActionTypes.SET_DISCONNECTED });
+      dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
+      // Clear ref when user logs out
+      currentUserRef.current = null;
+      // Close chat UI and clear state when logging out
+      dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
+      dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
+      dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
+      dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: null });
+      dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
+      dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: [] });
+      try {
+        localStorage.removeItem('chatBoxState');
+        localStorage.removeItem('minimizedChats');
+      } catch {}
+    }
   }, [authUser]);
 
   // WebSocket event handlers - Only for connection status
@@ -695,7 +791,9 @@ export const ChatProvider = ({ children }) => {
     },
 
     sendMessage: async (content) => {
-      if (!state.activeChatUser || !content.trim()) return;
+      if (!state.activeChatUser || !content.trim()) {
+        return;
+      }
 
       try {
         const liveUser2 = getLiveCurrentUser();
@@ -708,9 +806,9 @@ export const ChatProvider = ({ children }) => {
           content: content.trim(),
           timestamp: new Date().toISOString(),
           sender: {
-            userId: state.currentUser?.userId,
+            userId: state.currentUser?.userId || liveUser2?.userId,
             userName: senderName,
-            userEmail: state.currentUser?.userEmail
+            userEmail: state.currentUser?.userEmail || liveUser2?.userEmail
           },
           receiver: {
             userId: state.activeChatUser?.userId,
@@ -729,7 +827,9 @@ export const ChatProvider = ({ children }) => {
             content: tempMessage.content,
             timestamp: tempMessage.timestamp,
             senderName: senderName,
-            receiverName: receiverName
+            receiverName: receiverName,
+            isOwn: true, // Message from current user
+            sender: tempMessage.sender
           },
           unreadCount: 0
         };
@@ -741,29 +841,34 @@ export const ChatProvider = ({ children }) => {
           content: content.trim()
         };
 
-        // Only use WebSocket - no API fallback to avoid duplicates
-        if (state.websocketAvailable) {
+        // Try WebSocket first - check both flag and connection status
+        const wsConnected = websocketService.getConnectionStatus();
+        const wsAvailable = state.websocketAvailable !== false; // Default to true if not explicitly set to false
+        
+        if (wsConnected && wsAvailable) {
           const success = websocketService.sendMessage(messageData);
           
           if (success) {
             // Message already added to local state, WebSocket will handle delivery
             return;
-          } else {
-            // Remove the temporary message if WebSocket fails
-            dispatch({ 
-              type: ActionTypes.UPDATE_MESSAGE, 
-              payload: { ...tempMessage, id: null, content: 'Failed to send' }
-            });
           }
-        } else {
-          // Remove the temporary message if WebSocket is not available
+        }
+        
+        // Fallback to API if WebSocket fails or not available
+        try {
+          await chatApiService.sendMessage(messageData.senderName, messageData.receiverName, messageData.content);
+          // Message already added to local state via optimistic update
+        } catch (apiError) {
+          console.error('API send failed:', apiError);
+          // Remove the temporary message if API also fails
           dispatch({ 
             type: ActionTypes.UPDATE_MESSAGE, 
-            payload: { ...tempMessage, id: null, content: 'WebSocket not available' }
+            payload: { ...tempMessage, id: null, content: 'Failed to send' }
           });
         }
         
       } catch (error) {
+        console.error('Error in sendMessage:', error);
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       }
     },
@@ -900,13 +1005,62 @@ export const ChatProvider = ({ children }) => {
     // Data loading
     loadConversations: async () => {
       try {
-        dispatch({ type: ActionTypes.SET_LOADING_CONVERSATIONS, payload: true });
+        // Check if we already have conversations (from cache initialization)
+        // If yes, don't set loading state to avoid UI flicker
+        const hasExistingConversations = state.conversations && state.conversations.length > 0;
+        
+        // First, try to load from cache for instant display (if not already loaded)
+        let cacheLoaded = false;
+        if (!hasExistingConversations) {
+          try {
+            const cachedConversations = localStorage.getItem('chatConversations');
+            const cacheTimestamp = localStorage.getItem('chatConversationsTimestamp');
+            const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
+            
+            // Use cache if less than 2 minutes old
+            if (cachedConversations && cacheAge < 2 * 60 * 1000) {
+              const parsedConversations = JSON.parse(cachedConversations);
+              dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: parsedConversations });
+              dispatch({ type: ActionTypes.SET_LOADING_CONVERSATIONS, payload: false });
+              cacheLoaded = true;
+            }
+          } catch (cacheError) {
+            // Ignore cache errors
+          }
+        }
+        
+        // Only set loading if we don't have cache and don't have existing conversations
+        if (!hasExistingConversations && !cacheLoaded) {
+          dispatch({ type: ActionTypes.SET_LOADING_CONVERSATIONS, payload: true });
+        }
+        
+        // Load fresh data from API in background
         const liveUser = getLiveCurrentUser();
         const messages = await chatApiService.getAllMessagesFromUser(liveUser.userName);
         const conversations = chatApiService.getConversationsList(messages, liveUser);
+        
+        // Save to cache
+        try {
+          localStorage.setItem('chatConversations', JSON.stringify(conversations));
+          localStorage.setItem('chatConversationsTimestamp', String(Date.now()));
+        } catch (cacheError) {
+          // Ignore cache errors
+        }
+        
         dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: conversations });
       } catch (error) {
-        dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: [] });
+        // If API fails, try to use cache even if old
+        try {
+          const cachedConversations = localStorage.getItem('chatConversations');
+          if (cachedConversations) {
+            const parsedConversations = JSON.parse(cachedConversations);
+            dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: parsedConversations });
+          } else {
+            dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: [] });
+          }
+        } catch (cacheError) {
+          dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: [] });
+        }
       }
     },
 
@@ -988,15 +1142,53 @@ export const ChatProvider = ({ children }) => {
 
     loadAllUsers: async () => {
       try {
-        dispatch({ type: ActionTypes.SET_LOADING_USERS, payload: true });
+        // First, try to load from cache for instant display
+        try {
+          const cachedUsers = localStorage.getItem('chatAllUsers');
+          const cacheTimestamp = localStorage.getItem('chatAllUsersTimestamp');
+          const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
+          
+          // Use cache if less than 5 minutes old
+          if (cachedUsers && cacheAge < 5 * 60 * 1000) {
+            const parsedUsers = JSON.parse(cachedUsers);
+            dispatch({ type: ActionTypes.SET_ALL_USERS, payload: parsedUsers });
+            dispatch({ type: ActionTypes.SET_LOADING_USERS, payload: false });
+          } else {
+            dispatch({ type: ActionTypes.SET_LOADING_USERS, payload: true });
+          }
+        } catch (cacheError) {
+          dispatch({ type: ActionTypes.SET_LOADING_USERS, payload: true });
+        }
+        
+        // Load fresh data from API
         const users = await chatApiService.getAllUsers();
         // Filter out current user from the list and limit to reasonable number
         const filteredUsers = (users || [])
           .filter(user => user.username !== state.currentUser?.userName)
           .slice(0, 50); // Limit to 50 users for performance
+        
+        // Save to cache
+        try {
+          localStorage.setItem('chatAllUsers', JSON.stringify(filteredUsers));
+          localStorage.setItem('chatAllUsersTimestamp', String(Date.now()));
+        } catch (cacheError) {
+          // Ignore cache errors
+        }
+        
         dispatch({ type: ActionTypes.SET_ALL_USERS, payload: filteredUsers });
       } catch (error) {
-        dispatch({ type: ActionTypes.SET_ALL_USERS, payload: [] });
+        // If API fails, try to use cache even if old
+        try {
+          const cachedUsers = localStorage.getItem('chatAllUsers');
+          if (cachedUsers) {
+            const parsedUsers = JSON.parse(cachedUsers);
+            dispatch({ type: ActionTypes.SET_ALL_USERS, payload: parsedUsers });
+          } else {
+            dispatch({ type: ActionTypes.SET_ALL_USERS, payload: [] });
+          }
+        } catch (cacheError) {
+          dispatch({ type: ActionTypes.SET_ALL_USERS, payload: [] });
+        }
       }
     },
 

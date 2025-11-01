@@ -186,13 +186,15 @@
 }
 
 .forum-sidebar {
-  position: sticky;
-  top: 16px;
-  height: calc(100vh - 32px);
-  overflow: auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 0;
+  position: static;
+  top: auto;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  background: transparent;
+  padding: 0;
+  border: 0;
+  align-self: start;
 }
 
 .forum-header {
@@ -219,12 +221,10 @@
 
 .forum-sidebar.left {
   grid-area: left;
-  border-right: 1px solid #e2e8f0;
 }
 
 .forum-sidebar.right {
   grid-area: right;
-  border-left: 1px solid #e2e8f0;
 }
 
 .forum-main {
