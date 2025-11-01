@@ -3,9 +3,23 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
-import { getBookingById } from '../../../services/bookingAPI';
+import { getBookingTotal } from '../../../services/bookingAPI';
 import BookingHistoryCard from './BookingHistoryCard';
 import styles from './BookingHistory.module.css';
+
+// Normalizers for mixed BE formats (numeric / string) and different field names
+const normalizeStatus = (status) => {
+  if (typeof status === 'number') return status === 1 ? 'purchased' : status === 2 ? 'cancelled' : 'pending';
+  if (status === '0') return 'pending';
+  if (status === '1') return 'purchased';
+  if (status === '2') return 'cancelled';
+  return String(status || 'pending').toLowerCase();
+};
+const normalizeTrx = (trx) => {
+  if (!trx && typeof trx !== 'number') return undefined;
+  if (typeof trx === 'number') return trx === 1 ? 'success' : trx === 2 ? 'failed' : trx === 3 ? 'cancelled' : 'pending';
+  return String(trx || '').toLowerCase();
+};
 
 const BookingHistory = () => {
   const { t } = useTranslation();
@@ -38,7 +52,7 @@ const BookingHistory = () => {
           throw new Error('No authentication token found');
         }
         
-        const response = await fetch(API_ENDPOINTS.BOOKING_SUMMARY_BY_EMAIL(user.email), {
+        const response = await fetch(API_ENDPOINTS.BOOKING_BY_EMAIL(user.email), {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -53,170 +67,53 @@ const BookingHistory = () => {
         }
         
         const data = await response.json();
-        // Merge local purchased markers so UI updates immediately after success
-        let merged = data.map(b => {
-          try {
-            const marker = localStorage.getItem(`bookingPurchased_${b.bookingId}`) === 'true';
-            if (marker && (!b.status || String(b.status).toUpperCase() !== 'PURCHASED')) {
-              return { ...b, status: 'PURCHASED', transactionStatus: b.transactionStatus || 'SUCCESS' };
-            }
-          } catch (_) {}
-          return b;
-        });
-        // Re-validate status from BE for items still pending
-        try {
-          const revalidated = await Promise.all(
-            merged.map(async (b) => {
-              const raw = (b.status || b.bookingStatus || '').toString().toUpperCase();
-              if (raw === 'PENDING') {
-                try {
-                  const full = await getBookingById(b.bookingId);
-                  const newStatus = (full?.bookingStatus || full?.status || '').toString().toUpperCase();
-                  if (newStatus && newStatus !== raw) {
-                    if (newStatus === 'PURCHASED') {
-                      try { localStorage.removeItem(`bookingPurchased_${b.bookingId}`); } catch(_) {}
-                    }
-                    return { ...b, status: newStatus };
-                  }
-                } catch (_) {}
-              }
-              return b;
-            })
-          );
-          merged = revalidated;
-        } catch (_) {}
-        // Merge pending booking from session (created on VNPay page) if user left mid-payment
-        try {
-          const pendingStr = sessionStorage.getItem('pendingBooking');
-          if (pendingStr) {
-            const pendingObj = JSON.parse(pendingStr);
-            const pendingData = pendingObj?.bookingData;
-            if (pendingData && pendingData.bookingId && pendingData.userEmail) {
-              const belongsToUser = String(pendingData.userEmail).toLowerCase() === String(user.email).toLowerCase();
-              const alreadyExists = merged.some(b => String(b.bookingId) === String(pendingData.bookingId));
-              if (belongsToUser && !alreadyExists) {
-                // Normalize minimal fields that BookingHistoryCard expects
-                const synthesized = {
-                  bookingId: pendingData.bookingId,
-                  tourId: pendingData.tourId,
-                  contactName: pendingData.contactName || pendingData.contact?.fullName || '',
-                  contactPhone: pendingData.contactPhone || pendingData.contact?.phone || '',
-                  departureDate: pendingData.departureDate || pendingData.plan?.date || new Date().toISOString(),
-                  totalGuests: pendingData.totalGuests || pendingData.plan?.pax || 0,
-                  status: 'PENDING',
-                  transactionStatus: pendingData.transactionStatus || 'PENDING',
-                  createdAt: pendingData.createdAt || new Date().toISOString()
-                };
-                merged = [synthesized, ...merged];
-              }
-            }
-          }
-        } catch (_) {}
-
-        // Merge purchased booking locally marked as purchased even if API doesn't return yet
-        try {
-          // Find all booking IDs marked as purchased in localStorage
-          const purchasedIds = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('bookingPurchased_') && localStorage.getItem(key) === 'true') {
-              const bId = key.replace('bookingPurchased_', '');
-              const alreadyExists = merged.some(b => String(b.bookingId) === String(bId));
-              if (!alreadyExists) {
-                purchasedIds.push(bId);
-              }
-            }
-          }
-          
-          // For each purchased booking, try to get data from localStorage or fetch from API
-          for (const purchasedId of purchasedIds) {
-            let synthesized = null;
-            
-            // Try to get from localStorage cache first
+        // Fetch total amounts for all bookings in parallel
+        const bookingsWithTotals = await Promise.all(
+          data.map(async (booking) => {
             try {
-              const cached = localStorage.getItem(`bookingData_${purchasedId}`);
-              if (cached) {
-                const cache = JSON.parse(cached);
-                const pd = cache.bookingData;
-                if (pd) {
-                  synthesized = {
-                    bookingId: pd.bookingId,
-                    tourId: cache.tourId || pd.tourId,
-                    contactName: pd.contactName || pd.contact?.fullName || '',
-                    contactPhone: pd.contactPhone || pd.contact?.phone || '',
-                    departureDate: pd.departureDate || pd.plan?.date || new Date().toISOString(),
-                    totalGuests: pd.totalGuests || pd.plan?.pax || 0,
-                    status: 'PURCHASED',
-                    transactionStatus: 'SUCCESS',
-                    createdAt: pd.createdAt || new Date().toISOString()
-                  };
-                }
-              }
-            } catch (_) {}
-            
-            // If no cache, try to fetch from API
-            if (!synthesized) {
-              try {
-                const fullBooking = await getBookingById(Number(purchasedId));
-                if (fullBooking) {
-                  synthesized = {
-                    bookingId: fullBooking.bookingId,
-                    tourId: fullBooking.tourId,
-                    contactName: fullBooking.contactName || '',
-                    contactPhone: fullBooking.contactPhone || '',
-                    departureDate: fullBooking.departureDate || new Date().toISOString(),
-                    totalGuests: fullBooking.totalGuests || 0,
-                    status: fullBooking.bookingStatus || fullBooking.status || 'PURCHASED',
-                    transactionStatus: 'SUCCESS',
-                    createdAt: fullBooking.createdAt || new Date().toISOString()
-                  };
-                  // Update cache with fetched data
-                  try {
-                    const bookingCache = {
-                      bookingData: fullBooking,
-                      tourId: fullBooking.tourId,
-                      timestamp: new Date().toISOString()
-                    };
-                    localStorage.setItem(`bookingData_${purchasedId}`, JSON.stringify(bookingCache));
-                  } catch (_) {}
-                  // Remove marker if API confirms it's purchased
-                  try {
-                    localStorage.removeItem(`bookingPurchased_${purchasedId}`);
-                  } catch (_) {}
-                }
-              } catch (_) {
-                // If API fetch fails, create minimal entry
-                synthesized = {
-                  bookingId: Number(purchasedId),
-                  tourId: null,
-                  contactName: '',
-                  contactPhone: '',
-                  departureDate: new Date().toISOString(),
-                  totalGuests: 0,
-                  status: 'PURCHASED',
-                  transactionStatus: 'SUCCESS',
-                  createdAt: new Date().toISOString()
-                };
-              }
+              const totalResp = await getBookingTotal(booking.bookingId);
+              return {
+                bookingId: booking.bookingId,
+                tourId: booking.tourId,
+                tourName: booking.tourName,
+                contactName: booking.contactName,
+                contactPhone: booking.contactPhone,
+                contactEmail: booking.contactEmail,
+                departureDate: booking.departureDate,
+                totalGuests: booking.totalGuests,
+                status: booking.bookingStatus, // Use correct bookingStatus from BookingResponse
+                totalAmount: totalResp?.totalAmount || 0,
+                createdAt: booking.createdAt
+              };
+            } catch (err) {
+              console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
+              return {
+                bookingId: booking.bookingId,
+                tourId: booking.tourId,
+                tourName: booking.tourName,
+                contactName: booking.contactName,
+                contactPhone: booking.contactPhone,
+                contactEmail: booking.contactEmail,
+                departureDate: booking.departureDate,
+                totalGuests: booking.totalGuests,
+                status: booking.bookingStatus,
+                totalAmount: 0,
+                createdAt: booking.createdAt
+              };
             }
-            
-            if (synthesized) {
-              merged = [synthesized, ...merged];
-            }
-          }
-        } catch (_) {}
-
-        setAllBookings(merged);
+          })
+        );
+        setAllBookings(bookingsWithTotals);
         
         // Calculate pagination
-        const totalItems = merged.length;
+        const totalItems = bookingsWithTotals.length;
         const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
         setTotalPages(totalPagesCount);
         
         // Set initial page data
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        setBookings(merged.slice(startIndex, endIndex));
+        setBookings(bookingsWithTotals.slice(startIndex, endIndex));
       } catch (err) {
         console.error('Error fetching booking history:', err);
         setError(err.message);
@@ -234,20 +131,6 @@ const BookingHistory = () => {
 
     // Apply filters
     let filteredBookings = [...allBookings];
-
-    // Normalizers for mixed BE formats (numeric / string) and different field names
-    const normalizeStatus = (status) => {
-      if (typeof status === 'number') return status === 1 ? 'purchased' : status === 2 ? 'cancelled' : 'pending';
-      if (status === '0') return 'pending';
-      if (status === '1') return 'purchased';
-      if (status === '2') return 'cancelled';
-      return String(status || 'pending').toLowerCase();
-    };
-    const normalizeTrx = (trx) => {
-      if (!trx && typeof trx !== 'number') return undefined;
-      if (typeof trx === 'number') return trx === 1 ? 'success' : trx === 2 ? 'failed' : trx === 3 ? 'cancelled' : 'pending';
-      return String(trx || '').toLowerCase();
-    };
 
     // Status filter
     if (statusFilter !== 'all') {
