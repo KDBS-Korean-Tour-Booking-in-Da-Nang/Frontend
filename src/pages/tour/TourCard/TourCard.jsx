@@ -79,43 +79,40 @@ const TourCard = ({ tour }) => {
       <div className={styles['tour-card-content']}>
         <h3 className={styles['tour-card-title']}>{tour.title}</h3>
         
-        <div className={styles['tour-card-info']}>
-          <div className={styles['tour-duration']}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{formatDurationLocalized()}</span>
+        <div className={styles['tour-card-bottom']}>
+          <div className={styles['tour-card-info']}>
+            <div className={styles['tour-duration']}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{formatDurationLocalized()}</span>
+            </div>
+            
+            <div className={styles['tour-price']}>
+              <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
+            </div>
           </div>
-          
-          <div className={styles['tour-price']}>
-            <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
+
+          <div className={styles['tour-card-actions']}>
+            <button 
+              className={styles['tour-details-btn']}
+              onClick={(e) => {
+                handleButtonClick(e);
+                handleViewDetails();
+              }}
+            >
+              {t('tourCard.details')}
+            </button>
+            <button 
+              className={styles['share-btn']}
+              onClick={(e) => {
+                handleButtonClick(e);
+                handleShare();
+              }}
+            >
+              {t('tourCard.share') || 'Share'}
+            </button>
           </div>
-        </div>
-
-        <div className={styles['tour-card-prices']}>
-          <div className={styles['price-row']}><span>{t('tourCard.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
-          <div className={styles['price-row']}><span>{t('tourCard.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <button 
-            className={styles['tour-details-btn']}
-            onClick={(e) => {
-              handleButtonClick(e);
-              handleViewDetails();
-            }}
-          >
-            {t('tourCard.details')}
-          </button>
-          <button 
-            className={styles['share-btn']}
-            onClick={(e) => {
-              handleButtonClick(e);
-              handleShare();
-            }}
-          >
-            {t('tourCard.share') || 'Share'}
-          </button>
         </div>
       </div>
       {openShare && createPortal(

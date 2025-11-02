@@ -1,48 +1,59 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { useToursAPI } from '../../../hooks/useToursAPI';
-import { useAuth } from '../../../contexts/AuthContext';
-import TourCard from '../TourCard/TourCard';
-import styles from './TourList.module.css';
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useToursAPI } from "../../../hooks/useToursAPI";
+import { useAuth } from "../../../contexts/AuthContext";
+import TourCard from "../TourCard/TourCard";
+import styles from "./TourList.module.css";
+
+const bannerImages = [
+  "https://phongma.vn/wp-content/uploads/2018/06/30-dia-diem-du-lich-da-nang-du-la-van-chua-het-hot-trong-nam-2017-phan-1-1-1024x601.jpg",
+  "https://trivietagency.com/wp-content/uploads/2025/04/du-lich-da-nang.jpg",
+  "https://intour.vn/upload/img/0f70a9710eb8c8bd31bb847ec81b5dd0/2022/03/14/cac_dia_diem_du_lich_noi_tieng_o_da_nang_thu_hut_khach_du_lich_quanh_nam_1647251151.png",
+  "https://dulichkhamphahue.com/wp-content/uploads/2020/07/dia_diem_tham_quan_mien_phi_o_da_nang_nam_o_d.jpg",
+];
 
 const TourList = () => {
-  const { 
-    tours,
-    loading, 
-    error, 
-    fetchTours,
-    getToursByCategory,
-    searchTours,
-    searchToursServer
-  } = useToursAPI();
+  const { tours, loading, error, fetchTours, searchToursServer } =
+    useToursAPI();
 
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [localSearchQuery, setLocalSearchQuery] = useState('');
-  const [currentCategory, setCurrentCategory] = useState('all');
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [filteredTours, setFilteredTours] = useState([]);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const debounceRef = useRef(null);
   const controllerRef = useRef(null);
+  const carouselIntervalRef = useRef(null);
 
   useEffect(() => {
     fetchTours();
   }, []);
 
-  // Initial load and when base tours change (non-search mode)
+  // Carousel auto-play
+  useEffect(() => {
+    carouselIntervalRef.current = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length);
+    }, 4000); // Change image every 4 seconds
+
+    return () => {
+      if (carouselIntervalRef.current) {
+        clearInterval(carouselIntervalRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (!isSearchMode) {
-      const base = getToursByCategory(currentCategory);
-      setFilteredTours(base);
+      setFilteredTours(tours || []);
     }
-  }, [tours, currentCategory, isSearchMode]);
+  }, [tours, isSearchMode]);
 
-  // Debounced server-side search (Hybrid part A)
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -54,7 +65,7 @@ const TourList = () => {
       setIsSearchMode(false);
       setPage(0);
       setTotalPages(0);
-      setFilteredTours(getToursByCategory(currentCategory));
+      setFilteredTours(tours || []);
       return;
     }
 
@@ -64,10 +75,7 @@ const TourList = () => {
       controllerRef.current = controller;
       setIsSearchMode(true);
       const res = await searchToursServer(query, 0, 20, controller.signal);
-      const items = (res.items || []).filter(tour => 
-        currentCategory === 'all' || tour.category === currentCategory
-      );
-      setFilteredTours(items);
+      setFilteredTours(res.items || []);
       setPage(res.pageNumber || 0);
       setTotalPages(res.totalPages || 0);
     }, 350);
@@ -76,37 +84,16 @@ const TourList = () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (controllerRef.current) controllerRef.current.abort();
     };
-  }, [localSearchQuery, currentCategory]);
+  }, [localSearchQuery, tours]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setLocalSearchQuery(value);
   };
 
-  const handleCategoryChange = (category) => {
-    setCurrentCategory(category);
-    // If in search mode, re-run current search immediately for new category
-    const query = localSearchQuery.trim();
-    if (query) {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (controllerRef.current) controllerRef.current.abort();
-      const controller = new AbortController();
-      controllerRef.current = controller;
-      setIsSearchMode(true);
-      searchToursServer(query, 0, 20, controller.signal).then((res) => {
-        const items = (res.items || []).filter(tour => 
-          category === 'all' || tour.category === category
-        );
-        setFilteredTours(items);
-        setPage(res.pageNumber || 0);
-        setTotalPages(res.totalPages || 0);
-      });
-    }
-  };
-
   const handleKeyDown = async (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent form submit/page reload
+    if (e.key === "Enter") {
+      e.preventDefault();
       const query = localSearchQuery.trim();
       if (!query) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -115,163 +102,203 @@ const TourList = () => {
       controllerRef.current = controller;
       setIsSearchMode(true);
       const res = await searchToursServer(query, 0, 20, controller.signal);
-      const items = (res.items || []).filter(tour => 
-        currentCategory === 'all' || tour.category === currentCategory
-      );
-      setFilteredTours(items);
+      setFilteredTours(res.items || []);
       setPage(res.pageNumber || 0);
       setTotalPages(res.totalPages || 0);
     }
   };
 
   const handleLoadMore = async () => {
-    if (!isSearchMode) return; // Only load more in search mode
+    if (!isSearchMode) return;
     if (page + 1 >= totalPages) return;
     const nextPage = page + 1;
     if (controllerRef.current) controllerRef.current.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
-    const res = await searchToursServer(localSearchQuery.trim(), nextPage, 20, controller.signal);
-    const items = (res.items || []).filter(tour => 
-      currentCategory === 'all' || tour.category === currentCategory
+    const res = await searchToursServer(
+      localSearchQuery.trim(),
+      nextPage,
+      20,
+      controller.signal
     );
-    setFilteredTours(prev => [...prev, ...items]);
+    setFilteredTours((prev) => [...prev, ...(res.items || [])]);
     setPage(res.pageNumber || nextPage);
     setTotalPages(res.totalPages || totalPages);
   };
 
   const handleHistoryBooking = () => {
     if (!user) {
-      // Redirect to login if not authenticated
-      navigate('/login');
+      navigate("/login");
       return;
     }
-    // Navigate to booking history page
-    navigate('/user/booking-history');
+    navigate("/user/booking-history");
   };
-
-
-  const categories = [
-    { id: 'all', name: t('tourList.categories.all'), icon: '🏠' },
-    { id: 'domestic', name: t('tourList.categories.domestic'), icon: '🇻🇳' },
-    { id: 'international', name: t('tourList.categories.international'), icon: '✈️' },
-    { id: 'day-tour', name: t('tourList.categories.dayTour'), icon: '🌅' }
-  ];
 
   if (error) {
     return (
-      <div className={styles['error-container']}>
-        <div className={styles['error-message']}>
-          <h3>{t('tourList.error.title')}</h3>
+      <div className={styles["error-container"]}>
+        <div className={styles["error-message"]}>
+          <h3>{t("tourList.error.title")}</h3>
           <p>{error}</p>
-          <button onClick={() => fetchTours()} className={styles['retry-btn']}>
-            {t('tourList.error.retry')}
+          <button onClick={() => fetchTours()} className={styles["retry-btn"]}>
+            {t("tourList.error.retry")}
           </button>
         </div>
       </div>
     );
   }
 
+  const handleBannerClick = (index) => {
+    setCurrentBannerIndex(index);
+    if (carouselIntervalRef.current) {
+      clearInterval(carouselIntervalRef.current);
+    }
+    carouselIntervalRef.current = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length);
+    }, 4000);
+  };
+
   return (
-    <div className={styles['tour-list-container']}>
-      {/* Hero Section */}
-      <div className={styles['tour-hero']}>
-        <div className={styles['hero-content']}>
-          <h1 className={styles['hero-title']}>
-            {t('tourList.hero.title')}
-          </h1>
-          <p className={styles['hero-description']}>
-            {t('tourList.hero.desc')}
-          </p>
+    <div className={styles["tour-list-container"]}>
+      {/* Banner Carousel */}
+      <div className={styles["banner-carousel"]}>
+        <div className={styles["carousel-wrapper"]}>
+          {bannerImages.map((img, index) => (
+            <div
+              key={index}
+              className={`${styles["carousel-slide"]} ${
+                index === currentBannerIndex ? styles["active"] : ""
+              }`}
+            >
+              <img src={img} alt={`Banner ${index + 1}`} />
+              <div className={styles["banner-overlay"]}>
+                <div className={styles["banner-content"]}>
+                  <h1 className={styles["banner-title"]}>
+                    {t("tourList.hero.title")}
+                  </h1>
+                  <p className={styles["banner-description"]}>
+                    {t("tourList.hero.desc")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className={styles["carousel-dots"]}>
+          {bannerImages.map((_, index) => (
+            <button
+              key={index}
+              className={`${styles["dot"]} ${
+                index === currentBannerIndex ? styles["active"] : ""
+              }`}
+              onClick={() => handleBannerClick(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Search and Filter Section */}
-      <div className={styles['search-filter-section']}>
-        <div className={styles['container']}>
-          <div className={styles['search-bar']}>
-            <div className={styles['search-input-wrapper']}>
-              <svg className={styles['search-icon']} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      {/* Search Section */}
+      <div className={styles["search-section"]}>
+        <div className={styles["container"]}>
+          <div className={styles["search-bar"]}>
+            <div className={styles["search-input-wrapper"]}>
+              <svg
+                className={styles["search-icon"]}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 type="text"
-                placeholder={t('tourList.search.placeholder')}
+                placeholder={t("tourList.search.placeholder")}
                 value={localSearchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
-                className={styles['search-input']}
+                className={styles["search-input"]}
               />
             </div>
-            
-            {/* History Booking Button */}
-            <button 
-              className={styles['history-booking-btn']}
-              onClick={handleHistoryBooking}
-            >
-              <svg className={styles['history-icon']} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{t('tourList.historyBooking.title')}</span>
-            </button>
-          </div>
 
-          <div className={styles['category-filters']}>
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                className={`${styles['category-btn']} ${currentCategory === category.id ? styles['active'] : ''}`}
-                onClick={() => {
-                  handleCategoryChange(category.id);
-                }}
+            {/* History Booking Button */}
+            <button
+              className={styles["ai-mode-btn"]}
+              onClick={handleHistoryBooking}
+              title={t("tourList.historyBooking.title")}
+            >
+              <svg
+                className={styles["ai-mode-icon"]}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <span className={styles['category-icon']}>{category.icon}</span>
-                <span className={styles['category-name']}>{category.name}</span>
-              </button>
-            ))}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className={styles["ai-mode-text"]}>
+                {t("tourList.historyBooking.title")}
+              </span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Tours Grid */}
-      <div className={styles['tours-section']}>
-        <div className={styles['container']}>
+      <div className={styles["tours-section"]}>
+        <div className={styles["container"]}>
           {loading ? (
-            <div className={styles['loading-container']}>
-              <div className={styles['loading-spinner']}></div>
-              <p>{t('tourList.loading')}</p>
+            <div className={styles["loading-container"]}>
+              <div className={styles["loading-spinner"]}></div>
+              <p>{t("tourList.loading")}</p>
             </div>
           ) : (
             <>
-              <div className={styles['tours-grid']}>
+              <div className={styles["tours-grid"]}>
                 {filteredTours.map((tour) => (
-                  <TourCard
-                    key={tour.id}
-                    tour={tour}
-                  />
+                  <TourCard key={tour.id} tour={tour} />
                 ))}
               </div>
 
               {filteredTours.length === 0 && !loading && (
-                <div className={styles['no-tours']}>
-                  <div className={styles['no-tours-content']}>
-                    <svg className={styles['no-tours-icon']} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 6.291A7.962 7.962 0 0012 5c-2.34 0-4.29 1.009-5.824 2.709" />
+                <div className={styles["no-tours"]}>
+                  <div className={styles["no-tours-content"]}>
+                    <svg
+                      className={styles["no-tours-icon"]}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 6.291A7.962 7.962 0 0012 5c-2.34 0-4.29 1.009-5.824 2.709"
+                      />
                     </svg>
-                    <h3>{t('tourList.empty.title')}</h3>
-                    <p>{t('tourList.empty.desc')}</p>
+                    <h3>{t("tourList.empty.title")}</h3>
+                    <p>{t("tourList.empty.desc")}</p>
                   </div>
                 </div>
               )}
 
               {filteredTours.length > 0 && isSearchMode && (
-                <div className={styles['load-more-section']}>
-                  <button 
-                    className={styles['load-more-btn']}
+                <div className={styles["load-more-section"]}>
+                  <button
+                    className={styles["load-more-btn"]}
                     onClick={handleLoadMore}
                     disabled={loading || page + 1 >= totalPages}
                   >
-                    {t('tourList.loadMore')}
+                    {t("tourList.loadMore")}
                   </button>
                 </div>
               )}
