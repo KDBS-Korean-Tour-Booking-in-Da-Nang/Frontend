@@ -844,7 +844,7 @@
                 "vehicle": "교통수단 *",
                 "duration": "일수",
                 "nights": "박수",
-                "maxCapacity": "최대 인원",
+                "maxCapacity": "최대 투어",
                 "bookingDeadline": "예약 마감일"
             },
 			"placeholders": {
@@ -872,11 +872,12 @@
 				"duration": "기간:",
 				"days": "일",
 				"nights": "박",
-				"maxCapacity": "최대 인원:",
+				"maxCapacity": "최대 투어:",
 				"bookingDeadline": "예약 마감일:",
 				"notEntered": "입력 안됨",
 				"notSelected": "선택 안됨",
-				"guests": "명"
+				"guests": "명",
+				"tours": "투어"
 			}
 		},
 		"step2": {

@@ -848,7 +848,7 @@
                 "vehicle": "Phương tiện *",
                 "duration": "Số ngày",
                 "nights": "Số đêm",
-                "maxCapacity": "Số chỗ tối đa",
+                "maxCapacity": "Số tour tối đa",
                 "bookingDeadline": "Hạn chót đặt chỗ"
             },
 			"placeholders": {
@@ -876,11 +876,12 @@
 				"duration": "Thời gian:",
 				"days": "ngày",
 				"nights": "đêm",
-				"maxCapacity": "Số chỗ tối đa:",
+				"maxCapacity": "Số tour tối đa:",
 				"bookingDeadline": "Hạn đặt chỗ:",
 				"notEntered": "Chưa nhập",
 				"notSelected": "Chưa chọn",
-				"guests": "khách"
+				"guests": "khách",
+				"tours": "tour"
 			}
 		},
 		"step2": {

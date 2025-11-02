@@ -367,11 +367,21 @@
     grid-template-columns: 1fr;
     grid-template-areas:
       "header"
-      "main"
-      "left"
+      "left"     /* sidebar TRÊN */
+      "main"     /* feed DƯỚI */
       "right";
     gap: 0;
     max-width: 100%;
+  }
+  
+  .forum-sidebar.left {
+    grid-area: left;
+    justify-self: center;     /* căn giữa trong grid */
+    width: 100%;
+    max-width: 680px;         /* khớp header/search-results và gần feed */
+    margin: 0 auto 16px auto; /* có khoảng dưới một chút */
+    border: 0;                /* bỏ viền full-width nếu có */
+    padding: 0 12px;          /* nhẹ cho mép màn */
   }
   
   .forum-sidebar {
@@ -379,7 +389,6 @@
     height: auto;
     border-right: none;
     border-left: none;
-    border-bottom: 1px solid #e2e8f0;
   }
   
   .forum-sidebar.right {
@@ -400,6 +409,12 @@
   .forum-header {
     padding: 20px 16px;
     margin-bottom: 0;
+  }
+  
+  .forum-sidebar.left {
+    max-width: 100%;
+    margin-bottom: 12px;
+    padding: 0 12px;
   }
   
   .forum-main {

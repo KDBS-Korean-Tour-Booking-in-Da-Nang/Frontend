@@ -30,8 +30,11 @@ const Forum = () => {
   const leftSlotRef = useRef(null);
   const headerRef = useRef(null);
   const [fixedSBStyle, setFixedSBStyle] = useState({});
+  const [isNarrow, setIsNarrow] = useState(false);
 
   const measure = useCallback(() => {
+    if (isNarrow) return; // Không đo khi màn nhỏ
+
     const slot = leftSlotRef.current;
     const header = headerRef.current;
     if (!slot) return;
@@ -41,14 +44,15 @@ const Forum = () => {
     const headerTop = header ? header.getBoundingClientRect().top : 0;
 
     const MIN_TOP = 16; // khoảng cách an toàn với viền trên viewport
+    const SAFE_WIDTH = 280; // fallback đúng với grid-template-columns
     const top = Math.max(MIN_TOP, Math.round(headerTop));
 
     const left = Math.round(slotRect.left);
-    const width = Math.round(slotRect.width);
-    const height = window.innerHeight - top - 16;
+    const width = Math.round(slotRect.width || SAFE_WIDTH); // fallback khi width = 0
+    const height = Math.max(120, window.innerHeight - top - 16); // tránh âm khi devtools bật
 
     setFixedSBStyle({ position: 'fixed', top, left, width, height });
-  }, []);
+  }, [isNarrow]);
 
   const showSinglePost = async (postId) => {
     setSelectedPostId(postId);
@@ -102,8 +106,18 @@ const Forum = () => {
     setIsSearchMode(savedSearchMode);
   }, []);
 
-  // Measure and update fixed sidebar position
+  // Detect narrow screen (≤1024px)
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1024px)');
+    const update = () => setIsNarrow(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // Measure and update fixed sidebar position (chỉ khi màn lớn)
+  useEffect(() => {
+    if (isNarrow) return; // Không đo khi màn nhỏ
     const onResize = () => measure();
     const onScroll = () => measure();
     setTimeout(measure, 0);
@@ -113,12 +127,13 @@ const Forum = () => {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onScroll, true);
     };
-  }, [measure]);
+  }, [measure, isNarrow]);
 
-  // Re-measure when user/login or header changes
+  // Re-measure when user/login or header changes (chỉ khi màn lớn)
   useEffect(() => {
+    if (isNarrow) return; // Không đo khi màn nhỏ
     setTimeout(measure, 0);
-  }, [user, measure]);
+  }, [user, measure, isNarrow]);
 
   useEffect(() => {
     fetchPosts();
@@ -495,12 +510,27 @@ const Forum = () => {
             </div>
           </div>
         )}
-      {/* LEFT PLACEHOLDER – chỉ là khung giữ chỗ */}
-        <div
-          className={`${styles['forum-sidebar']} ${styles['left']}`}
-          ref={leftSlotRef}
-          aria-hidden
-        />
+      {/* LEFT PLACEHOLDER – CHỈ MÀN RỘNG */}
+        {!isNarrow && (
+          <div
+            className={`${styles['forum-sidebar']} ${styles['left']}`}
+            ref={leftSlotRef}
+            aria-hidden
+            style={{ minHeight: 200 }}
+          />
+        )}
+
+        {/* SIDEBAR CHO MÀN HẸP – ĐẶT TRÊN FEED */}
+        {isNarrow && (
+          <div className={`${styles['forum-sidebar']} ${styles['left']}`}>
+            <SearchSidebar
+              mode="static"
+              onSearch={handleSearch}
+              onHashtagFilter={handleHashtagFilter}
+              selectedHashtags={selectedHashtags}
+            />
+          </div>
+        )}
 
         {/* Main Content - Posts Feed */}
         <div className={styles['forum-main']}>
@@ -691,14 +721,16 @@ const Forum = () => {
         />
       )}
 
-      {/* SIDEBAR THẬT – đặt fixed theo viewport */}
-      <SearchSidebar
-        mode="fixed"
-        fixedStyle={fixedSBStyle}
-        onSearch={handleSearch}
-        onHashtagFilter={handleHashtagFilter}
-        selectedHashtags={selectedHashtags}
-      />
+      {/* SIDEBAR CHO MÀN RỘNG – fixed ngoài grid */}
+      {!isNarrow && (
+        <SearchSidebar
+          mode="fixed"
+          fixedStyle={fixedSBStyle}
+          onSearch={handleSearch}
+          onHashtagFilter={handleHashtagFilter}
+          selectedHashtags={selectedHashtags}
+        />
+      )}
     </div>
   );
 };

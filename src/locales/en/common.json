@@ -845,7 +845,7 @@
                 "vehicle": "Vehicle *",
                 "duration": "Duration (Days)",
                 "nights": "Nights",
-                "maxCapacity": "Max Capacity",
+                "maxCapacity": "Max Tours",
                 "bookingDeadline": "Booking Deadline"
             },
 			"placeholders": {
@@ -873,11 +873,12 @@
 				"duration": "Duration:",
 				"days": "day(s)",
 				"nights": "night(s)",
-				"maxCapacity": "Max Capacity:",
+				"maxCapacity": "Max Tours:",
 				"bookingDeadline": "Booking Deadline:",
 				"notEntered": "Not entered",
 				"notSelected": "Not selected",
-				"guests": "guests"
+				"guests": "guests",
+				"tours": "tour"
 			}
 		},
 		"step2": {

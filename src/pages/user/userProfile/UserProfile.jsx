@@ -35,7 +35,8 @@ const UserProfile = () => {
     name: user?.username || user?.name || '',
     phone: user?.phone || '',
     dob: user?.dob ? (()=>{ try { return formatDateFromNormalizedSafe(user.dob); } catch { return ''; } })() : '',
-    gender: user?.gender || ''
+    gender: user?.gender || '',
+    address: user?.address || ''
   });
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '/default-avatar.png');
   const [avatarFile, setAvatarFile] = useState(null);
@@ -57,7 +58,8 @@ const UserProfile = () => {
         name: user?.username || user?.name || '',
         phone: user?.phone || '',
         dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
-        gender: user?.gender || ''
+        gender: user?.gender || '',
+        address: user?.address || ''
       });
       // Only update avatarPreview if no file is currently selected
       // This ensures we don't override user's current avatar selection
@@ -751,7 +753,8 @@ const UserProfile = () => {
                     name: user?.username || user?.name || '',
                     phone: user?.phone || '',
                     dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
-                    gender: user?.gender || ''
+                    gender: user?.gender || '',
+                    address: user?.address || ''
                   });
                   // Set avatar preview to current user avatar
                   setAvatarPreview(user?.avatar || '/default-avatar.png');
@@ -781,6 +784,7 @@ const UserProfile = () => {
             phone: user?.phone || '',
             dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
             gender: user?.gender || '',
+            address: user?.address || '',
             cccd: user?.cccd || ''
           });
           // Reset avatar preview to current user avatar
@@ -968,6 +972,21 @@ const UserProfile = () => {
             </select>
           </div>
 
+          <div className={styles['form-group']}>
+            <label htmlFor="address" className={styles['form-label']}>
+              Địa chỉ
+            </label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              value={editForm.address}
+              onChange={handleEditChange}
+              className={styles['form-input']}
+              placeholder="Nhập địa chỉ (không bắt buộc)"
+            />
+          </div>
+
           {/* Removed CCCD/CMND update field as requested */}
 
           <div className={styles['form-actions']}>
@@ -981,7 +1000,8 @@ const UserProfile = () => {
                   name: user?.username || user?.name || '',
                   phone: user?.phone || '',
                   dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
-                  gender: user?.gender || ''
+                  gender: user?.gender || '',
+                  address: user?.address || ''
                 });
                 // Reset avatar preview to current user avatar
                 setAvatarPreview(user?.avatar || '/default-avatar.png');

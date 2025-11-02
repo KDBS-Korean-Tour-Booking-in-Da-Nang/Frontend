@@ -17,7 +17,8 @@ const Step1BasicInfo = () => {
     duration: '',
     nights: '',
     tourType: '',
-    maxCapacity: ''
+    maxCapacity: '',
+    bookingDeadline: ''
   });
 
   // Helpers
@@ -88,7 +89,8 @@ const Step1BasicInfo = () => {
       duration: tourData.duration || '',
       nights: tourData.nights || '',
       tourType: tourData.tourType || '',
-      maxCapacity: tourData.maxCapacity || ''
+      maxCapacity: tourData.maxCapacity || '',
+      bookingDeadline: tourData.bookingDeadline || ''
     });
   }, [tourData]);
 
@@ -352,6 +354,23 @@ const Step1BasicInfo = () => {
           />
         </div>
 
+        <div className={styles['form-group']}>
+          <label htmlFor="bookingDeadline" className={styles['form-label']}>
+            {t('tourWizard.step1.fields.bookingDeadline')}
+          </label>
+          <input
+            type="date"
+            id="bookingDeadline"
+            name="bookingDeadline"
+            value={formData.bookingDeadline || ''}
+            onChange={handleChange}
+            className={styles['form-input']}
+            placeholder={t('tourWizard.step1.placeholders.bookingDeadline')}
+            min={new Date().toISOString().split('T')[0]}
+          />
+          <small className={styles['form-help']}>{t('tourWizard.step1.help.bookingDeadline')}</small>
+        </div>
+
         
       </div>
 
@@ -363,7 +382,10 @@ const Step1BasicInfo = () => {
           <p><strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {localizeDeparturePoint(formData.departurePoint) || t('tourWizard.step1.summary.notEntered')}</p>
           <p><strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}</p>
           <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}</p>
-          <p><strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.guests')}</p>
+          <p><strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.tours')}</p>
+          {formData.bookingDeadline && (
+            <p><strong>{t('tourWizard.step1.summary.bookingDeadline')}</strong> {formData.bookingDeadline || t('tourWizard.step1.summary.notEntered')}</p>
+          )}
           
         </div>
       </div>

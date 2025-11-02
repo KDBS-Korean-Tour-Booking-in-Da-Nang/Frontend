@@ -5,6 +5,7 @@
   padding: 20px;
   box-shadow: none;
   overflow: auto;
+  width: 100%;
 }
 
 .sidebar-title {
@@ -400,7 +401,7 @@
 /* chế độ cố định theo viewport */
 .fixed {
   position: fixed; /* left/top/width/height cấp qua inline style */
-  z-index: 9; /* dưới header nổi nếu có */
+  z-index: 3; /* thấp hơn header nổi nếu header có z-index lớn (ví dụ 10) */
 }
 
 @media (max-width: 1024px) {
