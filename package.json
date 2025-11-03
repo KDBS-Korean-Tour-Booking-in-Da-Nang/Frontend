@@ -17,6 +17,7 @@
     "@stomp/stompjs": "^7.2.1",
     "@tailwindcss/postcss": "^4.1.11",
     "@tinymce/tinymce-react": "^6.3.0",
+    "axios": "^1.13.1",
     "chart.js": "^4.5.0",
     "gsap": "^3.13.0",
     "i18next": "25.4.0",
