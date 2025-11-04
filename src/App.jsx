@@ -34,10 +34,9 @@ import TransactionResultPage from './pages/payment/TransactionResultPage/Transac
 import TourManagement from './pages/company/tours/tour-management/TourManagement';
 import TourWizard from './pages/company/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/company/tours/shared/CompanyTourDetail';
-import BusinessAnalytics from './pages/company/analytics/CompanyAnalytics';
-import BusinessOrders from './pages/company/orders/CompanyOrders';
+import BookingManagement from './pages/company/bookings/BookingManagement';
 import BusinessDashboard from './pages/company/CompanyDashboard';
-import DashboardHome from './pages/company/DashboardHome';
+import Dashboard from './pages/company/dashboard/Dashboard';
 import News from './pages/news/News';
 import NewsManagement from './pages/staff/news-management/NewsManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -137,13 +136,12 @@ function AppContent() {
                   <Route path="/tour" element={<Tour />} />
                   {/* Company Dashboard Routes */}
                   <Route path="/company" element={<BusinessDashboard />}> 
-                    <Route index element={<DashboardHome />} />
-                    <Route path="dashboard" element={<DashboardHome />} />
+                    <Route index element={<Dashboard />} />
+                    <Route path="dashboard" element={<Dashboard />} />
                     <Route path="tours" element={<TourManagement />} />
                     <Route path="tours/wizard" element={<TourWizard />} />
                     <Route path="tours/:id" element={<BusinessTourDetail />} />
-                    <Route path="analytics" element={<BusinessAnalytics />} />
-                    <Route path="orders" element={<BusinessOrders />} />
+                    <Route path="bookings" element={<BookingManagement />} />
                     <Route path="company-info" element={<BusinessInfo />} />
                   </Route>
                   {/* News routes */}

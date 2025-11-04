@@ -5,11 +5,21 @@ const Footer = () => {
   const { t } = useTranslation();
   
   return (
-    <footer className="bg-white py-16 relative z-40">
+    <footer className="bg-white pt-16 relative z-40">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-12 pb-10 border-b border-gray-100">
           {/* Left Section - Description & Download App */}
           <div className="space-y-8">
+            {/* Brand */}
+            <div className="flex items-center gap-4">
+              <img
+                src="/logoKDBS.png"
+                alt="KDBS Logo"
+                className="h-10 w-10 object-contain"
+                loading="lazy"
+              />
+              <span className="text-2xl font-extrabold tracking-tight text-gray-900">KDBS</span>
+            </div>
             {/* Description */}
             <p className="text-gray-600 text-lg leading-relaxed max-w-md">
               {t('footer.newsletter.desc')}
@@ -126,6 +136,23 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
+          </div>
+        </div>
+        {/* Bottom bar */}
+        <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-gray-500 text-sm">
+            <img
+              src="/logoKDBS.png"
+              alt="KDBS Logo"
+              className="h-6 w-6 object-contain"
+              loading="lazy"
+            />
+            <span>
+              © {new Date().getFullYear()} KDBS. {t('footer.legal.rights', { defaultValue: 'All rights reserved.' })}
+            </span>
+          </div>
+          <div className="text-gray-500 text-sm">
+            {t('footer.company.title')}: KDBS
           </div>
         </div>
       </div>

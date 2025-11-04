@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
-  const { contact, setContact, setMember, plan } = useBooking();
+  const { contact, setContact } = useBooking();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'vi';
@@ -20,6 +20,7 @@ const Step1Contact = () => {
   const [isDeleting, setIsDeleting] = useState(false); // Track if user is deleting
   const previousValueRef = useRef(''); // Track previous value to detect deletion
   const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
+  const originalAutoFilledNameRef = useRef(null); // Track original auto-filled name with special characters
   
   // Date formatting helpers (copied from Step2Details)
   const getDateSeparator = () => {
@@ -632,9 +633,8 @@ const Step1Contact = () => {
 
   // Simple date change handler
   const handleDateChange = (value) => {
-    // Update both contact and member data (merge manually; setContact expects plain object)
+    // Update only contact data (merge manually; setContact expects plain object)
     setContact({ ...contact, dob: value });
-    setMember('adult', 0, { dob: value });
   };
   
   // Handle auto-fill from user personal info
@@ -650,6 +650,8 @@ const Step1Contact = () => {
       if (profileName) {
         newContact.fullName = profileName;
         newAutoFilledFields.add('fullName');
+        // Store original auto-filled name to allow special characters even after manual edit
+        originalAutoFilledNameRef.current = profileName;
       }
       if (user.email) {
         newContact.email = user.email;
@@ -676,12 +678,10 @@ const Step1Contact = () => {
           if (u === 'MALE' || u === 'FEMALE' || u === 'OTHER') return u.toLowerCase();
           return '';
         })(user.gender);
-        if (mappedGender) {
-          newContact.gender = mappedGender;
-          newAutoFilledFields.add('gender');
-          // Mirror to representative member in Step 2
-          setMember('adult', 0, { gender: mappedGender });
-        }
+                  if (mappedGender) {
+            newContact.gender = mappedGender;
+            newAutoFilledFields.add('gender');
+          }
       }
       // Date of birth: if available in profile, normalize and put directly into contact
       if (user.dob) {
@@ -700,8 +700,6 @@ const Step1Contact = () => {
             if (displayDob) {
               // set dob into contact object before committing state
               newContact.dob = displayDob;
-              // also mirror to members
-              setMember('adult', 0, { dob: displayDob });
               // mark as touched so error shows
               setTouchedFields(prev => new Set(prev).add('dob'));
               // validate 18+
@@ -741,6 +739,8 @@ const Step1Contact = () => {
     } else {
       // Clear auto-filled fields when unchecked
       setAutoFilledFields(new Set());
+      // Clear original auto-filled name ref when unchecked
+      originalAutoFilledNameRef.current = null;
       // Note: We don't clear the contact data when unchecked to preserve user input
       // The user can manually edit the fields if they want to change them
     }
@@ -773,8 +773,8 @@ const Step1Contact = () => {
 
   // Handle language change and convert date format
   useEffect(() => {
-    // Check both contact.dob and plan.members.adult[0].dob
-    const currentDob = contact.dob || plan.members.adult[0]?.dob;
+    // Check contact.dob only
+    const currentDob = contact.dob;
     
     if (currentDob && currentDob.trim() !== '') {
       // Always try to convert when language changes, regardless of current format
@@ -872,10 +872,38 @@ const Step1Contact = () => {
         
         if (!value.trim()) {
           newErrors.fullName = t('booking.errors.fullNameRequired');
-        } else if (!nameRegex.test(value.trim())) {
-          newErrors.fullName = t('booking.errors.fullNameInvalid');
         } else {
-          delete newErrors.fullName;
+          // If name originally came from auto-fill, allow special characters from original
+          // This allows auto-filled names with special characters to pass validation
+          const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
+          
+          if (hasOriginalAutoFilledName) {
+            // Extract allowed special characters from original auto-filled name
+            const original = originalAutoFilledNameRef.current;
+            const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-']/gu) || [];
+            const allowedSpecialCharsSet = new Set(allowedSpecialChars);
+            
+            // Check if current value only contains allowed characters (letters, spaces, hyphens, apostrophes, and original special chars)
+            const isValidName = value.trim().split('').every(char => {
+              const isLetterOrSpace = /[\p{L}\p{M}\s\-']/u.test(char);
+              const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
+              return isLetterOrSpace || isAllowedSpecialChar;
+            });
+            
+            if (!isValidName) {
+              // Contains new special characters not in original
+              newErrors.fullName = t('booking.errors.fullNameInvalid');
+            } else {
+              delete newErrors.fullName;
+            }
+          } else {
+            // No original auto-filled name, use strict validation
+            if (!nameRegex.test(value.trim())) {
+              newErrors.fullName = t('booking.errors.fullNameInvalid');
+            } else {
+              delete newErrors.fullName;
+            }
+          }
         }
         break;
       }
@@ -980,13 +1008,36 @@ const Step1Contact = () => {
     // Special handling for full name input - only allow letters, spaces, hyphens, apostrophes
     let processedValue = value;
     if (name === 'fullName') {
-      // Remove any characters that are not letters, spaces, hyphens, or apostrophes
-      // This prevents typing numbers and special characters
-      // Supports international names using Unicode properties
-      processedValue = value.replace(/[^\p{L}\p{M}\s\-']/gu, '');
+      // If name originally came from auto-fill, allow special characters from original
+      // but prevent adding new special characters that weren't in the original
+      const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
       
-      // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
-      processedValue = processedValue.replace(/\s+/g, ' ');
+      if (hasOriginalAutoFilledName) {
+        // Extract allowed special characters from original auto-filled name
+        const original = originalAutoFilledNameRef.current;
+        const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-']/gu) || [];
+        const allowedSpecialCharsSet = new Set(allowedSpecialChars);
+        
+        // Allow letters, spaces, hyphens, apostrophes, and special chars from original
+        // Filter out any new special characters not in the original
+        processedValue = value.split('').filter(char => {
+          const isLetterOrSpace = /[\p{L}\p{M}\s\-']/u.test(char);
+          const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
+          return isLetterOrSpace || isAllowedSpecialChar;
+        }).join('');
+        
+        // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
+        processedValue = processedValue.replace(/\s+/g, ' ');
+      } else {
+        // No original auto-filled name, apply strict filtering
+        // Filter out special characters (only allow letters, spaces, hyphens, apostrophes)
+        // This prevents typing numbers and special characters
+        // Supports international names using Unicode properties
+        processedValue = value.replace(/[^\p{L}\p{M}\s\-']/gu, '');
+        
+        // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
+        processedValue = processedValue.replace(/\s+/g, ' ');
+      }
     }
     // Special handling for phone number input
     else if (name === 'phone') {
@@ -1074,16 +1125,9 @@ const Step1Contact = () => {
         processedValue = value.replace(/[^0-9]/g, '');
       }
     }
-    // No special processing for gender; also mirror to representative member
-    else if (name === 'gender') {
-      // Keep as provided (male/female/other)
-    }
     
     // Merge manually; avoid functional updater to match setContact API
     setContact({ ...contact, [name]: processedValue });
-    if (name === 'gender') {
-      setMember('adult', 0, { gender: processedValue });
-    }
     
     // Mark field as touched
     setTouchedFields(prev => new Set(prev).add(name));
@@ -1200,26 +1244,6 @@ const Step1Contact = () => {
             )}
           </div>
 
-          {/* Gender Field */}
-          <div className={styles['form-group']}>
-            <label htmlFor="gender" className={styles['form-label']}>
-              {t('booking.step1.fields.gender')}
-            </label>
-            <select
-              id="gender"
-              name="gender"
-              value={contact.gender || ''}
-              onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              className={`${styles['form-select']} ${autoFilledFields.has('gender') ? styles['auto-filled'] : ''}`}
-            >
-              <option value="">{t('profile.genderOptions.unknown')}</option>
-              <option value="male">{t('profile.genderOptions.male')}</option>
-              <option value="female">{t('profile.genderOptions.female')}</option>
-              <option value="other">{t('profile.genderOptions.other')}</option>
-            </select>
-          </div>
-
           <div className={styles['form-group']}>
             <label htmlFor="dob" className={`${styles['form-label']} ${styles['required']}`}>
               {t('booking.step1.fields.dob')}
@@ -1228,7 +1252,7 @@ const Step1Contact = () => {
               <input
                 type="text"
                 id="dob"
-                value={formatDateForDisplay(plan.members.adult[0]?.dob || '', 'dob')}
+                value={formatDateForDisplay(contact.dob || '', 'dob')}
                 onFocus={(e) => {
                   const fieldKey = 'dob';
                   setEditingFields(prev => new Set(prev).add(fieldKey));

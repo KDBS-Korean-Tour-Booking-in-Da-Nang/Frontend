@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { 
   HomeIcon,
-  ChartBarIcon,
   ClipboardDocumentListIcon,
   MapIcon,
   BuildingOfficeIcon,
@@ -32,15 +31,9 @@ const CompanyDashboard = () => {
       exact: false
     },
     {
-      path: '/company/orders',
+      path: '/company/bookings',
       icon: ClipboardDocumentListIcon,
-      label: t('companyDashboard.sidebar.orders'),
-      exact: true
-    },
-    {
-      path: '/company/analytics',
-      icon: ChartBarIcon,
-      label: t('companyDashboard.sidebar.analytics'),
+      label: t('companyDashboard.sidebar.bookingManagement'),
       exact: true
     },
     {

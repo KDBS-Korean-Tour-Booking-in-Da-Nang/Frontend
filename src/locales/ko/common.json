@@ -32,6 +32,7 @@
 		"processing": "처리 중...",
 		"item": "항목",
 		"sendMessage": "메시지 보내기",
+		"understand": "이해했습니다",
 		"modal": {
 			"confirmLeave": {
 				"title": "투어 마법사를 나가시겠습니까?",
@@ -1580,6 +1581,12 @@
 				"infantIdInvalidFormatGenericPassport": "유아 여권 형식이 올바르지 않습니다"
 			}
 		},
+		"modal": {
+			"step2Info": {
+				"title": "승객 정보",
+				"message": "2단계에서 모든 승객의 정보를 완전히 입력해주세요. 승객들의 정보를 다시 입력해야 합니다."
+			}
+		},
 		"step3": {
 			"sections": {
 				"contact": "연락처 정보",
@@ -1954,15 +1961,31 @@
       "title": "비즈니스 대시보드",
       "dashboard": "대시보드",
       "tourManagement": "투어 관리",
-      "orders": "주문",
-      "analytics": "분석",
+      "bookingManagement": "예약 관리",
 			"businessInfo": "비즈니스 정보",
 			"companyInfo": "회사 정보"
     },
+    "actions": { "download": "보고서 다운로드" },
     "welcome": {
       "title": "비즈니스 대시보드에 오신 것을 환영합니다",
       "subtitle": "투어를 관리하고, 분석을 추적하며, 비즈니스를 성장시키세요",
       "createTour": "새 투어 만들기"
+    },
+    "analytics": {
+      "sales": "매출",
+      "purchase": "구매",
+      "return": "반품",
+      "marketing": "마케팅",
+      "lastYear": "지난해"
+    },
+    "header": {
+      "subtitle": "개요 및 분석"
+    },
+    "filters": {
+      "thisYear": "올해",
+      "lastYear": "작년",
+      "thisQuarter": "이번 분기",
+      "thisMonth": "이번 달"
     },
     "stats": {
       "totalTours": "총 투어",
@@ -1982,7 +2005,8 @@
       "businessInfoDesc": "비즈니스 세부 정보 업데이트"
     },
     "charts": {
-      "bookingTrends": "예약 트렌드",
+      "period": "보기:",
+      "bookingTrends": "매출 통계",
       "revenueChart": "수익 차트",
       "last7Days": "최근 7일",
       "last30Days": "최근 30일",
@@ -1991,6 +2015,17 @@
       "quarterly": "분기별",
       "yearly": "연간",
       "chartPlaceholder": "차트가 여기에 표시됩니다"
+    },
+    "panel": {
+      "title": "매출 통계",
+      "subtitle": "마케팅 & 세일즈",
+      "marketing": "마케팅",
+      "sales": "세일즈",
+      "sortBy": "정렬:",
+      "monthly": "월별",
+      "weekly": "주별",
+      "daily": "일별",
+      "yLabel": "총 매출 확보"
     }
   },
   "notifications": {

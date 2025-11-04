@@ -1966,11 +1966,11 @@
 			"title": "Business Dashboard",
       "dashboard": "Dashboard",
       "tourManagement": "Tour Management",
-      "orders": "Orders",
-      "analytics": "Analytics",
+      "bookingManagement": "Booking Management",
 			"businessInfo": "Business Info",
 			"companyInfo": "Company Info"
     },
+    "actions": { "download": "Download Report" },
     "welcome": {
       "title": "Welcome to your Business Dashboard",
       "subtitle": "Manage your tours, track analytics, and grow your business",
@@ -1981,6 +1981,22 @@
       "totalBookings": "Total Bookings",
       "totalRevenue": "Total Revenue",
       "totalViews": "Total Views"
+    },
+    "analytics": {
+      "sales": "Sales",
+      "purchase": "Purchase",
+      "return": "Return",
+      "marketing": "Marketing",
+      "lastYear": "Last year"
+    },
+    "header": {
+      "subtitle": "Overview and analytics"
+    },
+    "filters": {
+      "thisYear": "This Year",
+      "lastYear": "Last Year",
+      "thisQuarter": "This Quarter",
+      "thisMonth": "This Month"
     },
     "quickActions": {
       "title": "Quick Actions",
@@ -1994,7 +2010,8 @@
       "businessInfoDesc": "Update your business details"
     },
     "charts": {
-      "bookingTrends": "Booking Trends",
+      "period": "Show:",
+      "bookingTrends": "Sales Statistics",
       "revenueChart": "Revenue Chart",
       "last7Days": "Last 7 Days",
       "last30Days": "Last 30 Days",
@@ -2003,6 +2020,17 @@
       "quarterly": "Quarterly",
       "yearly": "Yearly",
       "chartPlaceholder": "Chart will be displayed here"
+    },
+    "panel": {
+      "title": "Sales Statistics",
+      "subtitle": "Marketing & Sales",
+      "marketing": "Marketing",
+      "sales": "Sales",
+      "sortBy": "Sort by:",
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "daily": "Daily",
+      "yLabel": "Total revenue acquisition"
     }
   },
   "notifications": {
