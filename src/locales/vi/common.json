@@ -1,1384 +1,1401 @@
 {
-	"brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
-	"nav": {
-		"home": "Trang chủ",
-		"forum": "Diễn đàn",
-		"tours": "Tours",
-		"tourBooking": "Đặt Tour",
-		"news": "Tin tức",
-		"selfTravel": "Tự túc",
-		"contact": "Liên hệ",
-		"admin": "Admin Dashboard",
-		"profile": "Hồ sơ",
-		"payment": "Thanh toán",
-		"dashboard": "Bảng Điều Khiển",
-		"businessInfo": "Thông tin doanh nghiệp",
-		"companyInfo": "Thông tin công ty",
-		"login": "Đăng nhập",
-		"logout": "Đăng xuất",
-		"register": "Đăng ký",
-		"staffAdmin": "Staff/Admin",
-		"profileFull": "Hồ sơ cá nhân"
-	},
-	"lang": {
-		"vi": "Tiếng Việt",
-		"en": "English",
-		"ko": "한국어"
-	},
-	"common": {
-		"close": "Đóng",
-		"cancel": "Hủy",
-		"delete": "Xóa",
-		"processing": "Đang xử lý...",
-		"item": "mục này",
-		"sendMessage": "Gửi tin nhắn",
-		"modal": {
-			"confirmLeave": {
-				"title": "Rời khỏi trình tạo tour?",
-				"message": "Nếu bạn thoát ra bây giờ, dữ liệu đang nhập sẽ không được lưu.",
-				"stay": "Ở lại",
-				"leave": "Thoát"
-			}
-		},
-		"deleteConfirm": {
-			"title": "Xác nhận xóa",
-			"message": "Bạn có chắc chắn muốn xóa {{item}} này không? Hành động này không thể hoàn tác.",
-			"warning": "Hành động này không thể hoàn tác."
-		}
-		,
-		"tourTypes": {
-			"resort": "Nghỉ dưỡng",
-			"culture": "Văn hóa",
-			"adventure": "Mạo hiểm",
-			"teamBuilding": "Team Building",
-			"food": "Ẩm thực",
-			"photography": "Nhiếp ảnh",
-			"religious": "Tâm linh",
-			"other": "Khác"
-		}
-		,
-		"departurePoints": {
-			"daNang": "Đà Nẵng"
-		},
-		"vehicles": {
-			"tourBus": "Xe Du Lịch"
-		}
-	},
-	"auth": {
-		"loginRequired": {
-			"title": "Vui lòng đăng nhập để thực hiện",
-			"message": "Vui lòng đăng nhập để thực hiện hành động này."
-		},
-		"common": {
-			"email": "Email",
-			"form": {
-				"email": {
-					"invalid": "lỗi sai email không đúng định dạng"
-				}
-			},
-			"password": "Mật khẩu",
-			"rememberMe": "Ghi nhớ đăng nhập",
-			"rememberPassword": "Nhớ mật khẩu?",
-			"or": "Hoặc",
-			"otp": "Mã OTP",
-			"otpPlaceholder": "000000",
-			"notReceivedCode": "Không nhận được mã?",
-			"resend": "Gửi lại",
-			"resendIn": "Gửi lại sau {{seconds}}s",
-			"backToLogin": "Quay lại đăng nhập",
-			"backToRegister": "Quay lại đăng ký",
-			"backToForgot": "Quay lại quên mật khẩu",
-			"send": "Gửi",
-			"sending": "Đang gửi..."
-		},
-		"login": {
-			"title": "Đăng nhập",
-			"subtitle": "Chào mừng bạn quay trở lại",
-			"illustrationTitle": "Chào mừng đến với KDBS",
-			"illustrationSubtitle": "Cánh cổng đến những tour Korea - Đà Nẵng tuyệt vời",
-			"submit": "Đăng nhập",
-			"submitting": "Đang đăng nhập...",
-			"loginWithGoogle": "Đăng nhập bằng Google",
-			"loginWithNaver": "Đăng nhập bằng Naver",
-			"forgotPassword": "Quên mật khẩu?",
-			"noAccount": "Chưa có tài khoản?",
-			"registerNow": "Đăng ký ngay",
-			"staffAdminLogin": "Đăng nhập Staff/Admin",
-			"error": "Đăng nhập thất bại. Vui lòng thử lại.",
-			"oauthErrorGoogle": "Không thể kết nối với Google. Vui lòng thử lại.",
-			"oauthErrorNaver": "Không thể kết nối với Naver. Vui lòng thử lại.",
-			"successMessage": "Đăng nhập thành công!"
-		},
-		"register": {
-			"title": "Đăng ký tài khoản",
-			"headerSubtitle": "Tạo tài khoản mới để bắt đầu hành trình",
-            "illustrationTitle": "Tham gia KDBS hôm nay",
-            "illustrationSubtitle": "Bắt đầu hành trình Korea - Đà Nẵng tuyệt vời của bạn",
-			"username": "Tên người dùng",
-			"usernamePlaceholder": "Nhập tên người dùng",
-			"password": "Mật khẩu",
-			"confirmPassword": "Xác nhận mật khẩu",
-			"roleSelect": "Chọn vai trò",
-			"roleUserTitle": "Người dùng",
-			"roleUserDesc": "Đăng ký tour du lịch",
-			"roleBusinessTitle": "Doanh nghiệp",
-			"roleBusinessDesc": "Cung cấp dịch vụ",
-			"submit": "Đăng ký",
-			"submitting": "Đang đăng ký...",
-			"haveAccount": "Đã có tài khoản?",
-			"login": "Đăng nhập",
-			"errors": {
-				"passwordMismatch": "Mật khẩu xác nhận không khớp",
-				"passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
-				"usernameRequired": "Tên người dùng không được để trống",
-				"registerFailed": "Đăng ký thất bại. Vui lòng thử lại."
-			}
-		},
-		"forgot": {
-			"title": "Quên mật khẩu",
-			"subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
-			"submit": "Gửi email",
-			"sending": "Đang gửi...",
-			"success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
-			"error": "Gửi OTP thất bại. Vui lòng thử lại."
-		},
-		"verify": {
-			"title": "Xác thực Email",
-			"subtitle": "Chúng tôi đã gửi mã xác thực đến {{email}}",
-			"label": "Mã xác thực (OTP)",
-			"helper": "Nhập mã 6 chữ số được gửi đến email của bạn",
-			"submit": "Xác thực",
-			"submitting": "Đang xác thực...",
-			"resend": "Gửi lại",
-			"resending": "Đang gửi...",
-			"resendIn": "Gửi lại sau {{seconds}}s",
-			"backToRegister": "Quay lại đăng ký",
-			"successBanner": "✅ Xác thực email thành công! Đang chuyển hướng...",
-			"error": "Mã OTP không đúng. Vui lòng thử lại.",
-			"failed": "Xác thực thất bại. Vui lòng thử lại."
-		},
-		"reset": {
-			"title": "Đặt lại mật khẩu",
-			"subtitle": "Nhập mật khẩu mới cho tài khoản {{email}}",
-			"newPassword": "Mật khẩu mới",
-			"confirmNewPassword": "Xác nhận mật khẩu mới",
-			"submit": "Cập nhật mật khẩu",
-			"submitting": "Đang cập nhật...",
-			"preconditionTitle": "Bạn cần xác thực OTP trước khi đặt lại mật khẩu",
-			"backToForgot": "Quay lại quên mật khẩu",
-			"successTitle": "Đặt lại mật khẩu thành công",
-			"successSubtitle": "Mật khẩu của bạn đã được cập nhật thành công.",
-			"login": "Đăng nhập",
-			"errors": {
-				"passwordMismatch": "Mật khẩu xác nhận không khớp",
-				"passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
-				"resetFailed": "Đặt lại mật khẩu thất bại. Vui lòng thử lại."
-			}
-		}
-	},
-	"home": {
-		"hero": {
-			"badge": "Khám phá Đà Nẵng cùng chúng tôi",
-			"titleFrom": "Từ",
-			"titleSoutheast": "Đông Nam Hàn Quốc",
-			"titleTo": "đến Đà Nẵng",
-			"desc": "Cập nhật với các mẹo du lịch, gợi ý và khuyến mãi mới nhất.",
-			"btnBookNow": "Đặt ngay"
-		},
-		"services": {
-			"sectionTitle": "DỊCH VỤ",
-			"headline": "Tại sao sử dụng KDBS",
-			"card1": {
-				"title": "Tất cả những gì bạn cần",
-				"desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
-			},
-			"card2": {
-				"title": "Đặt chỗ linh hoạt",
-				"desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
-			},
-			"card3": {
-				"title": "Tích hợp AI",
-				"desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
-			}
-		},
-		"destinations": {
-			"sectionTitle": "ĐIỂM ĐẾN HÀNG ĐẦU",
-			"headline": "Khám phá những điểm nổi bật hàng đầu",
-			"seeAll": "Xem tất cả",
-			"card1": {
-				"location": "Indonesia",
-				"title": "Bãi biển Pandawa, Đảo Bali",
-				"rating": "4.9"
-			},
-			"card2": {
-				"location": "Bangkok",
-				"title": "Thành phố Bangkok, Thái Lan",
-				"rating": "4.8"
-			},
-			"card3": {
-				"location": "Nhật Bản",
-				"title": "Thành phố Tokyo, Nhật Bản",
-				"rating": "4.9"
-			}
-		},
-		"features": {
-			"sectionTitle": "TÍNH NĂNG CHÍNH",
-			"headline": "Chúng tôi cung cấp dịch vụ tốt nhất",
-			"desc": "Chào! Travelo ở đây để giúp bạn tìm kỳ nghỉ mơ ước. Dễ dàng, bạn chỉ cần tìm nơi muốn đến và mua vé.",
-			"card1": {
-				"title": "Chọn nhiều địa điểm",
-				"desc": "Chọn địa điểm yêu thích của bạn"
-			},
-			"card2": {
-				"title": "Lên lịch chuyến đi",
-				"desc": "Đặt ngày bạn muốn"
-			},
-			"card3": {
-				"title": "Giảm giá lớn",
-				"desc": "Nhận giảm giá cho mọi dịch vụ"
-			}
-		},
-		"testimonials": {
-			"sectionTitle": "ĐÁNH GIÁ",
-			"headline": "Tin tưởng khách hàng của chúng tôi",
-			"name": "Irfan Rahmat",
-			"role": "Người đam mê du lịch",
-			"review": "Tôi yêu Travelo, đây là nơi tốt nhất để mua vé và giúp bạn tìm kỳ nghỉ mơ ước."
-		},
-		"newsletter": {
-			"sectionTitle": "ĐĂNG KÝ NHẬN BẢN TIN",
-			"headline": "Chuẩn bị bản thân và hãy khám phá vẻ đẹp của thế giới",
-			"emailPlaceholder": "Email của bạn",
-			"btnSubscribe": "Đăng ký"
-		}
-	},
-	"footer": {
-		"company": {
-			"title": "Công ty",
-			"about": "Về chúng tôi",
-			"careers": "Tuyển dụng",
-			"press": "Báo chí",
-			"blog": "Blog"
-		},
-		"support": {
-			"title": "Hỗ trợ",
-			"help": "Trung tâm trợ giúp",
-			"contact": "Liên hệ",
-			"status": "Trạng thái",
-			"community": "Cộng đồng"
-		},
-		"legal": {
-			"title": "Pháp lý",
-			"privacy": "Chính sách bảo mật",
-			"terms": "Điều khoản dịch vụ",
-			"cookies": "Chính sách cookie",
-			"gdpr": "GDPR"
-		},
-		"social": {
-			"title": "Mạng xã hội",
-			"facebook": "Facebook",
-			"twitter": "Twitter",
-			"instagram": "Instagram",
-			"linkedin": "LinkedIn"
-		},
-		"newsletter": {
-			"title": "Đăng ký nhận bản tin",
-			"desc": "Nhận thông tin cập nhật về các tour du lịch mới nhất và ưu đãi đặc biệt.",
-			"emailPlaceholder": "Nhập email của bạn",
-			"subscribe": "Đăng ký"
-		},
-		"copyright": "© 2024 KDBS. Tất cả quyền được bảo lưu.",
-		"rights": "Tất cả quyền được bảo lưu."
-	},
-	"pending": {
-		"title": "Đang chờ duyệt",
-		"submitted": "Yêu cầu đăng ký doanh nghiệp của bạn đã được gửi thành công!",
-		"infoTitle": "Thông tin đăng ký",
-		"email": "Email",
-		"status": "Trạng thái",
-		"statusPending": "Chờ duyệt",
-		"processTitle": "Quy trình duyệt",
-		"step1": "Đã gửi thông tin doanh nghiệp",
-		"step2": "Admin đang xem xét và duyệt",
-		"step3": "Tài khoản được kích hoạt",
-		"note1": "Thời gian duyệt thường mất từ 1-3 ngày làm việc.",
-		"note2": "Bạn sẽ nhận được email thông báo khi tài khoản được duyệt.",
-		"btnHome": "Về trang chủ",
-		"btnLogout": "Đăng xuất",
-		"info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
-		"info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
-	},
+  "brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
+  "nav": {
+    "home": "Trang chủ",
+    "forum": "Diễn đàn",
+    "tours": "Tours",
+    "tourBooking": "Đặt Tour",
+    "news": "Tin tức",
+    "selfTravel": "Tự túc",
+    "contact": "Liên hệ",
+    "admin": "Admin Dashboard",
+    "profile": "Hồ sơ",
+    "payment": "Thanh toán",
+    "dashboard": "Bảng Điều Khiển",
+    "businessInfo": "Thông tin doanh nghiệp",
+    "companyInfo": "Thông tin công ty",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "register": "Đăng ký",
+    "staffAdmin": "Staff/Admin",
+    "profileFull": "Hồ sơ cá nhân"
+  },
+  "lang": {
+    "vi": "Tiếng Việt",
+    "en": "English",
+    "ko": "한국어"
+  },
+  "common": {
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "processing": "Đang xử lý...",
+    "item": "mục này",
+    "sendMessage": "Gửi tin nhắn",
+    "modal": {
+      "confirmLeave": {
+        "title": "Rời khỏi trình tạo tour?",
+        "message": "Nếu bạn thoát ra bây giờ, dữ liệu đang nhập sẽ không được lưu.",
+        "stay": "Ở lại",
+        "leave": "Thoát"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Xác nhận xóa",
+      "message": "Bạn có chắc chắn muốn xóa {{item}} này không? Hành động này không thể hoàn tác.",
+      "warning": "Hành động này không thể hoàn tác."
+    },
+    "tourTypes": {
+      "resort": "Nghỉ dưỡng",
+      "culture": "Văn hóa",
+      "adventure": "Mạo hiểm",
+      "teamBuilding": "Team Building",
+      "food": "Ẩm thực",
+      "photography": "Nhiếp ảnh",
+      "religious": "Tâm linh",
+      "other": "Khác"
+    },
+    "departurePoints": {
+      "daNang": "Đà Nẵng"
+    },
+    "vehicles": {
+      "tourBus": "Xe Du Lịch"
+    }
+  },
+  "auth": {
+    "loginRequired": {
+      "title": "Vui lòng đăng nhập để thực hiện",
+      "message": "Vui lòng đăng nhập để thực hiện hành động này."
+    },
+    "common": {
+      "email": "Email",
+      "form": {
+        "email": {
+          "invalid": "lỗi sai email không đúng định dạng"
+        }
+      },
+      "password": "Mật khẩu",
+      "rememberMe": "Ghi nhớ đăng nhập",
+      "rememberPassword": "Nhớ mật khẩu?",
+      "or": "Hoặc",
+      "otp": "Mã OTP",
+      "otpPlaceholder": "000000",
+      "notReceivedCode": "Không nhận được mã?",
+      "resend": "Gửi lại",
+      "resendIn": "Gửi lại sau {{seconds}}s",
+      "backToLogin": "Quay lại đăng nhập",
+      "backToRegister": "Quay lại đăng ký",
+      "backToForgot": "Quay lại quên mật khẩu",
+      "send": "Gửi",
+      "sending": "Đang gửi..."
+    },
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Chào mừng bạn quay trở lại",
+      "illustrationTitle": "Chào mừng đến với KDBS",
+      "illustrationSubtitle": "Cánh cổng đến những tour Korea - Đà Nẵng tuyệt vời",
+      "submit": "Đăng nhập",
+      "submitting": "Đang đăng nhập...",
+      "loginWithGoogle": "Đăng nhập bằng Google",
+      "loginWithNaver": "Đăng nhập bằng Naver",
+      "forgotPassword": "Quên mật khẩu?",
+      "noAccount": "Chưa có tài khoản?",
+      "registerNow": "Đăng ký ngay",
+      "staffAdminLogin": "Đăng nhập Staff/Admin",
+      "error": "Đăng nhập thất bại. Vui lòng thử lại.",
+      "oauthErrorGoogle": "Không thể kết nối với Google. Vui lòng thử lại.",
+      "oauthErrorNaver": "Không thể kết nối với Naver. Vui lòng thử lại.",
+      "successMessage": "Đăng nhập thành công!"
+    },
+    "register": {
+      "title": "Đăng ký tài khoản",
+      "headerSubtitle": "Tạo tài khoản mới để bắt đầu hành trình",
+      "illustrationTitle": "Tham gia KDBS hôm nay",
+      "illustrationSubtitle": "Bắt đầu hành trình Korea - Đà Nẵng tuyệt vời của bạn",
+      "username": "Tên người dùng",
+      "usernamePlaceholder": "Nhập tên người dùng",
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "roleSelect": "Chọn vai trò",
+      "roleUserTitle": "Người dùng",
+      "roleUserDesc": "Đăng ký tour du lịch",
+      "roleBusinessTitle": "Doanh nghiệp",
+      "roleBusinessDesc": "Cung cấp dịch vụ",
+      "submit": "Đăng ký",
+      "submitting": "Đang đăng ký...",
+      "haveAccount": "Đã có tài khoản?",
+      "login": "Đăng nhập",
+      "errors": {
+        "passwordMismatch": "Mật khẩu xác nhận không khớp",
+        "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+        "usernameRequired": "Tên người dùng không được để trống",
+        "registerFailed": "Đăng ký thất bại. Vui lòng thử lại."
+      }
+    },
+    "forgot": {
+      "title": "Quên mật khẩu",
+      "subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
+      "submit": "Gửi email",
+      "sending": "Đang gửi...",
+      "success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+      "error": "Gửi OTP thất bại. Vui lòng thử lại."
+    },
+    "verify": {
+      "title": "Xác thực Email",
+      "subtitle": "Chúng tôi đã gửi mã xác thực đến {{email}}",
+      "label": "Mã xác thực (OTP)",
+      "helper": "Nhập mã 6 chữ số được gửi đến email của bạn",
+      "submit": "Xác thực",
+      "submitting": "Đang xác thực...",
+      "resend": "Gửi lại",
+      "resending": "Đang gửi...",
+      "resendIn": "Gửi lại sau {{seconds}}s",
+      "backToRegister": "Quay lại đăng ký",
+      "successBanner": "✅ Xác thực email thành công! Đang chuyển hướng...",
+      "error": "Mã OTP không đúng. Vui lòng thử lại.",
+      "failed": "Xác thực thất bại. Vui lòng thử lại."
+    },
+    "reset": {
+      "title": "Đặt lại mật khẩu",
+      "subtitle": "Nhập mật khẩu mới cho tài khoản {{email}}",
+      "newPassword": "Mật khẩu mới",
+      "confirmNewPassword": "Xác nhận mật khẩu mới",
+      "submit": "Cập nhật mật khẩu",
+      "submitting": "Đang cập nhật...",
+      "preconditionTitle": "Bạn cần xác thực OTP trước khi đặt lại mật khẩu",
+      "backToForgot": "Quay lại quên mật khẩu",
+      "successTitle": "Đặt lại mật khẩu thành công",
+      "successSubtitle": "Mật khẩu của bạn đã được cập nhật thành công.",
+      "login": "Đăng nhập",
+      "errors": {
+        "passwordMismatch": "Mật khẩu xác nhận không khớp",
+        "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+        "resetFailed": "Đặt lại mật khẩu thất bại. Vui lòng thử lại."
+      }
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Khám phá Đà Nẵng cùng chúng tôi",
+      "titleFrom": "Từ",
+      "titleSoutheast": "Đông Nam Hàn Quốc",
+      "titleTo": "đến Đà Nẵng",
+      "desc": "Cập nhật với các mẹo du lịch, gợi ý và khuyến mãi mới nhất.",
+      "btnBookNow": "Đặt ngay"
+    },
+    "services": {
+      "sectionTitle": "DỊCH VỤ",
+      "headline": "Tại sao sử dụng KDBS",
+      "card1": {
+        "title": "Tất cả những gì bạn cần",
+        "desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
+      },
+      "card2": {
+        "title": "Đặt chỗ linh hoạt",
+        "desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
+      },
+      "card3": {
+        "title": "Tích hợp AI",
+        "desc": "Từ chuyến bay, lưu trú, đến tham quan, chỉ cần tin tưởng vào các sản phẩm hoàn chỉnh của chúng tôi."
+      }
+    },
+    "destinations": {
+      "sectionTitle": "ĐIỂM ĐẾN HÀNG ĐẦU",
+      "headline": "Khám phá những điểm nổi bật hàng đầu",
+      "seeAll": "Xem tất cả",
+      "card1": {
+        "location": "Indonesia",
+        "title": "Bãi biển Pandawa, Đảo Bali",
+        "rating": "4.9"
+      },
+      "card2": {
+        "location": "Bangkok",
+        "title": "Thành phố Bangkok, Thái Lan",
+        "rating": "4.8"
+      },
+      "card3": {
+        "location": "Nhật Bản",
+        "title": "Thành phố Tokyo, Nhật Bản",
+        "rating": "4.9"
+      }
+    },
+    "features": {
+      "sectionTitle": "TÍNH NĂNG CHÍNH",
+      "headline": "Chúng tôi cung cấp dịch vụ tốt nhất",
+      "desc": "Chào! Travelo ở đây để giúp bạn tìm kỳ nghỉ mơ ước. Dễ dàng, bạn chỉ cần tìm nơi muốn đến và mua vé.",
+      "card1": {
+        "title": "Chọn nhiều địa điểm",
+        "desc": "Chọn địa điểm yêu thích của bạn"
+      },
+      "card2": {
+        "title": "Lên lịch chuyến đi",
+        "desc": "Đặt ngày bạn muốn"
+      },
+      "card3": {
+        "title": "Giảm giá lớn",
+        "desc": "Nhận giảm giá cho mọi dịch vụ"
+      }
+    },
+    "testimonials": {
+      "sectionTitle": "ĐÁNH GIÁ",
+      "headline": "Tin tưởng khách hàng của chúng tôi",
+      "name": "Irfan Rahmat",
+      "role": "Người đam mê du lịch",
+      "review": "Tôi yêu Travelo, đây là nơi tốt nhất để mua vé và giúp bạn tìm kỳ nghỉ mơ ước."
+    },
+    "newsletter": {
+      "sectionTitle": "ĐĂNG KÝ NHẬN BẢN TIN",
+      "headline": "Chuẩn bị bản thân và hãy khám phá vẻ đẹp của thế giới",
+      "emailPlaceholder": "Email của bạn",
+      "btnSubscribe": "Đăng ký"
+    }
+  },
+  "footer": {
+    "company": {
+      "title": "Công ty",
+      "about": "Về chúng tôi",
+      "careers": "Tuyển dụng",
+      "press": "Báo chí",
+      "blog": "Blog"
+    },
+    "support": {
+      "title": "Hỗ trợ",
+      "help": "Trung tâm trợ giúp",
+      "contact": "Liên hệ",
+      "status": "Trạng thái",
+      "community": "Cộng đồng"
+    },
+    "legal": {
+      "title": "Pháp lý",
+      "privacy": "Chính sách bảo mật",
+      "terms": "Điều khoản dịch vụ",
+      "cookies": "Chính sách cookie",
+      "gdpr": "GDPR"
+    },
+    "social": {
+      "title": "Mạng xã hội",
+      "facebook": "Facebook",
+      "twitter": "Twitter",
+      "instagram": "Instagram",
+      "linkedin": "LinkedIn"
+    },
+    "newsletter": {
+      "title": "Đăng ký nhận bản tin",
+      "desc": "Nhận thông tin cập nhật về các tour du lịch mới nhất và ưu đãi đặc biệt.",
+      "emailPlaceholder": "Nhập email của bạn",
+      "subscribe": "Đăng ký"
+    },
+    "copyright": "© 2024 KDBS. Tất cả quyền được bảo lưu.",
+    "rights": "Tất cả quyền được bảo lưu."
+  },
+  "pending": {
+    "title": "Đang chờ duyệt",
+    "submitted": "Yêu cầu đăng ký doanh nghiệp của bạn đã được gửi thành công!",
+    "infoTitle": "Thông tin đăng ký",
+    "email": "Email",
+    "status": "Trạng thái",
+    "statusPending": "Chờ duyệt",
+    "processTitle": "Quy trình duyệt",
+    "step1": "Đã gửi thông tin doanh nghiệp",
+    "step2": "Admin đang xem xét và duyệt",
+    "step3": "Tài khoản được kích hoạt",
+    "note1": "Thời gian duyệt thường mất từ 1-3 ngày làm việc.",
+    "note2": "Bạn sẽ nhận được email thông báo khi tài khoản được duyệt.",
+    "btnHome": "Về trang chủ",
+    "btnLogout": "Đăng xuất",
+    "info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
+    "info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
+  },
   "company": {
-		"loading": "Đang tải...",
-		"notFoundTitle": "Không tìm thấy thông tin đăng ký",
-		"backToRegister": "Quay lại đăng ký",
-		"submittedTitle": "Thông tin doanh nghiệp",
-		"submittedSubtitle": "Bạn đã upload hồ sơ. Trạng thái: Đang chờ duyệt.",
-		"submittedViewPending": "Xem trang chờ duyệt",
-		"submittedBackHome": "Về trang chủ",
-		"heading": "Thông tin doanh nghiệp",
-		"subtitle": "Vui lòng upload các tài liệu cần thiết để admin có thể duyệt tài khoản doanh nghiệp của bạn.",
-		"form": {
-			"businessLicense": "Giấy phép kinh doanh (PDF) *",
-			"idFront": "Mặt trước CCCD (JPG/PNG) *",
-			"idBack": "Mặt sau CCCD (JPG/PNG) *"
-		},
-		"selectedPrefix": "✅ Đã chọn:",
-		"important": {
-			"title": "Lưu ý quan trọng:",
-			"i1": "• Giấy phép kinh doanh phải là file PDF",
-			"i2": "• CCCD phải rõ ràng, không bị mờ hoặc che khuất",
-			"i3": "• CCCD phải là ảnh thật, không phải ảnh màn hình hoặc scan",
-			"i4": "• Đảm bảo ánh sáng tốt khi chụp CCCD",
-			"i5": "• Mỗi file không được vượt quá 25MB",
-			"i6": "• Thời gian duyệt thường mất từ 1-3 ngày làm việc"
-		},
-		"back": "Quay lại",
-		"submit": "Xác nhận và gửi",
-		"submitting": "Đang gửi...",
-		"success": "Thông tin doanh nghiệp đã được gửi thành công!"
-	},
-	"admin": {
-		"accessDenied": "Bạn không có quyền truy cập trang này",
-		"heading": "Admin Dashboard",
-		"subtitle": "Quản lý hệ thống Tour du lịch Đà Nẵng - Korea",
-		"tabs": {
-			"dashboard": "Dashboard",
-			"users": "Tất cả User",
-			"companies": "Duyệt Doanh nghiệp",
-			"staff": "Quản lý Staff"
-		},
-		"stats": {
-			"totalUsers": "Tổng số User",
-			"revenue": "Doanh thu",
-			"pendingCompanies": "Chờ duyệt",
-			"staff": "Staff"
-		},
-		"charts": {
-			"traffic": "Biểu đồ truy cập",
-			"revenue": "Biểu đồ doanh thu",
-			"revenueByMonth": "Biểu đồ doanh thu theo tháng"
-		},
-		"users": {
-			"title": "Danh sách tất cả User",
-			"headers": {
-				"user": "User",
-				"role": "Vai trò",
-				"status": "Trạng thái",
-				"createdAt": "Ngày tạo",
-				"actions": "Hành động"
-			},
-			"status": {
-				"active": "Hoạt động",
-				"inactive": "Không hoạt động"
-			},
-			"detailTitle": "Chi tiết User",
-			"labels": {
-				"fullName": "Họ tên",
-				"email": "Email",
-				"role": "Vai trò",
-				"status": "Trạng thái"
-			},
-			"changeStatus": "Thay đổi trạng thái",
-			"activate": "Kích hoạt",
-			"deactivate": "Vô hiệu hóa"
-		},
-		"companies": {
-			"title": "Danh sách doanh nghiệp chờ duyệt",
-			"headers": {
-				"companyName": "Tên công ty",
-				"email": "Email",
-				"phone": "Số điện thoại",
-				"taxCode": "Mã số thuế",
-				"actions": "Hành động"
-			},
-			"detailTitle": "Chi tiết doanh nghiệp",
-			"labels": {
-				"companyName": "Tên công ty",
-				"email": "Email",
-				"phone": "Số điện thoại",
-				"taxCode": "Mã số thuế",
-				"address": "Địa chỉ"
-			},
-			"approve": "Duyệt",
-			"reject": "Từ chối",
-			"confirmApprove": "Bạn có chắc chắn muốn duyệt doanh nghiệp này?",
-			"confirmReject": "Bạn có chắc chắn muốn từ chối doanh nghiệp này?"
-		},
-		"staff": {
-			"title": "Quản lý Staff",
-			"add": "Thêm Staff",
-			"editTitle": "Chỉnh sửa Staff",
-			"addTitle": "Thêm Staff",
-			"headers": {
-				"name": "Tên",
-				"email": "Email",
-				"role": "Vai trò",
-				"actions": "Hành động"
-			},
-			"labels": {
-				"name": "Tên",
-				"email": "Email",
-				"role": "Vai trò"
-			},
-			"cancel": "Hủy",
-			"save": "Lưu",
-			"update": "Cập nhật"
-		}
-	},
-	"profile": {
-		"loginRequired": "Vui lòng đăng nhập để xem hồ sơ",
-		"heading": "Hồ sơ cá nhân",
-		"edit": "Chỉnh sửa",
-		"basicInfo": "Thông tin cơ bản",
-		"accountInfo": "Thông tin tài khoản",
-		"labels": {
-			"fullName": "Họ tên",
-			"email": "Email",
-			"phone": "Số điện thoại",
-			"dob": "Ngày sinh",
-			"gender": "Giới tính",
-			"cccd": "CCCD",
-			"id": "ID",
-			"role": "Vai trò",
-			"premium": "Premium",
-			"joinedAt": "Ngày tham gia"
-		},
-		"notUpdated": "Chưa cập nhật",
-		"premiumYes": "Đã nâng cấp",
-		"premiumNo": "Chưa nâng cấp",
-		"editModalTitle": "Chỉnh sửa thông tin",
-		"avatar": "Ảnh đại diện",
-		"genderOptions": {
-			"unknown": "Chưa cập nhật",
-			"male": "Nam",
-			"female": "Nữ",
-			"other": "Khác"
-		},
-		"cancel": "Hủy",
-		"saveChanges": "Lưu thay đổi"
-	},
-	"oauth": {
-		"successLogin": "Đăng nhập thành công!",
-		"missingInfo": "Không nhận được thông tin xác thực đầy đủ",
-		"failed": "Xác thực OAuth thất bại: {{message}}"
-	},
-	"staffLogin": {
-		"title": "Đăng nhập Staff/Admin",
-		"subtitle": "Truy cập hệ thống quản lý",
-		"username": "Username",
-		"email": "Email",
-		"password": "Mật khẩu",
-		"submit": "Đăng nhập",
-		"submitting": "Đang đăng nhập...",
-		"or": "Hoặc",
-		"loginUserBusiness": "Đăng nhập cho User/Business",
-		"error": "Đăng nhập thất bại. Vui lòng thử lại.",
-		"demo": {
-			"title": "Thông tin demo:",
-			"admin": "Admin:",
-			"staff": "Staff:",
-			"password": "Mật khẩu: (bất kỳ)"
-		}
-	},
-		"forum": {
-			"title": "Diễn đàn",
-			"shareTour": {
-				"title": "Chia sẻ tour lên diễn đàn",
-				"captionPlaceholder": "Viết cảm nghĩ của bạn...",
-				"shareNow": "Chia sẻ"
-			},
-			"createPost": {
-			"placeholder": "Bạn đang nghĩ gì?",
-			"title": "Tạo bài viết mới",
-			"editTitle": "Chỉnh sửa bài viết",
-			"titleLabel": "Tiêu đề",
-			"titlePlaceholder": "Nhập tiêu đề bài viết...",
-			"contentLabel": "Nội dung",
-			"contentPlaceholder": "Chia sẻ suy nghĩ của bạn...",
-			"hashtagsLabel": "Hashtags",
-			"hashtagsPlaceholder": "Nhập hashtags (cách nhau bằng dấu phẩy)...",
-			"imagesLabel": "Hình ảnh",
-			"addImages": "Thêm hình ảnh",
-			"removeImage": "Xóa hình ảnh",
-			"submit": "Đăng bài",
-			"submitting": "Đang đăng...",
-			"update": "Cập nhật",
-			"updating": "Đang cập nhật...",
-			"cancel": "Hủy",
-			"errors": {
-				"titleRequired": "Vui lòng nhập tiêu đề",
-				"contentRequired": "Vui lòng nhập nội dung",
-				"titleMinLength": "Tiêu đề phải có ít nhất 5 ký tự",
-				"contentMinLength": "Nội dung phải có ít nhất 10 ký tự",
-				"imageSize": "Kích thước hình ảnh không được vượt quá 5MB",
-				"imageFormat": "Chỉ hỗ trợ định dạng JPG, PNG, GIF",
-				"updateError": "Có lỗi xảy ra khi cập nhật bài viết",
-				"submitError": "Có lỗi xảy ra khi đăng bài",
-				"imageEditNote": "Không thể thay đổi hình ảnh khi chỉnh sửa bài viết"
-			},
-			"imageUploadDisabled": "Không thể upload hình ảnh",
-			"imageUploadDisabledReason": "Khi đăng bài có chứa link, bạn không thể upload hình ảnh cùng lúc.",
-			"existingImagesRemoved": "Hình ảnh đã bị xóa",
-			"existingImagesRemovedReason": "Hình ảnh đã upload sẽ bị xóa khi bạn nhập link vào nội dung."
-		},
-		"post": {
-			"loading": "Đang tải bài viết...",
-			"noPosts": "Không có bài viết nào",
-			"noPostsDesc": "Hãy là người đầu tiên chia sẻ điều gì đó!",
-			"createFirst": "Tạo bài viết đầu tiên",
-			"loadMore": "Tải thêm bài viết",
-			"loadingMore": "Đang tải...",
-			"noMorePosts": "Đã tải hết tất cả bài viết",
-			"backToList": "← Quay lại danh sách",
-			"edit": "Chỉnh sửa",
-			"delete": "Xóa",
-			"report": "Báo cáo",
-			"save": "Lưu",
-			"unsave": "Bỏ lưu",
-			"like": "Thích",
-			"dislike": "Không thích",
-			"comment": "Bình luận",
-			"comments": "Bình luận",
-			"reply": "Trả lời",
-			"showReplies": "Xem trả lời",
-			"hideReplies": "Ẩn trả lời",
-			"ago": "trước",
-			"justNow": "Vừa xong",
-			"minutes": "phút",
-			"hours": "giờ",
-			"days": "ngày",
-			"weeks": "tuần",
-			"months": "tháng",
-			"years": "năm",
-			"deleteConfirm": "Bạn có chắc chắn muốn xóa bài viết này?",
-			"deleteSuccess": "Bài viết đã được xóa thành công",
-			"deleteError": "Không thể xóa bài viết. Vui lòng thử lại.",
-			"saveSuccess": "Bài viết đã được lưu",
-			"unsaveSuccess": "Đã bỏ lưu bài viết",
-			"likeSuccess": "Đã thích bài viết",
-			"unlikeSuccess": "Đã bỏ thích bài viết"
-		},
-		"comments": {
-			"placeholder": "Viết bình luận...",
-			"submit": "Bình luận",
-			"submitting": "Đang gửi...",
-			"edit": "Chỉnh sửa",
-			"delete": "Xóa",
-			"reply": "Trả lời",
-			"report": "Báo cáo",
-			"editPlaceholder": "Chỉnh sửa bình luận...",
-			"replyPlaceholder": "Viết trả lời...",
-			"update": "Cập nhật",
-			"updating": "Đang cập nhật...",
-			"cancel": "Hủy",
-			"deleteConfirm": "Bạn có chắc chắn muốn xóa bình luận này?",
-			"deleteSuccess": "Bình luận đã được xóa",
-			"deleteError": "Không thể xóa bình luận. Vui lòng thử lại.",
-			"updateSuccess": "Bình luận đã được cập nhật",
-			"updateError": "Không thể cập nhật bình luận. Vui lòng thử lại.",
-			"submitSuccess": "Bình luận đã được thêm",
-			"submitError": "Không thể thêm bình luận. Vui lòng thử lại.",
-			"hideComments": "Ẩn bớt bình luận",
-			"showMore": "Xem thêm",
-			"noComments": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!",
-			"reported": "Đã báo cáo"
-		},
-		"search": {
-			"title": "Tìm kiếm bài viết",
-			"placeholder": "Tìm kiếm bài viết...",
-			"searchButton": "Tìm kiếm",
-			"clearButton": "Xóa tìm kiếm",
-			"noResults": "Không tìm thấy kết quả nào",
-			"noResultsDesc": "Không có bài viết nào chứa từ khóa \"{{keyword}}\". Hãy thử từ khóa khác hoặc quay lại trang chủ.",
-			"backToForum": "Quay lại diễn đàn",
-			"headerTitle": "Kết quả tìm kiếm",
-			"postCount": "bài viết",
-			"popularHashtags": "Hashtags phổ biến",
-			"recentSearches": "Tìm kiếm gần đây",
-			"clearRecent": "Xóa lịch sử",
-			"history": "Lịch sử",
-			"removeFromHistory": "Xóa khỏi lịch sử",
-			"by": "bởi",
-			"user": "người dùng",
-			"posts": "bài viết"
-		},
-		"filter": {
-			"clearAll": "Xóa tất cả bộ lọc",
-			"selected": "đã chọn"
-		},
-		"hashtag": {
-			"clickToFilter": "Nhấp để lọc bài viết theo hashtag này",
-			"headerTitle": "Lọc theo hashtag",
-			"postCount": "bài viết",
-			"backToForum": "Quay lại diễn đàn"
-		},
-		"sidebar": {
-			"savedPosts": "📚 Bài viết đã lưu",
-			"myPosts": "📝 Bài viết của tôi",
-			"trendingTopics": "Chủ đề nổi bật",
-			"onlineUsers": "Người dùng trực tuyến",
-			"follow": "Theo dõi",
-			"unfollow": "Bỏ theo dõi",
-			"viewProfile": "Xem hồ sơ",
-			"seeAllSuggestions": "Xem tất cả gợi ý",
-			"mockUsers": {
-				"user1": "Nguyễn Văn A",
-				"user2": "Trần Thị B",
-				"user3": "Lê Văn C",
-				"user4": "Phạm Thị D",
-				"user5": "Hoàng Văn E"
-			}
-		},
-		"trendingTopics": {
-			"ai": "Công nghệ AI mới nhất",
-			"startup": "Startup thành công",
-			"marketing": "Marketing số",
-			"finance": "Đầu tư tài chính",
-			"design": "Thiết kế UX/UI"
-		},
-		"modals": {
-			"savedPosts": {
-				"title": "📚 Bài viết đã lưu",
-				"noSavedPosts": "Bạn chưa lưu bài viết nào",
-				"noSavedPostsDesc": "Hãy lưu những bài viết hay để xem lại sau!",
-				"close": "Đóng",
-				"loadError": "Không thể tải danh sách bài viết đã lưu",
-				"retry": "Thử lại",
-				"clickToView": "Click để xem bài viết",
-				"savedAt": "Lưu lúc",
-				"note": "Ghi chú",
-				"unsave": "Bỏ lưu",
-				"previous": "Trước",
-				"next": "Sau",
-				"pageInfo": "Trang {{current}} / {{total}} ({{count}} bài viết)"
-			},
-			"reactions": {
-				"title": "👍 Bài viết đã tương tác",
-				"noReactions": "Bạn chưa tương tác với bài viết nào",
-				"noReactionsDesc": "Hãy thích và bình luận để tương tác với cộng đồng!",
-				"close": "Đóng",
-				"all": "Tất cả",
-				"liked": "Đã thích",
-				"disliked": "Đã không thích",
-				"reacted": "Phản ứng",
-				"clickToView": "Click để xem bài viết",
-				"post": "Bài viết",
-				"comment": "Bình luận",
-				"removeReaction": "Bỏ tương tác"
-			},
-			"report": {
-				"title": "Báo cáo bài viết",
-				"reason": "Lý do báo cáo",
-				"selectReason": "Vui lòng chọn lý do báo cáo:",
-				"selectReasonError": "Vui lòng chọn ít nhất một lý do báo cáo",
-				"additionalDescription": "Mô tả thêm (tùy chọn):",
-				"descriptionPlaceholder": "Mô tả chi tiết về lý do báo cáo...",
-				"submit": "Gửi báo cáo",
-				"submitting": "Đang gửi...",
-				"submitError": "Có lỗi xảy ra khi báo cáo bài viết. Vui lòng thử lại.",
-				"cancel": "Hủy",
-				"success": "Báo cáo đã được gửi thành công",
-				"error": "Không thể gửi báo cáo. Vui lòng thử lại.",
-				"loginRequired": "Vui lòng đăng nhập để báo cáo bài viết",
-				"reasons": {
-					"spam": "Spam",
-					"spamDesc": "Nội dung spam hoặc quảng cáo không phù hợp",
-					"inappropriate": "Nội dung không phù hợp",
-					"inappropriateDesc": "Nội dung có thể gây khó chịu hoặc không phù hợp",
-					"violence": "Bạo lực",
-					"violenceDesc": "Nội dung chứa bạo lực hoặc đe dọa",
-					"harassment": "Quấy rối",
-					"harassmentDesc": "Quấy rối hoặc bắt nạt người khác",
-					"hateSpeech": "Ngôn từ thù địch",
-					"hateSpeechDesc": "Ngôn từ thù địch hoặc phân biệt đối xử",
-					"falseInfo": "Thông tin sai lệch",
-					"falseInfoDesc": "Thông tin sai lệch hoặc gây hiểu lầm",
-					"copyright": "Vi phạm bản quyền",
-					"copyrightDesc": "Vi phạm bản quyền hoặc sở hữu trí tuệ",
-					"other": "Khác",
-					"otherDesc": "Lý do khác"
-				}
-			},
-			"reportSuccess": {
-				"title": "Báo cáo đã được gửi thành công!",
-				"message": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét và xử lý báo cáo của bạn trong thời gian sớm nhất.",
-				"adminNote": "Vui lòng đợi admin xem xét!",
-				"autoClose": "Tự động đóng sau {{seconds}}s",
-				"understood": "Đã hiểu"
-			}
-		},
-		"guest": {
-			"welcome": "👋 Chào mừng bạn đến với diễn đàn!",
-			"loginPrompt": "Đăng nhập để tham gia thảo luận và chia sẻ ý kiến.",
-			"loginLink": "Đăng nhập",
-			"loginToSave": "Đăng nhập để lưu bài viết",
-			"loginToReact": "Đăng nhập để tương tác",
-			"loginToComment": "Đăng nhập để bình luận",
-			"searchAndFilter": "💡 Bạn có thể tìm kiếm bài viết và lọc theo hashtag mà không cần đăng nhập!"
-		},
-		"errors": {
-			"loadPosts": "Không thể tải bài viết. Vui lòng thử lại.",
-			"loadComments": "Không thể tải bình luận. Vui lòng thử lại.",
-			"networkError": "Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.",
-			"unauthorized": "Bạn cần đăng nhập để thực hiện hành động này.",
-			"forbidden": "Bạn không có quyền thực hiện hành động này.",
-			"notFound": "Không tìm thấy nội dung yêu cầu.",
-			"serverError": "Lỗi máy chủ. Vui lòng thử lại sau."
-		},
-		"mockPosts": {
-			"ai": {
-				"title": "Công nghệ AI mới nhất 2025",
-				"content": "AI đang phát triển với tốc độ chóng mặt. Các công nghệ mới như GPT-5, Claude 4 đang thay đổi cách chúng ta làm việc và học tập.",
-				"comment": "Bài viết rất hay! AI thực sự đang thay đổi thế giới."
-			},
-			"startup": {
-				"title": "Startup thành công: Bài học từ thất bại",
-				"content": "Thất bại không phải là kết thúc, mà là bước đệm để thành công. Hãy cùng chia sẻ những bài học quý giá từ những startup đã thất bại."
-			},
-			"marketing": {
-				"title": "Marketing số trong thời đại 4.0",
-				"content": "Digital marketing đang trở thành xu hướng chính. Các chiến lược marketing truyền thống cần được cập nhật để phù hợp với thời đại số."
-			}
-		},
-		"myPosts": {
-			"title": "Bài viết của tôi",
-			"empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!",
-			"emptyDesc": "Chia sẻ ý tưởng và kinh nghiệm của bạn với cộng đồng.",
-			"headerTitle": "Bài viết của tôi",
-			"postCount": "bài viết",
-			"backToForum": "Quay lại diễn đàn"
-		}
-	},
-	"forum.shareTour": {
-		"title": "Chia sẻ tour lên diễn đàn",
-		"captionPlaceholder": "Viết cảm nghĩ của bạn...",
-		"shareNow": "Chia sẻ"
-	},
-	"toast": {
-		"required": "{{field}} là bắt buộc",
-		"name_required": "Không để trống tên",
-		"login_required": "Vui lòng đăng nhập để tiếp tục",
-		"save_success": "Lưu thành công",
-		"save_error": "Có lỗi xảy ra khi lưu",
-		"invalid_past_deadline": "Hạn đặt chỗ không được ở quá khứ. Đã điều chỉnh về hiện tại.",
-		"max_capacity_range": "Số chỗ tối đa phải từ 1 đến 9999.",
-		"company_only": "Chỉ tài khoản Company mới có thể thực hiện thao tác này.",
-		"field_invalid": "Giá trị không hợp lệ",
-		"tour": {
-			"upload_image_failed": "Không thể upload ảnh. Vui lòng thử lại.",
-			"file_size_exceeded": "Kích thước file không được vượt quá 5MB",
-			"invalid_file_format": "Chỉ được upload file ảnh",
-			"itinerary_required": "Phải có ít nhất 1 ngày trong lịch trình.",
-			"name_required": "Tên tour là bắt buộc",
-			"user_info_not_found": "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
-			"user_email_not_found": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
-			"create_success": "Tạo tour thành công!",
-			"delete_success": "Đã xóa tour thành công",
-			"delete_error": "Có lỗi xảy ra khi xóa tour",
-			"load_failed": "Không thể tải danh sách tour",
-			"load_error": "Có lỗi xảy ra khi tải danh sách tour",
-			"activate_success": "Đã kích hoạt tour",
-			"deactivate_success": "Đã tạm dừng tour",
-			"cannot_delete_content": "Không thể xóa nội dung"
-		},
-  
-		"auth": {
-			"login_success": "Đăng nhập thành công!",
-			"login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
-			"invalid_credentials": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
-			"register_success": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
-			"email_already_exists": "Email này đã được đăng ký",
-			"google_connection_failed": "Không thể kết nối với Google. Vui lòng thử lại.",
-			"naver_connection_failed": "Không thể kết nối với Naver. Vui lòng thử lại.",
-			"email_verify_success": "Xác thực email thành công!",
-			"email_verify_failed": "Xác thực email thất bại. Vui lòng thử lại.",
-			"otp_sent_success": "Mã OTP mới đã được gửi!",
-			"otp_resend_failed": "Không thể gửi lại mã OTP. Vui lòng thử lại.",
-			"password_reset_email_sent": "Email đặt lại mật khẩu đã được gửi!",
-			"otp_verify_success": "Xác thực OTP thành công!",
-			"general_error": "Có lỗi xảy ra. Vui lòng thử lại.",
-			"email_not_found": "Đăng nhập thất bại. vui lòng kiểm tra email.",
-			"wrong_password": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
-			"both_invalid": "Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu."
-		},
+    "loading": "Đang tải...",
+    "notFoundTitle": "Không tìm thấy thông tin đăng ký",
+    "backToRegister": "Quay lại đăng ký",
+    "submittedTitle": "Thông tin doanh nghiệp",
+    "submittedSubtitle": "Bạn đã upload hồ sơ. Trạng thái: Đang chờ duyệt.",
+    "submittedViewPending": "Xem trang chờ duyệt",
+    "submittedBackHome": "Về trang chủ",
+    "heading": "Thông tin doanh nghiệp",
+    "subtitle": "Vui lòng upload các tài liệu cần thiết để admin có thể duyệt tài khoản doanh nghiệp của bạn.",
+    "form": {
+      "businessLicense": "Giấy phép kinh doanh (PDF) *",
+      "idFront": "Mặt trước CCCD (JPG/PNG) *",
+      "idBack": "Mặt sau CCCD (JPG/PNG) *"
+    },
+    "selectedPrefix": "✅ Đã chọn:",
+    "important": {
+      "title": "Lưu ý quan trọng:",
+      "i1": "• Giấy phép kinh doanh phải là file PDF",
+      "i2": "• CCCD phải rõ ràng, không bị mờ hoặc che khuất",
+      "i3": "• CCCD phải là ảnh thật, không phải ảnh màn hình hoặc scan",
+      "i4": "• Đảm bảo ánh sáng tốt khi chụp CCCD",
+      "i5": "• Mỗi file không được vượt quá 25MB",
+      "i6": "• Thời gian duyệt thường mất từ 1-3 ngày làm việc"
+    },
+    "back": "Quay lại",
+    "submit": "Xác nhận và gửi",
+    "submitting": "Đang gửi...",
+    "success": "Thông tin doanh nghiệp đã được gửi thành công!"
+  },
+  "admin": {
+    "accessDenied": "Bạn không có quyền truy cập trang này",
+    "heading": "Admin Dashboard",
+    "subtitle": "Quản lý hệ thống Tour du lịch Đà Nẵng - Korea",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "users": "Tất cả User",
+      "companies": "Duyệt Doanh nghiệp",
+      "staff": "Quản lý Staff"
+    },
+    "stats": {
+      "totalUsers": "Tổng số User",
+      "revenue": "Doanh thu",
+      "pendingCompanies": "Chờ duyệt",
+      "staff": "Staff"
+    },
+    "charts": {
+      "traffic": "Biểu đồ truy cập",
+      "revenue": "Biểu đồ doanh thu",
+      "revenueByMonth": "Biểu đồ doanh thu theo tháng"
+    },
+    "users": {
+      "title": "Danh sách tất cả User",
+      "headers": {
+        "user": "User",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo",
+        "actions": "Hành động"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Không hoạt động"
+      },
+      "detailTitle": "Chi tiết User",
+      "labels": {
+        "fullName": "Họ tên",
+        "email": "Email",
+        "role": "Vai trò",
+        "status": "Trạng thái"
+      },
+      "changeStatus": "Thay đổi trạng thái",
+      "activate": "Kích hoạt",
+      "deactivate": "Vô hiệu hóa"
+    },
+    "companies": {
+      "title": "Danh sách doanh nghiệp chờ duyệt",
+      "headers": {
+        "companyName": "Tên công ty",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "taxCode": "Mã số thuế",
+        "actions": "Hành động"
+      },
+      "detailTitle": "Chi tiết doanh nghiệp",
+      "labels": {
+        "companyName": "Tên công ty",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "taxCode": "Mã số thuế",
+        "address": "Địa chỉ"
+      },
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "confirmApprove": "Bạn có chắc chắn muốn duyệt doanh nghiệp này?",
+      "confirmReject": "Bạn có chắc chắn muốn từ chối doanh nghiệp này?"
+    },
+    "staff": {
+      "title": "Quản lý Staff",
+      "add": "Thêm Staff",
+      "editTitle": "Chỉnh sửa Staff",
+      "addTitle": "Thêm Staff",
+      "headers": {
+        "name": "Tên",
+        "email": "Email",
+        "role": "Vai trò",
+        "actions": "Hành động"
+      },
+      "labels": {
+        "name": "Tên",
+        "email": "Email",
+        "role": "Vai trò"
+      },
+      "cancel": "Hủy",
+      "save": "Lưu",
+      "update": "Cập nhật"
+    }
+  },
+  "profile": {
+    "loginRequired": "Vui lòng đăng nhập để xem hồ sơ",
+    "heading": "Hồ sơ cá nhân",
+    "edit": "Chỉnh sửa",
+    "basicInfo": "Thông tin cơ bản",
+    "accountInfo": "Thông tin tài khoản",
+    "labels": {
+      "fullName": "Họ tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "dob": "Ngày sinh",
+      "gender": "Giới tính",
+      "cccd": "CCCD",
+      "id": "ID",
+      "role": "Vai trò",
+      "premium": "Premium",
+      "joinedAt": "Ngày tham gia"
+    },
+    "notUpdated": "Chưa cập nhật",
+    "premiumYes": "Đã nâng cấp",
+    "premiumNo": "Chưa nâng cấp",
+    "editModalTitle": "Chỉnh sửa thông tin",
+    "avatar": "Ảnh đại diện",
+    "genderOptions": {
+      "unknown": "Chưa cập nhật",
+      "male": "Nam",
+      "female": "Nữ",
+      "other": "Khác"
+    },
+    "cancel": "Hủy",
+    "saveChanges": "Lưu thay đổi"
+  },
+  "oauth": {
+    "successLogin": "Đăng nhập thành công!",
+    "missingInfo": "Không nhận được thông tin xác thực đầy đủ",
+    "failed": "Xác thực OAuth thất bại: {{message}}"
+  },
+  "staffLogin": {
+    "title": "Đăng nhập Staff/Admin",
+    "subtitle": "Truy cập hệ thống quản lý",
+    "username": "Username",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "submit": "Đăng nhập",
+    "submitting": "Đang đăng nhập...",
+    "or": "Hoặc",
+    "loginUserBusiness": "Đăng nhập cho User/Business",
+    "error": "Đăng nhập thất bại. Vui lòng thử lại.",
+    "demo": {
+      "title": "Thông tin demo:",
+      "admin": "Admin:",
+      "staff": "Staff:",
+      "password": "Mật khẩu: (bất kỳ)"
+    }
+  },
+  "forum": {
+    "title": "Diễn đàn",
+    "shareTour": {
+      "title": "Chia sẻ tour lên diễn đàn",
+      "captionPlaceholder": "Viết cảm nghĩ của bạn...",
+      "shareNow": "Chia sẻ"
+    },
+    "createPost": {
+      "placeholder": "Bạn đang nghĩ gì?",
+      "title": "Tạo bài viết mới",
+      "editTitle": "Chỉnh sửa bài viết",
+      "titleLabel": "Tiêu đề",
+      "titlePlaceholder": "Nhập tiêu đề bài viết...",
+      "contentLabel": "Nội dung",
+      "contentPlaceholder": "Chia sẻ suy nghĩ của bạn...",
+      "hashtagsLabel": "Hashtags",
+      "hashtagsPlaceholder": "Nhập hashtags (cách nhau bằng dấu phẩy)...",
+      "imagesLabel": "Hình ảnh",
+      "addImages": "Thêm hình ảnh",
+      "removeImage": "Xóa hình ảnh",
+      "submit": "Đăng bài",
+      "submitting": "Đang đăng...",
+      "update": "Cập nhật",
+      "updating": "Đang cập nhật...",
+      "cancel": "Hủy",
+      "errors": {
+        "titleRequired": "Vui lòng nhập tiêu đề",
+        "contentRequired": "Vui lòng nhập nội dung",
+        "titleMinLength": "Tiêu đề phải có ít nhất 5 ký tự",
+        "contentMinLength": "Nội dung phải có ít nhất 10 ký tự",
+        "imageSize": "Kích thước hình ảnh không được vượt quá 5MB",
+        "imageFormat": "Chỉ hỗ trợ định dạng JPG, PNG, GIF",
+        "updateError": "Có lỗi xảy ra khi cập nhật bài viết",
+        "submitError": "Có lỗi xảy ra khi đăng bài",
+        "imageEditNote": "Không thể thay đổi hình ảnh khi chỉnh sửa bài viết"
+      },
+      "imageUploadDisabled": "Không thể upload hình ảnh",
+      "imageUploadDisabledReason": "Khi đăng bài có chứa link, bạn không thể upload hình ảnh cùng lúc.",
+      "existingImagesRemoved": "Hình ảnh đã bị xóa",
+      "existingImagesRemovedReason": "Hình ảnh đã upload sẽ bị xóa khi bạn nhập link vào nội dung."
+    },
+    "post": {
+      "loading": "Đang tải bài viết...",
+      "noPosts": "Không có bài viết nào",
+      "noPostsDesc": "Hãy là người đầu tiên chia sẻ điều gì đó!",
+      "createFirst": "Tạo bài viết đầu tiên",
+      "loadMore": "Tải thêm bài viết",
+      "loadingMore": "Đang tải...",
+      "noMorePosts": "Đã tải hết tất cả bài viết",
+      "backToList": "← Quay lại danh sách",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa",
+      "report": "Báo cáo",
+      "save": "Lưu",
+      "unsave": "Bỏ lưu",
+      "like": "Thích",
+      "dislike": "Không thích",
+      "comment": "Bình luận",
+      "comments": "Bình luận",
+      "reply": "Trả lời",
+      "showReplies": "Xem trả lời",
+      "hideReplies": "Ẩn trả lời",
+      "ago": "trước",
+      "justNow": "Vừa xong",
+      "minutes": "phút",
+      "hours": "giờ",
+      "days": "ngày",
+      "weeks": "tuần",
+      "months": "tháng",
+      "years": "năm",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa bài viết này?",
+      "deleteSuccess": "Bài viết đã được xóa thành công",
+      "deleteError": "Không thể xóa bài viết. Vui lòng thử lại.",
+      "saveSuccess": "Bài viết đã được lưu",
+      "unsaveSuccess": "Đã bỏ lưu bài viết",
+      "likeSuccess": "Đã thích bài viết",
+      "unlikeSuccess": "Đã bỏ thích bài viết"
+    },
+    "comments": {
+      "placeholder": "Viết bình luận...",
+      "submit": "Bình luận",
+      "submitting": "Đang gửi...",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa",
+      "reply": "Trả lời",
+      "report": "Báo cáo",
+      "editPlaceholder": "Chỉnh sửa bình luận...",
+      "replyPlaceholder": "Viết trả lời...",
+      "update": "Cập nhật",
+      "updating": "Đang cập nhật...",
+      "cancel": "Hủy",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa bình luận này?",
+      "deleteSuccess": "Bình luận đã được xóa",
+      "deleteError": "Không thể xóa bình luận. Vui lòng thử lại.",
+      "updateSuccess": "Bình luận đã được cập nhật",
+      "updateError": "Không thể cập nhật bình luận. Vui lòng thử lại.",
+      "submitSuccess": "Bình luận đã được thêm",
+      "submitError": "Không thể thêm bình luận. Vui lòng thử lại.",
+      "hideComments": "Ẩn bớt bình luận",
+      "showMore": "Xem thêm",
+      "noComments": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!",
+      "reported": "Đã báo cáo"
+    },
+    "search": {
+      "title": "Tìm kiếm bài viết",
+      "placeholder": "Tìm kiếm bài viết...",
+      "searchButton": "Tìm kiếm",
+      "clearButton": "Xóa tìm kiếm",
+      "noResults": "Không tìm thấy kết quả nào",
+      "noResultsDesc": "Không có bài viết nào chứa từ khóa \"{{keyword}}\". Hãy thử từ khóa khác hoặc quay lại trang chủ.",
+      "backToForum": "Quay lại diễn đàn",
+      "headerTitle": "Kết quả tìm kiếm",
+      "postCount": "bài viết",
+      "popularHashtags": "Hashtags phổ biến",
+      "recentSearches": "Tìm kiếm gần đây",
+      "clearRecent": "Xóa lịch sử",
+      "history": "Lịch sử",
+      "removeFromHistory": "Xóa khỏi lịch sử",
+      "by": "bởi",
+      "user": "người dùng",
+      "posts": "bài viết"
+    },
+    "filter": {
+      "clearAll": "Xóa tất cả bộ lọc",
+      "selected": "đã chọn"
+    },
+    "hashtag": {
+      "clickToFilter": "Nhấp để lọc bài viết theo hashtag này",
+      "headerTitle": "Lọc theo hashtag",
+      "postCount": "bài viết",
+      "backToForum": "Quay lại diễn đàn"
+    },
+    "sidebar": {
+      "savedPosts": "📚 Bài viết đã lưu",
+      "myPosts": "📝 Bài viết của tôi",
+      "trendingTopics": "Chủ đề nổi bật",
+      "onlineUsers": "Người dùng trực tuyến",
+      "follow": "Theo dõi",
+      "unfollow": "Bỏ theo dõi",
+      "viewProfile": "Xem hồ sơ",
+      "seeAllSuggestions": "Xem tất cả gợi ý",
+      "mockUsers": {
+        "user1": "Nguyễn Văn A",
+        "user2": "Trần Thị B",
+        "user3": "Lê Văn C",
+        "user4": "Phạm Thị D",
+        "user5": "Hoàng Văn E"
+      }
+    },
+    "trendingTopics": {
+      "ai": "Công nghệ AI mới nhất",
+      "startup": "Startup thành công",
+      "marketing": "Marketing số",
+      "finance": "Đầu tư tài chính",
+      "design": "Thiết kế UX/UI"
+    },
+    "modals": {
+      "savedPosts": {
+        "title": "📚 Bài viết đã lưu",
+        "noSavedPosts": "Bạn chưa lưu bài viết nào",
+        "noSavedPostsDesc": "Hãy lưu những bài viết hay để xem lại sau!",
+        "close": "Đóng",
+        "loadError": "Không thể tải danh sách bài viết đã lưu",
+        "retry": "Thử lại",
+        "clickToView": "Click để xem bài viết",
+        "savedAt": "Lưu lúc",
+        "note": "Ghi chú",
+        "unsave": "Bỏ lưu",
+        "previous": "Trước",
+        "next": "Sau",
+        "pageInfo": "Trang {{current}} / {{total}} ({{count}} bài viết)"
+      },
+      "reactions": {
+        "title": "👍 Bài viết đã tương tác",
+        "noReactions": "Bạn chưa tương tác với bài viết nào",
+        "noReactionsDesc": "Hãy thích và bình luận để tương tác với cộng đồng!",
+        "close": "Đóng",
+        "all": "Tất cả",
+        "liked": "Đã thích",
+        "disliked": "Đã không thích",
+        "reacted": "Phản ứng",
+        "clickToView": "Click để xem bài viết",
+        "post": "Bài viết",
+        "comment": "Bình luận",
+        "removeReaction": "Bỏ tương tác"
+      },
+      "report": {
+        "title": "Báo cáo bài viết",
+        "reason": "Lý do báo cáo",
+        "selectReason": "Vui lòng chọn lý do báo cáo:",
+        "selectReasonError": "Vui lòng chọn ít nhất một lý do báo cáo",
+        "additionalDescription": "Mô tả thêm (tùy chọn):",
+        "descriptionPlaceholder": "Mô tả chi tiết về lý do báo cáo...",
+        "submit": "Gửi báo cáo",
+        "submitting": "Đang gửi...",
+        "submitError": "Có lỗi xảy ra khi báo cáo bài viết. Vui lòng thử lại.",
+        "cancel": "Hủy",
+        "success": "Báo cáo đã được gửi thành công",
+        "error": "Không thể gửi báo cáo. Vui lòng thử lại.",
+        "loginRequired": "Vui lòng đăng nhập để báo cáo bài viết",
+        "reasons": {
+          "spam": "Spam",
+          "spamDesc": "Nội dung spam hoặc quảng cáo không phù hợp",
+          "inappropriate": "Nội dung không phù hợp",
+          "inappropriateDesc": "Nội dung có thể gây khó chịu hoặc không phù hợp",
+          "violence": "Bạo lực",
+          "violenceDesc": "Nội dung chứa bạo lực hoặc đe dọa",
+          "harassment": "Quấy rối",
+          "harassmentDesc": "Quấy rối hoặc bắt nạt người khác",
+          "hateSpeech": "Ngôn từ thù địch",
+          "hateSpeechDesc": "Ngôn từ thù địch hoặc phân biệt đối xử",
+          "falseInfo": "Thông tin sai lệch",
+          "falseInfoDesc": "Thông tin sai lệch hoặc gây hiểu lầm",
+          "copyright": "Vi phạm bản quyền",
+          "copyrightDesc": "Vi phạm bản quyền hoặc sở hữu trí tuệ",
+          "other": "Khác",
+          "otherDesc": "Lý do khác"
+        }
+      },
+      "reportSuccess": {
+        "title": "Báo cáo đã được gửi thành công!",
+        "message": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét và xử lý báo cáo của bạn trong thời gian sớm nhất.",
+        "adminNote": "Vui lòng đợi admin xem xét!",
+        "autoClose": "Tự động đóng sau {{seconds}}s",
+        "understood": "Đã hiểu"
+      }
+    },
+    "guest": {
+      "welcome": "👋 Chào mừng bạn đến với diễn đàn!",
+      "loginPrompt": "Đăng nhập để tham gia thảo luận và chia sẻ ý kiến.",
+      "loginLink": "Đăng nhập",
+      "loginToSave": "Đăng nhập để lưu bài viết",
+      "loginToReact": "Đăng nhập để tương tác",
+      "loginToComment": "Đăng nhập để bình luận",
+      "searchAndFilter": "💡 Bạn có thể tìm kiếm bài viết và lọc theo hashtag mà không cần đăng nhập!"
+    },
+    "errors": {
+      "loadPosts": "Không thể tải bài viết. Vui lòng thử lại.",
+      "loadComments": "Không thể tải bình luận. Vui lòng thử lại.",
+      "networkError": "Lỗi kết nối. Vui lòng kiểm tra internet và thử lại.",
+      "unauthorized": "Bạn cần đăng nhập để thực hiện hành động này.",
+      "forbidden": "Bạn không có quyền thực hiện hành động này.",
+      "notFound": "Không tìm thấy nội dung yêu cầu.",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau."
+    },
+    "mockPosts": {
+      "ai": {
+        "title": "Công nghệ AI mới nhất 2025",
+        "content": "AI đang phát triển với tốc độ chóng mặt. Các công nghệ mới như GPT-5, Claude 4 đang thay đổi cách chúng ta làm việc và học tập.",
+        "comment": "Bài viết rất hay! AI thực sự đang thay đổi thế giới."
+      },
+      "startup": {
+        "title": "Startup thành công: Bài học từ thất bại",
+        "content": "Thất bại không phải là kết thúc, mà là bước đệm để thành công. Hãy cùng chia sẻ những bài học quý giá từ những startup đã thất bại."
+      },
+      "marketing": {
+        "title": "Marketing số trong thời đại 4.0",
+        "content": "Digital marketing đang trở thành xu hướng chính. Các chiến lược marketing truyền thống cần được cập nhật để phù hợp với thời đại số."
+      }
+    },
+    "myPosts": {
+      "title": "Bài viết của tôi",
+      "empty": "Bạn chưa có bài viết nào. Hãy tạo bài viết đầu tiên!",
+      "emptyDesc": "Chia sẻ ý tưởng và kinh nghiệm của bạn với cộng đồng.",
+      "headerTitle": "Bài viết của tôi",
+      "postCount": "bài viết",
+      "backToForum": "Quay lại diễn đàn"
+    }
+  },
+  "forum.shareTour": {
+    "title": "Chia sẻ tour lên diễn đàn",
+    "captionPlaceholder": "Viết cảm nghĩ của bạn...",
+    "shareNow": "Chia sẻ"
+  },
+  "toast": {
+    "required": "{{field}} là bắt buộc",
+    "name_required": "Không để trống tên",
+    "login_required": "Vui lòng đăng nhập để tiếp tục",
+    "save_success": "Lưu thành công",
+    "save_error": "Có lỗi xảy ra khi lưu",
+    "invalid_past_deadline": "Hạn đặt chỗ không được ở quá khứ. Đã điều chỉnh về hiện tại.",
+    "max_capacity_range": "Số chỗ tối đa phải từ 1 đến 9999.",
+    "company_only": "Chỉ tài khoản Company mới có thể thực hiện thao tác này.",
+    "field_invalid": "Giá trị không hợp lệ",
+    "tour": {
+      "upload_image_failed": "Không thể upload ảnh. Vui lòng thử lại.",
+      "file_size_exceeded": "Kích thước file không được vượt quá 5MB",
+      "invalid_file_format": "Chỉ được upload file ảnh",
+      "itinerary_required": "Phải có ít nhất 1 ngày trong lịch trình.",
+      "name_required": "Tên tour là bắt buộc",
+      "user_info_not_found": "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+      "user_email_not_found": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
+      "create_success": "Tạo tour thành công!",
+      "delete_success": "Đã xóa tour thành công",
+      "delete_error": "Có lỗi xảy ra khi xóa tour",
+      "load_failed": "Không thể tải danh sách tour",
+      "load_error": "Có lỗi xảy ra khi tải danh sách tour",
+      "activate_success": "Đã kích hoạt tour",
+      "deactivate_success": "Đã tạm dừng tour",
+      "cannot_delete_content": "Không thể xóa nội dung"
+    },
+
+    "auth": {
+      "login_success": "Đăng nhập thành công!",
+      "login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
+      "invalid_credentials": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
+      "register_success": "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
+      "email_already_exists": "Email này đã được đăng ký",
+      "google_connection_failed": "Không thể kết nối với Google. Vui lòng thử lại.",
+      "naver_connection_failed": "Không thể kết nối với Naver. Vui lòng thử lại.",
+      "email_verify_success": "Xác thực email thành công!",
+      "email_verify_failed": "Xác thực email thất bại. Vui lòng thử lại.",
+      "otp_sent_success": "Mã OTP mới đã được gửi!",
+      "otp_resend_failed": "Không thể gửi lại mã OTP. Vui lòng thử lại.",
+      "password_reset_email_sent": "Email đặt lại mật khẩu đã được gửi!",
+      "otp_verify_success": "Xác thực OTP thành công!",
+      "general_error": "Có lỗi xảy ra. Vui lòng thử lại.",
+      "email_not_found": "Đăng nhập thất bại. vui lòng kiểm tra email.",
+      "wrong_password": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
+      "both_invalid": "Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu."
+    },
     "company": {
       "info_submit_success": "Thông tin công ty đã được gửi thành công!",
       "info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
     },
     "forum": {
-			"post_update_success": "Cập nhật bài viết thành công!",
-			"post_create_success": "Tạo bài viết thành công!",
-			"post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại.",
-			"post_create_failed": "Tạo bài viết thất bại. Vui lòng thử lại."
-		}
-	},
-	"tourWizard": {
-		"steps": {
-			"step1": {
-				"title": "Thông tin cơ bản",
-				"description": "Nhập thông tin cơ bản của tour"
-			},
-			"step2": {
-				"title": "Lịch trình",
-				"description": "Thiết lập chi tiết lịch trình"
-			},
-			"step3": {
-				"title": "Giá & chính sách",
-				"description": "Thiết lập giá và chính sách"
-			},
-			"step4": {
-				"title": "Hình ảnh",
-				"description": "Upload hình ảnh và tệp đính kèm"
-			}
-		},
-		"navigation": {
-			"back": "Quay lại",
-			"next": "Tiếp theo",
-			"complete": "Hoàn thành",
-			"creating": "Đang tạo..."
-		},
-		"step1": {
-			"title": "Thông tin cơ bản",
-			"subtitle": "Nhập thông tin cơ bản của tour",
-            "fields": {
-                "tourName": "Tên tour",
-                "tourType": "Loại hình tour",
-                "departurePoint": "Điểm khởi hành *",
-                "vehicle": "Phương tiện *",
-                "duration": "Số ngày",
-                "nights": "Số đêm",
-                "maxCapacity": "Số tour tối đa",
-                "bookingDeadline": "Hạn chót đặt chỗ"
-            },
-			"placeholders": {
-				"tourName": "Ví dụ: Tour Đà Nẵng - Hội An 3N2Đ, Tour Hàn Quốc 5N4Đ",
-				"duration": "Ví dụ: 3",
-				"nights": "Ví dụ: 2",
-				"maxCapacity": "Ví dụ: 30",
-				"bookingDeadline": "Chọn ngày giờ hạn chót đặt chỗ"
-			},
-			"help": {
-				"departurePoint": "Tất cả tour đều khởi hành từ Đà Nẵng",
-				"vehicle": "Phương tiện mặc định: Xe Du Lịch",
-				"bookingDeadline": "Thời gian hạn chót để khách hàng đặt tour"
-			},
-			"hints": {
-				"nightsSuggestion": "Gợi ý: {{suggest}} đêm (cho {{days}} ngày).",
-				"allowedNights": "Cho phép: {{allowed}} đêm."
-			},
-			"summary": {
-				"title": "Tóm tắt thông tin",
-				"tourName": "Tên tour:",
-				"tourType": "Loại hình:",
-				"departurePoint": "Điểm khởi hành:",
-				"vehicle": "Phương tiện:",
-				"duration": "Thời gian:",
-				"days": "ngày",
-				"nights": "đêm",
-				"maxCapacity": "Số tour tối đa:",
-				"bookingDeadline": "Hạn đặt chỗ:",
-				"notEntered": "Chưa nhập",
-				"notSelected": "Chưa chọn",
-				"guests": "khách",
-				"tours": "tour"
-			}
-		},
-		"step2": {
-			"prefix": {
-				"day": "NGÀY {{n}}",
-				"chapter": "CHƯƠNG {{n}}",
-				"session": "BUỔI {{n}}"
-			},
-			"title": "Lịch trình chi tiết",
-			"subtitle": "Thiết lập chi tiết lịch trình từng ngày",
-			"fields": {
-				"tourSchedule": "Lịch trình tóm tắt"
-			},
-			"tourSchedule": {
-				"description": "Nhập tóm tắt lịch trình tour (ví dụ: Huế - Gala Dinner - Thanh Tân - Teambuilding)",
-				"placeholder": "Nhập tóm tắt lịch trình tour..."
-			},
-			"placeholders": {
-				"dayTitle": "Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)",
-				"sectionTitle": "Nhập tiêu đề phần (ví dụ: ĐIỂM ĐẾN VÀ HÀNH TRÌNH)"
-			},
-			"day": {
-				"defaultMeal": "Ăn trưa – tối"
-			},
-			"activities": {
-				"label": "Hoạt động & địa điểm"
-			},
-			"images": {
-				"label": "Hình ảnh minh họa (tối đa 5 ảnh)"
-			},
-			"actions": {
-				"addContentAfter": "Thêm nội dung sau",
-				"addContent": "+ Thêm nội dung",
-				"removeThis": "Xóa nội dung này",
-				"removeContent": "− Xóa nội dung"
-			},
-			"services": {
-				"title": "Dịch vụ kèm theo",
-				"add": "+ Thêm dịch vụ",
-				"types": {
-					"food": "Ăn uống",
-					"ticket": "Vé tham quan",
-					"transport": "Vận chuyển",
-					"other": "Khác"
-				},
-				"placeholders": {
-					"name": "Tên dịch vụ",
-					"price": "Giá (VND)"
-				}
-			},
-			"instructions": {
-				"title": "💡 Hướng dẫn:",
-				"description": "Bạn có thể tùy chỉnh hoàn toàn các tiêu đề trong lịch trình:",
-				"customizable": "🔧 Các phần có thể tùy chỉnh:",
-				"sectionTitle": "Tiêu đề phần:",
-				"dayTitle": "Tiêu đề ngày:",
-				"examples": "📝 Ví dụ tiêu đề ngày:"
-			},
-			"examples": {
-				"c1": "ĐÀ NẴNG – HUẾ - GALA DINNER",
-				"c2": "HỘI AN - LÀNG GỐM THANH HÀ",
-				"c3": "BA NA HILLS - CẦU VÀNG",
-				"c4": "ĐÀ NẴNG"
-			},
-            "tourDescription": {
-                "title": "Mô tả tour",
-				"description": "Mô tả tổng quan về tour, điểm nổi bật và lợi ích cho khách hàng",
-				"placeholder": "Nhập mô tả văn bản (không chèn hình ảnh)..."
-			},
-			"itinerary": {
-				"mainSectionTitle": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
-                "activities": "Hoạt động & địa điểm",
-				"images": "Hình ảnh minh họa (tối đa 5 ảnh)",
-				"services": "Dịch vụ kèm theo",
-				"addService": "+ Thêm dịch vụ",
-				"addDay": "+ Thêm ngày",
-				"removeDay": "− Xóa ngày",
-				"serviceTypes": {
-					"food": "Ăn uống",
-					"ticket": "Vé tham quan",
-					"transport": "Vận chuyển",
-					"other": "Khác"
-				},
-				"servicePlaceholders": {
-					"name": "Tên dịch vụ",
-					"price": "Giá (VNĐ)"
-				}
-			},
-			"titles": {
-				"editSectionTitle": "Chỉnh sửa tiêu đề phần",
-				"editDayTitle": "Chỉnh sửa tiêu đề ngày",
-				"resetDefault": "Đặt lại mặc định",
-				"clearDayTitle": "Xóa tiêu đề ngày"
-			},
-			"alignment": {
-				"left": "Căn trái",
-				"center": "Căn giữa",
-				"right": "Căn phải"
-			},
-			"color": {
-				"choose": "Chọn màu {{color}}",
-				"customize": "Tùy chỉnh màu sắc"
-			},
-			"colorPicker": {
-				"title": "Tùy chỉnh màu sắc",
-				"apply": "Áp dụng",
-				"cancel": "Hủy"
-			}
-		},
-		"step3": {
-			"title": "Giá & chính sách",
-			"subtitle": "Thiết lập giá và chính sách tour",
-            "pricing": {
-				"title": "Giá tour",
-                "adultPrice": "Giá người lớn (≥ 12 tuổi)",
-				"childrenPrice": "Giá trẻ em (2-11 tuổi)",
-				"babyPrice": "Giá em bé (dưới 2 tuổi)",
-				"unit": "VNĐ / người",
-				"unitChildren": "VNĐ / trẻ em",
-				"unitBaby": "VNĐ / em bé",
-				"placeholders": {
-					"adultPrice": "Ví dụ: 2500000",
-					"childrenPrice": "Ví dụ: 1800000",
-					"babyPrice": "Ví dụ: 500000"
-				},
-				"error": "Vui lòng nhập giá người lớn"
-			},
-			"summary": {
-				"title": "Tóm tắt giá",
-				"adult": "Người lớn:",
-				"children": "Trẻ em:",
-				"baby": "Em bé:"
-			},
-			"surcharges": {
-				"title": "Phụ thu",
-				"add": "+ Thêm phụ thu",
-				"types": {
-					"holiday": "Dịp lễ Tết",
-					"weekend": "Cuối tuần",
-					"singleRoom": "Phòng đơn",
-					"peakSeason": "Mùa cao điểm",
-					"other": "Khác"
-				},
-				"placeholders": {
-					"name": "Tên phụ thu",
-					"percentage": "Phần trăm (%)"
-				},
-				"description": "Mô tả phụ thu"
-			},
-			"policies": {
-				"title": "Chính sách",
-				"surchargePolicy": "Chính sách phụ thu",
-				"cancellationPolicy": "Chính sách hủy/hoàn tiền *",
-				"placeholders": {
-					"surchargePolicy": "Nhập chính sách phụ thu...",
-					"cancellationPolicy": "Nhập chính sách hủy/hoàn tiền..."
-				}
-			}
-		},
-		"step4": {
-			"title": "Hình ảnh & Tệp đính kèm",
-			"thumbnail": {
-				"title": "Ảnh cover tour",
-				"changeImage": "Thay đổi ảnh",
-				"selectImage": "Click để chọn ảnh cover",
-				"supportedFormats": "Hỗ trợ: JPG, PNG, GIF, WebP, SVG",
-				"recommendedSize": "Kích thước khuyến nghị: 1200x800px (tối đa 10MB)"
-			},
-			"preview": {
-				"title": "Preview Tour",
-				"infoTitle": "Thông tin tour preview:",
-				"fields": {
-					"tourName": "Tên tour:",
-					"duration": "Thời gian:",
-					"adultPrice": "Giá người lớn:",
-					"image": "Hình ảnh:",
-					"status": "Trạng thái:"
-				},
-				"values": {
-					"notSet": "Chưa có tên",
-					"noPrice": "Chưa có giá",
-					"uploaded": "Đã upload",
-					"notUploaded": "Chưa có",
-					"willShow": "Sẽ hiển thị trong danh sách tour"
-				}
-			}
-		}
-	},
-	"bookingWizard": {
-		"steps": {
-			"step1": { "title": "Thông tin liên hệ", "description": "Nhập thông tin liên hệ của bạn" },
-			"step2": { "title": "Chi tiết tour", "description": "Chọn ngày và thông tin đoàn" },
-			"step3": { "title": "Xác nhận", "description": "Kiểm tra và xác nhận đặt tour" }
-		},
-		"navigation": { "back": "Quay lại", "next": "Tiếp tục", "confirm": "Xác nhận đặt tour" },
-		"auth": {
-			"checking": "Đang kiểm tra xác thực...",
-			"loginRequiredTitle": "Yêu cầu đăng nhập",
-			"loginRequiredMessage": "Bạn cần đăng nhập để đặt tour.",
-			"loginButton": "Đăng nhập"
-		},
-		"processing": "Đang xử lý..."
-	},
-	"tourManagement": {
-		"title": "Quản lý tour",
-		"createNew": "Tạo tour mới",
-		"header": {
-			"title": "Danh Sách Tour",
-			"addNew": "Thêm Tour Mới"
-		},
-		"loading": {
-			"user": "Đang tải thông tin người dùng...",
-			"tours": "Đang tải danh sách tour..."
-		},
-		"accessDenied": {
-			"title": "Truy cập bị từ chối",
-			"message": "Bạn cần có quyền business để truy cập trang này."
-		},
-		"actions": {
-			"edit": "Chỉnh sửa",
-			"delete": "Xóa",
-			"activate": "Kích hoạt",
-			"deactivate": "Tạm dừng"
-		},
-		"status": {
-			"active": "Hoạt động",
-			"inactive": "Tạm dừng"
-		},
-		"statusBadge": {
-			"ACTIVE": "HOẠT ĐỘNG",
-			"INACTIVE": "TẠM DỪNG",
-			"NOT_APPROVED": "CHỜ DUYỆT",
-			"DRAFT": "BẢN NHÁP",
-			"UNKNOWN": "KHÔNG XÁC ĐỊNH"
-		},
-		"card": {
-			"priceLabel": "GIÁ/NGƯỜI",
-			"durationLabel": "THỜI GIAN:",
-			"capacityLabel": "SỨC CHỨA:",
-			"capacityUnit": "khách",
-			"departureLabel": "ĐIỂM KHỞI HÀNH:",
-			"durationZero": "0 ngày",
-			"durationDays": "{{days}} ngày"
-		},
-		"empty": {
-			"title": "Chưa có tour nào",
-			"description": "Bắt đầu tạo tour đầu tiên của bạn",
-			"createFirst": "Tạo tour đầu tiên"
-		},
-		"modals": {
-			"delete": {
-				"title": "Xác nhận xóa tour",
-				"message": "Bạn có chắc chắn muốn xóa tour \"{{name}}\"?",
-				"itemName": "tour này"
-			}
-		},
-		"edit": {
-			"title": "Chỉnh sửa tour",
-			"saving": "Đang lưu...",
-			"save": "Lưu thay đổi",
-			"tabs": {
-				"basic": "Thông tin cơ bản",
-				"itinerary": "Lịch trình",
-				"pricing": "Giá cả & chính sách",
-				"media": "Media"
-			},
-			"basic": {
-				"title": "Thông tin cơ bản",
-				"priceCapacityTitle": "Giá cả & sức chứa",
-				"fields": {
-					"tourName": "Tên tour *",
-					"tourDescription": "Mô tả tour",
-					"tourDuration": "Thời gian",
-					"tourDeparturePoint": "Điểm khởi hành",
-					"tourVehicle": "Phương tiện",
-					"tourType": "Loại tour",
-					"amount": "Sức chứa (người)",
-					"tourStatus": "Trạng thái",
-					"bookingDeadline": "Hạn đặt tour"
-				},
-				"placeholders": {
-					"tourDuration": "VD: 5 ngày 4 đêm",
-					"selectTourType": "Chọn loại tour"
-				}
-			},
-			"itinerary": {
-				"title": "Lịch trình tour",
-				"dailyTitle": "Lịch trình từng ngày",
-				"dayN": "Ngày {{day}}",
-				"fields": {
-					"dayTitle": "Tiêu đề ngày",
-					"dayDescription": "Mô tả chi tiết"
-				},
-				"actions": {
-					"addDay": "+ Thêm ngày",
-					"removeDay": "− Xóa ngày"
-				}
-			},
-			"pricing": {
-				"title": "Giá cả & chính sách",
-				"fields": {
-					"adultPrice": "Giá người lớn (₫)",
-					"childrenPrice": "Giá trẻ em (₫)",
-					"babyPrice": "Giá em bé (₫)",
-					"surchargePolicy": "Chính sách phụ thu",
-					"cancellationPolicy": "Chính sách hủy tour"
-				}
-			},
-			"media": {
-				"title": "Ảnh cover tour",
-				"coverLabel": "Ảnh cover tour",
-				"changeImage": "Thay đổi ảnh",
-				"selectImage": "Chọn ảnh cover",
-				"hint": "Hỗ trợ: JPG, PNG, GIF. Kích thước tối đa: 5MB"
-			}
-		}
-	},
-	"tourPage": {
-		"detail": {
-			"loading": "Đang tải thông tin tour...",
-			"errorTitle": "Đã xảy ra lỗi",
-			"backToList": "Quay lại danh sách tour",
-			"back": "Quay lại danh sách",
-			"backToManagement": "Quản lý tour",
-			"badge": "Tour du lịch",
-			"overview": {
-				"title": "Tổng quan tour",
-				"departVehicle": "Khởi hành từ {{departure}} bằng {{vehicle}}.",
-				"adultPrice": "Giá người lớn",
-				"childrenPrice": "Giá trẻ em",
-				"babyPrice": "Giá em bé",
-				"free": "Miễn phí",
-				"amount": "Số chỗ",
-				"availableDates": "Ngày khởi hành"
-			},
-			"highlights": {
-				"title": "Điểm nổi bật của tour",
-				"items": {
-					"historyTitle": "Tham quan di tích lịch sử",
-					"historyDesc": "Khám phá những di tích lịch sử nổi tiếng với hướng dẫn viên chuyên nghiệp",
-					"foodTitle": "Ẩm thực địa phương",
-					"foodDesc": "Thưởng thức những món ăn đặc sản nổi tiếng của vùng đất này",
-					"photoTitle": "Chụp ảnh kỷ niệm",
-					"photoDesc": "Ghi lại những khoảnh khắc đáng nhớ tại các điểm check-in nổi tiếng",
-					"giftTitle": "Mua sắm quà lưu niệm",
-					"giftDesc": "Thời gian tự do để mua sắm những món quà lưu niệm ý nghĩa"
-				}
-			},
-			"itinerary": {
-				"header": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
-				"updating": "Lịch trình đang được cập nhật.",
-				"day": "Ngày {{index}}"
-			},
-			"gallery": {
-				"title": "Hình ảnh tour"
-			},
-        "reviews": {
-            "title": "Đánh giá & Nhận xét",
-            "placeholder": "Chia sẻ trải nghiệm của bạn...",
-            "submit": "Gửi đánh giá",
-            "cannotRate": "Bạn chưa đủ điều kiện để đánh giá tour này.",
-            "empty": "Chưa có đánh giá nào.",
-            "edit": "Sửa",
-            "delete": "Xóa",
-            "editPrompt": "Sửa nhận xét của bạn:",
-            "editStarPrompt": "Sửa số sao (1-5):",
-            "deleteConfirm": "Xóa đánh giá này?"
+      "post_update_success": "Cập nhật bài viết thành công!",
+      "post_create_success": "Tạo bài viết thành công!",
+      "post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại.",
+      "post_create_failed": "Tạo bài viết thất bại. Vui lòng thử lại."
+    }
+  },
+  "tourWizard": {
+    "steps": {
+      "step1": {
+        "title": "Thông tin cơ bản",
+        "description": "Nhập thông tin cơ bản của tour"
+      },
+      "step2": {
+        "title": "Lịch trình",
+        "description": "Thiết lập chi tiết lịch trình"
+      },
+      "step3": {
+        "title": "Giá & chính sách",
+        "description": "Thiết lập giá và chính sách"
+      },
+      "step4": {
+        "title": "Hình ảnh",
+        "description": "Upload hình ảnh và tệp đính kèm"
+      }
+    },
+    "navigation": {
+      "back": "Quay lại",
+      "next": "Tiếp theo",
+      "complete": "Hoàn thành",
+      "creating": "Đang tạo..."
+    },
+    "step1": {
+      "title": "Thông tin cơ bản",
+      "subtitle": "Nhập thông tin cơ bản của tour",
+      "fields": {
+        "tourName": "Tên tour",
+        "tourType": "Loại hình tour",
+        "departurePoint": "Điểm khởi hành *",
+        "vehicle": "Phương tiện *",
+        "duration": "Số ngày",
+        "nights": "Số đêm",
+        "maxCapacity": "Số tour tối đa",
+        "bookingDeadline": "Hạn chót đặt chỗ"
+      },
+      "placeholders": {
+        "tourName": "Ví dụ: Tour Đà Nẵng - Hội An 3N2Đ, Tour Hàn Quốc 5N4Đ",
+        "duration": "Ví dụ: 3",
+        "nights": "Ví dụ: 2",
+        "maxCapacity": "Ví dụ: 30",
+        "bookingDeadline": "Chọn ngày giờ hạn chót đặt chỗ"
+      },
+      "help": {
+        "departurePoint": "Tất cả tour đều khởi hành từ Đà Nẵng",
+        "vehicle": "Phương tiện mặc định: Xe Du Lịch",
+        "bookingDeadline": "Thời gian hạn chót để khách hàng đặt tour"
+      },
+      "hints": {
+        "nightsSuggestion": "Gợi ý: {{suggest}} đêm (cho {{days}} ngày).",
+        "allowedNights": "Cho phép: {{allowed}} đêm."
+      },
+      "summary": {
+        "title": "Tóm tắt thông tin",
+        "tourName": "Tên tour:",
+        "tourType": "Loại hình:",
+        "departurePoint": "Điểm khởi hành:",
+        "vehicle": "Phương tiện:",
+        "duration": "Thời gian:",
+        "days": "ngày",
+        "nights": "đêm",
+        "maxCapacity": "Số tour tối đa:",
+        "bookingDeadline": "Hạn đặt chỗ:",
+        "notEntered": "Chưa nhập",
+        "notSelected": "Chưa chọn",
+        "guests": "khách",
+        "tours": "tour"
+      }
+    },
+    "step2": {
+      "prefix": {
+        "day": "NGÀY {{n}}",
+        "chapter": "CHƯƠNG {{n}}",
+        "session": "BUỔI {{n}}"
+      },
+      "title": "Lịch trình chi tiết",
+      "subtitle": "Thiết lập chi tiết lịch trình từng ngày",
+      "fields": {
+        "tourSchedule": "Lịch trình tóm tắt"
+      },
+      "tourSchedule": {
+        "description": "Nhập tóm tắt lịch trình tour (ví dụ: Huế - Gala Dinner - Thanh Tân - Teambuilding)",
+        "placeholder": "Nhập tóm tắt lịch trình tour..."
+      },
+      "placeholders": {
+        "dayTitle": "Nhập tiêu đề ngày (ví dụ: NGÀY 1 - ĐÀ NẴNG – HUẾ - GALA DINNER)",
+        "sectionTitle": "Nhập tiêu đề phần (ví dụ: ĐIỂM ĐẾN VÀ HÀNH TRÌNH)"
+      },
+      "day": {
+        "defaultMeal": "Ăn trưa – tối"
+      },
+      "activities": {
+        "label": "Hoạt động & địa điểm"
+      },
+      "images": {
+        "label": "Hình ảnh minh họa (tối đa 5 ảnh)"
+      },
+      "actions": {
+        "addContentAfter": "Thêm nội dung sau",
+        "addContent": "+ Thêm nội dung",
+        "removeThis": "Xóa nội dung này",
+        "removeContent": "− Xóa nội dung"
+      },
+      "services": {
+        "title": "Dịch vụ kèm theo",
+        "add": "+ Thêm dịch vụ",
+        "types": {
+          "food": "Ăn uống",
+          "ticket": "Vé tham quan",
+          "transport": "Vận chuyển",
+          "other": "Khác"
         },
-			"booking": {
-				"price": "Giá tour",
-				"includedNote": "Giá đã bao gồm thuế và phí dịch vụ",
-				"children": "Trẻ em",
-				"baby": "Em bé",
-				"bookNow": "Đặt tour ngay",
-				"contact": "Liên hệ tư vấn",
-				"infoTitle": "Thông tin đặt tour",
-				"infos": [
-					"✓ Hỗ trợ đặt tour 24/7",
-					"✓ Thanh toán an toàn",
-					"✓ Hủy tour miễn phí 24h trước khởi hành",
-					"✓ Bảo hiểm du lịch miễn phí",
-					"✓ Hướng dẫn viên chuyên nghiệp",
-					"✓ Xe du lịch tiện nghi"
-				],
-				"contactTitle": "Liên hệ đặt tour"
-			}
-		}
-	},
-	"tourList": {
-		"hero": {
-			"title": "Tour du lịch Đà Nẵng trong nước và quốc tế các điểm hấp dẫn",
-			"desc": "Đà Nẵng Xanh sẽ mang đến du khách chuyến tour du lịch tốt nhất đảm bảo về chất lượng với chi phí hợp lý du khách sẽ có chuyến du lịch đích thực."
-		},
-		"search": {
-			"placeholder": "Tìm kiếm tour..."
-		},
-		"historyBooking": {
-			"title": "Lịch sử đặt tour"
-		},
-		"categories": {
-			"all": "Tất cả tour",
-			"domestic": "Tour trong nước",
-			"international": "Tour nước ngoài",
-			"dayTour": "Tour trong ngày"
-		},
-		"loading": "Đang tải danh sách tour...",
-		"error": {
-			"title": "Đã xảy ra lỗi",
-			"retry": "Thử lại"
-		},
-		"empty": {
-			"title": "Không tìm thấy tour nào",
-			"desc": "Hãy thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác."
-		},
-		"loadMore": "Xem thêm"
-	},
-	"bookingHistory": {
-		"title": "Lịch sử đặt tour",
-		"subtitle": "Xem lại tất cả các tour bạn đã đặt",
-		"backButton": "Quay lại",
-		"loading": "Đang tải lịch sử đặt tour...",
-		"loginRequired": {
-			"title": "Cần đăng nhập",
-			"message": "Vui lòng đăng nhập để xem lịch sử đặt tour của bạn."
-		},
-		"error": {
-			"title": "Đã xảy ra lỗi",
-			"retry": "Thử lại"
-		},
-		"empty": {
-			"title": "Chưa có tour nào",
-			"message": "Bạn chưa đặt tour nào. Hãy khám phá các tour hấp dẫn!"
-		},
-		"card": {
-			"bookingId": "Mã đặt tour",
-			"departureDate": "Ngày khởi hành",
-			"totalGuests": "Số khách",
-			"guests": "khách",
-			"contactName": "Tên liên hệ",
-			"contactPhone": "Số điện thoại",
-			"totalAmount": "Tổng tiền",
-			"viewDetails": "Xem chi tiết",
-			"bookedOn": "Đặt ngày",
-			"alreadyFeedbacked": "Đã phản hồi",
-			"transaction": "Giao dịch",
-			"resumePayment": "Tiếp tục thanh toán",
-			"cancelled": "Đã hủy"
-		},
-		"filters": {
-			"status": "Lọc theo trạng thái",
-			"date": "Lọc theo ngày",
-			"allStatus": "Tất cả trạng thái",
-			"newestDate": "Ngày mới nhất",
-			"oldestDate": "Ngày cũ nhất"
-		},
-		"status": {
-			"pending": "Chờ xác nhận",
-			"confirmed": "Đã xác nhận",
-			"cancelled": "Đã hủy",
-			"purchased": "Đã thanh toán"
-		},
-		"transactionStatus": {
-			"pending": "Chờ xử lý",
-			"success": "Thành công",
-			"failed": "Thất bại",
-			"cancelled": "Đã hủy"
-		}
-	},
-	"tourCard": {
-		"welcome": {
-			"explore": "Khám phá",
-			"dream": "Điểm đến mơ ước"
-		},
-		"viewDetails": "Xem Chi Tiết",
-		"featured": "Nổi bật",
-		"children": "Trẻ em:",
-		"baby": "Em bé:",
-		"details": "CHI TIẾT",
-		"share": "Chia sẻ",
-		"duration": {
-			"template": "{{days}} ngày {{nights}} đêm"
-		}
-	},
-	"businessNav": {
-		"brandSuffix": "Business",
-		"title": "Quản lý Business",
-		"roleSuffix": "Business",
-		"mobileSectionTitle": "Quản lý Business",
-		"dropdown": {
-			"manageToursTitle": "Quản lý Tours",
-			"manageToursDesc": "Tạo và quản lý tours",
-			"analyticsTitle": "Thống kê & Báo cáo",
-			"analyticsDesc": "Xem doanh thu và thống kê",
-			"ordersTitle": "Quản lý Đơn hàng",
-			"ordersDesc": "Xem và xử lý đơn hàng"
-		}
-	},
+        "placeholders": {
+          "name": "Tên dịch vụ",
+          "price": "Giá (VND)"
+        }
+      },
+      "instructions": {
+        "title": "💡 Hướng dẫn:",
+        "description": "Bạn có thể tùy chỉnh hoàn toàn các tiêu đề trong lịch trình:",
+        "customizable": "🔧 Các phần có thể tùy chỉnh:",
+        "sectionTitle": "Tiêu đề phần:",
+        "dayTitle": "Tiêu đề ngày:",
+        "examples": "📝 Ví dụ tiêu đề ngày:"
+      },
+      "examples": {
+        "c1": "ĐÀ NẴNG – HUẾ - GALA DINNER",
+        "c2": "HỘI AN - LÀNG GỐM THANH HÀ",
+        "c3": "BA NA HILLS - CẦU VÀNG",
+        "c4": "ĐÀ NẴNG"
+      },
+      "tourDescription": {
+        "title": "Mô tả tour",
+        "description": "Mô tả tổng quan về tour, điểm nổi bật và lợi ích cho khách hàng",
+        "placeholder": "Nhập mô tả văn bản (không chèn hình ảnh)..."
+      },
+      "itinerary": {
+        "mainSectionTitle": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
+        "activities": "Hoạt động & địa điểm",
+        "images": "Hình ảnh minh họa (tối đa 5 ảnh)",
+        "services": "Dịch vụ kèm theo",
+        "addService": "+ Thêm dịch vụ",
+        "addDay": "+ Thêm ngày",
+        "removeDay": "− Xóa ngày",
+        "serviceTypes": {
+          "food": "Ăn uống",
+          "ticket": "Vé tham quan",
+          "transport": "Vận chuyển",
+          "other": "Khác"
+        },
+        "servicePlaceholders": {
+          "name": "Tên dịch vụ",
+          "price": "Giá (VNĐ)"
+        }
+      },
+      "titles": {
+        "editSectionTitle": "Chỉnh sửa tiêu đề phần",
+        "editDayTitle": "Chỉnh sửa tiêu đề ngày",
+        "resetDefault": "Đặt lại mặc định",
+        "clearDayTitle": "Xóa tiêu đề ngày"
+      },
+      "alignment": {
+        "left": "Căn trái",
+        "center": "Căn giữa",
+        "right": "Căn phải"
+      },
+      "color": {
+        "choose": "Chọn màu {{color}}",
+        "customize": "Tùy chỉnh màu sắc"
+      },
+      "colorPicker": {
+        "title": "Tùy chỉnh màu sắc",
+        "apply": "Áp dụng",
+        "cancel": "Hủy"
+      }
+    },
+    "step3": {
+      "title": "Giá & chính sách",
+      "subtitle": "Thiết lập giá và chính sách tour",
+      "pricing": {
+        "title": "Giá tour",
+        "adultPrice": "Giá người lớn (≥ 12 tuổi)",
+        "childrenPrice": "Giá trẻ em (2-11 tuổi)",
+        "babyPrice": "Giá em bé (dưới 2 tuổi)",
+        "unit": "VNĐ / người",
+        "unitChildren": "VNĐ / trẻ em",
+        "unitBaby": "VNĐ / em bé",
+        "placeholders": {
+          "adultPrice": "Ví dụ: 2500000",
+          "childrenPrice": "Ví dụ: 1800000",
+          "babyPrice": "Ví dụ: 500000"
+        },
+        "error": "Vui lòng nhập giá người lớn"
+      },
+      "summary": {
+        "title": "Tóm tắt giá",
+        "adult": "Người lớn:",
+        "children": "Trẻ em:",
+        "baby": "Em bé:"
+      },
+      "surcharges": {
+        "title": "Phụ thu",
+        "add": "+ Thêm phụ thu",
+        "types": {
+          "holiday": "Dịp lễ Tết",
+          "weekend": "Cuối tuần",
+          "singleRoom": "Phòng đơn",
+          "peakSeason": "Mùa cao điểm",
+          "other": "Khác"
+        },
+        "placeholders": {
+          "name": "Tên phụ thu",
+          "percentage": "Phần trăm (%)"
+        },
+        "description": "Mô tả phụ thu"
+      },
+      "policies": {
+        "title": "Chính sách",
+        "surchargePolicy": "Chính sách phụ thu",
+        "cancellationPolicy": "Chính sách hủy/hoàn tiền *",
+        "placeholders": {
+          "surchargePolicy": "Nhập chính sách phụ thu...",
+          "cancellationPolicy": "Nhập chính sách hủy/hoàn tiền..."
+        }
+      }
+    },
+    "step4": {
+      "title": "Hình ảnh & Tệp đính kèm",
+      "thumbnail": {
+        "title": "Ảnh cover tour",
+        "changeImage": "Thay đổi ảnh",
+        "selectImage": "Click để chọn ảnh cover",
+        "supportedFormats": "Hỗ trợ: JPG, PNG, GIF, WebP, SVG",
+        "recommendedSize": "Kích thước khuyến nghị: 1200x800px (tối đa 10MB)"
+      },
+      "preview": {
+        "title": "Preview Tour",
+        "infoTitle": "Thông tin tour preview:",
+        "fields": {
+          "tourName": "Tên tour:",
+          "duration": "Thời gian:",
+          "adultPrice": "Giá người lớn:",
+          "image": "Hình ảnh:",
+          "status": "Trạng thái:"
+        },
+        "values": {
+          "notSet": "Chưa có tên",
+          "noPrice": "Chưa có giá",
+          "uploaded": "Đã upload",
+          "notUploaded": "Chưa có",
+          "willShow": "Sẽ hiển thị trong danh sách tour"
+        }
+      }
+    }
+  },
+  "bookingWizard": {
+    "steps": {
+      "step1": {
+        "title": "Thông tin liên hệ",
+        "description": "Nhập thông tin liên hệ của bạn"
+      },
+      "step2": {
+        "title": "Chi tiết tour",
+        "description": "Chọn ngày và thông tin đoàn"
+      },
+      "step3": {
+        "title": "Xác nhận",
+        "description": "Kiểm tra và xác nhận đặt tour"
+      }
+    },
+    "navigation": {
+      "back": "Quay lại",
+      "next": "Tiếp tục",
+      "confirm": "Xác nhận đặt tour"
+    },
+    "auth": {
+      "checking": "Đang kiểm tra xác thực...",
+      "loginRequiredTitle": "Yêu cầu đăng nhập",
+      "loginRequiredMessage": "Bạn cần đăng nhập để đặt tour.",
+      "loginButton": "Đăng nhập"
+    },
+    "processing": "Đang xử lý..."
+  },
+  "tourManagement": {
+    "title": "Quản lý tour",
+    "createNew": "Tạo tour mới",
+    "header": {
+      "title": "Danh Sách Tour",
+      "addNew": "Thêm Tour Mới"
+    },
+    "loading": {
+      "user": "Đang tải thông tin người dùng...",
+      "tours": "Đang tải danh sách tour..."
+    },
+    "accessDenied": {
+      "title": "Truy cập bị từ chối",
+      "message": "Bạn cần có quyền business để truy cập trang này."
+    },
+    "actions": {
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa",
+      "activate": "Kích hoạt",
+      "deactivate": "Tạm dừng"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Tạm dừng"
+    },
+    "statusBadge": {
+      "ACTIVE": "HOẠT ĐỘNG",
+      "INACTIVE": "TẠM DỪNG",
+      "NOT_APPROVED": "CHỜ DUYỆT",
+      "DRAFT": "BẢN NHÁP",
+      "UNKNOWN": "KHÔNG XÁC ĐỊNH"
+    },
+    "card": {
+      "priceLabel": "GIÁ/NGƯỜI",
+      "durationLabel": "THỜI GIAN:",
+      "capacityLabel": "SỨC CHỨA:",
+      "capacityUnit": "khách",
+      "departureLabel": "ĐIỂM KHỞI HÀNH:",
+      "durationZero": "0 ngày",
+      "durationDays": "{{days}} ngày"
+    },
+    "empty": {
+      "title": "Chưa có tour nào",
+      "description": "Bắt đầu tạo tour đầu tiên của bạn",
+      "createFirst": "Tạo tour đầu tiên"
+    },
+    "modals": {
+      "delete": {
+        "title": "Xác nhận xóa tour",
+        "message": "Bạn có chắc chắn muốn xóa tour \"{{name}}\"?",
+        "itemName": "tour này"
+      }
+    },
+    "edit": {
+      "title": "Chỉnh sửa tour",
+      "saving": "Đang lưu...",
+      "save": "Lưu thay đổi",
+      "tabs": {
+        "basic": "Thông tin cơ bản",
+        "itinerary": "Lịch trình",
+        "pricing": "Giá cả & chính sách",
+        "media": "Media"
+      },
+      "basic": {
+        "title": "Thông tin cơ bản",
+        "priceCapacityTitle": "Giá cả & sức chứa",
+        "fields": {
+          "tourName": "Tên tour *",
+          "tourDescription": "Mô tả tour",
+          "tourDuration": "Thời gian",
+          "tourDeparturePoint": "Điểm khởi hành",
+          "tourVehicle": "Phương tiện",
+          "tourType": "Loại tour",
+          "amount": "Sức chứa (người)",
+          "tourStatus": "Trạng thái",
+          "bookingDeadline": "Hạn đặt tour"
+        },
+        "placeholders": {
+          "tourDuration": "VD: 5 ngày 4 đêm",
+          "selectTourType": "Chọn loại tour"
+        }
+      },
+      "itinerary": {
+        "title": "Lịch trình tour",
+        "dailyTitle": "Lịch trình từng ngày",
+        "dayN": "Ngày {{day}}",
+        "fields": {
+          "dayTitle": "Tiêu đề ngày",
+          "dayDescription": "Mô tả chi tiết"
+        },
+        "actions": {
+          "addDay": "+ Thêm ngày",
+          "removeDay": "− Xóa ngày"
+        }
+      },
+      "pricing": {
+        "title": "Giá cả & chính sách",
+        "fields": {
+          "adultPrice": "Giá người lớn (₫)",
+          "childrenPrice": "Giá trẻ em (₫)",
+          "babyPrice": "Giá em bé (₫)",
+          "surchargePolicy": "Chính sách phụ thu",
+          "cancellationPolicy": "Chính sách hủy tour"
+        }
+      },
+      "media": {
+        "title": "Ảnh cover tour",
+        "coverLabel": "Ảnh cover tour",
+        "changeImage": "Thay đổi ảnh",
+        "selectImage": "Chọn ảnh cover",
+        "hint": "Hỗ trợ: JPG, PNG, GIF. Kích thước tối đa: 5MB"
+      }
+    }
+  },
+  "tourPage": {
+    "detail": {
+      "loading": "Đang tải thông tin tour...",
+      "errorTitle": "Đã xảy ra lỗi",
+      "backToList": "Quay lại danh sách tour",
+      "back": "Quay lại danh sách",
+      "backToManagement": "Quản lý tour",
+      "badge": "Tour du lịch",
+      "overview": {
+        "title": "Tổng quan tour",
+        "departVehicle": "Khởi hành từ {{departure}} bằng {{vehicle}}.",
+        "adultPrice": "Giá người lớn",
+        "childrenPrice": "Giá trẻ em",
+        "babyPrice": "Giá em bé",
+        "free": "Miễn phí",
+        "amount": "Số chỗ",
+        "availableDates": "Ngày khởi hành"
+      },
+      "highlights": {
+        "title": "Điểm nổi bật của tour",
+        "items": {
+          "historyTitle": "Tham quan di tích lịch sử",
+          "historyDesc": "Khám phá những di tích lịch sử nổi tiếng với hướng dẫn viên chuyên nghiệp",
+          "foodTitle": "Ẩm thực địa phương",
+          "foodDesc": "Thưởng thức những món ăn đặc sản nổi tiếng của vùng đất này",
+          "photoTitle": "Chụp ảnh kỷ niệm",
+          "photoDesc": "Ghi lại những khoảnh khắc đáng nhớ tại các điểm check-in nổi tiếng",
+          "giftTitle": "Mua sắm quà lưu niệm",
+          "giftDesc": "Thời gian tự do để mua sắm những món quà lưu niệm ý nghĩa"
+        }
+      },
+      "itinerary": {
+        "header": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
+        "updating": "Lịch trình đang được cập nhật.",
+        "day": "Ngày {{index}}"
+      },
+      "gallery": {
+        "title": "Hình ảnh tour"
+      },
+      "weather": {
+        "title": "Thời tiết 7 ngày",
+        "loading": "Đang tải thời tiết...",
+        "empty": "Không có dữ liệu thời tiết.",
+        "cityRange": "{{city}} — {{days}} ngày"
+      },
+      "reviews": {
+        "title": "Đánh giá & Nhận xét",
+        "placeholder": "Chia sẻ trải nghiệm của bạn...",
+        "submit": "Gửi đánh giá",
+        "cannotRate": "Bạn chưa đủ điều kiện để đánh giá tour này.",
+        "empty": "Chưa có đánh giá nào.",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "editPrompt": "Sửa nhận xét của bạn:",
+        "editStarPrompt": "Sửa số sao (1-5):",
+        "deleteConfirm": "Xóa đánh giá này?"
+      },
+      "booking": {
+        "price": "Giá tour",
+        "includedNote": "Giá đã bao gồm thuế và phí dịch vụ",
+        "children": "Trẻ em",
+        "baby": "Em bé",
+        "bookNow": "Đặt tour ngay",
+        "contact": "Liên hệ tư vấn",
+        "infoTitle": "Thông tin đặt tour",
+        "infos": [
+          "✓ Hỗ trợ đặt tour 24/7",
+          "✓ Thanh toán an toàn",
+          "✓ Hủy tour miễn phí 24h trước khởi hành",
+          "✓ Bảo hiểm du lịch miễn phí",
+          "✓ Hướng dẫn viên chuyên nghiệp",
+          "✓ Xe du lịch tiện nghi"
+        ],
+        "contactTitle": "Liên hệ đặt tour"
+      }
+    }
+  },
+  "tourList": {
+    "hero": {
+      "title": "Tour du lịch Đà Nẵng trong nước và quốc tế các điểm hấp dẫn",
+      "desc": "Đà Nẵng Xanh sẽ mang đến du khách chuyến tour du lịch tốt nhất đảm bảo về chất lượng với chi phí hợp lý du khách sẽ có chuyến du lịch đích thực."
+    },
+    "search": {
+      "placeholder": "Tìm kiếm tour..."
+    },
+    "historyBooking": {
+      "title": "Lịch sử đặt tour"
+    },
+    "categories": {
+      "all": "Tất cả tour",
+      "domestic": "Tour trong nước",
+      "international": "Tour nước ngoài",
+      "dayTour": "Tour trong ngày"
+    },
+    "loading": "Đang tải danh sách tour...",
+    "error": {
+      "title": "Đã xảy ra lỗi",
+      "retry": "Thử lại"
+    },
+    "empty": {
+      "title": "Không tìm thấy tour nào",
+      "desc": "Hãy thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác."
+    },
+    "loadMore": "Xem thêm"
+  },
+  "bookingHistory": {
+    "title": "Lịch sử đặt tour",
+    "subtitle": "Xem lại tất cả các tour bạn đã đặt",
+    "backButton": "Quay lại",
+    "loading": "Đang tải lịch sử đặt tour...",
+    "loginRequired": {
+      "title": "Cần đăng nhập",
+      "message": "Vui lòng đăng nhập để xem lịch sử đặt tour của bạn."
+    },
+    "error": {
+      "title": "Đã xảy ra lỗi",
+      "retry": "Thử lại"
+    },
+    "empty": {
+      "title": "Chưa có tour nào",
+      "message": "Bạn chưa đặt tour nào. Hãy khám phá các tour hấp dẫn!"
+    },
+    "card": {
+      "bookingId": "Mã đặt tour",
+      "departureDate": "Ngày khởi hành",
+      "totalGuests": "Số khách",
+      "guests": "khách",
+      "contactName": "Tên liên hệ",
+      "contactPhone": "Số điện thoại",
+      "totalAmount": "Tổng tiền",
+      "viewDetails": "Xem chi tiết",
+      "bookedOn": "Đặt ngày",
+      "alreadyFeedbacked": "Đã phản hồi",
+      "transaction": "Giao dịch",
+      "resumePayment": "Tiếp tục thanh toán",
+      "cancelled": "Đã hủy"
+    },
+    "filters": {
+      "status": "Lọc theo trạng thái",
+      "date": "Lọc theo ngày",
+      "allStatus": "Tất cả trạng thái",
+      "newestDate": "Ngày mới nhất",
+      "oldestDate": "Ngày cũ nhất"
+    },
+    "status": {
+      "pending": "Chờ xác nhận",
+      "confirmed": "Đã xác nhận",
+      "cancelled": "Đã hủy",
+      "purchased": "Đã thanh toán"
+    },
+    "transactionStatus": {
+      "pending": "Chờ xử lý",
+      "success": "Thành công",
+      "failed": "Thất bại",
+      "cancelled": "Đã hủy"
+    }
+  },
+  "tourCard": {
+    "welcome": {
+      "explore": "Khám phá",
+      "dream": "Điểm đến mơ ước"
+    },
+    "viewDetails": "Xem Chi Tiết",
+    "featured": "Nổi bật",
+    "children": "Trẻ em:",
+    "baby": "Em bé:",
+    "details": "CHI TIẾT",
+    "share": "Chia sẻ",
+    "duration": {
+      "template": "{{days}} ngày {{nights}} đêm"
+    }
+  },
+  "businessNav": {
+    "brandSuffix": "Business",
+    "title": "Quản lý Business",
+    "roleSuffix": "Business",
+    "mobileSectionTitle": "Quản lý Business",
+    "dropdown": {
+      "manageToursTitle": "Quản lý Tours",
+      "manageToursDesc": "Tạo và quản lý tours",
+      "analyticsTitle": "Thống kê & Báo cáo",
+      "analyticsDesc": "Xem doanh thu và thống kê",
+      "ordersTitle": "Quản lý Đơn hàng",
+      "ordersDesc": "Xem và xử lý đơn hàng"
+    }
+  },
   "profileRole": {
     "USER": "Người dùng",
     "COMPANY": "Công ty",
@@ -1387,407 +1404,406 @@
     "STAFF": "Nhân viên",
     "UNKNOWN": "Không xác định"
   },
-	"booking": {
-        "step1": {
+  "booking": {
+    "step1": {
       "fields": {
-            "fullName": "Họ và tên",
-            "phone": "Số điện thoại",
-            "email": "Email",
-            "gender": "Giới tính",
-            "dob": "Ngày sinh",
-            "address": "Địa chỉ",
-            "pickupPoint": "Điểm đón",
-            "note": "Ghi chú"
-          },
-          "placeholders": {
-            "fullName": "Nhập họ và tên đầy đủ",
-            "phone": "0123456789 hoặc +84123456789",
-            "chooseGender": "Chọn giới tính",
-            "address": "Nhập địa chỉ đầy đủ",
-            "pickupPoint": "Nhập điểm đón",
-            "dateFormat": "Định dạng: {format}",
-            "note": "Nhập ghi chú thêm (tùy chọn)"
-          },
-          "sectionTitle": "Thông tin liên hệ",
-          "usePersonalInfo": "Sử dụng thông tin cá nhân từ tài khoản của tôi",
-          "autoFillNotice": "Thông tin từ tài khoản sẽ được tự động điền vào các trường tương ứng. Bạn có thể chỉnh sửa bất kỳ trường nào nếu cần. Các trường không có thông tin sẽ để trống."
-        },
-		"step2": {
-			"loading": "Đang tải thông tin giá tour...",
-			"sections": {
-				"dateTitle": "Ngày khởi hành",
-				"paxTitle": "Tổng số khách",
-				"membersTitle": "Danh sách đoàn",
-				"summaryTitle": "Tổng kết giá"
-			},
-			"representative": {
-				"title": "Người đại diện",
-				"label": "Người đại diện"
-			},
-			"summary": { "totalLabel": "Tổng thanh toán" },
-			"common": {
-				"noPrice": "Chưa có giá",
-				"free": "Miễn phí"
-			},
-			"dateDisplay": { "day": "Ngày", "month": "Tháng", "year": "Năm" },
-			"pax": {
-				"adult": "Người lớn",
-				"child": "Trẻ em",
-				"infant": "Em bé",
-				"adultMinHint": "Cần ít nhất 1 người lớn"
-			},
-			"labels": {
-				"fullName": "Họ và tên",
-				"dob": "Ngày sinh",
-				"gender": "Giới tính",
-				"nationality": "Quốc tịch",
-				"idNumberCCCD": "Số căn cước công dân",
-				"idNumberPassport": "Số hộ chiếu"
-			},
-			"countries": {
-				"KR": "Hàn Quốc"
-			},
-			"placeholders": {
-				"fullName": "Nhập họ và tên",
-				"chooseGender": "Chọn giới tính",
-				"chooseNationality": "Chọn quốc tịch",
-				"idVietnam": "Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)",
-				"idPassport": "Nhập số hộ chiếu (6-9 ký tự)",
-				"dateFormat": "Nhập theo định dạng {{format}}"
-			},
-			"datePicker": {
-				"open": "Mở date picker"
-			},
-			"idInfo": {
-				"baby": "Em bé dưới 2 tuổi: Chỉ cần họ tên + ngày sinh. Nếu đi máy bay, cần giấy khai sinh.",
-				"child": "Trẻ em 2-12 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh.",
-				"teen": "Trẻ em 14-16 tuổi: Có thể có CCCD nhưng không bắt buộc. Nếu đi máy bay, cần giấy khai sinh.",
-				"adult": "Người lớn dưới 14 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh."
-			},
-			"fields": {
-				"date": "Ngày khởi hành",
-				"adultPax": "Số lượng người lớn",
-				"adultName1": "Tên người lớn 1",
-				"adultName2": "Tên người lớn 2",
-				"adultName3": "Tên người lớn 3",
-				"adultName4": "Tên người lớn 4",
-				"adultDob1": "Ngày sinh người lớn 1",
-				"adultDob2": "Ngày sinh người lớn 2",
-				"adultDob3": "Ngày sinh người lớn 3",
-				"adultDob4": "Ngày sinh người lớn 4",
-				"childName1": "Tên trẻ em 1",
-				"childName2": "Tên trẻ em 2",
-				"childName3": "Tên trẻ em 3",
-				"childName4": "Tên trẻ em 4",
-				"childDob1": "Ngày sinh trẻ em 1",
-				"childDob2": "Ngày sinh trẻ em 2",
-				"childDob3": "Ngày sinh trẻ em 3",
-				"childDob4": "Ngày sinh trẻ em 4",
-				"infantName1": "Tên em bé 1",
-				"infantName2": "Tên em bé 2",
-				"infantName3": "Tên em bé 3",
-				"infantName4": "Tên em bé 4",
-				"infantDob1": "Ngày sinh em bé 1",
-				"infantDob2": "Ngày sinh em bé 2",
-				"infantDob3": "Ngày sinh em bé 3",
-				"infantDob4": "Ngày sinh em bé 4",
-				"adultGender1": "Giới tính người lớn 1",
-				"adultGender2": "Giới tính người lớn 2",
-				"adultGender3": "Giới tính người lớn 3",
-				"adultGender4": "Giới tính người lớn 4",
-				"adultNationality1": "Quốc tịch người lớn 1",
-				"adultNationality2": "Quốc tịch người lớn 2",
-				"adultNationality3": "Quốc tịch người lớn 3",
-				"adultNationality4": "Quốc tịch người lớn 4",
-				"adultIdNumber1": "Số giấy tờ người lớn 1",
-				"adultIdNumber2": "Số giấy tờ người lớn 2",
-				"adultIdNumber3": "Số giấy tờ người lớn 3",
-				"adultIdNumber4": "Số giấy tờ người lớn 4",
-				"childGender1": "Giới tính trẻ em 1",
-				"childGender2": "Giới tính trẻ em 2",
-				"childGender3": "Giới tính trẻ em 3",
-				"childGender4": "Giới tính trẻ em 4",
-				"childNationality1": "Quốc tịch trẻ em 1",
-				"childNationality2": "Quốc tịch trẻ em 2",
-				"childNationality3": "Quốc tịch trẻ em 3",
-				"childNationality4": "Quốc tịch trẻ em 4",
-				"childIdNumber1": "Số giấy tờ trẻ em 1",
-				"childIdNumber2": "Số giấy tờ trẻ em 2",
-				"childIdNumber3": "Số giấy tờ trẻ em 3",
-				"childIdNumber4": "Số giấy tờ trẻ em 4",
-				"infantGender1": "Giới tính em bé 1",
-				"infantGender2": "Giới tính em bé 2",
-				"infantGender3": "Giới tính em bé 3",
-				"infantGender4": "Giới tính em bé 4",
-				"infantNationality1": "Quốc tịch em bé 1",
-				"infantNationality2": "Quốc tịch em bé 2",
-				"infantNationality3": "Quốc tịch em bé 3",
-				"infantNationality4": "Quốc tịch em bé 4",
-				"infantIdNumber1": "Số giấy tờ em bé 1",
-				"infantIdNumber2": "Số giấy tờ em bé 2",
-				"infantIdNumber3": "Số giấy tờ em bé 3",
-				"infantIdNumber4": "Số giấy tờ em bé 4"
-			},
-			"errors": {
-				"dateRequired": "Vui lòng chọn ngày khởi hành",
-				"dateInPast": "Ngày khởi hành không được ở quá khứ",
-				"dateOverOneMonth": "Ngày khởi hành phải trong vòng 1 tháng",
-				"fullNameRequired": "Họ tên là bắt buộc",
-				"fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
-				"dobRequired": "Ngày sinh là bắt buộc",
-				"dobInFuture": "Ngày sinh không được ở tương lai",
-				"dobInvalidFormat": "Định dạng ngày sinh không hợp lệ (sử dụng YYYY-MM-DD)",
-				"dobTooOld": "Ngày sinh không hợp lệ (tuổi phải ≤ 120)",
-				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại mục người lớn.",
-				"representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại mục người đại diện.",
-				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại mục trẻ em.",
-				"childTooOld": "Trẻ em phải < 12 tuổi tại mục trẻ em.",
-				"infantTooOld": "Em bé phải < 2 tuổi tại mục em bé.",
-				"genderRequired": "Giới tính là bắt buộc",
-				"nationalityRequired": "Quốc tịch là bắt buộc",
-				"idRequired": "Số giấy tờ là bắt buộc"
-			},
-			"validation": {
-				"vietnameseId": "Số căn cước/CMND phải có 12 số (CCCD) hoặc 9 số (CMND/CMT). Chỉ được nhập số.",
-				"passport": "Số hộ chiếu phải có 6-9 ký tự (chữ cái và số)"
-			},
-			"toast": {
-				"dateRequired": "Vui lòng chọn ngày khởi hành",
-				"adultPaxRequired": "Số lượng người lớn phải lớn hơn 0",
-				"representativeNameRequired": "Vui lòng nhập tên người đại diện",
-				"representativeDobRequired": "Vui lòng nhập ngày sinh người đại diện",
-				"representativeDobInvalidFormat": "Ngày sinh người đại diện không đúng định dạng",
-				"representativeGenderRequired": "Vui lòng chọn giới tính người đại diện",
-				"representativeNationalityRequired": "Vui lòng chọn quốc tịch người đại diện",
-				"adultNameRequiredGeneric": "Vui lòng nhập tên người lớn",
-				"adultDobRequiredGeneric": "Vui lòng nhập ngày sinh người lớn",
-				"adultDobInvalidFormatGeneric": "Ngày sinh người lớn không đúng định dạng",
-				"adultGenderRequiredGeneric": "Vui lòng chọn giới tính người lớn",
-				"adultNationalityRequiredGeneric": "Vui lòng chọn quốc tịch người lớn",
-				"childNameRequiredGeneric": "Vui lòng nhập tên trẻ em",
-				"childDobRequiredGeneric": "Vui lòng nhập ngày sinh trẻ em",
-				"childDobInvalidFormatGeneric": "Ngày sinh trẻ em không đúng định dạng",
-				"childGenderRequiredGeneric": "Vui lòng chọn giới tính trẻ em",
-				"childNationalityRequiredGeneric": "Vui lòng chọn quốc tịch trẻ em",
-				"infantNameRequiredGeneric": "Vui lòng nhập tên em bé",
-				"infantDobRequiredGeneric": "Vui lòng nhập ngày sinh em bé",
-				"infantDobInvalidFormatGeneric": "Ngày sinh em bé không đúng định dạng",
-				"infantGenderRequiredGeneric": "Vui lòng chọn giới tính em bé",
-				"infantNationalityRequiredGeneric": "Vui lòng chọn quốc tịch em bé",
-				"representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại ngày khởi hành",
-				"adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
-				"childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
-				"childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
-				"infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
-				"representativeIdRequired": "Vui lòng nhập CCCD/CMND người đại diện",
-				"representativeIdRequiredPassport": "Vui lòng nhập hộ chiếu người đại diện",
-				"representativeIdInvalidFormat": "CCCD/CMND người đại diện không đúng định dạng",
-				"representativeIdInvalidFormatPassport": "Hộ chiếu người đại diện không đúng định dạng",
-				"adultIdRequiredGeneric": "Vui lòng nhập CCCD/CMND người lớn",
-				"adultIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu người lớn",
-				"adultIdInvalidFormatGeneric": "CCCD/CMND người lớn không đúng định dạng",
-				"adultIdInvalidFormatGenericPassport": "Hộ chiếu người lớn không đúng định dạng",
-				"childIdRequiredGeneric": "Vui lòng nhập CCCD/CMND trẻ em",
-				"childIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu trẻ em",
-				"childIdInvalidFormatGeneric": "CCCD/CMND trẻ em không đúng định dạng",
-				"childIdInvalidFormatGenericPassport": "Hộ chiếu trẻ em không đúng định dạng",
-				"infantIdRequiredGeneric": "Vui lòng nhập CCCD/CMND em bé",
-				"infantIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu em bé",
-				"infantIdInvalidFormatGeneric": "CCCD/CMND em bé không đúng định dạng",
-				"infantIdInvalidFormatGenericPassport": "Hộ chiếu em bé không đúng định dạng"
-			}
-		},
-		"step3": {
-			"sections": {
-				"contact": "Thông tin liên hệ",
-				"tour": "Thông tin tour",
-				"members": "Danh sách đoàn",
-				"price": "Tổng kết giá"
-			},
-			"labels": {
-				"fullName": "Họ và tên",
-				"phone": "Số điện thoại",
-				"email": "Email",
-				"address": "Địa chỉ",
-				"pickupPoint": "Điểm đón",
-				"note": "Ghi chú",
-				"departureDate": "Ngày khởi hành",
-				"totalGuests": "Tổng số khách",
-				"adult": "Người lớn",
-				"child": "Trẻ em",
-				"infant": "Em bé",
-				"notSet": "Chưa nhập",
-				"totalPrice": "Tổng thanh toán"
-			},
-			"table": {
-				"index": "STT",
-				"fullName": "Họ và tên",
-				"dob": "Ngày sinh",
-				"gender": "Giới tính",
-				"nationality": "Quốc tịch",
-				"idNumber": "Số ID/Hộ chiếu"
-			}
-		},
-		"tourPreview": {
-			"loading": "Đang tải thông tin tour...",
-			"fallback": {
-				"apiError": "Không thể kết nối API, hiển thị dữ liệu mẫu",
-				"title": "Tour Đà Nẵng",
-				"duration": "1 ngày 1 đêm",
-				"departure": "Đà Nẵng",
-				"vehicle": "Xe Du Lịch",
-				"schedule": "Khám phá vùng đất Lệ Giang Shangrila với những cảnh quan thiên nhiên tuyệt đẹp, trải nghiệm văn hóa địa phương độc đáo và thưởng thức ẩm thực truyền thống."
-			},
-			"placeholder": { "title": "Khám phá", "subtitle": "Điểm đến mơ ước" },
-			"durationTemplate": "{{days}} ngày {{nights}} đêm",
-			"labels": {
-				"code": "Mã Tour:",
-				"duration": "Thời gian:",
-				"departure": "Điểm khởi hành:",
-				"vehicle": "Phương tiện:",
-				"category": "Hình thức:",
-				"schedule": "Lịch trình:",
-				"noSchedule": "Chưa có lịch trình",
-				"notAvailable": "Chưa có"
-			},
-			"categories": { "standard": "Tiêu chuẩn" }
-		},
-        "errors": {
-          "fullNameRequired": "Họ tên là bắt buộc",
-          "fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
-          "phoneRequired": "Số điện thoại là bắt buộc",
-          "phoneInvalid": "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84 705327671)",
-          "emailRequired": "Email là bắt buộc",
-          "emailInvalid": "Email không hợp lệ",
-          "emailMismatch": "Email không khớp với tài khoản của bạn. Vui lòng sử dụng email đã đăng ký.",
-          "dobRequired": "Ngày sinh là bắt buộc",
-          "dobInvalidFormat": "Định dạng ngày sinh không hợp lệ",
-          "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi",
-          "addressRequired": "Địa chỉ là bắt buộc",
-          "pickupPointRequired": "Điểm đón là bắt buộc"
-        }
-	},
-	"payment": {
-		"processing": "Đang xử lý kết quả thanh toán...",
-		"unknownResult": "Không xác định được kết quả",
-		"cannotDetermine": "Không thể xác định kết quả thanh toán. Vui lòng thử lại.",
-		"backToTour": "Về trang tour",
-		"cannotCalculateTotal": "Không thể tính tổng tiền. Vui lòng thử lại.",
-		"emailMismatch": "Email người dùng không khớp với email trong thông tin liên hệ",
-		"invalidPaymentInfo": "Thông tin thanh toán không hợp lệ",
-		"cannotCreatePaymentLink": "Không thể tạo liên kết thanh toán VNPay",
-		"sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-		"paymentCreationError": "Có lỗi xảy ra khi tạo thanh toán",
-		"paymentError": "Lỗi thanh toán",
-		"errorOccurred": "Có lỗi xảy ra",
-		"transactionTimeout": "Giao dịch đã hết hạn. Vui lòng thử lại hoặc hủy đặt tour.",
-		"paymentCancelled": "Thanh toán đã bị hủy",
-		"paymentFailed": "Thanh toán thất bại",
-		"loading": "Đang tải...",
-		"vnpayPayment": "Thanh toán VNPay",
-		"noBookingInfo": "Không tìm thấy thông tin đặt tour",
-		"pleaseBookFirst": "Vui lòng thực hiện đặt tour trước khi thanh toán.",
-		"vnpayTitle": "Thanh toán VNPay",
-		"completePaymentToConfirm": "Hoàn tất thanh toán để xác nhận đặt tour",
-		"bookingInfo": "Thông tin đặt tour",
-		"tourName": "Tên tour",
-		"departureDate": "Ngày khởi hành",
-		"guestCount": "Số khách",
-		"guests": "người",
-		"contactPerson": "Người liên hệ",
-		"totalPayment": "Tổng thanh toán",
-		"calculating": "Đang tính toán...",
-		"retry": "Thử lại",
-		"paymentInfo": "Thông tin thanh toán",
-		"vnpayDescription": "Thanh toán được xử lý bởi VNPay - Cổng thanh toán điện tử uy tín",
-		"supportedPaymentMethods": "Hỗ trợ thanh toán qua thẻ ATM, Internet Banking, Ví điện tử",
-		"securePayment": "Thông tin thanh toán được mã hóa và bảo mật",
-		"confirmationEmail": "Sau khi thanh toán thành công, bạn sẽ nhận được email xác nhận",
-		"paymentFailed": "Thanh toán thất bại. Vui lòng thử lại.",
-		"transactionInfo": "Thông tin giao dịch",
-		"transactionId": "Mã giao dịch",
-		"paymentMethod": "Phương thức thanh toán",
-		"responseCode": "Mã phản hồi",
-		"errorDetails": "Chi tiết lỗi",
-		"suggestions": "Gợi ý khắc phục",
-		"retryPayment": "Thử lại thanh toán",
-		"viewTour": "Xem tour",
-		"goHome": "Về trang chủ",
-		"needSupport": "Cần hỗ trợ",
-		"contactUs": "Nếu vấn đề vẫn tiếp diễn, vui lòng liên hệ với chúng tôi",
-		"supportEmail": "Email hỗ trợ",
-		"paymentSuccess": "Thanh toán thành công! Đặt tour hoàn tất.",
-		"paymentSuccessTitle": "Thanh toán thành công!",
-		"paymentSuccessMessage": "Cảm ơn bạn đã thanh toán. Đặt tour đã được hoàn tất thành công.",
-		"bookingId": "Mã đặt tour",
-		"totalGuests": "Tổng số khách",
-		"phoneNumber": "Số điện thoại",
-		"bookingTime": "Thời gian đặt",
-		"guestList": "Danh sách khách",
-		"fullName": "Họ và tên",
-		"birthDate": "Ngày sinh",
-		"gender": "Giới tính",
-		"nationality": "Quốc tịch",
-		"guestType": "Loại khách",
-		"idPassport": "Số ID/Passport",
-		"emailSent": "Chúng tôi đã gửi email xác nhận thanh toán và đặt tour đến địa chỉ email của bạn.",
-		"customerSupport": "Hỗ trợ khách hàng",
-		"contactHotline": "Nếu có thắc mắc, vui lòng liên hệ hotline",
-		"transactionProcessed": "Giao dịch đã được xử lý thành công qua VNPay. Bạn có thể kiểm tra lịch sử giao dịch trong tài khoản.",
-		"noPaymentInfo": "Không tìm thấy thông tin thanh toán. Vui lòng",
-		"cancel": "Hủy bỏ",
-		"paymentSuccessRedirect": "Thanh toán thành công! Đang chuyển hướng...",
-		"paymentFailedCancelled": "Thanh toán thất bại hoặc đã bị hủy",
-		"male": "Nam",
-		"female": "Nữ",
-		"other": "Khác",
-		"adult": "Người lớn",
-		"child": "Trẻ em",
-		"baby": "Em bé",
-		"paymentCancelledFailed": "Thanh toán đã bị hủy hoặc thất bại",
-		"paymentSuspicious": "Trừ tiền thành công, giao dịch bị nghi ngờ (liên quan đến lừa đảo, giao dịch bất thường)",
-		"paymentNotRegistered": "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking",
-		"paymentVerificationFailed": "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần",
-		"paymentExpired": "Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch",
-		"paymentCancelled": "Giao dịch bị hủy",
-		"paymentUserCancelled": "Khách hàng hủy giao dịch",
-		"paymentInsufficientBalance": "Tài khoản không đủ số dư để thực hiện giao dịch",
-		"paymentExceedLimit": "Tài khoản đã vượt quá hạn mức giao dịch trong ngày",
-		"paymentBankMaintenance": "Ngân hàng thanh toán đang bảo trì",
-		"paymentWrongPassword": "Nhập sai mật khẩu thanh toán quá số lần quy định",
-		"paymentFailedWithCode": "Thanh toán thất bại với mã lỗi",
-		"errorCancelled": "Thanh toán đã bị hủy",
-		"errorInsufficientBalance": "Số dư không đủ",
-		"errorMaintenance": "Hệ thống đang bảo trì",
-		"errorWrongPassword": "Sai mật khẩu",
-		"errorVerificationFailed": "Xác thực thất bại",
-		"errorGeneral": "Thanh toán thất bại",
-		"errorMessageCancelled": "Bạn đã hủy giao dịch hoặc giao dịch đã bị hủy. Vui lòng thử lại nếu muốn tiếp tục đặt tour.",
-		"errorMessageInsufficient": "Tài khoản của bạn không đủ số dư để thực hiện giao dịch. Vui lòng nạp thêm tiền và thử lại.",
-		"errorMessageMaintenance": "Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau ít phút.",
-		"errorMessagePassword": "Bạn đã nhập sai mật khẩu quá số lần cho phép. Vui lòng thử lại sau hoặc liên hệ ngân hàng.",
-		"errorMessageVerification": "Thông tin xác thực không chính xác. Vui lòng kiểm tra lại thông tin thẻ/tài khoản.",
-		"errorMessageGeneral": "Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.",
-		"suggestionRetryPayment": "Thử lại thanh toán",
-		"suggestionCheckCardInfo": "Kiểm tra thông tin thẻ/tài khoản",
-		"suggestionContactBank": "Liên hệ ngân hàng nếu cần thiết",
-		"suggestionAddMoney": "Nạp thêm tiền vào tài khoản",
-		"suggestionUseOtherCard": "Sử dụng thẻ/tài khoản khác",
-		"suggestionCheckLimit": "Kiểm tra hạn mức giao dịch",
-		"suggestionRetryLater": "Thử lại sau 15-30 phút",
-		"suggestionUseOtherMethod": "Sử dụng phương thức thanh toán khác",
-		"suggestionContactSupport": "Liên hệ hỗ trợ nếu cần thiết",
-		"suggestionRetryAfter30min": "Thử lại sau 30 phút",
-		"suggestionResetPassword": "Liên hệ ngân hàng để reset mật khẩu",
-		"suggestionUseOtherCardAccount": "Sử dụng thẻ/tài khoản khác",
-		"suggestionCheckCardInfoAgain": "Kiểm tra lại thông tin thẻ",
-		"suggestionEnsureCardActive": "Đảm bảo thẻ đã được kích hoạt",
-		"suggestionContactBankSupport": "Liên hệ ngân hàng để được hỗ trợ",
-		"suggestionCheckInternet": "Kiểm tra kết nối internet",
-		"suggestionContactSupportIfIssue": "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn",
-		"technicalDetails": "Chi tiết kỹ thuật (Development)"
-	}
-  ,
+        "fullName": "Họ và tên",
+        "phone": "Số điện thoại",
+        "email": "Email",
+        "gender": "Giới tính",
+        "dob": "Ngày sinh",
+        "address": "Địa chỉ",
+        "pickupPoint": "Điểm đón",
+        "note": "Ghi chú"
+      },
+      "placeholders": {
+        "fullName": "Nhập họ và tên đầy đủ",
+        "phone": "0123456789 hoặc +84123456789",
+        "chooseGender": "Chọn giới tính",
+        "address": "Nhập địa chỉ đầy đủ",
+        "pickupPoint": "Nhập điểm đón",
+        "dateFormat": "Định dạng: {format}",
+        "note": "Nhập ghi chú thêm (tùy chọn)"
+      },
+      "sectionTitle": "Thông tin liên hệ",
+      "usePersonalInfo": "Sử dụng thông tin cá nhân từ tài khoản của tôi",
+      "autoFillNotice": "Thông tin từ tài khoản sẽ được tự động điền vào các trường tương ứng. Bạn có thể chỉnh sửa bất kỳ trường nào nếu cần. Các trường không có thông tin sẽ để trống."
+    },
+    "step2": {
+      "loading": "Đang tải thông tin giá tour...",
+      "sections": {
+        "dateTitle": "Ngày khởi hành",
+        "paxTitle": "Tổng số khách",
+        "membersTitle": "Danh sách đoàn",
+        "summaryTitle": "Tổng kết giá"
+      },
+      "representative": {
+        "title": "Người đại diện",
+        "label": "Người đại diện"
+      },
+      "summary": { "totalLabel": "Tổng thanh toán" },
+      "common": {
+        "noPrice": "Chưa có giá",
+        "free": "Miễn phí"
+      },
+      "dateDisplay": { "day": "Ngày", "month": "Tháng", "year": "Năm" },
+      "pax": {
+        "adult": "Người lớn",
+        "child": "Trẻ em",
+        "infant": "Em bé",
+        "adultMinHint": "Cần ít nhất 1 người lớn"
+      },
+      "labels": {
+        "fullName": "Họ và tên",
+        "dob": "Ngày sinh",
+        "gender": "Giới tính",
+        "nationality": "Quốc tịch",
+        "idNumberCCCD": "Số căn cước công dân",
+        "idNumberPassport": "Số hộ chiếu"
+      },
+      "countries": {
+        "KR": "Hàn Quốc"
+      },
+      "placeholders": {
+        "fullName": "Nhập họ và tên",
+        "chooseGender": "Chọn giới tính",
+        "chooseNationality": "Chọn quốc tịch",
+        "idVietnam": "Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)",
+        "idPassport": "Nhập số hộ chiếu (6-9 ký tự)",
+        "dateFormat": "Nhập theo định dạng {{format}}"
+      },
+      "datePicker": {
+        "open": "Mở date picker"
+      },
+      "idInfo": {
+        "baby": "Em bé dưới 2 tuổi: Chỉ cần họ tên + ngày sinh. Nếu đi máy bay, cần giấy khai sinh.",
+        "child": "Trẻ em 2-12 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh.",
+        "teen": "Trẻ em 14-16 tuổi: Có thể có CCCD nhưng không bắt buộc. Nếu đi máy bay, cần giấy khai sinh.",
+        "adult": "Người lớn dưới 14 tuổi: Chưa cần CCCD/CMND. Nếu đi máy bay, cần giấy khai sinh."
+      },
+      "fields": {
+        "date": "Ngày khởi hành",
+        "adultPax": "Số lượng người lớn",
+        "adultName1": "Tên người lớn 1",
+        "adultName2": "Tên người lớn 2",
+        "adultName3": "Tên người lớn 3",
+        "adultName4": "Tên người lớn 4",
+        "adultDob1": "Ngày sinh người lớn 1",
+        "adultDob2": "Ngày sinh người lớn 2",
+        "adultDob3": "Ngày sinh người lớn 3",
+        "adultDob4": "Ngày sinh người lớn 4",
+        "childName1": "Tên trẻ em 1",
+        "childName2": "Tên trẻ em 2",
+        "childName3": "Tên trẻ em 3",
+        "childName4": "Tên trẻ em 4",
+        "childDob1": "Ngày sinh trẻ em 1",
+        "childDob2": "Ngày sinh trẻ em 2",
+        "childDob3": "Ngày sinh trẻ em 3",
+        "childDob4": "Ngày sinh trẻ em 4",
+        "infantName1": "Tên em bé 1",
+        "infantName2": "Tên em bé 2",
+        "infantName3": "Tên em bé 3",
+        "infantName4": "Tên em bé 4",
+        "infantDob1": "Ngày sinh em bé 1",
+        "infantDob2": "Ngày sinh em bé 2",
+        "infantDob3": "Ngày sinh em bé 3",
+        "infantDob4": "Ngày sinh em bé 4",
+        "adultGender1": "Giới tính người lớn 1",
+        "adultGender2": "Giới tính người lớn 2",
+        "adultGender3": "Giới tính người lớn 3",
+        "adultGender4": "Giới tính người lớn 4",
+        "adultNationality1": "Quốc tịch người lớn 1",
+        "adultNationality2": "Quốc tịch người lớn 2",
+        "adultNationality3": "Quốc tịch người lớn 3",
+        "adultNationality4": "Quốc tịch người lớn 4",
+        "adultIdNumber1": "Số giấy tờ người lớn 1",
+        "adultIdNumber2": "Số giấy tờ người lớn 2",
+        "adultIdNumber3": "Số giấy tờ người lớn 3",
+        "adultIdNumber4": "Số giấy tờ người lớn 4",
+        "childGender1": "Giới tính trẻ em 1",
+        "childGender2": "Giới tính trẻ em 2",
+        "childGender3": "Giới tính trẻ em 3",
+        "childGender4": "Giới tính trẻ em 4",
+        "childNationality1": "Quốc tịch trẻ em 1",
+        "childNationality2": "Quốc tịch trẻ em 2",
+        "childNationality3": "Quốc tịch trẻ em 3",
+        "childNationality4": "Quốc tịch trẻ em 4",
+        "childIdNumber1": "Số giấy tờ trẻ em 1",
+        "childIdNumber2": "Số giấy tờ trẻ em 2",
+        "childIdNumber3": "Số giấy tờ trẻ em 3",
+        "childIdNumber4": "Số giấy tờ trẻ em 4",
+        "infantGender1": "Giới tính em bé 1",
+        "infantGender2": "Giới tính em bé 2",
+        "infantGender3": "Giới tính em bé 3",
+        "infantGender4": "Giới tính em bé 4",
+        "infantNationality1": "Quốc tịch em bé 1",
+        "infantNationality2": "Quốc tịch em bé 2",
+        "infantNationality3": "Quốc tịch em bé 3",
+        "infantNationality4": "Quốc tịch em bé 4",
+        "infantIdNumber1": "Số giấy tờ em bé 1",
+        "infantIdNumber2": "Số giấy tờ em bé 2",
+        "infantIdNumber3": "Số giấy tờ em bé 3",
+        "infantIdNumber4": "Số giấy tờ em bé 4"
+      },
+      "errors": {
+        "dateRequired": "Vui lòng chọn ngày khởi hành",
+        "dateInPast": "Ngày khởi hành không được ở quá khứ",
+        "dateOverOneMonth": "Ngày khởi hành phải trong vòng 1 tháng",
+        "fullNameRequired": "Họ tên là bắt buộc",
+        "fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
+        "dobRequired": "Ngày sinh là bắt buộc",
+        "dobInFuture": "Ngày sinh không được ở tương lai",
+        "dobInvalidFormat": "Định dạng ngày sinh không hợp lệ (sử dụng YYYY-MM-DD)",
+        "dobTooOld": "Ngày sinh không hợp lệ (tuổi phải ≤ 120)",
+        "adultTooYoung": "Người lớn phải ≥ 12 tuổi tại mục người lớn.",
+        "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại mục người đại diện.",
+        "childTooYoung": "Trẻ em phải ≥ 2 tuổi tại mục trẻ em.",
+        "childTooOld": "Trẻ em phải < 12 tuổi tại mục trẻ em.",
+        "infantTooOld": "Em bé phải < 2 tuổi tại mục em bé.",
+        "genderRequired": "Giới tính là bắt buộc",
+        "nationalityRequired": "Quốc tịch là bắt buộc",
+        "idRequired": "Số giấy tờ là bắt buộc"
+      },
+      "validation": {
+        "vietnameseId": "Số căn cước/CMND phải có 12 số (CCCD) hoặc 9 số (CMND/CMT). Chỉ được nhập số.",
+        "passport": "Số hộ chiếu phải có 6-9 ký tự (chữ cái và số)"
+      },
+      "toast": {
+        "dateRequired": "Vui lòng chọn ngày khởi hành",
+        "adultPaxRequired": "Số lượng người lớn phải lớn hơn 0",
+        "representativeNameRequired": "Vui lòng nhập tên người đại diện",
+        "representativeDobRequired": "Vui lòng nhập ngày sinh người đại diện",
+        "representativeDobInvalidFormat": "Ngày sinh người đại diện không đúng định dạng",
+        "representativeGenderRequired": "Vui lòng chọn giới tính người đại diện",
+        "representativeNationalityRequired": "Vui lòng chọn quốc tịch người đại diện",
+        "adultNameRequiredGeneric": "Vui lòng nhập tên người lớn",
+        "adultDobRequiredGeneric": "Vui lòng nhập ngày sinh người lớn",
+        "adultDobInvalidFormatGeneric": "Ngày sinh người lớn không đúng định dạng",
+        "adultGenderRequiredGeneric": "Vui lòng chọn giới tính người lớn",
+        "adultNationalityRequiredGeneric": "Vui lòng chọn quốc tịch người lớn",
+        "childNameRequiredGeneric": "Vui lòng nhập tên trẻ em",
+        "childDobRequiredGeneric": "Vui lòng nhập ngày sinh trẻ em",
+        "childDobInvalidFormatGeneric": "Ngày sinh trẻ em không đúng định dạng",
+        "childGenderRequiredGeneric": "Vui lòng chọn giới tính trẻ em",
+        "childNationalityRequiredGeneric": "Vui lòng chọn quốc tịch trẻ em",
+        "infantNameRequiredGeneric": "Vui lòng nhập tên em bé",
+        "infantDobRequiredGeneric": "Vui lòng nhập ngày sinh em bé",
+        "infantDobInvalidFormatGeneric": "Ngày sinh em bé không đúng định dạng",
+        "infantGenderRequiredGeneric": "Vui lòng chọn giới tính em bé",
+        "infantNationalityRequiredGeneric": "Vui lòng chọn quốc tịch em bé",
+        "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại ngày khởi hành",
+        "adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
+        "childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
+        "childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
+        "infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
+        "representativeIdRequired": "Vui lòng nhập CCCD/CMND người đại diện",
+        "representativeIdRequiredPassport": "Vui lòng nhập hộ chiếu người đại diện",
+        "representativeIdInvalidFormat": "CCCD/CMND người đại diện không đúng định dạng",
+        "representativeIdInvalidFormatPassport": "Hộ chiếu người đại diện không đúng định dạng",
+        "adultIdRequiredGeneric": "Vui lòng nhập CCCD/CMND người lớn",
+        "adultIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu người lớn",
+        "adultIdInvalidFormatGeneric": "CCCD/CMND người lớn không đúng định dạng",
+        "adultIdInvalidFormatGenericPassport": "Hộ chiếu người lớn không đúng định dạng",
+        "childIdRequiredGeneric": "Vui lòng nhập CCCD/CMND trẻ em",
+        "childIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu trẻ em",
+        "childIdInvalidFormatGeneric": "CCCD/CMND trẻ em không đúng định dạng",
+        "childIdInvalidFormatGenericPassport": "Hộ chiếu trẻ em không đúng định dạng",
+        "infantIdRequiredGeneric": "Vui lòng nhập CCCD/CMND em bé",
+        "infantIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu em bé",
+        "infantIdInvalidFormatGeneric": "CCCD/CMND em bé không đúng định dạng",
+        "infantIdInvalidFormatGenericPassport": "Hộ chiếu em bé không đúng định dạng"
+      }
+    },
+    "step3": {
+      "sections": {
+        "contact": "Thông tin liên hệ",
+        "tour": "Thông tin tour",
+        "members": "Danh sách đoàn",
+        "price": "Tổng kết giá"
+      },
+      "labels": {
+        "fullName": "Họ và tên",
+        "phone": "Số điện thoại",
+        "email": "Email",
+        "address": "Địa chỉ",
+        "pickupPoint": "Điểm đón",
+        "note": "Ghi chú",
+        "departureDate": "Ngày khởi hành",
+        "totalGuests": "Tổng số khách",
+        "adult": "Người lớn",
+        "child": "Trẻ em",
+        "infant": "Em bé",
+        "notSet": "Chưa nhập",
+        "totalPrice": "Tổng thanh toán"
+      },
+      "table": {
+        "index": "STT",
+        "fullName": "Họ và tên",
+        "dob": "Ngày sinh",
+        "gender": "Giới tính",
+        "nationality": "Quốc tịch",
+        "idNumber": "Số ID/Hộ chiếu"
+      }
+    },
+    "tourPreview": {
+      "loading": "Đang tải thông tin tour...",
+      "fallback": {
+        "apiError": "Không thể kết nối API, hiển thị dữ liệu mẫu",
+        "title": "Tour Đà Nẵng",
+        "duration": "1 ngày 1 đêm",
+        "departure": "Đà Nẵng",
+        "vehicle": "Xe Du Lịch",
+        "schedule": "Khám phá vùng đất Lệ Giang Shangrila với những cảnh quan thiên nhiên tuyệt đẹp, trải nghiệm văn hóa địa phương độc đáo và thưởng thức ẩm thực truyền thống."
+      },
+      "placeholder": { "title": "Khám phá", "subtitle": "Điểm đến mơ ước" },
+      "durationTemplate": "{{days}} ngày {{nights}} đêm",
+      "labels": {
+        "code": "Mã Tour:",
+        "duration": "Thời gian:",
+        "departure": "Điểm khởi hành:",
+        "vehicle": "Phương tiện:",
+        "category": "Hình thức:",
+        "schedule": "Lịch trình:",
+        "noSchedule": "Chưa có lịch trình",
+        "notAvailable": "Chưa có"
+      },
+      "categories": { "standard": "Tiêu chuẩn" }
+    },
+    "errors": {
+      "fullNameRequired": "Họ tên là bắt buộc",
+      "fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
+      "phoneRequired": "Số điện thoại là bắt buộc",
+      "phoneInvalid": "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84 705327671)",
+      "emailRequired": "Email là bắt buộc",
+      "emailInvalid": "Email không hợp lệ",
+      "emailMismatch": "Email không khớp với tài khoản của bạn. Vui lòng sử dụng email đã đăng ký.",
+      "dobRequired": "Ngày sinh là bắt buộc",
+      "dobInvalidFormat": "Định dạng ngày sinh không hợp lệ",
+      "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi",
+      "addressRequired": "Địa chỉ là bắt buộc",
+      "pickupPointRequired": "Điểm đón là bắt buộc"
+    }
+  },
+  "payment": {
+    "processing": "Đang xử lý kết quả thanh toán...",
+    "unknownResult": "Không xác định được kết quả",
+    "cannotDetermine": "Không thể xác định kết quả thanh toán. Vui lòng thử lại.",
+    "backToTour": "Về trang tour",
+    "cannotCalculateTotal": "Không thể tính tổng tiền. Vui lòng thử lại.",
+    "emailMismatch": "Email người dùng không khớp với email trong thông tin liên hệ",
+    "invalidPaymentInfo": "Thông tin thanh toán không hợp lệ",
+    "cannotCreatePaymentLink": "Không thể tạo liên kết thanh toán VNPay",
+    "sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+    "paymentCreationError": "Có lỗi xảy ra khi tạo thanh toán",
+    "paymentError": "Lỗi thanh toán",
+    "errorOccurred": "Có lỗi xảy ra",
+    "transactionTimeout": "Giao dịch đã hết hạn. Vui lòng thử lại hoặc hủy đặt tour.",
+    "paymentCancelled": "Thanh toán đã bị hủy",
+    "paymentFailed": "Thanh toán thất bại",
+    "loading": "Đang tải...",
+    "vnpayPayment": "Thanh toán VNPay",
+    "noBookingInfo": "Không tìm thấy thông tin đặt tour",
+    "pleaseBookFirst": "Vui lòng thực hiện đặt tour trước khi thanh toán.",
+    "vnpayTitle": "Thanh toán VNPay",
+    "completePaymentToConfirm": "Hoàn tất thanh toán để xác nhận đặt tour",
+    "bookingInfo": "Thông tin đặt tour",
+    "tourName": "Tên tour",
+    "departureDate": "Ngày khởi hành",
+    "guestCount": "Số khách",
+    "guests": "người",
+    "contactPerson": "Người liên hệ",
+    "totalPayment": "Tổng thanh toán",
+    "calculating": "Đang tính toán...",
+    "retry": "Thử lại",
+    "paymentInfo": "Thông tin thanh toán",
+    "vnpayDescription": "Thanh toán được xử lý bởi VNPay - Cổng thanh toán điện tử uy tín",
+    "supportedPaymentMethods": "Hỗ trợ thanh toán qua thẻ ATM, Internet Banking, Ví điện tử",
+    "securePayment": "Thông tin thanh toán được mã hóa và bảo mật",
+    "confirmationEmail": "Sau khi thanh toán thành công, bạn sẽ nhận được email xác nhận",
+    "paymentFailed": "Thanh toán thất bại. Vui lòng thử lại.",
+    "transactionInfo": "Thông tin giao dịch",
+    "transactionId": "Mã giao dịch",
+    "paymentMethod": "Phương thức thanh toán",
+    "responseCode": "Mã phản hồi",
+    "errorDetails": "Chi tiết lỗi",
+    "suggestions": "Gợi ý khắc phục",
+    "retryPayment": "Thử lại thanh toán",
+    "viewTour": "Xem tour",
+    "goHome": "Về trang chủ",
+    "needSupport": "Cần hỗ trợ",
+    "contactUs": "Nếu vấn đề vẫn tiếp diễn, vui lòng liên hệ với chúng tôi",
+    "supportEmail": "Email hỗ trợ",
+    "paymentSuccess": "Thanh toán thành công! Đặt tour hoàn tất.",
+    "paymentSuccessTitle": "Thanh toán thành công!",
+    "paymentSuccessMessage": "Cảm ơn bạn đã thanh toán. Đặt tour đã được hoàn tất thành công.",
+    "bookingId": "Mã đặt tour",
+    "totalGuests": "Tổng số khách",
+    "phoneNumber": "Số điện thoại",
+    "bookingTime": "Thời gian đặt",
+    "guestList": "Danh sách khách",
+    "fullName": "Họ và tên",
+    "birthDate": "Ngày sinh",
+    "gender": "Giới tính",
+    "nationality": "Quốc tịch",
+    "guestType": "Loại khách",
+    "idPassport": "Số ID/Passport",
+    "emailSent": "Chúng tôi đã gửi email xác nhận thanh toán và đặt tour đến địa chỉ email của bạn.",
+    "customerSupport": "Hỗ trợ khách hàng",
+    "contactHotline": "Nếu có thắc mắc, vui lòng liên hệ hotline",
+    "transactionProcessed": "Giao dịch đã được xử lý thành công qua VNPay. Bạn có thể kiểm tra lịch sử giao dịch trong tài khoản.",
+    "noPaymentInfo": "Không tìm thấy thông tin thanh toán. Vui lòng",
+    "cancel": "Hủy bỏ",
+    "paymentSuccessRedirect": "Thanh toán thành công! Đang chuyển hướng...",
+    "paymentFailedCancelled": "Thanh toán thất bại hoặc đã bị hủy",
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác",
+    "adult": "Người lớn",
+    "child": "Trẻ em",
+    "baby": "Em bé",
+    "paymentCancelledFailed": "Thanh toán đã bị hủy hoặc thất bại",
+    "paymentSuspicious": "Trừ tiền thành công, giao dịch bị nghi ngờ (liên quan đến lừa đảo, giao dịch bất thường)",
+    "paymentNotRegistered": "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking",
+    "paymentVerificationFailed": "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần",
+    "paymentExpired": "Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch",
+    "paymentCancelled": "Giao dịch bị hủy",
+    "paymentUserCancelled": "Khách hàng hủy giao dịch",
+    "paymentInsufficientBalance": "Tài khoản không đủ số dư để thực hiện giao dịch",
+    "paymentExceedLimit": "Tài khoản đã vượt quá hạn mức giao dịch trong ngày",
+    "paymentBankMaintenance": "Ngân hàng thanh toán đang bảo trì",
+    "paymentWrongPassword": "Nhập sai mật khẩu thanh toán quá số lần quy định",
+    "paymentFailedWithCode": "Thanh toán thất bại với mã lỗi",
+    "errorCancelled": "Thanh toán đã bị hủy",
+    "errorInsufficientBalance": "Số dư không đủ",
+    "errorMaintenance": "Hệ thống đang bảo trì",
+    "errorWrongPassword": "Sai mật khẩu",
+    "errorVerificationFailed": "Xác thực thất bại",
+    "errorGeneral": "Thanh toán thất bại",
+    "errorMessageCancelled": "Bạn đã hủy giao dịch hoặc giao dịch đã bị hủy. Vui lòng thử lại nếu muốn tiếp tục đặt tour.",
+    "errorMessageInsufficient": "Tài khoản của bạn không đủ số dư để thực hiện giao dịch. Vui lòng nạp thêm tiền và thử lại.",
+    "errorMessageMaintenance": "Hệ thống ngân hàng đang bảo trì. Vui lòng thử lại sau ít phút.",
+    "errorMessagePassword": "Bạn đã nhập sai mật khẩu quá số lần cho phép. Vui lòng thử lại sau hoặc liên hệ ngân hàng.",
+    "errorMessageVerification": "Thông tin xác thực không chính xác. Vui lòng kiểm tra lại thông tin thẻ/tài khoản.",
+    "errorMessageGeneral": "Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.",
+    "suggestionRetryPayment": "Thử lại thanh toán",
+    "suggestionCheckCardInfo": "Kiểm tra thông tin thẻ/tài khoản",
+    "suggestionContactBank": "Liên hệ ngân hàng nếu cần thiết",
+    "suggestionAddMoney": "Nạp thêm tiền vào tài khoản",
+    "suggestionUseOtherCard": "Sử dụng thẻ/tài khoản khác",
+    "suggestionCheckLimit": "Kiểm tra hạn mức giao dịch",
+    "suggestionRetryLater": "Thử lại sau 15-30 phút",
+    "suggestionUseOtherMethod": "Sử dụng phương thức thanh toán khác",
+    "suggestionContactSupport": "Liên hệ hỗ trợ nếu cần thiết",
+    "suggestionRetryAfter30min": "Thử lại sau 30 phút",
+    "suggestionResetPassword": "Liên hệ ngân hàng để reset mật khẩu",
+    "suggestionUseOtherCardAccount": "Sử dụng thẻ/tài khoản khác",
+    "suggestionCheckCardInfoAgain": "Kiểm tra lại thông tin thẻ",
+    "suggestionEnsureCardActive": "Đảm bảo thẻ đã được kích hoạt",
+    "suggestionContactBankSupport": "Liên hệ ngân hàng để được hỗ trợ",
+    "suggestionCheckInternet": "Kiểm tra kết nối internet",
+    "suggestionContactSupportIfIssue": "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn",
+    "technicalDetails": "Chi tiết kỹ thuật (Development)"
+  },
   "premium": {
     "title": "Premium",
     "subscriptionTitle": "Đăng ký Premium",
@@ -1976,8 +1992,8 @@
       "tourManagement": "Quản Lý Tour",
       "orders": "Đơn Hàng",
       "analytics": "Phân Tích",
-			"businessInfo": "Thông Tin Doanh Nghiệp",
-			"companyInfo": "Thông Tin Công Ty"
+      "businessInfo": "Thông Tin Doanh Nghiệp",
+      "companyInfo": "Thông Tin Công Ty"
     },
     "welcome": {
       "title": "Chào mừng đến với Bảng Điều Khiển Doanh Nghiệp",
@@ -2049,5 +2065,3 @@
     "placeholder": "Nhập tin nhắn của bạn..."
   }
 }
-
-

@@ -1233,18 +1233,24 @@
 			"gallery": {
 				"title": "투어 갤러리"
 			},
-        "reviews": {
-            "title": "평점 & 리뷰",
-            "placeholder": "경험을 공유해 주세요...",
-            "submit": "리뷰 제출",
-            "cannotRate": "이 투어를 평가할 자격이 없습니다.",
-            "empty": "아직 리뷰가 없습니다.",
-            "edit": "수정",
-            "delete": "삭제",
-            "editPrompt": "내 코멘트 수정:",
-            "editStarPrompt": "별점 수정 (1-5):",
-            "deleteConfirm": "이 리뷰를 삭제하시겠습니까?"
-        },
+			"weather": {
+				"title": "7일 일기예보",
+				"loading": "일기예보 불러오는 중...",
+				"empty": "일기예보 데이터가 없습니다.",
+				"cityRange": "{{city}} — {{days}}일"
+			},
+			"reviews": {
+				"title": "평점 & 리뷰",
+				"placeholder": "경험을 공유해 주세요...",
+				"submit": "리뷰 제출",
+				"cannotRate": "이 투어를 평가할 자격이 없습니다.",
+				"empty": "아직 리뷰가 없습니다.",
+				"edit": "수정",
+				"delete": "삭제",
+				"editPrompt": "내 코멘트 수정:",
+				"editStarPrompt": "별점 수정 (1-5):",
+				"deleteConfirm": "이 리뷰를 삭제하시겠습니까?"
+			},
 			"booking": {
 				"price": "투어 가격",
 				"includedNote": "가격에는 세금 및 서비스 요금이 포함되어 있습니다",

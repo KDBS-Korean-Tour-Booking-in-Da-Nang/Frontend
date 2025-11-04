@@ -68,6 +68,14 @@ const TourDetailPage = () => {
   const [newComment, setNewComment] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  // Weather carousel state (rotate through days)
+  const [weatherSlideIdx, setWeatherSlideIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setWeatherSlideIdx((i) => (i + 1) % 6);
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
   // close open menu on outside click
   useEffect(() => {
     if (!openMenuId) return;
@@ -144,6 +152,33 @@ const TourDetailPage = () => {
     loading: weatherLoading,
     error: weatherError,
   } = useWeatherFromTour({ tourName, tourSchedule, multi: true, limit: 3 });
+
+  const iconFromDesc = (desc = "") => {
+    const s = (desc || "").toLowerCase();
+    if (/(mưa|rain)/.test(s)) return "🌧️";
+    if (/(giông|thunder|storm)/.test(s)) return "⛈️";
+    if (/(tuyết|snow)/.test(s)) return "❄️";
+    if (/(mây rải rác|few clouds)/.test(s)) return "⛅";
+    if (/(mây|cloud)/.test(s)) return "☁️";
+    if (/(sương|mist|fog)/.test(s)) return "🌫️";
+    if (/(nắng|clear|trong)/.test(s)) return "☀️";
+    return "🌤️";
+  };
+  const formatDay = (unix) => {
+    const dt = new Date((unix || 0) * 1000);
+    return dt.toLocaleDateString("vi-VN", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+    });
+  };
+  const getWindowDays = (days = [], start = 0, size = 4) => {
+    const n = days.length || 0;
+    if (n === 0) return [];
+    const out = [];
+    for (let k = 0; k < Math.min(size, n); k++) out.push(days[(start + k) % n]);
+    return out;
+  };
 
   if (loading || !tour) {
     return (
@@ -367,16 +402,20 @@ const TourDetailPage = () => {
       {/* Main Content */}
       {/* Weather Section under hero */}
       <div className={styles["tour-detail-content"]}>
-        <div className={styles["container"]}>
+        <div
+          className={`${styles["container"]} ${styles["container-wide"]} ${styles["container-narrow"]}`}
+        >
           <div style={{ margin: "16px 0 8px" }}>
-            <h2 style={{ marginBottom: 8 }}>Thời tiết 7 ngày</h2>
+            <h2 className={styles["weather-title"]}>
+              {t("tourPage.detail.weather.title")}
+            </h2>
             {weatherLoading && (
-              <div style={{ color: "#6b7280", fontStyle: "italic" }}>
-                Đang tải thời tiết...
+              <div className={styles["weather-loading"]}>
+                {t("tourPage.detail.weather.loading")}
               </div>
             )}
             {!weatherLoading && weatherError && (
-              <div style={{ color: "#ef4444" }}>{weatherError}</div>
+              <div className={styles["weather-error"]}>{weatherError}</div>
             )}
             {!weatherLoading && !weatherError && (
               <div
@@ -387,24 +426,105 @@ const TourDetailPage = () => {
                 }}
               >
                 {weatherData.length === 0 ? (
-                  <div style={{ color: "#6b7280", fontStyle: "italic" }}>
-                    Không có dữ liệu thời tiết.
+                  <div className={styles["weather-empty"]}>
+                    {t("tourPage.detail.weather.empty")}
                   </div>
                 ) : (
-                  weatherData.map((w, i) => (
-                    <CityWeatherCard
-                      key={`${w.cityKey}-${i}`}
-                      title={w.query}
-                      days={w.days}
-                    />
-                  ))
+                  weatherData.map((w, i) => {
+                    const days = (w.days || []).slice(0, 6);
+                    const n = days.length;
+                    if (n === 0) return null;
+                    const start = weatherSlideIdx % n;
+                    // duplicate first 4 to allow seamless wrap when sliding
+                    const trackDays = [...days, ...days.slice(0, 4)];
+                    return (
+                      <div
+                        key={`${w.cityKey}-${i}`}
+                        className={styles["tour-overview"]}
+                      >
+                        <h3 className={styles["weather-city-title"]}>
+                          {t("tourPage.detail.weather.cityRange", {
+                            city: w.query,
+                            days: 4,
+                          })}
+                        </h3>
+                        <div className={styles["weather-viewport"]}>
+                          {/* Render exactly 4 cards with wrap, fade on change */}
+                          <div
+                            key={start}
+                            className={`${styles["weather-grid"]} ${styles["fade-enter"]}`}
+                          >
+                            {getWindowDays(trackDays, start, 4).map((d, di) => {
+                              const desc = d?.weather?.[0]?.description || "";
+                              const t = Math.round(d?.temp?.day ?? 0);
+                              const tMin = Math.round(d?.temp?.min ?? t);
+                              const tMax = Math.round(d?.temp?.max ?? t);
+                              const range = Math.max(1, tMax - tMin);
+                              const pos = Math.min(
+                                100,
+                                Math.max(0, ((t - tMin) / range) * 100)
+                              );
+                              return (
+                                <div
+                                  key={di}
+                                  className={styles["weather-card"]}
+                                >
+                                  <div
+                                    className={styles["weather-card-header"]}
+                                  >
+                                    <div
+                                      className={styles["weather-card-date"]}
+                                    >
+                                      {formatDay(d?.dt)}
+                                    </div>
+                                    <div
+                                      className={styles["weather-card-icon"]}
+                                      aria-label="weather-icon"
+                                    >
+                                      {iconFromDesc(desc)}
+                                    </div>
+                                  </div>
+                                  <div className={styles["weather-card-desc"]}>
+                                    {desc}
+                                  </div>
+                                  <div className={styles["weather-card-temp"]}>
+                                    <div
+                                      className={
+                                        styles["weather-card-temp-value"]
+                                      }
+                                    >
+                                      {t}°C
+                                    </div>
+                                    <div
+                                      className={
+                                        styles["weather-card-temp-range"]
+                                      }
+                                    >
+                                      min {tMin}° / max {tMax}°
+                                    </div>
+                                  </div>
+                                  <div className={styles["weather-card-range"]}>
+                                    <div
+                                      className={
+                                        styles["weather-card-range-fill"]
+                                      }
+                                      style={{ width: `${pos}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             )}
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className={styles["tour-detail-content"]}>
         <div className={styles["container"]}>
@@ -426,7 +546,7 @@ const TourDetailPage = () => {
                   }}
                 />
                 {(tour.tourDeparturePoint || tour.tourVehicle) && (
-                  <p>
+                  <p className={styles["overview-paragraph"]}>
                     {t("tourPage.detail.overview.departVehicle", {
                       departure: tour.tourDeparturePoint || "...",
                       vehicle: tour.tourVehicle || "...",
@@ -434,67 +554,57 @@ const TourDetailPage = () => {
                   </p>
                 )}
                 <div style={{ marginTop: "10px" }}>
-                  <ul style={{ color: "#6b7280", lineHeight: 1.8 }}>
+                  <ul className={styles["overview-list"]}>
                     <li>
-                      {t("tourPage.detail.overview.adultPrice")}:{" "}
-                      {(tour.price ?? 0) > 0
-                        ? formatPrice(tour.price)
-                        : t("tourPage.detail.overview.free")}
+                      <span className={styles["price-label"]}>
+                        {t("tourPage.detail.overview.adultPrice")}:
+                      </span>
+                      <span className={styles["price-adult"]}>
+                        {(tour.price ?? 0) > 0
+                          ? formatPrice(tour.price)
+                          : t("tourPage.detail.overview.free")}
+                      </span>
                     </li>
                     <li>
-                      {t("tourPage.detail.overview.childrenPrice")}:{" "}
-                      {(tour.childrenPrice ?? 0) > 0
-                        ? formatPrice(tour.childrenPrice)
-                        : t("tourPage.detail.overview.free")}
+                      <span className={styles["price-label"]}>
+                        {t("tourPage.detail.overview.childrenPrice")}:
+                      </span>
+                      <span className={styles["price-child"]}>
+                        {(tour.childrenPrice ?? 0) > 0
+                          ? formatPrice(tour.childrenPrice)
+                          : t("tourPage.detail.overview.free")}
+                      </span>
                     </li>
                     <li>
-                      {t("tourPage.detail.overview.babyPrice")}:{" "}
-                      {(tour.babyPrice ?? 0) > 0
-                        ? formatPrice(tour.babyPrice)
-                        : t("tourPage.detail.overview.free")}
+                      <span className={styles["price-label"]}>
+                        {t("tourPage.detail.overview.babyPrice")}:
+                      </span>
+                      <span className={styles["price-baby"]}>
+                        {(tour.babyPrice ?? 0) > 0
+                          ? formatPrice(tour.babyPrice)
+                          : t("tourPage.detail.overview.free")}
+                      </span>
                     </li>
                     {typeof tour.amount === "number" && (
                       <li>
-                        {t("tourPage.detail.overview.amount")}: {tour.amount}
+                        <span className={styles["price-label"]}>
+                          {t("tourPage.detail.overview.amount")}:
+                        </span>
+                        <span className={styles["muted"]}>{tour.amount}</span>
                       </li>
                     )}
                     {Array.isArray(tour.availableDates) &&
                       tour.availableDates.length > 0 && (
                         <li>
-                          {t("tourPage.detail.overview.availableDates")}:{" "}
-                          {tour.availableDates.join(", ")}
+                          <span className={styles["price-label"]}>
+                            {t("tourPage.detail.overview.availableDates")}:
+                          </span>
+                          <span className={styles["muted"]}>
+                            {tour.availableDates.join(", ")}
+                          </span>
                         </li>
                       )}
                   </ul>
-                </div>
-              </div>
-
-              {/* Tour Highlights */}
-              <div className={styles["tour-highlights"]}>
-                <h2>{t("tourPage.detail.highlights.title")}</h2>
-                <div className={styles["highlights-grid"]}>
-                  <div className={styles["highlight-item"]}>
-                    <div className={styles["highlight-icon"]}>🏛️</div>
-                    <h3>
-                      {t("tourPage.detail.highlights.items.historyTitle")}
-                    </h3>
-                    <p>{t("tourPage.detail.highlights.items.historyDesc")}</p>
-                  </div>
-                  <div className={styles["highlight-item"]}>
-                    <div className={styles["highlight-icon"]}>🍽️</div>
-                    <h3>{t("tourPage.detail.highlights.items.foodTitle")}</h3>
-                    <p>{t("tourPage.detail.highlights.items.foodDesc")}</p>
-                  </div>
-                  <div className={styles["highlight-item"]}>
-                    <div className={styles["highlight-icon"]}>📸</div>
-                    <h3>{t("tourPage.detail.highlights.items.photoTitle")}</h3>
-                    <p>{t("tourPage.detail.highlights.items.photoDesc")}</p>
-                  </div>
-                  <div className={styles["highlight-item"]}>
-                    <div className={styles["highlight-icon"]}>🎁</div>
-                    <h3>{t("tourPage.detail.highlights.items.giftTitle")}</h3>
-                    <p>{t("tourPage.detail.highlights.items.giftDesc")}</p>
-                  </div>
                 </div>
               </div>
 
@@ -1006,7 +1116,9 @@ const TourDetailPage = () => {
               <div className={styles["booking-card"]}>
                 <div className={styles["booking-header"]}>
                   <div className={styles["price-section"]}>
-                    <span className={styles["price-label"]}>
+                    <span
+                      className={`${styles["price-label"]} ${styles["booking-price-label-sm"]}`}
+                    >
                       {t("tourPage.detail.booking.price")}
                     </span>
                     <span className={styles["price-amount"]}>
@@ -1014,22 +1126,34 @@ const TourDetailPage = () => {
                     </span>
                   </div>
                   <div className={styles["price-note"]}>
-                    <span>{t("tourPage.detail.booking.includedNote")}</span>
+                    <span className={styles["booking-included-note"]}>
+                      {t("tourPage.detail.booking.includedNote")}
+                    </span>
                   </div>
                 </div>
 
                 <div className={styles["price-breakdown"]}>
                   <div className={styles["price-row"]}>
-                    <span>{t("tourPage.detail.booking.children")}</span>
-                    <span>
+                    <span className={styles["booking-row-label"]}>
+                      {t("tourPage.detail.booking.children")}
+                    </span>
+                    <span
+                      className={styles["booking-children-price"]}
+                      style={{ color: "#16a34a" }}
+                    >
                       {(tour.childrenPrice ?? 0) > 0
                         ? formatPrice(tour.childrenPrice)
                         : t("tourPage.detail.overview.free")}
                     </span>
                   </div>
                   <div className={styles["price-row"]}>
-                    <span>{t("tourPage.detail.booking.baby")}</span>
-                    <span>
+                    <span className={styles["booking-row-label"]}>
+                      {t("tourPage.detail.booking.baby")}
+                    </span>
+                    <span
+                      className={styles["booking-baby-price"]}
+                      style={{ color: "#f59e0b" }}
+                    >
                       {(tour.babyPrice ?? 0) > 0
                         ? formatPrice(tour.babyPrice)
                         : t("tourPage.detail.overview.free")}
@@ -1070,53 +1194,6 @@ const TourDetailPage = () => {
                   >
                     {t("tourCard.share") || "Share"}
                   </button>
-                </div>
-
-                <div className={styles["booking-info"]}>
-                  <h4>{t("tourPage.detail.booking.infoTitle")}</h4>
-                  <ul>
-                    {t("tourPage.detail.booking.infos", {
-                      returnObjects: true,
-                    }).map((line, idx) => (
-                      <li key={idx}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className={styles["contact-info"]}>
-                  <h4>{t("tourPage.detail.booking.contactTitle")}</h4>
-                  <div className={styles["contact-item"]}>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                      />
-                    </svg>
-                    <span>+84 236 247 5555</span>
-                  </div>
-                  <div className={styles["contact-item"]}>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span>kinhdoanh@danangxanh.com</span>
-                  </div>
                 </div>
               </div>
             </div>

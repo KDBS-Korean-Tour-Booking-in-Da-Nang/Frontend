@@ -55,7 +55,6 @@ export async function fetch7DayByLatLon(lat, lon) {
       }
     }
 
-    // Use noon entry dt if possible, else first
     let useDt = arr[0]?.dt;
     const noon = arr.find((a) => {
       const h = new Date(a?.dt * 1000).getHours();
@@ -70,6 +69,5 @@ export async function fetch7DayByLatLon(lat, lon) {
     });
   }
 
-  // OpenWeather forecast provides up to ~5-6 days; giới hạn 6 ngày
   return daily.slice(0, 6);
 }
