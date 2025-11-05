@@ -96,6 +96,21 @@
   align-items: flex-end;
 }
 
+/* Responsive/select helpers for native dropdown borders at any zoom */
+.selectWrapper {
+  min-width: 200px;
+  position: relative;
+  z-index: 10;
+  overflow: visible; /* keep wrapper border visible when dropdown opens */
+}
+
+@media (max-width: 640px) {
+  .selectWrapper {
+    min-width: 100%;
+    width: 100%;
+  }
+}
+
 .search-box {
   flex: 1;
   min-width: 300px;

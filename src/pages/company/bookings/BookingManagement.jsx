@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import styles from './BookingManagement.module.css';
 import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
 import { 
@@ -14,16 +15,16 @@ import {
 
 const BookingManagement = () => {
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
-  const showErrorRef = useRef(showError);
+  // consts only
   
   const [bookings, setBookings] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tours, setTours] = useState([]);
   const [toursLoading, setToursLoading] = useState(true);
-  const [selectedTourId, setSelectedTourId] = useState(null);
+  const selectedTourIdRef = useRef(null);
   const [currentTourPage, setCurrentTourPage] = useState(1);
   const [toursPerPage] = useState(5);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,12 +51,12 @@ const BookingManagement = () => {
 
   const handleApproveBooking = (bookingId) => {
     setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, bookingStatus: 'BOOKING_SUCCESS' } : b));
-    showSuccess && showSuccess('Đã duyệt booking');
+    showSuccess?.('Đã duyệt booking');
   };
 
   const handleRejectBooking = (bookingId) => {
     setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, bookingStatus: 'BOOKING_REJECTED' } : b));
-    showSuccess && showSuccess('Đã từ chối booking');
+    showSuccess?.('Đã từ chối booking');
   };
 
   // Load company tours first
@@ -81,6 +82,7 @@ const BookingManagement = () => {
         setCurrentTourPage(1); // Reset to first page when tours are loaded
       }
     } catch (e) {
+      console.error(e);
       setTours([]);
     } finally {
       setToursLoading(false);
@@ -101,13 +103,7 @@ const BookingManagement = () => {
     filterAndPaginateBookings();
   }, [searchQuery, statusFilter, sortBy, currentPage, allBookings]);
 
-  const fetchBookings = async () => {
-    // For now, use mock data as requested
-    setLoading(true);
-    const mock = generateMockBookings();
-    setAllBookings(mock);
-    setLoading(false);
-  };
+  // no-op: fetching real bookings will replace this
 
   const generateMockBookings = () => {
     const tours = ['Tour Hạ Long', 'Tour Sapa', 'Tour Phú Quốc', 'Tour Đà Lạt'];
@@ -122,7 +118,7 @@ const BookingManagement = () => {
         bookingId: `BK-${String(i).padStart(4, '0')}`,
         tourId: tourIndex + 1,
         tourName: tours[tourIndex],
-        contactName: `Nguyễn Văn ${String.fromCharCode(65 + (i % 26))}`,
+        contactName: `Nguyễn Văn ${String.fromCodePoint(65 + (i % 26))}`,
         contactEmail: `user${i}@example.com`,
         contactPhone: `09${Math.floor(10000000 + Math.random() * 89999999)}`,
         departureDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
@@ -224,6 +220,10 @@ const BookingManagement = () => {
     }
   };
 
+  const formatStatusDisplay = (status) => {
+    return status.replaceAll('_', ' ');
+  };
+
   // status badge helper not needed; computed inline
 
   // Optional stats (unused in current UI)
@@ -246,7 +246,7 @@ const BookingManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-visible">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Quản lý Tour Booking</h1>
@@ -270,7 +270,7 @@ const BookingManagement = () => {
                   key={tour.id}
                   className={`flex-shrink-0 text-left border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow`}
                   style={{ width: '220px', minWidth: '220px' }}
-                  onClick={() => { setSelectedTourId(tour.id); setCurrentPage(1); }}
+                  onClick={() => { selectedTourIdRef.current = tour.id; setCurrentPage(1); }}
                 >
                   {/* Fixed image height for uniform cards */}
                   <div style={{ height: 160, background: '#f3f4f6' }}>
@@ -330,7 +330,7 @@ const BookingManagement = () => {
                         <span className="sr-only">Trước</span>
                         <ChevronLeftIcon className="h-5 w-5" />
                       </button>
-                      {[...Array(totalTourPages)].map((_, idx) => {
+                      {new Array(totalTourPages).fill(null).map((_, idx) => {
                         const page = idx + 1;
                         if (totalTourPages <= 7 || page === 1 || page === totalTourPages || (page >= currentTourPage - 1 && page <= currentTourPage + 1)) {
                           return (
@@ -369,7 +369,7 @@ const BookingManagement = () => {
       </div>
 
       {/* Filters (always visible with mock data) */}
-      <div className="bg-white shadow-sm rounded-lg p-4">
+      <div className="bg-white shadow-sm rounded-lg p-4 overflow-visible">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           {/* Search */}
           <div className="relative flex-1 w-full sm:max-w-md">
@@ -389,34 +389,44 @@ const BookingManagement = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3 w-full sm:w-auto">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              {statuses.map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
+          <div className="flex gap-3 w-full sm:w-auto overflow-visible">
+            {/* Status */}
+            <div className={`${styles.selectWrapper} relative z-10`}>
+              <div className="border border-gray-300 rounded-md bg-white focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-3 py-2 bg-transparent outline-none appearance-none border-0 sm:text-sm"
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  {statuses.map((status) => (
+                    <option key={status} value={status}>{formatStatusDisplay(status)}</option>
+                  ))}
+                </select>
+              </div>
+              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
+              </svg>
+            </div>
 
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-            >
-              <option value="newest">Sắp xếp theo: Mới nhất</option>
-              <option value="oldest">Sắp xếp theo: Cũ nhất</option>
-              <option value="amount-desc">Số tiền cao → thấp</option>
-              <option value="amount-asc">Số tiền thấp → cao</option>
-            </select>
+            {/* Sort */}
+            <div className={`${styles.selectWrapper} relative z-10`}>
+              <div className="border border-gray-300 rounded-md bg-white focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500">
+                <select
+                  value={sortBy}
+                  onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-3 py-2 bg-transparent outline-none appearance-none border-0 sm:text-sm"
+                >
+                  <option value="newest">Sắp xếp theo: Mới nhất</option>
+                  <option value="oldest">Sắp xếp theo: Cũ nhất</option>
+                  <option value="amount-desc">Số tiền cao → thấp</option>
+                  <option value="amount-asc">Số tiền thấp → cao</option>
+                </select>
+              </div>
+              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -532,7 +542,7 @@ const BookingManagement = () => {
                   <span className="sr-only">Trước</span>
                   <ChevronLeftIcon className="h-5 w-5" />
                 </button>
-                {[...Array(totalPages)].map((_, idx) => {
+                {new Array(totalPages).fill(null).map((_, idx) => {
                   const page = idx + 1;
                   if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
                     return (

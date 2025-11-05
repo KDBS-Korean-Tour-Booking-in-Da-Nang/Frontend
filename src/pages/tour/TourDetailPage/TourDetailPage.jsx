@@ -8,7 +8,6 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 import { useTourRated } from "../../../hooks/useTourRated";
-import CityWeatherCard from "../../../components/weather/CityWeatherCard";
 import useWeatherFromTour from "../../../hooks/useWeatherFromTour";
 import DeleteConfirmModal from "../../../components/modals/DeleteConfirmModal/DeleteConfirmModal";
 
@@ -57,11 +56,8 @@ const TourDetailPage = () => {
   const {
     ratings,
     submitRating,
-    updateRating,
     deleteRating,
     canRate,
-    ratedByMe,
-    myRating,
     refresh,
   } = useTourRated(id);
   const [newStar, setNewStar] = useState(5);
@@ -206,11 +202,9 @@ const TourDetailPage = () => {
       return;
     }
     // Clear any previous booking wizard data for this tour before starting a new booking
-    try {
-      localStorage.removeItem(`bookingData_${id}`);
-      localStorage.removeItem(`hasConfirmedLeave_${id}`);
-      sessionStorage.removeItem("pendingBooking");
-    } catch (_) {}
+    localStorage.removeItem(`bookingData_${id}`);
+    localStorage.removeItem(`hasConfirmedLeave_${id}`);
+    sessionStorage.removeItem("pendingBooking");
     navigate(`/tour/${id}/booking`);
   };
 
@@ -431,16 +425,25 @@ const TourDetailPage = () => {
 
                       // Bắt đầu từ index cloneCount (item đầu tiên của baseDays thật)
                       const [idx, setIdx] = useState(n > 0 ? cloneCount : 0);
-                      const [noTransition, setNoTransition] = useState(false);
+                      const [noTransition, setNoTransition] = useState(true); // start without transition
                       const trackRef = useRef(null);
                       const stepPxRef = useRef(0);
-                      const autoplayRef = useRef(null);
 
-                      // Reset về vị trí ban đầu khi dữ liệu thay đổi
+                      // NEW: time-based autoplay with RAF
+                      const STEP_MS = 4000;
+                      const lastStepRef = useRef(performance.now());
+                      const rafRef = useRef(0);
+                      const pausedRef = useRef(false);
+                      const hiddenAtRef = useRef(null);
+
+                      // Reset về vị trí ban đầu khi dữ liệu thay đổi: set without transition then enable
                       useEffect(() => {
                         if (n > 0) {
+                          setNoTransition(true);
                           setIdx(cloneCount);
-                          setNoTransition(false);
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => setNoTransition(false));
+                          });
                         }
                       }, [n, cloneCount]);
 
@@ -466,18 +469,52 @@ const TourDetailPage = () => {
                         };
                       }, []);
 
+                      // Visibility: compute missed steps and replay smoothly
+                      useEffect(() => {
+                        const onVis = () => {
+                          if (document.hidden) {
+                            hiddenAtRef.current = performance.now();
+                            return;
+                          }
+                          const now = performance.now();
+                          const hiddenFor = hiddenAtRef.current ? (now - hiddenAtRef.current) : 0;
+                          hiddenAtRef.current = null;
+                          const missed = Math.floor(hiddenFor / STEP_MS);
+                          if (missed > 0) {
+                            let i = 0;
+                            const PLAY_DELAY = 250;
+                            const playOne = () => {
+                              setIdx((c) => c + 1);
+                              i += 1;
+                              if (i < missed) setTimeout(playOne, PLAY_DELAY);
+                            };
+                            setTimeout(playOne, 0);
+                            lastStepRef.current = now;
+                          } else {
+                            lastStepRef.current = now;
+                          }
+                        };
+                        document.addEventListener("visibilitychange", onVis);
+                        return () => document.removeEventListener("visibilitychange", onVis);
+                      }, []);
+
+                      // RAF autoplay loop
                       useEffect(() => {
                         if (n === 0) return;
-                        autoplayRef.current = setInterval(() => {
-                          setIdx((c) => {
-                            // Tăng index liên tục, reset sẽ xử lý trong handleTransitionEnd
-                            return c + 1;
-                          });
-                        }, 4000);
-                        return () => {
-                          if (autoplayRef.current) clearInterval(autoplayRef.current);
+                        const loop = (t) => {
+                          if (!pausedRef.current && !document.hidden) {
+                            if (t - lastStepRef.current >= STEP_MS) {
+                              const steps = Math.floor((t - lastStepRef.current) / STEP_MS);
+                              // Advance exactly one visual step to keep cadence
+                              setIdx((c) => c + 1);
+                              lastStepRef.current += steps * STEP_MS;
+                            }
+                          }
+                          rafRef.current = requestAnimationFrame(loop);
                         };
-                      }, [n, cloneCount]);
+                        rafRef.current = requestAnimationFrame(loop);
+                        return () => cancelAnimationFrame(rafRef.current);
+                      }, [n, STEP_MS]);
 
                       const handleTransitionEnd = () => {
                         // Khi đã trượt đến clone items ở cuối (cloneCount + n), reset về cloneCount (đầu baseDays thật)
@@ -498,21 +535,8 @@ const TourDetailPage = () => {
                         }
                       };
 
-                      const onMouseEnter = () => {
-                        if (autoplayRef.current) {
-                          clearInterval(autoplayRef.current);
-                          autoplayRef.current = null;
-                        }
-                      };
-                      
-                      const onMouseLeave = () => {
-                        if (n === 0) return;
-                        if (!autoplayRef.current) {
-                          autoplayRef.current = setInterval(() => {
-                            setIdx((c) => c + 1);
-                          }, 4000);
-                        }
-                      };
+                      const onMouseEnter = () => { pausedRef.current = true; };
+                      const onMouseLeave = () => { pausedRef.current = false; };
 
                       const translate = -(idx * stepPxRef.current);
 
@@ -525,8 +549,8 @@ const TourDetailPage = () => {
                         >
                           <div
                             ref={trackRef}
-                            className={`${styles["weather-track"]} ${noTransition ? styles["no-transition"] : ""}`}
-                            style={{ transform: `translateX(${translate}px)` }}
+                            className={styles["weather-track"]}
+                            style={{ transform: `translateX(${translate}px)`, transition: noTransition ? "none" : undefined }}
                             onTransitionEnd={handleTransitionEnd}
                           >
                             {infiniteDays.map((d, di) => {
@@ -873,7 +897,7 @@ const TourDetailPage = () => {
                       gap: 6,
                     }}
                   >
-                    {[5, 4, 3, 2, 1].map((s, idx) => {
+                    {[5, 4, 3, 2, 1].map((s) => {
                       const count = ratingStats.dist[s - 1] || 0;
                       const percent = ratingStats.total
                         ? (count / ratingStats.total) * 100
@@ -1253,7 +1277,7 @@ const TourDetailPage = () => {
         isOpen={openShare}
         onClose={() => setOpenShare(false)}
         tourId={id}
-        onShared={(post) => {
+        onShared={() => {
           navigate("/forum");
         }}
       />
