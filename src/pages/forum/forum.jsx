@@ -468,8 +468,13 @@ const Forum = () => {
   };
 
   return (
-    <div className={styles['forum-container']}>
-      <div className={styles['forum-content']}>
+    <div className={styles.pageRoot}>
+      {/* Layer nền gradient phủ toàn màn hình */}
+      <div className={styles.pageBackground} aria-hidden="true"></div>
+
+      {/* Toàn bộ forum */}
+      <div className={styles['forum-container']}>
+        <div className={styles['forum-content']}>
         {/* Header: HÀNG 1 của grid */}
         {user ? (
           <div id="forum-header" ref={headerRef} className={styles['forum-header']}>
@@ -731,6 +736,7 @@ const Forum = () => {
           selectedHashtags={selectedHashtags}
         />
       )}
+      </div>
     </div>
   );
 };

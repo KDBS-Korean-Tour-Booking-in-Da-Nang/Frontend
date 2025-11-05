@@ -18,16 +18,12 @@ const VNPaySuccessPage = ({ paymentType }) => {
   useEffect(() => {
     // Check if we have data from location state (from VNPayReturnPage or TransactionResultPage)
     if (location.state) {
-      const finalPaymentType = location.state.paymentType || paymentType;
-      
       setTransactionData({
         orderId: location.state.orderId,
         paymentMethod: location.state.paymentMethod,
         responseCode: location.state.responseCode,
-        paymentType: finalPaymentType,
         bookingData: location.state.bookingData,
         tourId: location.state.tourId,
-        premiumData: location.state.premiumData,
         paymentInfo: location.state.paymentInfo
       });
 
@@ -50,9 +46,7 @@ const VNPaySuccessPage = ({ paymentType }) => {
 
     // Get pending booking or premium data from sessionStorage
     const pendingBookingData = sessionStorage.getItem('pendingBooking');
-    const pendingPremiumData = sessionStorage.getItem('pendingPremiumPayment');
     let bookingData = null;
-    let premiumData = null;
     
     if (pendingBookingData) {
       try {
@@ -62,28 +56,16 @@ const VNPaySuccessPage = ({ paymentType }) => {
       }
     }
     
-    if (pendingPremiumData) {
-      try {
-        premiumData = JSON.parse(pendingPremiumData);
-      } catch (error) {
-        console.error('Error parsing pending premium data:', error);
-      }
-    }
-
-    // Set transaction data - prioritize paymentType from prop
-    const detectedPaymentType = premiumData ? 'premium' : 'booking';
-    const finalPaymentType = paymentType || detectedPaymentType;
+    
     
     
     setTransactionData({
       orderId,
       paymentMethod,
       responseCode,
-      paymentType: finalPaymentType,
       bookingData: bookingData?.bookingData,
       tourId: bookingData?.tourId,
-      premiumData: premiumData?.premiumData,
-      paymentInfo: bookingData?.paymentInfo || premiumData?.paymentInfo
+      paymentInfo: bookingData?.paymentInfo
     });
 
     // Show success message only once
@@ -98,9 +80,7 @@ const VNPaySuccessPage = ({ paymentType }) => {
     if (pendingBookingData) {
       sessionStorage.removeItem('pendingBooking');
     }
-    if (pendingPremiumData) {
-      sessionStorage.removeItem('pendingPremiumPayment');
-    }
+    
   }, [location.search, location.state, showSuccess, toastShown]);
 
   // useEffect(() => {
@@ -201,14 +181,7 @@ const VNPaySuccessPage = ({ paymentType }) => {
         {/* Success Message */}
         <div className={styles['success-message']}>
           <h1>🎉 {t('payment.paymentSuccessTitle')}</h1>
-          <p className={styles['success-subtitle']}>
-            {(() => {
-              const message = transactionData?.paymentType === 'premium' 
-                ? 'Cảm ơn bạn đã thanh toán. Gói Premium đã được kích hoạt thành công!'
-                : t('payment.paymentSuccessMessage');
-              return message;
-            })()}
-          </p>
+          <p className={styles['success-subtitle']}>{t('payment.paymentSuccessMessage')}</p>
         </div>
 
         {/* Transaction Details */}
@@ -234,28 +207,7 @@ const VNPaySuccessPage = ({ paymentType }) => {
           </div>
         )}
 
-        {/* Premium Details */}
-        {transactionData?.paymentType === 'premium' && transactionData?.premiumData && (
-          <div className={styles['premium-details']}>
-            <h2>🌟 Thông tin gói Premium</h2>
-            <div className={styles['premium-info-grid']}>
-              <div className={styles['info-item']}>
-                <span className={styles['info-label']}>Gói Premium:</span>
-                <span className={styles['info-value']}>{transactionData.premiumData.planName}</span>
-              </div>
-              
-              <div className={styles['info-item']}>
-                <span className={styles['info-label']}>Số tiền thanh toán:</span>
-                <span className={styles['info-value']}>{transactionData.premiumData.amount?.toLocaleString('vi-VN')} VND</span>
-              </div>
-              
-              <div className={styles['info-item']}>
-                <span className={styles['info-label']}>Trạng thái:</span>
-                <span className={`${styles['info-value']} ${styles['premium-status']}`}>Đã kích hoạt</span>
-              </div>
-            </div>
-          </div>
-        )}
+        
 
         {/* Booking Details */}
         {transactionData?.bookingData && (
@@ -354,25 +306,6 @@ const VNPaySuccessPage = ({ paymentType }) => {
 
         {/* Action Buttons */}
         <div className={styles['action-buttons']}>
-          {transactionData?.paymentType === 'premium' ? (
-            // Premium payment buttons
-            <>
-              <button 
-                className={styles['btn-primary']}
-                onClick={handleGoHome}
-              >
-                Về trang chủ
-              </button>
-              
-              <button 
-                className={styles['btn-secondary']}
-                onClick={() => navigate('/profile')}
-              >
-                Xem tài khoản Premium
-              </button>
-            </>
-          ) : (
-            // Booking payment buttons
             <>
               <button 
                 className={styles['btn-primary']}
@@ -395,7 +328,6 @@ const VNPaySuccessPage = ({ paymentType }) => {
                 Về trang chủ
               </button>
             </>
-          )}
         </div>
 
         {/* Countdown */}

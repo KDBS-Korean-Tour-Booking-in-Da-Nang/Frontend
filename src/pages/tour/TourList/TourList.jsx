@@ -27,6 +27,8 @@ const TourList = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1); // Pagination cho client-side (1-based)
+  const TOURS_PER_PAGE = 12; // 4 cột x 3 hàng
   const debounceRef = useRef(null);
   const controllerRef = useRef(null);
   const carouselIntervalRef = useRef(null);
@@ -51,6 +53,7 @@ const TourList = () => {
   useEffect(() => {
     if (!isSearchMode) {
       setFilteredTours(tours || []);
+      setCurrentPage(1); // Reset về trang 1 khi tours thay đổi
     }
   }, [tours, isSearchMode]);
 
@@ -66,6 +69,7 @@ const TourList = () => {
       setPage(0);
       setTotalPages(0);
       setFilteredTours(tours || []);
+      setCurrentPage(1); // Reset về trang 1 khi clear search
       return;
     }
 
@@ -78,6 +82,7 @@ const TourList = () => {
       setFilteredTours(res.items || []);
       setPage(res.pageNumber || 0);
       setTotalPages(res.totalPages || 0);
+      setCurrentPage(1); // Reset về trang 1 khi search mới
     }, 350);
 
     return () => {
@@ -105,6 +110,7 @@ const TourList = () => {
       setFilteredTours(res.items || []);
       setPage(res.pageNumber || 0);
       setTotalPages(res.totalPages || 0);
+      setCurrentPage(1); // Reset về trang 1 khi Enter search
     }
   };
 
@@ -157,6 +163,29 @@ const TourList = () => {
       setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length);
     }, 4000);
   };
+
+  // Tính toán pagination cho client-side (khi không ở search mode)
+  const getPaginatedTours = () => {
+    if (isSearchMode) {
+      // Trong search mode, sử dụng filteredTours từ server
+      return filteredTours;
+    }
+    // Client-side pagination
+    const startIndex = (currentPage - 1) * TOURS_PER_PAGE;
+    const endIndex = startIndex + TOURS_PER_PAGE;
+    return filteredTours.slice(startIndex, endIndex);
+  };
+
+  const getClientTotalPages = () => {
+    if (isSearchMode) {
+      return 0; // Server-side pagination, không dùng client pagination
+    }
+    return Math.ceil(filteredTours.length / TOURS_PER_PAGE);
+  };
+
+  const clientTotalPages = getClientTotalPages();
+  const displayTours = getPaginatedTours();
+  const shouldShowPagination = !isSearchMode && filteredTours.length > TOURS_PER_PAGE;
 
   return (
     <div className={styles["tour-list-container"]}>
@@ -264,12 +293,12 @@ const TourList = () => {
           ) : (
             <>
               <div className={styles["tours-grid"]}>
-                {filteredTours.map((tour) => (
+                {displayTours.map((tour) => (
                   <TourCard key={tour.id} tour={tour} />
                 ))}
               </div>
 
-              {filteredTours.length === 0 && !loading && (
+              {displayTours.length === 0 && !loading && (
                 <div className={styles["no-tours"]}>
                   <div className={styles["no-tours-content"]}>
                     <svg
@@ -287,6 +316,95 @@ const TourList = () => {
                     </svg>
                     <h3>{t("tourList.empty.title")}</h3>
                     <p>{t("tourList.empty.desc")}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Pagination - chỉ hiển thị khi có nhiều hơn 12 tours */}
+              {shouldShowPagination && (
+                <div className={styles["pagination-container"]}>
+                  <div className={styles["pagination"]}>
+                    <button
+                      className={styles["pagination-btn"]}
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      aria-label="First page"
+                    >
+                      ««
+                    </button>
+                    <button
+                      className={styles["pagination-btn"]}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      aria-label="Previous page"
+                    >
+                      ‹
+                    </button>
+                    
+                    {/* Page numbers */}
+                    {Array.from({ length: Math.min(5, clientTotalPages) }, (_, i) => {
+                      let pageNum;
+                      if (clientTotalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= clientTotalPages - 2) {
+                        pageNum = clientTotalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`${styles["pagination-page"]} ${
+                            currentPage === pageNum ? styles["active"] : ""
+                          }`}
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                    
+                    {clientTotalPages > 5 && currentPage < clientTotalPages - 2 && (
+                      <span className={styles["pagination-ellipsis"]}>...</span>
+                    )}
+                    
+                    {clientTotalPages > 5 && currentPage < clientTotalPages - 2 && (
+                      <button
+                        className={`${styles["pagination-page"]} ${
+                          currentPage === clientTotalPages ? styles["active"] : ""
+                        }`}
+                        onClick={() => setCurrentPage(clientTotalPages)}
+                      >
+                        {clientTotalPages}
+                      </button>
+                    )}
+                    
+                    <button
+                      className={styles["pagination-btn"]}
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === clientTotalPages}
+                      aria-label="Next page"
+                    >
+                      ›
+                    </button>
+                    <button
+                      className={styles["pagination-btn"]}
+                      onClick={() => setCurrentPage(clientTotalPages)}
+                      disabled={currentPage === clientTotalPages}
+                      aria-label="Last page"
+                    >
+                      »»
+                    </button>
+                  </div>
+                  <div className={styles["pagination-info"]}>
+                    {t("tourList.pagination.showing", {
+                      start: (currentPage - 1) * TOURS_PER_PAGE + 1,
+                      end: Math.min(currentPage * TOURS_PER_PAGE, filteredTours.length),
+                      total: filteredTours.length,
+                    })}
                   </div>
                 </div>
               )}

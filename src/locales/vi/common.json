@@ -1251,7 +1251,7 @@
         "title": "Hình ảnh tour"
       },
       "weather": {
-        "title": "Thời tiết 7 ngày",
+        "title": "Thời tiết ở khu vực:",
         "loading": "Đang tải thời tiết...",
         "empty": "Không có dữ liệu thời tiết.",
         "cityRange": "{{city}} — {{days}} ngày"
@@ -1314,7 +1314,10 @@
       "title": "Không tìm thấy tour nào",
       "desc": "Hãy thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác."
     },
-    "loadMore": "Xem thêm"
+    "loadMore": "Xem thêm",
+    "pagination": {
+      "showing": "Hiển thị {{start}} đến {{end}} trong tổng số {{total}} tour"
+    }
   },
   "bookingHistory": {
     "title": "Lịch sử đặt tour",

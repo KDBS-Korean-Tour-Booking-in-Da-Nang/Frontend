@@ -184,8 +184,26 @@
 }
 
 .weather-viewport {
+  --w-gap: 12px;
+  --w-cols: 4; /* số cột mặc định = 4 card/khung */
+  --w-gutter: calc(var(--w-gap) / 2);
   overflow: hidden;
+  padding: 0 var(--w-gutter); /* thêm gutter 2 bên để không cắt card */
   position: relative;
+  box-sizing: content-box; /* để padding không co track */
+}
+
+/* Track trượt liên tục */
+.weather-track {
+  display: flex;
+  gap: var(--w-gap); /* dùng gap thay vì margin-right trên card */
+  transition: transform 500ms ease; /* mượt khi trượt */
+  will-change: transform;
+}
+
+/* Khi cần nhảy (reset về đầu) thì tắt transition để không bị giật */
+.weather-track.no-transition {
+  transition: none;
 }
 
 .weather-grid {
@@ -209,27 +227,22 @@
   }
 }
 
-.weather-track {
-  display: flex;
-  gap: 0;
-  transition: transform 500ms ease;
-  width: auto;
+/* Bỏ animation "slide-enter" cũ để tránh cảm giác load */
+.slide-enter {
+  animation: none;
 }
 
+/* Tính bề rộng card theo công thức trừ gap để đủ 4 thẻ lọt khung */
 .weather-card {
+  flex: 0 0 calc((100% - (var(--w-gap) * (var(--w-cols) - 1))) / var(--w-cols));
   border: 1px solid #e5e7eb;
   background: linear-gradient(180deg, #ffffff, #f3f6fb);
   padding: 14px;
-  /* 4 cards per view, spacing via margin-right (no gap to simplify translate) */
-  flex: 0 0 25%;
-  margin-right: 12px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
 }
 
-.weather-card:last-child {
-  margin-right: 0;
-}
+/* không cần xử lý last-child vì đã dùng gap trên track */
 
 .weather-card-header {
   display: flex;

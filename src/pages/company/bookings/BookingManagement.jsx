@@ -1,19 +1,31 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../contexts/ToastContext';
+import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  EyeIcon,
+  CheckCircleIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 
 const BookingManagement = () => {
   const { t } = useTranslation();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
+  const navigate = useNavigate();
+  const showErrorRef = useRef(showError);
   
   const [bookings, setBookings] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tours, setTours] = useState([]);
+  const [toursLoading, setToursLoading] = useState(true);
+  const [selectedTourId, setSelectedTourId] = useState(null);
+  const [currentTourPage, setCurrentTourPage] = useState(1);
+  const [toursPerPage] = useState(5);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -31,8 +43,58 @@ const BookingManagement = () => {
     'BOOKING_SUCCESS'
   ];
 
+  const handleViewBooking = (bookingId) => {
+    if (!bookingId) return;
+    navigate(`/user/booking/${bookingId}`);
+  };
+
+  const handleApproveBooking = (bookingId) => {
+    setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, bookingStatus: 'BOOKING_SUCCESS' } : b));
+    showSuccess && showSuccess('Đã duyệt booking');
+  };
+
+  const handleRejectBooking = (bookingId) => {
+    setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, bookingStatus: 'BOOKING_REJECTED' } : b));
+    showSuccess && showSuccess('Đã từ chối booking');
+  };
+
+  // Load company tours first
+  const fetchCompanyTours = useCallback(async () => {
+    try {
+      setToursLoading(true);
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      if (!token) {
+        setTours([]);
+        setToursLoading(false);
+        return;
+      }
+      const res = await fetch(API_ENDPOINTS.TOURS, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        setTours([]);
+      } else {
+        const data = await res.json();
+        setTours(Array.isArray(data) ? data : []);
+        setCurrentTourPage(1); // Reset to first page when tours are loaded
+      }
+    } catch (e) {
+      setTours([]);
+    } finally {
+      setToursLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchCompanyTours(); }, [fetchCompanyTours]);
+
+  // Load mock bookings initially (list without requiring selection)
   useEffect(() => {
-    fetchBookings();
+    setLoading(true);
+    const mock = generateMockBookings();
+    setAllBookings(mock);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -40,16 +102,11 @@ const BookingManagement = () => {
   }, [searchQuery, statusFilter, sortBy, currentPage, allBookings]);
 
   const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      const mockBookings = generateMockBookings();
-      setAllBookings(mockBookings);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      showError(t('bookingManagement.errors.loadFailed') || 'Failed to load bookings');
-    } finally {
-      setLoading(false);
-    }
+    // For now, use mock data as requested
+    setLoading(true);
+    const mock = generateMockBookings();
+    setAllBookings(mock);
+    setLoading(false);
   };
 
   const generateMockBookings = () => {
@@ -134,6 +191,19 @@ const BookingManagement = () => {
     }
   };
 
+  const handleTourPageChange = (page) => {
+    const totalTourPages = Math.ceil(tours.length / toursPerPage);
+    if (page >= 1 && page <= totalTourPages) {
+      setCurrentTourPage(page);
+    }
+  };
+
+  // Calculate paginated tours
+  const totalTourPages = Math.ceil(tours.length / toursPerPage);
+  const startTourIndex = (currentTourPage - 1) * toursPerPage;
+  const endTourIndex = startTourIndex + toursPerPage;
+  const paginatedTours = tours.slice(startTourIndex, endTourIndex);
+
   // format helpers not needed here
 
   const getStatusColor = (status) => {
@@ -166,16 +236,139 @@ const BookingManagement = () => {
     );
   }
 
+  const getImageSrc = (tourImgPath) => {
+    if (!tourImgPath) return '';
+    if (tourImgPath.startsWith('http')) return tourImgPath;
+    const normalized = tourImgPath.startsWith('/uploads')
+      ? tourImgPath
+      : `/uploads/tours/thumbnails/${tourImgPath}`;
+    return getImageUrl(normalized);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý Tour Booking</h1>
           <p className="mt-1 text-sm text-gray-500">Quản lý tất cả các booking theo tour</p>
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Tour Cards Selector */}
+      <div className="bg-white shadow-sm rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-3">Chọn tour để xem booking</h2>
+        {toursLoading ? (
+          <div className="text-gray-500">Đang tải danh sách tour...</div>
+        ) : tours.length === 0 ? (
+          <div className="text-gray-500">Chưa có tour nào.</div>
+        ) : (
+          <>
+            {/* Tour Cards - Single Row */}
+            <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+              {paginatedTours.map((tour) => (
+                <button
+                  key={tour.id}
+                  className={`flex-shrink-0 text-left border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow`}
+                  style={{ width: '220px', minWidth: '220px' }}
+                  onClick={() => { setSelectedTourId(tour.id); setCurrentPage(1); }}
+                >
+                  {/* Fixed image height for uniform cards */}
+                  <div style={{ height: 160, background: '#f3f4f6' }}>
+                    {tour.tourImgPath ? (
+                      <img
+                        src={getImageSrc(tour.tourImgPath)}
+                        alt={tour.tourName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.src = '/default-Tour.jpg'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">🏞️</div>
+                    )}
+                  </div>
+                  {/* Fixed content height so cards align */}
+                  <div className="p-3 flex flex-col justify-between" style={{ height: 112 }}>
+                    <div className="font-semibold leading-snug line-clamp-2" title={tour.tourName || ''}>{tour.tourName}</div>
+                    <div className="text-sm text-gray-500 mt-2">Mã tour: {tour.id}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Tour Pagination */}
+            {totalTourPages > 1 && (
+              <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => handleTourPageChange(currentTourPage - 1)}
+                    disabled={currentTourPage === 1}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Trước
+                  </button>
+                  <button
+                    onClick={() => handleTourPageChange(currentTourPage + 1)}
+                    disabled={currentTourPage === totalTourPages}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Sau
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Hiển thị trang <span className="font-medium">{currentTourPage}</span> / <span className="font-medium">{totalTourPages}</span> của{' '}
+                      <span className="font-medium">{tours.length}</span> tour
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => handleTourPageChange(currentTourPage - 1)}
+                        disabled={currentTourPage === 1}
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="sr-only">Trước</span>
+                        <ChevronLeftIcon className="h-5 w-5" />
+                      </button>
+                      {[...Array(totalTourPages)].map((_, idx) => {
+                        const page = idx + 1;
+                        if (totalTourPages <= 7 || page === 1 || page === totalTourPages || (page >= currentTourPage - 1 && page <= currentTourPage + 1)) {
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => handleTourPageChange(page)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                currentTourPage === page
+                                  ? 'z-10 bg-red-600 border-red-600 text-white'
+                                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        } else if (page === currentTourPage - 2 || page === currentTourPage + 2) {
+                          return <span key={page} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>;
+                        }
+                        return null;
+                      })}
+                      <button
+                        onClick={() => handleTourPageChange(currentTourPage + 1)}
+                        disabled={currentTourPage === totalTourPages}
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="sr-only">Sau</span>
+                        <ChevronRightIcon className="h-5 w-5" />
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Filters (always visible with mock data) */}
       <div className="bg-white shadow-sm rounded-lg p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           {/* Search */}
@@ -190,7 +383,7 @@ const BookingManagement = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Tìm kiếm tour, tên khách, mã booking..."
+              placeholder="Tìm kiếm tên khách, mã booking..."
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm"
             />
           </div>
@@ -221,10 +414,8 @@ const BookingManagement = () => {
             >
               <option value="newest">Sắp xếp theo: Mới nhất</option>
               <option value="oldest">Sắp xếp theo: Cũ nhất</option>
-              <option value="tour-asc">Sắp xếp theo: Tên tour A-Z</option>
-              <option value="tour-desc">Sắp xếp theo: Tên tour Z-A</option>
-              <option value="amount-desc">Sắp xếp theo: Số tiền cao → thấp</option>
-              <option value="amount-asc">Sắp xếp theo: Số tiền thấp → cao</option>
+              <option value="amount-desc">Số tiền cao → thấp</option>
+              <option value="amount-asc">Số tiền thấp → cao</option>
             </select>
           </div>
         </div>
@@ -246,6 +437,7 @@ const BookingManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số tiền</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -270,6 +462,34 @@ const BookingManagement = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(b.createdAt).toLocaleDateString('vi-VN')}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          title="Xem chi tiết"
+                          onClick={() => handleViewBooking(b.bookingId)}
+                          className="p-1 rounded hover:bg-gray-100 text-gray-600"
+                        >
+                          <EyeIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Duyệt"
+                          onClick={() => handleApproveBooking(b.id)}
+                          className="p-1 rounded hover:bg-green-50 text-green-600"
+                        >
+                          <CheckCircleIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Từ chối"
+                          onClick={() => handleRejectBooking(b.id)}
+                          className="p-1 rounded hover:bg-red-50 text-red-600"
+                        >
+                          <XCircleIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}

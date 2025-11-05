@@ -1,9 +1,11 @@
 import axios from "axios";
 
 // 🌦️ Lấy dự báo thời tiết từ OpenWeather (2.5 forecast 3-hourly) và tổng hợp theo ngày
-export async function fetch7DayByLatLon(lat, lon) {
+export async function fetch7DayByLatLon(lat, lon, lang = "en") {
   const key = import.meta.env.VITE_OPENWEATHER_API_KEY;
-  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=vi&appid=${key}`;
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=${encodeURIComponent(
+    lang
+  )}&appid=${key}`;
   const { data } = await axios.get(url);
   const items = Array.isArray(data?.list) ? data.list : [];
 

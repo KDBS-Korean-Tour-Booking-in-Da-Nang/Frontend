@@ -1235,8 +1235,8 @@
 			"gallery": {
 				"title": "Tour gallery"
 			},
-			"weather": {
-				"title": "7-day Weather",
+            "weather": {
+                "title": "Weather in area:",
 				"loading": "Loading weather...",
 				"empty": "No weather data.",
 				"cityRange": "{{city}} — {{days}} days"
@@ -1299,7 +1299,10 @@
 			"title": "No tours found",
 			"desc": "Try a different keyword or select another category."
 		},
-		"loadMore": "Load more"
+		"loadMore": "Load more",
+		"pagination": {
+			"showing": "Showing {{start}} to {{end}} of {{total}} tours"
+		}
 	},
 	"bookingHistory": {
 		"title": "Booking History",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -13,10 +13,20 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [hashtags, setHashtags] = useState([]);
+  const [hashtagInput, setHashtagInput] = useState('');
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [showTagSuggest, setShowTagSuggest] = useState(false);
+  const suggestTimerRef = useRef(null);
+  const choosingTagRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen || !tourId) {
       setPreview(null);
+      setHashtags([]);
+      setHashtagInput('');
+      setTagSuggestions([]);
+      setShowTagSuggest(false);
       return;
     }
     
@@ -48,6 +58,35 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
     };
   }, [isOpen, tourId]);
 
+  // Hashtag suggestions (debounced) like PostModal
+  useEffect(() => {
+    const q = (hashtagInput || '').trim();
+    if (!q) {
+      setTagSuggestions([]);
+      setShowTagSuggest(false);
+      return;
+    }
+    if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
+    suggestTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_ENDPOINTS.HASHTAGS_SEARCH}?keyword=${encodeURIComponent(q)}&limit=8`);
+        if (!res.ok) throw new Error('search fail');
+        const data = await res.json();
+        const items = (data || []).map(h => h.content || h);
+        const filtered = items
+          .map(s => (s || '').toLowerCase())
+          .filter(s => s && s.startsWith(q.toLowerCase()))
+          .filter(s => !hashtags.includes(s));
+        setTagSuggestions(filtered);
+        setShowTagSuggest(true);
+      } catch (e) {
+        setTagSuggestions([]);
+        setShowTagSuggest(false);
+      }
+    }, 250);
+    return () => suggestTimerRef.current && clearTimeout(suggestTimerRef.current);
+  }, [hashtagInput, hashtags]);
+
   const createPost = async () => {
     if (!user) {
       showError('auth.loginRequired.title');
@@ -65,6 +104,10 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       if ((preview?.linkUrl || '').trim()) parts.push(preview.linkUrl.trim());
       const content = parts.join('\n');
       formData.append('content', content || ' ');
+      // Append hashtags like Post modal
+      hashtags.forEach(tag => {
+        formData.append('hashtags', tag);
+      });
       // Embed link metadata into content fields so backend stores them as normal post
       formData.append('metadata', JSON.stringify({
         linkType: 'TOUR',
@@ -143,6 +186,74 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
           />
+          {/* Hashtag input (below content) */}
+          <div className={styles['hashtag-input-container']}>
+            <input
+              type="text"
+              placeholder={t('forum.createPost.hashtagsPlaceholder') || 'Thêm hashtag, nhấn Enter để thêm'}
+              value={hashtagInput}
+              onChange={(e) => setHashtagInput(e.target.value)}
+              onKeyDown={(e) => {
+                const keys = ['Enter', ' ', 'Spacebar', ','];
+                if (keys.includes(e.key)) {
+                  e.preventDefault();
+                  const raw = hashtagInput;
+                  const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                  if (cleaned && !hashtags.includes(cleaned)) {
+                    setHashtags([...hashtags, cleaned]);
+                  }
+                  setHashtagInput('');
+                  setShowTagSuggest(false);
+                }
+              }}
+              onBlur={() => { if (!choosingTagRef.current) {
+                const raw = hashtagInput;
+                const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                if (cleaned && !hashtags.includes(cleaned)) setHashtags([...hashtags, cleaned]);
+                setHashtagInput('');
+                setShowTagSuggest(false);
+              } else choosingTagRef.current = false; }}
+              className={styles['hashtag-input']}
+              onFocus={() => tagSuggestions.length > 0 && setShowTagSuggest(true)}
+            />
+            {showTagSuggest && tagSuggestions.length > 0 && (
+              <div className={styles['tag-suggest']}>
+                {tagSuggestions.map((t, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles['tag-suggest-item']}
+                    onMouseDown={() => { choosingTagRef.current = true; }}
+                    onClick={() => {
+                      const tag = (t || '').toLowerCase();
+                      if (tag && !hashtags.includes(tag)) setHashtags([...hashtags, tag]);
+                      setHashtagInput('');
+                      setShowTagSuggest(false);
+                      choosingTagRef.current = false;
+                    }}
+                  >
+                    #{t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {hashtags.length > 0 && (
+            <div className={styles['hashtags-container']}>
+              {hashtags.map((tag, index) => (
+                <span key={index} className={styles['hashtag-chip']}>
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => setHashtags(hashtags.filter(h => h !== tag))}
+                    className={styles['remove-hashtag']}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className={styles['footer']}>
           <button className={styles['cancel']} onClick={onClose} disabled={loading}>{t('common.cancel') || 'Hủy'}</button>

@@ -13,12 +13,11 @@ import {
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
-import PremiumModal from '../../../pages/user/premium/PremiumModal';
 import NotificationDropdown from '../../NotificationDropdown';
 import ChatBox from '../../ChatBox';
 import ChatDropdown from '../../ChatDropdown';
 import WebSocketStatus from '../../WebSocketStatus';
-import { API_ENDPOINTS } from '../../../config/api';
+ 
 
 const Navbar = () => {
   const { user, logout, getToken } = useAuth();
@@ -45,8 +44,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const [premiumStatus, setPremiumStatus] = useState(null);
+  
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
@@ -77,46 +75,7 @@ const Navbar = () => {
     // Don't close notification when opening chat
   };
 
-  // Fetch premium status
-  useEffect(() => {
-    const fetchPremiumStatus = async () => {
-      // Skip premium check for STAFF and ADMIN roles
-      if (user && (user.role === 'STAFF' || user.role === 'ADMIN')) {
-        console.log('Skipping premium check for staff/admin user');
-        return;
-      }
-
-      try {
-        const token = getToken();
-        if (!token) {
-          console.log('No token available for premium status check');
-          return;
-        }
-
-        const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Backend trả về format: { message: "...", result: { isPremium: true/false, expirationDate: "..." } }
-          setPremiumStatus(data.result);
-        } else {
-          console.error('Failed to fetch premium status:', response.status);
-        }
-      } catch (error) {
-        console.error('Error fetching premium status:', error);
-      }
-    };
-
-    if (user) {
-      fetchPremiumStatus();
-    }
-  }, [user, getToken]);
+  
 
   // Handle scroll behavior
   useEffect(() => {
@@ -299,22 +258,9 @@ const Navbar = () => {
                       <div className={styles['dropdown-user-info']}>
                         <div className={styles['user-info-row']}>
                           <h4>{user.name || user.email}</h4>
-                          <button 
-                            className={`${styles['premium-icon']} ${premiumStatus?.isPremium ? styles['premium-active'] : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Chỉ mở modal khi user đã có premium để xem thông tin
-                              if (premiumStatus?.isPremium) {
-                                setIsPremiumModalOpen(true);
-                              }
-                            }}
-                            title={premiumStatus?.isPremium ? t('premium.title') : t('premium.title')}
-                            disabled={!premiumStatus?.isPremium}
-                          >
-                            <StarIcon />
-                          </button>
+                          
                         </div>
-                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})} {premiumStatus?.isPremium && <span className={styles['premium-badge']}>{t('premium.title')}</span>}</p>
+                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})}</p>
                       </div>
                     </div>
 
@@ -339,18 +285,7 @@ const Navbar = () => {
                         {t('nav.profileFull')}
                       </button>
                     )}
-                    {/* Open Premium modal for purchase from dropdown, under Profile */}
-                    {!isLockedToCompanyInfo ? (
-                      <button 
-                        className={styles['dropdown-item']}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsPremiumModalOpen(true);
-                        }}
-                      >
-                        {t('premium.purchase')}
-                      </button>
-                    ) : null}
+                    
                     {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}
@@ -477,11 +412,7 @@ const Navbar = () => {
         />
       )}
 
-      {/* Premium Modal */}
-      <PremiumModal 
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-      />
+      
     </>
   );
 };
