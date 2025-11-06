@@ -99,6 +99,11 @@
   overflow-y: auto;
 }
 
+/* Expanded state: taller panel with larger scroll area */
+.expanded .notificationsList {
+  max-height: 70vh;
+}
+
 .notificationItem {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #f3f4f6;
@@ -224,6 +229,49 @@
 .deleteBtn:hover {
   background: #fee2e2;
   color: #dc2626;
+}
+
+.moreBtn {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.moreBtn:hover {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.actionMenu {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 1001;
+}
+
+.actionMenuItem {
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.actionMenuItem:hover {
+  background: #f9fafb;
 }
 
 /* Empty State */

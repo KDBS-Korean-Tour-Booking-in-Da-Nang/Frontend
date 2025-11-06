@@ -445,6 +445,30 @@ figure { margin: 0; }
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3) !important;
 }
 
+/* ===== Carousel for Top Destinations ===== */
+.carouselViewport {
+  overflow: visible; /* cho phép card phóng to không bị cắt */
+}
+
+.carouselTrack {
+  display: flex;
+}
+
+.carouselCard {
+  /* 3 visible cards with fixed spacing between them (2 gaps of 32px) */
+  flex: 0 0 calc((100% - 64px) / 3);
+  margin-right: 32px;
+  position: relative; /* để z-index hoạt động khi hover */
+}
+
+.carouselTrack .carouselCard:last-child {
+  /* keep spacing consistent; last clone having margin is ok visually */
+}
+
+.carouselCard:hover {
+  z-index: 5; /* đảm bảo card hover nổi lên trên các card khác */
+}
+
 .explore-badge {
   background-color: rgba(255, 255, 255, 0.8) !important;
   transition: all 0.3s ease !important;

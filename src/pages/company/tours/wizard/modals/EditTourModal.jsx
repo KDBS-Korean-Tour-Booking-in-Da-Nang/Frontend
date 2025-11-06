@@ -225,8 +225,9 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
               title: c.tourContentTitle || '',
               description: c.tourContentDescription || '',
               images: c.images || [],
-              dayColor: c.dayColor || '#10b981',
-              titleAlignment: c.titleAlignment || 'left'
+              // Backend returns camelCase, but support both for backward compatibility
+              dayColor: c.dayColor || c.day_color || '#10b981',
+              titleAlignment: c.titleAlignment || c.title_alignment || 'left'
             }))
           : [],
         tourSchedule: tour.tourSchedule || '',
@@ -464,7 +465,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         contents: (formData.itinerary || []).map((day, index) => ({
           tourContentTitle: day.title || `Ngày ${index + 1}`,
           tourContentDescription: day.description || '',
-          images: day.images || []
+          images: day.images || [],
+          // Backend expects camelCase fields
+          dayColor: day.dayColor || '#10b981',
+          titleAlignment: day.titleAlignment || 'left'
         }))
       };
 

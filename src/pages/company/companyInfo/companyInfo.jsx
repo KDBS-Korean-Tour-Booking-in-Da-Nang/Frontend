@@ -307,8 +307,30 @@ const CompanyInfo = () => {
     );
   }
 
-  // Chỉ hiển thị đã được duyệt khi COMPANY và status = UNBANNED
+  // Trạng thái cho tài khoản doanh nghiệp
   const isCompanyApproved = user && user.role === 'COMPANY' && user.status === 'UNBANNED';
+  const isCompanyPending = user && user.role === 'COMPANY' && user.status === 'COMPANY_PENDING';
+  if (isCompanyPending) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-white shadow rounded-lg p-8">
+            <div className="mb-6">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
+                <svg className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Hồ sơ đang được xét duyệt</h2>
+              <p className="text-gray-600">
+                Cảm ơn bạn đã cung cấp thông tin. Hồ sơ doanh nghiệp đang ở trạng thái chờ duyệt. Thời gian xử lý thường từ 1-3 ngày làm việc.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (isCompanyApproved) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

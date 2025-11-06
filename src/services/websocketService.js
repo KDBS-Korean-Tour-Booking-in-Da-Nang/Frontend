@@ -16,77 +16,77 @@ class WebSocketService {
     if (this.isConnected && this.stompClient) {
       this.disconnect();
     }
-    
+
     if (this.isConnected) {
       return Promise.resolve();
     }
 
     return new Promise((resolve, reject) => {
       try {
-        // Create SockJS connection
         const getWebSocketUrl = () => {
           if (import.meta.env.PROD) {
-            // Production: sử dụng current domain
             return `${window.location.origin}/ws`;
           } else {
-            // Development: kết nối trực tiếp đến backend
-            // Force http protocol for SockJS
             return 'http://localhost:8080/ws';
           }
         };
-        
+
         const wsUrl = getWebSocketUrl();
-        
-        // Create SockJS connection
-        const token = localStorage.getItem('accessToken');
-        
-        // Try native WebSocket first to avoid CORS issues
-        let socket;
-        try {
-          // Try native WebSocket first
+        const token = sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
+
+        // Prefer native WebSocket to avoid CORS on SockJS XHR /info
+        const createNativeWebSocket = () => {
           const wsProtocol = wsUrl.startsWith('https') ? 'wss' : 'ws';
-          const wsUrl_native = wsUrl.replace(/^https?:\/\//, `${wsProtocol}://`).replace('/ws', '/ws/websocket');
-          socket = new WebSocket(wsUrl_native);
-        } catch (error) {
-          // Fallback to SockJS with CORS workaround
-          socket = new SockJS(wsUrl, null, {
-            transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
-            withCredentials: false
-          });
-        }
-        
+          const nativeUrl = wsUrl.replace(/^https?:\/\//, `${wsProtocol}://`).replace('/ws', '/ws/websocket');
+          return new WebSocket(nativeUrl);
+        };
+
         // Create STOMP client
         this.stompClient = new Client({
-          webSocketFactory: () => socket,
-          debug: (str) => {
-            // STOMP debug disabled
-          },
-          onConnect: (frame) => {
+          webSocketFactory: () => createNativeWebSocket(),
+          debug: () => {},
+          connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+          heartbeatIncoming: 15000,
+          heartbeatOutgoing: 15000,
+          reconnectDelay: 5000, // auto-reconnect
+          onConnect: () => {
             this.isConnected = true;
             this.notifyConnectionHandlers();
             resolve();
           },
+          onDisconnect: () => {
+            this.isConnected = false;
+            this.notifyDisconnectionHandlers();
+          },
           onStompError: (frame) => {
             this.isConnected = false;
             this.notifyDisconnectionHandlers();
-            reject(new Error('STOMP Error: ' + (frame.headers?.message || 'Unknown error')));
+            // Do not reject after resolve; only reject if not yet connected
+            if (!this.isConnected) {
+              reject(new Error('STOMP Error: ' + (frame.headers?.message || 'Unknown error')));
+            }
+          },
+          onWebSocketClose: () => {
+            this.isConnected = false;
+            this.notifyDisconnectionHandlers();
           },
           onWebSocketError: (error) => {
             this.isConnected = false;
             this.notifyDisconnectionHandlers();
-            reject(new Error('WebSocket Error: ' + error.message));
+            if (!this.isConnected) {
+              reject(new Error('WebSocket Error: ' + error.message));
+            }
           }
         });
 
-        // Activate the STOMP client
         this.stompClient.activate();
-        
-        // Add timeout for connection
+
+        // Add timeout for initial connection
         setTimeout(() => {
           if (!this.isConnected) {
             reject(new Error('WebSocket connection timeout'));
           }
-        }, 10000); // 10 seconds timeout
+        }, 10000);
       } catch (error) {
         reject(error);
       }
@@ -127,6 +127,34 @@ class WebSocketService {
     });
 
     this.subscriptions.set(`/user/${username}/queue/messages`, subscription);
+    return subscription;
+  }
+
+  subscribeToGlobalNotifications(callback) {
+    if (!this.isConnected || !this.stompClient) return null;
+    const destination = '/topic/notifications';
+    const subscription = this.stompClient.subscribe(destination, (message) => {
+      try {
+        const data = JSON.parse(message.body);
+        if (callback) callback(data);
+      } catch {}
+    });
+    this.subscriptions.set(destination, subscription);
+    return subscription;
+  }
+
+  subscribeToUserNotifications(usernameOrId, callback) {
+    if (!this.isConnected || !this.stompClient) return null;
+    // Spring user destination: client should subscribe to '/user/queue/notifications'
+    // Server routes to the authenticated user; no username segment is needed here.
+    const destination = `/user/queue/notifications`;
+    const subscription = this.stompClient.subscribe(destination, (message) => {
+      try {
+        const data = JSON.parse(message.body);
+        if (callback) callback(data);
+      } catch {}
+    });
+    this.subscriptions.set(destination, subscription);
     return subscription;
   }
 

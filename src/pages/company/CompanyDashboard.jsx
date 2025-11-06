@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   HomeIcon,
   ClipboardDocumentListIcon,
@@ -16,7 +17,9 @@ const CompanyDashboard = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
 
+  // Build sidebar items; show Company Info only while pending
   const menuItems = [
     {
       path: '/company/dashboard',
@@ -37,11 +40,19 @@ const CompanyDashboard = () => {
       exact: true
     },
     {
-      path: '/company/company-info',
-      icon: BuildingOfficeIcon,
-      label: t('companyDashboard.sidebar.companyInfo'),
+      path: '/company/vouchers',
+      icon: UserIcon,
+      label: 'Quản lý Voucher',
       exact: true
-    }
+    },
+    ...(user?.status === 'COMPANY_PENDING'
+      ? [{
+          path: '/company/company-info',
+          icon: BuildingOfficeIcon,
+          label: t('companyDashboard.sidebar.companyInfo'),
+          exact: true
+        }]
+      : [])
   ];
 
   const isActive = (item) => {

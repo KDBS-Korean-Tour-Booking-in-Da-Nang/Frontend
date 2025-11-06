@@ -1,102 +1,67 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   BellIcon,
   CheckIcon,
-  TrashIcon,
+  EllipsisVerticalIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   CheckCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import styles from './NotificationDropdown.module.css';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const NotificationDropdown = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'booking',
-      title: t('notifications.newBooking.title'),
-      message: t('notifications.newBooking.message'),
-      time: '2 phút trước',
-      read: false,
-      icon: CheckCircleIcon
-    },
-    {
-      id: 2,
-      type: 'payment',
-      title: t('notifications.paymentReceived.title'),
-      message: t('notifications.paymentReceived.message'),
-      time: '1 giờ trước',
-      read: false,
-      icon: CheckCircleIcon
-    },
-    {
-      id: 3,
-      type: 'warning',
-      title: t('notifications.tourUpdate.title'),
-      message: t('notifications.tourUpdate.message'),
-      time: '3 giờ trước',
-      read: true,
-      icon: ExclamationTriangleIcon
-    },
-    {
-      id: 4,
-      type: 'info',
-      title: t('notifications.systemUpdate.title'),
-      message: t('notifications.systemUpdate.message'),
-      time: '1 ngày trước',
-      read: true,
-      icon: InformationCircleIcon
-    }
-  ]);
+  const { notifications, unreadCount, markAsRead, markAsUnread, markAllAsRead, deleteNotification, fetchList } = useNotifications();
+  const [menuOpenId, setMenuOpenId] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const dropdownRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const fetchListRef = useRef(fetchList);
+
+  // Keep refs updated with latest callbacks without changing the effect deps
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        // Check if click is on notification button
         const notificationButton = event.target.closest('[data-notification-button]');
-        
         if (!notificationButton) {
-          onClose();
+          if (onCloseRef.current) onCloseRef.current();
         }
       }
     };
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Refresh when opened to ensure latest
+      if (fetchListRef.current) fetchListRef.current();
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
-  const markAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-  };
+  // Ensure newest notifications are shown on top
+  const sortedNotifications = useMemo(() => {
+    const list = Array.isArray(notifications) ? notifications : [];
+    return [...list].sort((a, b) => {
+      const ta = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    });
+  }, [notifications]);
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-  };
-
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  };
+  // Only show top 4 by default; show all when expanded
+  const visibleNotifications = isExpanded ? sortedNotifications : sortedNotifications.slice(0, 4);
 
   const getNotificationIcon = (type) => {
-    switch (type) {
+    switch (String(type || '').toLowerCase()) {
       case 'booking':
         return CheckCircleIcon;
       case 'payment':
@@ -111,7 +76,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
   };
 
   const getNotificationColor = (type) => {
-    switch (type) {
+    switch (String(type || '').toLowerCase()) {
       case 'booking':
         return 'green';
       case 'payment':
@@ -125,12 +90,10 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
   if (!isOpen) return null;
 
   return (
-    <div className={`${styles.notificationDropdown} ${isOpen ? styles.show : styles.hide}`} ref={dropdownRef}>
+    <div className={`${styles.notificationDropdown} ${isOpen ? styles.show : styles.hide} ${isExpanded ? styles.expanded : ''}`} ref={dropdownRef}>
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerTitle}>
@@ -143,7 +106,10 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
           {unreadCount > 0 && (
             <button 
               className={styles.markAllReadBtn}
-              onClick={markAllAsRead}
+              onClick={() => {
+                markAllAsRead();
+                setMenuOpenId(null);
+              }}
               title={t('notifications.markAllRead')}
             >
               <CheckIcon className="w-4 h-4" />
@@ -161,45 +127,71 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
 
       {/* Notifications List */}
       <div className={styles.notificationsList}>
-        {notifications.length === 0 ? (
+        {visibleNotifications.length === 0 ? (
           <div className={styles.emptyState}>
             <BellIcon className={styles.emptyIcon} />
             <p className={styles.emptyText}>{t('notifications.empty')}</p>
           </div>
         ) : (
-          notifications.map((notification) => {
-            const Icon = notification.icon;
-            const color = getNotificationColor(notification.type);
-            
+          visibleNotifications.map((n) => {
+            const Icon = getNotificationIcon(n.type);
+            const color = getNotificationColor(n.type);
+            const created = n.createdAt ? new Date(n.createdAt) : null;
+            const timeText = created ? created.toLocaleString() : '';
+
             return (
               <div 
-                key={notification.id}
-                className={`${styles.notificationItem} ${!notification.read ? styles.unread : ''}`}
-                onClick={() => markAsRead(notification.id)}
+                key={n.id}
+                className={`${styles.notificationItem} ${!n.isRead ? styles.unread : ''}`}
               >
                 <div className={`${styles.notificationIcon} ${styles[color]}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                
                 <div className={styles.notificationContent}>
                   <div className={styles.notificationHeader}>
-                    <h4 className={styles.notificationTitle}>{notification.title}</h4>
-                    <span className={styles.notificationTime}>{notification.time}</span>
+                    <h4 className={styles.notificationTitle}>{n.title}</h4>
+                    <span className={styles.notificationTime}>{timeText}</span>
                   </div>
-                  <p className={styles.notificationMessage}>{notification.message}</p>
+                  <p className={styles.notificationMessage}>{n.message}</p>
                 </div>
 
                 <div className={styles.notificationActions}>
                   <button 
-                    className={styles.deleteBtn}
+                    className={styles.moreBtn}
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteNotification(notification.id);
+                      setMenuOpenId((prev) => (prev === n.id ? null : n.id));
                     }}
-                    title={t('notifications.delete')}
+                    title={t('notifications.more')}
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <EllipsisVerticalIcon className="w-4 h-4" />
                   </button>
+                  {menuOpenId === n.id && (
+                    <div className={styles.actionMenu} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className={styles.actionMenuItem}
+                        onClick={() => {
+                          if (n.isRead) {
+                            markAsUnread(n.id);
+                          } else {
+                            markAsRead(n.id);
+                          }
+                          setMenuOpenId(null);
+                        }}
+                      >
+                        {n.isRead ? t('notifications.markUnread', 'Đánh dấu chưa đọc') : t('notifications.markRead', 'Đánh dấu đã đọc')}
+                      </button>
+                      <button
+                        className={styles.actionMenuItem}
+                        onClick={() => {
+                          deleteNotification(n.id);
+                          setMenuOpenId(null);
+                        }}
+                      >
+                        {t('notifications.delete', 'Xoá')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -208,10 +200,13 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
       </div>
 
       {/* Footer */}
-      {notifications.length > 0 && (
+      {sortedNotifications.length > 4 && (
         <div className={styles.footer}>
-          <button className={styles.viewAllBtn}>
-            {t('notifications.viewAll')}
+          <button
+            className={styles.viewAllBtn}
+            onClick={() => setIsExpanded((v) => !v)}
+          >
+            {isExpanded ? t('notifications.collapse', 'Thu gọn') : t('notifications.viewAll', 'Xem tất cả thông báo')}
           </button>
         </div>
       )}

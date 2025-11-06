@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -17,10 +17,15 @@ import NotificationDropdown from '../../NotificationDropdown';
 import ChatBox from '../../ChatBox';
 import ChatDropdown from '../../ChatDropdown';
 import WebSocketStatus from '../../WebSocketStatus';
+import { useNotifications } from '../../../contexts/NotificationContext';
+import websocketService from '../../../services/websocketService';
  
 
 const Navbar = () => {
   const { user, logout, getToken } = useAuth();
+  const { unreadCount, fetchList } = useNotifications();
+  const fetchListRef = useRef(fetchList);
+  useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
   
   // Add error boundary for chat context
   let chatState, chatActions;
@@ -103,6 +108,8 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
+
+  // Notification WS subscriptions are managed centrally by NotificationProvider
 
   // Check if current path is active
   const isActive = (path) => {
@@ -188,7 +195,9 @@ const Navbar = () => {
                     disabled={isLockedToCompanyInfo}
                   >
                     <BellIcon />
-                    <span className={styles['notification-badge']}>3</span>
+                    {unreadCount > 0 && (
+                      <span className={styles['notification-badge']}>{unreadCount}</span>
+                    )}
                   </button>
                   {!isLockedToCompanyInfo && (
                     <NotificationDropdown 
