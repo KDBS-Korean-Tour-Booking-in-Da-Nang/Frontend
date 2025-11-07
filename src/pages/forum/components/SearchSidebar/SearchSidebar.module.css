@@ -4,8 +4,11 @@
   border-radius: 0;
   padding: 20px;
   box-shadow: none;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-title {
@@ -402,6 +405,9 @@
 .fixed {
   position: fixed; /* left/top/width/height cấp qua inline style */
   z-index: 3; /* thấp hơn header nổi nếu header có z-index lớn (ví dụ 10) */
+  height: 100%; /* full height từ top đến bottom viewport */
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 1024px) {

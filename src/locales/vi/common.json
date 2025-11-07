@@ -6,6 +6,7 @@
     "tours": "Tours",
     "tourBooking": "Đặt Tour",
     "news": "Tin tức",
+    "about": "Về chúng tôi",
     "selfTravel": "Tự túc",
     "contact": "Liên hệ",
     "admin": "Admin Dashboard",
@@ -2165,5 +2166,64 @@
     "emoji": "Thêm emoji",
     "send": "Gửi tin nhắn",
     "placeholder": "Nhập tin nhắn của bạn..."
+  },
+  "about": {
+    "hero": {
+      "title": "Về Chúng Tôi",
+      "subtitle": "Kết nối văn hóa Hàn Quốc và Đà Nẵng thông qua những trải nghiệm du lịch đáng nhớ"
+    },
+    "mission": {
+      "title": "Sứ Mệnh Của Chúng Tôi",
+      "description": "KDBS cam kết mang đến những trải nghiệm du lịch tuyệt vời, kết nối văn hóa Hàn Quốc và Đà Nẵng thông qua các tour du lịch chất lượng cao và dịch vụ chuyên nghiệp."
+    },
+    "values": {
+      "title": "Giá Trị Cốt Lõi",
+      "quality": {
+        "title": "Chất Lượng",
+        "desc": "Cam kết mang đến dịch vụ tốt nhất cho khách hàng"
+      },
+      "trust": {
+        "title": "Tin Cậy",
+        "desc": "Xây dựng niềm tin thông qua sự minh bạch và chuyên nghiệp"
+      },
+      "excellence": {
+        "title": "Xuất Sắc",
+        "desc": "Không ngừng cải thiện và nâng cao chất lượng dịch vụ"
+      },
+      "passion": {
+        "title": "Đam Mê",
+        "desc": "Đam mê với du lịch và kết nối văn hóa"
+      }
+    },
+    "team": {
+      "title": "Đội Ngũ Của Chúng Tôi",
+      "member1": {
+        "name": "Nguyễn Văn A",
+        "role": "CEO & Founder",
+        "desc": "Hơn 10 năm kinh nghiệm trong ngành du lịch"
+      },
+      "member2": {
+        "name": "Trần Thị B",
+        "role": "Giám Đốc Marketing",
+        "desc": "Chuyên gia về marketing du lịch và truyền thông"
+      },
+      "member3": {
+        "name": "Lê Văn C",
+        "role": "Giám Đốc Vận Hành",
+        "desc": "Đảm bảo chất lượng dịch vụ và trải nghiệm khách hàng"
+      }
+    },
+    "stats": {
+      "customers": "Khách Hàng",
+      "tours": "Tour Du Lịch",
+      "satisfaction": "Hài Lòng",
+      "partners": "Đối Tác"
+    },
+    "story": {
+      "title": "Câu Chuyện Của Chúng Tôi",
+      "paragraph1": "KDBS được thành lập với sứ mệnh kết nối hai nền văn hóa đặc sắc - Hàn Quốc và Đà Nẵng. Chúng tôi tin rằng du lịch không chỉ là việc di chuyển từ nơi này đến nơi khác, mà còn là cơ hội để khám phá, học hỏi và kết nối với những con người và văn hóa mới.",
+      "paragraph2": "Với đội ngũ chuyên nghiệp và giàu kinh nghiệm, chúng tôi cam kết mang đến những trải nghiệm du lịch đáng nhớ, từ những tour du lịch được thiết kế cẩn thận đến dịch vụ chăm sóc khách hàng tận tâm. Mỗi chuyến đi là một câu chuyện, và chúng tôi muốn câu chuyện của bạn trở nên đặc biệt.",
+      "paragraph3": "Hãy cùng chúng tôi khám phá những điều tuyệt vời mà du lịch mang lại!"
+    }
   }
 }

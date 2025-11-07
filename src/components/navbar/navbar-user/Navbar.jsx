@@ -53,14 +53,34 @@ const Navbar = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
+  // Set default language to English for USER role and GUEST (not logged in)
+  useEffect(() => {
+    const currentLang = i18n.language;
+    // For USER role or GUEST (no user), default to English
+    if (!user || user.role === 'USER') {
+      if (!currentLang || currentLang === 'vi') {
+        // Set default to English, or switch from Vietnamese to English
+        i18n.changeLanguage('en');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role, i18n.language]); // Check both role and language changes
+
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
   const changeLanguage = (lng) => {
+    // Prevent USER and GUEST from selecting Vietnamese
+    if ((!user || user.role === 'USER') && lng === 'vi') {
+      return;
+    }
     i18n.changeLanguage(lng);
   };
+
+  // Determine if Vietnamese should be shown (only for COMPANY role)
+  const showVietnamese = user && user.role === 'COMPANY';
 
   const toggleNotification = () => {
     if (isCompanyPending) {
@@ -121,6 +141,9 @@ const Navbar = () => {
       // For news, also check if we're on news detail page
       return location.pathname === '/news' || location.pathname.startsWith('/news/');
     }
+    if (path === '/about') {
+      return location.pathname === '/about';
+    }
     return location.pathname === path;
   };
 
@@ -171,6 +194,7 @@ const Navbar = () => {
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.forum')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.tourBooking')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.news')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.about')}</a>
               </>
             ) : (
               <>
@@ -178,6 +202,7 @@ const Navbar = () => {
                 <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
                 <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
                 <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
+                <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
               </>
             )}
           </div>
@@ -325,13 +350,15 @@ const Navbar = () => {
                 {i18n.language === 'vi' && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
                 {i18n.language === 'en' && <img src="/EN.png" alt="English" className={styles['language-flag']} />}
                 {i18n.language === 'ko' && <img src="/KR.png" alt="Korean" className={styles['language-flag']} />}
-                {!i18n.language && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
+                {!i18n.language && (showVietnamese ? <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} /> : <img src="/EN.png" alt="English" className={styles['language-flag']} />)}
               </button>
               <div className={styles['language-dropdown']}>
-                <button onClick={() => changeLanguage('vi')} className={`${styles['language-option']} ${i18n.language === 'vi' ? 'active ' + styles['active'] : ''}`}>
-                  <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />
-                  <span className={styles['language-text']}>{t('lang.vi')}</span>
-                </button>
+                {showVietnamese && (
+                  <button onClick={() => changeLanguage('vi')} className={`${styles['language-option']} ${i18n.language === 'vi' ? 'active ' + styles['active'] : ''}`}>
+                    <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />
+                    <span className={styles['language-text']}>{t('lang.vi')}</span>
+                  </button>
+                )}
                 <button onClick={() => changeLanguage('en')} className={`${styles['language-option']} ${i18n.language === 'en' ? 'active ' + styles['active'] : ''}`}>
                   <img src="/EN.png" alt="English" className={styles['language-flag']} />
                   <span className={styles['language-text']}>{t('lang.en')}</span>
@@ -389,6 +416,14 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t('nav.news')}
+              </Link>
+
+              <Link
+                to="/about"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.about')}
               </Link>
             </>
           )}

@@ -103,50 +103,54 @@ const News = () => {
                   const summary = article.articleDescription || getArticleSummary(article.articleContent || '', 150);
                   
                   return (
-                    <div key={article.articleId} className={`${styles.card} shadow-sm hover:shadow-md rounded-xl overflow-hidden transition`}>
-                      <div className="flex flex-col md:flex-row">
+                    <div key={article.articleId} className={`${styles.card} ${styles.articleCard} group shadow-sm hover:shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] cursor-pointer`}>
+                      <div className="flex flex-col sm:flex-row">
                         {/* Article Image */}
-                        <div className="flex-shrink-0 w-full h-48 md:w-48 md:h-32">
+                        <div className={`${styles.articleImageContainer} flex-shrink-0 w-full sm:w-[35%] md:w-[32%] lg:w-[30%] xl:w-[28%] overflow-hidden`}>
                           {thumbnail ? (
                             <img
                               src={thumbnail}
                               alt={article.articleTitle}
-                              className="w-full h-full object-cover"
+                              className={`${styles.articleImage} w-full h-full sm:h-full object-cover transition-transform duration-500 group-hover:scale-110`}
                             />
                           ) : (
-                            <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                              <span className="text-gray-500 text-sm">{t('news.noImage')}</span>
+                            <div className={`${styles.articleImagePlaceholder} w-full h-full bg-slate-100 flex items-center justify-center`}>
+                              <span className="text-gray-500 text-xs sm:text-sm">{t('news.noImage')}</span>
                             </div>
                           )}
                         </div>
                         
                         {/* Article Content */}
-                        <div className="flex-1 p-4 md:p-6">
-                          <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-                            <div className="flex items-center">
-                              <CalendarIcon className="h-4 w-4 mr-1" />
-                              {new Date(article.articleCreatedDate).toLocaleDateString('vi-VN')}
+                        <div className="flex-1 p-3 sm:p-3.5 md:p-4 lg:p-5 flex flex-col justify-between min-w-0">
+                          <div className="min-w-0">
+                            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500 mb-2 sm:mb-2.5">
+                              <div className="flex items-center bg-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
+                                <CalendarIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 text-gray-600 flex-shrink-0" />
+                                <span className="text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap">
+                                  {new Date(article.articleCreatedDate).toLocaleDateString('vi-VN')}
+                                </span>
+                              </div>
+                              <span className={`${styles.chip} px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap`}>
+                                {t('news.category')}
+                              </span>
                             </div>
-                            <span className={`${styles.chip} px-2.5 py-1 rounded-full text-xs font-medium`}>
-                              {t('news.category')}
-                            </span>
+                            
+                            <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2 sm:mb-2.5 line-clamp-2 leading-tight break-words">
+                              {article.articleTitle}
+                            </h3>
+                            
+                            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2.5 sm:mb-3 md:mb-4 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
+                              {summary}
+                            </p>
                           </div>
                           
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                            {article.articleTitle}
-                          </h3>
-                          
-                          <p className="text-gray-600 text-sm mb-4 md:mb-5 line-clamp-3">
-                            {summary}
-                          </p>
-                          
-                          <div className="flex justify-end">
+                          <div className="flex justify-end mt-auto pt-2 sm:pt-0">
                             <Link
                               to={`/news/${article.articleId}`}
-                              className="text-primary hover:text-primary-hover font-medium text-sm flex items-center"
+                              className="text-primary hover:text-primary-hover font-semibold text-xs sm:text-sm md:text-base flex items-center group transition-colors"
                             >
                               {t('news.readMore')} 
-                              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 transform group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                             </Link>
@@ -180,7 +184,7 @@ const News = () => {
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto shadow-md hover:shadow-lg"
+                  className="bg-white text-black px-8 py-3 rounded-2xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto shadow-md hover:shadow-xl hover:scale-110"
                 >
                   {loadingMore ? (
                     <>

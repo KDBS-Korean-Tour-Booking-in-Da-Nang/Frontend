@@ -58,6 +58,64 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
+.articleCard {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.articleImageContainer {
+  position: relative;
+  flex-shrink: 0;
+  /* GIỮ GIAO DIỆN 100%: dùng 11.25rem ~ 180px như hiện tại desktop */
+  height: 11.25rem;
+}
+
+@media (max-width: 639.98px) {
+  .articleImageContainer {
+    /* mobile trước vốn thấp hơn ~120–150px */
+    height: 9.5rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .articleImageContainer {
+    height: auto;
+    min-height: 11.25rem;
+  }
+}
+
+.articleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* bỏ min-height với vw/clamp */
+}
+
+@media (min-width: 640px) {
+  .articleImage {
+    height: 100%;
+  }
+}
+
+.articleImagePlaceholder {
+  width: 100%;
+  height: 11.25rem;
+}
+
+@media (max-width: 639.98px) {
+  .articleImagePlaceholder {
+    height: 9.5rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .articleImagePlaceholder {
+    height: 100%;
+    min-height: 11.25rem;
+  }
+}
+
 .subtleDivider {
   border-top: 1px solid #f1f5f9;
 }
@@ -76,8 +134,13 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+.articleProse {
+  color: #000000 !important;
+}
+
 .articleProse p {
   text-align: justify;
+  color: #000000 !important;
 }
 
 @media (max-width: 1024px) {
@@ -95,5 +158,41 @@
   }
   .headerCard {
     border-radius: 12px;
+  }
+  
+  .articleCard {
+    margin-bottom: 1rem;
+  }
+  
+  .articleCard:hover {
+    transform: scale(1);
+  }
+}
+
+/* Responsive for zoom levels */
+@media (max-width: 480px) {
+  .articleCard {
+    border-radius: 12px;
+  }
+}
+
+/* Handle browser zoom - ensure text remains readable */
+@media (min-resolution: 1.5dppx) {
+  .articleCard {
+    font-size: clamp(0.875rem, 1vw, 1rem);
+  }
+}
+
+/* Large screens - prevent cards from becoming too wide */
+@media (min-width: 1536px) {
+  .articleCard {
+    max-width: 100%;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 375px) {
+  .articleCard {
+    border-radius: 10px;
   }
 }

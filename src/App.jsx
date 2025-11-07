@@ -7,7 +7,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { ConditionalNavbar } from './components';
+import { ConditionalNavbar, ScrollToTopButton } from './components';
 import Footer from './components/Footer/Footer';
 import { useAuth } from './contexts/AuthContext';
 import Homepage from './pages/home/homepage/homepage';
@@ -43,6 +43,7 @@ import News from './pages/news/News';
 import NewsManagement from './pages/staff/news-management/NewsManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import NewsDetail from './pages/news/NewsDetail';
+import AboutUs from './pages/about/AboutUs';
 
 function AppContent() {
   const location = useLocation();
@@ -150,11 +151,14 @@ function AppContent() {
                   {/* News routes */}
                   <Route path="/news" element={<News />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
+                  {/* About Us route */}
+                  <Route path="/about" element={<AboutUs />} />
                   {/* Staff routes */}
                   <Route path="/staff/*" element={<StaffDashboard />} />
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
+      {!isStaffAdminPage && <ScrollToTopButton />}
     </div>
   );
 }
