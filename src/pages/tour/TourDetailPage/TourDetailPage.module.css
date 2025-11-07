@@ -4,9 +4,9 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 86%;
   margin: 0 auto;
-  padding: 0 12px;
+  padding: 0 8px;
 }
 
 /* Full-width container to reduce side gaps on large screens */
@@ -299,6 +299,8 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 50px;
+  margin-left: 100px;
+  margin-right: 100px;
 }
 
 /* Left Column */
@@ -381,13 +383,32 @@
 
 /* Itinerary */
 .tour-itinerary {
+    margin-top: 50px;
+  /* Make itinerary take a full grid row across both columns */
+  grid-column: 1 / -1;
+  margin-left: 200px;
+  margin-right: 200px;
+}
+
+/* Make gallery and reviews take full grid width when placed inside the grid */
+.tour-gallery {
+  grid-column: 1 / -1;
   margin-top: 50px;
+  margin-left: 200px;
+  margin-right: 200px;
+}
+
+.tour-reviews {
+  grid-column: 1 / -1;
+  margin-top: 50px;
+  margin-left: 200px;
+  margin-right: 200px;
 }
 
 .itinerary-header {
   background: linear-gradient(135deg, #1a8eea, #1478c3);
   padding: 20px 30px;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px 12px 12px 12px;
   margin-bottom: 0;
 }
 
@@ -568,6 +589,7 @@
 }
 
 .booking-card {
+  margin-top: 30px;
   background: white;
   border-radius: 20px;
   padding: 30px;

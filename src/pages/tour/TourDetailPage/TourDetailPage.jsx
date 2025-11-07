@@ -608,510 +608,10 @@ const TourDetailPage = () => {
                 </div>
               </div>
 
-              {/* Tour Itinerary */}
-              <div className={styles["tour-itinerary"]}>
-                <div className={styles["itinerary-header"]}>
-                  <h2>{t("tourPage.detail.itinerary.header")}</h2>
-                </div>
-                <div className={styles["itinerary-list"]}>
-                  {itinerary.length === 0 ? (
-                    <div className={styles["itinerary-item"]}>
-                      <div className={styles["itinerary-content"]}>
-                        <p className={styles["activity"]}>
-                          {t("tourPage.detail.itinerary.updating")}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    itinerary.map((day, index) => {
-                      const titleFromAPI =
-                        day.dayTitle || day.tourContentTitle || "";
-                      const headerTitle =
-                        titleFromAPI && titleFromAPI.trim().length > 0
-                          ? titleFromAPI
-                          : t("tourPage.detail.itinerary.day", {
-                              index: index + 1,
-                            });
-                      return (
-                        <div className={styles["itinerary-item"]} key={index}>
-                          <div
-                            className={styles["itinerary-day-header"]}
-                            style={{
-                              background: day.dayColor
-                                ? `linear-gradient(135deg, ${
-                                    day.dayColor
-                                  }, ${shadeColor(day.dayColor, -20)})`
-                                : undefined,
-                            }}
-                          >
-                            <span
-                              className={styles["day-destination"]}
-                              style={{
-                                textAlign: day.titleAlignment || "left",
-                                display: "block",
-                                width: "100%",
-                              }}
-                            >
-                              {headerTitle}
-                            </span>
-                          </div>
-                          {(day.description ||
-                            day.tourContentDescription ||
-                            day.activities) && (
-                            <div className={styles["itinerary-content"]}>
-                              <div className={styles["time-schedule"]}>
-                                <div className={styles["time-item"]}>
-                                  <span
-                                    className={styles["activity"]}
-                                    dangerouslySetInnerHTML={{
-                                      __html: sanitizeHtml(
-                                        day.description ||
-                                          day.tourContentDescription ||
-                                          day.activities ||
-                                          ""
-                                      ),
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* Tour Gallery */}
-              <div className={styles["tour-gallery"]}>
-                <h2>{t("tourPage.detail.gallery.title")}</h2>
-                <div className={styles["gallery-grid"]}>
-                  {[tour.image || "/default-Tour.jpg", ...(tour.gallery || [])]
-                    .filter(Boolean)
-                    .slice(0, 4)
-                    .map((img, idx) => (
-                      <div className={styles["gallery-item"]} key={idx}>
-                        <img
-                          src={img}
-                          alt={`Gallery ${idx + 1}`}
-                          onError={(e) => {
-                            e.target.src = "/default-Tour.jpg";
-                          }}
-                        />
-                        <div className={styles["gallery-overlay"]}>
-                          <svg
-                            className="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              {/* Ratings & Reviews */}
-              <div
-                className={styles["tour-reviews"]}
-                style={{ marginTop: "32px" }}
-              >
-                <h2>
-                  {t("tourPage.detail.reviews.title") || "Đánh giá & Nhận xét"}
-                </h2>
-                {/* Create Rating */}
-                {user && canRate && (
-                  <div
-                    style={{
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 8,
-                      padding: 16,
-                      margin: "12px 0",
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => setNewStar(s)}
-                          aria-label={`star-${s}`}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: 22,
-                            color: s <= newStar ? "#f59e0b" : "#d1d5db",
-                          }}
-                        >
-                          ★
-                        </button>
-                      ))}
-                      <span
-                        style={{
-                          marginLeft: 8,
-                          color: "#6b7280",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {newStar}/5
-                      </span>
-                    </div>
-                    <textarea
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder={
-                        t("tourPage.detail.reviews.placeholder") ||
-                        "Chia sẻ trải nghiệm của bạn..."
-                      }
-                      style={{
-                        width: "100%",
-                        marginTop: 10,
-                        padding: 10,
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 6,
-                        minHeight: 80,
-                        resize: "vertical",
-                      }}
-                    />
-                    <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                      <button
-                        onClick={async () => {
-                          await submitRating({
-                            star: newStar,
-                            comment: newComment,
-                          });
-                          setNewComment("");
-                          setNewStar(5);
-                          await refresh();
-                        }}
-                        className={styles["book-now-btn"]}
-                      >
-                        {t("tourPage.detail.reviews.submit") || "Gửi đánh giá"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Summary */}
-                <div
-                  className={styles["reviews-summary"]}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 24,
-                    padding: "16px",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 8,
-                    background: "#f8fafc",
-                    marginTop: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 6,
-                    }}
-                  >
-                    {[5, 4, 3, 2, 1].map((s, idx) => {
-                      const count = ratingStats.dist[s - 1] || 0;
-                      const percent = ratingStats.total
-                        ? (count / ratingStats.total) * 100
-                        : 0;
-                      return (
-                        <div
-                          key={s}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 14,
-                              fontSize: 12,
-                              color: "#6b7280",
-                            }}
-                          >
-                            {s}
-                          </span>
-                          <div
-                            style={{
-                              flex: 1,
-                              height: 8,
-                              background: "#e5e7eb",
-                              borderRadius: 999,
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: `${percent}%`,
-                                height: "100%",
-                                background: "#f59e0b",
-                                borderRadius: 999,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ minWidth: 100, textAlign: "right" }}>
-                    <div
-                      style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}
-                    >
-                      {formatAvg(ratingStats.avg)}
-                    </div>
-                    <div
-                      style={{
-                        color: "#f59e0b",
-                        letterSpacing: 1,
-                        margin: "4px 0",
-                      }}
-                    >
-                      {"★★★★★".split("").map((ch, i) => (
-                        <span
-                          key={i}
-                          style={{
-                            color:
-                              i + 1 <= Math.round(ratingStats.avg)
-                                ? "#f59e0b"
-                                : "#e5e7eb",
-                          }}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <div style={{ fontSize: 12, color: "#6b7280" }}>
-                      {ratingStats.total}{" "}
-                      {t("forum.post.comments") || "đánh giá"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reviews List */}
-                <div
-                  style={{
-                    marginTop: 16,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12,
-                  }}
-                >
-                  {ratings.length === 0 ? (
-                    <div style={{ color: "#6b7280" }}>
-                      {t("tourPage.detail.reviews.empty") ||
-                        "Chưa có đánh giá nào."}
-                    </div>
-                  ) : (
-                    ratings.map((r) => (
-                      <div
-                        key={r.tourRatedId}
-                        style={{
-                          border: "1px solid #e5e7eb",
-                          borderRadius: 8,
-                          padding: 12,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                            }}
-                          >
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <span
-                                key={s}
-                                style={{
-                                  color:
-                                    s <= (r.star || 0) ? "#f59e0b" : "#d1d5db",
-                                  fontSize: 16,
-                                }}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "flex-end",
-                            }}
-                          >
-                            <span style={{ color: "#9ca3af", fontSize: 12 }}>
-                              {new Date(r.createdAt).toLocaleString()}
-                            </span>
-                            {/* Tuỳ chọn nút sửa/xoá vẫn giữ nguyên cho user đã đăng nhập */}
-                            {user &&
-                              [user.userId, user.id, user.user_id]
-                                .filter(Boolean)
-                                .some(
-                                  (mid) => String(mid) === String(r.userId)
-                                ) && (
-                                <div
-                                  style={{ position: "relative", marginTop: 4 }}
-                                  data-menu-id={r.tourRatedId}
-                                >
-                                  <button
-                                    aria-label="more"
-                                    onClick={() =>
-                                      setOpenMenuId(
-                                        openMenuId === r.tourRatedId
-                                          ? null
-                                          : r.tourRatedId
-                                      )
-                                    }
-                                    style={{
-                                      background:
-                                        openMenuId === r.tourRatedId
-                                          ? "#f3f4f6"
-                                          : "transparent",
-                                      border:
-                                        "1px solid " +
-                                        (openMenuId === r.tourRatedId
-                                          ? "#e5e7eb"
-                                          : "transparent"),
-                                      cursor: "pointer",
-                                      color: "#6b7280",
-                                      padding: 6,
-                                      lineHeight: 1,
-                                      fontSize: 16,
-                                      borderRadius: "999px",
-                                      transition: "background 0.2s",
-                                    }}
-                                  >
-                                    ⋮
-                                  </button>
-                                  {openMenuId === r.tourRatedId && (
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        right: 0,
-                                        top: 26,
-                                        background: "#fff",
-                                        border: "1px solid #e5e7eb",
-                                        borderRadius: 10,
-                                        boxShadow:
-                                          "0 8px 20px rgba(0,0,0,0.12)",
-                                        overflow: "hidden",
-                                        minWidth: 120,
-                                      }}
-                                    >
-                                      <button
-                                        onClick={() => {
-                                          setConfirmDeleteId(r.tourRatedId);
-                                          setOpenMenuId(null);
-                                        }}
-                                        style={{
-                                          background: "#ef4444",
-                                          border: "none",
-                                          padding: "10px 14px",
-                                          cursor: "pointer",
-                                          color: "#ffffff",
-                                          width: "100%",
-                                          fontWeight: 700,
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          borderRadius: 8,
-                                        }}
-                                      >
-                                        {t("tourPage.detail.reviews.delete") ||
-                                          "Xóa"}
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                          </div>
-                        </div>
-                        {/* Reviewer info dưới stars, luôn hiện tên người đã đánh giá (hoặc Ẩn danh/User #id) */}
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            marginTop: 8,
-                          }}
-                        >
-                          <img
-                            src={"/default-avatar.png"}
-                            alt="avatar"
-                            style={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: "50%",
-                            }}
-                          />
-                          <span
-                            style={{
-                              color: "#374151",
-                              fontWeight: 600,
-                              fontSize: 13,
-                            }}
-                          >
-                            {r.username ||
-                              r.fullName ||
-                              r.name ||
-                              r.email ||
-                              (r.userId ? `User #${r.userId}` : "Ẩn danh")}
-                          </span>
-                        </div>
-                        {r.comment && (
-                          <div
-                            style={{
-                              marginTop: 6,
-                              color: "#374151",
-                              whiteSpace: "pre-wrap",
-                            }}
-                          >
-                            {r.comment}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              {/* Delete Confirm Modal */}
-              <DeleteConfirmModal
-                isOpen={!!confirmDeleteId}
-                onClose={() => setConfirmDeleteId(null)}
-                onConfirm={async () => {
-                  if (confirmDeleteId) {
-                    await deleteRating(confirmDeleteId);
-                    await refresh();
-                    setConfirmDeleteId(null);
-                  }
-                }}
-                title={t("common.deleteConfirm.title")}
-                itemName={t("tourPage.detail.reviews.title")}
-              />
+              {/* Itinerary, Gallery, Reviews are rendered after the grid */}
             </div>
 
-            {/* Right Column - Booking Info */}
+            {/* Right Column - Booking Info (inside grid) */}
             <div className={styles["tour-detail-right"]}>
               <div className={styles["booking-card"]}>
                 <div className={styles["booking-header"]}>
@@ -1197,6 +697,491 @@ const TourDetailPage = () => {
                 </div>
               </div>
             </div>
+            {/* Close grid (left + right columns) */}
+          </div>
+          {/* Row 2: Tour Itinerary - full width */}
+          <div className={styles["tour-itinerary"]}>
+            <div className={styles["itinerary-header"]}>
+              <h2>{t("tourPage.detail.itinerary.header")}</h2>
+            </div>
+            <div className={styles["itinerary-list"]}>
+              {itinerary.length === 0 ? (
+                <div className={styles["itinerary-item"]}>
+                  <div className={styles["itinerary-content"]}>
+                    <p className={styles["activity"]}>
+                      {t("tourPage.detail.itinerary.updating")}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                itinerary.map((day, index) => {
+                  const titleFromAPI =
+                    day.dayTitle || day.tourContentTitle || "";
+                  const headerTitle =
+                    titleFromAPI && titleFromAPI.trim().length > 0
+                      ? titleFromAPI
+                      : t("tourPage.detail.itinerary.day", {
+                          index: index + 1,
+                        });
+                  return (
+                    <div className={styles["itinerary-item"]} key={index}>
+                      <div
+                        className={styles["itinerary-day-header"]}
+                        style={{
+                          background: day.dayColor
+                            ? `linear-gradient(135deg, ${
+                                day.dayColor
+                              }, ${shadeColor(day.dayColor, -20)})`
+                            : undefined,
+                        }}
+                      >
+                        <span
+                          className={styles["day-destination"]}
+                          style={{
+                            textAlign: day.titleAlignment || "left",
+                            display: "block",
+                            width: "100%",
+                          }}
+                        >
+                          {headerTitle}
+                        </span>
+                      </div>
+                      {(day.description ||
+                        day.tourContentDescription ||
+                        day.activities) && (
+                        <div className={styles["itinerary-content"]}>
+                          <div className={styles["time-schedule"]}>
+                            <div className={styles["time-item"]}>
+                              <span
+                                className={styles["activity"]}
+                                dangerouslySetInnerHTML={{
+                                  __html: sanitizeHtml(
+                                    day.description ||
+                                      day.tourContentDescription ||
+                                      day.activities ||
+                                      ""
+                                  ),
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          {/* Row 3: Tour Gallery - full width */}
+          <div className={styles["tour-gallery"]}>
+            <h2>{t("tourPage.detail.gallery.title")}</h2>
+            <div className={styles["gallery-grid"]}>
+              {[tour.image || "/default-Tour.jpg", ...(tour.gallery || [])]
+                .filter(Boolean)
+                .slice(0, 4)
+                .map((img, idx) => (
+                  <div className={styles["gallery-item"]} key={idx}>
+                    <img
+                      src={img}
+                      alt={`Gallery ${idx + 1}`}
+                      onError={(e) => {
+                        e.target.src = "/default-Tour.jpg";
+                      }}
+                    />
+                    <div className={styles["gallery-overlay"]}>
+                      <svg
+                        className="w-8 h-8"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+          {/* Row 4: Ratings & Reviews - full width */}
+          <div className={styles["tour-reviews"]} style={{ marginTop: "32px" }}>
+            <h2>
+              {t("tourPage.detail.reviews.title") || "Đánh giá & Nhận xét"}
+            </h2>
+            {/* Create Rating */}
+            {user && canRate && (
+              <div
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 8,
+                  padding: 16,
+                  margin: "12px 0",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setNewStar(s)}
+                      aria-label={`star-${s}`}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: 22,
+                        color: s <= newStar ? "#f59e0b" : "#d1d5db",
+                      }}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      color: "#6b7280",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {newStar}/5
+                  </span>
+                </div>
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={
+                    t("tourPage.detail.reviews.placeholder") ||
+                    "Chia sẻ trải nghiệm của bạn..."
+                  }
+                  style={{
+                    width: "100%",
+                    marginTop: 10,
+                    padding: 10,
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 6,
+                    minHeight: 80,
+                    resize: "vertical",
+                  }}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  <button
+                    onClick={async () => {
+                      await submitRating({
+                        star: newStar,
+                        comment: newComment,
+                      });
+                      setNewComment("");
+                      setNewStar(5);
+                      await refresh();
+                    }}
+                    className={styles["book-now-btn"]}
+                  >
+                    {t("tourPage.detail.reviews.submit") || "Gửi đánh giá"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Summary */}
+            <div
+              className={styles["reviews-summary"]}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 24,
+                padding: "16px",
+                border: "1px solid #e5e7eb",
+                borderRadius: 8,
+                background: "#f8fafc",
+                marginTop: 12,
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}
+              >
+                {[5, 4, 3, 2, 1].map((s, idx) => {
+                  const count = ratingStats.dist[s - 1] || 0;
+                  const percent = ratingStats.total
+                    ? (count / ratingStats.total) * 100
+                    : 0;
+                  return (
+                    <div
+                      key={s}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 14,
+                          fontSize: 12,
+                          color: "#6b7280",
+                        }}
+                      >
+                        {s}
+                      </span>
+                      <div
+                        style={{
+                          flex: 1,
+                          height: 8,
+                          background: "#e5e7eb",
+                          borderRadius: 999,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${percent}%`,
+                            height: "100%",
+                            background: "#f59e0b",
+                            borderRadius: 999,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ minWidth: 100, textAlign: "right" }}>
+                <div style={{ fontSize: 36, fontWeight: 800, lineHeight: 1 }}>
+                  {formatAvg(ratingStats.avg)}
+                </div>
+                <div
+                  style={{
+                    color: "#f59e0b",
+                    letterSpacing: 1,
+                    margin: "4px 0",
+                  }}
+                >
+                  {"★★★★★".split("").map((ch, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        color:
+                          i + 1 <= Math.round(ratingStats.avg)
+                            ? "#f59e0b"
+                            : "#e5e7eb",
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
+                  {ratingStats.total} {t("forum.post.comments") || "đánh giá"}
+                </div>
+              </div>
+            </div>
+
+            {/* Reviews List */}
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              {ratings.length === 0 ? (
+                <div style={{ color: "#6b7280" }}>
+                  {t("tourPage.detail.reviews.empty") ||
+                    "Chưa có đánh giá nào."}
+                </div>
+              ) : (
+                ratings.map((r) => (
+                  <div
+                    key={r.tourRatedId}
+                    style={{
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 8,
+                      padding: 12,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <span
+                            key={s}
+                            style={{
+                              color: s <= (r.star || 0) ? "#f59e0b" : "#d1d5db",
+                              fontSize: 16,
+                            }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-end",
+                        }}
+                      >
+                        <span style={{ color: "#9ca3af", fontSize: 12 }}>
+                          {new Date(r.createdAt).toLocaleString()}
+                        </span>
+                        {user &&
+                          [user.userId, user.id, user.user_id]
+                            .filter(Boolean)
+                            .some(
+                              (mid) => String(mid) === String(r.userId)
+                            ) && (
+                            <div
+                              style={{ position: "relative", marginTop: 4 }}
+                              data-menu-id={r.tourRatedId}
+                            >
+                              <button
+                                aria-label="more"
+                                onClick={() =>
+                                  setOpenMenuId(
+                                    openMenuId === r.tourRatedId
+                                      ? null
+                                      : r.tourRatedId
+                                  )
+                                }
+                                style={{
+                                  background:
+                                    openMenuId === r.tourRatedId
+                                      ? "#f3f4f6"
+                                      : "transparent",
+                                  border:
+                                    "1px solid " +
+                                    (openMenuId === r.tourRatedId
+                                      ? "#e5e7eb"
+                                      : "transparent"),
+                                  cursor: "pointer",
+                                  color: "#6b7280",
+                                  padding: 6,
+                                  lineHeight: 1,
+                                  fontSize: 16,
+                                  borderRadius: "999px",
+                                  transition: "background 0.2s",
+                                }}
+                              >
+                                ⋮
+                              </button>
+                              {openMenuId === r.tourRatedId && (
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    right: 0,
+                                    top: 26,
+                                    background: "#fff",
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: 10,
+                                    boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                                    overflow: "hidden",
+                                    minWidth: 120,
+                                  }}
+                                >
+                                  <button
+                                    onClick={() => {
+                                      setConfirmDeleteId(r.tourRatedId);
+                                      setOpenMenuId(null);
+                                    }}
+                                    style={{
+                                      background: "#ef4444",
+                                      border: "none",
+                                      padding: "10px 14px",
+                                      cursor: "pointer",
+                                      color: "#ffffff",
+                                      width: "100%",
+                                      fontWeight: 700,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      borderRadius: 8,
+                                    }}
+                                  >
+                                    {t("tourPage.detail.reviews.delete") ||
+                                      "Xóa"}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 8,
+                      }}
+                    >
+                      <img
+                        src={"/default-avatar.png"}
+                        alt="avatar"
+                        style={{ width: 24, height: 24, borderRadius: "50%" }}
+                      />
+                      <span
+                        style={{
+                          color: "#374151",
+                          fontWeight: 600,
+                          fontSize: 13,
+                        }}
+                      >
+                        {r.username ||
+                          r.fullName ||
+                          r.name ||
+                          r.email ||
+                          (r.userId ? `User #${r.userId}` : "Ẩn danh")}
+                      </span>
+                    </div>
+                    {r.comment && (
+                      <div
+                        style={{
+                          marginTop: 6,
+                          color: "#374151",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {r.comment}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Delete Confirm Modal */}
+            <DeleteConfirmModal
+              isOpen={!!confirmDeleteId}
+              onClose={() => setConfirmDeleteId(null)}
+              onConfirm={async () => {
+                if (confirmDeleteId) {
+                  await deleteRating(confirmDeleteId);
+                  await refresh();
+                  setConfirmDeleteId(null);
+                }
+              }}
+              title={t("common.deleteConfirm.title")}
+              itemName={t("tourPage.detail.reviews.title")}
+            />
           </div>
         </div>
       </div>
