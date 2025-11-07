@@ -768,21 +768,16 @@ const Step2Details = () => {
   const countries = ['KR']
     .map(code => ({ code, label: t(`booking.step2.countries.${code}`) }));
 
-  // Sync contact data with representative member (adult[0]) on mount and when contact changes
+  // Ensure we have at least 1 adult passenger when entering step 2
   useEffect(() => {
-    if (contact?.fullName && contact?.dob) {
-      // Ensure representative member exists and has basic data from Step 1
-      if (!plan.members.adult[0] || !plan.members.adult[0].fullName) {
-        setMember('adult', 0, {
-          fullName: contact.fullName,
-          dob: contact.dob,
-          gender: plan.members.adult[0]?.gender || contact?.gender || '',
-          nationality: plan.members.adult[0]?.nationality || contact?.nationality || '',
-          idNumber: plan.members.adult[0]?.idNumber || contact?.idNumber || ''
-        });
-      }
+    if (plan.pax.adult < 1) {
+      setPax({ ...plan.pax, adult: 1 });
     }
-  }, [contact, setMember]);
+    // Ensure members array is rebuilt to match pax count
+    if (plan.members.adult.length !== plan.pax.adult) {
+      rebuildMembers();
+    }
+  }, []); // Only run once on mount
 
   // Handle language change - re-format dates and update displays
   useEffect(() => {
@@ -825,13 +820,9 @@ const Step2Details = () => {
         }
       };
 
-      // Representative adult[0]
+      // All adult members (no representative anymore)
       if (plan.members?.adult?.length > 0) {
-        convertMemberDob('adult', 0);
-      }
-      // Other adults
-      if (plan.members?.adult?.length > 1) {
-        for (let i = 1; i < plan.members.adult.length; i++) {
+        for (let i = 0; i < plan.members.adult.length; i++) {
           convertMemberDob('adult', i);
         }
       }
@@ -925,16 +916,10 @@ const Step2Details = () => {
     const restoreConfirmedNationalities = () => {
       const restored = {};
       
-      // Check representative (adult[0])
-      if (plan.members.adult[0]?.nationality) {
-        restored['adult-0'] = plan.members.adult[0].nationality;
-      }
-      
-      // Check other adult members
+      // Check all adult members (no representative anymore)
       plan.members.adult.forEach((member, index) => {
-        if (index > 0 && member.nationality) { // Skip representative (index 0)
-          const globalIndex = index; // globalIndex = localIndex for adults after representative
-          restored[`adult-${globalIndex}`] = member.nationality;
+        if (member.nationality) {
+          restored[`adult-${index}`] = member.nationality;
         }
       });
       
@@ -989,7 +974,7 @@ const Step2Details = () => {
     }
 
     // Check members - validate each type separately
-    // Validate adult members (including representative at index 0)
+    // Validate all adult members (no representative anymore)
     plan.members.adult.forEach((member, index) => {
       // Safety check: skip if member is undefined
       if (!member) { return; }
@@ -997,28 +982,53 @@ const Step2Details = () => {
       const memberType = 'adult';
       const globalIndex = index; // Adult members start from 0
       
-      // Special handling for representative (index 0)
-      const isRepresentative = index === 0;
+      // Validate fullName
+      const nameKey = `${memberType}_${index}_fullName`;
+      if (touchedFields.has(nameKey) && !member.fullName?.trim()) {
+        newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
+      } else if (touchedFields.has(nameKey) && member.fullName && !/^[\p{L}\p{M}\s\-']+$/u.test(member.fullName.trim())) {
+        newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
+      }
       
-      // For representative, only validate editable fields (gender, nationality, idNumber)
-      // Name and DOB come from Step 1 and are read-only
-      if (isRepresentative) {
-        // Validate representative gender
-        const genderKey = 'representative_gender';
-        if (touchedFields.has(genderKey) && !member.gender) {
-          newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
+      // Validate DOB
+      const dobKey = `${memberType}_${index}_dob`;
+      if (!member.dob || !member.dob.trim()) {
+        if (touchedFields.has(dobKey)) {
+          newErrors[dobKey] = t('booking.step2.errors.dobRequired');
         }
-        
-        // Validate representative nationality
-        const nationalityKey = 'representative_nationality';
-        if (touchedFields.has(nationalityKey) && !member.nationality) {
-          newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
+      } else if (member.dob) {
+        // Skip useEffect validation if field is being validated manually
+        if (!validatingFieldsRef.current.has(dobKey)) {
+          // Use the same validation logic as manual input and calendar picker
+          const normalizedDate = validateDateInput(member.dob);
+          if (!normalizedDate) {
+            newErrors[dobKey] = t('booking.step2.errors.dobInvalidFormat');
+          } else {
+            // Use validateMemberAge function for consistent validation
+            const validationResult = validateMemberAge(memberType, normalizedDate);
+            if (!validationResult.isValid) {
+              newErrors[dobKey] = validationResult.error;
+            }
+          }
         }
-        
-        // ID validation for Next button blocking (but not for UI display)
-        // Real-time validation handles UI display, useEffect handles Next button blocking
-        const idKey = 'representative_idNumber';
-        if (touchedFields.has(idKey) && member.idNumber) {
+      }
+      
+      // Validate gender
+      const genderKey = `${memberType}_${index}_gender`;
+      if (touchedFields.has(genderKey) && !member.gender) {
+        newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
+      }
+      
+      // Validate nationality
+      const nationalityKey = `${memberType}_${index}_nationality`;
+      if (touchedFields.has(nationalityKey) && !member.nationality) {
+        newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
+      }
+      
+      // ID validation for Next button blocking (but not for UI display)
+      // Real-time validation handles UI display, useEffect handles Next button blocking
+      const idKey = `${memberType}_${index}_idNumber`;
+      if (touchedFields.has(idKey) && member.idNumber) {
           // Check if ID is required based on nationality and age
           const idRequired = isIdRequired(member.dob, member.nationality);
           if (idRequired) {
@@ -1046,87 +1056,6 @@ const Step2Details = () => {
             }
           }
         }
-        
-        return; // Skip regular member validation for representative
-      }
-      
-      // Regular member validation (for index > 0)
-      // Convert array index to local index for consistency with render
-      const localIndex = memberType === 'adult' ? index - 1 : index; // Adult members: array index 1 = local index 0
-      
-      // Only validate if field has been touched or has value
-      const nameKey = `${memberType}_${localIndex}_fullName`;
-      if (touchedFields.has(nameKey)) {
-        if (!member.fullName?.trim()) {
-          newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
-        } else {
-          // Validate full name format - only allow letters, spaces, hyphens, apostrophes
-          const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
-          if (!nameRegex.test(member.fullName.trim())) {
-            newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
-          }
-        }
-      }
-      
-      const dobKey = `${memberType}_${localIndex}_dob`;
-      if (touchedFields.has(dobKey) && !member.dob) {
-        newErrors[dobKey] = t('booking.step2.errors.dobRequired');
-      } else if (member.dob) {
-        // Skip useEffect validation if field is being validated manually
-        if (!validatingFieldsRef.current.has(dobKey)) {
-          // Use the same validation logic as manual input and calendar picker
-          const normalizedDate = validateDateInput(member.dob);
-          if (!normalizedDate) {
-            newErrors[dobKey] = t('booking.step2.errors.dobInvalidFormat');
-          } else {
-            // Use validateMemberAge function for consistent validation
-            const validationResult = validateMemberAge(memberType, normalizedDate);
-            if (!validationResult.isValid) {
-              newErrors[dobKey] = validationResult.error;
-            }
-          }
-        } else {
-          // Skipping useEffect validation - being validated manually
-        }
-      }
-      
-      const genderKey = `${memberType}_${index}_gender`;
-      if (touchedFields.has(genderKey) && !member.gender) {
-        newErrors[`member_${globalIndex}_gender`] = t('booking.step2.errors.genderRequired');
-      }
-      
-      const nationalityKey = `${memberType}_${index}_nationality`;
-      if (touchedFields.has(nationalityKey) && !member.nationality) {
-        newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
-      }
-      
-      // ID validation for Next button blocking (but not for UI display)
-      // Real-time validation handles UI display, useEffect handles Next button blocking
-      const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
-        // Always validate format when ID is provided, regardless of whether it's required
-        if (member.nationality === 'VN') {
-          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-          if (!vietnameseIdRegex.test(member.idNumber)) {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-          }
-        } else {
-          const passportRegex = /^[A-Z0-9]{6,9}$/i;
-          if (!passportRegex.test(member.idNumber)) {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-          }
-        }
-      } else if (touchedFields.has(idKey)) {
-        // Check if ID is required but not provided
-        const idRequired = isIdRequired(member.dob, member.nationality);
-        if (idRequired) {
-          if (member.nationality === 'VN') {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-          } else {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-          }
-        }
-      }
     });
 
     // Validate child members
@@ -1405,31 +1334,11 @@ const Step2Details = () => {
 
   // Special handler for date input to ensure proper validation
   const handleDateChange = (memberType, globalIndex, value) => {
-    // Convert globalIndex to localIndex for setMember
-    // Match the logic from renderMemberForm:
-    // For adult members: globalIndex = localIndex + 1 (skip representative)
-    // So: localIndex = globalIndex - 1
-    // For other members: globalIndex = localIndex
-    const localIndex = memberType === 'adult' ? globalIndex - 1 : globalIndex;
-    
-    // Safety check: don't process if this is representative (globalIndex = 0)
-    if (memberType === 'adult' && globalIndex === 0) {
-      console.warn('⚠️ Attempted to modify representative DOB - this should not happen');
-      return;
-    }
-    
-    // Safety check: don't process if localIndex would be negative
-    if (localIndex < 0) {
-      console.warn('⚠️ Invalid localIndex calculated:', { memberType, globalIndex, localIndex });
-      return;
-    }
-    
-    // For adult members, we need to add 1 to localIndex to get the correct array index
-    // because adult[0] is representative, adult[1] is first additional adult, etc.
-    const arrayIndex = memberType === 'adult' ? localIndex + 1 : localIndex;
+    // No representative anymore, so localIndex = globalIndex for all member types
+    const localIndex = globalIndex;
     
     // Always store the value as-is (display format)
-    setMember(memberType, arrayIndex, { dob: value });
+    setMember(memberType, localIndex, { dob: value });
     
     // Real-time validation for DOB - use localIndex to match render
     const dobKey = `${memberType}_${localIndex}_dob`;
@@ -1494,23 +1403,7 @@ const Step2Details = () => {
     }
 
     // Check age requirements based on member type
-    if (memberType === 'representative') {
-      // Representative must be at least 18 years old
-      // Check current age first
-      if (age < 18) {
-        return { isValid: false, error: t('booking.step2.errors.representativeTooYoung') };
-      }
-      
-      // Also check age at departure date if available
-      if (plan.date && plan.date.day && plan.date.month && plan.date.year) {
-        const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
-        const ageAtDeparture = calculateAge(normalizedDate, departureDate);
-        
-        if (ageAtDeparture < 18) {
-          return { isValid: false, error: t('booking.step2.errors.representativeTooYoung') };
-        }
-      }
-    } else if (memberType === 'adult') {
+    if (memberType === 'adult') {
       // Adults must be at least 12 years old
       
       // Check current age first
@@ -2069,12 +1962,8 @@ const Step2Details = () => {
           }
           
           // Calculate global index to match useEffect validation
-          // For adult members: skip representative (index 0), so globalIndex = localIndex + 1
-          // For child members: start from 0, so globalIndex = localIndex
-          // For infant members: start from 0, so globalIndex = localIndex
-          const globalIndex = memberType === 'adult' ? localIndex + 1 : // Skip representative (index 0)
-                             memberType === 'child' ? localIndex : // Child members start from 0
-                             localIndex; // Infant members start from 0
+          // For all member types: globalIndex = localIndex (no representative anymore)
+          const globalIndex = localIndex;
           
           
           return (
@@ -2629,10 +2518,8 @@ const Step2Details = () => {
       <div className={styles['form-section']}>
         <h3 className={styles['section-title']}>{t('booking.step2.sections.membersTitle')}</h3>
         <div className={styles['members-section']}>
-          {/* Representative from Step 1 */}
-          {renderRepresentativeForm()}
-          {/* Additional adult members (skip representative at index 0) */}
-          {plan.members.adult.length > 1 && renderMemberForm('adult', plan.members.adult.slice(1))}
+          {/* All adult members (no representative anymore) */}
+          {plan.members.adult.length > 0 && renderMemberForm('adult', plan.members.adult)}
           {plan.members.child.length > 0 && renderMemberForm('child', plan.members.child)}
           {plan.members.infant.length > 0 && renderMemberForm('infant', plan.members.infant)}
         </div>

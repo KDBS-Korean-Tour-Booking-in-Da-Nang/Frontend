@@ -6,6 +6,7 @@
 		"tours": "투어",
 		"tourBooking": "투어 예약",
 		"news": "뉴스",
+		"about": "회사 소개",
 		"selfTravel": "자유여행",
 		"contact": "연락처",
 		"admin": "관리자 대시보드",
@@ -32,6 +33,7 @@
 		"processing": "처리 중...",
 		"item": "항목",
 		"sendMessage": "메시지 보내기",
+		"understand": "이해했습니다",
 		"modal": {
 			"confirmLeave": {
 				"title": "투어 마법사를 나가시겠습니까?",
@@ -1233,8 +1235,8 @@
 			"gallery": {
 				"title": "투어 갤러리"
 			},
-			"weather": {
-				"title": "7일 일기예보",
+            "weather": {
+                "title": "해당 지역의 날씨:",
 				"loading": "일기예보 불러오는 중...",
 				"empty": "일기예보 데이터가 없습니다.",
 				"cityRange": "{{city}} — {{days}}일"
@@ -1297,7 +1299,10 @@
 			"title": "투어를 찾을 수 없습니다",
 			"desc": "다른 키워드로 검색하거나 다른 카테고리를 선택해보세요."
 		},
-		"loadMore": "더 보기"
+		"loadMore": "더 보기",
+		"pagination": {
+			"showing": "총 {{total}}개 투어 중 {{start}}~{{end}}개 표시"
+		}
 	},
 	"bookingHistory": {
 		"title": "예약 내역",
@@ -1578,6 +1583,12 @@
 				"infantIdRequiredGenericPassport": "유아 여권을 입력해주세요",
 				"infantIdInvalidFormatGeneric": "유아 신분증 형식이 올바르지 않습니다",
 				"infantIdInvalidFormatGenericPassport": "유아 여권 형식이 올바르지 않습니다"
+			}
+		},
+		"modal": {
+			"step2Info": {
+				"title": "승객 정보",
+				"message": "2단계에서 모든 승객의 정보를 완전히 입력해주세요. 승객들의 정보를 다시 입력해야 합니다."
 			}
 		},
 		"step3": {
@@ -1954,15 +1965,31 @@
       "title": "비즈니스 대시보드",
       "dashboard": "대시보드",
       "tourManagement": "투어 관리",
-      "orders": "주문",
-      "analytics": "분석",
+      "bookingManagement": "예약 관리",
 			"businessInfo": "비즈니스 정보",
 			"companyInfo": "회사 정보"
     },
+    "actions": { "download": "보고서 다운로드" },
     "welcome": {
       "title": "비즈니스 대시보드에 오신 것을 환영합니다",
       "subtitle": "투어를 관리하고, 분석을 추적하며, 비즈니스를 성장시키세요",
       "createTour": "새 투어 만들기"
+    },
+    "analytics": {
+      "sales": "매출",
+      "purchase": "구매",
+      "return": "반품",
+      "marketing": "마케팅",
+      "lastYear": "지난해"
+    },
+    "header": {
+      "subtitle": "개요 및 분석"
+    },
+    "filters": {
+      "thisYear": "올해",
+      "lastYear": "작년",
+      "thisQuarter": "이번 분기",
+      "thisMonth": "이번 달"
     },
     "stats": {
       "totalTours": "총 투어",
@@ -1982,7 +2009,8 @@
       "businessInfoDesc": "비즈니스 세부 정보 업데이트"
     },
     "charts": {
-      "bookingTrends": "예약 트렌드",
+      "period": "보기:",
+      "bookingTrends": "매출 통계",
       "revenueChart": "수익 차트",
       "last7Days": "최근 7일",
       "last30Days": "최근 30일",
@@ -1991,6 +2019,17 @@
       "quarterly": "분기별",
       "yearly": "연간",
       "chartPlaceholder": "차트가 여기에 표시됩니다"
+    },
+    "panel": {
+      "title": "매출 통계",
+      "subtitle": "마케팅 & 세일즈",
+      "marketing": "마케팅",
+      "sales": "세일즈",
+      "sortBy": "정렬:",
+      "monthly": "월별",
+      "weekly": "주별",
+      "daily": "일별",
+      "yLabel": "총 매출 확보"
     }
   },
   "notifications": {
@@ -2027,5 +2066,64 @@
     "emoji": "이모지 추가",
     "send": "메시지 보내기",
     "placeholder": "메시지를 입력하세요..."
+  },
+  "about": {
+    "hero": {
+      "title": "회사 소개",
+      "subtitle": "잊을 수 없는 여행 경험을 통해 한국과 다낭 문화를 연결합니다"
+    },
+    "mission": {
+      "title": "우리의 사명",
+      "description": "KDBS는 고품질 투어와 전문 서비스를 통해 한국과 다낭 문화를 연결하는 훌륭한 여행 경험을 제공하기 위해 노력합니다."
+    },
+    "values": {
+      "title": "핵심 가치",
+      "quality": {
+        "title": "품질",
+        "desc": "고객에게 최고의 서비스를 제공하기 위해 노력합니다"
+      },
+      "trust": {
+        "title": "신뢰",
+        "desc": "투명성과 전문성을 통해 신뢰를 구축합니다"
+      },
+      "excellence": {
+        "title": "우수성",
+        "desc": "서비스 품질을 지속적으로 개선하고 향상시킵니다"
+      },
+      "passion": {
+        "title": "열정",
+        "desc": "여행과 문화적 연결에 대한 열정"
+      }
+    },
+    "team": {
+      "title": "우리 팀",
+      "member1": {
+        "name": "김철수",
+        "role": "CEO & 창립자",
+        "desc": "관광업계 10년 이상의 경험"
+      },
+      "member2": {
+        "name": "이영희",
+        "role": "마케팅 디렉터",
+        "desc": "관광 마케팅 및 커뮤니케이션 전문가"
+      },
+      "member3": {
+        "name": "박민수",
+        "role": "운영 디렉터",
+        "desc": "서비스 품질 및 고객 경험 보장"
+      }
+    },
+    "stats": {
+      "customers": "고객",
+      "tours": "투어",
+      "satisfaction": "만족도",
+      "partners": "파트너"
+    },
+    "story": {
+      "title": "우리의 이야기",
+      "paragraph1": "KDBS는 한국과 다낭이라는 두 가지 독특한 문화를 연결하는 사명으로 설립되었습니다. 우리는 여행이 단순히 한 곳에서 다른 곳으로 이동하는 것이 아니라, 새로운 사람들과 문화를 탐구하고 배우며 연결할 수 있는 기회라고 믿습니다.",
+      "paragraph2": "전문적이고 경험이 풍부한 팀과 함께, 우리는 신중하게 설계된 투어부터 헌신적인 고객 서비스에 이르기까지 잊을 수 없는 여행 경험을 제공하기 위해 노력합니다. 모든 여행은 이야기이며, 우리는 여러분의 이야기가 특별해지기를 원합니다.",
+      "paragraph3": "여행이 가져다주는 멋진 것들을 함께 탐험해 보세요!"
+    }
   }
 }

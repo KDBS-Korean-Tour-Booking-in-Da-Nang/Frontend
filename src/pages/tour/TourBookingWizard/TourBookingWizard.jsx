@@ -7,6 +7,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useBookingStepValidation } from '../../../hooks/useBookingStepValidation';
 import { useTranslation } from 'react-i18next';
 import ConfirmLeaveModal from '../../../components/modals/ConfirmLeaveModal/ConfirmLeaveModal';
+import Step2InfoModal from '../../../components/modals/Step2InfoModal/Step2InfoModal';
 import Step1Contact from './steps/Step1Contact/Step1Contact';
 import Step2Details from './steps/Step2Details/Step2Details';
 import Step3Review from './steps/Step3Review/Step3Review';
@@ -36,11 +37,13 @@ const BookingWizardContent = () => {
     setDate,
     setPax,
     setMember,
+    rebuildMembers,
     recalcTotal
   } = useBooking();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showStep2InfoModal, setShowStep2InfoModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
   
@@ -340,23 +343,72 @@ const BookingWizardContent = () => {
           showBatch(messages, 'error', 5000);
         }
       } else {
-        
-        // Save booking data to localStorage before moving to next step
-        try {
-          const bookingData = {
-            contact,
-            plan,
-            timestamp: Date.now(),
-            tourId: tourId
-          };
-          localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
-        } catch (error) {
-          console.error('Error saving booking data:', error);
+        // Special handling when moving from step 1 to step 2
+        if (currentStep === 1) {
+          // Reset members array and ensure we have 1 empty adult passenger
+          // Clear all existing members first
+          if (plan.members.adult.length > 0) {
+            // Clear all adult members
+            for (let i = plan.members.adult.length - 1; i >= 0; i--) {
+              setMember('adult', i, {
+                fullName: '',
+                dob: '',
+                gender: '',
+                nationality: '',
+                idNumber: ''
+              });
+            }
+          }
+          
+          // Ensure we have exactly 1 adult passenger
+          if (plan.pax.adult < 1) {
+            setPax({ ...plan.pax, adult: 1 });
+          }
+          
+          // Rebuild members to ensure we have 1 empty adult
+          setTimeout(() => {
+            rebuildMembers();
+          }, 0);
+          
+          // Show info modal
+          setShowStep2InfoModal(true);
+        } else {
+          // For other steps, save and move forward normally
+          // Save booking data to localStorage before moving to next step
+          try {
+            const bookingData = {
+              contact,
+              plan,
+              timestamp: Date.now(),
+              tourId: tourId
+            };
+            localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+          } catch (error) {
+            console.error('Error saving booking data:', error);
+          }
+          
+          setCurrentStep(currentStep + 1);
         }
-        
-        setCurrentStep(currentStep + 1);
       }
     }
+  };
+
+  const handleStep2InfoModalClose = () => {
+    setShowStep2InfoModal(false);
+    // Save booking data to localStorage after modal closes
+    try {
+      const bookingData = {
+        contact,
+        plan,
+        timestamp: Date.now(),
+        tourId: tourId
+      };
+      localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+    } catch (error) {
+      console.error('Error saving booking data:', error);
+    }
+    // Move to step 2
+    setCurrentStep(2);
   };
 
   const handleBack = () => {
@@ -616,6 +668,12 @@ const BookingWizardContent = () => {
           open={showLeaveModal}
           onCancel={handleCancelLeave}
           onConfirm={handleConfirmLeave}
+        />
+
+        {/* Step 2 Info Modal */}
+        <Step2InfoModal
+          open={showStep2InfoModal}
+          onClose={handleStep2InfoModalClose}
         />
       </div>
     </div>

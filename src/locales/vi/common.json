@@ -1,4 +1,4 @@
-{
+﻿{
   "brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
   "nav": {
     "home": "Trang chủ",
@@ -6,6 +6,7 @@
     "tours": "Tours",
     "tourBooking": "Đặt Tour",
     "news": "Tin tức",
+    "about": "Về chúng tôi",
     "selfTravel": "Tự túc",
     "contact": "Liên hệ",
     "admin": "Admin Dashboard",
@@ -32,6 +33,7 @@
     "processing": "Đang xử lý...",
     "item": "mục này",
     "sendMessage": "Gửi tin nhắn",
+    "understand": "Đã hiểu",
     "modal": {
       "confirmLeave": {
         "title": "Rời khỏi trình tạo tour?",
@@ -1250,7 +1252,7 @@
         "title": "Hình ảnh tour"
       },
       "weather": {
-        "title": "Thời tiết 7 ngày",
+        "title": "Thời tiết ở khu vực:",
         "loading": "Đang tải thời tiết...",
         "empty": "Không có dữ liệu thời tiết.",
         "cityRange": "{{city}} — {{days}} ngày"
@@ -1313,7 +1315,10 @@
       "title": "Không tìm thấy tour nào",
       "desc": "Hãy thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác."
     },
-    "loadMore": "Xem thêm"
+    "loadMore": "Xem thêm",
+    "pagination": {
+      "showing": "Hiển thị {{start}} đến {{end}} trong tổng số {{total}} tour"
+    }
   },
   "bookingHistory": {
     "title": "Lịch sử đặt tour",
@@ -1612,6 +1617,12 @@
         "infantIdRequiredGenericPassport": "Vui lòng nhập hộ chiếu em bé",
         "infantIdInvalidFormatGeneric": "CCCD/CMND em bé không đúng định dạng",
         "infantIdInvalidFormatGenericPassport": "Hộ chiếu em bé không đúng định dạng"
+      }
+    },
+    "modal": {
+      "step2Info": {
+        "title": "Thông tin hành khách",
+        "message": "Vui lòng điền đầy đủ thông tin cho tất cả các hành khách ở bước 2. Bạn cần nhập lại thông tin cho các hành khách."
       }
     },
     "step3": {
@@ -1990,15 +2001,31 @@
       "title": "Bảng Điều Khiển Doanh Nghiệp",
       "dashboard": "Bảng Điều Khiển",
       "tourManagement": "Quản Lý Tour",
-      "orders": "Đơn Hàng",
-      "analytics": "Phân Tích",
+      "bookingManagement": "Quản Lý Đặt Tour",
       "businessInfo": "Thông Tin Doanh Nghiệp",
       "companyInfo": "Thông Tin Công Ty"
     },
+    "actions": { "download": "Tải báo cáo" },
     "welcome": {
       "title": "Chào mừng đến với Bảng Điều Khiển Doanh Nghiệp",
       "subtitle": "Quản lý tour, theo dõi phân tích và phát triển doanh nghiệp của bạn",
       "createTour": "Tạo Tour Mới"
+    },
+    "analytics": {
+      "sales": "Doanh số",
+      "purchase": "Mua vào",
+      "return": "Hoàn trả",
+      "marketing": "Marketing",
+      "lastYear": "Năm trước"
+    },
+    "header": {
+      "subtitle": "Tổng quan và phân tích"
+    },
+    "filters": {
+      "thisYear": "Năm nay",
+      "lastYear": "Năm trước",
+      "thisQuarter": "Quý này",
+      "thisMonth": "Tháng này"
     },
     "stats": {
       "totalTours": "Tổng Tour",
@@ -2018,7 +2045,8 @@
       "businessInfoDesc": "Cập nhật thông tin doanh nghiệp"
     },
     "charts": {
-      "bookingTrends": "Xu Hướng Đặt Tour",
+      "period": "Hiển thị:",
+      "bookingTrends": "Thống kê doanh số",
       "revenueChart": "Biểu Đồ Doanh Thu",
       "last7Days": "7 Ngày Qua",
       "last30Days": "30 Ngày Qua",
@@ -2027,7 +2055,82 @@
       "quarterly": "Hàng Quý",
       "yearly": "Hàng Năm",
       "chartPlaceholder": "Biểu đồ sẽ hiển thị ở đây"
+    },
+    "panel": {
+      "title": "Thống kê doanh số",
+      "subtitle": "Marketing & Bán hàng",
+      "marketing": "Marketing",
+      "sales": "Bán hàng",
+      "sortBy": "Sắp xếp:",
+      "monthly": "Hàng tháng",
+      "weekly": "Hàng tuần",
+      "daily": "Hàng ngày",
+      "yLabel": "Tổng doanh thu thu được"
     }
+  },
+  "bookingManagement": {
+    "header": {
+      "title": "Quản Lý Đặt Tour",
+      "subtitle": "Xem và quản lý tất cả các đặt tour theo từng tour"
+    },
+    "stats": {
+      "totalBookings": "Tổng Đặt Tour",
+      "successfulBookings": "Thành Công",
+      "pendingPayment": "Chờ Thanh Toán",
+      "waitingApproval": "Chờ Duyệt"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm theo tour, tên khách hàng hoặc mã đặt tour..."
+    },
+    "filters": {
+      "status": "Trạng thái:",
+      "allStatuses": "Tất Cả Trạng Thái",
+      "sortBy": "Sắp xếp theo:"
+    },
+    "sort": {
+      "newest": "Mới Nhất",
+      "oldest": "Cũ Nhất",
+      "tourAsc": "Tên Tour (A-Z)",
+      "tourDesc": "Tên Tour (Z-A)",
+      "amountDesc": "Số Tiền (Cao đến Thấp)",
+      "amountAsc": "Số Tiền (Thấp đến Cao)"
+    },
+    "table": {
+      "bookingId": "Mã Đặt Tour",
+      "tour": "Tour",
+      "customer": "Khách Hàng",
+      "departureDate": "Ngày Khởi Hành",
+      "guests": "Số Khách",
+      "amount": "Số Tiền",
+      "status": "Trạng Thái",
+      "createdAt": "Ngày Tạo"
+    },
+    "status": {
+      "PENDING_PAYMENT": "Chờ Thanh Toán",
+      "WAITING_FOR_APPROVAL": "Chờ Duyệt",
+      "BOOKING_REJECTED": "Đã Từ Chối",
+      "WAITING_FOR_UPDATE": "Chờ Cập Nhật",
+      "BOOKING_FAILED": "Thất Bại",
+      "BOOKING_SUCCESS": "Thành Công"
+    },
+    "guests": {
+      "adults": "Người lớn",
+      "children": "Trẻ em",
+      "babies": "Em bé"
+    },
+    "pagination": {
+      "previous": "Trước",
+      "next": "Sau",
+      "page": "Trang",
+      "of": "của"
+    },
+    "empty": {
+      "noBookings": "Không tìm thấy đặt tour nào"
+    },
+    "errors": {
+      "loadFailed": "Không thể tải danh sách đặt tour"
+    },
+    "loading": "Đang tải đặt tour..."
   },
   "notifications": {
     "title": "Thông Báo",
@@ -2063,5 +2166,64 @@
     "emoji": "Thêm emoji",
     "send": "Gửi tin nhắn",
     "placeholder": "Nhập tin nhắn của bạn..."
+  },
+  "about": {
+    "hero": {
+      "title": "Về Chúng Tôi",
+      "subtitle": "Kết nối văn hóa Hàn Quốc và Đà Nẵng thông qua những trải nghiệm du lịch đáng nhớ"
+    },
+    "mission": {
+      "title": "Sứ Mệnh Của Chúng Tôi",
+      "description": "KDBS cam kết mang đến những trải nghiệm du lịch tuyệt vời, kết nối văn hóa Hàn Quốc và Đà Nẵng thông qua các tour du lịch chất lượng cao và dịch vụ chuyên nghiệp."
+    },
+    "values": {
+      "title": "Giá Trị Cốt Lõi",
+      "quality": {
+        "title": "Chất Lượng",
+        "desc": "Cam kết mang đến dịch vụ tốt nhất cho khách hàng"
+      },
+      "trust": {
+        "title": "Tin Cậy",
+        "desc": "Xây dựng niềm tin thông qua sự minh bạch và chuyên nghiệp"
+      },
+      "excellence": {
+        "title": "Xuất Sắc",
+        "desc": "Không ngừng cải thiện và nâng cao chất lượng dịch vụ"
+      },
+      "passion": {
+        "title": "Đam Mê",
+        "desc": "Đam mê với du lịch và kết nối văn hóa"
+      }
+    },
+    "team": {
+      "title": "Đội Ngũ Của Chúng Tôi",
+      "member1": {
+        "name": "Nguyễn Văn A",
+        "role": "CEO & Founder",
+        "desc": "Hơn 10 năm kinh nghiệm trong ngành du lịch"
+      },
+      "member2": {
+        "name": "Trần Thị B",
+        "role": "Giám Đốc Marketing",
+        "desc": "Chuyên gia về marketing du lịch và truyền thông"
+      },
+      "member3": {
+        "name": "Lê Văn C",
+        "role": "Giám Đốc Vận Hành",
+        "desc": "Đảm bảo chất lượng dịch vụ và trải nghiệm khách hàng"
+      }
+    },
+    "stats": {
+      "customers": "Khách Hàng",
+      "tours": "Tour Du Lịch",
+      "satisfaction": "Hài Lòng",
+      "partners": "Đối Tác"
+    },
+    "story": {
+      "title": "Câu Chuyện Của Chúng Tôi",
+      "paragraph1": "KDBS được thành lập với sứ mệnh kết nối hai nền văn hóa đặc sắc - Hàn Quốc và Đà Nẵng. Chúng tôi tin rằng du lịch không chỉ là việc di chuyển từ nơi này đến nơi khác, mà còn là cơ hội để khám phá, học hỏi và kết nối với những con người và văn hóa mới.",
+      "paragraph2": "Với đội ngũ chuyên nghiệp và giàu kinh nghiệm, chúng tôi cam kết mang đến những trải nghiệm du lịch đáng nhớ, từ những tour du lịch được thiết kế cẩn thận đến dịch vụ chăm sóc khách hàng tận tâm. Mỗi chuyến đi là một câu chuyện, và chúng tôi muốn câu chuyện của bạn trở nên đặc biệt.",
+      "paragraph3": "Hãy cùng chúng tôi khám phá những điều tuyệt vời mà du lịch mang lại!"
+    }
   }
 }

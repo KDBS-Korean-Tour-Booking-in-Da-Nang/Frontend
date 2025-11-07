@@ -589,10 +589,10 @@
 }
 
 .language-button {
-  background: rgba(0, 0, 0, 0.1);
+  background: transparent;
   backdrop-filter: blur(10px);
   color: #000000;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid #cccccc;
   padding: 0.5rem;
   border-radius: 20px;
   font-weight: 600;
@@ -613,8 +613,11 @@
 }
 
 .language-button:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  color: #333333;
+  border-color: #cccccc;
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .language-dropdown {

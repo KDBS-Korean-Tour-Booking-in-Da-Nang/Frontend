@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useToursAPI } from "../../../hooks/useToursAPI";
@@ -8,7 +8,6 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 import { useTourRated } from "../../../hooks/useTourRated";
-import CityWeatherCard from "../../../components/weather/CityWeatherCard";
 import useWeatherFromTour from "../../../hooks/useWeatherFromTour";
 import DeleteConfirmModal from "../../../components/modals/DeleteConfirmModal/DeleteConfirmModal";
 
@@ -57,25 +56,14 @@ const TourDetailPage = () => {
   const {
     ratings,
     submitRating,
-    updateRating,
     deleteRating,
     canRate,
-    ratedByMe,
-    myRating,
     refresh,
   } = useTourRated(id);
   const [newStar, setNewStar] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  // Weather carousel state (rotate through days)
-  const [weatherSlideIdx, setWeatherSlideIdx] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWeatherSlideIdx((i) => (i + 1) % 6);
-    }, 4000);
-    return () => clearInterval(id);
-  }, []);
   // close open menu on outside click
   useEffect(() => {
     if (!openMenuId) return;
@@ -172,13 +160,6 @@ const TourDetailPage = () => {
       month: "2-digit",
     });
   };
-  const getWindowDays = (days = [], start = 0, size = 4) => {
-    const n = days.length || 0;
-    if (n === 0) return [];
-    const out = [];
-    for (let k = 0; k < Math.min(size, n); k++) out.push(days[(start + k) % n]);
-    return out;
-  };
 
   if (loading || !tour) {
     return (
@@ -221,11 +202,9 @@ const TourDetailPage = () => {
       return;
     }
     // Clear any previous booking wizard data for this tour before starting a new booking
-    try {
-      localStorage.removeItem(`bookingData_${id}`);
-      localStorage.removeItem(`hasConfirmedLeave_${id}`);
-      sessionStorage.removeItem("pendingBooking");
-    } catch (_) {}
+    localStorage.removeItem(`bookingData_${id}`);
+    localStorage.removeItem(`hasConfirmedLeave_${id}`);
+    sessionStorage.removeItem("pendingBooking");
     navigate(`/tour/${id}/booking`);
   };
 
@@ -431,91 +410,185 @@ const TourDetailPage = () => {
                   </div>
                 ) : (
                   weatherData.map((w, i) => {
-                    const days = (w.days || []).slice(0, 6);
-                    const n = days.length;
-                    if (n === 0) return null;
-                    const start = weatherSlideIdx % n;
-                    // duplicate first 4 to allow seamless wrap when sliding
-                    const trackDays = [...days, ...days.slice(0, 4)];
-                    return (
-                      <div
-                        key={`${w.cityKey}-${i}`}
-                        className={styles["tour-overview"]}
-                      >
-                        <h3 className={styles["weather-city-title"]}>
-                          {t("tourPage.detail.weather.cityRange", {
-                            city: w.query,
-                            days: 4,
-                          })}
-                        </h3>
-                        <div className={styles["weather-viewport"]}>
-                          {/* Render exactly 4 cards with wrap, fade on change */}
+                    const WeatherCarousel = ({ days }) => {
+                      const VISIBLE = 4;
+                      const baseDays = (days || []).slice(0, 6);
+                      const n = baseDays.length;
+                      
+                      // Clone items ở cả đầu và cuối để tạo vòng lặp mượt không có điểm dừng
+                      // Format: [clone cuối] + baseDays + [clone đầu]
+                      // Bắt đầu từ index n (item đầu tiên của baseDays thật)
+                      const cloneCount = n >= VISIBLE ? VISIBLE : n;
+                      const infiniteDays = n > 0 
+                        ? [...baseDays.slice(-cloneCount), ...baseDays, ...baseDays.slice(0, cloneCount)]
+                        : [];
+
+                      // Bắt đầu từ index cloneCount (item đầu tiên của baseDays thật)
+                      const [idx, setIdx] = useState(n > 0 ? cloneCount : 0);
+                      const [noTransition, setNoTransition] = useState(true); // start without transition
+                      const trackRef = useRef(null);
+                      const stepPxRef = useRef(0);
+
+                      // NEW: time-based autoplay with RAF
+                      const STEP_MS = 4000;
+                      const lastStepRef = useRef(performance.now());
+                      const rafRef = useRef(0);
+                      const pausedRef = useRef(false);
+                      const hiddenAtRef = useRef(null);
+
+                      // Reset về vị trí ban đầu khi dữ liệu thay đổi: set without transition then enable
+                      useEffect(() => {
+                        if (n > 0) {
+                          setNoTransition(true);
+                          setIdx(cloneCount);
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => setNoTransition(false));
+                          });
+                        }
+                      }, [n, cloneCount]);
+
+                      const measure = () => {
+                        const track = trackRef.current;
+                        if (!track) return;
+                        const card = track.querySelector(`.${styles["weather-card"]}`);
+                        if (!card) return;
+                        const cardWidth = card.getBoundingClientRect().width;
+                        const cs = getComputedStyle(track);
+                        const gap = parseFloat(cs.gap || "12");
+                        stepPxRef.current = cardWidth + gap;
+                      };
+
+                      useEffect(() => {
+                        measure();
+                        const ro = new ResizeObserver(() => measure());
+                        if (trackRef.current) ro.observe(trackRef.current);
+                        window.addEventListener("resize", measure);
+                        return () => {
+                          ro.disconnect();
+                          window.removeEventListener("resize", measure);
+                        };
+                      }, []);
+
+                      // Visibility: compute missed steps and replay smoothly
+                      useEffect(() => {
+                        const onVis = () => {
+                          if (document.hidden) {
+                            hiddenAtRef.current = performance.now();
+                            return;
+                          }
+                          const now = performance.now();
+                          const hiddenFor = hiddenAtRef.current ? (now - hiddenAtRef.current) : 0;
+                          hiddenAtRef.current = null;
+                          const missed = Math.floor(hiddenFor / STEP_MS);
+                          if (missed > 0) {
+                            let i = 0;
+                            const PLAY_DELAY = 250;
+                            const playOne = () => {
+                              setIdx((c) => c + 1);
+                              i += 1;
+                              if (i < missed) setTimeout(playOne, PLAY_DELAY);
+                            };
+                            setTimeout(playOne, 0);
+                            lastStepRef.current = now;
+                          } else {
+                            lastStepRef.current = now;
+                          }
+                        };
+                        document.addEventListener("visibilitychange", onVis);
+                        return () => document.removeEventListener("visibilitychange", onVis);
+                      }, []);
+
+                      // RAF autoplay loop
+                      useEffect(() => {
+                        if (n === 0) return;
+                        const loop = (t) => {
+                          if (!pausedRef.current && !document.hidden) {
+                            if (t - lastStepRef.current >= STEP_MS) {
+                              const steps = Math.floor((t - lastStepRef.current) / STEP_MS);
+                              // Advance exactly one visual step to keep cadence
+                              setIdx((c) => c + 1);
+                              lastStepRef.current += steps * STEP_MS;
+                            }
+                          }
+                          rafRef.current = requestAnimationFrame(loop);
+                        };
+                        rafRef.current = requestAnimationFrame(loop);
+                        return () => cancelAnimationFrame(rafRef.current);
+                      }, [n, STEP_MS]);
+
+                      const handleTransitionEnd = () => {
+                        // Khi đã trượt đến clone items ở cuối (cloneCount + n), reset về cloneCount (đầu baseDays thật)
+                        if (idx >= cloneCount + n) {
+                          setNoTransition(true);
+                          setIdx(cloneCount);
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => setNoTransition(false));
+                          });
+                        }
+                        // Khi lùi về clone items ở đầu (< 0 hoặc < cloneCount), reset về cuối baseDays thật
+                        if (idx < cloneCount) {
+                          setNoTransition(true);
+                          setIdx(cloneCount + n - 1);
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => setNoTransition(false));
+                          });
+                        }
+                      };
+
+                      const onMouseEnter = () => { pausedRef.current = true; };
+                      const onMouseLeave = () => { pausedRef.current = false; };
+
+                      const translate = -(idx * stepPxRef.current);
+
+                      return (
+                        <div
+                          className={styles["weather-viewport"]}
+                          style={{ "--w-cols": VISIBLE }}
+                          onMouseEnter={onMouseEnter}
+                          onMouseLeave={onMouseLeave}
+                        >
                           <div
-                            key={start}
-                            className={`${styles["weather-grid"]} ${styles["fade-enter"]}`}
+                            ref={trackRef}
+                            className={styles["weather-track"]}
+                            style={{ transform: `translateX(${translate}px)`, transition: noTransition ? "none" : undefined }}
+                            onTransitionEnd={handleTransitionEnd}
                           >
-                            {getWindowDays(trackDays, start, 4).map((d, di) => {
+                            {infiniteDays.map((d, di) => {
                               const desc = d?.weather?.[0]?.description || "";
                               const t = Math.round(d?.temp?.day ?? 0);
                               const tMin = Math.round(d?.temp?.min ?? t);
                               const tMax = Math.round(d?.temp?.max ?? t);
                               const range = Math.max(1, tMax - tMin);
-                              const pos = Math.min(
-                                100,
-                                Math.max(0, ((t - tMin) / range) * 100)
-                              );
+                              const pos = Math.min(100, Math.max(0, ((t - tMin) / range) * 100));
+                              const icon = iconFromDesc(desc);
                               return (
-                                <div
-                                  key={di}
-                                  className={styles["weather-card"]}
-                                >
-                                  <div
-                                    className={styles["weather-card-header"]}
-                                  >
-                                    <div
-                                      className={styles["weather-card-date"]}
-                                    >
-                                      {formatDay(d?.dt)}
-                                    </div>
-                                    <div
-                                      className={styles["weather-card-icon"]}
-                                      aria-label="weather-icon"
-                                    >
-                                      {iconFromDesc(desc)}
-                                    </div>
+                                <div key={di} className={styles["weather-card"]}>
+                                  <div className={styles["weather-card-header"]}>
+                                    <div className={styles["weather-card-date"]}>{formatDay(d?.dt)}</div>
+                                    <div className={styles["weather-card-icon"]} aria-label="weather-icon">{icon}</div>
                                   </div>
-                                  <div className={styles["weather-card-desc"]}>
-                                    {desc}
-                                  </div>
+                                  <div className={styles["weather-card-desc"]}>{desc}</div>
                                   <div className={styles["weather-card-temp"]}>
-                                    <div
-                                      className={
-                                        styles["weather-card-temp-value"]
-                                      }
-                                    >
-                                      {t}°C
-                                    </div>
-                                    <div
-                                      className={
-                                        styles["weather-card-temp-range"]
-                                      }
-                                    >
-                                      min {tMin}° / max {tMax}°
-                                    </div>
+                                    <div className={styles["weather-card-temp-value"]}>{t}°C</div>
+                                    <div className={styles["weather-card-temp-range"]}>min {tMin}° / max {tMax}°</div>
                                   </div>
                                   <div className={styles["weather-card-range"]}>
-                                    <div
-                                      className={
-                                        styles["weather-card-range-fill"]
-                                      }
-                                      style={{ width: `${pos}%` }}
-                                    />
+                                    <div className={styles["weather-card-range-fill"]} style={{ width: `${pos}%` }} />
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
                         </div>
+                      );
+                    };
+
+                    return (
+                      <div key={`${w.cityKey}-${i}`} className={styles["tour-overview"]}>
+                        <h3 className={styles["weather-city-title"]}>
+                          {w.query}
+                        </h3>
+                        <WeatherCarousel days={w.days} />
                       </div>
                     );
                   })
@@ -1189,7 +1262,7 @@ const TourDetailPage = () => {
         isOpen={openShare}
         onClose={() => setOpenShare(false)}
         tourId={id}
-        onShared={(post) => {
+        onShared={() => {
           navigate("/forum");
         }}
       />
@@ -1205,3 +1278,4 @@ const TourDetailPage = () => {
 };
 
 export default TourDetailPage;
+

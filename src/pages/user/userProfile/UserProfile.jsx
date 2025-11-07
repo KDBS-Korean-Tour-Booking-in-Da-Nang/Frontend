@@ -4,7 +4,6 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { Modal } from '../../../components';
-import { API_ENDPOINTS } from '../../../config/api';
 import { updateUserProfile, validateUserProfile } from '../../../services/userService';
 import { 
   PencilIcon, 
@@ -15,7 +14,6 @@ import {
   HeartIcon,
   CreditCardIcon,
   BellIcon,
-  StarIcon,
   ChevronDownIcon,
   SunIcon,
   MoonIcon
@@ -40,8 +38,7 @@ const UserProfile = () => {
   });
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '/default-avatar.png');
   const [avatarFile, setAvatarFile] = useState(null);
-  const [premiumStatus, setPremiumStatus] = useState(null);
-  const [premiumLoading, setPremiumLoading] = useState(false);
+  
   const [isUpdating, setIsUpdating] = useState(false);
   const isSocialProvider = (user?.authProvider === 'GOOGLE' || user?.authProvider === 'NAVER');
   const [nameError, setNameError] = useState('');
@@ -167,45 +164,11 @@ const UserProfile = () => {
     return clean;
   };
 
-  // Fetch premium status
-  useEffect(() => {
-    const fetchPremiumStatus = async () => {
-      try {
-        setPremiumLoading(true);
-        const token = getToken();
-        if (!token) {
-          console.log('No token available for premium status check');
-          return;
-        }
-
-        const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Backend might return { result: { ... } } or direct object
-          setPremiumStatus(data?.result || data);
-        }
-      } catch (error) {
-        console.error('Error fetching premium status:', error);
-      } finally {
-        setPremiumLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchPremiumStatus();
-    }
-  }, [user, getToken]);
+  
 
   const sidebarMenuItems = [
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserIcon },
-    { id: 'premium', label: 'Premium', icon: StarIcon },
+    
     { id: 'settings', label: 'Cài đặt', icon: CogIcon },
     { id: 'security', label: 'Bảo mật', icon: ShieldCheckIcon },
     { id: 'favorites', label: 'Yêu thích', icon: HeartIcon },
@@ -488,39 +451,7 @@ const UserProfile = () => {
           </div>
         );
 
-      case 'premium':
-        return (
-          <div className={styles['profile-info']}>
-            <div className={styles['premium-status']}>
-              <div className={styles['premium-header']}>
-                <StarIcon className={styles['premium-icon']} />
-                <h3>Premium Status</h3>
-              </div>
-              
-              {premiumLoading ? (
-                <div className={styles['loading']}>
-                  <div className={styles['spinner']}></div>
-                  <p>Đang tải thông tin premium...</p>
-                </div>
-              ) : premiumStatus?.isPremium ? (
-                <div className={styles['premium-active']}>
-                  <div className={styles['premium-badge']}>Active</div>
-                  <div className={styles['premium-details']}>
-                    <p><strong>Valid until:</strong> {new Date(premiumStatus.expirationDate).toLocaleDateString('vi-VN')}</p>
-                    <p><strong>Status:</strong> Premium Member</p>
-                  </div>
-                </div>
-              ) : (
-                <div className={styles['premium-inactive']}>
-                  <div className={styles['premium-badge-inactive']}>Inactive</div>
-                  <div className={styles['premium-details']}>
-                    <p>Bạn chưa có gói Premium. Nâng cấp để tận hưởng các tính năng đặc biệt!</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
+      
       
       case 'settings':
         return (

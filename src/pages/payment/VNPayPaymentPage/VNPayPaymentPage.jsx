@@ -5,7 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { createVNPayPayment, createBooking, cancelBooking, getBookingTotal, getBookingDetails } from '../../../services/bookingAPI';
 import { formatPrice } from '../../../utils/priceRules';
-import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
+import { createAuthHeaders } from '../../../config/api';
 import styles from './VNPayPaymentPage.module.css';
 
 const VNPayPaymentPage = () => {
@@ -22,23 +22,14 @@ const VNPayPaymentPage = () => {
   const [calculatingTotal, setCalculatingTotal] = useState(true);
   const [timeoutId, setTimeoutId] = useState(null);
 
-  // Get booking data or premium data from location state
-  const { bookingData, tourId, premiumData, bookingId: existingBookingId } = location.state || {};
+  // Get booking data from location state
+  const { bookingData, tourId, bookingId: existingBookingId } = location.state || {};
 
   const [createdBooking, setCreatedBooking] = useState(null);
   const hasAttemptedCreationRef = useRef(false);
   const [reconstructedBookingData, setReconstructedBookingData] = useState(null);
 
   const calculateTotalAmount = useCallback(async () => {
-    // Handle premium payment
-    if (premiumData) {
-      setCalculatingTotal(true);
-      setError(null);
-      setTotalAmount(premiumData.amount);
-      setCalculatingTotal(false);
-      return;
-    }
-    
     // Handle booking payment
     if (!bookingData || !tourId) return;
     
@@ -90,7 +81,7 @@ const VNPayPaymentPage = () => {
     } finally {
       setCalculatingTotal(false);
     }
-  }, [bookingData, tourId, premiumData]);
+  }, [bookingData, tourId]);
 
   // Timeout handling for VNPay transactions
   useEffect(() => {
@@ -112,7 +103,7 @@ const VNPayPaymentPage = () => {
       setTimeoutId(timeout);
     };
 
-    // Only set timeout if we have a booking and are not in premium mode
+    // Only set timeout if we have a booking
     if (createdBooking?.bookingId || existingBookingId) {
       setupTimeout();
     }
@@ -126,7 +117,7 @@ const VNPayPaymentPage = () => {
 
   useEffect(() => {
     // If navigating with existing bookingId (resume payment), load booking details
-    if (existingBookingId && user && !premiumData) {
+    if (existingBookingId && user) {
       // Load booking details to restore form data
       (async () => {
         try {
@@ -216,16 +207,6 @@ const VNPayPaymentPage = () => {
       })();
     }
 
-    // Handle premium payment
-    if (premiumData) {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-      calculateTotalAmount();
-      return;
-    }
-
     // Handle booking payment: allow resume via existingBookingId without bookingData
     if ((!bookingData && !existingBookingId) || !user) {
       navigate('/tour');
@@ -308,12 +289,12 @@ const VNPayPaymentPage = () => {
     };
 
     createBookingOnMount();
-  }, [bookingData, premiumData, user, navigate, showError, calculateTotalAmount, authLoading]);
+  }, [bookingData, user, navigate, showError, calculateTotalAmount, authLoading]);
 
   const handlePayment = async () => {
     // --- PATCH: always use the most reliable data ---
     const useBookingData = bookingData || reconstructedBookingData;
-    if ((!useBookingData && !premiumData && !createdBooking && !existingBookingId) || !user) {
+    if ((!useBookingData && !createdBooking && !existingBookingId) || !user) {
       showError(t('payment.invalidPaymentInfo'));
       return;
     }
@@ -323,83 +304,7 @@ const VNPayPaymentPage = () => {
 
     try {
       let response;
-      
-      if (premiumData) {
-        // Handle premium payment - already has VNPay URL from PremiumModal
-        console.log('Processing premium VNPay payment...', premiumData);
-        console.log('Premium data keys:', Object.keys(premiumData));
-        console.log('Premium payUrl:', premiumData.payUrl);
-        
-        // Try different possible field names for payUrl
-        const payUrl = premiumData.payUrl || premiumData.pay_url || premiumData.paymentUrl || premiumData.payment_url;
-        
-        if (payUrl) {
-          // Store premium data in sessionStorage for return handling
-          sessionStorage.setItem('pendingPremiumPayment', JSON.stringify({
-            premiumData: premiumData,
-            paymentInfo: {
-              success: true,
-              payUrl: payUrl,
-              orderId: premiumData.orderId || premiumData.order_id || null
-            }
-          }));
-          
-          // Redirect to VNPay payment page immediately
-          window.location.href = payUrl;
-        } else {
-          console.error('Premium data received:', premiumData);
-          console.error('This suggests PremiumModal did not receive payUrl from backend or navigation failed');
-          
-          // Fallback: Try to call premium payment API directly from VNPayPaymentPage
-          console.log('Attempting to call premium payment API directly...');
-          
-          const token = getToken();
-          if (!token) {
-            throw new Error('No authentication token found');
-          }
-          
-          // We need to get the premium plan info somehow
-          // For now, let's try to extract from premiumData or use defaults
-          const duration = premiumData.duration || 1; // Default to 1 month if not specified
-          
-          const requestBody = {
-            durationInMonths: duration,
-            userEmail: user.email
-          };
-          
-          console.log('Fallback request body:', requestBody);
-          
-          const fallbackResponse = await fetch(API_ENDPOINTS.PREMIUM_PAYMENT, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-          });
-          
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            console.log('Fallback response:', fallbackData);
-            
-            if (fallbackData.payUrl) {
-              sessionStorage.setItem('pendingPremiumPayment', JSON.stringify({
-                premiumData: premiumData,
-                paymentInfo: {
-                  success: true,
-                  payUrl: fallbackData.payUrl,
-                  orderId: fallbackData.orderId || fallbackData.order_id || null
-                }
-              }));
-              
-              window.location.href = fallbackData.payUrl;
-              return;
-            }
-          }
-          
-          throw new Error('VNPay payment URL not found in premium data. Available fields: ' + Object.keys(premiumData).join(', '));
-        }
-      } else {
+      {
         const bookingIdToPay = createdBooking?.bookingId || existingBookingId;
         if (!bookingIdToPay) {
           throw new Error('Missing bookingId to create payment');
@@ -488,9 +393,7 @@ const VNPayPaymentPage = () => {
         setTimeoutId(null);
       }
     
-    if (premiumData) {
-      navigate('/');
-    } else {
+      {
         navigate('/user/booking-history');
       }
     }
@@ -513,7 +416,7 @@ const VNPayPaymentPage = () => {
     );
   }
 
-  if ((!bookingData && !premiumData && !existingBookingId) || !user) {
+  if ((!bookingData && !existingBookingId) || !user) {
     return (
       <div className={styles['vnpay-payment-page']}>
         <div className={styles['payment-container']}>
@@ -537,33 +440,13 @@ const VNPayPaymentPage = () => {
     <div className={styles['vnpay-payment-page']}>
       <div className={styles['payment-container']}>
         <div className={styles['payment-header']}>
-          <h1>{premiumData ? 'Premium Payment' : t('payment.vnpayTitle')}</h1>
+          <h1>{t('payment.vnpayTitle')}</h1>
           <p>{t('payment.completePaymentToConfirm')}</p>
         </div>
 
         <div className={styles['payment-content']}>
-          {/* Premium Summary or Booking Summary */}
-          {premiumData ? (
-            <div className={styles['booking-summary']}>
-              <h3>Premium Subscription</h3>
-              <div className={styles['summary-details']}>
-                <div className={styles['summary-item']}>
-                  <span className={styles['label']}>Plan:</span>
-                  <span className={styles['value']}>{premiumData.planName}</span>
-                </div>
-                {premiumData.orderId ? (
-                  <div className={styles['summary-item']}>
-                    <span className={styles['label']}>Order ID:</span>
-                    <span className={styles['value']}>{premiumData.orderId}</span>
-                  </div>
-                ) : null}
-                <div className={styles['summary-item']}>
-                  <span className={styles['label']}>User:</span>
-                  <span className={styles['value']}>{user.email}</span>
-                </div>
-              </div>
-            </div>
-          ) : (
+          {/* Booking Summary */}
+          (
             <div className={styles['booking-summary']}>
               <h3>{t('payment.bookingInfo')}</h3>
               <div className={styles['summary-details']}>
@@ -593,7 +476,7 @@ const VNPayPaymentPage = () => {
                 </div>
               </div>
             </div>
-          )}
+          )
 
           {/* Payment Amount */}
           <div className={styles['payment-amount']}>

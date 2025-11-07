@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { extractCities, cityKeyToQuery } from "../lib/geo/extractPlace";
 import { forwardGeocode } from "../lib/geo/forwardGeocode";
 import { fetch7DayByLatLon } from "../services/weatherService";
+import i18n from "../i18n";
 
 /**
  * Lấy thời tiết theo hai trường backend:
@@ -25,7 +26,12 @@ export default function useWeatherFromTour({ tourName = "", tourSchedule = "", m
     let cancelled = false;
 
     (async () => {
-      setState({ data: [], loading: true, error: "" });
+      // Chỉ hiển thị loading khi chưa có dữ liệu (lần đầu)
+      setState((prev) =>
+        (prev?.data?.length ?? 0) > 0
+          ? { ...prev, error: "" }
+          : { data: [], loading: true, error: "" }
+      );
       try {
         // 1) Ưu tiên tour_name
         const { all: fromName } = extractCities(nameText);
@@ -45,24 +51,31 @@ export default function useWeatherFromTour({ tourName = "", tourSchedule = "", m
         // 4) Giới hạn số lượng khi multi
         if (multi && limit > 0) cityKeys = cityKeys.slice(0, limit);
 
-        // 5) Geocode + lấy forecast
+        // 5) Geocode + lấy forecast (đa ngôn ngữ theo i18n)
+        const langMap = { vi: "vi", en: "en", ko: "kr" };
+        const owLang = langMap[i18n.language] || "en";
         const results = [];
         for (const key of cityKeys) {
           const query = cityKeyToQuery(key);
           const coords = await forwardGeocode(query);
           if (!coords) continue;
-          const days = await fetch7DayByLatLon(coords.lat, coords.lon);
+          const days = await fetch7DayByLatLon(coords.lat, coords.lon, owLang);
           results.push({ cityKey: key, query, days });
         }
 
         if (!cancelled) setState({ data: results, loading: false, error: "" });
       } catch (e) {
-        if (!cancelled) setState({ data: [], loading: false, error: "Không lấy được dữ liệu thời tiết." });
+        if (!cancelled)
+          setState((prev) => ({
+            data: prev?.data || [],
+            loading: false,
+            error: "Không lấy được dữ liệu thời tiết.",
+          }));
       }
     })();
 
     return () => { cancelled = true; };
-  }, [tourName, tourSchedule, multi, limit]);
+  }, [tourName, tourSchedule, multi, limit, i18n.language]);
 
   return state; // { data:[{cityKey, query, days}], loading, error }
 }

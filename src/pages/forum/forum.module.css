@@ -1,12 +1,35 @@
+/* Tạo stacking context cho riêng trang Forum */
+.pageRoot {
+  position: relative;
+  isolation: isolate; /* rất quan trọng: tạo stacking context */
+  min-height: 100svh; /* hoặc 100vh nếu muốn */
+}
+
+/* Fallback khi trình duyệt chưa hỗ trợ svh/dvh */
+@supports not (height: 100svh) {
+  .pageRoot {
+    min-height: 100vh;
+  }
+}
+
 .forum-container {
+  position: relative;
+  z-index: 1; /* phủ lên .pageBackground */
   width: 100%;
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
-  min-height: 100vh;
+  background: transparent; /* để lộ nền global từ body::before */
+  min-height: 100svh; /* cho mobile mới */
   display: flex;
   flex-direction: column;
   padding-top: 30px;
+}
+
+/* Fallback khi trình duyệt chưa hỗ trợ svh/dvh */
+@supports not (height: 100svh) {
+  .forum-container {
+    min-height: 100vh; /* chỉ là min-height, vẫn cuộn khi content dài */
+  }
 }
 
 .forum-header {
@@ -747,4 +770,13 @@
 .no-more-posts p {
   margin: 0;
   font-size: 14px;
+}
+
+/* Gradient nền toàn trang - nằm TRÊN body, DƯỚI nội dung Forum */
+.pageBackground {
+  position: fixed;
+  inset: 0;
+  z-index: 0; /* không dùng -1 nữa */
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
+  pointer-events: none; /* không chặn tương tác */
 }

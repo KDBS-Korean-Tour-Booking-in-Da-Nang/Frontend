@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -13,15 +13,19 @@ import {
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
-import PremiumModal from '../../../pages/user/premium/PremiumModal';
 import NotificationDropdown from '../../NotificationDropdown';
 import ChatBox from '../../ChatBox';
 import ChatDropdown from '../../ChatDropdown';
 import WebSocketStatus from '../../WebSocketStatus';
-import { API_ENDPOINTS } from '../../../config/api';
+import { useNotifications } from '../../../contexts/NotificationContext';
+import websocketService from '../../../services/websocketService';
+ 
 
 const Navbar = () => {
   const { user, logout, getToken } = useAuth();
+  const { unreadCount, fetchList } = useNotifications();
+  const fetchListRef = useRef(fetchList);
+  useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
   
   // Add error boundary for chat context
   let chatState, chatActions;
@@ -45,10 +49,22 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const [premiumStatus, setPremiumStatus] = useState(null);
+  
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
+
+  // Set default language to English for USER role and GUEST (not logged in)
+  useEffect(() => {
+    const currentLang = i18n.language;
+    // For USER role or GUEST (no user), default to English
+    if (!user || user.role === 'USER') {
+      if (!currentLang || currentLang === 'vi') {
+        // Set default to English, or switch from Vietnamese to English
+        i18n.changeLanguage('en');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role, i18n.language]); // Check both role and language changes
 
   const handleLogout = () => {
     logout();
@@ -56,8 +72,15 @@ const Navbar = () => {
   };
 
   const changeLanguage = (lng) => {
+    // Prevent USER and GUEST from selecting Vietnamese
+    if ((!user || user.role === 'USER') && lng === 'vi') {
+      return;
+    }
     i18n.changeLanguage(lng);
   };
+
+  // Determine if Vietnamese should be shown (only for COMPANY role)
+  const showVietnamese = user && user.role === 'COMPANY';
 
   const toggleNotification = () => {
     if (isCompanyPending) {
@@ -77,46 +100,7 @@ const Navbar = () => {
     // Don't close notification when opening chat
   };
 
-  // Fetch premium status
-  useEffect(() => {
-    const fetchPremiumStatus = async () => {
-      // Skip premium check for STAFF and ADMIN roles
-      if (user && (user.role === 'STAFF' || user.role === 'ADMIN')) {
-        console.log('Skipping premium check for staff/admin user');
-        return;
-      }
-
-      try {
-        const token = getToken();
-        if (!token) {
-          console.log('No token available for premium status check');
-          return;
-        }
-
-        const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Backend trả về format: { message: "...", result: { isPremium: true/false, expirationDate: "..." } }
-          setPremiumStatus(data.result);
-        } else {
-          console.error('Failed to fetch premium status:', response.status);
-        }
-      } catch (error) {
-        console.error('Error fetching premium status:', error);
-      }
-    };
-
-    if (user) {
-      fetchPremiumStatus();
-    }
-  }, [user, getToken]);
+  
 
   // Handle scroll behavior
   useEffect(() => {
@@ -145,6 +129,8 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  // Notification WS subscriptions are managed centrally by NotificationProvider
+
   // Check if current path is active
   const isActive = (path) => {
     if (path === '/tour') {
@@ -154,6 +140,9 @@ const Navbar = () => {
     if (path === '/news') {
       // For news, also check if we're on news detail page
       return location.pathname === '/news' || location.pathname.startsWith('/news/');
+    }
+    if (path === '/about') {
+      return location.pathname === '/about';
     }
     return location.pathname === path;
   };
@@ -205,6 +194,7 @@ const Navbar = () => {
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.forum')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.tourBooking')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.news')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.about')}</a>
               </>
             ) : (
               <>
@@ -212,6 +202,7 @@ const Navbar = () => {
                 <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
                 <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
                 <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
+                <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
               </>
             )}
           </div>
@@ -229,7 +220,9 @@ const Navbar = () => {
                     disabled={isLockedToCompanyInfo}
                   >
                     <BellIcon />
-                    <span className={styles['notification-badge']}>3</span>
+                    {unreadCount > 0 && (
+                      <span className={styles['notification-badge']}>{unreadCount}</span>
+                    )}
                   </button>
                   {!isLockedToCompanyInfo && (
                     <NotificationDropdown 
@@ -299,22 +292,9 @@ const Navbar = () => {
                       <div className={styles['dropdown-user-info']}>
                         <div className={styles['user-info-row']}>
                           <h4>{user.name || user.email}</h4>
-                          <button 
-                            className={`${styles['premium-icon']} ${premiumStatus?.isPremium ? styles['premium-active'] : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Chỉ mở modal khi user đã có premium để xem thông tin
-                              if (premiumStatus?.isPremium) {
-                                setIsPremiumModalOpen(true);
-                              }
-                            }}
-                            title={premiumStatus?.isPremium ? t('premium.title') : t('premium.title')}
-                            disabled={!premiumStatus?.isPremium}
-                          >
-                            <StarIcon />
-                          </button>
+                          
                         </div>
-                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})} {premiumStatus?.isPremium && <span className={styles['premium-badge']}>{t('premium.title')}</span>}</p>
+                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})}</p>
                       </div>
                     </div>
 
@@ -339,18 +319,7 @@ const Navbar = () => {
                         {t('nav.profileFull')}
                       </button>
                     )}
-                    {/* Open Premium modal for purchase from dropdown, under Profile */}
-                    {!isLockedToCompanyInfo ? (
-                      <button 
-                        className={styles['dropdown-item']}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsPremiumModalOpen(true);
-                        }}
-                      >
-                        {t('premium.purchase')}
-                      </button>
-                    ) : null}
+                    
                     {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}
@@ -381,13 +350,15 @@ const Navbar = () => {
                 {i18n.language === 'vi' && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
                 {i18n.language === 'en' && <img src="/EN.png" alt="English" className={styles['language-flag']} />}
                 {i18n.language === 'ko' && <img src="/KR.png" alt="Korean" className={styles['language-flag']} />}
-                {!i18n.language && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
+                {!i18n.language && (showVietnamese ? <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} /> : <img src="/EN.png" alt="English" className={styles['language-flag']} />)}
               </button>
               <div className={styles['language-dropdown']}>
-                <button onClick={() => changeLanguage('vi')} className={`${styles['language-option']} ${i18n.language === 'vi' ? 'active ' + styles['active'] : ''}`}>
-                  <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />
-                  <span className={styles['language-text']}>{t('lang.vi')}</span>
-                </button>
+                {showVietnamese && (
+                  <button onClick={() => changeLanguage('vi')} className={`${styles['language-option']} ${i18n.language === 'vi' ? 'active ' + styles['active'] : ''}`}>
+                    <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />
+                    <span className={styles['language-text']}>{t('lang.vi')}</span>
+                  </button>
+                )}
                 <button onClick={() => changeLanguage('en')} className={`${styles['language-option']} ${i18n.language === 'en' ? 'active ' + styles['active'] : ''}`}>
                   <img src="/EN.png" alt="English" className={styles['language-flag']} />
                   <span className={styles['language-text']}>{t('lang.en')}</span>
@@ -446,6 +417,14 @@ const Navbar = () => {
               >
                 {t('nav.news')}
               </Link>
+
+              <Link
+                to="/about"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.about')}
+              </Link>
             </>
           )}
 
@@ -477,11 +456,7 @@ const Navbar = () => {
         />
       )}
 
-      {/* Premium Modal */}
-      <PremiumModal 
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-      />
+      
     </>
   );
 };

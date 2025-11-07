@@ -6,6 +6,7 @@
 		"tours": "Tours",
 		"tourBooking": "Tour Booking",
 		"news": "News",
+		"about": "About Us",
 		"selfTravel": "Self-Travel",
 		"contact": "Contact",
 		"admin": "Admin Dashboard",
@@ -1235,8 +1236,8 @@
 			"gallery": {
 				"title": "Tour gallery"
 			},
-			"weather": {
-				"title": "7-day Weather",
+            "weather": {
+                "title": "Weather in area:",
 				"loading": "Loading weather...",
 				"empty": "No weather data.",
 				"cityRange": "{{city}} — {{days}} days"
@@ -1299,7 +1300,10 @@
 			"title": "No tours found",
 			"desc": "Try a different keyword or select another category."
 		},
-		"loadMore": "Load more"
+		"loadMore": "Load more",
+		"pagination": {
+			"showing": "Showing {{start}} to {{end}} of {{total}} tours"
+		}
 	},
 	"bookingHistory": {
 		"title": "Booking History",
@@ -1966,11 +1970,11 @@
 			"title": "Business Dashboard",
       "dashboard": "Dashboard",
       "tourManagement": "Tour Management",
-      "orders": "Orders",
-      "analytics": "Analytics",
+      "bookingManagement": "Booking Management",
 			"businessInfo": "Business Info",
 			"companyInfo": "Company Info"
     },
+    "actions": { "download": "Download Report" },
     "welcome": {
       "title": "Welcome to your Business Dashboard",
       "subtitle": "Manage your tours, track analytics, and grow your business",
@@ -1981,6 +1985,22 @@
       "totalBookings": "Total Bookings",
       "totalRevenue": "Total Revenue",
       "totalViews": "Total Views"
+    },
+    "analytics": {
+      "sales": "Sales",
+      "purchase": "Purchase",
+      "return": "Return",
+      "marketing": "Marketing",
+      "lastYear": "Last year"
+    },
+    "header": {
+      "subtitle": "Overview and analytics"
+    },
+    "filters": {
+      "thisYear": "This Year",
+      "lastYear": "Last Year",
+      "thisQuarter": "This Quarter",
+      "thisMonth": "This Month"
     },
     "quickActions": {
       "title": "Quick Actions",
@@ -1994,7 +2014,8 @@
       "businessInfoDesc": "Update your business details"
     },
     "charts": {
-      "bookingTrends": "Booking Trends",
+      "period": "Show:",
+      "bookingTrends": "Sales Statistics",
       "revenueChart": "Revenue Chart",
       "last7Days": "Last 7 Days",
       "last30Days": "Last 30 Days",
@@ -2003,6 +2024,17 @@
       "quarterly": "Quarterly",
       "yearly": "Yearly",
       "chartPlaceholder": "Chart will be displayed here"
+    },
+    "panel": {
+      "title": "Sales Statistics",
+      "subtitle": "Marketing & Sales",
+      "marketing": "Marketing",
+      "sales": "Sales",
+      "sortBy": "Sort by:",
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "daily": "Daily",
+      "yLabel": "Total revenue acquisition"
     }
   },
   "notifications": {
@@ -2039,6 +2071,65 @@
     "emoji": "Add Emoji",
     "send": "Send Message",
     "placeholder": "Type your message..."
+  },
+  "about": {
+    "hero": {
+      "title": "About Us",
+      "subtitle": "Connecting Korean and Da Nang cultures through memorable travel experiences"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "KDBS is committed to providing excellent travel experiences, connecting Korean and Da Nang cultures through high-quality tours and professional services."
+    },
+    "values": {
+      "title": "Core Values",
+      "quality": {
+        "title": "Quality",
+        "desc": "Committed to providing the best service for customers"
+      },
+      "trust": {
+        "title": "Trust",
+        "desc": "Building trust through transparency and professionalism"
+      },
+      "excellence": {
+        "title": "Excellence",
+        "desc": "Continuously improving and enhancing service quality"
+      },
+      "passion": {
+        "title": "Passion",
+        "desc": "Passionate about travel and cultural connections"
+      }
+    },
+    "team": {
+      "title": "Our Team",
+      "member1": {
+        "name": "John Doe",
+        "role": "CEO & Founder",
+        "desc": "Over 10 years of experience in the tourism industry"
+      },
+      "member2": {
+        "name": "Jane Smith",
+        "role": "Marketing Director",
+        "desc": "Expert in tourism marketing and communications"
+      },
+      "member3": {
+        "name": "Mike Johnson",
+        "role": "Operations Director",
+        "desc": "Ensuring service quality and customer experience"
+      }
+    },
+    "stats": {
+      "customers": "Customers",
+      "tours": "Tours",
+      "satisfaction": "Satisfaction",
+      "partners": "Partners"
+    },
+    "story": {
+      "title": "Our Story",
+      "paragraph1": "KDBS was founded with the mission of connecting two distinctive cultures - Korea and Da Nang. We believe that travel is not just about moving from one place to another, but also an opportunity to explore, learn, and connect with new people and cultures.",
+      "paragraph2": "With a professional and experienced team, we are committed to providing memorable travel experiences, from carefully designed tours to dedicated customer service. Every trip is a story, and we want your story to be special.",
+      "paragraph3": "Join us in exploring the wonderful things that travel brings!"
+    }
   }
 }
 

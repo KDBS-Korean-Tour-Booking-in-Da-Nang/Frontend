@@ -40,16 +40,30 @@ const Forum = () => {
     if (!slot) return;
 
     const slotRect = slot.getBoundingClientRect();
-    // Lấy đỉnh của header thay vì đáy
-    const headerTop = header ? header.getBoundingClientRect().top : 0;
+    
+    // Sidebar luôn bắt đầu từ dưới navbar, bất kể có header hay không
+    // Tìm navbar thực tế để lấy chiều cao chính xác
+    let navbarHeight = 90; // default height (từ CSS: height: 90px)
+    
+    const allNavs = document.querySelectorAll('nav');
+    for (const nav of allNavs) {
+      const styles = window.getComputedStyle(nav);
+      const rect = nav.getBoundingClientRect();
+      // Kiểm tra nếu nav là fixed và ở top của viewport
+      if (styles.position === 'fixed' && Math.abs(rect.top) < 5) {
+        navbarHeight = rect.height;
+        break;
+      }
+    }
+    
+    const NAVBAR_PADDING = 0; // Không cần padding vì sidebar sẽ bắt đầu ngay dưới navbar
+    const top = navbarHeight + NAVBAR_PADDING;
 
-    const MIN_TOP = 16; // khoảng cách an toàn với viền trên viewport
     const SAFE_WIDTH = 280; // fallback đúng với grid-template-columns
-    const top = Math.max(MIN_TOP, Math.round(headerTop));
-
     const left = Math.round(slotRect.left);
     const width = Math.round(slotRect.width || SAFE_WIDTH); // fallback khi width = 0
-    const height = Math.max(120, window.innerHeight - top - 16); // tránh âm khi devtools bật
+    // Tính height để sidebar full từ top đến bottom của viewport
+    const height = window.innerHeight - top;
 
     setFixedSBStyle({ position: 'fixed', top, left, width, height });
   }, [isNarrow]);
@@ -468,10 +482,15 @@ const Forum = () => {
   };
 
   return (
-    <div className={styles['forum-container']}>
-      <div className={styles['forum-content']}>
+    <div className={styles.pageRoot}>
+      {/* Layer nền gradient phủ toàn màn hình */}
+      <div className={styles.pageBackground} aria-hidden="true"></div>
+
+      {/* Toàn bộ forum */}
+      <div className={styles['forum-container']}>
+        <div className={styles['forum-content']}>
         {/* Header: HÀNG 1 của grid */}
-        {user ? (
+        {user && (
           <div id="forum-header" ref={headerRef} className={styles['forum-header']}>
             <div className={styles['forum-header__inner']}>
               <div className={styles['create-post-section']}>
@@ -497,15 +516,6 @@ const Forum = () => {
                     {t('forum.sidebar.myPosts')}
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div id="forum-header" ref={headerRef} className={`${styles['forum-header']} ${styles['guest-notice']}`}>
-            <div className={styles['forum-header__inner']}>
-              <div className={styles['guest-message']}>
-                <p>{t('forum.guest.welcome')} <a href="/login">{t('forum.guest.loginLink')}</a> {t('forum.guest.loginPrompt')}</p>
-                <p className={styles['guest-features']}>{t('forum.guest.searchAndFilter')}</p>
               </div>
             </div>
           </div>
@@ -731,6 +741,7 @@ const Forum = () => {
           selectedHashtags={selectedHashtags}
         />
       )}
+      </div>
     </div>
   );
 };

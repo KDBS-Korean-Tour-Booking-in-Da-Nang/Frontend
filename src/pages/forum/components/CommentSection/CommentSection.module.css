@@ -78,6 +78,7 @@
   border-bottom: 1px solid #f0f2f5;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
+  --reply-indent: 20px; /* biến CSS để dễ tinh chỉnh khoảng cách reply */
 }
 
 /* 2-column skeleton for each comment */
@@ -105,18 +106,18 @@
   min-width: 0;
 }
 
-/* Reply indent theo avatar col + gap */
+/* Reply indent - chỉ đẩy container, không đẩy từng item */
 .reply-item {
   grid-column: 1 / -1;
-  margin-left: 52px; /* 40px avatar + 12px gap */
-  border-left: none;       /* bỏ viền cũ */
-  padding-left: 0;         /* bỏ padding cũ */
+  margin-left: 0; /* bỏ margin-left để tránh lệch kép với container */
+  border-left: none;
+  padding-left: 0;
 }
 
-/* Replies container không thêm một tầng viền mới; giữ thẳng hàng với right col */
+/* Replies container - chỉ đẩy ở đây để tránh lệch kép */
 .replies-container {
   margin-top: 6px;
-  margin-left: 52px; /* cùng gutter */
+  margin-left: var(--reply-indent); /* dùng biến CSS để dễ tinh chỉnh */
   border-left: none;
   padding-left: 0;
 }
@@ -697,6 +698,7 @@
   
   .comments-list {
     padding: 0 16px;
+    --reply-indent: 16px; /* giảm indent cho mobile */
   }
   
   .comment-item {

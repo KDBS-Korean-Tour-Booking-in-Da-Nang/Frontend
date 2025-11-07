@@ -19,8 +19,13 @@ const Homepage = () => {
   
   // Tours for TOP DESTINATIONS
   const { tours, loading: toursLoading, error: toursError, fetchTours } = useToursAPI();
-  const [currentDestPage, setCurrentDestPage] = useState(0);
   const [pageRatings, setPageRatings] = useState({}); // { tourId: avg }
+  // Carousel state (1-card step, 3 visible)
+  const VISIBLE_COUNT = 3;
+  const [carouselIndex, setCarouselIndex] = useState(0); // includes clones offset
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const trackRef = useRef(null);
+  const [cardSizePx, setCardSizePx] = useState(0);
 
   const vnd = useRef(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }));
   
@@ -101,41 +106,90 @@ const Homepage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Ensure current page stays in range when tours change
+  // Carousel derived data
+  const baseItems = useMemo(() => {
+    const src = Array.isArray(tours) ? tours : [];
+    if (src.length >= VISIBLE_COUNT) return src;
+    const placeholders = Array.from({ length: VISIBLE_COUNT - src.length }, () => ({ isPlaceholder: true }));
+    return [...src, ...placeholders];
+  }, [tours]);
+  const totalItems = baseItems.length;
+  const canPaginate = totalItems > VISIBLE_COUNT;
+
+  // Build track with clones for seamless loop
+  const trackItems = useMemo(() => {
+    if (totalItems === 0) return [];
+    if (totalItems <= VISIBLE_COUNT) return [...baseItems];
+    const head = baseItems.slice(0, VISIBLE_COUNT);
+    const tail = baseItems.slice(-VISIBLE_COUNT);
+    return [...tail, ...baseItems, ...head];
+  }, [baseItems, totalItems]);
+
+  // Initialize carousel index when data changes
   useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil((tours?.length || 0) / 3));
-    if (currentDestPage > totalPages - 1) {
-      setCurrentDestPage(0);
+    if (totalItems === 0) return setCarouselIndex(0);
+    if (totalItems <= VISIBLE_COUNT) return setCarouselIndex(0);
+    setCarouselIndex(VISIBLE_COUNT); // start at first real item after tail clones
+    // reset transition to avoid initial animation
+    setIsTransitioning(false);
+  }, [totalItems]);
+
+  // Measure card size for pixel-based translate (robust across responsive widths)
+  useEffect(() => {
+    const measure = () => {
+      if (!trackRef.current) return;
+      const firstCard = trackRef.current.querySelector('[data-card="true"]');
+      if (!firstCard) return;
+      const rect = firstCard.getBoundingClientRect();
+      const style = window.getComputedStyle(firstCard);
+      const mr = parseFloat(style.marginRight || '0');
+      setCardSizePx(rect.width + mr);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [trackItems]);
+
+  const handlePrevDest = useCallback(() => {
+    if (!canPaginate) return;
+    setIsTransitioning(true);
+    setCarouselIndex((idx) => idx - 1);
+  }, [canPaginate]);
+
+  const handleNextDest = useCallback(() => {
+    if (!canPaginate) return;
+    setIsTransitioning(true);
+    setCarouselIndex((idx) => idx + 1);
+  }, [canPaginate]);
+
+  // Handle seamless loop jump after transition ends
+  const onTrackTransitionEnd = useCallback(() => {
+    if (totalItems <= VISIBLE_COUNT || totalItems === 0) return;
+    const firstReal = VISIBLE_COUNT;
+    const lastReal = VISIBLE_COUNT + totalItems - 1;
+    if (carouselIndex < firstReal) {
+      // jumped before start -> wrap to end
+      setIsTransitioning(false);
+      setCarouselIndex(firstReal + totalItems - 1);
+      return;
     }
-  }, [tours, currentDestPage]);
+    if (carouselIndex > lastReal) {
+      // passed end -> wrap to start
+      setIsTransitioning(false);
+      setCarouselIndex(firstReal);
+      return;
+    }
+  }, [carouselIndex, totalItems]);
 
-  const totalDestPages = Math.max(1, Math.ceil((tours?.length || 0) / 3));
-  const canPaginate = totalDestPages > 1;
-
-  const handlePrevDest = () => {
-    if (!canPaginate) return;
-    setCurrentDestPage((p) => (p - 1 + totalDestPages) % totalDestPages);
-  };
-
-  const handleNextDest = () => {
-    if (!canPaginate) return;
-    setCurrentDestPage((p) => (p + 1) % totalDestPages);
-  };
-
+  // Compute logical visible window for ratings
   const currentDestItems = useMemo(() => {
-    const base = (tours || []).slice(currentDestPage * 3, currentDestPage * 3 + 3);
-    return base;
-  }, [tours, currentDestPage]);
+    if (totalItems === 0) return [];
+    if (totalItems <= VISIBLE_COUNT) return baseItems.slice(0, VISIBLE_COUNT);
+    const logicalStart = ((carouselIndex - VISIBLE_COUNT) % totalItems + totalItems) % totalItems;
+    return Array.from({ length: VISIBLE_COUNT }, (_, i) => baseItems[(logicalStart + i) % totalItems]);
+  }, [baseItems, totalItems, carouselIndex]);
 
-  const displayDestItems = useMemo(() => {
-    if (currentDestItems.length === 3) return currentDestItems;
-    return [
-      ...currentDestItems,
-      ...Array.from({ length: 3 - currentDestItems.length }, () => ({ isPlaceholder: true }))
-    ];
-  }, [currentDestItems]);
-
-  // Fetch average rating for tours on current page
+  // Fetch average rating for tours currently visible in carousel
   useEffect(() => {
     const controller = new AbortController();
     const fetchRatings = async () => {
@@ -169,7 +223,7 @@ const Homepage = () => {
     };
     fetchRatings();
     return () => controller.abort();
-  }, [currentDestPage, tours, getToken]);
+  }, [currentDestItems, getToken]);
 
 
   // GSAP animations - optimized for faster initial display (defer to next frame)
@@ -538,62 +592,77 @@ const Homepage = () => {
               </div>
             </div>
 
-            {/* Destination Cards */}
-            <div className="grid md:grid-cols-3 gap-8 mb-8 max-w-5xl mx-auto">
-              {displayDestItems.map((item, idx) => (
-                <div key={idx} className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]" onClick={() => {
-                  if (!item?.isPlaceholder && item?.id) {
-                    navigate(`/tour/${item.id}`);
-                  }
-                }}>
-                  <div className="relative h-64">
-                    {item?.isPlaceholder ? (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center" />
-                    ) : (
-                      <img 
-                        src={item?.image || '/default-Tour.jpg'} 
-                        alt={item?.title || 'Tour'} 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = '/default-Tour.jpg';
-                        }}
-                      />
-                    )}
-                    <div className="absolute top-4 left-4">
-                      {!item?.isPlaceholder && (
-                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                          {item?.tourDeparturePoint || item?.category || 'Tour'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    {item?.isPlaceholder ? (
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
-                    ) : (
-                      <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
-                    )}
-                    <div className="flex items-center justify-between">
+            {/* Destination Carousel */}
+            <div className={`mb-8 max-w-5xl mx-auto ${styles.carouselViewport}`}>
+              <div
+                ref={trackRef}
+                className={styles.carouselTrack}
+                style={{
+                  transform: `translateX(-${Math.max(0, carouselIndex) * (cardSizePx || 0)}px)`,
+                  transition: isTransitioning ? 'transform 0.5s ease' : 'none'
+                }}
+                onTransitionEnd={onTrackTransitionEnd}
+              >
+                {trackItems.map((item, idx) => (
+                  <div
+                    key={idx}
+                    data-card="true"
+                    className={`${styles.carouselCard} destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]`}
+                    onClick={() => {
+                      if (!item?.isPlaceholder && item?.id) {
+                        navigate(`/tour/${item.id}`);
+                      }
+                    }}
+                  >
+                    <div className="relative h-64">
                       {item?.isPlaceholder ? (
-                        <>
-                          <span className="h-6 bg-gray-200 rounded w-24" />
-                          <span className="h-6 bg-gray-200 rounded w-12" />
-                        </>
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center" />
                       ) : (
-                        <>
-                          <span className="text-blue-600 font-semibold text-lg">{vnd.current.format(Number(item?.price || 0))}</span>
-                          <div className="flex items-center gap-1">
-                            <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                            <span className="text-gray-700 font-medium text-xl">{pageRatings[item.id] != null ? Number(pageRatings[item.id]).toFixed(1) : '0.0'}</span>
-                          </div>
-                        </>
+                        <img
+                          src={item?.image || '/default-Tour.jpg'}
+                          alt={item?.title || 'Tour'}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = '/default-Tour.jpg';
+                          }}
+                        />
                       )}
+                      <div className="absolute top-4 left-4">
+                        {!item?.isPlaceholder && (
+                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            {item?.tourDeparturePoint || item?.category || 'Tour'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      {item?.isPlaceholder ? (
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
+                      ) : (
+                        <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
+                      )}
+                      <div className="flex items-center justify-between">
+                        {item?.isPlaceholder ? (
+                          <>
+                            <span className="h-6 bg-gray-200 rounded w-24" />
+                            <span className="h-6 bg-gray-200 rounded w-12" />
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-blue-600 font-semibold text-lg">{vnd.current.format(Number(item?.price || 0))}</span>
+                            <div className="flex items-center gap-1">
+                              <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                              </svg>
+                              <span className="text-gray-700 font-medium text-xl">{item?.id && pageRatings[item.id] != null ? Number(pageRatings[item.id]).toFixed(1) : '0.0'}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* See All Button */}

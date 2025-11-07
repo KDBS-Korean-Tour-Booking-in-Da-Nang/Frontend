@@ -1,0 +1,156 @@
+.sim-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.sim-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+
+.sim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff7ed;
+}
+
+.sim-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.sim-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.sim-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.sim-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.sim-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.sim-message {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.sim-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.sim-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sim-btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.sim-btn-primary:hover {
+  background: #2563eb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sim-modal {
+    max-width: 400px;
+    margin: 16px;
+  }
+  
+  .sim-title {
+    font-size: 17px;
+  }
+  
+  .sim-message {
+    font-size: 13px;
+  }
+  
+  .sim-btn {
+    padding: 9px 18px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sim-modal {
+    max-width: 360px;
+    margin: 12px;
+  }
+  
+  .sim-header {
+    padding: 18px;
+  }
+  
+  .sim-title {
+    font-size: 16px;
+  }
+  
+  .sim-body {
+    padding: 18px;
+  }
+  
+  .sim-message {
+    font-size: 13px;
+  }
+  
+  .sim-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .sim-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}

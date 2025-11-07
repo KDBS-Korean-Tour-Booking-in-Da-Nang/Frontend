@@ -6,7 +6,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { ConditionalNavbar } from './components';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { ConditionalNavbar, ScrollToTopButton } from './components';
 import Footer from './components/Footer/Footer';
 import { useAuth } from './contexts/AuthContext';
 import Homepage from './pages/home/homepage/homepage';
@@ -16,7 +17,7 @@ import AdminLogin from './pages/authentication/adminLogin/adminLogin';
 import Register from './pages/authentication/register/register';
 import VerifyEmail from './pages/authentication/verifyEmail/verifyEmail';
 import OAuthCallback from './pages/authentication/oauthCallback/oauthCallback';
-import BusinessInfo from './pages/company/companyInfo/companyInfo';
+// Removed direct access route for Company Info
 import PendingPage from './pages/home/pendingPage/pendingPage';
 import ForgotPassword from './pages/authentication/forgotPassword/forgotPassword';
 import ResetPassword from './pages/authentication/resetPassword/resetPassword';
@@ -34,14 +35,15 @@ import TransactionResultPage from './pages/payment/TransactionResultPage/Transac
 import TourManagement from './pages/company/tours/tour-management/TourManagement';
 import TourWizard from './pages/company/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/company/tours/shared/CompanyTourDetail';
-import BusinessAnalytics from './pages/company/analytics/CompanyAnalytics';
-import BusinessOrders from './pages/company/orders/CompanyOrders';
+import BookingManagement from './pages/company/bookings/BookingManagement';
 import BusinessDashboard from './pages/company/CompanyDashboard';
-import DashboardHome from './pages/company/DashboardHome';
+import Dashboard from './pages/company/dashboard/Dashboard';
+import VoucherManagement from './pages/company/vouchers/VoucherManagement';
 import News from './pages/news/News';
 import NewsManagement from './pages/staff/news-management/NewsManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import NewsDetail from './pages/news/NewsDetail';
+import AboutUs from './pages/about/AboutUs';
 
 function AppContent() {
   const location = useLocation();
@@ -92,17 +94,17 @@ function AppContent() {
     }
   }, [location.pathname]);
 
-  // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING to /company-info only
+  // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING to Pending Page
   useEffect(() => {
     if (loading) return;
     const role = user?.role;
     const status = user?.status;
     const isCompanyRole = role === 'COMPANY' || role === 'BUSINESS';
     const isPending = status === 'COMPANY_PENDING';
-    const onCompanyInfo = location.pathname === '/company-info' || location.pathname.endsWith('/company/company-info');
+    const onPendingPage = location.pathname === '/pending-page';
 
-    if (isCompanyRole && isPending && !onCompanyInfo) {
-      navigate('/company-info', { replace: true });
+    if (isCompanyRole && isPending && !onPendingPage) {
+      navigate('/pending-page', { replace: true });
       return;
     }
   }, [user, loading, location.pathname, navigate]);
@@ -120,7 +122,7 @@ function AppContent() {
                   <Route path="/verify-email" element={<VerifyEmail />} />
                   <Route path="/google/callback" element={<OAuthCallback />} />
                   <Route path="/naver/callback" element={<OAuthCallback />} />
-                  <Route path="/company-info" element={<BusinessInfo />} />
+                  {/** Removed /company-info route to disable direct access */}
                   <Route path="/pending-page" element={<PendingPage />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
@@ -137,23 +139,26 @@ function AppContent() {
                   <Route path="/tour" element={<Tour />} />
                   {/* Company Dashboard Routes */}
                   <Route path="/company" element={<BusinessDashboard />}> 
-                    <Route index element={<DashboardHome />} />
-                    <Route path="dashboard" element={<DashboardHome />} />
+                    <Route index element={<Dashboard />} />
+                    <Route path="dashboard" element={<Dashboard />} />
                     <Route path="tours" element={<TourManagement />} />
                     <Route path="tours/wizard" element={<TourWizard />} />
                     <Route path="tours/:id" element={<BusinessTourDetail />} />
-                    <Route path="analytics" element={<BusinessAnalytics />} />
-                    <Route path="orders" element={<BusinessOrders />} />
-                    <Route path="company-info" element={<BusinessInfo />} />
+                    <Route path="bookings" element={<BookingManagement />} />
+                    <Route path="vouchers" element={<VoucherManagement />} />
+                    {/** company-info route intentionally removed */}
                   </Route>
                   {/* News routes */}
                   <Route path="/news" element={<News />} />
                   <Route path="/news/:id" element={<NewsDetail />} />
+                  {/* About Us route */}
+                  <Route path="/about" element={<AboutUs />} />
                   {/* Staff routes */}
                   <Route path="/staff/*" element={<StaffDashboard />} />
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
+      {!isStaffAdminPage && <ScrollToTopButton />}
     </div>
   );
 }
@@ -165,9 +170,11 @@ function App() {
         <ToastProvider>
           <AuthProvider>
             <ChatProvider>
-              <Router>
-                <AppContent />
-              </Router>
+              <NotificationProvider>
+                <Router>
+                  <AppContent />
+                </Router>
+              </NotificationProvider>
             </ChatProvider>
           </AuthProvider>
         </ToastProvider>
