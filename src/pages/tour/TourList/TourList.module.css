@@ -126,17 +126,24 @@
   padding: 0 12px;
 }
 
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .search-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  max-width: 900px;
-  margin: 0 auto;
+  flex: 1;
   background: white;
   padding: 6px 6px 6px 20px;
   border-radius: 50px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
   border: none;
+  margin-right: auto;
 }
 
 .search-input-wrapper {
@@ -190,6 +197,56 @@
   outline: none;
 }
 
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.action-btn:hover {
+  background: #f9fafb;
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-color: #d1d5db;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+  color: #374151;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.action-btn:hover .action-icon {
+  color: #111827;
+}
+
+.action-text {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* Legacy class names for backward compatibility */
 .ai-mode-btn {
   display: flex;
   align-items: center;
@@ -395,6 +452,28 @@
   .hero-description {
     font-size: 1rem;
     color: white !important;
+  }
+
+  .search-wrapper {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-bar {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
   }
 
   .tours-grid {

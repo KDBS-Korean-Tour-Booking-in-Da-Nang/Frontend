@@ -1282,6 +1282,9 @@
 		"search": {
 			"placeholder": "Search tours..."
 		},
+		"voucherList": {
+			"title": "Voucher List"
+		},
 		"historyBooking": {
 			"title": "Booking History"
 		},

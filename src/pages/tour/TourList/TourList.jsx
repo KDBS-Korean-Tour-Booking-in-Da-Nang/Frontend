@@ -185,7 +185,8 @@ const TourList = () => {
 
   const clientTotalPages = getClientTotalPages();
   const displayTours = getPaginatedTours();
-  const shouldShowPagination = !isSearchMode && filteredTours.length > TOURS_PER_PAGE;
+  const shouldShowPagination =
+    !isSearchMode && filteredTours.length > TOURS_PER_PAGE;
 
   return (
     <div className={styles["tour-list-container"]}>
@@ -230,54 +231,83 @@ const TourList = () => {
       {/* Search Section */}
       <div className={styles["search-section"]}>
         <div className={styles["container"]}>
-          <div className={styles["search-bar"]}>
-            <div className={styles["search-input-wrapper"]}>
-              <svg
-                className={styles["search-icon"]}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          <div className={styles["search-wrapper"]}>
+            <div className={styles["search-bar"]}>
+              <div className={styles["search-input-wrapper"]}>
+                <svg
+                  className={styles["search-icon"]}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder={t("tourList.search.placeholder")}
+                  value={localSearchQuery}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleKeyDown}
+                  className={styles["search-input"]}
                 />
-              </svg>
-              <input
-                type="text"
-                placeholder={t("tourList.search.placeholder")}
-                value={localSearchQuery}
-                onChange={handleSearchChange}
-                onKeyDown={handleKeyDown}
-                className={styles["search-input"]}
-              />
+              </div>
             </div>
 
-            {/* History Booking Button */}
-            <button
-              className={styles["ai-mode-btn"]}
-              onClick={handleHistoryBooking}
-              title={t("tourList.historyBooking.title")}
-            >
-              <svg
-                className={styles["ai-mode-icon"]}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Action Buttons */}
+            <div className={styles["action-buttons"]}>
+              {/* History Booking Button */}
+              <button
+                className={styles["action-btn"]}
+                onClick={handleHistoryBooking}
+                title={t("tourList.historyBooking.title")}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className={styles["ai-mode-text"]}>
-                {t("tourList.historyBooking.title")}
-              </span>
-            </button>
+                <svg
+                  className={styles["action-icon"]}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className={styles["action-text"]}>
+                  {t("tourList.historyBooking.title")}
+                </span>
+              </button>
+
+              {/* List All Voucher Button */}
+              <button
+                className={styles["action-btn"]}
+                onClick={() => navigate("/tour/voucher-list")}
+                title={t("tourList.voucherList.title")}
+              >
+                <svg
+                  className={styles["action-icon"]}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                  />
+                </svg>
+                <span className={styles["action-text"]}>
+                  {t("tourList.voucherList.title")}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -340,48 +370,57 @@ const TourList = () => {
                     >
                       ‹
                     </button>
-                    
+
                     {/* Page numbers */}
-                    {Array.from({ length: Math.min(5, clientTotalPages) }, (_, i) => {
-                      let pageNum;
-                      if (clientTotalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= clientTotalPages - 2) {
-                        pageNum = clientTotalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
+                    {Array.from(
+                      { length: Math.min(5, clientTotalPages) },
+                      (_, i) => {
+                        let pageNum;
+                        if (clientTotalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= clientTotalPages - 2) {
+                          pageNum = clientTotalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <button
+                            key={pageNum}
+                            className={`${styles["pagination-page"]} ${
+                              currentPage === pageNum ? styles["active"] : ""
+                            }`}
+                            onClick={() => setCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </button>
+                        );
                       }
-                      
-                      return (
+                    )}
+
+                    {clientTotalPages > 5 &&
+                      currentPage < clientTotalPages - 2 && (
+                        <span className={styles["pagination-ellipsis"]}>
+                          ...
+                        </span>
+                      )}
+
+                    {clientTotalPages > 5 &&
+                      currentPage < clientTotalPages - 2 && (
                         <button
-                          key={pageNum}
                           className={`${styles["pagination-page"]} ${
-                            currentPage === pageNum ? styles["active"] : ""
+                            currentPage === clientTotalPages
+                              ? styles["active"]
+                              : ""
                           }`}
-                          onClick={() => setCurrentPage(pageNum)}
+                          onClick={() => setCurrentPage(clientTotalPages)}
                         >
-                          {pageNum}
+                          {clientTotalPages}
                         </button>
-                      );
-                    })}
-                    
-                    {clientTotalPages > 5 && currentPage < clientTotalPages - 2 && (
-                      <span className={styles["pagination-ellipsis"]}>...</span>
-                    )}
-                    
-                    {clientTotalPages > 5 && currentPage < clientTotalPages - 2 && (
-                      <button
-                        className={`${styles["pagination-page"]} ${
-                          currentPage === clientTotalPages ? styles["active"] : ""
-                        }`}
-                        onClick={() => setCurrentPage(clientTotalPages)}
-                      >
-                        {clientTotalPages}
-                      </button>
-                    )}
-                    
+                      )}
+
                     <button
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(currentPage + 1)}
@@ -402,7 +441,10 @@ const TourList = () => {
                   <div className={styles["pagination-info"]}>
                     {t("tourList.pagination.showing", {
                       start: (currentPage - 1) * TOURS_PER_PAGE + 1,
-                      end: Math.min(currentPage * TOURS_PER_PAGE, filteredTours.length),
+                      end: Math.min(
+                        currentPage * TOURS_PER_PAGE,
+                        filteredTours.length
+                      ),
                       total: filteredTours.length,
                     })}
                   </div>

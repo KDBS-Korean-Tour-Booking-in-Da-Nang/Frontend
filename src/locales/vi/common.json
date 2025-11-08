@@ -1297,6 +1297,9 @@
     "search": {
       "placeholder": "Tìm kiếm tour..."
     },
+    "voucherList": {
+      "title": "Danh sách voucher"
+    },
     "historyBooking": {
       "title": "Lịch sử đặt tour"
     },

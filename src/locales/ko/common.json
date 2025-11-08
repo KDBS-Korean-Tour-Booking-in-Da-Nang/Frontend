@@ -1281,6 +1281,9 @@
 		"search": {
 			"placeholder": "투어 검색..."
 		},
+		"voucherList": {
+			"title": "바우처 목록"
+		},
 		"historyBooking": {
 			"title": "예약 내역"
 		},
