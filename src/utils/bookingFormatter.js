@@ -243,10 +243,10 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
   }
 
   // Format the final booking data
+  // Note: bookingStatus is automatically set by BE @PrePersist to PENDING_PAYMENT
   const bookingData = {
     tourId: parseInt(tourId),
     userEmail: userEmail || contact.email.trim(), // Use user email or fallback to contact email
-    bookingStatus: 'PENDING', // Set initial status to PENDING
     contactName: contact.fullName.trim(),
     contactAddress: contact.address.trim(),
     contactPhone: contact.phone.trim(),

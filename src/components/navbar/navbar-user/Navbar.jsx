@@ -160,6 +160,9 @@ const Navbar = () => {
 
   const disabledClass = isLockedToCompanyInfo ? ' cursor-not-allowed opacity-50' : '';
 
+  const hasUnreadNotifications = unreadCount > 0;
+  const hasUnreadMessages = !!chatState?.hasUnreadMessages;
+
   return (
     <>
       <nav className={`${styles.navbar} ${!isVisible ? styles.hidden : ''} ${isScrolled ? styles.scrolled : ''}`}>
@@ -220,8 +223,8 @@ const Navbar = () => {
                     disabled={isLockedToCompanyInfo}
                   >
                     <BellIcon />
-                    {unreadCount > 0 && (
-                      <span className={styles['notification-badge']}>{unreadCount}</span>
+                    {hasUnreadNotifications && (
+                      <span className={styles['notification-dot']} />
                     )}
                   </button>
                   {!isLockedToCompanyInfo && (
@@ -241,7 +244,9 @@ const Navbar = () => {
                     disabled={isLockedToCompanyInfo}
                   >
                     <ChatBubbleLeftRightIcon />
-                    <span className={styles['notification-badge']}>1</span>
+                    {hasUnreadMessages && (
+                      <span className={styles['notification-dot']} />
+                    )}
                   </button>
                   {!isLockedToCompanyInfo && (
                     <ChatDropdown 

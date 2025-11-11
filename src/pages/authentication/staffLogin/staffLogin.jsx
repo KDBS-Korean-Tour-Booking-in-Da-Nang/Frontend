@@ -85,7 +85,6 @@ const StaffLogin = () => {
             role: userData.role,
             name: userData.username,
             avatar: userData.avatar,
-            isPremium: userData.isPremium,
             balance: userData.balance
           };
 

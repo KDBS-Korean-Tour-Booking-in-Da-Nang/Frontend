@@ -287,6 +287,17 @@
   border: 2px solid white;
 }
 
+.notification-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #EF4444;
+  border: 2px solid #ffffff;
+}
+
 /* Balance Display */
 .balance-container {
   display: flex;

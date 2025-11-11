@@ -29,9 +29,8 @@ import Forum from './pages/forum/forum';
 import Tour from './pages/tour/Tour';
 import TourDetailPage from './pages/tour/TourDetailPage/TourDetailPage';
 import TourBookingWizard from './pages/tour/TourBookingWizard/TourBookingWizard';
-import VNPayPaymentPage from './pages/payment/VNPayPaymentPage/VNPayPaymentPage';
-import VNPayReturnPage from './pages/payment/VNPayReturnPage/VNPayReturnPage';
-import TransactionResultPage from './pages/payment/TransactionResultPage/TransactionResultPage';
+import VoucherList from './pages/tour/VoucherList/VoucherList';
+import VoucherDetailPage from './pages/tour/VoucherDetailPage/VoucherDetailPage';
 import TourManagement from './pages/company/tours/tour-management/TourManagement';
 import TourWizard from './pages/company/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/company/tours/shared/CompanyTourDetail';
@@ -44,6 +43,9 @@ import NewsManagement from './pages/staff/news-management/NewsManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import NewsDetail from './pages/news/NewsDetail';
 import AboutUs from './pages/about/AboutUs';
+import BookingCheckPaymentPage from './pages/payment/BookingCheckPaymentPage';
+import PaymentResultPage from './pages/payment/PaymentResultPage';
+
 
 function AppContent() {
   const location = useLocation();
@@ -65,9 +67,11 @@ function AppContent() {
   // Hide footer on company info pages as well
   const isCompanyInfoPage = location.pathname === '/company-info' ||
                             location.pathname.endsWith('/company/company-info');
+  // Hide footer on voucher detail page
+  const isVoucherDetailPage = location.pathname.startsWith('/tour/voucher/');
   
-  // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, or company info
-  const shouldShowFooter = !isStaffAdminPage && !isBusinessDashboardPage && !isForumPage && !isTourWizardPage && !isTourBookingWizardPage && !isCompanyInfoPage;
+  // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, company info, or voucher detail page
+  const shouldShowFooter = !isStaffAdminPage && !isBusinessDashboardPage && !isForumPage && !isTourWizardPage && !isTourBookingWizardPage && !isCompanyInfoPage && !isVoucherDetailPage;
 
   // Use useEffect to ensure page is ready before showing footer
   useEffect(() => {
@@ -129,13 +133,14 @@ function AppContent() {
                   <Route path="/profile" element={<UserProfile />} />
                   <Route path="/user/booking-history" element={<BookingHistory />} />
                   <Route path="/user/booking/:id" element={<BookingDetail />} />
+                  <Route path="/booking/:bookingId/payment" element={<BookingCheckPaymentPage />} />
+                  <Route path="/transaction-result" element={<PaymentResultPage />} />
                   <Route path="/admin/*" element={<AdminDashboard />} />
                   <Route path="/forum" element={<Forum />} />
+                  <Route path="/tour/voucher-list" element={<VoucherList />} />
+                  <Route path="/tour/voucher/:id" element={<VoucherDetailPage />} />
                   <Route path="/tour/:id" element={<TourDetailPage />} />
                   <Route path="/tour/:id/booking" element={<TourBookingWizard />} />
-                  <Route path="/payment/vnpay" element={<VNPayPaymentPage />} />
-                  <Route path="/api/vnpay/return" element={<VNPayReturnPage />} />
-                  <Route path="/transaction-result" element={<TransactionResultPage />} />
                   <Route path="/tour" element={<Tour />} />
                   {/* Company Dashboard Routes */}
                   <Route path="/company" element={<BusinessDashboard />}> 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TourBookingProvider, useBooking } from '../../../contexts/TourBookingContext';
 import { formatBookingData, validateBookingData } from '../../../utils/bookingFormatter';
+import { useBookingAPI } from '../../../hooks/useBookingAPI';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { useBookingStepValidation } from '../../../hooks/useBookingStepValidation';
@@ -25,21 +26,26 @@ const BookingWizardContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const { showError, showBatch } = useToast();
+  const { showError, showBatch, showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
   const showErrorRef = useRef(showError);
-  const { 
-    resetBooking, 
-    contact, 
-    plan, 
+  const {
+    resetBooking,
+    contact,
+    plan,
     booking,
     setContact,
     setDate,
     setPax,
     setMember,
     rebuildMembers,
-    recalcTotal
+    recalcTotal,
+    setBookingLoading,
+    setBookingError,
+    setBookingSuccess,
+    clearBookingStatus
   } = useBooking();
+  const { createBookingAPI } = useBookingAPI();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -52,121 +58,7 @@ const BookingWizardContent = () => {
     showErrorRef.current = showError;
   }, [showError]);
   
-  // Check if we're returning from payment page
-  useEffect(() => {
-    const locationState = location.state;
-    if (locationState && locationState.returnFromPayment) {
-      setCurrentStep(3); // Navigate to Step 3 when returning from payment
-      
-      // Clear confirmed leave flag when returning from payment
-      try {
-        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
-      } catch (error) {
-        console.error('Error clearing confirmed leave flag:', error);
-      }
-      
-      // Try to restore booking data from localStorage
-      try {
-        const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
-        if (savedBookingData) {
-          const parsedData = JSON.parse(savedBookingData);
-          
-          // Restore contact data
-          if (parsedData.contact) {
-            setContact(parsedData.contact);
-          }
-          
-          // Restore plan data
-          if (parsedData.plan) {
-            // Restore date
-            if (parsedData.plan.date) {
-              setDate(parsedData.plan.date);
-            }
-            
-            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
-            if (parsedData.plan.pax) {
-              setPax(parsedData.plan.pax);
-            }
-            
-            // Restore members
-            if (parsedData.plan.members) {
-              // Restore adult members
-              if (parsedData.plan.members.adult) {
-                parsedData.plan.members.adult.forEach((member, index) => {
-                  setMember('adult', index, member);
-                });
-              }
-              
-              // Restore child members
-              if (parsedData.plan.members.child) {
-                parsedData.plan.members.child.forEach((member, index) => {
-                  setMember('child', index, member);
-                });
-              }
-              
-              // Restore infant members
-              if (parsedData.plan.members.infant) {
-                parsedData.plan.members.infant.forEach((member, index) => {
-                  setMember('infant', index, member);
-                });
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error restoring booking data:', error);
-      }
-    }
-  }, [setContact, setDate, setMember]);
-  
-  // Load tour prices and trigger price calculation when returning from payment
-  useEffect(() => {
-    const locationState = location.state;
-    if (locationState && locationState.returnFromPayment) {
-      // Load tour prices from API
-      const loadTourPrices = async () => {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-          
-          // Get token for authentication
-          const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-          
-          const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token && { 'Authorization': `Bearer ${token}` })
-            }
-          });
-          
-          if (!response.ok) {
-            if (response.status === 401) {
-              console.error('Authentication failed - token may be expired');
-              showErrorRef.current('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-              return;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const tourData = await response.json();
-          
-          // Trigger price calculation with loaded prices
-          const prices = {
-            adult: tourData.adultPrice,
-            child: tourData.childrenPrice,
-            infant: tourData.babyPrice
-          };
-          
-          recalcTotal(prices);
-        } catch (error) {
-          console.error('Error loading tour prices for restoration:', error);
-          showErrorRef.current('Không thể tải thông tin tour. Vui lòng thử lại.');
-        }
-      };
-      
-      loadTourPrices();
-    }
-  }, [location.state, tourId, recalcTotal]);
+  // Removed VNPay return handling effect
   
   // Auto-save booking data when contact or plan changes
   useEffect(() => {
@@ -417,40 +309,69 @@ const BookingWizardContent = () => {
     }
   };
 
-  const handleConfirm = () => {
-    // Get current language for date format conversion
+  const handleConfirm = async () => {
     const currentLanguage = (i18n && i18n.language) ? i18n.language : 'vi';
-    
-    // Validate booking data before proceeding to payment
-    const bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
+
+    let bookingData;
+    try {
+      bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
+    } catch (error) {
+      console.error('[Booking] Failed to format booking data', error);
+      showError(error?.message || 'Không thể chuẩn bị dữ liệu đặt tour. Vui lòng kiểm tra lại thông tin.');
+      return;
+    }
+
     const validation = validateBookingData(bookingData);
-    
     if (!validation.isValid) {
       showError(`Dữ liệu không hợp lệ: ${validation.errors.join(', ')}`);
       return;
     }
-    
-    // Save final booking data to localStorage before payment
+
     try {
       const finalBookingData = {
         contact,
         plan,
         timestamp: Date.now(),
-        tourId: tourId,
-        status: 'pending_payment'
+        tourId
       };
       localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(finalBookingData));
     } catch (error) {
       console.error('Error saving final booking data:', error);
     }
-    
-    // Navigate to payment page with booking data (not yet created in DB)
-    navigate('/payment/vnpay', {
-      state: {
-        bookingData: bookingData, // Use formatted data, not created booking
-        tourId: tourId
+
+    clearBookingStatus();
+    setBookingLoading(true);
+
+    try {
+      const createdBooking = await createBookingAPI(bookingData);
+      setBookingSuccess(createdBooking);
+
+      try {
+        localStorage.removeItem(`bookingData_${tourId}`);
+        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+      } catch (_) {}
+
+      resetBooking();
+
+      showSuccess('Đặt tour thành công. Vui lòng tiến hành thanh toán để hoàn tất.');
+
+      navigate(`/booking/${createdBooking.bookingId}/payment`, {
+        state: {
+          bookingId: createdBooking.bookingId,
+          userEmail: createdBooking.contactEmail || bookingData.userEmail
+        }
+      });
+    } catch (error) {
+      console.error('[Booking] Create booking failed', error);
+      const message = error?.message || 'Không thể tạo booking. Vui lòng thử lại sau.';
+      setBookingError(message);
+      showError(message);
+      if (message === 'Unauthenticated') {
+        navigate('/login');
       }
-    });
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   const isStepCompletedByValidation = (stepId) => {

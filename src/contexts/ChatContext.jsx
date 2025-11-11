@@ -32,6 +32,7 @@ const initialState = {
   isChatDropdownOpen: false,
   isChatBoxOpen: false,
   isChatBoxMinimized: false,
+  hasUnreadMessages: false,
   
   // Multiple chat bubbles
   minimizedChats: [], // Array of minimized chat bubbles
@@ -67,6 +68,7 @@ const ActionTypes = {
   ADD_MESSAGE: 'ADD_MESSAGE',
   UPDATE_MESSAGE: 'UPDATE_MESSAGE',
   PREPEND_MESSAGES: 'PREPEND_MESSAGES',
+  SET_HAS_UNREAD_MESSAGES: 'SET_HAS_UNREAD_MESSAGES',
   
   // Pagination
   SET_CURRENT_PAGE: 'SET_CURRENT_PAGE',
@@ -206,9 +208,23 @@ const chatReducer = (state, action) => {
         return state;
       }
       
+      const updatedMessages = [...state.messages, incoming];
+      let shouldFlagUnread = state.hasUnreadMessages;
+      
+      if (!incoming.isOwn) {
+        const incomingSender = (incoming.sender?.userName || incoming.senderName || incoming.sender?.username || incoming.sender?.name || '').toLowerCase();
+        const activeChatUserName = (state.activeChatUser?.userName || state.activeChatUser?.username || state.activeChatUser?.name || '').toLowerCase();
+        const isActiveChat = state.isChatBoxOpen && incomingSender && activeChatUserName && incomingSender === activeChatUserName;
+        const isChatListOpen = state.isChatDropdownOpen;
+        if (!isActiveChat && !isChatListOpen) {
+          shouldFlagUnread = true;
+        }
+      }
+      
       return {
         ...state,
-        messages: [...state.messages, incoming]
+        messages: updatedMessages,
+        hasUnreadMessages: shouldFlagUnread
       };
     }
     
@@ -361,6 +377,12 @@ const chatReducer = (state, action) => {
         isChatBoxMinimized: action.payload
       };
     
+    case ActionTypes.SET_HAS_UNREAD_MESSAGES:
+      return {
+        ...state,
+        hasUnreadMessages: action.payload
+      };
+    
     case ActionTypes.ADD_MINIMIZED_CHAT:
       return {
         ...state,
@@ -476,78 +498,99 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CONNECTING });
       
       // Get current user from AuthContext (from login) - always get fresh
-      const token = getToken();
+      const token = getToken() || sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
       
-      if (token && authUser) {
-        // Always create fresh currentUser from authUser
-        const currentUser = {
-          userId: authUser.userId || authUser.id,
-          userName: authUser.username || authUser.userName || authUser.name,
-          userEmail: authUser.email || authUser.userEmail,
-          role: authUser.role || 'USER'
-        };
-        
-        // Always update currentUser to ensure it's the latest
-        dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: currentUser });
-        // Update ref for WebSocket handlers
-        currentUserRef.current = currentUser;
-        
-        try {
-          // Connect to WebSocket with current user's username
-          const username = currentUser.userName || currentUser.username || currentUser.name || 'unknown';
-          
-          await websocketService.connect(username);
-          dispatch({ type: ActionTypes.SET_CONNECTED });
-          // Set websocketAvailable to true when connection succeeds
-          dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
-          
-          // Subscribe to user messages - use the exact username used for connection
-          const subscriptionResult = websocketService.subscribeToUserMessages(username, (message) => {
-            // Get fresh currentUser from ref (updated when user changes)
-            const freshCurrentUser = currentUserRef.current || currentUser;
-            const currentUserName = freshCurrentUser.userName || freshCurrentUser.username || freshCurrentUser.name;
-            // Backend sends ChatMessageRequest with senderName field directly
-            const messageSenderName = message.senderName || message.sender?.userName || message.sender?.username || message.sender?.name;
-            
-            // Filter out messages from current user to avoid duplicates
-            if (messageSenderName !== currentUserName) {
-              // Add isOwn field for display
-              const messageWithOwnership = {
-                ...message,
-                isOwn: false,
-                id: message.id || `ws-${Date.now()}-${Math.random()}`
-              };
-              dispatch({ type: ActionTypes.ADD_MESSAGE, payload: messageWithOwnership });
-
-              // Upsert conversation for sender
-              const rawOther = messageWithOwnership.senderName || messageWithOwnership.sender?.userName || messageSenderName;
-              const otherUserName = resolveLoginUsername(rawOther);
-              const conversation = {
-                user: { userName: otherUserName, username: otherUserName, avatar: messageWithOwnership.sender?.avatar },
-                lastMessage: {
-                  content: messageWithOwnership.content,
-                  timestamp: messageWithOwnership.timestamp,
-                  senderName: otherUserName,
-                  receiverName: currentUserName,
-                  isOwn: false, // Message from other user
-                  sender: messageWithOwnership.sender
-                },
-                unreadCount: 0
-              };
-              dispatch({ type: ActionTypes.UPSERT_CONVERSATION, payload: conversation });
+      if (token) {
+        // Try to get user from authUser first, otherwise from storage
+        let userData = authUser;
+        if (!userData) {
+          try {
+            const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+            if (savedUser) {
+              userData = JSON.parse(savedUser);
             }
-          });
-          
-          if (!subscriptionResult) {
-            dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: false });
-          } else {
-            dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
+          } catch (e) {
+            // Ignore parse errors
           }
-        } catch (wsError) {
-          // Set as connected anyway for UI purposes, but disable real-time features
-          dispatch({ type: ActionTypes.SET_CONNECTED });
-          // Set a flag to indicate WebSocket is not available
-          dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: false });
+        }
+        
+        if (userData) {
+          // Always create fresh currentUser from userData
+          const currentUser = {
+            userId: userData.userId || userData.id,
+            userName: userData.username || userData.userName || userData.name,
+            userEmail: userData.email || userData.userEmail,
+            role: userData.role || 'USER'
+          };
+          
+          // Always update currentUser to ensure it's the latest
+          dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: currentUser });
+          // Update ref for WebSocket handlers
+          currentUserRef.current = currentUser;
+          
+          try {
+            // Connect to WebSocket with current user's username
+            const username = currentUser.userName || currentUser.username || currentUser.name || 'unknown';
+            
+            // Only connect if not already connected (to avoid duplicate connections)
+            if (!websocketService.getConnectionStatus()) {
+              await websocketService.connect(username);
+            }
+            dispatch({ type: ActionTypes.SET_CONNECTED });
+            // Set websocketAvailable to true when connection succeeds
+            dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
+            
+            // Subscribe to user messages - use the exact username used for connection
+            const subscriptionResult = websocketService.subscribeToUserMessages(username, (message) => {
+              // Get fresh currentUser from ref (updated when user changes)
+              const freshCurrentUser = currentUserRef.current || currentUser;
+              const currentUserName = freshCurrentUser.userName || freshCurrentUser.username || freshCurrentUser.name;
+              // Backend sends ChatMessageRequest with senderName field directly
+              const messageSenderName = message.senderName || message.sender?.userName || message.sender?.username || message.sender?.name;
+              
+              // Filter out messages from current user to avoid duplicates
+              if (messageSenderName !== currentUserName) {
+                // Add isOwn field for display
+                const messageWithOwnership = {
+                  ...message,
+                  isOwn: false,
+                  id: message.id || `ws-${Date.now()}-${Math.random()}`
+                };
+                dispatch({ type: ActionTypes.ADD_MESSAGE, payload: messageWithOwnership });
+
+                // Upsert conversation for sender
+                const rawOther = messageWithOwnership.senderName || messageWithOwnership.sender?.userName || messageSenderName;
+                const otherUserName = resolveLoginUsername(rawOther);
+                const conversation = {
+                  user: { userName: otherUserName, username: otherUserName, avatar: messageWithOwnership.sender?.avatar },
+                  lastMessage: {
+                    content: messageWithOwnership.content,
+                    timestamp: messageWithOwnership.timestamp,
+                    senderName: otherUserName,
+                    receiverName: currentUserName,
+                    isOwn: false, // Message from other user
+                    sender: messageWithOwnership.sender
+                  },
+                  unreadCount: 0
+                };
+                dispatch({ type: ActionTypes.UPSERT_CONVERSATION, payload: conversation });
+              }
+            });
+            
+            if (!subscriptionResult) {
+              dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: false });
+            } else {
+              dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
+            }
+          } catch (wsError) {
+            // Set as connected anyway for UI purposes, but disable real-time features
+            dispatch({ type: ActionTypes.SET_CONNECTED });
+            // Set a flag to indicate WebSocket is not available
+            dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: false });
+          }
+        } else {
+          // No user data available yet, but we have token - wait a bit and retry
+          dispatch({ type: ActionTypes.SET_DISCONNECTED });
         }
       } else {
         // No user logged in
@@ -626,23 +669,51 @@ export const ChatProvider = ({ children }) => {
   };
 
   // Initialize chat system using existing chat API
+  // Connect WebSocket immediately when token is available, don't wait for authUser object
   useEffect(() => {
-    // Check if user is logged in
-    if (authUser && getToken()) {
-      // Small delay to ensure cleanup completes before re-initializing
-      const timer = setTimeout(() => {
-        initializeConnection();
-      }, 100);
-      return () => clearTimeout(timer);
+    const token = getToken() || sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
+    
+    // Check if user is logged in (by token, not just authUser object)
+    if (token) {
+      // Get username from authUser if available, otherwise try to get from storage
+      let username = null;
+      if (authUser) {
+        username = authUser.username || authUser.userName || authUser.name;
+      } else {
+        // Try to get username from storage if authUser not yet loaded
+        try {
+          const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+          if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            username = parsedUser.username || parsedUser.userName || parsedUser.name;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+      
+      // If we have token and username, connect immediately
+      if (username) {
+        // Small delay to ensure cleanup completes before re-initializing
+        const timer = setTimeout(() => {
+          initializeConnection();
+        }, 100);
+        return () => clearTimeout(timer);
+      } else if (authUser) {
+        // If we have authUser but no username yet, wait a bit and retry
+        const timer = setTimeout(() => {
+          initializeConnection();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
 
-    // Cleanup on unmount or when authUser changes
-    return () => {
+    // Cleanup on unmount or when user logs out
+    if (!token) {
       websocketService.disconnect();
-      // Reset currentUser when user changes
       dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
-    };
-  }, [authUser?.userId, authUser?.username, authUser?.userName, authUser?.name]); // Re-initialize when user changes
+    }
+  }, [authUser?.userId, authUser?.username, authUser?.userName, authUser?.name, getToken]); // Re-initialize when user changes
 
   // Listen for auth changes (only handle logout, initialization is handled above)
   useEffect(() => {
@@ -733,6 +804,7 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false }); // Ensure chatbox is visible
         dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
+        dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
         
         // Save chat state to localStorage for persistence
         const minimalUser = pickMinimalUser(user);
@@ -875,10 +947,14 @@ export const ChatProvider = ({ children }) => {
 
     // UI actions
     toggleChatDropdown: () => {
+      const willOpen = !state.isChatDropdownOpen;
       dispatch({ 
         type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, 
-        payload: !state.isChatDropdownOpen 
+        payload: willOpen 
       });
+      if (willOpen) {
+        dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
+      }
     },
 
     closeChatDropdown: () => {
@@ -968,6 +1044,7 @@ export const ChatProvider = ({ children }) => {
         }
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
+        dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
         // Remove from minimized chats
         dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
         

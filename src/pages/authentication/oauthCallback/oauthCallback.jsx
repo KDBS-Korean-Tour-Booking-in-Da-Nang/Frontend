@@ -23,7 +23,6 @@ const OAuthCallback = () => {
     const username = searchParams.get('username');
     const role = searchParams.get('role');
     const avatar = searchParams.get('avatar');
-    const isPremium = searchParams.get('isPremium');
     const balance = searchParams.get('balance');
 
     // If there's an error, redirect to login with error
@@ -69,7 +68,6 @@ const OAuthCallback = () => {
         role: role ? decodeURIComponent(role) : 'USER',
         name: username ? decodeURIComponent(username) : decodeURIComponent(email).split('@')[0],
         avatar: avatar ? decodeURIComponent(avatar) : null,
-        isPremium: isPremium === 'true',
         balance: balance ? parseFloat(balance) : 0,
         authProvider: provider === 'GOOGLE' || provider === 'NAVER' ? provider : 'OAUTH'
       };
@@ -96,7 +94,6 @@ const OAuthCallback = () => {
                 status: meData.result.status,
                 name: meData.result.username || baseUser.name,
                 avatar: meData.result.avatar || baseUser.avatar,
-                isPremium: typeof meData.result.isPremium === 'boolean' ? meData.result.isPremium : baseUser.isPremium,
                 balance: typeof meData.result.balance === 'number' ? meData.result.balance : baseUser.balance,
                 authProvider: baseUser.authProvider
               };

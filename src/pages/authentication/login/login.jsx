@@ -217,7 +217,6 @@ const Login = () => {
             status: data.result.user.status,
             name: data.result.user.username,
             avatar: data.result.user.avatar,
-            isPremium: data.result.user.isPremium,
             balance: data.result.user.balance,
             authProvider: 'LOCAL'
           };

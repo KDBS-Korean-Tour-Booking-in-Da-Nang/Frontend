@@ -60,6 +60,7 @@ export const API_ENDPOINTS = {
   BOOKING_BY_EMAIL: (email) => `${BaseURL}/api/booking/email/${encodeURIComponent(email)}`,
   BOOKING_SUMMARY_BY_EMAIL: (email) => `${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`,
   BOOKING_BY_ID: (id) => `${BaseURL}/api/booking/id/${id}`,
+  BOOKING_PAYMENT: `${BaseURL}/api/booking/payment`,
   
   
 
@@ -67,6 +68,10 @@ export const API_ENDPOINTS = {
   TOUR_RATED: `${BaseURL}/api/tourRated`,
   TOUR_RATED_BY_ID: (id) => `${BaseURL}/api/tourRated/${id}`,
   TOUR_RATED_BY_TOUR: (tourId) => `${BaseURL}/api/tourRated/tour/${tourId}`,
+  
+  // Vouchers
+  VOUCHERS: `${BaseURL}/api/vouchers`,
+  VOUCHERS_BY_COMPANY: (companyId) => `${BaseURL}/api/vouchers/company/${companyId}`,
 };
 
 // Helper function để xử lý avatar URLs

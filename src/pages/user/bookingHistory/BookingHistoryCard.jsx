@@ -87,15 +87,6 @@ const BookingHistoryCard = ({ booking }) => {
     return normalizeStatus(rawStatus);
   })();
 
-  const handleResumePayment = () => {
-    navigate('/payment/vnpay', {
-      state: {
-        bookingId: booking.bookingId,
-        tourId: booking.tourId
-      }
-    });
-  };
-
   return (
     <div className={styles['booking-card']}>
       <div className={styles['booking-content']}>
@@ -163,17 +154,6 @@ const BookingHistoryCard = ({ booking }) => {
         >
           {t('bookingHistory.card.viewDetails')}
         </button>
-        {/* Resume payment button - only shown when pending and not paid */}
-        {String(effectiveStatus).toUpperCase() === 'PENDING' && 
-          (!normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) ||
-          normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) !== 'SUCCESS') && (
-          <button 
-            className={styles['resume-btn']}
-            onClick={handleResumePayment}
-          >
-            {t('bookingHistory.card.resumePayment') || 'Tiếp tục thanh toán'}
-          </button>
-        )}
         {String(effectiveStatus).toUpperCase() === 'CANCELLED' && (
           <button 
             className={styles['cancelled-btn']}

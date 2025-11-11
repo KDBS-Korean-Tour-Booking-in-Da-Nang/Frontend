@@ -344,12 +344,17 @@ const UserProfile = () => {
       // Update local user state with the response
       const updatedUser = {
         ...user,
-        username: editForm.name, // Map name to username for backend compatibility
-        name: editForm.name,
-        phone: editForm.phone,
-        dob: normalizedDob || '',
-        gender: editForm.gender,
-        avatar: newAvatarUrl
+        // Prefer backend-returned fields to ensure immediate UI sync
+        id: result?.id ?? user?.id,
+        username: result?.username ?? result?.name ?? editForm.name,
+        name: result?.name ?? result?.username ?? editForm.name,
+        email: result?.email ?? user?.email,
+        phone: result?.phone ?? editForm.phone,
+        dob: result?.dob ?? (normalizedDob || ''),
+        gender: result?.gender ?? editForm.gender,
+        address: result?.address ?? editForm.address,
+        avatar: newAvatarUrl,
+        authProvider: user?.authProvider
       };
       
       updateUser(updatedUser);

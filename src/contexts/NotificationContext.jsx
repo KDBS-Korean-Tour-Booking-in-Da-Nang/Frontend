@@ -242,30 +242,50 @@ export const NotificationProvider = ({ children }) => {
   }, [userEmail]);
 
   // Initialize and subscribe to WS once user is logged in
+  // Connect immediately when token is available, don't wait for user object
   useEffect(() => {
     let unsubscribes = [];
     let pollTimer = null;
     let removeConnHandler = null;
     let removeDisconnHandler = null;
 
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
     // Enable realtime whenever we have an auth token; user notifications use '/user/queue/notifications'
     const canRealtime = !!token;
 
-    if (canRealtime) {
+    // Get username from user object if available, otherwise try to get from storage
+    let effectiveUsername = username;
+    if (!effectiveUsername && token) {
+      try {
+        const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          effectiveUsername = parsedUser.username || parsedUser.userName || parsedUser.name;
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+
+    if (canRealtime && effectiveUsername) {
       // Ensure websocket connection is established for notifications use-case
-      if (!websocketService.getConnectionStatus()) {
+      // Only connect if not already connected (ChatContext might have already connected)
+      const isAlreadyConnected = websocketService.getConnectionStatus();
+      
+      if (!isAlreadyConnected) {
         try {
-          // Fire and forget; onConnection handler below will subscribe
-          websocketService.connect(username).catch(() => {});
+          // Connect immediately with username from storage if needed
+          websocketService.connect(effectiveUsername).catch(() => {});
         } catch {}
       }
 
       const subscribeNow = () => {
-        const subKey = username ? `user:${username}` : `auth:token`;
+        const subKey = effectiveUsername ? `user:${effectiveUsername}` : `auth:token`;
         if (subscribedUserKeyRef.current === subKey) return; // prevent duplicate subs
+        
+        // Subscribe to both global and user-specific notifications
         const s1 = websocketService.subscribeToGlobalNotifications(pushIncoming);
-        const s2 = websocketService.subscribeToUserNotifications(username, pushIncoming);
+        const s2 = websocketService.subscribeToUserNotifications(effectiveUsername, pushIncoming);
         if (s1) unsubscribes.push(() => s1.unsubscribe());
         if (s2) unsubscribes.push(() => s2.unsubscribe());
         subscribedUserKeyRef.current = subKey;
@@ -273,23 +293,34 @@ export const NotificationProvider = ({ children }) => {
         if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
       };
 
-      if (websocketService.getConnectionStatus()) {
+      // Subscribe immediately if already connected, otherwise wait for connection
+      if (isAlreadyConnected) {
+        // WebSocket already connected (possibly by ChatContext), subscribe immediately
         subscribeNow();
       } else {
         // If not yet connected, subscribe when connection opens
         removeConnHandler = websocketService.onConnection(() => {
           subscribeNow();
         });
-        // While disconnected, enable light polling
+        // While disconnected, enable light polling to fetch notifications
         pollTimer = setInterval(() => { fetchList(); }, 30000);
       }
 
       // If connection drops later, allow re-subscription and re-enable polling
       removeDisconnHandler = websocketService.onDisconnection(() => {
         subscribedUserKeyRef.current = null;
+        // Clear existing subscriptions (they're already invalid when disconnected)
+        // Note: unsubscribes will be cleared in cleanup, but we reset the key to allow re-subscription
+        // Re-enable polling when disconnected
         if (!pollTimer) pollTimer = setInterval(() => { fetchList(); }, 30000);
       });
 
+    } else if (canRealtime && !effectiveUsername) {
+      // If we have token but no username yet, wait a bit and retry
+      const retryTimer = setTimeout(() => {
+        // This will trigger a re-run of the effect when username becomes available
+      }, 500);
+      return () => clearTimeout(retryTimer);
     }
 
     // Initial fetch

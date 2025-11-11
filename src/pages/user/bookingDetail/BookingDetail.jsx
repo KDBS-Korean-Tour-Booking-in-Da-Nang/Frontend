@@ -43,16 +43,6 @@ const BookingDetail = () => {
   const status = useMemo(() => normalizeStatus(booking?.bookingStatus || booking?.status), [booking]);
   const isPending = status === 'PENDING';
 
-  const handleResumePayment = () => {
-    if (!booking) return;
-    navigate('/payment/vnpay', {
-      state: {
-        bookingId: booking.bookingId,
-        tourId: booking.tourId,
-      }
-    });
-  };
-
   if (loading) {
     return (
       <div className={styles['booking-detail-container']}>
@@ -122,13 +112,6 @@ const BookingDetail = () => {
         </div>
       </div>
 
-      {isPending && (
-        <div className={styles['actions']}>
-          <button className={styles['resume']} onClick={handleResumePayment}>
-            {t('bookingHistory.card.resumePayment') || 'Tiếp tục thanh toán'}
-          </button>
-        </div>
-      )}
     </div>
   );
 };

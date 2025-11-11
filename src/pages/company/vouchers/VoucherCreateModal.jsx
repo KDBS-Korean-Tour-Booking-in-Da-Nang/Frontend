@@ -1,10 +1,11 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import { useToast } from '../../../contexts/ToastContext';
+import { createVoucher } from '../../../services/voucherAPI';
 
 const defaultState = {
-  companyId: null,
   code: '',
   name: '',
-  discountType: '', // 'AMOUNT' | 'PERCENT'
+  discountType: '', // 'AMOUNT' | 'PERCENT' (frontend) -> 'FIXED' | 'PERCENT' (backend)
   discountValue: '',
   minOrderValue: '',
   totalQuantity: '',
@@ -14,46 +15,94 @@ const defaultState = {
   tourIds: []
 };
 
-const VoucherCreateModal = ({ isOpen, onClose, onCreate, tours }) => {
+const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) => {
+  const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(defaultState);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef(null);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setForm(defaultState);
-    setErrors({});
+    if (!isOpen) {
+      setForm(defaultState);
+      setErrors({});
+      setIsSubmitting(false);
+    }
   }, [isOpen]);
 
   const validate = () => {
     const e = {};
-    if (!form.code) e.code = 'Vui lòng nhập mã voucher';
-    if (!form.name) e.name = 'Vui lòng nhập tên voucher';
+    if (!form.code || !form.code.trim()) e.code = 'Vui lòng nhập mã voucher';
+    if (!form.name || !form.name.trim()) e.name = 'Vui lòng nhập tên voucher';
     if (!form.discountType) e.discountType = 'Vui lòng chọn loại giảm giá';
-    if (form.discountType && !form.discountValue) e.discountValue = 'Vui lòng nhập giá trị giảm';
-    if (form.discountType === 'PERCENT') {
+    if (form.discountType && !form.discountValue) {
+      e.discountValue = 'Vui lòng nhập giá trị giảm';
+    } else if (form.discountType === 'PERCENT') {
       const v = Number(form.discountValue);
       if (isNaN(v) || v < 1 || v > 100) e.discountValue = 'Phần trăm từ 1 đến 100';
+    } else if (form.discountType === 'AMOUNT') {
+      const v = Number(form.discountValue);
+      if (isNaN(v) || v < 1) e.discountValue = 'Giá trị giảm phải từ 1 trở lên (ví dụ: 100000 cho 100k)';
     }
-    if (!form.totalQuantity) e.totalQuantity = 'Vui lòng nhập số lượng';
-    if (!form.startDate) e.startDate = 'Vui lòng chọn ngày bắt đầu';
-    if (!form.endDate) e.endDate = 'Vui lòng chọn ngày kết thúc';
+    if (!form.totalQuantity || Number(form.totalQuantity) < 1) {
+      e.totalQuantity = 'Số lượng phải lớn hơn 0';
+    }
+    if (!form.startDate) {
+      e.startDate = 'Vui lòng chọn ngày bắt đầu';
+    }
+    if (!form.endDate) {
+      e.endDate = 'Vui lòng chọn ngày kết thúc';
+    }
+    if (form.startDate && form.endDate) {
+      const start = new Date(form.startDate);
+      const end = new Date(form.endDate);
+      if (end <= start) {
+        e.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const payload = {
-      ...form,
-      discountValue: form.discountType === 'PERCENT' ? Number(form.discountValue) : Number(form.discountValue),
-      minOrderValue: form.minOrderValue ? Number(form.minOrderValue) : null,
-      totalQuantity: Number(form.totalQuantity),
-      startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
-      endDate: form.endDate ? new Date(form.endDate).toISOString() : null
-    };
-    onCreate(payload);
+    if (!companyId) {
+      showError('Không tìm thấy thông tin công ty');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Map frontend discountType (AMOUNT) to backend (FIXED)
+      const backendDiscountType = form.discountType === 'AMOUNT' ? 'FIXED' : form.discountType;
+
+      // Prepare payload for backend
+      const payload = {
+        companyId: companyId,
+        code: form.code.trim(),
+        name: form.name.trim(),
+        discountType: backendDiscountType,
+        discountValue: Number(form.discountValue),
+        minOrderValue: form.minOrderValue && form.minOrderValue.trim() ? Number(form.minOrderValue) : null,
+        totalQuantity: Number(form.totalQuantity),
+        startDate: form.startDate ? form.startDate : null, // Backend expects LocalDateTime format (YYYY-MM-DDTHH:mm)
+        endDate: form.endDate ? form.endDate : null,
+        status: form.status,
+        tourIds: form.tourIds && form.tourIds.length > 0 ? form.tourIds : null // null or empty array means apply to all tours
+      };
+
+      await createVoucher(payload);
+      showSuccess('Tạo voucher thành công');
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Error creating voucher:', error);
+      showError(error.message || 'Không thể tạo voucher. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field, value) => {
@@ -115,12 +164,22 @@ const VoucherCreateModal = ({ isOpen, onClose, onCreate, tours }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mã voucher</label>
-              <input className="w-full border rounded px-3 h-11" value={form.code} onChange={(e) => handleChange('code', e.target.value)} />
+              <input 
+                className={`w-full border rounded px-3 h-11 ${errors.code ? 'border-red-500' : ''}`}
+                value={form.code} 
+                onChange={(e) => handleChange('code', e.target.value)}
+                placeholder="Ví dụ: VOUCHER001"
+              />
               {errors.code && <p className="text-red-600 text-xs mt-1">{errors.code}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tên voucher</label>
-              <input className="w-full border rounded px-3 h-11" value={form.name} onChange={(e) => handleChange('name', e.target.value)} />
+              <input 
+                className={`w-full border rounded px-3 h-11 ${errors.name ? 'border-red-500' : ''}`}
+                value={form.name} 
+                onChange={(e) => handleChange('name', e.target.value)}
+                placeholder="Ví dụ: Giảm 10% cho tour mùa hè"
+              />
               {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
             </div>
           </div>
@@ -144,13 +203,47 @@ const VoucherCreateModal = ({ isOpen, onClose, onCreate, tours }) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Giá trị giảm</label>
                 <input
-                  className="w-full border rounded px-3 h-11"
+                  className={`w-full border rounded px-3 h-11 ${errors.discountValue ? 'border-red-500' : ''}`}
                   type="number"
-                  min={form.discountType === 'PERCENT' ? 1 : 0}
+                  min={form.discountType === 'PERCENT' ? 1 : 1}
                   max={form.discountType === 'PERCENT' ? 100 : undefined}
-                  placeholder={form.discountType === 'PERCENT' ? 'Nhập % (1 - 100)' : 'Nhập số tiền VND'}
+                  step={form.discountType === 'PERCENT' ? 1 : 'any'}
+                  placeholder={form.discountType === 'PERCENT' ? 'Nhập % (1 - 100)' : 'Nhập số tiền VND (ví dụ: 100000 cho 100k)'}
                   value={form.discountValue}
-                  onChange={(e) => handleChange('discountValue', e.target.value)}
+                  onKeyDown={(e) => {
+                    // Ngăn nhập dấu trừ (-), dấu cộng (+), và ký tự e, E, . (cho số nguyên)
+                    if (form.discountType === 'PERCENT') {
+                      // Với PERCENT: chỉ cho phép số nguyên từ 1-100
+                      if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    } else {
+                      // Với AMOUNT: ngăn dấu trừ và dấu cộng (nhưng cho phép số thập phân nếu cần)
+                      if (['-', '+'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }
+                  }}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Cho phép nhập để có UX tốt, validation sẽ xử lý khi submit
+                    handleChange('discountValue', value);
+                  }}
+                  onBlur={(e) => {
+                    // Khi blur, nếu giá trị không hợp lệ, đặt về giá trị hợp lệ tối thiểu
+                    const numValue = Number(e.target.value);
+                    if (form.discountType === 'PERCENT') {
+                      if (isNaN(numValue) || numValue < 1) {
+                        handleChange('discountValue', '1');
+                      } else if (numValue > 100) {
+                        handleChange('discountValue', '100');
+                      }
+                    } else if (form.discountType === 'AMOUNT') {
+                      if (isNaN(numValue) || numValue < 1) {
+                        handleChange('discountValue', '1');
+                      }
+                    }
+                  }}
                 />
                 {errors.discountValue && <p className="text-red-600 text-xs mt-1">{errors.discountValue}</p>}
               </div>
@@ -160,7 +253,13 @@ const VoucherCreateModal = ({ isOpen, onClose, onCreate, tours }) => {
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng</label>
-              <input className="w-full border rounded px-3 h-11" type="number" min={1} value={form.totalQuantity} onChange={(e) => handleChange('totalQuantity', e.target.value)} />
+              <input 
+                className={`w-full border rounded px-3 h-11 ${errors.totalQuantity ? 'border-red-500' : ''}`}
+                type="number" 
+                min={1} 
+                value={form.totalQuantity} 
+                onChange={(e) => handleChange('totalQuantity', e.target.value)} 
+              />
               {errors.totalQuantity && <p className="text-red-600 text-xs mt-1">{errors.totalQuantity}</p>}
             </div>
             <div>
@@ -180,12 +279,24 @@ const VoucherCreateModal = ({ isOpen, onClose, onCreate, tours }) => {
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
-              <input className="w-full border rounded px-3 h-11" type="datetime-local" value={form.startDate} onChange={(e) => handleChange('startDate', e.target.value)} />
+              <input 
+                className={`w-full border rounded px-3 h-11 ${errors.startDate ? 'border-red-500' : ''}`}
+                type="datetime-local" 
+                value={form.startDate} 
+                onChange={(e) => handleChange('startDate', e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
               {errors.startDate && <p className="text-red-600 text-xs mt-1">{errors.startDate}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
-              <input className="w-full border rounded px-3 h-11" type="datetime-local" value={form.endDate} onChange={(e) => handleChange('endDate', e.target.value)} />
+              <input 
+                className={`w-full border rounded px-3 h-11 ${errors.endDate ? 'border-red-500' : ''}`}
+                type="datetime-local" 
+                value={form.endDate} 
+                onChange={(e) => handleChange('endDate', e.target.value)}
+                min={form.startDate || new Date().toISOString().slice(0, 16)}
+              />
               {errors.endDate && <p className="text-red-600 text-xs mt-1">{errors.endDate}</p>}
             </div>
           </div>
@@ -229,8 +340,22 @@ const VoucherCreateModal = ({ isOpen, onClose, onCreate, tours }) => {
 
         {/* Footer: sticky at bottom */}
         <div className="sticky bottom-0 bg-white px-8 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
-          <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md">Hủy</button>
-          <button type="button" onClick={() => formRef.current?.requestSubmit()} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Tạo</button>
+          <button 
+            type="button" 
+            onClick={onClose} 
+            disabled={isSubmitting}
+            className="px-4 py-2 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Hủy
+          </button>
+          <button 
+            type="button" 
+            onClick={() => formRef.current?.requestSubmit()} 
+            disabled={isSubmitting || !companyId}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Đang tạo...' : 'Tạo'}
+          </button>
         </div>
       </div>
     </div>

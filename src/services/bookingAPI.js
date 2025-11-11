@@ -1,6 +1,21 @@
 // Booking API service
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
+const parseErrorMessage = async (response) => {
+  try {
+    const text = await response.text();
+    if (!text) return `HTTP error! status: ${response.status}`;
+    try {
+      const obj = JSON.parse(text);
+      return obj?.message || `HTTP error! status: ${response.status}`;
+    } catch {
+      return text;
+    }
+  } catch {
+    return `HTTP error! status: ${response.status}`;
+  }
+};
+
 /**
  * Get authentication headers with Bearer token
  * @returns {Object} - Headers object with Authorization
@@ -39,12 +54,8 @@ export const createBooking = async (bookingData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Booking creation failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData: errorData
-      });
+      const message = await parseErrorMessage(response);
+      console.error('Booking creation failed:', { status: response.status, message });
       
       // Handle authentication errors
       if (response.status === 401) {
@@ -54,7 +65,7 @@ export const createBooking = async (bookingData) => {
         throw new Error('Unauthenticated');
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      throw new Error(message);
     }
 
     const result = await response.json();
@@ -80,7 +91,7 @@ export const getBookingById = async (bookingId) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const message = await parseErrorMessage(response);
       
       // Handle authentication errors
       if (response.status === 401) {
@@ -88,7 +99,11 @@ export const getBookingById = async (bookingId) => {
         throw new Error('Unauthenticated');
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      // 400 often indicates BE mapping error when tour is null; surface friendly text
+      if (response.status === 400) {
+        throw new Error('Bad Request');
+      }
+      throw new Error(message);
     }
 
     const result = await response.json();
@@ -111,7 +126,7 @@ export const getAllBookings = async () => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const message = await parseErrorMessage(response);
       
       // Handle authentication errors
       if (response.status === 401) {
@@ -121,7 +136,7 @@ export const getAllBookings = async () => {
         throw new Error('Unauthenticated');
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      throw new Error(message);
     }
 
     const result = await response.json();
@@ -146,7 +161,7 @@ export const createVNPayPayment = async (paymentData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const message = await parseErrorMessage(response);
       
       // Handle authentication errors
       if (response.status === 401) {
@@ -156,7 +171,7 @@ export const createVNPayPayment = async (paymentData) => {
         throw new Error('Unauthenticated');
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      throw new Error(message);
     }
 
     const result = await response.json();
@@ -181,15 +196,18 @@ export const getBookingTotal = async (bookingId) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const message = await parseErrorMessage(response);
       
       // Handle authentication errors
       if (response.status === 401) {
         // Do not clear token here to avoid logging user out during background checks
         throw new Error('Unauthenticated');
       }
-      
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      if (response.status === 400) {
+        // Allow caller to continue without total
+        throw new Error('Bad Request');
+      }
+      throw new Error(message);
     }
 
     const result = await response.json();

@@ -9,6 +9,12 @@ export default defineConfig({
     // Chỉ cần global: 'globalThis' cho development
     ...(process.env.NODE_ENV === 'development' && { global: 'globalThis' })
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setupTests.js',
+    css: true,
+  },
   server: {
     port: 3000,
     host: true,
