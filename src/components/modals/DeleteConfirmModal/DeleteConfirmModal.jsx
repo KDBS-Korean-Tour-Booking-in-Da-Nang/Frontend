@@ -113,7 +113,7 @@ const DeleteConfirmModal = ({
               <p className={styles['confirm-message']}>
                 {message || t('common.deleteConfirm.message', { item: itemName || t('common.item') })}
               </p>
-              <p className={styles['warning-text']}>{t('common.deleteConfirm.warning')}</p>
+              {danger && <p className={styles['warning-text']}>{t('common.deleteConfirm.warning')}</p>}
               {children}
             </div>
           </div>

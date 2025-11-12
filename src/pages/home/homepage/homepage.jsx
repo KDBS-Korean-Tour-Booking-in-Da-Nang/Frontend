@@ -4,7 +4,9 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import styles from './Homepage.module.css';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import Footer from '../../../components/Footer/Footer';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import { API_ENDPOINTS } from '../../../config/api';
@@ -20,12 +22,7 @@ const Homepage = () => {
   // Tours for TOP DESTINATIONS
   const { tours, loading: toursLoading, error: toursError, fetchTours } = useToursAPI();
   const [pageRatings, setPageRatings] = useState({}); // { tourId: avg }
-  // Carousel state (1-card step, 3 visible)
-  const VISIBLE_COUNT = 3;
-  const [carouselIndex, setCarouselIndex] = useState(0); // includes clones offset
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const trackRef = useRef(null);
-  const [cardSizePx, setCardSizePx] = useState(0);
+  const sliderRef = useRef(null);
 
   const vnd = useRef(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }));
   
@@ -106,94 +103,87 @@ const Homepage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Carousel derived data
-  const baseItems = useMemo(() => {
-    const src = Array.isArray(tours) ? tours : [];
-    if (src.length >= VISIBLE_COUNT) return src;
-    const placeholders = Array.from({ length: VISIBLE_COUNT - src.length }, () => ({ isPlaceholder: true }));
-    return [...src, ...placeholders];
+  // Prepare tours data for slider
+  const toursList = useMemo(() => {
+    return Array.isArray(tours) ? tours : [];
   }, [tours]);
-  const totalItems = baseItems.length;
-  const canPaginate = totalItems > VISIBLE_COUNT;
 
-  // Build track with clones for seamless loop
-  const trackItems = useMemo(() => {
-    if (totalItems === 0) return [];
-    if (totalItems <= VISIBLE_COUNT) return [...baseItems];
-    const head = baseItems.slice(0, VISIBLE_COUNT);
-    const tail = baseItems.slice(-VISIBLE_COUNT);
-    return [...tail, ...baseItems, ...head];
-  }, [baseItems, totalItems]);
-
-  // Initialize carousel index when data changes
+  // Apply padding to slick-list after slider initializes
   useEffect(() => {
-    if (totalItems === 0) return setCarouselIndex(0);
-    if (totalItems <= VISIBLE_COUNT) return setCarouselIndex(0);
-    setCarouselIndex(VISIBLE_COUNT); // start at first real item after tail clones
-    // reset transition to avoid initial animation
-    setIsTransitioning(false);
-  }, [totalItems]);
+    if (toursList.length > 0) {
+      const applyStyles = () => {
+        const slickList = document.querySelector('.destinations-slider .slick-list');
+        if (slickList) {
+          slickList.style.paddingTop = '30px';
+          slickList.style.paddingBottom = '30px';
+        }
+      };
+      
+      // Apply immediately and after delays to ensure slider is initialized
+      applyStyles();
+      const timer1 = setTimeout(applyStyles, 100);
+      const timer2 = setTimeout(applyStyles, 300);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    }
+  }, [toursList.length]);
 
-  // Measure card size for pixel-based translate (robust across responsive widths)
-  useEffect(() => {
-    const measure = () => {
-      if (!trackRef.current) return;
-      const firstCard = trackRef.current.querySelector('[data-card="true"]');
-      if (!firstCard) return;
-      const rect = firstCard.getBoundingClientRect();
-      const style = window.getComputedStyle(firstCard);
-      const mr = parseFloat(style.marginRight || '0');
-      setCardSizePx(rect.width + mr);
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, [trackItems]);
-
+  // Slider navigation handlers
   const handlePrevDest = useCallback(() => {
-    if (!canPaginate) return;
-    setIsTransitioning(true);
-    setCarouselIndex((idx) => idx - 1);
-  }, [canPaginate]);
+    if (sliderRef.current) {
+      sliderRef.current.slickPrev();
+    }
+  }, []);
 
   const handleNextDest = useCallback(() => {
-    if (!canPaginate) return;
-    setIsTransitioning(true);
-    setCarouselIndex((idx) => idx + 1);
-  }, [canPaginate]);
-
-  // Handle seamless loop jump after transition ends
-  const onTrackTransitionEnd = useCallback(() => {
-    if (totalItems <= VISIBLE_COUNT || totalItems === 0) return;
-    const firstReal = VISIBLE_COUNT;
-    const lastReal = VISIBLE_COUNT + totalItems - 1;
-    if (carouselIndex < firstReal) {
-      // jumped before start -> wrap to end
-      setIsTransitioning(false);
-      setCarouselIndex(firstReal + totalItems - 1);
-      return;
+    if (sliderRef.current) {
+      sliderRef.current.slickNext();
     }
-    if (carouselIndex > lastReal) {
-      // passed end -> wrap to start
-      setIsTransitioning(false);
-      setCarouselIndex(firstReal);
-      return;
-    }
-  }, [carouselIndex, totalItems]);
+  }, []);
 
-  // Compute logical visible window for ratings
-  const currentDestItems = useMemo(() => {
-    if (totalItems === 0) return [];
-    if (totalItems <= VISIBLE_COUNT) return baseItems.slice(0, VISIBLE_COUNT);
-    const logicalStart = ((carouselIndex - VISIBLE_COUNT) % totalItems + totalItems) % totalItems;
-    return Array.from({ length: VISIBLE_COUNT }, (_, i) => baseItems[(logicalStart + i) % totalItems]);
-  }, [baseItems, totalItems, carouselIndex]);
+  // Slider settings
+  const sliderSettings = useMemo(() => {
+    const totalTours = toursList.length;
+    return {
+      infinite: totalTours > 3, // Chỉ infinite khi có nhiều hơn 3 tours
+      speed: 300, // Giảm tốc độ để bấm nhanh hơn
+      slidesToShow: Math.min(3, totalTours), // Hiển thị tối đa 3, hoặc số tours nếu ít hơn
+      slidesToScroll: 1,
+      arrows: false, // We'll use custom arrows
+      dots: false,
+      swipe: true,
+      touchMove: true,
+      autoplay: false, // Tắt autoplay, người dùng tự điều khiển
+      pauseOnHover: false, // Tắt pause on hover để bấm nhanh hơn
+      cssEase: 'ease-out', // Smooth transition
+      responsive: [
+        {
+          breakpoint: 1024,
+          settings: {
+            slidesToShow: Math.min(2, totalTours),
+            slidesToScroll: 1,
+            infinite: totalTours > 2,
+          }
+        },
+        {
+          breakpoint: 640,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            infinite: totalTours > 1,
+          }
+        }
+      ]
+    };
+  }, [toursList.length]);
 
-  // Fetch average rating for tours currently visible in carousel
+  // Fetch average rating for all tours
   useEffect(() => {
     const controller = new AbortController();
     const fetchRatings = async () => {
-      const ids = currentDestItems.filter((t) => t && !t.isPlaceholder && t.id).map((t) => t.id);
+      const ids = toursList.filter((t) => t && t.id).map((t) => t.id);
       if (ids.length === 0) return setPageRatings({});
 
       // Skip fetching ratings if not authenticated and endpoint requires auth
@@ -223,7 +213,7 @@ const Homepage = () => {
     };
     fetchRatings();
     return () => controller.abort();
-  }, [currentDestItems, getToken]);
+  }, [toursList, getToken]);
 
 
   // GSAP animations - optimized for faster initial display (defer to next frame)
@@ -430,6 +420,7 @@ const Homepage = () => {
                       src={galleryImages[0].src} 
                       alt={galleryImages[0].alt} 
                       className="w-full h-full object-cover block"
+                      loading="eager"
                       onLoad={() => handleImageLoad(0)}
                       onError={() => handleImageError(0)}
                     />
@@ -452,6 +443,7 @@ const Homepage = () => {
                       src={galleryImages[1].src} 
                       alt={galleryImages[1].alt} 
                       className="w-full h-full object-cover block"
+                      loading="eager"
                       onLoad={() => handleImageLoad(1)}
                       onError={() => handleImageError(1)}
                     />
@@ -474,6 +466,7 @@ const Homepage = () => {
                       src={galleryImages[2].src} 
                       alt={galleryImages[2].alt} 
                       className="w-full h-full object-cover block"
+                      loading="eager"
                       onLoad={() => handleImageLoad(2)}
                       onError={() => handleImageError(2)}
                     />
@@ -496,6 +489,7 @@ const Homepage = () => {
                       src={galleryImages[3].src} 
                       alt={galleryImages[3].alt} 
                       className="w-full h-full object-cover block"
+                      loading="eager"
                       onLoad={() => handleImageLoad(3)}
                       onError={() => handleImageError(3)}
                     />
@@ -579,12 +573,22 @@ const Homepage = () => {
               
               {/* Navigation Arrows */}
               <div className="flex gap-3">
-                <button onClick={handlePrevDest} aria-disabled={!canPaginate} disabled={!canPaginate} className="nav-arrow-btn w-12 h-12 bg-white border-2 border-gray-400 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100">
+                <button 
+                  onClick={handlePrevDest} 
+                  disabled={toursList.length <= 3} 
+                  className="nav-arrow-btn w-12 h-12 bg-white border-2 border-gray-400 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100 z-10 relative"
+                  style={{ zIndex: 10 }}
+                >
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <button onClick={handleNextDest} aria-disabled={!canPaginate} disabled={!canPaginate} className="nav-arrow-btn w-12 h-12 bg-blue-600 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:bg-blue-700 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100">
+                <button 
+                  onClick={handleNextDest} 
+                  disabled={toursList.length <= 3} 
+                  className="nav-arrow-btn w-12 h-12 bg-blue-600 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:bg-blue-700 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100 z-10 relative"
+                  style={{ zIndex: 10 }}
+                >
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -592,63 +596,47 @@ const Homepage = () => {
               </div>
             </div>
 
-            {/* Destination Carousel */}
-            <div className={`mb-8 max-w-5xl mx-auto ${styles.carouselViewport}`}>
-              <div
-                ref={trackRef}
-                className={styles.carouselTrack}
-                style={{
-                  transform: `translateX(-${Math.max(0, carouselIndex) * (cardSizePx || 0)}px)`,
-                  transition: isTransitioning ? 'transform 0.5s ease' : 'none'
-                }}
-                onTransitionEnd={onTrackTransitionEnd}
-              >
-                {trackItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    data-card="true"
-                    className={`${styles.carouselCard} destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem]`}
-                    onClick={() => {
-                      if (!item?.isPlaceholder && item?.id) {
-                        navigate(`/tour/${item.id}`);
-                      }
-                    }}
-                  >
-                    <div className="relative h-64">
-                      {item?.isPlaceholder ? (
-                        <div className="w-full h-full bg-gray-100 flex items-center justify-center" />
-                      ) : (
-                        <img
-                          src={item?.image || '/default-Tour.jpg'}
-                          alt={item?.title || 'Tour'}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.src = '/default-Tour.jpg';
-                          }}
-                        />
-                      )}
-                      <div className="absolute top-4 left-4">
-                        {!item?.isPlaceholder && (
-                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                            {item?.tourDeparturePoint || item?.category || 'Tour'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      {item?.isPlaceholder ? (
-                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
-                      ) : (
-                        <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
-                      )}
-                      <div className="flex items-center justify-between">
-                        {item?.isPlaceholder ? (
-                          <>
-                            <span className="h-6 bg-gray-200 rounded w-24" />
-                            <span className="h-6 bg-gray-200 rounded w-12" />
-                          </>
-                        ) : (
-                          <>
+            {/* Destination Carousel with React Slick */}
+            <div className="mb-8 max-w-5xl mx-auto relative" style={{ zIndex: 1, overflow: 'visible' }}>
+              {toursList.length > 0 ? (
+                <Slider ref={sliderRef} {...sliderSettings} className="destinations-slider">
+                  {toursList.map((item) => (
+                    <div key={item.id} className="px-4">
+                      <div
+                        className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem] relative"
+                        style={{ zIndex: 2, willChange: 'transform' }}
+                        onClick={() => {
+                          if (item?.id) {
+                            navigate(`/tour/${item.id}`);
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.zIndex = '10';
+                          e.currentTarget.style.position = 'relative';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.zIndex = '2';
+                        }}
+                      >
+                        <div className="relative h-64">
+                          <img
+                            src={item?.image || '/default-Tour.jpg'}
+                            alt={item?.title || 'Tour'}
+                            className="w-full h-full object-cover"
+                            loading="eager"
+                            onError={(e) => {
+                              e.target.src = '/default-Tour.jpg';
+                            }}
+                          />
+                          <div className="absolute top-4 left-4">
+                            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                              {item?.tourDeparturePoint || item?.category || 'Tour'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
+                          <div className="flex items-center justify-between">
                             <span className="text-blue-600 font-semibold text-lg">{vnd.current.format(Number(item?.price || 0))}</span>
                             <div className="flex items-center gap-1">
                               <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -656,13 +644,15 @@ const Homepage = () => {
                               </svg>
                               <span className="text-gray-700 font-medium text-xl">{item?.id && pageRatings[item.id] != null ? Number(pageRatings[item.id]).toFixed(1) : '0.0'}</span>
                             </div>
-                          </>
-                        )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </Slider>
+              ) : (
+                <div className="text-center py-12 text-gray-500">Loading destinations...</div>
+              )}
             </div>
 
             {/* See All Button */}
@@ -765,6 +755,7 @@ const Homepage = () => {
                       group-hover:scale-105 group-hover:rotate-1
                       group-hover:shadow-[0_25px_60px_rgba(2,6,23,.25)]
                     "
+                    loading="eager"
                   />
 
                   <img
@@ -780,6 +771,7 @@ const Homepage = () => {
                       group-hover:shadow-[0_30px_70px_rgba(2,6,23,.3)]
                       group-hover:border-white/90
                     "
+                    loading="eager"
                   />
                 </div>
               </div>

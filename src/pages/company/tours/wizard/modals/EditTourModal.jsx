@@ -76,31 +76,42 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   };
 
   // TinyMCE configuration with image upload
-  const getTinyMCEConfig = (height = 200) => ({
+  const getTinyMCEConfig = (height = 200, options = {}) => ({
     apiKey: import.meta.env.VITE_TINYMCE_API_KEY,
     height,
     menubar: false,
-    statusbar: false, // Hide status bar
+    statusbar: options.statusbar !== undefined ? options.statusbar : false, // Hide status bar
+    branding: options.branding !== undefined ? options.branding : false,
     resize: false, // Disable resize handle
     plugins: [
       'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
       'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
       'insertdatetime', 'media', 'table', 'help', 'wordcount'
     ],
-    toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
-    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-    // Prevent automatic <p> tags
-    forced_root_block: false,
-    force_br_newlines: true,
-    force_p_newlines: false,
-    remove_redundant_brs: true,
-    // Clean up HTML
-    cleanup: true,
-    cleanup_on_startup: true,
+    toolbar: options.toolbar || 'undo redo | blocks | ' +
+      'bold italic forecolor | alignleft aligncenter ' +
+      'alignright alignjustify | bullist numlist outdent indent | ' +
+      'image | table tabledelete | tableprops tablerowprops tablecellprops | ' +
+      'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
+      'tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | help',
+    content_style: options.content_style || 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px } table { width: 100%; border-collapse: collapse; } table, th, td { border: 1px solid #e5e7eb; } th, td { padding: 8px; }',
+    // Typing/newline behavior
+    forced_root_block: options.forced_root_block !== undefined ? options.forced_root_block : 'div',
+    remove_redundant_brs: options.remove_redundant_brs !== undefined ? options.remove_redundant_brs : false,
+    cleanup: options.cleanup !== undefined ? options.cleanup : false,
+    cleanup_on_startup: options.cleanup_on_startup !== undefined ? options.cleanup_on_startup : false,
     verify_html: false,
-    // Additional settings to prevent <p> tags
+    br_in_pre: true,
+    extended_valid_elements: 'br[class|style]',
+    // Additional settings
     entity_encoding: 'raw',
     convert_urls: false,
+    // Enable drag and drop for images
+    paste_data_images: true,
+    paste_enable_default_filters: false,
+    paste_auto_cleanup_on_paste: true,
+    paste_remove_styles_if_webkit: false,
+    paste_merge_formats: true,
     // Configure image upload
     images_upload_handler: async (blobInfo) => {
       const formData = new FormData();
@@ -140,7 +151,33 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       }
     },
     automatic_uploads: true,
-    file_picker_types: 'image'
+    file_picker_types: 'image',
+    // Image upload settings
+    images_upload_url: API_ENDPOINTS.TOURS + '/content-image',
+    images_upload_base_path: '/uploads/tours/content/',
+    images_upload_credentials: true,
+    // File picker configuration
+    file_picker_callback: function (callback, value, meta) {
+      if (meta.filetype === 'image') {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+        
+        input.onchange = function () {
+          const file = this.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function () {
+              callback(reader.result, {
+                alt: file.name
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+      }
+    }
   });
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -866,31 +903,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                           onEditorChange={(content) => 
                             handleItineraryChange(index, 'description', content)
                           }
-                          init={{
-                            height: 600,
-                            menubar: false,
-                            statusbar: false,
-                            branding: false,
-                            plugins: [
-                              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                              'insertdatetime', 'media', 'table', 'help'
-                            ],
-                            toolbar: 'undo redo | blocks | ' +
-                              'bold italic forecolor | alignleft aligncenter ' +
-                              'alignright alignjustify | bullist numlist outdent indent | ' +
-                              'table tabledelete | tableprops tablerowprops tablecellprops | ' +
-                              'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
-                              'tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | help',
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-                            forced_root_block: 'div',
-                            remove_redundant_brs: true,
-                            cleanup: true,
-                            cleanup_on_startup: true,
-                            verify_html: false,
-                            entity_encoding: 'raw',
-                            convert_urls: false
-                          }}
+                          init={getTinyMCEConfig(600)}
                         />
                       </div>
 

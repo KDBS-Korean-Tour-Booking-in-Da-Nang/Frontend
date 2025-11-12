@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
-import { formatPrice } from '../../../../../utils/priceRules';
 import TourPreview from '../TourPreview/TourPreview';
 import styles from './Step3Review.module.css';
 
@@ -157,35 +156,6 @@ const Step3Review = () => {
         {renderMembersTable('adult', plan.members.adult)}
         {renderMembersTable('child', plan.members.child)}
         {renderMembersTable('infant', plan.members.infant)}
-      </div>
-
-      {/* Price Summary Review */}
-      <h3 className={styles['review-title']}>{t('booking.step3.sections.price')}</h3>
-      <div className={styles['price-summary']}>
-        <div className={styles['price-breakdown']}>
-          {plan.pax.adult > 0 && (
-            <div className={styles['price-item']}>
-              <span className={styles['price-label']}>{t('booking.step3.labels.adult')} ({plan.pax.adult})</span>
-              <span className={styles['price-value']}>{formatPrice(plan.price.adult)}</span>
-            </div>
-          )}
-          {plan.pax.child > 0 && (
-            <div className={styles['price-item']}>
-              <span className={styles['price-label']}>{t('booking.step3.labels.child')} ({plan.pax.child})</span>
-              <span className={styles['price-value']}>{formatPrice(plan.price.child)}</span>
-            </div>
-          )}
-          {plan.pax.infant > 0 && (
-            <div className={styles['price-item']}>
-              <span className={styles['price-label']}>{t('booking.step3.labels.infant')} ({plan.pax.infant})</span>
-              <span className={styles['price-value']}>{formatPrice(plan.price.infant)}</span>
-            </div>
-          )}
-        </div>
-        <div className={styles['price-total']}>
-          <span className={styles['price-total-label']}>{t('booking.step3.labels.totalPrice')}</span>
-          <span className={styles['price-total-value']}>{formatPrice(plan.price.total)}</span>
-        </div>
       </div>
 
       {/* Navigation is handled by parent component */}

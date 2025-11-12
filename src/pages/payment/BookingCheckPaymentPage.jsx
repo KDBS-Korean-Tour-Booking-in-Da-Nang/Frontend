@@ -254,6 +254,10 @@ const BookingCheckPaymentPage = () => {
 
       try {
         // Load vouchers từ API
+        // API này trả về TẤT CẢ voucher khả dụng cho booking, bao gồm:
+        // 1. Voucher áp dụng cho toàn bộ tour (không có tour mappings)
+        // 2. Voucher chỉ áp dụng cho tour cụ thể (có tour mappings và tour của booking nằm trong danh sách)
+        // Backend đã tự động filter và chỉ trả về voucher hợp lệ
         const vouchers = await getAvailableVouchersForBooking(bookingId);
 
         if (!isActive) {

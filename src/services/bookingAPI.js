@@ -415,3 +415,93 @@ export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
     throw error;
   }
 };
+
+/**
+ * Company confirm tour completion
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<void>}
+ */
+export const companyConfirmTourCompletion = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/company-confirm-completion`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    // No content response
+    return;
+  } catch (error) {
+    console.error('Error confirming tour completion:', error);
+    throw error;
+  }
+};
+
+/**
+ * User confirm tour completion
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<void>}
+ */
+export const userConfirmTourCompletion = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/user-confirm-completion`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    // No content response
+    return;
+  } catch (error) {
+    console.error('Error confirming tour completion:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get tour completion status
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<boolean>} - True if tour is completed, false otherwise
+ */
+export const getTourCompletionStatus = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/tour-completion-status`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result === true || result === 'true';
+  } catch (error) {
+    console.error('Error fetching tour completion status:', error);
+    throw error;
+  }
+};

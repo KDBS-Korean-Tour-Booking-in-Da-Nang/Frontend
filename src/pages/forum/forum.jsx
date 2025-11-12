@@ -31,6 +31,7 @@ const Forum = () => {
   const headerRef = useRef(null);
   const [fixedSBStyle, setFixedSBStyle] = useState({});
   const [isNarrow, setIsNarrow] = useState(false);
+  const isSwitchingModeRef = useRef(false);
 
   const measure = useCallback(() => {
     if (isNarrow) return; // Không đo khi màn nhỏ
@@ -167,13 +168,6 @@ const Forum = () => {
   
   const fetchPosts = async () => {
     try {
-      // Set loading state based on whether it's initial load or loading more
-      if (currentPage === 0) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
-      
       let url;
       
       // Check if we're in My Posts mode
@@ -202,6 +196,17 @@ const Forum = () => {
         setIsLoading(false);
         setIsLoadingMore(false);
         return;
+      }
+
+      // Only set loading state if we don't have posts yet (initial load) or loading more
+      // Don't show loading when switching modes to avoid flickering
+      if (isSwitchingModeRef.current) {
+        // When switching modes, don't show loading - just fetch silently
+        isSwitchingModeRef.current = false;
+      } else if (currentPage === 0 && posts.length === 0) {
+        setIsLoading(true);
+      } else if (currentPage > 0) {
+        setIsLoadingMore(true);
       }
 
       const headers = {};
@@ -377,6 +382,9 @@ const Forum = () => {
     setSelectedPostId(null);
     setSinglePost(null);
     
+    // Mark that we're switching modes to avoid showing loading
+    isSwitchingModeRef.current = true;
+    
     setSearchKeyword('');
     setSelectedHashtags([]);
     setCurrentPage(0);
@@ -396,6 +404,9 @@ const Forum = () => {
     // Close single post view if open
     setSelectedPostId(null);
     setSinglePost(null);
+    
+    // Mark that we're switching modes to avoid showing loading
+    isSwitchingModeRef.current = true;
     
     setIsMyPostsMode(true);
     setShowSavedPostsModal(false); // Close saved posts modal if open

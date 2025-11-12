@@ -260,29 +260,31 @@ const TourList = () => {
 
             {/* Action Buttons */}
             <div className={styles["action-buttons"]}>
-              {/* History Booking Button */}
-              <button
-                className={styles["action-btn"]}
-                onClick={handleHistoryBooking}
-                title={t("tourList.historyBooking.title")}
-              >
-                <svg
-                  className={styles["action-icon"]}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {/* History Booking Button - Ẩn nếu user có role COMPANY */}
+              {user && user.role !== "COMPANY" && (
+                <button
+                  className={styles["action-btn"]}
+                  onClick={handleHistoryBooking}
+                  title={t("tourList.historyBooking.title")}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className={styles["action-text"]}>
-                  {t("tourList.historyBooking.title")}
-                </span>
-              </button>
+                  <svg
+                    className={styles["action-icon"]}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span className={styles["action-text"]}>
+                    {t("tourList.historyBooking.title")}
+                  </span>
+                </button>
+              )}
 
               {/* List All Voucher Button */}
               <button

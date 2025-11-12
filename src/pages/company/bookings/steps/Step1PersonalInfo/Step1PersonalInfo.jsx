@@ -1,28 +1,32 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../contexts/ToastContext';
-import { changeBookingStatus } from '../../../../../services/bookingAPI';
+import { DeleteConfirmModal } from '../../../../../components/modals';
 import styles from './Step1PersonalInfo.module.css';
 
-const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack }) => {
+const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, isReadOnly = false, onStepCompleted }) => {
   const { t } = useTranslation();
   const { showError, showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const handleApprove = async () => {
-    try {
-      setLoading(true);
-      // Change status to WAITING_FOR_APPROVED to move to step 2
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'WAITING_FOR_APPROVED');
-      onBookingUpdate(updatedBooking);
-      showSuccess('Đã duyệt thông tin booking');
-      onNext();
-    } catch (error) {
-      console.error('Error approving booking:', error);
-      showError(error.message || 'Không thể duyệt booking');
-    } finally {
-      setLoading(false);
+  const handleApprove = () => {
+    // Show confirmation modal before moving to step 2
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmApprove = () => {
+    // Don't save to DB yet, just move to step 2
+    // The actual DB update will happen in step 3
+    setShowConfirmModal(false);
+    
+    // Mark step 1 as completed and move to step 2
+    if (onStepCompleted) {
+      onStepCompleted(1, 2); // Mark step 1 completed, save progress with step 2
     }
+    
+    showSuccess('Đã duyệt thông tin booking. Vui lòng tiếp tục các bước sau.');
+    onNext();
   };
 
   const handleReject = async () => {
@@ -202,32 +206,62 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack })
         )}
       </div>
 
-      {/* Actions */}
-      <div className={styles.actions}>
-        <div className={styles.actionGroup}>
-          <button
-            onClick={handleRequestUpdate}
-            className={styles.btnWarning}
-            disabled={loading || booking.bookingStatus === 'WAITING_FOR_UPDATE'}
-          >
-            {loading ? 'Đang xử lý...' : 'Yêu cầu cập nhật'}
-          </button>
-          <button
-            onClick={handleReject}
-            className={styles.btnDanger}
-            disabled={loading || booking.bookingStatus === 'BOOKING_REJECTED'}
-          >
-            {loading ? 'Đang xử lý...' : 'Từ chối'}
-          </button>
-          <button
-            onClick={handleApprove}
-            className={styles.btnPrimary}
-            disabled={loading || booking.bookingStatus === 'WAITING_FOR_APPROVED' || booking.bookingStatus === 'BOOKING_SUCCESS'}
-          >
-            {loading ? 'Đang xử lý...' : 'Duyệt và tiếp tục'}
-          </button>
+      {/* Actions - Only show if not read-only */}
+      {!isReadOnly && (
+        <div className={styles.actions}>
+          <div className={styles.actionGroup}>
+            <button
+              onClick={handleRequestUpdate}
+              className={styles.btnWarning}
+              disabled={loading || booking.bookingStatus === 'WAITING_FOR_UPDATE'}
+            >
+              {loading ? 'Đang xử lý...' : 'Yêu cầu cập nhật'}
+            </button>
+            <button
+              onClick={handleReject}
+              className={styles.btnDanger}
+              disabled={loading || booking.bookingStatus === 'BOOKING_REJECTED'}
+            >
+              {loading ? 'Đang xử lý...' : 'Từ chối'}
+            </button>
+            <button
+              onClick={handleApprove}
+              className={styles.btnPrimary}
+              disabled={
+                booking.bookingStatus === 'BOOKING_REJECTED' || 
+                booking.bookingStatus === 'BOOKING_SUCCESS' ||
+                booking.bookingStatus === 'BOOKING_FAILED'
+                // Allow approval when status is WAITING_FOR_APPROVED (user has created booking)
+                // or PENDING_PAYMENT or WAITING_FOR_UPDATE
+              }
+            >
+              Duyệt và tiếp tục
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {!isReadOnly && (
+        <DeleteConfirmModal
+          isOpen={showConfirmModal}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={handleConfirmApprove}
+          title="Xác nhận duyệt booking"
+          message={`Bạn có chắc chắn muốn duyệt booking #${booking?.bookingId}?`}
+          confirmText="Xác nhận"
+          cancelText="Hủy"
+          icon="✓"
+          danger={false}
+          disableBackdropClose={false}
+        >
+          <div style={{ marginTop: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: '#374151' }}>
+              Sau khi xác nhận, bạn sẽ chuyển sang bước duyệt bảo hiểm. Booking sẽ được lưu vào database ở bước cuối cùng.
+            </p>
+          </div>
+        </DeleteConfirmModal>
+      )}
     </div>
   );
 };

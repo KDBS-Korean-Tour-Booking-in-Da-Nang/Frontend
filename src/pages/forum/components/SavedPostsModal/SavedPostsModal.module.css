@@ -7,21 +7,25 @@
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   z-index: 1000;
   padding: 100px 20px 20px 20px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .saved-posts-modal {
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
+  max-width: 700px;
+  height: 580px;
+  max-height: calc(100vh - 120px);
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
+  margin: auto;
 }
 
 .saved-posts-header {
@@ -31,6 +35,7 @@
   padding: 20px 24px;
   border-bottom: 1px solid #e1e5e9;
   background-color: #f8f9fa;
+  flex-shrink: 0;
 }
 
 .saved-posts-header h2 {
@@ -62,8 +67,11 @@
 
 .saved-posts-content {
   flex: 1;
-  overflow-y: auto;
-  padding: 20px;
+  padding: 16px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .loading-container,
@@ -120,53 +128,45 @@
 .saved-posts-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
 }
 
 .saved-post-item {
   background: #f8f9fa;
   border: 1px solid #e4e6eb;
-  border-radius: 8px;
-  padding: 16px;
-  transition: box-shadow 0.2s;
-}
-
-.saved-post-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  padding: 10px 12px;
 }
 
 .saved-post-content {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .saved-post-content.clickable {
   cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 8px;
-  padding: 8px;
-  margin: -8px;
-}
-
-.saved-post-content.clickable:hover {
-  background-color: #f0f2f5;
-  transform: translateY(-1px);
+  border-radius: 6px;
+  padding: 4px;
+  margin: -4px;
 }
 
 .saved-post-title {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0 0 4px 0;
+  font-size: 14px;
   font-weight: 600;
   color: #1c1e21;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .saved-post-text {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   color: #65676b;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -174,42 +174,44 @@
 .saved-post-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .saved-post-author,
 .saved-post-date,
 .saved-at {
-  font-size: 12px;
+  font-size: 11px;
   color: #65676b;
   background-color: #e4e6eb;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 3px 6px;
+  border-radius: 10px;
 }
 
 .saved-post-note {
   background-color: #fff3cd;
   border: 1px solid #ffeaa7;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
   color: #856404;
+  margin-bottom: 6px;
 }
 
 .saved-post-actions {
   display: flex;
   justify-content: flex-end;
+  margin-top: 4px;
 }
 
 .unsave-btn {
   background-color: #e74c3c;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 4px;
+  padding: 4px 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   transition: background-color 0.2s;
 }
 
@@ -219,27 +221,28 @@
 
 /* Pagination Styles */
 .pagination-container {
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #e4e6eb;
+  flex-shrink: 0;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .pagination-btn {
   background-color: #1877f2;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
+  border-radius: 4px;
+  padding: 6px 12px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: background-color 0.2s;
 }
 
@@ -262,11 +265,11 @@
   background-color: #f0f2f5;
   color: #1c1e21;
   border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
+  border-radius: 4px;
+  padding: 6px 10px;
   cursor: pointer;
-  font-size: 14px;
-  min-width: 36px;
+  font-size: 12px;
+  min-width: 32px;
   transition: all 0.2s;
 }
 
@@ -282,21 +285,59 @@
 .pagination-info {
   text-align: center;
   color: #65676b;
-  font-size: 13px;
+  font-size: 11px;
 }
 
+/* Tablet and smaller */
+@media (max-width: 1024px) {
+  .saved-posts-overlay {
+    padding: 90px 15px 15px 15px;
+  }
+  
+  .saved-posts-modal {
+    max-width: 90%;
+    height: 550px;
+    max-height: calc(100vh - 110px);
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
+  .saved-posts-overlay {
+    padding: 80px 10px 10px 10px;
+    align-items: flex-start;
+  }
+  
   .saved-posts-modal {
     max-width: 95%;
-    max-height: 95vh;
+    width: 100%;
+    height: auto;
+    max-height: calc(100vh - 100px);
+    min-height: 400px;
   }
   
   .saved-posts-header {
-    padding: 16px 20px;
+    padding: 14px 16px;
+  }
+  
+  .saved-posts-header h2 {
+    font-size: 18px;
   }
   
   .saved-posts-content {
-    padding: 16px;
+    padding: 14px;
+  }
+  
+  .saved-post-item {
+    padding: 12px;
+  }
+  
+  .saved-post-title {
+    font-size: 15px;
+  }
+  
+  .saved-post-text {
+    font-size: 13px;
   }
   
   .saved-post-meta {
@@ -308,6 +349,7 @@
   .saved-post-date,
   .saved-at {
     align-self: flex-start;
+    font-size: 11px;
   }
   
   .pagination {
@@ -317,12 +359,67 @@
   
   .pagination-btn {
     padding: 6px 12px;
-    font-size: 13px;
+    font-size: 12px;
   }
   
   .pagination-number {
     padding: 6px 10px;
-    font-size: 13px;
+    font-size: 12px;
     min-width: 32px;
+  }
+  
+  .pagination-info {
+    font-size: 12px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .saved-posts-overlay {
+    padding: 70px 8px 8px 8px;
+  }
+  
+  .saved-posts-modal {
+    max-width: 100%;
+    max-height: calc(100vh - 90px);
+    min-height: 350px;
+    border-radius: 8px;
+  }
+  
+  .saved-posts-header {
+    padding: 12px 14px;
+  }
+  
+  .saved-posts-header h2 {
+    font-size: 16px;
+  }
+  
+  .saved-posts-content {
+    padding: 12px;
+  }
+  
+  .saved-post-item {
+    padding: 10px;
+  }
+  
+  .saved-post-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .saved-post-text {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .pagination-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  
+  .pagination-number {
+    padding: 5px 8px;
+    font-size: 11px;
+    min-width: 28px;
   }
 }

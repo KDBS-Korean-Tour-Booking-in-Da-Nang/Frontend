@@ -66,6 +66,9 @@ export const API_ENDPOINTS = {
   BOOKING_CHANGE_STATUS: (bookingId) => `${BaseURL}/api/booking/change-status/${bookingId}`,
   BOOKING_GUEST_INSURANCE_CHANGE_STATUS: (guestId) => `${BaseURL}/api/booking/booking-guest/insurance/change-status/${guestId}`,
   BOOKING_PAYMENT: `${BaseURL}/api/booking/payment`,
+  BOOKING_COMPANY_CONFIRM_COMPLETION: (bookingId) => `${BaseURL}/api/booking/${bookingId}/company-confirm-completion`,
+  BOOKING_USER_CONFIRM_COMPLETION: (bookingId) => `${BaseURL}/api/booking/${bookingId}/user-confirm-completion`,
+  BOOKING_TOUR_COMPLETION_STATUS: (bookingId) => `${BaseURL}/api/booking/${bookingId}/tour-completion-status`,
   
   
 

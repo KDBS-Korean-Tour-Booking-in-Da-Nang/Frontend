@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
@@ -13,17 +13,29 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const postsPerPage = 3;
+  const savedPostsCacheRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && user) {
       setCurrentPage(1);
-      fetchSavedPosts();
+      // If we have cached data, show it immediately without loading
+      if (savedPostsCacheRef.current) {
+        setSavedPosts(savedPostsCacheRef.current);
+        setTotalPages(Math.ceil(savedPostsCacheRef.current.length / postsPerPage));
+        // Fetch in background to update cache
+        fetchSavedPosts(false);
+      } else {
+        // Only show loading on first load when no cache exists
+        fetchSavedPosts(true);
+      }
     }
   }, [isOpen, user]);
 
-  const fetchSavedPosts = async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchSavedPosts = async (showLoading = false) => {
+    if (showLoading) {
+      setIsLoading(true);
+      setError(null);
+    }
     try {
       const token = getToken();
       const email = user?.email || localStorage.getItem('email') || '';
@@ -37,12 +49,19 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
         const allPosts = data.result || [];
         setSavedPosts(allPosts);
         setTotalPages(Math.ceil(allPosts.length / postsPerPage));
+        // Cache the data for next time
+        savedPostsCacheRef.current = allPosts;
+        // Clear error if fetch was successful
+        setError(null);
       } else {
         throw new Error('Failed to fetch saved posts');
       }
     } catch (error) {
       console.error('Error fetching saved posts:', error);
-      setError(t('forum.modals.savedPosts.loadError'));
+      // Only show error if we're showing loading (user-initiated fetch)
+      if (showLoading) {
+        setError(t('forum.modals.savedPosts.loadError'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +82,21 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
       
       if (response.ok) {
         // Remove from local state
-        setSavedPosts(prev => prev.filter(post => post.postId !== postId));
+        const updatedPosts = savedPosts.filter(post => post.postId !== postId);
+        const newTotalPages = Math.ceil(updatedPosts.length / postsPerPage);
+        
+        setSavedPosts(updatedPosts);
+        setTotalPages(newTotalPages);
+        
+        // If current page is greater than new total pages, go to last page (or page 1 if no posts)
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        } else if (newTotalPages === 0) {
+          setCurrentPage(1);
+        }
+        
+        // Update cache
+        savedPostsCacheRef.current = updatedPosts;
         
         // Notify PostCard components to refresh their save status
         window.dispatchEvent(new CustomEvent('post-unsaved', { 
@@ -116,7 +149,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
           ) : error ? (
             <div className={styles['error-container']}>
               <p>{error}</p>
-              <button onClick={fetchSavedPosts} className={styles['retry-btn']}>
+              <button onClick={() => fetchSavedPosts(true)} className={styles['retry-btn']}>
                 {t('forum.modals.savedPosts.retry')}
               </button>
             </div>

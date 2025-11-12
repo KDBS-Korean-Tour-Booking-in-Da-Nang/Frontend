@@ -86,7 +86,7 @@
   border-top:1px solid #f1f5f9;
 }
 
-.kdbs-modal .btn-cancel,.kdbs-modal .btn-delete{
+.kdbs-modal .btn-cancel,.kdbs-modal .btn-delete,.kdbs-modal .btn-primary{
   padding:.65rem 1.25rem; border-radius:8px; font-weight:600; font-size:.9rem;
   cursor:pointer; transition:.2s; border:1px solid transparent;
 }
@@ -94,6 +94,8 @@
 .kdbs-modal .btn-cancel:hover{ background:#eef2f7; }
 .kdbs-modal .btn-delete{ background:#ef4444; color:#fff; border-color:#ef4444; }
 .kdbs-modal .btn-delete:hover{ background:#dc2626; transform:translateY(-1px); box-shadow:0 6px 14px rgba(239,68,68,.35); }
+.kdbs-modal .btn-primary{ background:#3b82f6; color:#fff; border-color:#3b82f6; }
+.kdbs-modal .btn-primary:hover{ background:#2563eb; transform:translateY(-1px); box-shadow:0 6px 14px rgba(59,130,246,.35); }
 
 /* ==== Mobile ==== */
 @media (max-width: 768px) {
