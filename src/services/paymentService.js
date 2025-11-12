@@ -24,11 +24,6 @@ export const createTossBookingPayment = async (payload) => {
     throw new Error('User email is required');
   }
 
-  console.debug('[Payment] Creating Toss booking order', {
-    bookingId: requestBody.bookingId,
-    hasVoucher: Boolean(requestBody.voucherCode),
-  });
-
   try {
     const response = await fetch(`${API_BASE_URL}/api/booking/payment`, {
       method: 'POST',
@@ -48,16 +43,8 @@ export const createTossBookingPayment = async (payload) => {
     }
 
     const data = await response.json();
-
-    console.debug('[Payment] Toss order created', {
-      orderId: data?.orderId,
-      amount: data?.amount,
-      success: data?.success,
-    });
-
     return data;
   } catch (error) {
-    console.error('[Payment] Failed to create Toss booking order', error);
     throw error;
   }
 };

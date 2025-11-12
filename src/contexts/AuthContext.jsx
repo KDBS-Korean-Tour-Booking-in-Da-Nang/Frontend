@@ -259,6 +259,14 @@ export const AuthProvider = ({ children }) => {
     const remembered = rememberRef.current;
     const storage = getStorageByRemember(remembered);
     storage.setItem('user', JSON.stringify(userData));
+    // Mirror to both session and local storage so updates survive app restarts/new tabs
+    try {
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('user', JSON.stringify(userData));
+      // Notify other tabs about profile update
+      localStorage.setItem('authLogin', String(Date.now()));
+      setTimeout(() => localStorage.removeItem('authLogin'), 0);
+    } catch {}
   };
 
   const getToken = () => {

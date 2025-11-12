@@ -29,8 +29,6 @@ const getAuthHeaders = () => {
  */
 export const createVoucher = async (voucherData) => {
   try {
-    console.log('Creating voucher with data:', voucherData);
-    
     const response = await fetch(`${API_BASE_URL}/api/vouchers`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -39,13 +37,7 @@ export const createVoucher = async (voucherData) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Voucher creation failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData: errorData
-      });
       
-      // Handle authentication errors
       if (response.status === 401) {
         localStorage.removeItem('token');
         sessionStorage.removeItem('token');
@@ -56,10 +48,8 @@ export const createVoucher = async (voucherData) => {
     }
 
     const result = await response.json();
-    console.log('Voucher created successfully:', result);
     return result;
   } catch (error) {
-    console.error('Error creating voucher:', error);
     throw error;
   }
 };
@@ -92,7 +82,6 @@ export const getVouchersByCompanyId = async (companyId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching vouchers:', error);
     throw error;
   }
 };
@@ -124,7 +113,66 @@ export const getAllVouchers = async () => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching all vouchers:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get available vouchers for a booking (preview)
+ * This endpoint automatically gets companyId from booking and filters usable vouchers
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Array>} - Array of available voucher responses with discount info
+ */
+export const getAvailableVouchersForBooking = async (bookingId) => {
+  const url = `${API_BASE_URL}/api/vouchers/preview-all/${bookingId}`;
+  const headers = getAuthHeaders();
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      let errorData = {};
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Ignore parse error
+        }
+      } else {
+        try {
+          const text = await response.text();
+          errorData = { message: text };
+        } catch (e) {
+          // Ignore read error
+        }
+      }
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        throw new Error('Unauthenticated');
+      }
+      
+      if (response.status === 404) {
+        throw new Error(errorData.message || 'Booking not found');
+      }
+      
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!Array.isArray(result)) {
+      return [];
+    }
+    
+    return result;
+  } catch (error) {
     throw error;
   }
 };

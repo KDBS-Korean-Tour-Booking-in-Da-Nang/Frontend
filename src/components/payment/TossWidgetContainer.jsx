@@ -68,6 +68,39 @@ const TossWidgetContainer = ({
   const [loading, setLoading] = useState(true);
   const [initError, setInitError] = useState(null);
   const [requesting, setRequesting] = useState(false);
+  const initializedOrderIdRef = useRef(null);
+  const onErrorRef = useRef(onError);
+  const onReadyRef = useRef(onReady);
+
+  const waitForContainers = useCallback(() => {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const maxAttempts = 40; // ~2s at 50ms
+      const tick = () => {
+        const methodEl = typeof document !== 'undefined' ? document.querySelector('#payment-method') : null;
+        const agreementEl = typeof document !== 'undefined' ? document.querySelector('#agreement') : null;
+        if (methodEl && agreementEl) {
+          resolve(true);
+          return;
+        }
+        attempts += 1;
+        if (attempts >= maxAttempts) {
+          reject(new Error('Toss widget containers not found in DOM'));
+          return;
+        }
+        setTimeout(tick, 50);
+      };
+      tick();
+    });
+  }, []);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
 
   const safeAmount = useMemo(() => {
     const numeric = Number(amount);
@@ -101,11 +134,20 @@ const TossWidgetContainer = ({
       const error = new Error(`Missing Toss widget parameters: ${missing.join(', ')}`);
       setInitError(error.message);
       setLoading(false);
-      onError?.(error);
+      onErrorRef.current?.(error);
       return () => cleanupListeners();
     }
 
-    ensureTossScript()
+    // Prevent duplicate init for the same orderId (e.g., StrictMode double invoke)
+    if (initializedOrderIdRef.current === orderId && widgetsRef.current) {
+      setLoading(false);
+      onReadyRef.current?.();
+      return () => cleanupListeners();
+    }
+
+    // Wait until containers are in the DOM (accounts for modal transitions/portals)
+    waitForContainers()
+      .then(() => ensureTossScript())
       .then((TossPayments) => {
         if (!isActive) return;
         const tossPayments = TossPayments(clientKey);
@@ -122,10 +164,6 @@ const TossWidgetContainer = ({
           widgetsRef.current.renderPaymentMethods({
             selector: '#payment-method',
             variantKey: 'DEFAULT',
-            amount: {
-              currency: CURRENCY_CODE,
-              value: safeAmount,
-            },
           }),
           widgetsRef.current.renderAgreement({
             selector: '#agreement',
@@ -137,13 +175,14 @@ const TossWidgetContainer = ({
       .then(() => {
         if (!isActive) return;
         setLoading(false);
-        onReady?.();
+        initializedOrderIdRef.current = orderId;
+        onReadyRef.current?.();
       })
       .catch((error) => {
         if (!isActive) return;
         console.error('[Payment] Toss widget init failed', error);
         setInitError(error.message || 'Không thể khởi tạo cổng thanh toán Toss.');
-        onError?.(error);
+        onErrorRef.current?.(error);
         setLoading(false);
       });
 
@@ -158,8 +197,6 @@ const TossWidgetContainer = ({
     orderId,
     successUrl,
     failUrl,
-    onError,
-    onReady,
     cleanupListeners,
   ]);
 
@@ -178,10 +215,6 @@ const TossWidgetContainer = ({
         orderName: `Booking ${orderId}`,
         successUrl,
         failUrl,
-        amount: {
-          currency: CURRENCY_CODE,
-          value: safeAmount,
-        },
       });
     } catch (error) {
       console.error('[Payment] Toss widget requestPayment error', error);
@@ -207,6 +240,10 @@ const TossWidgetContainer = ({
         </div>
       )}
 
+      {/* Containers must exist in the DOM before Toss init */}
+      <div id="payment-method" ref={paymentMethodsRef} aria-live="polite" />
+      <div id="agreement" ref={agreementRef} />
+
       {loading && (
         <div
           className="flex items-center justify-center rounded-md border border-gray-200 bg-white py-12"
@@ -221,28 +258,23 @@ const TossWidgetContainer = ({
       )}
 
       {!loading && !initError && (
-        <>
-          <div id="payment-method" ref={paymentMethodsRef} aria-live="polite" />
-          <div id="agreement" ref={agreementRef} />
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Đóng
-            </button>
-            <button
-              type="button"
-              onClick={handleRequestPayment}
-              disabled={requesting}
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-300"
-            >
-              {requesting ? 'Đang chuyển hướng...' : 'Thanh toán qua Toss'}
-            </button>
-          </div>
-        </>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Đóng
+          </button>
+          <button
+            type="button"
+            onClick={handleRequestPayment}
+            disabled={requesting}
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-300"
+          >
+            {requesting ? 'Đang chuyển hướng...' : 'Thanh toán qua Toss'}
+          </button>
+        </div>
       )}
     </div>
   );

@@ -45,6 +45,7 @@ import NewsDetail from './pages/news/NewsDetail';
 import AboutUs from './pages/about/AboutUs';
 import BookingCheckPaymentPage from './pages/payment/BookingCheckPaymentPage';
 import PaymentResultPage from './pages/payment/PaymentResultPage';
+import TossPaymentPage from './pages/payment/TossPaymentPage';
 
 
 function AppContent() {
@@ -134,6 +135,7 @@ function AppContent() {
                   <Route path="/user/booking-history" element={<BookingHistory />} />
                   <Route path="/user/booking/:id" element={<BookingDetail />} />
                   <Route path="/booking/:bookingId/payment" element={<BookingCheckPaymentPage />} />
+                  <Route path="/booking/:bookingId/payment/checkout" element={<TossPaymentPage />} />
                   <Route path="/transaction-result" element={<PaymentResultPage />} />
                   <Route path="/admin/*" element={<AdminDashboard />} />
                   <Route path="/forum" element={<Forum />} />

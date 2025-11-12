@@ -358,7 +358,8 @@ const BookingWizardContent = () => {
       navigate(`/booking/${createdBooking.bookingId}/payment`, {
         state: {
           bookingId: createdBooking.bookingId,
-          userEmail: createdBooking.contactEmail || bookingData.userEmail
+          userEmail: createdBooking.contactEmail || bookingData.userEmail,
+          booking: createdBooking
         }
       });
     } catch (error) {
