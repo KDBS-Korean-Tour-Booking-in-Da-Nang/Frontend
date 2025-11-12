@@ -602,8 +602,8 @@
 			"posts": "posts"
 		},
 		"sidebar": {
-			"savedPosts": "📚 Saved Posts",
-			"myPosts": "📝 My Posts",
+			"savedPosts": "Saved Posts",
+			"myPosts": "My Posts",
 			"trendingTopics": "Trending Topics",
 			"onlineUsers": "Online Users",
 			"follow": "Follow",

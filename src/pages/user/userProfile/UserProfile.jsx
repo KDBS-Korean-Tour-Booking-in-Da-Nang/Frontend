@@ -4,7 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { Modal } from '../../../components';
-import { updateUserProfile, validateUserProfile } from '../../../services/userService';
+import { updateUserProfile, validateUserProfile, getUserByEmail } from '../../../services/userService';
 import { 
   PencilIcon, 
   EyeIcon, 
@@ -47,6 +47,39 @@ const UserProfile = () => {
   const isDeletingRef = useRef(false);
 
   // All users can change avatar regardless of login method
+
+  // Fetch user data on component mount and after updates
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.email) {
+        try {
+          const token = getToken();
+          if (token) {
+            const userData = await getUserByEmail(user.email, token);
+            // Update user context with fresh data from server
+            if (userData) {
+              const updatedUser = {
+                ...user,
+                username: userData.username || userData.name || user.username,
+                name: userData.username || userData.name || user.name,
+                phone: userData.phone || user.phone,
+                dob: userData.dob || user.dob,
+                gender: userData.gender || user.gender,
+                address: userData.address || user.address,
+                avatar: userData.avatar || user.avatar
+              };
+              updateUser(updatedUser);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // Don't show error toast on mount, only log it
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []); // Only run on mount
 
   // Update editForm when user data changes (after successful update)
   useEffect(() => {
@@ -282,6 +315,7 @@ const UserProfile = () => {
       phone: editForm.phone,
       dob: editForm.dob,
       gender: editForm.gender,
+      address: editForm.address,
       avatarFile: avatarFile, // Include avatar file if selected
       currentAvatarUrl: user?.avatar // Provide current avatar so FE can reattach if no new file
     };
@@ -341,18 +375,51 @@ const UserProfile = () => {
       // Use avatar URL from backend response if available, otherwise keep current
       const newAvatarUrl = result?.avatar || user.avatar || '/default-avatar.png';
       
-      // Update local user state with the response
-      const updatedUser = {
-        ...user,
-        username: editForm.name, // Map name to username for backend compatibility
-        name: editForm.name,
-        phone: editForm.phone,
-        dob: normalizedDob || '',
-        gender: editForm.gender,
-        avatar: newAvatarUrl
-      };
+      // Fetch fresh user data from server after update
+      try {
+        const freshUserData = await getUserByEmail(user.email, token);
+        if (freshUserData) {
+          const updatedUser = {
+            ...user,
+            username: freshUserData.username || editForm.name,
+            name: freshUserData.username || editForm.name,
+            phone: freshUserData.phone || editForm.phone,
+            dob: freshUserData.dob || normalizedDob || '',
+            gender: freshUserData.gender || editForm.gender,
+            address: freshUserData.address || editForm.address,
+            avatar: freshUserData.avatar || newAvatarUrl
+          };
+          updateUser(updatedUser);
+        } else {
+          // Fallback to local update if fetch fails
+          const updatedUser = {
+            ...user,
+            username: editForm.name,
+            name: editForm.name,
+            phone: editForm.phone,
+            dob: normalizedDob || '',
+            gender: editForm.gender,
+            address: editForm.address,
+            avatar: newAvatarUrl
+          };
+          updateUser(updatedUser);
+        }
+      } catch (fetchError) {
+        console.error('Error fetching updated user data:', fetchError);
+        // Fallback to local update if fetch fails
+        const updatedUser = {
+          ...user,
+          username: editForm.name,
+          name: editForm.name,
+          phone: editForm.phone,
+          dob: normalizedDob || '',
+          gender: editForm.gender,
+          address: editForm.address,
+          avatar: newAvatarUrl
+        };
+        updateUser(updatedUser);
+      }
       
-      updateUser(updatedUser);
       showSuccess('Cập nhật thông tin thành công!');
       
       // Clear avatar file after successful update
@@ -444,6 +511,13 @@ const UserProfile = () => {
               <label className={styles['info-label']}>Giới tính</label>
               <div className={`${styles['info-value']} ${!user?.gender ? styles['empty'] : ''}`}>
                 {user?.gender ? (user.gender === 'M' ? 'Nam' : user.gender === 'F' ? 'Nữ' : user.gender === 'O' ? 'Khác' : user.gender) : 'Chưa cập nhật'}
+              </div>
+            </div>
+            
+            <div className={styles['info-group']}>
+              <label className={styles['info-label']}>Địa chỉ</label>
+              <div className={`${styles['info-value']} ${!user?.address ? styles['empty'] : ''}`}>
+                {user?.address || 'Chưa cập nhật'}
               </div>
             </div>
             
@@ -967,3 +1041,4 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+

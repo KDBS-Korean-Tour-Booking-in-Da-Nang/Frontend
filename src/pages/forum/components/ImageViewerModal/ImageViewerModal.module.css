@@ -10,8 +10,8 @@
 .ivm-modal {
   background: #111;
   color: #fff;
-  width: min(900px, 96vw);
-  max-height: 90vh;
+  width: min(1200px, 98vw);
+  height: calc(90vh - 120px);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -27,8 +27,8 @@
 .ivm-user { display: flex; align-items: center; gap: 10px; }
 .ivm-user img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
 .ivm-close { background: none; border: 1px solid #333; color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-.ivm-body { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
-.ivm-image { max-width: 100%; max-height: calc(80vh - 120px); object-fit: contain; }
+.ivm-body { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+.ivm-image { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
 .ivm-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: none; color: #fff; width: 40px; height: 60px; cursor: pointer; font-size: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 .ivm-prev { left: 12px; }
 .ivm-next { right: 12px; }

@@ -603,8 +603,8 @@
 			"posts": "게시물"
 		},
 		"sidebar": {
-			"savedPosts": "📚 저장된 게시물",
-			"myPosts": "📝 내 게시물",
+			"savedPosts": "저장된 게시물",
+			"myPosts": "내 게시물",
 			"trendingTopics": "인기 주제",
 			"onlineUsers": "온라인 사용자",
 			"follow": "팔로우",

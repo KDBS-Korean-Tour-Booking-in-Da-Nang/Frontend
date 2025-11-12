@@ -1,4 +1,4 @@
-import { API_ENDPOINTS, createAuthFormHeaders, getAvatarUrl } from '../config/api';
+import { API_ENDPOINTS, createAuthFormHeaders, createAuthHeaders, getAvatarUrl } from '../config/api';
 
 /**
  * Update user profile information
@@ -38,6 +38,10 @@ export const updateUserProfile = async (userData, token) => {
     // Always include gender (even if empty) to allow clearing
     if (userData.gender !== undefined && userData.gender !== null) {
       updateData.gender = userData.gender.trim();
+    }
+    // Always include address (even if empty) to allow clearing
+    if (userData.address !== undefined && userData.address !== null) {
+      updateData.address = userData.address.trim();
     }
     if (userData.cccd && userData.cccd.trim()) {
       updateData.cccd = userData.cccd.trim();
@@ -230,3 +234,55 @@ export const validateUserProfile = (userData) => {
     errors
   };
 };
+
+/**
+ * Get user information by email
+ * @param {string} email - User email
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} User data
+ */
+export const getUserByEmail = async (email, token) => {
+  try {
+    if (!token) {
+      throw new Error('Token xác thực không được cung cấp');
+    }
+
+    if (!email || !email.trim()) {
+      throw new Error('Email không được để trống');
+    }
+
+    const headers = createAuthHeaders(token);
+    
+    const response = await fetch(API_ENDPOINTS.GET_USER(email), {
+      method: 'GET',
+      headers
+    });
+    
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (parseError) {
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    // Backend returns UserResponse directly (not wrapped in ApiResponse)
+    // If result has a 'result' property (ApiResponse wrapper), use it, otherwise use result directly
+    return result.result || result;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
+    }
+    
+    throw error;
+  }
+};
+
