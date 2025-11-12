@@ -1,9 +1,10 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './BookingManagement.module.css';
 import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
+import { getBookingsByTourId, getBookingTotal } from '../../../services/bookingAPI';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
@@ -17,14 +18,14 @@ const BookingManagement = () => {
   const { t } = useTranslation();
   const { showSuccess } = useToast();
   const navigate = useNavigate();
-  // consts only
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [bookings, setBookings] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tours, setTours] = useState([]);
   const [toursLoading, setToursLoading] = useState(true);
-  const selectedTourIdRef = useRef(null);
+  const [selectedTourId, setSelectedTourId] = useState(null);
   const [currentTourPage, setCurrentTourPage] = useState(1);
   const [toursPerPage] = useState(5);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,7 +38,7 @@ const BookingManagement = () => {
 
   const statuses = [
     'PENDING_PAYMENT',
-    'WAITING_FOR_APPROVAL',
+    'WAITING_FOR_APPROVED',
     'BOOKING_REJECTED',
     'WAITING_FOR_UPDATE',
     'BOOKING_FAILED',
@@ -46,18 +47,131 @@ const BookingManagement = () => {
 
   const handleViewBooking = (bookingId) => {
     if (!bookingId) return;
-    navigate(`/user/booking/${bookingId}`);
+    // Preserve tourId in URL when navigating to booking detail
+    const tourId = selectedTourId || searchParams.get('tourId');
+    if (tourId) {
+      navigate(`/company/bookings/${bookingId}?tourId=${tourId}`);
+    } else {
+      navigate(`/company/bookings/${bookingId}`);
+    }
   };
 
-  const handleApproveBooking = (bookingId) => {
-    setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, bookingStatus: 'BOOKING_SUCCESS' } : b));
-    showSuccess?.('Đã duyệt booking');
+  // Handle tour selection
+  const handleTourSelect = (tourId) => {
+    setSelectedTourId(tourId);
+    setCurrentPage(1);
+    // Update URL with tourId
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (tourId) {
+      newSearchParams.set('tourId', tourId.toString());
+    } else {
+      newSearchParams.delete('tourId');
+    }
+    setSearchParams(newSearchParams, { replace: true });
+    // Fetch bookings for selected tour
+    fetchBookingsByTour(tourId);
   };
 
-  const handleRejectBooking = (bookingId) => {
-    setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, bookingStatus: 'BOOKING_REJECTED' } : b));
-    showSuccess?.('Đã từ chối booking');
-  };
+  // Fetch bookings when tour is selected
+  const fetchBookingsByTour = useCallback(async (tourId) => {
+    if (!tourId) {
+      setAllBookings([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      if (!token) {
+        setAllBookings([]);
+        setLoading(false);
+        return;
+      }
+      
+      const bookings = await getBookingsByTourId(tourId);
+      
+      // Fetch total amounts for all bookings
+      const bookingsWithTotals = await Promise.all(
+        bookings.map(async (booking) => {
+          try {
+            const totalResp = await getBookingTotal(booking.bookingId);
+            return {
+              ...booking,
+              id: booking.bookingId,
+              bookingId: booking.bookingId,
+              totalAmount: totalResp?.totalAmount || 0
+            };
+          } catch (err) {
+            console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
+            return {
+              ...booking,
+              id: booking.bookingId,
+              bookingId: booking.bookingId,
+              totalAmount: 0
+            };
+          }
+        })
+      );
+      
+      setAllBookings(bookingsWithTotals);
+      setCurrentPage(1);
+    } catch (e) {
+      console.error('Error fetching bookings:', e);
+      setAllBookings([]);
+      showSuccess?.('Không thể tải danh sách booking');
+    } finally {
+      setLoading(false);
+    }
+  }, [showSuccess]);
+
+  // Sync selectedTourId with URL params after tours are loaded
+  useEffect(() => {
+    if (tours.length === 0 || toursLoading) return;
+    
+    const tourIdFromUrl = searchParams.get('tourId');
+    
+    if (tourIdFromUrl) {
+      const tourIdNum = parseInt(tourIdFromUrl, 10);
+      if (!isNaN(tourIdNum)) {
+        // Check if tour exists
+        const tourExists = tours.some(t => t.id === tourIdNum);
+        if (tourExists) {
+          // Only update if different to avoid unnecessary re-renders
+          if (selectedTourId !== tourIdNum) {
+            setSelectedTourId(tourIdNum);
+            // Calculate which page the tour is on
+            const tourIndex = tours.findIndex(t => t.id === tourIdNum);
+            if (tourIndex >= 0) {
+              const page = Math.floor(tourIndex / toursPerPage) + 1;
+              setCurrentTourPage(page);
+            }
+          }
+        } else {
+          // Tour not found, clear URL param (but don't update selectedTourId here to avoid loop)
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete('tourId');
+          setSearchParams(newSearchParams, { replace: true });
+        }
+      }
+    } else {
+      // URL param removed, clear selected tour
+      if (selectedTourId !== null) {
+        setSelectedTourId(null);
+      }
+    }
+  }, [searchParams, tours, toursPerPage, toursLoading, selectedTourId, setSearchParams]);
+
+  // Fetch bookings when selectedTourId changes
+  useEffect(() => {
+    if (selectedTourId) {
+      fetchBookingsByTour(selectedTourId);
+    } else {
+      setAllBookings([]);
+      setLoading(false);
+    }
+  }, [selectedTourId, fetchBookingsByTour]);
 
   // Load company tours first
   const fetchCompanyTours = useCallback(async () => {
@@ -91,47 +205,9 @@ const BookingManagement = () => {
 
   useEffect(() => { fetchCompanyTours(); }, [fetchCompanyTours]);
 
-  // Load mock bookings initially (list without requiring selection)
-  useEffect(() => {
-    setLoading(true);
-    const mock = generateMockBookings();
-    setAllBookings(mock);
-    setLoading(false);
-  }, []);
-
   useEffect(() => {
     filterAndPaginateBookings();
   }, [searchQuery, statusFilter, sortBy, currentPage, allBookings]);
-
-  // no-op: fetching real bookings will replace this
-
-  const generateMockBookings = () => {
-    const tours = ['Tour Hạ Long', 'Tour Sapa', 'Tour Phú Quốc', 'Tour Đà Lạt'];
-    const statusList = statuses;
-    const bookings = [];
-    
-    for (let i = 1; i <= 50; i++) {
-      const tourIndex = Math.floor(Math.random() * tours.length);
-      const statusIndex = Math.floor(Math.random() * statusList.length);
-      bookings.push({
-        id: i,
-        bookingId: `BK-${String(i).padStart(4, '0')}`,
-        tourId: tourIndex + 1,
-        tourName: tours[tourIndex],
-        contactName: `Nguyễn Văn ${String.fromCodePoint(65 + (i % 26))}`,
-        contactEmail: `user${i}@example.com`,
-        contactPhone: `09${Math.floor(10000000 + Math.random() * 89999999)}`,
-        departureDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
-        adultsCount: Math.floor(Math.random() * 4) + 1,
-        childrenCount: Math.floor(Math.random() * 3),
-        babiesCount: Math.floor(Math.random() * 2),
-        totalAmount: (Math.floor(Math.random() * 50) + 10) * 100000,
-        bookingStatus: statusList[statusIndex],
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-      });
-    }
-    return bookings;
-  };
 
   const filterAndPaginateBookings = () => {
     let filtered = [...allBookings];
@@ -208,7 +284,7 @@ const BookingManagement = () => {
         return '#10B981';
       case 'PENDING_PAYMENT':
         return '#F59E0B';
-      case 'WAITING_FOR_APPROVAL':
+      case 'WAITING_FOR_APPROVED':
         return '#3B82F6';
       case 'WAITING_FOR_UPDATE':
         return '#8B5CF6';
@@ -268,9 +344,15 @@ const BookingManagement = () => {
               {paginatedTours.map((tour) => (
                 <button
                   key={tour.id}
-                  className={`flex-shrink-0 text-left border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow`}
-                  style={{ width: '220px', minWidth: '220px' }}
-                  onClick={() => { selectedTourIdRef.current = tour.id; setCurrentPage(1); }}
+                  className={`flex-shrink-0 text-left border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow ${
+                    selectedTourId === tour.id ? 'border-red-600 border-2' : 'border-gray-200'
+                  }`}
+                  style={{ 
+                    width: '220px', 
+                    minWidth: '220px',
+                    boxShadow: selectedTourId === tour.id ? '0 4px 12px rgba(220, 38, 38, 0.15)' : undefined
+                  }}
+                  onClick={() => handleTourSelect(tour.id)}
                 >
                   {/* Fixed image height for uniform cards */}
                   <div style={{ height: 160, background: '#f3f4f6' }}>
@@ -453,7 +535,7 @@ const BookingManagement = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {bookings.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">Không có booking nào</td>
+                  <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">Không có booking nào</td>
                 </tr>
               ) : (
                 bookings.map((b) => (
@@ -468,10 +550,10 @@ const BookingManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(b.totalAmount || 0)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className="px-2 py-1 text-xs font-medium rounded-full" style={{ backgroundColor: `${getStatusColor(b.bookingStatus)}15`, color: getStatusColor(b.bookingStatus) }}>
-                        {t(`bookingManagement.status.${b.bookingStatus}`) || b.bookingStatus}
+                        {formatStatusDisplay(b.bookingStatus)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(b.createdAt).toLocaleDateString('vi-VN')}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center gap-2">
                         <button
@@ -481,22 +563,6 @@ const BookingManagement = () => {
                           className="p-1 rounded hover:bg-gray-100 text-gray-600"
                         >
                           <EyeIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Duyệt"
-                          onClick={() => handleApproveBooking(b.id)}
-                          className="p-1 rounded hover:bg-green-50 text-green-600"
-                        >
-                          <CheckCircleIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Từ chối"
-                          onClick={() => handleRejectBooking(b.id)}
-                          className="p-1 rounded hover:bg-red-50 text-red-600"
-                        >
-                          <XCircleIcon className="h-5 w-5" />
                         </button>
                       </div>
                     </td>

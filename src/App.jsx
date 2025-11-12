@@ -35,6 +35,7 @@ import TourManagement from './pages/company/tours/tour-management/TourManagement
 import TourWizard from './pages/company/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/company/tours/shared/CompanyTourDetail';
 import BookingManagement from './pages/company/bookings/BookingManagement';
+import CompanyBookingDetailWizard from './pages/company/bookings/CompanyBookingDetailWizard';
 import BusinessDashboard from './pages/company/CompanyDashboard';
 import Dashboard from './pages/company/dashboard/Dashboard';
 import VoucherManagement from './pages/company/vouchers/VoucherManagement';
@@ -152,6 +153,7 @@ function AppContent() {
                     <Route path="tours/wizard" element={<TourWizard />} />
                     <Route path="tours/:id" element={<BusinessTourDetail />} />
                     <Route path="bookings" element={<BookingManagement />} />
+                    <Route path="bookings/:id" element={<CompanyBookingDetailWizard />} />
                     <Route path="vouchers" element={<VoucherManagement />} />
                     {/** company-info route intentionally removed */}
                   </Route>

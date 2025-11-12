@@ -293,3 +293,125 @@ export const cancelBooking = async (bookingId) => {
     throw error;
   }
 };
+
+/**
+ * Get bookings by tour ID
+ * @param {number} tourId - The tour ID
+ * @returns {Promise<Array>} - Array of bookings
+ */
+export const getBookingsByTourId = async (tourId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/tour/${tourId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error fetching bookings by tour ID:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get guests by booking ID
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Array>} - Array of booking guests
+ */
+export const getGuestsByBookingId = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/guests`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error fetching guests by booking ID:', error);
+    throw error;
+  }
+};
+
+/**
+ * Change booking status
+ * @param {number} bookingId - The booking ID
+ * @param {string} status - The new booking status (e.g., 'WAITING_FOR_APPROVED', 'BOOKING_REJECTED', 'WAITING_FOR_UPDATE', 'BOOKING_SUCCESS')
+ * @returns {Promise<Object>} - The updated booking response
+ */
+export const changeBookingStatus = async (bookingId, status) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/change-status/${bookingId}?status=${status}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error changing booking status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Change booking guest insurance status
+ * @param {number} guestId - The booking guest ID
+ * @param {string} status - The new insurance status (e.g., 'Success', 'Failed', 'Pending')
+ * @returns {Promise<Object>} - The updated booking guest response
+ */
+export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/booking-guest/insurance/change-status/${guestId}?status=${status}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error changing guest insurance status:', error);
+    throw error;
+  }
+};

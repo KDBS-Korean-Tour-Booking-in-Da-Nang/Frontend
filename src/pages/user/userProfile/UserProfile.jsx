@@ -4,7 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { Modal } from '../../../components';
-import { updateUserProfile, validateUserProfile, getUserByEmail } from '../../../services/userService';
+import { updateUserProfile, validateUserProfile } from '../../../services/userService';
 import { 
   PencilIcon, 
   EyeIcon, 
@@ -22,7 +22,7 @@ import styles from './UserProfile.module.css';
 
 const UserProfile = () => {
   const { t, i18n } = useTranslation();
-  const { user, updateUser, getToken } = useAuth();
+  const { user, updateUser, getToken, refreshUser } = useAuth();
   const { theme, setTheme } = useTheme();
   const { showSuccess, showError } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -53,24 +53,8 @@ const UserProfile = () => {
     const fetchUserData = async () => {
       if (user?.email) {
         try {
-          const token = getToken();
-          if (token) {
-            const userData = await getUserByEmail(user.email, token);
-            // Update user context with fresh data from server
-            if (userData) {
-              const updatedUser = {
-                ...user,
-                username: userData.username || userData.name || user.username,
-                name: userData.username || userData.name || user.name,
-                phone: userData.phone || user.phone,
-                dob: userData.dob || user.dob,
-                gender: userData.gender || user.gender,
-                address: userData.address || user.address,
-                avatar: userData.avatar || user.avatar
-              };
-              updateUser(updatedUser);
-            }
-          }
+          // Use refreshUser from AuthContext to ensure consistency
+          await refreshUser();
         } catch (error) {
           console.error('Error fetching user data:', error);
           // Don't show error toast on mount, only log it
@@ -375,23 +359,20 @@ const UserProfile = () => {
       // Use avatar URL from backend response if available, otherwise keep current
       const newAvatarUrl = result?.avatar || user.avatar || '/default-avatar.png';
       
-      // Fetch fresh user data from server after update
+      // Fetch fresh user data from server after update using refreshUser
       try {
-        const freshUserData = await getUserByEmail(user.email, token);
-        if (freshUserData) {
-          const updatedUser = {
-            ...user,
-            username: freshUserData.username || editForm.name,
-            name: freshUserData.username || editForm.name,
-            phone: freshUserData.phone || editForm.phone,
-            dob: freshUserData.dob || normalizedDob || '',
-            gender: freshUserData.gender || editForm.gender,
-            address: freshUserData.address || editForm.address,
-            avatar: freshUserData.avatar || newAvatarUrl
-          };
-          updateUser(updatedUser);
+        const refreshedUser = await refreshUser();
+        if (refreshedUser) {
+          // refreshUser already updates the context, but we may need to merge avatar URL
+          if (newAvatarUrl && newAvatarUrl !== refreshedUser.avatar) {
+            const updatedUser = {
+              ...refreshedUser,
+              avatar: newAvatarUrl
+            };
+            updateUser(updatedUser);
+          }
         } else {
-          // Fallback to local update if fetch fails
+          // Fallback to local update if refresh fails
           const updatedUser = {
             ...user,
             username: editForm.name,

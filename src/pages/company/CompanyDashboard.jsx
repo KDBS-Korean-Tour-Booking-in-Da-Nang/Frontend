@@ -37,7 +37,7 @@ const CompanyDashboard = () => {
       path: '/company/bookings',
       icon: ClipboardDocumentListIcon,
       label: t('companyDashboard.sidebar.bookingManagement'),
-      exact: true
+      exact: false
     },
     {
       path: '/company/vouchers',

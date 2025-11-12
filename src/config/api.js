@@ -61,6 +61,10 @@ export const API_ENDPOINTS = {
   BOOKING_BY_EMAIL: (email) => `${BaseURL}/api/booking/email/${encodeURIComponent(email)}`,
   BOOKING_SUMMARY_BY_EMAIL: (email) => `${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`,
   BOOKING_BY_ID: (id) => `${BaseURL}/api/booking/id/${id}`,
+  BOOKING_BY_TOUR_ID: (tourId) => `${BaseURL}/api/booking/tour/${tourId}`,
+  BOOKING_GUESTS_BY_BOOKING_ID: (bookingId) => `${BaseURL}/api/booking/id/${bookingId}/guests`,
+  BOOKING_CHANGE_STATUS: (bookingId) => `${BaseURL}/api/booking/change-status/${bookingId}`,
+  BOOKING_GUEST_INSURANCE_CHANGE_STATUS: (guestId) => `${BaseURL}/api/booking/booking-guest/insurance/change-status/${guestId}`,
   BOOKING_PAYMENT: `${BaseURL}/api/booking/payment`,
   
   

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { getUserByEmail } from '../services/userService';
 
 const AuthContext = createContext();
 
@@ -276,13 +277,47 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('token');
   };
 
+  const refreshUser = async () => {
+    if (!user?.email) {
+      return null;
+    }
+
+    try {
+      const token = getToken();
+      if (!token) {
+        return null;
+      }
+
+      const userData = await getUserByEmail(user.email, token);
+      if (userData) {
+        const updatedUser = {
+          ...user,
+          username: userData.username || userData.name || user.username,
+          name: userData.username || userData.name || user.name,
+          phone: userData.phone || user.phone,
+          dob: userData.dob || user.dob,
+          gender: userData.gender || user.gender,
+          address: userData.address || user.address,
+          avatar: userData.avatar || user.avatar
+        };
+        updateUser(updatedUser);
+        return updatedUser;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+      return null;
+    }
+  };
+
   const value = {
     user,
     login,
     logout,
     updateUser,
     loading,
-    getToken
+    getToken,
+    refreshUser
   };
 
   return (

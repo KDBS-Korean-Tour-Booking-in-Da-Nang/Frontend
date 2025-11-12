@@ -6,7 +6,7 @@ import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
   const { contact, setContact } = useBooking();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'vi';
   const [errors, setErrors] = useState({});
@@ -638,35 +638,47 @@ const Step1Contact = () => {
   };
   
   // Handle auto-fill from user personal info
-  const handleUsePersonalInfo = (checked) => {
+  const handleUsePersonalInfo = async (checked) => {
     setUsePersonalInfo(checked);
     
     if (checked && user) {
+      // Refresh user data from server to ensure we have the latest information
+      let currentUser = user;
+      try {
+        const refreshedUser = await refreshUser();
+        if (refreshedUser) {
+          currentUser = refreshedUser;
+        }
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+        // Continue with existing user data if refresh fails
+      }
+      
       const newContact = { ...contact };
       const newAutoFilledFields = new Set();
       
-      // Map user data to contact fields
-      const profileName = user.username || user.name || user.fullName;
+      // Map user data to contact fields (use currentUser which may be refreshed)
+      const profileName = currentUser.username || currentUser.name || currentUser.fullName;
       if (profileName) {
         newContact.fullName = profileName;
         newAutoFilledFields.add('fullName');
         // Store original auto-filled name to allow special characters even after manual edit
         originalAutoFilledNameRef.current = profileName;
       }
-      if (user.email) {
-        newContact.email = user.email;
+      if (currentUser.email) {
+        newContact.email = currentUser.email;
         newAutoFilledFields.add('email');
       }
-      if (user.phone) {
-        newContact.phone = user.phone;
+      if (currentUser.phone) {
+        newContact.phone = currentUser.phone;
         newAutoFilledFields.add('phone');
       }
-      if (user.address) {
-        newContact.address = user.address;
+      if (currentUser.address) {
+        newContact.address = currentUser.address;
         newAutoFilledFields.add('address');
       }
       // Map gender from user profile (handle M/F/O, MALE/FEMALE/OTHER, and lowercase)
-      if (user.gender) {
+      if (currentUser.gender) {
         const mappedGender = (g => {
           const u = String(g).trim().toUpperCase();
           if (u === 'M' || u === 'MALE') return 'male';
@@ -677,20 +689,20 @@ const Step1Contact = () => {
           if (u === 'KHÁC' || u === 'KHAC') return 'other';
           if (u === 'MALE' || u === 'FEMALE' || u === 'OTHER') return u.toLowerCase();
           return '';
-        })(user.gender);
+        })(currentUser.gender);
                   if (mappedGender) {
             newContact.gender = mappedGender;
             newAutoFilledFields.add('gender');
           }
       }
       // Date of birth: if available in profile, normalize and put directly into contact
-      if (user.dob) {
+      if (currentUser.dob) {
         try {
           let iso = '';
-          if (/^\d{4}-\d{2}-\d{2}$/.test(user.dob)) {
-            iso = user.dob;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(currentUser.dob)) {
+            iso = currentUser.dob;
           } else {
-            const d = new Date(user.dob);
+            const d = new Date(currentUser.dob);
             if (!isNaN(d.getTime())) {
               iso = d.toISOString().slice(0, 10);
             }
