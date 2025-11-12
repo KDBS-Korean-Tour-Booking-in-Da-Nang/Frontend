@@ -872,6 +872,8 @@
 				"departurePoint": "Departure Point:",
 				"vehicle": "Vehicle:",
 				"duration": "Duration:",
+				"tourIntDuration": "Tour Duration:",
+				"tourIntDurationValue": "{{days}} day(s)",
 				"days": "day(s)",
 				"nights": "night(s)",
 				"maxCapacity": "Max Tours:",
@@ -1205,6 +1207,7 @@
 			"back": "Back to list",
 			"backToManagement": "Manage tours",
 			"badge": "Tour",
+			"tourIntDuration": "{{days}} day(s)",
 			"overview": {
 				"title": "Tour overview",
 				"departVehicle": "Depart from {{departure}} by {{vehicle}}.",
@@ -1213,7 +1216,9 @@
 				"babyPrice": "Baby price",
 				"free": "Free",
 				"amount": "Capacity",
-				"availableDates": "Departure dates"
+				"availableDates": "Departure dates",
+				"tourIntDuration": "Tour Duration:",
+				"tourIntDurationValue": "{{days}} day(s)"
 			},
 			"highlights": {
 				"title": "Tour highlights",
@@ -1335,7 +1340,8 @@
 			"totalAmount": "Total Amount",
 			"viewDetails": "View Details",
 			"bookedOn": "Booked On",
-			"alreadyFeedbacked": "Already Feedbacked"
+			"alreadyFeedbacked": "Already Feedbacked",
+			"transaction": "Transaction"
 		},
 		"filters": {
 			"status": "Filter by Status",
@@ -1347,6 +1353,18 @@
 		"status": {
 			"pending": "Pending",
 			"confirmed": "Confirmed",
+			"cancelled": "Cancelled",
+			"pendingPayment": "Pending Payment",
+			"waitingForApproved": "Waiting for Approval",
+			"waitingForUpdate": "Waiting for Update",
+			"bookingSuccess": "Booking Successful",
+			"bookingFailed": "Booking Failed",
+			"bookingRejected": "Booking Rejected"
+		},
+		"transactionStatus": {
+			"pending": "Pending",
+			"success": "Success",
+			"failed": "Failed",
 			"cancelled": "Cancelled"
 		}
 	},

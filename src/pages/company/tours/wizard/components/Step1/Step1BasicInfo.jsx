@@ -165,8 +165,18 @@ const Step1BasicInfo = () => {
               newNights = clamped;
             }
           }
+          // Tính tourIntDuration = Max(days, nights)
+          // days là số ngày, nights là số đêm
+          const nightsNum = newNights === '' ? 0 : newNights;
+          const tourIntDuration = Math.max(days, nightsNum);
+          
           // Apply both fields together
-          const updated = { ...formData, duration: String(days), nights: String(newNights) };
+          const updated = { 
+            ...formData, 
+            duration: String(days), 
+            nights: String(newNights),
+            tourIntDuration: tourIntDuration
+          };
           setFormData(updated);
           updateTourData(updated);
           return; // early return to avoid the generic update below
@@ -193,6 +203,19 @@ const Step1BasicInfo = () => {
             showError({ i18nKey: 'toast.field_invalid' });
           }
           nextValue = String(clamped);
+          
+          // Tính tourIntDuration = Max(days, nights)
+          // d là số ngày (duration), clamped là số đêm (nights)
+          const tourIntDuration = Math.max(d, clamped);
+          
+          const newFormData = {
+            ...formData,
+            [name]: nextValue,
+            tourIntDuration: tourIntDuration
+          };
+          setFormData(newFormData);
+          updateTourData(newFormData);
+          return; // early return to avoid the generic update below
         } else if (name === 'maxCapacity') {
           const clamped = Math.max(1, Math.min(9999, num));
           if (clamped !== num) {
@@ -203,8 +226,7 @@ const Step1BasicInfo = () => {
       }
     }
 
-    
-
+    // Update form data for other fields (not duration or nights)
     const newFormData = {
       ...formData,
       [name]: nextValue

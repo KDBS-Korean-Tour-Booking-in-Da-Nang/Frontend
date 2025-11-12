@@ -872,6 +872,8 @@
 				"departurePoint": "출발지:",
 				"vehicle": "교통수단:",
 				"duration": "기간:",
+				"tourIntDuration": "투어 기간:",
+				"tourIntDurationValue": "{{days}}일",
 				"days": "일",
 				"nights": "박",
 				"maxCapacity": "최대 투어:",
@@ -1204,6 +1206,7 @@
 			"back": "목록으로 돌아가기",
 			"backToManagement": "투어 관리",
 			"badge": "투어",
+			"tourIntDuration": "{{days}}일",
 			"overview": {
 				"title": "투어 개요",
 				"departVehicle": "{{departure}}에서 {{vehicle}}로 출발.",
@@ -1212,7 +1215,9 @@
 				"babyPrice": "유아 가격",
 				"free": "무료",
 				"amount": "수용 인원",
-				"availableDates": "출발 날짜"
+				"availableDates": "출발 날짜",
+				"tourIntDuration": "투어 기간:",
+				"tourIntDurationValue": "{{days}}일"
 			},
 			"highlights": {
 				"title": "투어 하이라이트",
@@ -1334,7 +1339,8 @@
 			"totalAmount": "총 금액",
 			"viewDetails": "상세 보기",
 			"bookedOn": "예약일",
-			"alreadyFeedbacked": "이미 피드백 완료"
+			"alreadyFeedbacked": "이미 피드백 완료",
+			"transaction": "결제 상태"
 		},
 		"filters": {
 			"status": "상태별 필터",
@@ -1346,6 +1352,18 @@
 		"status": {
 			"pending": "대기 중",
 			"confirmed": "확정됨",
+			"cancelled": "취소됨",
+			"pendingPayment": "결제 대기",
+			"waitingForApproved": "승인 대기",
+			"waitingForUpdate": "업데이트 대기",
+			"bookingSuccess": "예약 완료",
+			"bookingFailed": "예약 실패",
+			"bookingRejected": "예약 거절"
+		},
+		"transactionStatus": {
+			"pending": "대기 중",
+			"success": "성공",
+			"failed": "실패",
 			"cancelled": "취소됨"
 		}
 	},

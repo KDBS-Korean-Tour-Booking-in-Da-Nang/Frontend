@@ -33,20 +33,12 @@ const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish 
     }
   };
 
-  // Calculate tour end date (departure date + tour duration)
-  // Note: This requires tour duration from BE, which might not be available
-  // BE Recommendation: Add tour duration to Tour model/response
-  const calculateTourEndDate = () => {
-    if (!booking.departureDate) return null;
-    try {
-      const departureDate = new Date(booking.departureDate);
-      // For now, assume 3 days duration (should come from tour data)
-      const duration = 3; // This should be fetched from tour data
-      departureDate.setDate(departureDate.getDate() + duration);
-      return departureDate.toLocaleDateString('vi-VN');
-    } catch {
-      return null;
+  // Tính tour end date từ booking.tourEndDate (đã được tính sẵn từ backend)
+  const getTourEndDate = () => {
+    if (booking.tourEndDate) {
+      return formatDate(booking.tourEndDate);
     }
+    return null;
   };
 
   return (
@@ -79,7 +71,7 @@ const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish 
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>Ngày kết thúc (dự kiến):</span>
-            <span className={styles.value}>{calculateTourEndDate() || '-'}</span>
+            <span className={styles.value}>{getTourEndDate() || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>Tổng số khách:</span>

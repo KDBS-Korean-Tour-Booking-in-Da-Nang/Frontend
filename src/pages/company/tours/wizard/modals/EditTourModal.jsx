@@ -24,6 +24,46 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     return String(value ?? '').trim().length > 0;
   };
 
+  // Parse tourDuration string "X ngày Y đêm" to extract days and nights
+  // Returns: { days: số ngày, nights: số đêm }
+  const parseTourDuration = (durationStr) => {
+    if (!durationStr) return { days: 0, nights: 0 };
+    
+    // Normalize string: remove extra spaces, convert to lowercase
+    const normalized = String(durationStr).toLowerCase().trim();
+    
+    // Pattern 1: "X ngày Y đêm" or "X day Y night" (most common format)
+    // Match số trước "ngày" (days) và số trước "đêm" (nights)
+    const pattern1 = normalized.match(/(\d+)\s*(?:ngày|day|days)\s+(\d+)\s*(?:đêm|night|nights)/i);
+    if (pattern1) {
+      return {
+        days: parseInt(pattern1[1], 10) || 0,
+        nights: parseInt(pattern1[2], 10) || 0
+      };
+    }
+    
+    // Pattern 2: Try to extract all numbers and use first two
+    const numbers = normalized.match(/\d+/g);
+    if (numbers && numbers.length >= 2) {
+      // First number is days (số ngày), second is nights (số đêm)
+      return {
+        days: parseInt(numbers[0], 10) || 0,
+        nights: parseInt(numbers[1], 10) || 0
+      };
+    }
+    
+    // Pattern 3: Only one number found - assume it's days, nights = 0
+    if (numbers && numbers.length === 1) {
+      return {
+        days: parseInt(numbers[0], 10) || 0,
+        nights: 0
+      };
+    }
+    
+    // Default: no numbers found
+    return { days: 0, nights: 0 };
+  };
+
   // Helpers for numbers/date
   const preventInvalidNumberKeys = (e) => {
     if (['e','E','+','-','.'].includes(e.key)) e.preventDefault();
@@ -448,12 +488,18 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         return;
       }
 
+      // Parse tourDuration để tính tourIntDuration = Max(days, nights)
+      // duration trong tourDuration string là số ngày (days)
+      const { days, nights } = parseTourDuration(formData.tourDuration);
+      const tourIntDuration = Math.max(days, nights);
+
       // Prepare tour data
       const tourRequest = {
         companyEmail: userEmail,
         tourName: formData.tourName,
         tourDescription: formData.tourDescription,
         tourDuration: formData.tourDuration,
+        tourIntDuration: tourIntDuration, // Max(duration, nights)
         tourDeparturePoint: formData.tourDeparturePoint,
         tourVehicle: formData.tourVehicle,
         tourType: formData.tourType,

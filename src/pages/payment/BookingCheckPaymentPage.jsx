@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import Modal from '../../components/modals/Modal';
-import TossWidgetContainer from '../../components/payment/TossWidgetContainer';
 import { getBookingById, getBookingTotal } from '../../services/bookingAPI';
 import { createTossBookingPayment } from '../../services/paymentService';
 import { getAvailableVouchersForBooking } from '../../services/voucherAPI';
@@ -11,6 +9,9 @@ import { validateEmail } from '../../utils/emailValidator';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
+/**
+ * Format số tiền thành định dạng VND (ví dụ: 100000 -> "100.000 ₫")
+ */
 const formatCurrency = (value) => {
   if (!Number.isFinite(Number(value))) return '—';
   try {
@@ -22,6 +23,21 @@ const formatCurrency = (value) => {
   } catch (error) {
     return Number(value).toLocaleString('vi-VN');
   }
+};
+
+/**
+ * Format số phần trăm (ví dụ: 10 -> "10%", 10.5 -> "10.5%")
+ */
+const formatPercent = (value) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '';
+
+  const rounded = Number.isInteger(num) ? num : Number(num.toFixed(2));
+  const text = Number.isInteger(rounded)
+    ? String(rounded)
+    : String(rounded).replace(/\.?0+$/, '');
+
+  return `${text}%`;
 };
 
 const BookingCheckPaymentPage = () => {
@@ -43,19 +59,20 @@ const BookingCheckPaymentPage = () => {
   const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderResponse, setOrderResponse] = useState(null);
-  const [isWidgetOpen, setIsWidgetOpen] = useState(false);
   const [statusBanner, setStatusBanner] = useState(null);
   const lastLoadedBookingIdRef = useRef(null);
   const loadAvailableVouchersRef = useRef(null);
 
+  // Load booking information và tính toán tổng tiền
   useEffect(() => {
     let isMounted = true;
 
+    // Sử dụng booking từ navigation state nếu có
     if (navState?.booking && !booking) {
       setBooking(navState.booking);
     }
 
+    // Tính toán tổng tiền từ booking snapshot (khi có tourId)
     const computeFromBookingSnapshot = async (b) => {
       try {
         if (!b?.tourId) return;
@@ -77,17 +94,21 @@ const BookingCheckPaymentPage = () => {
       } catch (_) {}
     };
 
+    // Tính toán tổng tiền từ booking snapshot nếu chưa có originalTotal
     if (navState?.booking && originalTotal == null) {
       computeFromBookingSnapshot(navState.booking);
     }
 
+    // Load booking và tổng tiền từ API
     const loadBooking = async () => {
+      // Tránh load lại nếu bookingId không đổi
       if (lastLoadedBookingIdRef.current === bookingId) {
         setIsLoading(false);
         return;
       }
       lastLoadedBookingIdRef.current = bookingId;
 
+      // Validate bookingId
       if (!bookingId) {
         setStatusBanner({
           type: 'error',
@@ -100,6 +121,7 @@ const BookingCheckPaymentPage = () => {
       setIsLoading(true);
 
       try {
+        // Load booking và tổng tiền song song
         const [bookingRes, totalRes] = await Promise.allSettled([
           getBookingById(bookingId),
           getBookingTotal(bookingId),
@@ -107,9 +129,11 @@ const BookingCheckPaymentPage = () => {
 
         if (!isMounted) return;
 
+        // Xử lý kết quả load booking
         if (bookingRes.status === 'fulfilled') {
           setBooking(bookingRes.value);
         } else {
+          // Xử lý lỗi: unauthenticated hoặc lỗi khác
           const msg = String(bookingRes.reason?.message || '');
           setStatusBanner({
             type: 'error',
@@ -129,6 +153,7 @@ const BookingCheckPaymentPage = () => {
           return;
         }
 
+        // Xử lý tổng tiền: ưu tiên từ API, fallback tính từ tour
         if (totalRes.status === 'fulfilled' && Number(totalRes.value?.totalAmount) > 0) {
           const base = Number(totalRes.value.totalAmount);
           setOriginalTotal(base);
@@ -136,6 +161,7 @@ const BookingCheckPaymentPage = () => {
           setDiscountAmount(0);
           setVoucherApplied(false);
         } else {
+          // Fallback: tính tổng tiền từ tour prices
           try {
             const b = bookingRes.value;
             if (b?.tourId) {
@@ -169,6 +195,7 @@ const BookingCheckPaymentPage = () => {
           }
         }
 
+        // Lấy email từ booking hoặc user hiện tại
         const inferredEmail =
           bookingRes.value?.contactEmail ||
           bookingRes.value?.userEmail ||
@@ -178,6 +205,7 @@ const BookingCheckPaymentPage = () => {
 
         setStatusBanner(null);
       } catch (error) {
+        // Xử lý lỗi tổng quát
         if (!isMounted) return;
         const message = String(error?.message || '');
         if (message.toLowerCase().includes('unauthenticated')) {
@@ -211,6 +239,7 @@ const BookingCheckPaymentPage = () => {
     };
   }, [bookingId, showError, user?.email, navigate, navState?.booking, booking, originalTotal]);
 
+  // Load danh sách voucher khả dụng cho booking
   useEffect(() => {
     let isActive = true;
 
@@ -224,6 +253,7 @@ const BookingCheckPaymentPage = () => {
       }
 
       try {
+        // Load vouchers từ API
         const vouchers = await getAvailableVouchersForBooking(bookingId);
 
         if (!isActive) {
@@ -235,16 +265,123 @@ const BookingCheckPaymentPage = () => {
           return [];
         }
 
-        const normalized = vouchers.map((v) => ({
-          id: v.voucherId,
-          voucherId: v.voucherId,
-          code: v.voucherCode || v.code || '',
-          discountAmount: v.discountAmount ? Number(v.discountAmount) : 0,
-          finalTotal: v.finalTotal ? Number(v.finalTotal) : null,
-          originalTotal: v.originalTotal ? Number(v.originalTotal) : null,
-          discountLabel: v.discountAmount ? `-${formatCurrency(v.discountAmount)}` : '',
-        }));
+        // Normalize và parse dữ liệu voucher từ API
+        const normalized = vouchers.map((v) => {
+          // Helper: Parse số từ nhiều format khác nhau (string, number, null, undefined)
+          const parsePossibleNumber = (value) => {
+            if (value === undefined || value === null) return null;
+            if (typeof value === 'number') {
+              return Number.isFinite(value) ? value : null;
+            }
+            if (typeof value === 'string') {
+              const normalized = value.trim();
+              if (normalized === '') return null;
+              const digitsOnly = normalized.replace(/[^0-9.,-]/g, '');
+              if (digitsOnly === '' || digitsOnly === '-' || digitsOnly === '.' || digitsOnly === '-.')
+                return null;
+              const adjusted =
+                digitsOnly.includes('.') && digitsOnly.includes(',')
+                  ? digitsOnly.replace(/,/g, '')
+                  : digitsOnly.includes(',')
+                  ? digitsOnly.replace(/,/g, '.')
+                  : digitsOnly;
+              const num = Number(adjusted);
+              return Number.isFinite(num) ? num : null;
+            }
+            const num = Number(value);
+            return Number.isFinite(num) ? num : null;
+          };
 
+          // Parse discountType từ API (có thể là string, object enum, hoặc null)
+          let rawType = '';
+          let hasDiscountTypeFromAPI = false;
+          
+          if (v.discountType !== undefined && v.discountType !== null) {
+            if (typeof v.discountType === 'string') {
+              rawType = v.discountType.trim().toUpperCase();
+              hasDiscountTypeFromAPI = rawType === 'PERCENT' || rawType === 'FIXED';
+            } else if (typeof v.discountType === 'object') {
+              // Xử lý enum object từ Java (có thể có property name, value, hoặc toString)
+              if (v.discountType.name) {
+                rawType = String(v.discountType.name).trim().toUpperCase();
+              } else if (v.discountType.value) {
+                rawType = String(v.discountType.value).trim().toUpperCase();
+              } else if (v.discountType.toString) {
+                rawType = String(v.discountType.toString()).trim().toUpperCase();
+              } else {
+                rawType = String(v.discountType).trim().toUpperCase();
+              }
+              hasDiscountTypeFromAPI = rawType === 'PERCENT' || rawType === 'FIXED';
+            } else {
+              rawType = String(v.discountType).trim().toUpperCase();
+              hasDiscountTypeFromAPI = rawType === 'PERCENT' || rawType === 'FIXED';
+            }
+          }
+          
+          // Parse các giá trị số từ API
+          const discountAmount = parsePossibleNumber(v.discountAmount) ?? 0;
+          const finalTotal = parsePossibleNumber(v.finalTotal);
+          let originalTotal = parsePossibleNumber(v.originalTotal);
+          // Tính originalTotal từ finalTotal + discountAmount nếu chưa có
+          if (originalTotal === null && finalTotal !== null && discountAmount > 0) {
+            originalTotal = finalTotal + discountAmount;
+          }
+          
+          let discountValue = parsePossibleNumber(v.discountValue);
+          
+          // Xác định discountType: ưu tiên từ API, mặc định FIXED nếu không có
+          let discountType = null;
+          if (hasDiscountTypeFromAPI) {
+            discountType = rawType;
+          } else {
+            discountType = 'FIXED';
+          }
+
+          // Đảm bảo discountType hợp lệ (PERCENT hoặc FIXED)
+          if (discountType !== 'PERCENT' && discountType !== 'FIXED') {
+            discountType = 'FIXED';
+          }
+
+          // Tính discountLabel để hiển thị trên UI
+          // PERCENT: hiển thị phần trăm (ví dụ: -10%)
+          // FIXED: hiển thị số tiền (ví dụ: -100.000₫)
+          let discountLabel = '';
+          if (discountType === 'PERCENT') {
+            if (discountValue !== null && discountValue > 0) {
+              discountLabel = `-${formatPercent(discountValue)}`;
+            } else if (originalTotal && discountAmount > 0) {
+              // Fallback: tính phần trăm từ discountAmount và originalTotal
+              const computedPercent = (discountAmount / originalTotal) * 100;
+              if (Number.isFinite(computedPercent) && computedPercent > 0) {
+                discountValue = Math.round(computedPercent * 100) / 100;
+                discountLabel = `-${formatPercent(discountValue)}`;
+              }
+            } else {
+              discountLabel = '-%';
+            }
+          } else {
+            // FIXED: ưu tiên discountAmount, fallback discountValue
+            if (discountAmount > 0) {
+              discountLabel = `-${formatCurrency(discountAmount)}`;
+            } else if (discountValue !== null && discountValue > 0) {
+              discountLabel = `-${formatCurrency(discountValue)}`;
+            }
+          }
+
+          return {
+            id: v.voucherId,
+            voucherId: v.voucherId,
+            code: v.voucherCode || v.code || '',
+            discountType,
+            discountValue,
+            discountAmount,
+            finalTotal,
+            originalTotal,
+            discountLabel,
+          };
+        });
+
+        // Lọc bỏ các voucher không có code
         const filtered = normalized.filter((v) => Boolean(v.code));
 
         setAvailableVouchers(filtered);
@@ -262,8 +399,10 @@ const BookingCheckPaymentPage = () => {
       }
     };
 
+    // Lưu function vào ref để có thể gọi từ nơi khác
     loadAvailableVouchersRef.current = loadAvailableVouchers;
 
+    // Load vouchers khi có bookingId
     if (bookingId) {
       const timer = setTimeout(() => {
         loadAvailableVouchers();
@@ -280,9 +419,9 @@ const BookingCheckPaymentPage = () => {
     };
   }, [bookingId, booking]);
 
-  const handleVoucherChange = (event) => {
-    setVoucherCode(event.target.value);
-    // Reset applied state when user edits the code
+  // Xử lý xóa voucher (clear selection)
+  const handleClearVoucher = () => {
+    setVoucherCode('');
     setVoucherApplied(false);
     setDiscountAmount(0);
     if (originalTotal != null) {
@@ -290,45 +429,46 @@ const BookingCheckPaymentPage = () => {
     }
   };
 
+  // Xử lý thay đổi voucher code input
+  const handleVoucherChange = (event) => {
+    const newValue = event.target.value;
+    setVoucherCode(newValue);
+    
+    // Nếu xóa hết code, clear voucher selection
+    if (!newValue || newValue.trim() === '') {
+      // Clear các state liên quan đến voucher (không cần set voucherCode vì đã set ở trên)
+      setVoucherApplied(false);
+      setDiscountAmount(0);
+      if (originalTotal != null) {
+        setTotalAmount(originalTotal);
+      }
+      return;
+    }
+    
+    // Reset trạng thái khi user thay đổi code (nhưng chưa xóa hết)
+    setVoucherApplied(false);
+    setDiscountAmount(0);
+    if (originalTotal != null) {
+      setTotalAmount(originalTotal);
+    }
+  };
+
+  // Xử lý thay đổi email input
   const handleEmailChange = (event) => {
     setUserEmail(event.target.value);
   };
 
-  const dismissWidget = () => {
-    setIsWidgetOpen(false);
-    setOrderResponse(null);
-  };
-
-  const handleWidgetClose = () => {
-    dismissWidget();
-    setStatusBanner({
-      type: 'warning',
-      text: 'Bạn đã đóng cổng thanh toán. Nếu muốn tiếp tục, vui lòng nhấn "Thanh toán" để tạo lại phiên.',
-    });
-  };
-
-  const handleWidgetError = (error) => {
-    const message =
-      error?.message || 'Đã xảy ra lỗi khi khởi tạo cổng thanh toán Toss.';
-    showError(message);
-    setStatusBanner({
-      type: 'error',
-      text: message,
-    });
-  };
-
-  const handleWidgetReady = () => {
-    showInfo('Cổng thanh toán Toss đã sẵn sàng. Vui lòng hoàn tất giao dịch trong cửa sổ này.');
-  };
-
+  // Xử lý submit form thanh toán
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    // Validate bookingId
     if (!bookingId) {
       showError('Không xác định được mã booking.');
       return;
     }
 
+    // Validate email
     const emailValidation = validateEmail(userEmail);
     if (!emailValidation.isValid) {
       showError(emailValidation.error || 'Email không hợp lệ.');
@@ -339,6 +479,7 @@ const BookingCheckPaymentPage = () => {
     setStatusBanner(null);
 
     try {
+      // Tạo payment order từ Toss API
       const response = await createTossBookingPayment({
         bookingId,
         userEmail,
@@ -349,7 +490,7 @@ const BookingCheckPaymentPage = () => {
         throw new Error(response?.message || 'Không thể tạo đơn thanh toán Toss.');
       }
 
-      setOrderResponse(response);
+      // Navigate đến trang checkout với order response
       navigate(`/booking/${bookingId}/payment/checkout`, {
         state: {
           orderResponse: response,
@@ -363,6 +504,7 @@ const BookingCheckPaymentPage = () => {
         text: 'Đang chuyển tới cổng thanh toán Toss. Vui lòng hoàn tất giao dịch để hoàn tất đặt tour.',
       });
     } catch (error) {
+      // Xử lý lỗi khi tạo payment
       const message =
         error?.message || 'Không thể khởi tạo thanh toán. Vui lòng thử lại.';
       setStatusBanner({
@@ -375,6 +517,7 @@ const BookingCheckPaymentPage = () => {
     }
   };
 
+  // Áp dụng voucher từ code
   const handleApplyVoucher = async (codeOverride) => {
     const codeToApply = (codeOverride ?? voucherCode)?.trim();
     if (!bookingId || !codeToApply) {
@@ -383,17 +526,20 @@ const BookingCheckPaymentPage = () => {
     }
 
     try {
+      // Tìm voucher trong danh sách available
       const normalizedCode = codeToApply.toUpperCase().trim();
       let vouchers = availableVouchers;
       
       let matched = vouchers.find((v) => v.code?.toUpperCase().trim() === normalizedCode);
       
+      // Nếu không tìm thấy, refresh danh sách voucher và tìm lại
       if (!matched && loadAvailableVouchersRef.current) {
         const refreshed = await loadAvailableVouchersRef.current(false);
         vouchers = refreshed;
         matched = refreshed.find((v) => v.code?.toUpperCase().trim() === normalizedCode);
       }
 
+      // Xử lý khi không tìm thấy voucher
       if (!matched) {
         setVoucherApplied(false);
         setDiscountAmount(0);
@@ -404,6 +550,7 @@ const BookingCheckPaymentPage = () => {
         return;
       }
 
+      // Tính toán giá sau khi áp dụng voucher
       const original = Number(matched.originalTotal ?? originalTotal ?? 0);
       const discount = Number(matched.discountAmount ?? 0);
       const final = Number(matched.finalTotal ?? Math.max(original - discount, 0));
@@ -412,18 +559,21 @@ const BookingCheckPaymentPage = () => {
         throw new Error('Không thể tính toán giá gốc từ voucher.');
       }
 
+      // Cập nhật state với giá đã áp dụng voucher
       setOriginalTotal(original);
       setDiscountAmount(discount);
       setTotalAmount(final);
       setVoucherApplied(discount > 0);
       setVoucherCode(matched.code);
 
+      // Hiển thị thông báo thành công
       if (discount > 0) {
         showSuccess(`Đã áp dụng voucher. Giảm ${formatCurrency(discount)}. Voucher sẽ được lưu khi thanh toán.`);
       } else {
         showSuccess('Voucher đã được áp dụng. Voucher sẽ được lưu khi thanh toán.');
       }
     } catch (err) {
+      // Xử lý lỗi khi áp dụng voucher
       setVoucherApplied(false);
       setDiscountAmount(0);
       if (originalTotal != null) {
@@ -433,12 +583,14 @@ const BookingCheckPaymentPage = () => {
     }
   };
 
+  // Xử lý chọn voucher từ danh sách
   const handleSelectVoucherFromList = (voucher) => {
     if (!voucher?.code) return;
     setVoucherCode(voucher.code);
     handleApplyVoucher(voucher.code);
   };
 
+  // Tính toán booking summary để hiển thị
   const bookingSummary = useMemo(() => {
     if (!booking) return null;
     return [
@@ -452,6 +604,7 @@ const BookingCheckPaymentPage = () => {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Nút quay lại */}
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -460,7 +613,9 @@ const BookingCheckPaymentPage = () => {
         ← Quay lại
       </button>
 
+      {/* Container chính */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        {/* Header */}
         <div className="border-b border-gray-200 px-6 py-5">
           <h1 className="text-xl font-semibold text-gray-900">
             Thanh toán đơn đặt tour
@@ -472,6 +627,7 @@ const BookingCheckPaymentPage = () => {
         </div>
 
         <div className="px-6 py-6">
+          {/* Hiển thị status banner (error, warning, info) */}
           {statusBanner && (
             <div
               role="status"
@@ -487,6 +643,7 @@ const BookingCheckPaymentPage = () => {
             </div>
           )}
 
+          {/* Loading state */}
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="flex flex-col items-center gap-3 text-gray-500">
@@ -496,6 +653,7 @@ const BookingCheckPaymentPage = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Section: Thông tin booking */}
               <section aria-labelledby="booking-summary" className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 id="booking-summary" className="text-lg font-semibold text-gray-900">
@@ -508,6 +666,7 @@ const BookingCheckPaymentPage = () => {
                   )}
                 </div>
 
+                {/* Hiển thị thông tin booking */}
                 {booking ? (
                   <dl className="grid gap-4 sm:grid-cols-2">
                     {bookingSummary?.map((item) => (
@@ -527,11 +686,13 @@ const BookingCheckPaymentPage = () => {
                   </p>
                 )}
 
+                {/* Hiển thị tổng tiền và giảm giá (nếu có voucher) */}
                 <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                   <p className="font-semibold">
                     {voucherApplied ? 'Tổng tiền thanh toán' : 'Tổng tiền tạm tính'}
                   </p>
                   <div className="mt-1 space-y-1">
+                    {/* Giá gốc */}
                     {Number.isFinite(Number(originalTotal)) && originalTotal > 0 && (
                       <div className="flex items-center justify-between text-xs">
                         <span>Giá gốc</span>
@@ -540,12 +701,14 @@ const BookingCheckPaymentPage = () => {
                         </span>
                       </div>
                     )}
+                    {/* Giảm giá từ voucher */}
                     {voucherApplied && Number(discountAmount) > 0 && (
                       <div className="flex items-center justify-between text-xs text-green-700 font-medium">
                         <span>Giảm giá (voucher)</span>
                         <span>-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
+                    {/* Tổng sau giảm */}
                     <div className="flex items-center justify-between text-base font-bold mt-2 pt-2 border-t border-blue-200">
                       <span>
                         {voucherApplied ? 'Tổng sau giảm' : 'Tạm tính'}
@@ -555,6 +718,7 @@ const BookingCheckPaymentPage = () => {
                       </span>
                     </div>
                   </div>
+                  {/* Thông báo trạng thái voucher */}
                   {voucherApplied && Number(discountAmount) > 0 && (
                     <p className="mt-2 text-xs text-green-700 font-medium">
                       ✓ Voucher đã được áp dụng. Bạn sẽ thanh toán {formatCurrency(totalAmount)}.
@@ -570,12 +734,15 @@ const BookingCheckPaymentPage = () => {
                 </div>
               </section>
 
+              {/* Section: Thông tin thanh toán */}
               <section aria-labelledby="payment-form" className="space-y-6">
                 <h2 id="payment-form" className="text-lg font-semibold text-gray-900">
                   Thông tin thanh toán
                 </h2>
 
+                {/* Form input: Email và Voucher code */}
                 <div className="grid gap-5 md:grid-cols-2">
+                  {/* Input email */}
                   <div className="flex flex-col gap-2">
                     <label htmlFor="userEmail" className="text-sm font-medium text-gray-700">
                       Email người thanh toán
@@ -594,6 +761,7 @@ const BookingCheckPaymentPage = () => {
                     </p>
                   </div>
 
+                  {/* Input voucher code */}
                   <div className="flex flex-col gap-2">
                     <label htmlFor="voucherCode" className="text-sm font-medium text-gray-700">
                       Mã voucher (tuỳ chọn)
@@ -622,6 +790,7 @@ const BookingCheckPaymentPage = () => {
                   </div>
                 </div>
 
+                {/* Danh sách voucher của công ty */}
                 <div className="rounded-lg border border-gray-200 bg-white p-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-900">Voucher của công ty</p>
@@ -639,23 +808,58 @@ const BookingCheckPaymentPage = () => {
                       <p className="text-xs text-gray-600">
                         Chọn một voucher để áp dụng ngay:
                       </p>
+                      {/* Danh sách button voucher */}
                       <div className="flex flex-wrap gap-2">
-                        {availableVouchers.map((v) => (
-                          <button
-                            key={v.id || v.voucherId || v.code}
-                            type="button"
-                            onClick={() => handleSelectVoucherFromList(v)}
-                            className="inline-flex items-center gap-2 rounded-lg border-2 border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 transition hover:border-emerald-400 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                            title={`Mã: ${v.code} - Giảm ${formatCurrency(v.discountAmount)}`}
-                          >
-                            <span className="font-semibold">{v.code}</span>
-                            {v.discountAmount > 0 && (
-                              <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-bold text-emerald-900">
-                                -{formatCurrency(v.discountAmount)}
-                              </span>
-                            )}
-                          </button>
-                        ))}
+                        {availableVouchers.map((v) => {
+                          const discountBadge = v.discountLabel || '';
+                          const discountDisplayText = discountBadge.startsWith('-') 
+                            ? discountBadge.slice(1) 
+                            : discountBadge;
+                          const tooltipText = discountBadge
+                            ? `Mã: ${v.code} - Giảm ${discountDisplayText}`
+                            : `Mã: ${v.code}`;
+                          
+                          // Kiểm tra voucher có đang được chọn không
+                          const isSelected = voucherCode && v.code && 
+                            voucherCode.toUpperCase().trim() === v.code.toUpperCase().trim();
+
+                          return (
+                            <div key={v.id || v.voucherId || v.code} className="relative inline-block">
+                              <button
+                                type="button"
+                                onClick={() => handleSelectVoucherFromList(v)}
+                                className={`inline-flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                                  isSelected
+                                    ? 'border-emerald-500 bg-emerald-100 text-emerald-900 hover:border-emerald-600 hover:bg-emerald-200'
+                                    : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100'
+                                }`}
+                                title={tooltipText}
+                              >
+                                <span className="font-semibold">{v.code}</span>
+                                {discountBadge && (
+                                  <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-bold text-emerald-900">
+                                    {discountBadge}
+                                  </span>
+                                )}
+                              </button>
+                              {/* Nút X để xóa voucher khi đang được chọn */}
+                              {isSelected && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleClearVoucher();
+                                  }}
+                                  className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                                  title="Bỏ chọn voucher"
+                                  aria-label="Bỏ chọn voucher"
+                                >
+                                  <span className="text-xs font-bold">×</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ) : (
@@ -665,6 +869,7 @@ const BookingCheckPaymentPage = () => {
                   )}
                 </div>
 
+                {/* Lưu ý bảo mật */}
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs text-yellow-900">
                   <p className="font-semibold">Lưu ý bảo mật:</p>
                   <ul className="mt-1 list-disc pl-5">
@@ -675,6 +880,7 @@ const BookingCheckPaymentPage = () => {
                 </div>
               </section>
 
+              {/* Action buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
                 <button
                   type="button"
@@ -695,8 +901,6 @@ const BookingCheckPaymentPage = () => {
           )}
         </div>
       </div>
-
-      {/* Widget now shown on a dedicated page. Modal removed as per requirements. */}
     </div>
   );
 };

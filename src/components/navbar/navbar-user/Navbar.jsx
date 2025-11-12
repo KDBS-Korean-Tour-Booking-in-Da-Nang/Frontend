@@ -18,7 +18,6 @@ import ChatBox from '../../ChatBox';
 import ChatDropdown from '../../ChatDropdown';
 import WebSocketStatus from '../../WebSocketStatus';
 import { useNotifications } from '../../../contexts/NotificationContext';
-import websocketService from '../../../services/websocketService';
  
 
 const Navbar = () => {
@@ -128,8 +127,6 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
-
-  // Notification WS subscriptions are managed centrally by NotificationProvider
 
   // Check if current path is active
   const isActive = (path) => {

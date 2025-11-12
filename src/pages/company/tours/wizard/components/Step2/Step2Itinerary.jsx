@@ -218,8 +218,6 @@ const Step2Itinerary = () => {
       : Array.from({ length: duration }, (_, i) => ({
           day: i + 1,
           activities: '',
-          images: [],
-          services: [],
           dayTitle: '',
           dayDescription: t('tourWizard.step2.day.defaultMeal'),
           dayColor: '#10b981',
@@ -326,32 +324,11 @@ const Step2Itinerary = () => {
     return cleaned;
   };
 
-  const handleImageUpload = (dayIndex, files) => {
-    const newImages = Array.from(files).slice(0, 5); // Max 5 images
-    updateDay(dayIndex, 'images', newImages);
-  };
-
-  const addService = (dayIndex) => {
-    const newService = { name: '', price: '', type: 'food' };
-    const newFormData = {
-      ...formData,
-      itinerary: formData.itinerary.map((day, i) => 
-        i === dayIndex ? { 
-          ...day, 
-          services: [...(day.services || []), newService] 
-        } : day
-      )
-    };
-    setFormData(newFormData);
-    updateTourData(newFormData);
-  };
 
   const addItineraryDayAfter = (index) => {
     const newDay = {
       day: index + 2,
       activities: '',
-      images: [],
-      services: [],
       dayTitle: '',
       dayDescription: 'Ăn trưa – tối',
       dayColor: '#10b981'
@@ -372,35 +349,6 @@ const Step2Itinerary = () => {
     }
     const list = formData.itinerary.filter((_, i) => i !== index).map((d, i) => ({ ...d, day: i + 1 }));
     const newFormData = { ...formData, itinerary: list };
-    setFormData(newFormData);
-    updateTourData(newFormData);
-  };
-  const updateService = (dayIndex, serviceIndex, field, value) => {
-    const newFormData = {
-      ...formData,
-      itinerary: formData.itinerary.map((day, i) => 
-        i === dayIndex ? {
-          ...day,
-          services: day.services.map((service, j) => 
-            j === serviceIndex ? { ...service, [field]: value } : service
-          )
-        } : day
-      )
-    };
-    setFormData(newFormData);
-    updateTourData(newFormData);
-  };
-
-  const removeService = (dayIndex, serviceIndex) => {
-    const newFormData = {
-      ...formData,
-      itinerary: formData.itinerary.map((day, i) => 
-        i === dayIndex ? {
-          ...day,
-          services: day.services.filter((_, j) => j !== serviceIndex)
-        } : day
-      )
-    };
     setFormData(newFormData);
     updateTourData(newFormData);
   };
@@ -827,78 +775,6 @@ const Step2Itinerary = () => {
                 >
                   {t('tourWizard.step2.actions.removeContent')}
                 </button>
-              </div>
-
-              <div className={styles['form-group']}>
-                <label className={styles['form-label']}>{t('tourWizard.step2.images.label')}</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(index, e.target.files)}
-                  className={styles['form-input']}
-                />
-                {day.images.length > 0 && (
-                  <div className={styles['image-preview']}>
-                {day.images.map((img, imgIndex) => (
-                  <div key={`img-${day.day}-${imgIndex}`} className={styles['preview-item']}>
-                        <img src={URL.createObjectURL(img)} alt={`Preview ${imgIndex}`} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Services */}
-              <div className={styles['services-section']}>
-                <div className={styles['services-header']}>
-                  <label className={styles['form-label']}>{t('tourWizard.step2.services.title')}</label>
-                  <button 
-                    type="button" 
-                    className={styles['btn-add-small']}
-                    onClick={() => addService(index)}
-                    title={t('tourWizard.step2.services.add')}
-                  >
-                    {t('tourWizard.step2.services.add')}
-                  </button>
-                </div>
-
-                {day.services?.map((service, serviceIndex) => (
-                  <div key={`service-${day.day}-${serviceIndex}`} className={styles['service-item']}>
-                    <select
-                      value={service.type}
-                      onChange={(e) => updateService(index, serviceIndex, 'type', e.target.value)}
-                      className={styles['form-select']}
-                    >
-                      <option value="food">{t('tourWizard.step2.services.types.food')}</option>
-                      <option value="ticket">{t('tourWizard.step2.services.types.ticket')}</option>
-                      <option value="transport">{t('tourWizard.step2.services.types.transport')}</option>
-                      <option value="other">{t('tourWizard.step2.services.types.other')}</option>
-                    </select>
-                    <input
-                      type="text"
-                      placeholder={t('tourWizard.step2.services.placeholders.name')}
-                      value={service.name}
-                      onChange={(e) => updateService(index, serviceIndex, 'name', e.target.value)}
-                      className={styles['form-input']}
-                    />
-                    <input
-                      type="number"
-                      placeholder={t('tourWizard.step2.services.placeholders.price')}
-                      value={service.price}
-                      onChange={(e) => updateService(index, serviceIndex, 'price', e.target.value)}
-                      className={styles['form-input']}
-                    />
-                    <button 
-                      type="button" 
-                      className={styles['btn-remove-small']}
-                      onClick={() => removeService(index, serviceIndex)}
-                      title={t('common.delete')}
-                    >
-                      {t('common.delete')}
-                    </button>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

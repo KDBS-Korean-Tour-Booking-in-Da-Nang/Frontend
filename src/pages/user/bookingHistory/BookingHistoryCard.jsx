@@ -1,19 +1,87 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
 import styles from './BookingHistoryCard.module.css';
+
+const STATUS_KEYS = {
+  PENDING_PAYMENT: 'pendingPayment',
+  WAITING_FOR_APPROVED: 'waitingForApproved',
+  WAITING_FOR_UPDATE: 'waitingForUpdate',
+  BOOKING_REJECTED: 'bookingRejected',
+  BOOKING_FAILED: 'bookingFailed',
+  BOOKING_SUCCESS: 'bookingSuccess'
+};
+
+const statusColorMap = {
+  [STATUS_KEYS.PENDING_PAYMENT]: '#F59E0B',
+  [STATUS_KEYS.WAITING_FOR_APPROVED]: '#3B82F6',
+  [STATUS_KEYS.WAITING_FOR_UPDATE]: '#8B5CF6',
+  [STATUS_KEYS.BOOKING_REJECTED]: '#EF4444',
+  [STATUS_KEYS.BOOKING_FAILED]: '#DC2626',
+  [STATUS_KEYS.BOOKING_SUCCESS]: '#10B981'
+};
+
+const normalizeStatus = (status) => {
+  if (status === null || status === undefined) {
+    return STATUS_KEYS.PENDING_PAYMENT;
+  }
+
+  if (typeof status === 'number') {
+    if (status === 1) return STATUS_KEYS.BOOKING_SUCCESS;
+    if (status === 2) return STATUS_KEYS.BOOKING_REJECTED;
+    return STATUS_KEYS.PENDING_PAYMENT;
+  }
+
+  const raw = String(status).trim().toUpperCase();
+
+  if (raw === '0') return STATUS_KEYS.PENDING_PAYMENT;
+  if (raw === '1') return STATUS_KEYS.BOOKING_SUCCESS;
+  if (raw === '2') return STATUS_KEYS.BOOKING_REJECTED;
+
+  if (STATUS_KEYS[raw]) {
+    return STATUS_KEYS[raw];
+  }
+
+  const legacyMap = {
+    PURCHASED: STATUS_KEYS.BOOKING_SUCCESS,
+    CONFIRMED: STATUS_KEYS.WAITING_FOR_APPROVED,
+    PENDING: STATUS_KEYS.PENDING_PAYMENT,
+    CANCELLED: STATUS_KEYS.BOOKING_REJECTED,
+    FAILED: STATUS_KEYS.BOOKING_FAILED,
+    SUCCESS: STATUS_KEYS.BOOKING_SUCCESS
+  };
+
+  return legacyMap[raw] || STATUS_KEYS.PENDING_PAYMENT;
+};
+
+const normalizeTransaction = (trx) => {
+  if (!trx && typeof trx !== 'number') return undefined;
+  if (typeof trx === 'number') {
+    return trx === 1 ? 'SUCCESS' : trx === 2 ? 'FAILED' : trx === 3 ? 'CANCELLED' : 'PENDING';
+  }
+  return String(trx || '').toUpperCase();
+};
+
+const getStatusColor = (statusKey) => statusColorMap[statusKey] || '#6B7280';
+
+const getTransactionStatusColor = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'SUCCESS':
+      return '#10B981';
+    case 'PENDING':
+      return '#F59E0B';
+    case 'FAILED':
+      return '#EF4444';
+    case 'CANCELLED':
+      return '#DC2626';
+    default:
+      return '#6B7280';
+  }
+};
 
 const BookingHistoryCard = ({ booking }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
-  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -24,56 +92,6 @@ const BookingHistoryCard = ({ booking }) => {
     });
   };
 
-  const normalizeStatus = (status) => {
-    // Accept numeric codes 0/1/2 or strings
-    if (typeof status === 'number') {
-      return status === 1 ? 'PURCHASED' : status === 2 ? 'CANCELLED' : 'PENDING';
-    }
-    if (status === '0') return 'PENDING';
-    if (status === '1') return 'PURCHASED';
-    if (status === '2') return 'CANCELLED';
-    return String(status || 'PENDING').toUpperCase();
-  };
-
-  const normalizeTransaction = (trx) => {
-    if (!trx && typeof trx !== 'number') return undefined;
-    if (typeof trx === 'number') {
-      // Optional mapping if BE uses codes; default unknown
-      return trx === 1 ? 'SUCCESS' : trx === 2 ? 'FAILED' : trx === 3 ? 'CANCELLED' : 'PENDING';
-    }
-    // strings like success/Success
-    return String(trx).toUpperCase();
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'CONFIRMED':
-      case 'PURCHASED':
-        return '#10B981';
-      case 'PENDING':
-        return '#F59E0B';
-      case 'CANCELLED':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
-  const getTransactionStatusColor = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'SUCCESS':
-        return '#10B981';
-      case 'PENDING':
-        return '#F59E0B';
-      case 'FAILED':
-        return '#EF4444';
-      case 'CANCELLED':
-        return '#DC2626';
-      default:
-        return '#6B7280';
-    }
-  };
-
   const handleViewDetails = () => {
     navigate(`/user/booking/${booking.bookingId}`);
   };
@@ -82,7 +100,7 @@ const BookingHistoryCard = ({ booking }) => {
   const effectiveStatus = (() => {
     const trxRaw = booking?.transactionStatus ?? booking?.latestTransactionStatus;
     const trx = normalizeTransaction(trxRaw);
-    if (trx === 'SUCCESS') return 'PURCHASED';
+    if (trx === 'SUCCESS') return STATUS_KEYS.BOOKING_SUCCESS;
     const rawStatus = booking?.status ?? booking?.bookingStatus;
     return normalizeStatus(rawStatus);
   })();
@@ -138,7 +156,7 @@ const BookingHistoryCard = ({ booking }) => {
           className={styles['status-badge']}
           style={{ backgroundColor: getStatusColor(effectiveStatus) }}
         >
-          {t(`bookingHistory.status.${effectiveStatus?.toLowerCase() || 'pending'}`)}
+          {t(`bookingHistory.status.${effectiveStatus || STATUS_KEYS.PENDING_PAYMENT}`)}
         </div>
         {(booking?.transactionStatus || booking?.latestTransactionStatus) && (
           <div 

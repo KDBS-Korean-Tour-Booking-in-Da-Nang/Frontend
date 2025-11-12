@@ -188,12 +188,19 @@ const TourWizardContent = () => {
         return;
       }
 
+      // Tính tourIntDuration = Max(days, nights)
+      // duration là số ngày (days), nights là số đêm
+      const days = parseInt(tourData.duration) || 0;
+      const nights = parseInt(tourData.nights) || 0;
+      const tourIntDuration = Math.max(days, nights);
+
       // Add tour data as JSON - Complete data with all wizard fields
       const tourRequest = {
         companyEmail: userEmail, // Use current user's email
         tourName: tourData.tourName,
         tourDescription: tourData.tourDescription || `Tour ${tourData.tourName} - ${tourData.duration} ngày ${tourData.nights} đêm`,
         tourDuration: `${tourData.duration} ngày ${tourData.nights} đêm`,
+        tourIntDuration: tourIntDuration, // Max(days, nights) - duration là số ngày
         tourDeparturePoint: 'Đà Nẵng', // All tours depart from Da Nang
         tourVehicle: 'Xe du lịch', // Hardcoded as requested
         // If Step 1 captured vehicle, prefer that

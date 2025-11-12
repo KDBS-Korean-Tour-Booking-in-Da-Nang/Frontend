@@ -7,14 +7,53 @@ import { getBookingTotal } from '../../../services/bookingAPI';
 import BookingHistoryCard from './BookingHistoryCard';
 import styles from './BookingHistory.module.css';
 
-// Normalizers for mixed BE formats (numeric / string) and different field names
-const normalizeStatus = (status) => {
-  if (typeof status === 'number') return status === 1 ? 'purchased' : status === 2 ? 'cancelled' : 'pending';
-  if (status === '0') return 'pending';
-  if (status === '1') return 'purchased';
-  if (status === '2') return 'cancelled';
-  return String(status || 'pending').toLowerCase();
+// Booking status helpers
+const STATUS_KEYS = {
+  PENDING_PAYMENT: 'pendingPayment',
+  WAITING_FOR_APPROVED: 'waitingForApproved',
+  WAITING_FOR_UPDATE: 'waitingForUpdate',
+  BOOKING_REJECTED: 'bookingRejected',
+  BOOKING_FAILED: 'bookingFailed',
+  BOOKING_SUCCESS: 'bookingSuccess'
 };
+
+const normalizeStatus = (status) => {
+  if (status === null || status === undefined) {
+    return STATUS_KEYS.PENDING_PAYMENT;
+  }
+
+  if (typeof status === 'number') {
+    if (status === 1) return STATUS_KEYS.BOOKING_SUCCESS;
+    if (status === 2) return STATUS_KEYS.BOOKING_REJECTED;
+    return STATUS_KEYS.PENDING_PAYMENT;
+  }
+
+  const raw = String(status).trim().toUpperCase();
+
+  if (raw === '0') return STATUS_KEYS.PENDING_PAYMENT;
+  if (raw === '1') return STATUS_KEYS.BOOKING_SUCCESS;
+  if (raw === '2') return STATUS_KEYS.BOOKING_REJECTED;
+
+  const legacyMap = {
+    PURCHASED: STATUS_KEYS.BOOKING_SUCCESS,
+    CONFIRMED: STATUS_KEYS.WAITING_FOR_APPROVED,
+    PENDING: STATUS_KEYS.PENDING_PAYMENT,
+    CANCELLED: STATUS_KEYS.BOOKING_REJECTED,
+    FAILED: STATUS_KEYS.BOOKING_FAILED,
+    SUCCESS: STATUS_KEYS.BOOKING_SUCCESS
+  };
+
+  if (STATUS_KEYS[raw]) {
+    return STATUS_KEYS[raw];
+  }
+
+  if (legacyMap[raw]) {
+    return legacyMap[raw];
+  }
+
+  return STATUS_KEYS.PENDING_PAYMENT;
+};
+
 const normalizeTrx = (trx) => {
   if (!trx && typeof trx !== 'number') return undefined;
   if (typeof trx === 'number') return trx === 1 ? 'success' : trx === 2 ? 'failed' : trx === 3 ? 'cancelled' : 'pending';
@@ -137,13 +176,10 @@ const BookingHistory = () => {
       filteredBookings = filteredBookings.filter(booking => {
         const status = normalizeStatus(booking.status ?? booking.bookingStatus);
         const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
-        if (statusFilter === 'purchased') {
-          return status === 'purchased' || status === 'confirmed' || trx === 'success';
+        if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
+          return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
         }
-        if (statusFilter === 'pending') {
-          return status === 'pending' && trx !== 'success';
-        }
-        return status === statusFilter.toLowerCase();
+        return status === statusFilter;
       });
     }
 
@@ -179,13 +215,10 @@ const BookingHistory = () => {
       filteredBookings = filteredBookings.filter(booking => {
         const status = normalizeStatus(booking.status ?? booking.bookingStatus);
         const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
-        if (statusFilter === 'purchased') {
-          return status === 'purchased' || status === 'confirmed' || trx === 'success';
+        if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
+          return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
         }
-        if (statusFilter === 'pending') {
-          return status === 'pending' && trx !== 'success';
-        }
-        return status === statusFilter.toLowerCase();
+        return status === statusFilter;
       });
     }
 
@@ -269,9 +302,12 @@ const BookingHistory = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="all">{t('bookingHistory.filters.allStatus')}</option>
-              <option value="pending">{t('bookingHistory.status.pending')}</option>
-              <option value="purchased">{t('bookingHistory.status.purchased') || t('bookingHistory.status.confirmed')}</option>
-              <option value="cancelled">{t('bookingHistory.status.cancelled')}</option>
+              <option value={STATUS_KEYS.PENDING_PAYMENT}>{t('bookingHistory.status.pendingPayment')}</option>
+              <option value={STATUS_KEYS.WAITING_FOR_APPROVED}>{t('bookingHistory.status.waitingForApproved')}</option>
+              <option value={STATUS_KEYS.WAITING_FOR_UPDATE}>{t('bookingHistory.status.waitingForUpdate')}</option>
+              <option value={STATUS_KEYS.BOOKING_SUCCESS}>{t('bookingHistory.status.bookingSuccess')}</option>
+              <option value={STATUS_KEYS.BOOKING_FAILED}>{t('bookingHistory.status.bookingFailed')}</option>
+              <option value={STATUS_KEYS.BOOKING_REJECTED}>{t('bookingHistory.status.bookingRejected')}</option>
             </select>
           </div>
           

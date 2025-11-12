@@ -874,6 +874,8 @@
         "departurePoint": "Điểm khởi hành:",
         "vehicle": "Phương tiện:",
         "duration": "Thời gian:",
+        "tourIntDuration": "Thời lượng tour:",
+        "tourIntDurationValue": "{{days}} ngày",
         "days": "ngày",
         "nights": "đêm",
         "maxCapacity": "Số tour tối đa:",
@@ -1220,6 +1222,7 @@
       "back": "Quay lại danh sách",
       "backToManagement": "Quản lý tour",
       "badge": "Tour du lịch",
+      "tourIntDuration": "{{days}} ngày",
       "overview": {
         "title": "Tổng quan tour",
         "departVehicle": "Khởi hành từ {{departure}} bằng {{vehicle}}.",
@@ -1228,7 +1231,9 @@
         "babyPrice": "Giá em bé",
         "free": "Miễn phí",
         "amount": "Số chỗ",
-        "availableDates": "Ngày khởi hành"
+        "availableDates": "Ngày khởi hành",
+        "tourIntDuration": "Thời lượng tour:",
+        "tourIntDurationValue": "{{days}} ngày"
       },
       "highlights": {
         "title": "Điểm nổi bật của tour",
@@ -1366,7 +1371,13 @@
       "pending": "Chờ xác nhận",
       "confirmed": "Đã xác nhận",
       "cancelled": "Đã hủy",
-      "purchased": "Đã thanh toán"
+      "purchased": "Đã thanh toán",
+      "pendingPayment": "Chờ thanh toán",
+      "waitingForApproved": "Chờ phê duyệt",
+      "waitingForUpdate": "Chờ cập nhật",
+      "bookingSuccess": "Đặt tour thành công",
+      "bookingFailed": "Đặt tour thất bại",
+      "bookingRejected": "Đặt tour bị từ chối"
     },
     "transactionStatus": {
       "pending": "Chờ xử lý",
