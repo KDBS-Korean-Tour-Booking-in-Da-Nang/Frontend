@@ -1239,6 +1239,24 @@
         "tourIntDuration": "Thời lượng tour:",
         "tourIntDurationValue": "{{days}} ngày"
       },
+      "vouchers": {
+        "title": "Voucher gợi ý cho tour",
+        "subtitle": "Các ưu đãi phù hợp với lịch trình và công ty tour này.",
+        "loading": "Đang kiểm tra voucher khả dụng...",
+        "errorGeneric": "Không thể tải voucher gợi ý. Vui lòng thử lại sau.",
+        "noBooking": "Chưa có dữ liệu booking để gợi ý voucher.",
+        "empty": "Hiện chưa có voucher nào áp dụng cho tour này.",
+        "saves": "Tiết kiệm {{amount}}",
+        "minOrder": "Đơn tối thiểu {{amount}}",
+        "original": "Giá gốc",
+        "after": "Giá sau giảm",
+        "helper": "Các voucher được tính toán dựa trên booking mẫu của tour.",
+        "cta": "Xem thêm voucher",
+        "tagGlobal": "Áp dụng mọi tour",
+        "tagTour": "Ưu đãi tour này",
+        "tagGeneric": "Ưu đãi linh hoạt",
+        "unknownName": "Voucher ưu đãi"
+      },
       "highlights": {
         "title": "Điểm nổi bật của tour",
         "items": {
@@ -1450,7 +1468,7 @@
       },
       "sectionTitle": "Thông tin liên hệ",
       "usePersonalInfo": "Sử dụng thông tin cá nhân từ tài khoản của tôi",
-      "autoFillNotice": "Thông tin từ tài khoản sẽ được tự động điền vào các trường tương ứng. Bạn có thể chỉnh sửa bất kỳ trường nào nếu cần. Các trường không có thông tin sẽ để trống."
+      "autoFillNotice": "Nếu người đặt tour là khách thì vui lòng điền lại thông tin hành khách ở Bước 2."
     },
     "step2": {
       "loading": "Đang tải thông tin giá tour...",

@@ -10,6 +10,14 @@ import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 import { useTourRated } from "../../../hooks/useTourRated";
 import useWeatherFromTour from "../../../hooks/useWeatherFromTour";
 import DeleteConfirmModal from "../../../components/modals/DeleteConfirmModal/DeleteConfirmModal";
+import { getBookingsByTourId } from "../../../services/bookingAPI";
+import {
+  getAllVouchers,
+  getAvailableVouchersForBooking,
+} from "../../../services/voucherAPI";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 // Adjust color brightness by percentage (negative to darken)
 const shadeColor = (hex, percent) => {
@@ -64,6 +72,10 @@ const TourDetailPage = () => {
   const [newComment, setNewComment] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [voucherSuggestions, setVoucherSuggestions] = useState([]);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [voucherError, setVoucherError] = useState("");
+  const [voucherEmptyReason, setVoucherEmptyReason] = useState("");
   // close open menu on outside click
   useEffect(() => {
     if (!openMenuId) return;
@@ -133,6 +145,87 @@ const TourDetailPage = () => {
     }
   }, [id, navigate]); // Removed fetchTourById from dependencies
 
+  useEffect(() => {
+    let isSubscribed = true;
+
+    const loadVoucherSuggestions = async () => {
+      if (!tour?.id) return;
+
+      setVoucherLoading(true);
+      setVoucherError("");
+      setVoucherEmptyReason("");
+
+      try {
+        const bookingsPayload = await getBookingsByTourId(Number(tour.id));
+        const bookingsList = Array.isArray(bookingsPayload?.bookings)
+          ? bookingsPayload.bookings
+          : Array.isArray(bookingsPayload)
+          ? bookingsPayload
+          : [];
+        const sampleBooking = bookingsList.find(
+          (booking) => booking && (booking.bookingId || booking.id)
+        );
+
+        if (!sampleBooking) {
+          if (isSubscribed) {
+            setVoucherSuggestions([]);
+            setVoucherEmptyReason(t("tourPage.detail.vouchers.noBooking"));
+          }
+          return;
+        }
+
+        const bookingId = sampleBooking.bookingId || sampleBooking.id;
+        const availableVouchers = await getAvailableVouchersForBooking(
+          bookingId
+        );
+
+        let enrichedVouchers = availableVouchers;
+        try {
+          const metadata = await getAllVouchers();
+          if (Array.isArray(metadata) && metadata.length > 0) {
+            enrichedVouchers = availableVouchers.map((voucher) => {
+              const meta =
+                metadata.find(
+                  (item) =>
+                    item?.voucherId === voucher?.voucherId ||
+                    item?.code === voucher?.voucherCode
+                ) || null;
+              return { ...voucher, meta };
+            });
+          }
+        } catch {
+          // Optional metadata - ignore errors
+        }
+
+        if (isSubscribed) {
+          setVoucherSuggestions(enrichedVouchers);
+          if (!enrichedVouchers.length) {
+            setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
+          }
+        }
+      } catch (error) {
+        if (!isSubscribed) return;
+        setVoucherSuggestions([]);
+        setVoucherEmptyReason("");
+        setVoucherError(
+          error?.message || t("tourPage.detail.vouchers.errorGeneric")
+        );
+      } finally {
+        if (isSubscribed) {
+          setVoucherLoading(false);
+        }
+      }
+    };
+
+    if (tour?.id) {
+      loadVoucherSuggestions();
+    }
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [tour?.id, t]);
+
   // Weather hook params and data (must be before early returns)
   const { tourName, tourSchedule } = _BUILD_WEATHER_PARAMS(tour);
   const {
@@ -190,6 +283,15 @@ const TourDetailPage = () => {
       style: "currency",
       currency: "VND",
     }).format(price);
+  };
+
+  const formatVoucherDiscount = (voucher) => {
+    if (!voucher) return "-";
+    const value = Number(voucher.discountValue || 0);
+    if (voucher.discountType === "PERCENT") {
+      return `-${Math.round(value * 100) / 100}%`;
+    }
+    return `-${formatPrice(value)}`;
   };
 
   const handleBookNow = () => {
@@ -411,178 +513,107 @@ const TourDetailPage = () => {
                 ) : (
                   weatherData.map((w, i) => {
                     const WeatherCarousel = ({ days }) => {
-                      const VISIBLE = 4;
-                      const baseDays = (days || []).slice(0, 6);
-                      const n = baseDays.length;
-                      
-                      // Clone items ở cả đầu và cuối để tạo vòng lặp mượt không có điểm dừng
-                      // Format: [clone cuối] + baseDays + [clone đầu]
-                      // Bắt đầu từ index n (item đầu tiên của baseDays thật)
-                      const cloneCount = n >= VISIBLE ? VISIBLE : n;
-                      const infiniteDays = n > 0 
-                        ? [...baseDays.slice(-cloneCount), ...baseDays, ...baseDays.slice(0, cloneCount)]
+                      const MAX_DAYS = 6;
+                      const validDays = Array.isArray(days)
+                        ? days.filter(Boolean).slice(0, MAX_DAYS)
                         : [];
 
-                      // Bắt đầu từ index cloneCount (item đầu tiên của baseDays thật)
-                      const [idx, setIdx] = useState(n > 0 ? cloneCount : 0);
-                      const [noTransition, setNoTransition] = useState(true); // start without transition
-                      const trackRef = useRef(null);
-                      const stepPxRef = useRef(0);
+                      if (validDays.length === 0) {
+                        return null;
+                      }
 
-                      // NEW: time-based autoplay with RAF
-                      const STEP_MS = 4000;
-                      const lastStepRef = useRef(performance.now());
-                      const rafRef = useRef(0);
-                      const pausedRef = useRef(false);
-                      const hiddenAtRef = useRef(null);
+                      const slidesDesktop = Math.min(4, validDays.length);
+                      const slidesLaptop = Math.min(3, validDays.length);
+                      const slidesTablet = Math.min(2, validDays.length);
 
-                      // Reset về vị trí ban đầu khi dữ liệu thay đổi: set without transition then enable
-                      useEffect(() => {
-                        if (n > 0) {
-                          setNoTransition(true);
-                          setIdx(cloneCount);
-                          requestAnimationFrame(() => {
-                            requestAnimationFrame(() => setNoTransition(false));
-                          });
-                        }
-                      }, [n, cloneCount]);
-
-                      const measure = () => {
-                        const track = trackRef.current;
-                        if (!track) return;
-                        const card = track.querySelector(`.${styles["weather-card"]}`);
-                        if (!card) return;
-                        const cardWidth = card.getBoundingClientRect().width;
-                        const cs = getComputedStyle(track);
-                        const gap = parseFloat(cs.gap || "12");
-                        stepPxRef.current = cardWidth + gap;
+                      const sliderSettings = {
+                        arrows: false,
+                        dots: false,
+                        infinite: validDays.length > 1,
+                        slidesToShow: slidesDesktop,
+                        slidesToScroll: 1,
+                        autoplay: true,
+                        autoplaySpeed: 4000,
+                        speed: 600,
+                        pauseOnHover: true,
+                        swipeToSlide: true,
+                        cssEase: "ease-in-out",
+                        responsive: [
+                          {
+                            breakpoint: 1536,
+                            settings: {
+                              slidesToShow: slidesLaptop,
+                            },
+                          },
+                          {
+                            breakpoint: 1024,
+                            settings: {
+                              slidesToShow: slidesTablet,
+                            },
+                          },
+                          {
+                            breakpoint: 640,
+                            settings: {
+                              slidesToShow: 1,
+                            },
+                          },
+                        ],
                       };
-
-                      useEffect(() => {
-                        measure();
-                        const ro = new ResizeObserver(() => measure());
-                        if (trackRef.current) ro.observe(trackRef.current);
-                        window.addEventListener("resize", measure);
-                        return () => {
-                          ro.disconnect();
-                          window.removeEventListener("resize", measure);
-                        };
-                      }, []);
-
-                      // Visibility: compute missed steps and replay smoothly
-                      useEffect(() => {
-                        const onVis = () => {
-                          if (document.hidden) {
-                            hiddenAtRef.current = performance.now();
-                            return;
-                          }
-                          const now = performance.now();
-                          const hiddenFor = hiddenAtRef.current ? (now - hiddenAtRef.current) : 0;
-                          hiddenAtRef.current = null;
-                          const missed = Math.floor(hiddenFor / STEP_MS);
-                          if (missed > 0) {
-                            let i = 0;
-                            const PLAY_DELAY = 250;
-                            const playOne = () => {
-                              setIdx((c) => c + 1);
-                              i += 1;
-                              if (i < missed) setTimeout(playOne, PLAY_DELAY);
-                            };
-                            setTimeout(playOne, 0);
-                            lastStepRef.current = now;
-                          } else {
-                            lastStepRef.current = now;
-                          }
-                        };
-                        document.addEventListener("visibilitychange", onVis);
-                        return () => document.removeEventListener("visibilitychange", onVis);
-                      }, []);
-
-                      // RAF autoplay loop
-                      useEffect(() => {
-                        if (n === 0) return;
-                        const loop = (t) => {
-                          if (!pausedRef.current && !document.hidden) {
-                            if (t - lastStepRef.current >= STEP_MS) {
-                              const steps = Math.floor((t - lastStepRef.current) / STEP_MS);
-                              // Advance exactly one visual step to keep cadence
-                              setIdx((c) => c + 1);
-                              lastStepRef.current += steps * STEP_MS;
-                            }
-                          }
-                          rafRef.current = requestAnimationFrame(loop);
-                        };
-                        rafRef.current = requestAnimationFrame(loop);
-                        return () => cancelAnimationFrame(rafRef.current);
-                      }, [n, STEP_MS]);
-
-                      const handleTransitionEnd = () => {
-                        // Khi đã trượt đến clone items ở cuối (cloneCount + n), reset về cloneCount (đầu baseDays thật)
-                        if (idx >= cloneCount + n) {
-                          setNoTransition(true);
-                          setIdx(cloneCount);
-                          requestAnimationFrame(() => {
-                            requestAnimationFrame(() => setNoTransition(false));
-                          });
-                        }
-                        // Khi lùi về clone items ở đầu (< 0 hoặc < cloneCount), reset về cuối baseDays thật
-                        if (idx < cloneCount) {
-                          setNoTransition(true);
-                          setIdx(cloneCount + n - 1);
-                          requestAnimationFrame(() => {
-                            requestAnimationFrame(() => setNoTransition(false));
-                          });
-                        }
-                      };
-
-                      const onMouseEnter = () => { pausedRef.current = true; };
-                      const onMouseLeave = () => { pausedRef.current = false; };
-
-                      const translate = -(idx * stepPxRef.current);
 
                       return (
-                        <div
-                          className={styles["weather-viewport"]}
-                          style={{ "--w-cols": VISIBLE }}
-                          onMouseEnter={onMouseEnter}
-                          onMouseLeave={onMouseLeave}
-                        >
-                          <div
-                            ref={trackRef}
-                            className={styles["weather-track"]}
-                            style={{ transform: `translateX(${translate}px)`, transition: noTransition ? "none" : undefined }}
-                            onTransitionEnd={handleTransitionEnd}
-                          >
-                            {infiniteDays.map((d, di) => {
+                        <div className={styles["weather-slider"]}>
+                          <Slider key={validDays.length} {...sliderSettings}>
+                            {validDays.map((d, di) => {
                               const desc = d?.weather?.[0]?.description || "";
                               const t = Math.round(d?.temp?.day ?? 0);
                               const tMin = Math.round(d?.temp?.min ?? t);
                               const tMax = Math.round(d?.temp?.max ?? t);
                               const range = Math.max(1, tMax - tMin);
-                              const pos = Math.min(100, Math.max(0, ((t - tMin) / range) * 100));
+                              const pos = Math.min(
+                                100,
+                                Math.max(0, ((t - tMin) / range) * 100)
+                              );
                               const icon = iconFromDesc(desc);
+
                               return (
-                                <div key={di} className={styles["weather-card"]}>
-                                  <div className={styles["weather-card-header"]}>
-                                    <div className={styles["weather-card-date"]}>{formatDay(d?.dt)}</div>
-                                    <div className={styles["weather-card-icon"]} aria-label="weather-icon">{icon}</div>
-                                  </div>
-                                  <div className={styles["weather-card-desc"]}>{desc}</div>
-                                  <div className={styles["weather-card-temp"]}>
-                                    <div className={styles["weather-card-temp-value"]}>{t}°C</div>
-                                    <div className={styles["weather-card-temp-range"]}>min {tMin}° / max {tMax}°</div>
-                                  </div>
-                                  <div className={styles["weather-card-range"]}>
-                                    <div className={styles["weather-card-range-fill"]} style={{ width: `${pos}%` }} />
+                                <div key={`${d?.dt || di}`}>
+                                  <div className={styles["weather-card"]}>
+                                    <div className={styles["weather-card-header"]}>
+                                      <div className={styles["weather-card-date"]}>
+                                        {formatDay(d?.dt)}
+                                      </div>
+                                      <div
+                                        className={styles["weather-card-icon"]}
+                                        aria-label="weather-icon"
+                                      >
+                                        {icon}
+                                      </div>
+                                    </div>
+                                    <div className={styles["weather-card-desc"]}>
+                                      {desc}
+                                    </div>
+                                    <div className={styles["weather-card-temp"]}>
+                                      <div className={styles["weather-card-temp-value"]}>
+                                        {t}°C
+                                      </div>
+                                      <div className={styles["weather-card-temp-range"]}>
+                                        min {tMin}° / max {tMax}°
+                                      </div>
+                                    </div>
+                                    <div className={styles["weather-card-range"]}>
+                                      <div
+                                        className={styles["weather-card-range-fill"]}
+                                        style={{ width: `${pos}%` }}
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               );
                             })}
-                          </div>
+                          </Slider>
                         </div>
                       );
                     };
-
                     return (
                       <div key={`${w.cityKey}-${i}`} className={styles["tour-overview"]}>
                         <h3 className={styles["weather-city-title"]}>
@@ -679,6 +710,173 @@ const TourDetailPage = () => {
                       )}
                   </ul>
                 </div>
+
+                <div className={styles["voucher-section"]}>
+                  <div className={styles["voucher-section-header"]}>
+                    <div>
+                      <h3>{t("tourPage.detail.vouchers.title")}</h3>
+                      <p>{t("tourPage.detail.vouchers.subtitle")}</p>
+                    </div>
+                  </div>
+
+                  {voucherLoading && (
+                    <div className={styles["voucher-loading"]}>
+                      {t("tourPage.detail.vouchers.loading")}
+                    </div>
+                  )}
+
+                  {!voucherLoading && voucherError && (
+                    <div className={styles["voucher-error"]}>{voucherError}</div>
+                  )}
+
+                  {!voucherLoading &&
+                    !voucherError &&
+                    voucherEmptyReason && (
+                      <div className={styles["voucher-empty"]}>
+                        {voucherEmptyReason}
+                      </div>
+                    )}
+
+                  {!voucherLoading &&
+                    !voucherError &&
+                    voucherSuggestions.length > 0 && (
+                      <>
+                        <div className={styles["voucher-list"]}>
+                          {voucherSuggestions.slice(0, 3).map((voucher) => {
+                            const tagConfig = (() => {
+                              const tourIds = Array.isArray(
+                                voucher?.meta?.tourIds
+                              )
+                                ? voucher.meta.tourIds
+                                : [];
+                              const isSpecific = tourIds.some(
+                                (tourIdValue) =>
+                                  String(tourIdValue) === String(tour.id)
+                              );
+                              if (!voucher?.meta) {
+                                return {
+                                  label: t(
+                                    "tourPage.detail.vouchers.tagGeneric"
+                                  ),
+                                  variant: "generic",
+                                };
+                              }
+                              if (tourIds.length === 0) {
+                                return {
+                                  label: t(
+                                    "tourPage.detail.vouchers.tagGlobal"
+                                  ),
+                                  variant: "global",
+                                };
+                              }
+                              return {
+                                label: isSpecific
+                                  ? t("tourPage.detail.vouchers.tagTour")
+                                  : t("tourPage.detail.vouchers.tagGeneric"),
+                                variant: isSpecific ? "specific" : "generic",
+                              };
+                            })();
+
+                            return (
+                              <div
+                                key={
+                                  voucher.voucherId || voucher.voucherCode || ""
+                                }
+                                className={styles["voucher-card"]}
+                              >
+                                <div className={styles["voucher-card-top"]}>
+                                  <div>
+                                    <p className={styles["voucher-name"]}>
+                                      {voucher?.meta?.name ||
+                                        t(
+                                          "tourPage.detail.vouchers.unknownName"
+                                        )}
+                                    </p>
+                                    <p className={styles["voucher-code"]}>
+                                      {voucher.voucherCode}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className={`${styles["voucher-tag"]} ${
+                                      tagConfig.variant === "specific"
+                                        ? styles["voucher-tag-specific"]
+                                        : tagConfig.variant === "global"
+                                        ? styles["voucher-tag-global"]
+                                        : styles["voucher-tag-generic"]
+                                    }`}
+                                  >
+                                    {tagConfig.label}
+                                  </span>
+                                </div>
+
+                                <div className={styles["voucher-discount"]}>
+                                  {formatVoucherDiscount(voucher)}
+                                </div>
+
+                                {Number(voucher.discountAmount || 0) > 0 && (
+                                  <div className={styles["voucher-savings"]}>
+                                    {t("tourPage.detail.vouchers.saves", {
+                                      amount: formatPrice(
+                                        Number(voucher.discountAmount || 0)
+                                      ),
+                                    })}
+                                  </div>
+                                )}
+
+                                {voucher?.meta?.minOrderValue && (
+                                  <div className={styles["voucher-min-order"]}>
+                                    {t("tourPage.detail.vouchers.minOrder", {
+                                      amount: formatPrice(
+                                        Number(voucher.meta.minOrderValue || 0)
+                                      ),
+                                    })}
+                                  </div>
+                                )}
+
+                                <div className={styles["voucher-pricing"]}>
+                                  <span>
+                                    {t("tourPage.detail.vouchers.original")}
+                                  </span>
+                                  <strong>
+                                    {formatPrice(
+                                      Number(
+                                        voucher.originalTotal ?? tour.price
+                                      )
+                                    )}
+                                  </strong>
+                                </div>
+                                <div className={styles["voucher-pricing"]}>
+                                  <span>
+                                    {t("tourPage.detail.vouchers.after")}
+                                  </span>
+                                  <strong>
+                                    {formatPrice(
+                                      Number(
+                                        voucher.finalTotal ?? tour.price
+                                      )
+                                    )}
+                                  </strong>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className={styles["voucher-footer"]}>
+                          <span className={styles["voucher-help-text"]}>
+                            {t("tourPage.detail.vouchers.helper")}
+                          </span>
+                          <button
+                            type="button"
+                            className={styles["voucher-cta"]}
+                            onClick={() => navigate("/tour/voucher-list")}
+                          >
+                            {t("tourPage.detail.vouchers.cta")}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                </div>
               </div>
 
               {/* Itinerary, Gallery, Reviews are rendered after the grid */}
@@ -757,15 +955,6 @@ const TourDetailPage = () => {
                     }
                   >
                     {t("tourPage.detail.booking.bookNow")}
-                  </button>
-                  <button className={styles["contact-btn"]}>
-                    {t("tourPage.detail.booking.contact")}
-                  </button>
-                  <button
-                    className={styles["book-now-btn"]}
-                    onClick={handleShare}
-                  >
-                    {t("tourCard.share") || "Share"}
                   </button>
                 </div>
               </div>

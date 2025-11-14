@@ -140,20 +140,6 @@ const TourList = () => {
     navigate("/user/booking-history");
   };
 
-  if (error) {
-    return (
-      <div className={styles["error-container"]}>
-        <div className={styles["error-message"]}>
-          <h3>{t("tourList.error.title")}</h3>
-          <p>{error}</p>
-          <button onClick={() => fetchTours()} className={styles["retry-btn"]}>
-            {t("tourList.error.retry")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const handleBannerClick = (index) => {
     setCurrentBannerIndex(index);
     if (carouselIntervalRef.current) {
@@ -322,15 +308,25 @@ const TourList = () => {
               <div className={styles["loading-spinner"]}></div>
               <p>{t("tourList.loading")}</p>
             </div>
+          ) : error ? (
+            <div className={styles["error-container"]}>
+              <div className={styles["error-message"]}>
+                <h3>{t("tourList.error.title")}</h3>
+                <p>{error}</p>
+                <button onClick={() => fetchTours()} className={styles["retry-btn"]}>
+                  {t("tourList.error.retry")}
+                </button>
+              </div>
+            </div>
           ) : (
             <>
-              <div className={styles["tours-grid"]}>
-                {displayTours.map((tour) => (
-                  <TourCard key={tour.id} tour={tour} />
-                ))}
-              </div>
-
-              {displayTours.length === 0 && !loading && (
+              {displayTours.length > 0 ? (
+                <div className={styles["tours-grid"]}>
+                  {displayTours.map((tour) => (
+                    <TourCard key={tour.id} tour={tour} />
+                  ))}
+                </div>
+              ) : (
                 <div className={styles["no-tours"]}>
                   <div className={styles["no-tours-content"]}>
                     <svg
@@ -352,8 +348,8 @@ const TourList = () => {
                 </div>
               )}
 
-              {/* Pagination - chỉ hiển thị khi có nhiều hơn 12 tours */}
-              {shouldShowPagination && (
+              {/* Pagination - chỉ hiển thị khi có nhiều hơn 12 tours và có tours */}
+              {shouldShowPagination && displayTours.length > 0 && (
                 <div className={styles["pagination-container"]}>
                   <div className={styles["pagination"]}>
                     <button

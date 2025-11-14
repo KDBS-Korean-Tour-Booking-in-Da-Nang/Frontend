@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,13 +7,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import Footer from '../../../components/Footer/Footer';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 
+const FALLBACK_GALLERY_IMAGE = '/default-Tour.jpg';
+
 const Homepage = () => {
   const { t, i18n } = useTranslation();
-  const { user, getToken } = useAuth();
+  const { getToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState('');
@@ -81,18 +82,20 @@ const Homepage = () => {
   };
 
   const handleImageError = (index) => {
-    setGalleryImages(prev => prev.map((img, i) => 
-      i === index ? { ...img, loaded: false, error: true } : img
-    ));
-  };
-
-  // Function to update gallery images (for future use)
-  const updateGalleryImages = (newImages) => {
-    setGalleryImages(newImages.map(img => ({
-      ...img,
-      loaded: false,
-      error: false
-    })));
+    setGalleryImages(prev => prev.map((img, i) => {
+      if (i !== index) return img;
+      // Avoid infinite loops if fallback also fails
+      if (img.src === FALLBACK_GALLERY_IMAGE) {
+        return { ...img, loaded: false, error: true };
+      }
+      return { 
+        ...img, 
+        src: FALLBACK_GALLERY_IMAGE, 
+        alt: img.alt || 'Default tour image',
+        loaded: false, 
+        error: true 
+      };
+    }));
   };
 
   // Check for success message from navigation state or localStorage (avoid route replace to prevent flicker)
@@ -108,7 +111,9 @@ const Homepage = () => {
       // Clear state without triggering a route change/render cycle
       try {
         window.history.replaceState({}, document.title, location.pathname + location.search);
-      } catch {}
+      } catch (error) {
+        console.error('Failed to replace state in history', error);
+      }
     }
   }, [location.state, location.pathname, location.search]);
 
@@ -455,94 +460,50 @@ const Homepage = () => {
               <div className="grid grid-cols-2 gap-[8px_12px] sm:gap-[12px_20px] items-start justify-items-stretch">
                 {/* Trái trên — Ô vuông */}
                 <figure className="relative overflow-hidden rounded-[15px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[1/1.12] mb-4 hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  {galleryImages[0].error ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <div className="text-center text-gray-500">
-                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm">No Image</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <img 
-                      src={galleryImages[0].src} 
-                      alt={galleryImages[0].alt} 
-                      className="w-full h-full object-cover block"
-                      loading="eager"
-                      onLoad={() => handleImageLoad(0)}
-                      onError={() => handleImageError(0)}
-                    />
-                  )}
+                  <img 
+                    src={galleryImages[0]?.src || FALLBACK_GALLERY_IMAGE} 
+                    alt={galleryImages[0]?.alt || 'Tour image'} 
+                    className="w-full h-full object-cover block"
+                    loading="eager"
+                    onLoad={() => handleImageLoad(0)}
+                    onError={() => handleImageError(0)}
+                  />
                 </figure>
 
                 {/* Phải trên — Ô nhỏ ngang (bo tròn lớn) */}
                 <figure className="relative overflow-hidden rounded-[18px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[16/11] -mt-[4px] sm:-mt-[8px] translate-y-[-15px] sm:translate-y-[-30px] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  {galleryImages[1].error ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <div className="text-center text-gray-500">
-                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm">No Image</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <img 
-                      src={galleryImages[1].src} 
-                      alt={galleryImages[1].alt} 
-                      className="w-full h-full object-cover block"
-                      loading="eager"
-                      onLoad={() => handleImageLoad(1)}
-                      onError={() => handleImageError(1)}
-                    />
-                  )}
+                  <img 
+                    src={galleryImages[1]?.src || FALLBACK_GALLERY_IMAGE} 
+                    alt={galleryImages[1]?.alt || 'Tour image'} 
+                    className="w-full h-full object-cover block"
+                    loading="eager"
+                    onLoad={() => handleImageLoad(1)}
+                    onError={() => handleImageError(1)}
+                  />
                 </figure>
 
                 {/* Trái dưới — Ô vuông */}
                 <figure className="relative overflow-hidden rounded-[15px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[1/1.12] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  {galleryImages[2].error ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <div className="text-center text-gray-500">
-                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm">No Image</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <img 
-                      src={galleryImages[2].src} 
-                      alt={galleryImages[2].alt} 
-                      className="w-full h-full object-cover block"
-                      loading="eager"
-                      onLoad={() => handleImageLoad(2)}
-                      onError={() => handleImageError(2)}
-                    />
-                  )}
+                  <img 
+                    src={galleryImages[2]?.src || FALLBACK_GALLERY_IMAGE} 
+                    alt={galleryImages[2]?.alt || 'Tour image'} 
+                    className="w-full h-full object-cover block"
+                    loading="eager"
+                    onLoad={() => handleImageLoad(2)}
+                    onError={() => handleImageError(2)}
+                  />
                 </figure>
 
                 {/* Phải dưới — Ô CAO chiếm 2 hàng */}
                 <figure className="relative overflow-hidden rounded-[18px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[3/4] -mt-[50px] sm:-mt-[35px] translate-y-[-50px] sm:translate-y-[-105px] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
-                  {galleryImages[3].error ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <div className="text-center text-gray-500">
-                        <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm">No Image</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <img 
-                      src={galleryImages[3].src} 
-                      alt={galleryImages[3].alt} 
-                      className="w-full h-full object-cover block"
-                      loading="eager"
-                      onLoad={() => handleImageLoad(3)}
-                      onError={() => handleImageError(3)}
-                    />
-                  )}
+                  <img 
+                    src={galleryImages[3]?.src || FALLBACK_GALLERY_IMAGE} 
+                    alt={galleryImages[3]?.alt || 'Tour image'} 
+                    className="w-full h-full object-cover block"
+                    loading="eager"
+                    onLoad={() => handleImageLoad(3)}
+                    onError={() => handleImageError(3)}
+                  />
                 </figure>
               </div>
             </div>

@@ -1223,6 +1223,24 @@
 				"tourIntDuration": "투어 기간:",
 				"tourIntDurationValue": "{{days}}일"
 			},
+			"vouchers": {
+				"title": "추천 바우처",
+				"subtitle": "현재 이 투어에 적용 가능한 할인 혜택입니다.",
+				"loading": "적용 가능한 바우처를 확인하는 중...",
+				"errorGeneric": "바우처 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.",
+				"noBooking": "이 투어의 바우처를 미리보기할 예약 데이터가 아직 없습니다.",
+				"empty": "현재 이 투어에 적용 가능한 바우처가 없습니다.",
+				"saves": "{{amount}} 절약",
+				"minOrder": "최소 주문 {{amount}}",
+				"original": "원래 총액",
+				"after": "할인 적용 후",
+				"helper": "샘플 예약을 기반으로 미리 계산된 혜택입니다.",
+				"cta": "바우처 모두 보기",
+				"tagGlobal": "모든 투어 적용",
+				"tagTour": "해당 투어 전용",
+				"tagGeneric": "유연한 혜택",
+				"unknownName": "스페셜 바우처"
+			},
 			"highlights": {
 				"title": "투어 하이라이트",
 				"items": {
@@ -1432,7 +1450,7 @@
           },
           "sectionTitle": "연락처 정보",
           "usePersonalInfo": "내 계정의 개인 정보를 사용",
-          "autoFillNotice": "계정 정보가 해당 필드에 자동 입력됩니다. 필요 시 언제든지 수정할 수 있습니다. 정보가 없는 필드는 비워 둡니다."
+          "autoFillNotice": "투어 예약자가 손님이라면 2단계에서 승객 정보를 다시 입력해 주세요."
         },
 		"step2": {
 			"loading": "투어 가격을 불러오는 중...",

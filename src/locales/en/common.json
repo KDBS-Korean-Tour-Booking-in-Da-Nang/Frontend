@@ -1224,6 +1224,24 @@
 				"tourIntDuration": "Tour Duration:",
 				"tourIntDurationValue": "{{days}} day(s)"
 			},
+			"vouchers": {
+				"title": "Suggested vouchers",
+				"subtitle": "Current discounts that can be applied to this tour.",
+				"loading": "Checking applicable vouchers...",
+				"errorGeneric": "We couldn't load voucher suggestions. Please try again later.",
+				"noBooking": "No booking data yet to preview vouchers for this tour.",
+				"empty": "There are no active vouchers for this tour right now.",
+				"saves": "Save {{amount}}",
+				"minOrder": "Minimum order {{amount}}",
+				"original": "Original total",
+				"after": "After discount",
+				"helper": "Previewed from a sample booking so you know what to expect.",
+				"cta": "View all vouchers",
+				"tagGlobal": "Works on all tours",
+				"tagTour": "Exclusive for this tour",
+				"tagGeneric": "Flexible offer",
+				"unknownName": "Special voucher"
+			},
 			"highlights": {
 				"title": "Tour highlights",
 				"items": {
@@ -1433,7 +1451,7 @@
           },
           "sectionTitle": "Contact information",
           "usePersonalInfo": "Use personal info from my account",
-          "autoFillNotice": "Account info will be auto-filled into corresponding fields. You can edit any field if needed. Empty fields will remain blank."
+          "autoFillNotice": "If the tour booker is a guest, please re-enter passenger information in Step 2."
         },
 		"step2": {
 			"loading": "Loading tour prices...",

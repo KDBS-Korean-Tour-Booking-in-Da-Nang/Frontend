@@ -183,63 +183,35 @@
   color: #ef4444;
 }
 
-.weather-viewport {
-  --w-gap: 12px;
-  --w-cols: 4; /* số cột mặc định = 4 card/khung */
-  --w-gutter: calc(var(--w-gap) / 2);
-  overflow: hidden;
-  padding: 0 var(--w-gutter); /* thêm gutter 2 bên để không cắt card */
+.weather-slider {
   position: relative;
-  box-sizing: content-box; /* để padding không co track */
 }
 
-/* Track trượt liên tục */
-.weather-track {
+.weather-slider :global(.slick-list) {
+  margin: 0 -8px;
+  padding: 8px 0;
+}
+
+.weather-slider :global(.slick-slide) {
+  padding: 0 8px;
+  height: 100%;
+}
+
+.weather-slider :global(.slick-track) {
   display: flex;
-  gap: var(--w-gap); /* dùng gap thay vì margin-right trên card */
-  transition: transform 500ms ease; /* mượt khi trượt */
-  will-change: transform;
+  align-items: stretch;
+  gap: 0;
 }
 
-/* Khi cần nhảy (reset về đầu) thì tắt transition để không bị giật */
-.weather-track.no-transition {
-  transition: none;
-}
-
-.weather-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.fade-enter {
-  animation: weatherFadeIn 300ms ease;
-}
-
-@keyframes weatherFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Bỏ animation "slide-enter" cũ để tránh cảm giác load */
-.slide-enter {
-  animation: none;
-}
-
-/* Tính bề rộng card theo công thức trừ gap để đủ 4 thẻ lọt khung */
 .weather-card {
-  flex: 0 0 calc((100% - (var(--w-gap) * (var(--w-cols) - 1))) / var(--w-cols));
   border: 1px solid #e5e7eb;
   background: linear-gradient(180deg, #ffffff, #f3f6fb);
   padding: 14px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* không cần xử lý last-child vì đã dùng gap trên track */
@@ -392,6 +364,174 @@
 .muted {
   color: #6b7280;
   font-size: 20px;
+}
+
+/* Voucher suggestions */
+.voucher-section {
+  margin-top: 32px;
+  padding: 24px 28px;
+  border-radius: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.voucher-section-header h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.voucher-section-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.voucher-loading,
+.voucher-empty,
+.voucher-error {
+  margin-top: 16px;
+  font-size: 0.95rem;
+}
+
+.voucher-loading {
+  color: #0f172a;
+  font-style: italic;
+}
+
+.voucher-empty {
+  color: #475569;
+  font-style: italic;
+}
+
+.voucher-error {
+  color: #dc2626;
+}
+
+.voucher-list {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.voucher-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 220px;
+}
+
+.voucher-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.voucher-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.voucher-code {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  color: #475569;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.voucher-tag {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.voucher-tag-global {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.voucher-tag-specific {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.voucher-tag-generic {
+  background: #ecfccb;
+  color: #4d7c0f;
+}
+
+.voucher-discount {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0ea5e9;
+}
+
+.voucher-savings {
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.voucher-min-order {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.voucher-pricing {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.voucher-pricing strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.voucher-footer {
+  margin-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.voucher-help-text {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.voucher-cta {
+  border: none;
+  background: #1a8eea;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.voucher-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(26, 142, 234, 0.25);
 }
 
 /* Itinerary */

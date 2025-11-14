@@ -7,9 +7,11 @@ import {
   Bars3Icon,
   XMarkIcon,
   BellIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  PlusIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import styles from './Navbar.module.css';
+import styles from './NavbarCompany.module.css';
 import NotificationDropdown from '../../NotificationDropdown';
 import ChatBox from '../../ChatBox';
 import ChatDropdown from '../../ChatDropdown';
@@ -17,8 +19,8 @@ import WebSocketStatus from '../../WebSocketStatus';
 import { useNotifications } from '../../../contexts/NotificationContext';
  
 
-const Navbar = () => {
-  const { user, logout, getToken } = useAuth();
+const NavbarCompany = () => {
+  const { user, logout } = useAuth();
   const { unreadCount, fetchList } = useNotifications();
   const fetchListRef = useRef(fetchList);
   useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
@@ -49,41 +51,28 @@ const Navbar = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
-  // Set default language to English for USER role and GUEST (not logged in)
-  useEffect(() => {
-    const currentLang = i18n.language;
-    // For USER role or GUEST (no user), default to English
-    if (!user || user.role === 'USER') {
-      if (!currentLang || currentLang === 'vi') {
-        // Set default to English, or switch from Vietnamese to English
-        i18n.changeLanguage('en');
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.role, i18n.language]); // Check both role and language changes
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
+  // COMPANY can use all languages including Vietnamese
   const changeLanguage = (lng) => {
-    // Prevent USER and GUEST from selecting Vietnamese
-    if ((!user || user.role === 'USER') && lng === 'vi') {
-      return;
-    }
     i18n.changeLanguage(lng);
   };
 
-  // USER/GUEST navbar - Vietnamese is never shown
-  const showVietnamese = false;
+  // Determine if Vietnamese should be shown (only for COMPANY role)
+  const showVietnamese = user && user.role === 'COMPANY';
 
   const toggleNotification = () => {
+    if (isCompanyPending) {
+      navigate('/company-info');
+      return;
+    }
     setIsNotificationOpen(!isNotificationOpen);
     // Don't close chat when opening notification
   };
 
   const toggleChat = () => {
+    if (isCompanyPending) {
+      navigate('/company-info');
+      return;
+    }
     chatActions.toggleChatDropdown();
     // Don't close notification when opening chat
   };
@@ -91,16 +80,17 @@ const Navbar = () => {
   
 
   // Handle scroll behavior
-  // On forum page: always visible (like NavbarCompany)
+  // On forum page and dashboard pages: always visible (fixed)
   // On other pages: hide when scrolling down, show when scrolling up
   useEffect(() => {
     const isForumPage = location.pathname === '/forum' || location.pathname.startsWith('/forum/');
+    const isDashboardPage = location.pathname.startsWith('/company/');
     
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      if (isForumPage) {
-        // Forum page: always visible, only update scrolled state for styling
+      if (isForumPage || isDashboardPage) {
+        // Forum and Dashboard pages: always visible, only update scrolled state for styling
         setIsVisible(true);
         setIsScrolled(currentScrollY > 10);
       } else {
@@ -142,9 +132,23 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
-  // USER/GUEST navbar - no company pending logic needed
-  const isLockedToCompanyInfo = false;
-  const disabledClass = '';
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const isCompanyPending = (user && (user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING');
+  const isLockedToCompanyInfo = isCompanyPending;
+
+  const disableIfPending = (e) => {
+    if (isCompanyPending) {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate('/company-info');
+    }
+  };
+
+  const disabledClass = isLockedToCompanyInfo ? ' cursor-not-allowed opacity-50' : '';
 
   const hasUnreadNotifications = unreadCount > 0;
   const hasUnreadMessages = !!chatState?.hasUnreadMessages;
@@ -155,22 +159,45 @@ const Navbar = () => {
         <div className={styles['navbar-container']}>
           {/* Logo Section */}
           <div className={styles['logo-section']}>
-            <Link to="/" className={styles['logo-section']}>
-              <img
-                src="/logoKDBS.png"
-                alt="KDBS Logo"
-                className={styles.logo}
-              />
-            </Link>
+            {isLockedToCompanyInfo ? (
+              <Link to="/company-info" className={styles['logo-section']} onClick={(e) => { e.stopPropagation(); }}>
+                <img
+                  src="/logoKDBS.png"
+                  alt="KDBS Logo"
+                  className={styles.logo}
+                />
+              </Link>
+            ) : (
+              <Link to="/" className={styles['logo-section']}>
+                <img
+                  src="/logoKDBS.png"
+                  alt="KDBS Logo"
+                  className={styles.logo}
+                />
+              </Link>
+            )}
           </div>
 
           {/* Desktop Navigation */}
           <div className={styles['nav-links']} style={{ overflow: 'visible' }}>
-            <Link to="/" className={styles['nav-link']}>{t('nav.home')}</Link>
-            <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
-            <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
-            <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
-            <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
+            {isLockedToCompanyInfo ? (
+              // Render disabled lookalike links that redirect to company-info
+              <>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.home')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.forum')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.tourBooking')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.news')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.about')}</a>
+              </>
+            ) : (
+              <>
+                <Link to="/" className={styles['nav-link']}>{t('nav.home')}</Link>
+                <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
+                <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
+                <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
+                <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
+              </>
+            )}
           </div>
 
           {/* Right Section */}
@@ -180,43 +207,61 @@ const Navbar = () => {
                 {/* Notifications */}
                 <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
                   <button 
-                    className={styles['notification-button']}
-                    onClick={toggleNotification}
+                    className={`${styles['notification-button']}${disabledClass}`}
+                    onClick={isLockedToCompanyInfo ? disableIfPending : toggleNotification}
                     data-notification-button
+                    disabled={isLockedToCompanyInfo}
                   >
                     <BellIcon />
                     {hasUnreadNotifications && (
                       <span className={styles['notification-dot']} />
                     )}
                   </button>
-                  <NotificationDropdown 
-                    isOpen={isNotificationOpen} 
-                    onClose={() => setIsNotificationOpen(false)} 
-                  />
+                  {!isLockedToCompanyInfo && (
+                    <NotificationDropdown 
+                      isOpen={isNotificationOpen} 
+                      onClose={() => setIsNotificationOpen(false)} 
+                    />
+                  )}
                 </div>
 
                 {/* Messages */}
                 <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
                   <button 
-                    className={styles['notification-button']}
-                    onClick={toggleChat}
+                    className={`${styles['notification-button']}${disabledClass}`}
+                    onClick={isLockedToCompanyInfo ? disableIfPending : toggleChat}
                     data-chat-button
+                    disabled={isLockedToCompanyInfo}
                   >
                     <ChatBubbleLeftRightIcon />
                     {hasUnreadMessages && (
                       <span className={styles['notification-dot']} />
                     )}
                   </button>
-                  <ChatDropdown 
-                    isOpen={chatState.isChatDropdownOpen} 
-                    onClose={chatActions.closeChatDropdown} 
-                  />
+                  {!isLockedToCompanyInfo && (
+                    <ChatDropdown 
+                      isOpen={chatState.isChatDropdownOpen} 
+                      onClose={chatActions.closeChatDropdown} 
+                    />
+                  )}
                 </div>
 
                 {/* WebSocket Status */}
-                <div style={{ display: 'none' }}>
-                  <WebSocketStatus />
-                </div>
+                {!isLockedToCompanyInfo && (
+                  <div style={{ display: 'none' }}>
+                    <WebSocketStatus />
+                  </div>
+                )}
+
+                {/* Balance - Always show for COMPANY users */}
+                {user.role === 'COMPANY' && (
+                  <div className={styles['balance-container']}>
+                    <span className={styles['balance-amount']}>10.000</span>
+                    <button className={styles['balance-add']}>
+                      <PlusIcon />
+                    </button>
+                  </div>
+                )}
 
                 {/* User Profile */}
                 <div className={styles['user-profile']}>
@@ -224,7 +269,7 @@ const Navbar = () => {
                     <img src={user.avatar} alt="avatar" className={styles['user-avatar']} />
                   ) : (
                     <div className={styles['user-avatar-placeholder']}>
-                      {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                      {(user.name || user.email || 'C').charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div className={styles['user-dropdown']}>▼</div>
@@ -236,7 +281,7 @@ const Navbar = () => {
                         <img src={user.avatar} alt="avatar" className={styles['dropdown-avatar']} />
                       ) : (
                         <div className={styles['dropdown-avatar-placeholder']}>
-                          {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                          {(user.name || user.email || 'C').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className={styles['dropdown-user-info']}>
@@ -244,16 +289,31 @@ const Navbar = () => {
                           <h4>{user.name || user.email}</h4>
                           
                         </div>
-                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})}</p>
+                        <p>{t(`profileRole.${user.role || 'COMPANY'}`, user.role ? undefined : {})}</p>
                       </div>
                     </div>
 
-                    <Link 
-                      to="/profile" 
-                      className={styles['dropdown-item']}
-                    >
-                      {t('nav.profileFull')}
-                    </Link>
+                    {user.role === 'COMPANY' && !isLockedToCompanyInfo && (
+                      <Link 
+                        to="/company/dashboard" 
+                        className={styles['dropdown-item']}
+                      >
+                        <BuildingOfficeIcon className="w-4 h-4" />
+                        {t('nav.dashboard')}
+                      </Link>
+                    )}
+                    {!isLockedToCompanyInfo ? (
+                      <Link 
+                        to="/profile" 
+                        className={styles['dropdown-item']}
+                      >
+                        {t('nav.profileFull')}
+                      </Link>
+                    ) : (
+                      <button onClick={disableIfPending} className={`${styles['dropdown-item']}${disabledClass}`}>
+                        {t('nav.profileFull')}
+                      </button>
+                    )}
                     
                     {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
@@ -319,45 +379,49 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       <div className={`${styles['mobile-menu']} ${isMenuOpen ? styles.open : ''}`}>
         <div className={styles['mobile-nav-links']}>
-          <Link
-            to="/"
-            className={styles['mobile-nav-link']}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.home')}
-          </Link>
+          {!isLockedToCompanyInfo && (
+            <>
+              <Link
+                to="/"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.home')}
+              </Link>
 
-          <Link
-            to="/forum"
-            className={styles['mobile-nav-link']}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.forum')}
-          </Link>
+              <Link
+                to="/forum"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.forum')}
+              </Link>
 
-          <Link
-            to="/tour"
-            className={styles['mobile-nav-link']}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.tourBooking')}
-          </Link>
+              <Link
+                to="/tour"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.tourBooking')}
+              </Link>
 
-          <Link
-            to="/news"
-            className={styles['mobile-nav-link']}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.news')}
-          </Link>
+              <Link
+                to="/news"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.news')}
+              </Link>
 
-          <Link
-            to="/about"
-            className={styles['mobile-nav-link']}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('nav.about')}
-          </Link>
+              <Link
+                to="/about"
+                className={styles['mobile-nav-link']}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('nav.about')}
+              </Link>
+            </>
+          )}
 
           {user && (
             <div className={styles['mobile-user-section']}>
@@ -380,14 +444,17 @@ const Navbar = () => {
       </div>
 
       {/* Chat Box */}
-      <ChatBox 
-        isOpen={chatState.isChatBoxOpen} 
-        onClose={chatActions.closeChatBox} 
-      />
+      {!isLockedToCompanyInfo && (
+        <ChatBox 
+          isOpen={chatState.isChatBoxOpen} 
+          onClose={chatActions.closeChatBox} 
+        />
+      )}
 
       
     </>
   );
 };
 
-export default Navbar; 
+export default NavbarCompany;
+

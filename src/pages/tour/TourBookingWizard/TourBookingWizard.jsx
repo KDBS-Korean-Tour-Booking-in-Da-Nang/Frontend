@@ -8,7 +8,6 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useBookingStepValidation } from '../../../hooks/useBookingStepValidation';
 import { useTranslation } from 'react-i18next';
 import ConfirmLeaveModal from '../../../components/modals/ConfirmLeaveModal/ConfirmLeaveModal';
-import Step2InfoModal from '../../../components/modals/Step2InfoModal/Step2InfoModal';
 import Step1Contact from './steps/Step1Contact/Step1Contact';
 import Step2Details from './steps/Step2Details/Step2Details';
 import Step3Review from './steps/Step3Review/Step3Review';
@@ -49,7 +48,6 @@ const BookingWizardContent = () => {
   
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [showStep2InfoModal, setShowStep2InfoModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
   
@@ -262,8 +260,20 @@ const BookingWizardContent = () => {
             rebuildMembers();
           }, 0);
           
-          // Show info modal
-          setShowStep2InfoModal(true);
+          // Save booking data before moving to step 2
+          try {
+            const bookingData = {
+              contact,
+              plan,
+              timestamp: Date.now(),
+              tourId: tourId
+            };
+            localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+          } catch (error) {
+            console.error('Error saving booking data:', error);
+          }
+
+          setCurrentStep(2);
         } else {
           // For other steps, save and move forward normally
           // Save booking data to localStorage before moving to next step
@@ -283,24 +293,6 @@ const BookingWizardContent = () => {
         }
       }
     }
-  };
-
-  const handleStep2InfoModalClose = () => {
-    setShowStep2InfoModal(false);
-    // Save booking data to localStorage after modal closes
-    try {
-      const bookingData = {
-        contact,
-        plan,
-        timestamp: Date.now(),
-        tourId: tourId
-      };
-      localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
-    } catch (error) {
-      console.error('Error saving booking data:', error);
-    }
-    // Move to step 2
-    setCurrentStep(2);
   };
 
   const handleBack = () => {
@@ -592,11 +584,6 @@ const BookingWizardContent = () => {
           onConfirm={handleConfirmLeave}
         />
 
-        {/* Step 2 Info Modal */}
-        <Step2InfoModal
-          open={showStep2InfoModal}
-          onClose={handleStep2InfoModalClose}
-        />
       </div>
     </div>
   );

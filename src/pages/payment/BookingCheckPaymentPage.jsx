@@ -62,6 +62,7 @@ const BookingCheckPaymentPage = () => {
   const [statusBanner, setStatusBanner] = useState(null);
   const lastLoadedBookingIdRef = useRef(null);
   const loadAvailableVouchersRef = useRef(null);
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
 
   // Load booking information và tính toán tổng tiền
   useEffect(() => {
@@ -592,6 +593,7 @@ const BookingCheckPaymentPage = () => {
     if (!voucher?.code) return;
     setVoucherCode(voucher.code);
     handleApplyVoucher(voucher.code);
+    setIsVoucherModalOpen(false);
   };
 
   // Tính toán booking summary để hiển thị
@@ -607,7 +609,8 @@ const BookingCheckPaymentPage = () => {
   }, [booking]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <>
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       {/* Nút quay lại */}
       <button
         type="button"
@@ -747,7 +750,7 @@ const BookingCheckPaymentPage = () => {
                 {/* Form input: Email và Voucher code */}
                 <div className="grid gap-5 md:grid-cols-2">
                   {/* Input email */}
-                  <div className="flex flex-col gap-2">
+                  <div className="hidden">
                     <label htmlFor="userEmail" className="text-sm font-medium text-gray-700">
                       Email người thanh toán
                     </label>
@@ -760,9 +763,6 @@ const BookingCheckPaymentPage = () => {
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       aria-describedby="userEmail-hint"
                     />
-                    <p id="userEmail-hint" className="text-xs text-gray-500">
-                      Thông tin xác nhận sẽ được gửi về email này.
-                    </p>
                   </div>
 
                   {/* Input voucher code */}
@@ -770,107 +770,42 @@ const BookingCheckPaymentPage = () => {
                     <label htmlFor="voucherCode" className="text-sm font-medium text-gray-700">
                       Mã voucher (tuỳ chọn)
                     </label>
-                    <input
-                      id="voucherCode"
-                      type="text"
-                      value={voucherCode}
-                      onChange={handleVoucherChange}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Nhập mã voucher nếu có"
-                      aria-describedby="voucherCode-hint"
-                    />
+                    <div className="flex items-stretch gap-3">
+                      <input
+                        id="voucherCode"
+                        type="text"
+                        value={voucherCode}
+                        onChange={handleVoucherChange}
+                        className="w-full flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nhập mã voucher nếu có"
+                        aria-describedby="voucherCode-hint"
+                      />
+                      {voucherApplied && voucherCode ? (
+                        <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-400 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 shadow-sm">
+                          <span>{voucherCode}</span>
+                          <button
+                            type="button"
+                            onClick={handleClearVoucher}
+                            className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
+                            aria-label="Bỏ chọn voucher"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setIsVoucherModalOpen(true)}
+                          className="inline-flex items-center justify-center rounded-md border border-transparent bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 whitespace-nowrap"
+                        >
+                          Áp dụng voucher
+                        </button>
+                      )}
+                    </div>
                     <p id="voucherCode-hint" className="text-xs text-gray-500">
                       Nhập mã voucher và bấm "Áp dụng voucher" để xem chi tiết giảm giá. Voucher sẽ được lưu vào database khi bấm "Thanh toán".
                     </p>
-                    <div>
-                      <button
-                        type="button"
-                        onClick={handleApplyVoucher}
-                        className="mt-2 inline-flex items-center justify-center rounded-md border border-transparent bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                      >
-                        Áp dụng voucher
-                      </button>
-                    </div>
                   </div>
-                </div>
-
-                {/* Danh sách voucher của công ty */}
-                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900">Voucher của công ty</p>
-                    {isLoadingVouchers && (
-                      <span className="text-xs text-gray-500">Đang tải...</span>
-                    )}
-                  </div>
-                  {isLoadingVouchers ? (
-                    <div className="mt-3 flex items-center justify-center py-4">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-500" />
-                      <span className="ml-2 text-xs text-gray-500">Đang tải voucher...</span>
-                    </div>
-                  ) : availableVouchers?.length > 0 ? (
-                    <div className="mt-3 space-y-2">
-                      <p className="text-xs text-gray-600">
-                        Chọn một voucher để áp dụng ngay:
-                      </p>
-                      {/* Danh sách button voucher */}
-                      <div className="flex flex-wrap gap-2">
-                        {availableVouchers.map((v) => {
-                          const discountBadge = v.discountLabel || '';
-                          const discountDisplayText = discountBadge.startsWith('-') 
-                            ? discountBadge.slice(1) 
-                            : discountBadge;
-                          const tooltipText = discountBadge
-                            ? `Mã: ${v.code} - Giảm ${discountDisplayText}`
-                            : `Mã: ${v.code}`;
-                          
-                          // Kiểm tra voucher có đang được chọn không
-                          const isSelected = voucherCode && v.code && 
-                            voucherCode.toUpperCase().trim() === v.code.toUpperCase().trim();
-
-                          return (
-                            <div key={v.id || v.voucherId || v.code} className="relative inline-block">
-                              <button
-                                type="button"
-                                onClick={() => handleSelectVoucherFromList(v)}
-                                className={`inline-flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-                                  isSelected
-                                    ? 'border-emerald-500 bg-emerald-100 text-emerald-900 hover:border-emerald-600 hover:bg-emerald-200'
-                                    : 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-400 hover:bg-emerald-100'
-                                }`}
-                                title={tooltipText}
-                              >
-                                <span className="font-semibold">{v.code}</span>
-                                {discountBadge && (
-                                  <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-bold text-emerald-900">
-                                    {discountBadge}
-                                  </span>
-                                )}
-                              </button>
-                              {/* Nút X để xóa voucher khi đang được chọn */}
-                              {isSelected && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleClearVoucher();
-                                  }}
-                                  className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-                                  title="Bỏ chọn voucher"
-                                  aria-label="Bỏ chọn voucher"
-                                >
-                                  <span className="text-xs font-bold">×</span>
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="mt-3 text-xs text-gray-600">
-                      Hiện chưa có voucher khả dụng từ công ty này.
-                    </p>
-                  )}
                 </div>
 
                 {/* Lưu ý bảo mật */}
@@ -906,6 +841,109 @@ const BookingCheckPaymentPage = () => {
         </div>
       </div>
     </div>
+
+    {isVoucherModalOpen && (
+      <div className="fixed inset-0 z-40 flex items-center justify-center px-4 py-6">
+        <div
+          className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+          onClick={() => setIsVoucherModalOpen(false)}
+          aria-hidden="true"
+        />
+        <div className="relative z-50 w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Chọn voucher để áp dụng</h3>
+              <p className="text-sm text-gray-500">Mỗi booking chỉ áp dụng được 1 voucher.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsVoucherModalOpen(false)}
+              className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Đóng"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="max-h-[65vh] overflow-y-auto px-6 py-4">
+            {isLoadingVouchers ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+                <span className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-500" />
+                <span>Đang tải voucher...</span>
+              </div>
+            ) : availableVouchers.length > 0 ? (
+              <div className="space-y-3">
+                {availableVouchers.map((v) => {
+                  const discountBadge = v.discountLabel || "";
+                  const isSelected =
+                    voucherCode &&
+                    v.code &&
+                    voucherCode.toUpperCase().trim() === v.code.toUpperCase().trim();
+                  return (
+                    <div
+                      key={v.id || v.voucherId || v.code}
+                      className={`rounded-xl border px-4 py-3 transition ${
+                        isSelected ? "border-emerald-500 bg-emerald-50" : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-gray-900">{v.code}</p>
+                          <p className="text-xs text-gray-500">
+                            {discountBadge ? `Giảm ${discountBadge.replace(/^-/, "")}` : "Voucher khả dụng"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isSelected && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleClearVoucher();
+                                setIsVoucherModalOpen(false);
+                              }}
+                              className="inline-flex items-center justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+                            >
+                              Bỏ chọn
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleSelectVoucherFromList(v)}
+                            className="inline-flex items-center justify-center rounded-md border border-transparent bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
+                          >
+                            {isSelected ? "Đang áp dụng" : "Áp dụng"}
+                          </button>
+                        </div>
+                      </div>
+                      {Number(v.discountAmount) > 0 && (
+                        <div className="mt-2 rounded-lg bg-emerald-100 px-3 py-2 text-xs text-emerald-800">
+                          Tiết kiệm {formatCurrency(v.discountAmount)} so với giá gốc.
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+                Hiện chưa có voucher khả dụng từ công ty này.
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
+            <button
+              type="button"
+              onClick={() => setIsVoucherModalOpen(false)}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
