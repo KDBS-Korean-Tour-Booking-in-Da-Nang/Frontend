@@ -35,6 +35,10 @@ const Step2Details = () => {
     child: null,
     infant: null
   });
+  const [tourMeta, setTourMeta] = useState({
+    deadlineDays: null,
+    expirationDate: null
+  });
   const [loading, setLoading] = useState(true);
 
   // Helper functions for date formatting based on language
@@ -64,6 +68,38 @@ const Step2Details = () => {
       return isLeapYear(yearNum) ? 29 : 28;
     }
     return 31; // Default fallback
+  };
+
+  const toIsoDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const computeMinDepartureDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Nếu tour có hạn tối thiểu (deadlineDays), user chỉ có thể chọn ngày khởi hành sau số ngày đó
+    // Ví dụ: nếu deadlineDays = 7, thì từ hôm nay phải 7 ngày sau mới được chọn
+    if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+      const minDate = new Date(today);
+      minDate.setDate(minDate.getDate() + tourMeta.deadlineDays);
+      return toIsoDate(minDate);
+    }
+    // Nếu không có deadline, chỉ cần không chọn ngày trong quá khứ
+    return toIsoDate(today);
+  };
+
+  const computeMaxDepartureDate = () => {
+    if (tourMeta.expirationDate) {
+      return tourMeta.expirationDate;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fallback = new Date(today);
+    fallback.setMonth(fallback.getMonth() + 1);
+    return toIsoDate(fallback);
   };
 
   // Helper function to format date input for members (separate from representative)
@@ -874,6 +910,19 @@ const Step2Details = () => {
          child: tourData.childrenPrice !== null && tourData.childrenPrice !== undefined ? Number(tourData.childrenPrice) : null,
          infant: tourData.babyPrice !== null && tourData.babyPrice !== undefined ? Number(tourData.babyPrice) : null
        };
+
+      const parseDeadlineDays = () => {
+        if (tourData.tourDeadline === undefined || tourData.tourDeadline === null || tourData.tourDeadline === '') {
+          return null;
+        }
+        const parsed = parseInt(tourData.tourDeadline, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+      };
+
+      setTourMeta({
+        deadlineDays: parseDeadlineDays(),
+        expirationDate: tourData.tourExpirationDate || null
+      });
       
       // Diagnostics removed
       
@@ -897,6 +946,36 @@ const Step2Details = () => {
       loadTourPrices();
     }
   }, [tourId, loadTourPrices]);
+
+  // Validate và clear date nếu không hợp lệ khi tourMeta thay đổi
+  useEffect(() => {
+    if (plan.date.day && plan.date.month && plan.date.year) {
+      const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const minDate = new Date(today);
+      
+      // Nếu tour có deadlineDays, tính minDate = today + deadlineDays
+      // Ví dụ: nếu deadlineDays = 7, thì từ hôm nay phải 7 ngày sau mới được chọn ngày khởi hành
+      if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays);
+      }
+      
+      // Nếu ngày đã chọn không hợp lệ (trước minDate hoặc sau expirationDate), clear nó
+      if (selectedDate < minDate) {
+        setDate({ day: null, month: null, year: null });
+        setDateTouched(false);
+      } else if (tourMeta.expirationDate) {
+        const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
+        expiration.setHours(0, 0, 0, 0);
+        if (selectedDate > expiration) {
+          setDate({ day: null, month: null, year: null });
+          setDateTouched(false);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourMeta.deadlineDays, tourMeta.expirationDate]);
 
   // Update members when pax changes
   useEffect(() => {
@@ -959,17 +1038,35 @@ const Step2Details = () => {
       const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const minDate = new Date(today);
       
-      // Calculate max date (1 month from today)
-      const maxDate = new Date(today);
-      maxDate.setMonth(maxDate.getMonth() + 1);
-      
+      // Tính minDate: nếu tour có deadlineDays (hạn tối thiểu), minDate = today + deadlineDays
+      // Ví dụ: nếu deadlineDays = 7, thì từ hôm nay phải 7 ngày sau mới được chọn ngày khởi hành
+      if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays);
+      }
+
       if (selectedDate < today) {
         newErrors.date = t('booking.step2.errors.dateInPast');
-      } else if (selectedDate > maxDate) {
-        newErrors.date = t('booking.step2.errors.dateOverOneMonth');
+      } else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0 && selectedDate < minDate) {
+        // Ngày đã chọn trước hạn tối thiểu (deadlineDays)
+        newErrors.date = t('booking.step2.errors.dateBeforeDeadline', { days: tourMeta.deadlineDays });
+      } else if (tourMeta.expirationDate) {
+        const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
+        expiration.setHours(0, 0, 0, 0);
+        if (selectedDate > expiration) {
+          newErrors.date = t('booking.step2.errors.dateAfterExpiration', { date: tourMeta.expirationDate });
+        } else {
+          delete newErrors.date;
+        }
       } else {
-        delete newErrors.date;
+        const fallbackMax = new Date(today);
+        fallbackMax.setMonth(fallbackMax.getMonth() + 1);
+        if (selectedDate > fallbackMax) {
+          newErrors.date = t('booking.step2.errors.dateOverOneMonth');
+        } else {
+          delete newErrors.date;
+        }
       }
     }
 
@@ -1263,7 +1360,7 @@ const Step2Details = () => {
       
       return updatedErrors;
     });
-  }, [plan.date, plan.members, touchedFields, t]);
+  }, [plan.date, plan.members, touchedFields, t, tourMeta.deadlineDays, tourMeta.expirationDate]);
 
   const handlePaxChange = (type, action) => {
     
@@ -2383,12 +2480,8 @@ const Step2Details = () => {
                   setDate({ day: null, month: null, year: null });
                 }
               }}
-              min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày trong quá khứ
-              max={(() => {
-                const maxDate = new Date();
-                maxDate.setMonth(maxDate.getMonth() + 1);
-                return maxDate.toISOString().split('T')[0];
-              })()} // Giới hạn chọn trong vòng 1 tháng
+              min={computeMinDepartureDate()} // Không cho chọn ngày trong quá khứ hoặc trước hạn tối thiểu
+              max={computeMaxDepartureDate()} // Giới hạn theo ngày hết hạn hoặc tối đa 1 tháng nếu chưa cấu hình
               className={`${styles['form-input']} ${errors.date && dateTouched ? styles['error'] : ''}`}
               onBlur={() => setDateTouched(true)}
             />

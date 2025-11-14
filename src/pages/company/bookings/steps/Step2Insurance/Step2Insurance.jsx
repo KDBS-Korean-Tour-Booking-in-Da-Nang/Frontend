@@ -1,27 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../contexts/ToastContext';
-import { changeBookingGuestInsuranceStatus, changeBookingStatus } from '../../../../../services/bookingAPI';
+import { changeBookingStatus } from '../../../../../services/bookingAPI';
 import { DeleteConfirmModal } from '../../../../../components/modals';
 import styles from './Step2Insurance.module.css';
 
-const Step2Insurance = ({ booking, guests, onBookingUpdate, onGuestsUpdate, onNext, onBack, isReadOnly = false, isStep1Completed = false }) => {
+const Step2Insurance = ({
+  booking,
+  guests,
+  onBookingUpdate,
+  onGuestsUpdate,
+  onNext,
+  onBack,
+  isReadOnly = false,
+  isStep1Completed = false,
+  onStepCompleted,
+  onInsuranceUpdatesPending
+}) => {
   const { t } = useTranslation();
   const { showError, showSuccess } = useToast();
   const [loading, setLoading] = useState({});
   const [guestsState, setGuestsState] = useState(guests || []);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingChanges, setPendingChanges] = useState([]); // Track pending insurance status changes
-
   useEffect(() => {
     setGuestsState(guests || []);
-    // Initialize pending changes when guests change
-    if (guests && guests.length > 0) {
-      setPendingChanges(guests.map(g => ({
-        guestId: g.bookingGuestId,
-        status: g.insuranceStatus || 'Pending'
-      })));
-    }
   }, [guests]);
 
   const handleInsuranceStatusChange = (guestId, status) => {
@@ -36,25 +38,9 @@ const Step2Insurance = ({ booking, guests, onBookingUpdate, onGuestsUpdate, onNe
         : g
     );
     setGuestsState(updatedGuests);
-    
-    // Update pending changes
-    setPendingChanges(prev => {
-      const existingChange = prev.find(pc => pc.guestId === guestId);
-      if (existingChange) {
-        // Update existing change
-        return prev.map(pc => 
-          pc.guestId === guestId 
-            ? { ...pc, status: statusValue }
-            : pc
-        );
-      } else {
-        // Add new change
-        return [...prev, { guestId, status: statusValue }];
-      }
-    });
-    
+
     const guestName = updatedGuests.find(g => g.bookingGuestId === guestId)?.fullName || 'khách';
-    showSuccess(`Đã cập nhật trạng thái bảo hiểm cho ${guestName}. Thay đổi sẽ được lưu khi bạn xác nhận.`);
+    showSuccess(`Đã cập nhật trạng thái bảo hiểm cho ${guestName}. Thay đổi sẽ được lưu khi bạn hoàn thành booking.`);
   };
 
   const handleReject = async () => {
@@ -83,13 +69,8 @@ const Step2Insurance = ({ booking, guests, onBookingUpdate, onGuestsUpdate, onNe
     // The actual DB update will happen when user confirms in modal
     const updatedGuests = guestsState.map(g => ({ ...g, insuranceStatus: 'Success' }));
     setGuestsState(updatedGuests);
-    
-    // Update pending changes
-    setPendingChanges(prev => 
-      prev.map(change => ({ ...change, status: 'Success' }))
-    );
-    
-    showSuccess('Đã duyệt tất cả bảo hiểm. Thay đổi sẽ được lưu khi bạn xác nhận.');
+
+    showSuccess('Đã duyệt tất cả bảo hiểm. Thay đổi sẽ được lưu khi bạn hoàn thành booking.');
   };
 
   const handleContinue = () => {
@@ -108,11 +89,10 @@ const Step2Insurance = ({ booking, guests, onBookingUpdate, onGuestsUpdate, onNe
 
   // Handle confirmation - save all insurance statuses to DB
   const handleConfirmContinue = async () => {
+    setLoading({ continue: true });
+    setShowConfirmModal(false);
+
     try {
-      setLoading({ continue: true });
-      setShowConfirmModal(false);
-      
-      // Compare current state with original guests to find changes
       const changesToSave = guestsState
         .map(currentGuest => {
           const originalGuest = guests.find(g => g.bookingGuestId === currentGuest.bookingGuestId);
@@ -125,29 +105,22 @@ const Step2Insurance = ({ booking, guests, onBookingUpdate, onGuestsUpdate, onNe
           return null;
         })
         .filter(change => change !== null);
-      
-      // Save all insurance status changes to DB
-      if (changesToSave.length > 0) {
-        const updatePromises = changesToSave.map(change => 
-          changeBookingGuestInsuranceStatus(change.guestId, change.status)
-        );
-        
-        await Promise.all(updatePromises);
+
+      if (onInsuranceUpdatesPending) {
+        onInsuranceUpdatesPending(changesToSave);
       }
-      
-      // Update parent component with final state
+
       onGuestsUpdate(guestsState);
-      
-      // Mark step 2 as completed and move to step 3
+
       if (onStepCompleted) {
-        onStepCompleted(2, 3); // Mark step 2 completed, save progress with step 3
+        onStepCompleted(2, 3);
       }
-      
-      showSuccess('Đã lưu tất cả trạng thái bảo hiểm vào database. Vui lòng xác nhận ở bước cuối.');
+
+      showSuccess('Đã ghi nhận các thay đổi bảo hiểm. Vui lòng hoàn thành booking để lưu vào database.');
       onNext();
     } catch (error) {
-      console.error('Error saving insurance statuses:', error);
-      showError(error.message || 'Không thể lưu trạng thái bảo hiểm');
+      console.error('Error preparing insurance status changes:', error);
+      showError(error.message || 'Không thể ghi nhận thay đổi bảo hiểm');
     } finally {
       setLoading(prev => ({ ...prev, continue: false }));
     }
@@ -339,7 +312,7 @@ const Step2Insurance = ({ booking, guests, onBookingUpdate, onGuestsUpdate, onNe
         onClose={() => !loading.continue && setShowConfirmModal(false)}
         onConfirm={handleConfirmContinue}
         title="Xác nhận duyệt bảo hiểm"
-        message={`Bạn có chắc chắn muốn lưu tất cả trạng thái bảo hiểm vào database và chuyển sang bước cuối?`}
+        message={`Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối? Những thay đổi này sẽ được lưu vào database khi bạn bấm "Hoàn thành" ở bước 3.`}
         confirmText="Xác nhận"
         cancelText="Hủy"
         icon="✓"

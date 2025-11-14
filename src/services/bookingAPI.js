@@ -115,12 +115,18 @@ export const getBookingById = async (bookingId) => {
 };
 
 /**
- * Get all bookings
- * @returns {Promise<Array>} - Array of bookings
- */
-export const getAllBookings = async () => {
+* Get all bookings for a company
+* @param {number|string} companyId - The company ID
+* @returns {Promise<Array>} - Array of bookings
+*/
+export const getAllBookings = async (companyId) => {
+  if (!companyId) {
+    console.warn('getAllBookings called without companyId. Returning empty array.');
+    return [];
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking`, {
+    const response = await fetch(`${API_BASE_URL}/api/booking/company/${companyId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -140,7 +146,13 @@ export const getAllBookings = async () => {
     }
 
     const result = await response.json();
-    return result;
+    if (Array.isArray(result)) {
+      return result;
+    }
+    if (Array.isArray(result?.bookings)) {
+      return result.bookings;
+    }
+    return [];
   } catch (error) {
     console.error('Error fetching bookings:', error);
     throw error;
@@ -317,7 +329,13 @@ export const getBookingsByTourId = async (tourId) => {
     }
 
     const result = await response.json();
-    return result;
+    if (Array.isArray(result)) {
+      return result;
+    }
+    if (Array.isArray(result?.bookings)) {
+      return result.bookings;
+    }
+    return [];
   } catch (error) {
     console.error('Error fetching bookings by tour ID:', error);
     throw error;
@@ -493,6 +511,15 @@ export const getTourCompletionStatus = async (bookingId) => {
       
       if (response.status === 401) {
         throw new Error('Unauthenticated');
+      }
+
+      if (response.status === 400 || response.status === 404) {
+        console.warn('Tour completion status not available yet:', {
+          bookingId,
+          status: response.status,
+          message,
+        });
+        return false;
       }
       
       throw new Error(message);

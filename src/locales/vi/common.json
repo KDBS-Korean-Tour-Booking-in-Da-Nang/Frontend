@@ -849,19 +849,22 @@
         "duration": "Số ngày",
         "nights": "Số đêm",
         "maxCapacity": "Số tour tối đa",
-        "bookingDeadline": "Hạn chót đặt chỗ"
+        "tourDeadline": "Số ngày báo trước tối thiểu",
+        "tourExpirationDate": "Ngày khóa đặt tour"
       },
       "placeholders": {
         "tourName": "Ví dụ: Tour Đà Nẵng - Hội An 3N2Đ, Tour Hàn Quốc 5N4Đ",
         "duration": "Ví dụ: 3",
         "nights": "Ví dụ: 2",
         "maxCapacity": "Ví dụ: 30",
-        "bookingDeadline": "Chọn ngày giờ hạn chót đặt chỗ"
+        "tourDeadline": "Ví dụ: 7",
+        "tourExpirationDate": "Chọn ngày khóa đặt tour"
       },
       "help": {
         "departurePoint": "Tất cả tour đều khởi hành từ Đà Nẵng",
         "vehicle": "Phương tiện mặc định: Xe Du Lịch",
-        "bookingDeadline": "Thời gian hạn chót để khách hàng đặt tour"
+        "tourDeadline": "Khách phải đặt tour trước ít nhất số ngày này so với ngày khởi hành",
+        "tourExpirationDate": "Tour sẽ ngừng nhận đặt sau ngày này"
       },
       "hints": {
         "nightsSuggestion": "Gợi ý: {{suggest}} đêm (cho {{days}} ngày).",
@@ -879,7 +882,8 @@
         "days": "ngày",
         "nights": "đêm",
         "maxCapacity": "Số tour tối đa:",
-        "bookingDeadline": "Hạn đặt chỗ:",
+        "tourDeadline": "Thời gian báo trước tối thiểu:",
+        "tourExpirationDate": "Khóa đặt tour vào:",
         "notEntered": "Chưa nhập",
         "notSelected": "Chưa chọn",
         "guests": "khách",
@@ -1567,6 +1571,8 @@
       "errors": {
         "dateRequired": "Vui lòng chọn ngày khởi hành",
         "dateInPast": "Ngày khởi hành không được ở quá khứ",
+        "dateBeforeDeadline": "Ngày khởi hành phải cách hôm nay ít nhất {{days}} ngày",
+        "dateAfterExpiration": "Ngày khởi hành phải trước hoặc bằng ngày {{date}}",
         "dateOverOneMonth": "Ngày khởi hành phải trong vòng 1 tháng",
         "fullNameRequired": "Họ tên là bắt buộc",
         "fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",

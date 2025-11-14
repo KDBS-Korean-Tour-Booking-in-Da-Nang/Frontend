@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../contexts/ToastContext';
 import { DeleteConfirmModal } from '../../../../../components/modals';
+import { changeBookingStatus } from '../../../../../services/bookingAPI';
 import styles from './Step1PersonalInfo.module.css';
 
 const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, isReadOnly = false, onStepCompleted }) => {

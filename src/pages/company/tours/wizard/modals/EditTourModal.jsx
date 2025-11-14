@@ -68,6 +68,20 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const preventInvalidNumberKeys = (e) => {
     if (['e','E','+','-','.'].includes(e.key)) e.preventDefault();
   };
+
+  const MAX_LEAD_DAYS = 365;
+
+  const deriveLeadDaysFromDate = (isoDate) => {
+    if (!isoDate) return null;
+    const parsed = new Date(`${isoDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+    const utcParsed = Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    const diff = Math.round((utcParsed - utcToday) / (1000 * 60 * 60 * 24));
+    return diff >= 0 ? diff : null;
+  };
   const nowLocalDateTime = () => {
     const now = new Date();
     now.setSeconds(0,0);
@@ -188,6 +202,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     tourVehicle: '',
     tourType: '',
     amount: '',
+    tourDeadline: '',
+    tourExpirationDate: '',
     adultPrice: '',
     childrenPrice: '',
     babyPrice: '',
@@ -290,6 +306,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourVehicle: tour.tourVehicle || '',
         tourType: tour.tourType || '',
         amount: tour.amount || '',
+        tourDeadline: tour.tourDeadline !== undefined && tour.tourDeadline !== null ? String(tour.tourDeadline) : '',
+        tourExpirationDate: tour.tourExpirationDate || '',
         adultPrice: tour.adultPrice || '',
         childrenPrice: tour.childrenPrice || '',
         babyPrice: tour.babyPrice || '',
@@ -369,9 +387,67 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'tourDeadline') {
+      const digitsOnly = value.replace(/[^0-9]/g, '');
+      if (digitsOnly === '') {
+        setFormData(prev => ({ ...prev, tourDeadline: '' }));
+        return;
+      }
+      let numeric = parseInt(digitsOnly, 10);
+      if (Number.isNaN(numeric)) numeric = 0;
+      numeric = Math.max(0, Math.min(MAX_LEAD_DAYS, numeric));
+      if (formData.tourExpirationDate) {
+        const leadDays = deriveLeadDaysFromDate(formData.tourExpirationDate);
+        if (leadDays !== null && numeric >= leadDays) {
+          const adjusted = Math.max(0, leadDays - 1);
+          if (adjusted !== numeric) {
+            showError({ i18nKey: 'toast.field_invalid' });
+          }
+          numeric = adjusted;
+        }
+      }
+      setFormData(prev => ({
+        ...prev,
+        tourDeadline: String(numeric)
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleExpirationDateChange = (value) => {
+    if (value === '') {
+      setFormData(prev => ({
+        ...prev,
+        tourExpirationDate: ''
+      }));
+      return;
+    }
+    const leadDays = deriveLeadDaysFromDate(value);
+    if (leadDays === null) {
+      showError({ i18nKey: 'toast.field_invalid' });
+      return;
+    }
+    let nextDeadline = formData.tourDeadline;
+    if (nextDeadline !== '') {
+      const deadlineNum = parseInt(nextDeadline, 10);
+      if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
+        const adjusted = Math.max(0, leadDays - 1);
+        if (String(adjusted) !== nextDeadline) {
+          showError({ i18nKey: 'toast.field_invalid' });
+        }
+        nextDeadline = String(adjusted);
+      }
+    }
+    setFormData(prev => ({
+      ...prev,
+      tourExpirationDate: value,
+      tourDeadline: nextDeadline
     }));
   };
 
@@ -470,6 +546,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     if (!isNonEmptyText(formData.tourVehicle)) errors.push('Phương tiện');
     if (!isNonEmptyText(formData.tourType)) errors.push('Loại tour');
     if (!isNonEmptyText(formData.tourSchedule)) errors.push('Tóm tắt lịch trình');
+    if (formData.tourDeadline === '') errors.push('Số ngày báo trước tối thiểu');
+    if (!isNonEmptyText(formData.tourExpirationDate)) errors.push('Ngày khóa đặt tour');
 
     const amount = parseInt(formData.amount);
     const adultPrice = parseFloat(formData.adultPrice);
@@ -530,6 +608,33 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const { days, nights } = parseTourDuration(formData.tourDuration);
       const tourIntDuration = Math.max(days, nights);
 
+      const deadlineValue = formData.tourDeadline === '' ? null : parseInt(formData.tourDeadline, 10);
+      const expirationDateValue = formData.tourExpirationDate || '';
+
+      if (deadlineValue === null || Number.isNaN(deadlineValue) || !expirationDateValue) {
+        showError({ i18nKey: 'toast.field_invalid' });
+        setLoading(false);
+        return;
+      }
+
+      const parsedExpiration = new Date(`${expirationDateValue}T00:00:00`);
+      if (Number.isNaN(parsedExpiration.getTime())) {
+        showError({ i18nKey: 'toast.field_invalid' });
+        setLoading(false);
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const leadDays = Math.round((parsedExpiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (leadDays < 0) {
+        showError({ i18nKey: 'toast.field_invalid' });
+        setLoading(false);
+        return;
+      }
+
+      const normalizedDeadline = Math.max(0, Math.min(deadlineValue, leadDays > 0 ? leadDays - 1 : 0));
+
       // Prepare tour data
       const tourRequest = {
         companyEmail: userEmail,
@@ -540,6 +645,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourDeparturePoint: formData.tourDeparturePoint,
         tourVehicle: formData.tourVehicle,
         tourType: formData.tourType,
+        tourDeadline: normalizedDeadline,
+        tourExpirationDate: expirationDateValue,
         amount: amount,
         adultPrice: adultPrice,
         childrenPrice: childrenPrice,
@@ -725,6 +832,39 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       <option value="religious">{t('common.tourTypes.religious')}</option>
                       <option value="other">{t('common.tourTypes.other')}</option>
                     </select>
+                  </div>
+                </div>
+
+                <div className={styles['form-row']}>
+                  <div className={styles['form-group']}>
+                    <label htmlFor="tourDeadline">{t('tourWizard.step1.fields.tourDeadline')}</label>
+                    <input
+                      type="number"
+                      id="tourDeadline"
+                      name="tourDeadline"
+                      value={formData.tourDeadline}
+                      onChange={handleInputChange}
+                      onKeyDown={preventInvalidNumberKeys}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      min="0"
+                      max={MAX_LEAD_DAYS}
+                      required
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
+                  </div>
+
+                  <div className={styles['form-group']}>
+                    <label htmlFor="tourExpirationDate">{t('tourWizard.step1.fields.tourExpirationDate')}</label>
+                    <input
+                      type="date"
+                      id="tourExpirationDate"
+                      name="tourExpirationDate"
+                      value={formData.tourExpirationDate}
+                      onChange={(e) => handleExpirationDateChange(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.tourExpirationDate')}</small>
                   </div>
                 </div>
 

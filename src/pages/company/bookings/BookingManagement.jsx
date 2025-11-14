@@ -1,10 +1,11 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './BookingManagement.module.css';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
-import { getBookingsByTourId, getBookingTotal } from '../../../services/bookingAPI';
+import { getAllBookings, getBookingsByTourId, getBookingTotal } from '../../../services/bookingAPI';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
@@ -17,12 +18,15 @@ import {
 const BookingManagement = () => {
   const { t } = useTranslation();
   const { showSuccess } = useToast();
+  const { user } = useAuth();
+  const showSuccessRef = useRef(showSuccess);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
+  const [companyId, setCompanyId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
   const [tours, setTours] = useState([]);
   const [toursLoading, setToursLoading] = useState(true);
   const [selectedTourId, setSelectedTourId] = useState(null);
@@ -56,75 +60,149 @@ const BookingManagement = () => {
     }
   };
 
-  // Handle tour selection
-  const handleTourSelect = (tourId) => {
-    setSelectedTourId(tourId);
-    setCurrentPage(1);
-    // Update URL with tourId
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (tourId) {
-      newSearchParams.set('tourId', tourId.toString());
-    } else {
-      newSearchParams.delete('tourId');
-    }
-    setSearchParams(newSearchParams, { replace: true });
-    // Fetch bookings for selected tour
-    fetchBookingsByTour(tourId);
-  };
+  useEffect(() => {
+    showSuccessRef.current = showSuccess;
+  }, [showSuccess]);
 
-  // Fetch bookings when tour is selected
-  const fetchBookingsByTour = useCallback(async (tourId) => {
-    if (!tourId) {
-      setAllBookings([]);
-      setLoading(false);
+  useEffect(() => {
+    if (!user) {
+      setCompanyId(null);
       return;
     }
+
+    const isCompanyUser = user.role === 'COMPANY' || user.role === 'BUSINESS';
+    if (!isCompanyUser) {
+      setCompanyId(null);
+      return;
+    }
+
+    const derivedCompanyId =
+      user.companyId ??
+      user.companyID ??
+      user.company?.companyId ??
+      user.company?.id ??
+      user.id ??
+      null;
+
+    setCompanyId(derivedCompanyId ?? null);
+  }, [user]);
+
+  // Handle tour selection
+  const handleTourSelect = (tourId) => {
+    if (tourId === undefined || tourId === null) return;
+    const normalizedId = tourId.toString();
+    const newSearchParams = new URLSearchParams(searchParams);
+
+    setCurrentPage(1);
+
+    if (selectedTourId === normalizedId) {
+      setSelectedTourId(null);
+      newSearchParams.delete('tourId');
+      setSearchParams(newSearchParams, { replace: true });
+      return;
+    }
+
+    setSelectedTourId(normalizedId);
+    newSearchParams.set('tourId', normalizedId);
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  const enrichBookingsWithTotals = useCallback(async (bookings = []) => {
+    return Promise.all(
+      bookings.map(async (booking) => {
+        try {
+          const totalResp = await getBookingTotal(booking.bookingId);
+          return {
+            ...booking,
+            id: booking.bookingId,
+            bookingId: booking.bookingId,
+            totalAmount: totalResp?.totalAmount || 0
+          };
+        } catch (err) {
+          console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
+          return {
+            ...booking,
+            id: booking.bookingId,
+            bookingId: booking.bookingId,
+            totalAmount: 0
+          };
+        }
+      })
+    );
+  }, []);
+
+  const fetchAllBookings = useCallback(async () => {
+    if (!companyId) {
+      setBookingsLoading(false);
+      setAllBookings([]);
+      setBookings([]);
+      setTotalItems(0);
+      setTotalPages(1);
+      return;
+    }
+
     try {
-      setLoading(true);
+      setBookingsLoading(true);
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const token = storage.getItem('token');
       if (!token) {
         setAllBookings([]);
-        setLoading(false);
+        setBookingsLoading(false);
         return;
       }
+
+      const bookings = await getAllBookings(companyId);
+      const bookingsWithTotals = await enrichBookingsWithTotals(bookings);
+      setAllBookings(bookingsWithTotals);
+      setCurrentPage(1);
+    } catch (e) {
+      console.error('Error fetching all bookings:', e);
+      setAllBookings([]);
+      showSuccessRef.current?.('Không thể tải danh sách booking');
+    } finally {
+      setBookingsLoading(false);
+    }
+  }, [companyId, enrichBookingsWithTotals]);
+
+  // Fetch bookings when tour is selected
+  const fetchBookingsByTour = useCallback(async (tourId) => {
+    if (!tourId) {
+      return;
+    }
+    if (!companyId) {
+      setAllBookings([]);
+      setBookings([]);
+      setBookingsLoading(false);
+      return;
+    }
+    try {
+      setBookingsLoading(true);
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      if (!token) {
+        setAllBookings([]);
+        setBookingsLoading(false);
+        return;
+      }
+      const parsedId = typeof tourId === 'string' ? parseInt(tourId, 10) : tourId;
+      const normalizedTourId = Number.isNaN(parsedId) ? tourId : parsedId;
+
+      const bookings = await getBookingsByTourId(normalizedTourId);
       
-      const bookings = await getBookingsByTourId(tourId);
-      
-      // Fetch total amounts for all bookings
-      const bookingsWithTotals = await Promise.all(
-        bookings.map(async (booking) => {
-          try {
-            const totalResp = await getBookingTotal(booking.bookingId);
-            return {
-              ...booking,
-              id: booking.bookingId,
-              bookingId: booking.bookingId,
-              totalAmount: totalResp?.totalAmount || 0
-            };
-          } catch (err) {
-            console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
-            return {
-              ...booking,
-              id: booking.bookingId,
-              bookingId: booking.bookingId,
-              totalAmount: 0
-            };
-          }
-        })
-      );
+      const bookingsWithTotals = await enrichBookingsWithTotals(bookings);
       
       setAllBookings(bookingsWithTotals);
       setCurrentPage(1);
     } catch (e) {
       console.error('Error fetching bookings:', e);
       setAllBookings([]);
-      showSuccess?.('Không thể tải danh sách booking');
+      showSuccessRef.current?.('Không thể tải danh sách booking');
     } finally {
-      setLoading(false);
+      setBookingsLoading(false);
     }
-  }, [showSuccess]);
+  }, [companyId, enrichBookingsWithTotals]);
 
   // Sync selectedTourId with URL params after tours are loaded
   useEffect(() => {
@@ -133,26 +211,25 @@ const BookingManagement = () => {
     const tourIdFromUrl = searchParams.get('tourId');
     
     if (tourIdFromUrl) {
-      const tourIdNum = parseInt(tourIdFromUrl, 10);
-      if (!isNaN(tourIdNum)) {
-        // Check if tour exists
-        const tourExists = tours.some(t => t.id === tourIdNum);
-        if (tourExists) {
-          // Only update if different to avoid unnecessary re-renders
-          if (selectedTourId !== tourIdNum) {
-            setSelectedTourId(tourIdNum);
-            // Calculate which page the tour is on
-            const tourIndex = tours.findIndex(t => t.id === tourIdNum);
-            if (tourIndex >= 0) {
-              const page = Math.floor(tourIndex / toursPerPage) + 1;
-              setCurrentTourPage(page);
-            }
+      const tourExists = tours.some(t => t?.id?.toString() === tourIdFromUrl);
+      if (tourExists) {
+        // Only update if different to avoid unnecessary re-renders
+        if (selectedTourId !== tourIdFromUrl) {
+          setSelectedTourId(tourIdFromUrl);
+          // Calculate which page the tour is on
+          const tourIndex = tours.findIndex(t => t?.id?.toString() === tourIdFromUrl);
+          if (tourIndex >= 0) {
+            const page = Math.floor(tourIndex / toursPerPage) + 1;
+            setCurrentTourPage(page);
           }
-        } else {
-          // Tour not found, clear URL param (but don't update selectedTourId here to avoid loop)
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.delete('tourId');
-          setSearchParams(newSearchParams, { replace: true });
+        }
+      } else {
+        // Tour not found, clear URL param (but don't update selectedTourId here to avoid loop)
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('tourId');
+        setSearchParams(newSearchParams, { replace: true });
+        if (selectedTourId !== null) {
+          setSelectedTourId(null);
         }
       }
     } else {
@@ -165,13 +242,14 @@ const BookingManagement = () => {
 
   // Fetch bookings when selectedTourId changes
   useEffect(() => {
+    if (!companyId) return;
+
     if (selectedTourId) {
       fetchBookingsByTour(selectedTourId);
     } else {
-      setAllBookings([]);
-      setLoading(false);
+      fetchAllBookings();
     }
-  }, [selectedTourId, fetchBookingsByTour]);
+  }, [companyId, selectedTourId, fetchAllBookings, fetchBookingsByTour]);
 
   // Load company tours first
   const fetchCompanyTours = useCallback(async () => {
@@ -304,14 +382,6 @@ const BookingManagement = () => {
 
   // Optional stats (unused in current UI)
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-      </div>
-    );
-  }
-
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
     if (tourImgPath.startsWith('http')) return tourImgPath;
@@ -341,39 +411,44 @@ const BookingManagement = () => {
           <>
             {/* Tour Cards - Single Row */}
             <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
-              {paginatedTours.map((tour) => (
-                <button
-                  key={tour.id}
-                  className={`flex-shrink-0 text-left border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow ${
-                    selectedTourId === tour.id ? 'border-red-600 border-2' : 'border-gray-200'
-                  }`}
-                  style={{ 
-                    width: '220px', 
-                    minWidth: '220px',
-                    boxShadow: selectedTourId === tour.id ? '0 4px 12px rgba(220, 38, 38, 0.15)' : undefined
-                  }}
-                  onClick={() => handleTourSelect(tour.id)}
-                >
-                  {/* Fixed image height for uniform cards */}
-                  <div style={{ height: 160, background: '#f3f4f6' }}>
-                    {tour.tourImgPath ? (
-                      <img
-                        src={getImageSrc(tour.tourImgPath)}
-                        alt={tour.tourName}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => { e.currentTarget.src = '/default-Tour.jpg'; }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">🏞️</div>
-                    )}
-                  </div>
-                  {/* Fixed content height so cards align */}
-                  <div className="p-3 flex flex-col justify-between" style={{ height: 112 }}>
-                    <div className="font-semibold leading-snug line-clamp-2" title={tour.tourName || ''}>{tour.tourName}</div>
-                    <div className="text-sm text-gray-500 mt-2">Mã tour: {tour.id}</div>
-                  </div>
-                </button>
-              ))}
+              {paginatedTours.map((tour) => {
+                const normalizedTourId = tour?.id != null ? tour.id.toString() : '';
+                const isSelected = selectedTourId === normalizedTourId;
+
+                return (
+                  <button
+                    key={tour.id}
+                    className={`flex-shrink-0 text-left border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow hover:border-green-500 ${
+                      isSelected ? 'border-green-600 border-2' : 'border-gray-200'
+                    }`}
+                    style={{ 
+                      width: '220px', 
+                      minWidth: '220px',
+                      boxShadow: isSelected ? '0 4px 12px rgba(34, 197, 94, 0.2)' : undefined
+                    }}
+                    onClick={() => handleTourSelect(tour.id)}
+                  >
+                    {/* Fixed image height for uniform cards */}
+                    <div style={{ height: 160, background: '#f3f4f6' }}>
+                      {tour.tourImgPath ? (
+                        <img
+                          src={getImageSrc(tour.tourImgPath)}
+                          alt={tour.tourName}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { e.currentTarget.src = '/default-Tour.jpg'; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">🏞️</div>
+                      )}
+                    </div>
+                    {/* Fixed content height so cards align */}
+                    <div className="p-3 flex flex-col justify-between" style={{ height: 112 }}>
+                      <div className="font-semibold leading-snug line-clamp-2" title={tour.tourName || ''}>{tour.tourName}</div>
+                      <div className="text-sm text-gray-500 mt-2">Mã tour: {tour.id}</div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Tour Pagination */}

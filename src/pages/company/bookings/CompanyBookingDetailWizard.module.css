@@ -128,11 +128,36 @@
   font-family: inherit;
 }
 
+.progress-step.hoverable {
+  cursor: pointer;
+}
+
+.progress-step.hoverable:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.15);
+}
+
+.progress-step.hoverable:hover .step-number {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
 .progress-step.active {
   background-color: #eff6ff;
   border-color: #3b82f6;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.progress-step.active:hover {
+  border-color: #2563eb;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
+}
+
+.progress-step.active:hover .step-number {
+  background-color: #2563eb;
 }
 
 .progress-step.completed {
@@ -150,6 +175,11 @@
 
 .progress-step:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-step.disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -176,11 +206,6 @@
 .progress-step.completed .step-number {
   background-color: #10b981;
   color: white;
-}
-
-.progress-step.completed .step-number::after {
-  content: '✓';
-  font-size: 16px;
 }
 
 .step-info {

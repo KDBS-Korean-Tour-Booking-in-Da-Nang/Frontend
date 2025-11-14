@@ -9,15 +9,25 @@ export const useStepValidation = (tourData) => {
   // Step validation logic
   const stepValidations = useMemo(() => ({
     step1: {
-      isValid: !!(tourData.tourName && tourData.departurePoint && 
-                 tourData.duration && tourData.nights && tourData.tourType && tourData.maxCapacity),
+      isValid: !!(
+        tourData.tourName &&
+        tourData.departurePoint &&
+        tourData.duration &&
+        tourData.nights &&
+        tourData.tourType &&
+        tourData.maxCapacity &&
+        tourData.tourDeadline !== '' &&
+        tourData.tourExpirationDate
+      ),
       missingFields: [
         !tourData.tourName && 'tourWizard.step1.fields.tourName',
         !tourData.departurePoint && 'tourWizard.step1.fields.departurePoint',
         !tourData.duration && 'tourWizard.step1.fields.duration',
         !tourData.nights && 'tourWizard.step1.fields.nights',
         !tourData.tourType && 'tourWizard.step1.fields.tourType',
-        !tourData.maxCapacity && 'tourWizard.step1.fields.maxCapacity'
+        !tourData.maxCapacity && 'tourWizard.step1.fields.maxCapacity',
+        (tourData.tourDeadline === '' || tourData.tourDeadline === undefined || tourData.tourDeadline === null) && 'tourWizard.step1.fields.tourDeadline',
+        !tourData.tourExpirationDate && 'tourWizard.step1.fields.tourExpirationDate'
       ].filter(Boolean)
     },
     step2: {

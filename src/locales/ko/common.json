@@ -847,19 +847,22 @@
                 "duration": "일수",
                 "nights": "박수",
                 "maxCapacity": "최대 투어",
-                "bookingDeadline": "예약 마감일"
+                "tourDeadline": "최소 사전 예약 일수",
+                "tourExpirationDate": "예약 마감일"
             },
 			"placeholders": {
 				"tourName": "예: 다낭 - 호이안 3박2일 투어, 한국 5박4일 투어",
 				"duration": "예: 3",
 				"nights": "예: 2",
-				"maxCapacity": "예: 30",
-				"bookingDeadline": "예약 마감일시 선택"
+                "maxCapacity": "예: 30",
+                "tourDeadline": "예: 7",
+                "tourExpirationDate": "예약 마감일 선택"
 			},
 			"help": {
 				"departurePoint": "모든 투어는 다낭에서 출발합니다",
-				"vehicle": "기본 교통수단: 관광버스",
-				"bookingDeadline": "고객이 투어를 예약할 수 있는 마감 시간"
+                "vehicle": "기본 교통수단: 관광버스",
+                "tourDeadline": "출발일까지 최소 이 일수 이상 남아야 예약 가능합니다",
+                "tourExpirationDate": "이 날짜 이후로는 예약을 받을 수 없습니다"
 			},
 			"hints": {
 				"nightsSuggestion": "추천: {{days}}일 일정에 {{suggest}}박.",
@@ -874,10 +877,11 @@
 				"duration": "기간:",
 				"tourIntDuration": "투어 기간:",
 				"tourIntDurationValue": "{{days}}일",
-				"days": "일",
-				"nights": "박",
-				"maxCapacity": "최대 투어:",
-				"bookingDeadline": "예약 마감일:",
+                "days": "일",
+                "nights": "박",
+                "maxCapacity": "최대 투어:",
+                "tourDeadline": "최소 사전 예약:",
+                "tourExpirationDate": "예약 마감일:",
 				"notEntered": "입력 안됨",
 				"notSelected": "선택 안됨",
 				"guests": "명",
@@ -1549,6 +1553,8 @@
 			"errors": {
 				"dateRequired": "출발일을 선택해주세요",
 				"dateInPast": "출발일은 과거일 수 없습니다",
+				"dateBeforeDeadline": "출발일은 오늘 기준 최소 {{days}}일 이후여야 합니다",
+				"dateAfterExpiration": "출발일은 {{date}} 이전 또는 당일이어야 합니다",
 				"dateOverOneMonth": "출발일은 1개월 이내여야 합니다",
 				"fullNameRequired": "성명은 필수입니다",
 				"fullNameInvalid": "성명은 문자, 공백, 하이픈 및 아포스트로피만 포함할 수 있습니다",

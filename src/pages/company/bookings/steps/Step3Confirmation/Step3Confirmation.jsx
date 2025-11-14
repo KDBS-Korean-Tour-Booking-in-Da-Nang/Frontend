@@ -54,32 +54,43 @@ const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish,
   }, [booking]);
 
   // Check tour completion status on mount and refresh periodically
-  useEffect(() => {
-    const checkCompletionStatus = async () => {
-      if (!booking?.bookingId) return;
-      
-      try {
-        setCheckingStatus(true);
-        const isCompleted = await getTourCompletionStatus(booking.bookingId);
+useEffect(() => {
+  if (!booking?.bookingId) return;
+
+  if (booking.bookingStatus !== 'BOOKING_SUCCESS') {
+    setTourCompleted(false);
+    setCheckingStatus(false);
+    return;
+  }
+
+  let isMounted = true;
+
+  const checkCompletionStatus = async () => {
+    if (!isMounted) return;
+
+    try {
+      setCheckingStatus(true);
+      const isCompleted = await getTourCompletionStatus(booking.bookingId);
+      if (isMounted) {
         setTourCompleted(isCompleted);
-        
-        // Refresh booking data to get updated confirmation status
-        // The backend getTourCompletionStatus may auto-confirm if 3 days have passed
-        // So we should refresh booking data to see the updated status
-      } catch (error) {
-        console.error('Error checking tour completion status:', error);
-        // Don't show error to user, just log it
-      } finally {
+      }
+    } catch (error) {
+      console.warn('Error checking tour completion status:', error);
+    } finally {
+      if (isMounted) {
         setCheckingStatus(false);
       }
-    };
+    }
+  };
 
-    checkCompletionStatus();
-    // Refresh status every 30 seconds to catch auto-confirmation
-    const interval = setInterval(checkCompletionStatus, 30000);
-    
-    return () => clearInterval(interval);
-  }, [booking?.bookingId]);
+  checkCompletionStatus();
+  const interval = setInterval(checkCompletionStatus, 30000);
+  
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+  };
+}, [booking?.bookingId, booking?.bookingStatus]);
 
   // Handle company confirm tour completion
   const handleConfirmCompletion = async () => {

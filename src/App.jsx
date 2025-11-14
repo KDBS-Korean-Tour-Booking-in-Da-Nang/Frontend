@@ -7,7 +7,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { ConditionalNavbar, ScrollToTopButton } from './components';
+import { ConditionalNavbar } from './components';
 import Footer from './components/Footer/Footer';
 import { useAuth } from './contexts/AuthContext';
 import Homepage from './pages/home/homepage/homepage';
@@ -167,7 +167,6 @@ function AppContent() {
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
-      {!isStaffAdminPage && <ScrollToTopButton />}
     </div>
   );
 }

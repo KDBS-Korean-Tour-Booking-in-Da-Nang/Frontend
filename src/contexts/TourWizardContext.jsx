@@ -11,6 +11,8 @@ export const TourWizardProvider = ({ children }) => {
     nights: '',
     tourType: '',
     maxCapacity: '',
+    tourDeadline: '',
+    tourExpirationDate: '',
     
     // Step 2: Itinerary
     itinerary: [],
@@ -39,6 +41,8 @@ export const TourWizardProvider = ({ children }) => {
       nights: '',
       tourType: '',
       maxCapacity: '',
+      tourDeadline: '',
+      tourExpirationDate: '',
       itinerary: [],
       tourSchedule: '',
       mainSectionTitle: 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { getBookingById, getGuestsByBookingId, getTourCompletionStatus, changeBookingStatus } from '../../../services/bookingAPI';
+import { getBookingById, getGuestsByBookingId, getTourCompletionStatus, changeBookingStatus, changeBookingGuestInsuranceStatus } from '../../../services/bookingAPI';
 import { useToast } from '../../../contexts/ToastContext';
 import { DeleteConfirmModal } from '../../../components/modals';
 import Step1PersonalInfo from './steps/Step1PersonalInfo/Step1PersonalInfo';
@@ -33,6 +33,7 @@ const CompanyBookingDetailWizard = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [completedSteps, setCompletedSteps] = useState(new Set()); // Track completed steps
   const [isReadOnly, setIsReadOnly] = useState(false); // Read-only mode for completed bookings
+  const [pendingInsuranceUpdates, setPendingInsuranceUpdates] = useState([]);
 
   // Load wizard progress from localStorage
   const loadWizardProgress = (bookingId) => {
@@ -88,6 +89,7 @@ const CompanyBookingDetailWizard = () => {
         
         setBooking(bookingData);
         setGuests(guestsData);
+        setPendingInsuranceUpdates([]);
         
         // Check if booking is completed (read-only mode)
         if (bookingData.bookingStatus === 'BOOKING_SUCCESS') {
@@ -172,6 +174,10 @@ const CompanyBookingDetailWizard = () => {
     setGuests(updatedGuests);
   };
 
+  const handlePendingInsuranceUpdates = useCallback((updates) => {
+    setPendingInsuranceUpdates(updates || []);
+  }, []);
+
   const handleNext = () => {
     if (currentStep < 3 && !isReadOnly) {
       const nextStep = currentStep + 1;
@@ -181,13 +187,26 @@ const CompanyBookingDetailWizard = () => {
   };
 
   const handleBack = () => {
-    // Don't allow going back to completed steps
-    if (currentStep > 1 && !completedSteps.has(currentStep - 1) && !isReadOnly) {
-      const prevStep = currentStep - 1;
-      setCurrentStep(prevStep);
-      // Save progress when going back
-      saveWizardProgress(bookingId, prevStep, completedSteps);
+    if (isReadOnly || currentStep === 1) {
+      return;
     }
+
+    const prevStep = currentStep - 1;
+
+    if (currentStep === 3 && prevStep === 2) {
+      setPendingInsuranceUpdates([]);
+    }
+  if (currentStep === 2 && prevStep === 1) {
+    setPendingInsuranceUpdates([]);
+  }
+
+    setCurrentStep(prevStep);
+
+  setCompletedSteps((prev) => {
+    const newCompleted = new Set(prev);
+    saveWizardProgress(bookingId, prevStep, newCompleted);
+    return newCompleted;
+  });
   };
 
   // Mark step as completed - exposed to child components via callback
@@ -206,15 +225,12 @@ const CompanyBookingDetailWizard = () => {
 
   const isStepCompleted = (step) => {
     if (!booking) return false;
-    // Check if step is in completedSteps set
-    if (completedSteps.has(step)) return true;
-    
-    // Fallback logic based on booking status
+
     if (booking.bookingStatus === 'BOOKING_SUCCESS') {
-      return step <= 3; // All steps completed
+      return step <= 3;
     }
-    
-    return false;
+
+    return completedSteps.has(step);
   };
 
   const isStepAccessible = (step) => {
@@ -241,39 +257,23 @@ const CompanyBookingDetailWizard = () => {
 
   // Check if step can be clicked (for navigation)
   const canClickStep = (stepId) => {
-    // In read-only mode, only step 3 can be clicked (and it's already displayed)
     if (isReadOnly) {
-      return false; // Don't allow clicking any step in read-only mode
+      return false;
     }
     
-    // Can click on current step
     if (stepId === currentStep) return true;
+
+    if (stepId < currentStep) return true;
     
-    // Cannot click on completed steps (can't go back)
-    if (completedSteps.has(stepId)) return false;
-    
-    // Can click on next step if current step is completed
-    if (stepId > currentStep) {
-      return stepId === currentStep + 1 && completedSteps.has(currentStep);
-    }
-    
-    // Can click on previous step only if it's not completed
-    if (stepId < currentStep) {
-      return !completedSteps.has(stepId);
+    if (stepId === currentStep + 1) {
+      return completedSteps.has(currentStep);
     }
     
     return false;
   };
 
   const canGoBack = () => {
-    // In read-only mode, can't go back (but can navigate back to list)
-    if (isReadOnly) return false;
-    
-    // Can't go back if current step is completed or is step 1
-    if (currentStep === 1) return false;
-    if (completedSteps.has(currentStep - 1)) return false;
-    
-    return true;
+    return !isReadOnly && currentStep > 1;
   };
 
   // Navigate back function that preserves tourId
@@ -305,12 +305,21 @@ const CompanyBookingDetailWizard = () => {
     try {
       setConfirmingBooking(true);
       setShowConfirmModal(false);
+
+      if (pendingInsuranceUpdates.length > 0) {
+        await Promise.all(
+          pendingInsuranceUpdates.map(change =>
+            changeBookingGuestInsuranceStatus(change.guestId, change.status)
+          )
+        );
+      }
       
       // Change booking status to BOOKING_SUCCESS - this is the final confirmation
       const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_SUCCESS');
       
       // Update booking state
       setBooking(updatedBooking);
+      setPendingInsuranceUpdates([]);
       
       // Mark all steps as completed and set read-only mode
       setCompletedSteps(new Set([1, 2, 3]));
@@ -319,7 +328,7 @@ const CompanyBookingDetailWizard = () => {
       // Clear progress since booking is completed
       clearWizardProgress(bookingId);
       
-      showSuccess('Đã xác nhận booking thành công! Booking đã được lưu vào database.');
+      showSuccess('Đã xác nhận booking thành công! Booking và bảo hiểm đã được lưu vào database.');
       
       // Navigate back after a short delay to show success message
       setTimeout(() => {
@@ -331,7 +340,7 @@ const CompanyBookingDetailWizard = () => {
     } finally {
       setConfirmingBooking(false);
     }
-  }, [booking, bookingId, navigateBack, showSuccess, showError]);
+  }, [booking, bookingId, navigateBack, pendingInsuranceUpdates, showSuccess, showError]);
 
   const renderCurrentStep = () => {
     if (!booking || !guests) return null;
@@ -361,6 +370,7 @@ const CompanyBookingDetailWizard = () => {
             isReadOnly={isReadOnly}
             isStep1Completed={completedSteps.has(1)}
             onStepCompleted={markStepCompleted}
+            onInsuranceUpdatesPending={handlePendingInsuranceUpdates}
           />
         );
       case 3:
@@ -391,15 +401,28 @@ const CompanyBookingDetailWizard = () => {
   }
 
   const handleStepClick = (stepId) => {
-    // In read-only mode, don't allow clicking any step (only step 3 is displayed)
-    if (isReadOnly) {
+    if (isReadOnly || stepId === currentStep) {
       return;
     }
     
-    // In edit mode, use canClickStep to determine if step can be clicked
+    if (stepId < currentStep) {
+      if (stepId === 2) {
+        setPendingInsuranceUpdates([]);
+      }
+    if (stepId === 1) {
+      setPendingInsuranceUpdates([]);
+    }
+      setCurrentStep(stepId);
+      setCompletedSteps((prev) => {
+        const newCompleted = new Set(prev);
+        saveWizardProgress(bookingId, stepId, newCompleted);
+        return newCompleted;
+      });
+      return;
+    }
+    
     if (canClickStep(stepId)) {
       handleStepChange(stepId);
-      // Save progress when navigating
       saveWizardProgress(bookingId, stepId, completedSteps);
     }
   };
@@ -430,6 +453,13 @@ const CompanyBookingDetailWizard = () => {
       </div>
     );
   }
+
+  const canShowNavigationButtons = !isReadOnly && (
+    (currentStep === 1 && completedSteps.has(1)) ||
+    (currentStep === 2 && completedSteps.has(2))
+  );
+
+  const showWizardNavigation = (!isReadOnly && currentStep <= 3) || (currentStep === 3 && !isReadOnly);
 
   return (
     <div className={styles['booking-wizard']}>
@@ -475,24 +505,20 @@ const CompanyBookingDetailWizard = () => {
           {STEPS.map((step) => {
             const isActive = currentStep === step.id;
             const isCompleted = isStepCompleted(step.id);
-            const isAccessible = isStepAccessible(step.id);
-            
+            const canClick = isReadOnly ? false : canClickStep(step.id);
+
             let stepClassName = styles['progress-step'];
             if (isActive) {
               stepClassName += ` ${styles['active']}`;
             } else if (isCompleted) {
               stepClassName += ` ${styles['completed']}`;
             }
-            // In read-only mode, disable all steps except step 3
-            if (isReadOnly && step.id !== 3) {
+
+            if (!canClick) {
               stepClassName += ` ${styles['disabled']}`;
-            } else if (!isAccessible && !isReadOnly) {
-              stepClassName += ` ${styles['disabled']}`;
+            } else {
+              stepClassName += ` ${styles['hoverable']}`;
             }
-            
-            // In read-only mode, only step 3 is clickable (but it's already displayed, so disable all)
-            // In edit mode, disable clicking on completed steps
-            const canClick = isReadOnly ? false : canClickStep(step.id);
             
             return (
               <button
@@ -514,7 +540,7 @@ const CompanyBookingDetailWizard = () => {
                 }
               >
                 <div className={styles['step-number']}>
-                  {isCompleted ? '✓' : step.id}
+                  {isCompleted && !isActive ? '✓' : step.id}
                 </div>
                 <div className={styles['step-info']}>
                   <div className={styles['step-title']}>{step.title}</div>
@@ -533,30 +559,43 @@ const CompanyBookingDetailWizard = () => {
 
       {/* Navigation Buttons */}
       <div className={styles['step-navigation']}>
-        <button 
-          type="button" 
-          className={styles['btn-secondary']} 
-          onClick={() => {
-            if (currentStep === 1 || !canGoBack()) {
-              navigateBack();
-            } else {
-              handleBack();
-            }
-          }}
-        >
-          {currentStep === 1 || !canGoBack() ? 'Quay lại' : 'Trước'}
-        </button>
-        
-        {currentStep === 3 && !isReadOnly ? (
-          <button 
-            type="button" 
-            className={styles['btn-success']} 
-            onClick={handleFinish}
-            disabled={confirmingBooking}
-          >
-            {confirmingBooking ? 'Đang xử lý...' : 'Hoàn thành'}
-          </button>
-        ) : isReadOnly ? (
+        {showWizardNavigation ? (
+          <>
+            <button 
+              type="button" 
+              className={styles['btn-secondary']} 
+              onClick={() => {
+                if (canGoBack()) {
+                  handleBack();
+                } else {
+                  navigateBack();
+                }
+              }}
+              disabled={currentStep === 1}
+            >
+              Trước
+            </button>
+            {currentStep < 3 ? (
+              <button 
+                type="button" 
+                className={styles['btn-primary']} 
+                onClick={handleNext}
+                disabled={currentStep >= 3}
+              >
+                Tiếp
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                className={styles['btn-success']} 
+                onClick={handleFinish}
+                disabled={confirmingBooking}
+              >
+                {confirmingBooking ? 'Đang xử lý...' : 'Hoàn thành'}
+              </button>
+            )}
+          </>
+        ) : (
           <button 
             type="button" 
             className={styles['btn-success']} 
@@ -564,7 +603,7 @@ const CompanyBookingDetailWizard = () => {
           >
             Đóng
           </button>
-        ) : null}
+        )}
       </div>
 
       {/* Booking Confirmation Modal */}

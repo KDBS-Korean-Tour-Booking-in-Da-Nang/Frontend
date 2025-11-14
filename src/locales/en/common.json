@@ -847,19 +847,22 @@
                 "duration": "Duration (Days)",
                 "nights": "Nights",
                 "maxCapacity": "Max Tours",
-                "bookingDeadline": "Booking Deadline"
+                "tourDeadline": "Minimum Advance Days",
+                "tourExpirationDate": "Booking Cut-off Date"
             },
 			"placeholders": {
 				"tourName": "Example: Da Nang - Hoi An 3D2N Tour, Korea 5D4N Tour",
 				"duration": "Example: 3",
 				"nights": "Example: 2",
-				"maxCapacity": "Example: 30",
-				"bookingDeadline": "Select booking deadline date and time"
+                "maxCapacity": "Example: 30",
+                "tourDeadline": "Example: 7",
+                "tourExpirationDate": "Select booking cut-off date"
 			},
 			"help": {
 				"departurePoint": "All tours depart from Da Nang",
-				"vehicle": "Default vehicle: Tourist Bus",
-				"bookingDeadline": "Deadline for customers to book the tour"
+                "vehicle": "Default vehicle: Tourist Bus",
+                "tourDeadline": "Guests must book at least this many days before departure",
+                "tourExpirationDate": "Bookings close after this date"
 			},
 			"hints": {
 				"nightsSuggestion": "Suggestion: {{suggest}} night(s) (for {{days}} day(s)).",
@@ -877,7 +880,8 @@
 				"days": "day(s)",
 				"nights": "night(s)",
 				"maxCapacity": "Max Tours:",
-				"bookingDeadline": "Booking Deadline:",
+                "tourDeadline": "Minimum Advance:",
+                "tourExpirationDate": "Booking Closes:",
 				"notEntered": "Not entered",
 				"notSelected": "Not selected",
 				"guests": "guests",
@@ -1550,6 +1554,8 @@
 			"errors": {
 				"dateRequired": "Please select a departure date",
 				"dateInPast": "Departure date cannot be in the past",
+				"dateBeforeDeadline": "Departure date must be at least {{days}} day(s) from today",
+				"dateAfterExpiration": "Departure date must be on or before {{date}}",
 				"dateOverOneMonth": "Departure date must be within 1 month",
 				"fullNameRequired": "Full name is required",
 				"fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",

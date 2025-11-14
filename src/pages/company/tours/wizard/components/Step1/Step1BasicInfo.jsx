@@ -5,6 +5,7 @@ import { useTourWizardContext } from '../../../../../../contexts/TourWizardConte
 import styles from './Step1BasicInfo.module.css';
 
 const DEFAULT_NIGHTS_FOR_ONE_DAY = 0; // đổi thành 1 nếu muốn mặc định là 1 đêm
+const MAX_LEAD_DAYS = 365;
 
 const Step1BasicInfo = () => {
   const { t } = useTranslation();
@@ -18,7 +19,8 @@ const Step1BasicInfo = () => {
     nights: '',
     tourType: '',
     maxCapacity: '',
-    bookingDeadline: ''
+    tourDeadline: '',
+    tourExpirationDate: ''
   });
 
   // Helpers
@@ -27,13 +29,6 @@ const Step1BasicInfo = () => {
     if (invalidKeys.includes(e.key)) {
       e.preventDefault();
     }
-  };
-
-  const nowLocalDateTime = () => {
-    const now = new Date();
-    now.setSeconds(0, 0);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
   };
 
   // Nights rules:
@@ -80,6 +75,17 @@ const Step1BasicInfo = () => {
     return variants.includes(value) ? t('common.vehicles.tourBus') : value;
   };
 
+const calculateLeadDays = (isoDate) => {
+  if (!isoDate) return null;
+  const parsed = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffTime = parsed.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
   // Update form data when tourData changes
   useEffect(() => {
     setFormData({
@@ -90,7 +96,8 @@ const Step1BasicInfo = () => {
       nights: tourData.nights || '',
       tourType: tourData.tourType || '',
       maxCapacity: tourData.maxCapacity || '',
-      bookingDeadline: tourData.bookingDeadline || ''
+      tourDeadline: tourData.tourDeadline !== undefined && tourData.tourDeadline !== null ? String(tourData.tourDeadline) : '',
+      tourExpirationDate: tourData.tourExpirationDate || ''
     });
   }, [tourData]);
 
@@ -136,7 +143,7 @@ const Step1BasicInfo = () => {
     let nextValue = value;
 
     // Normalize numeric fields
-    if (['duration', 'nights', 'maxCapacity'].includes(name)) {
+  if (['duration', 'nights', 'maxCapacity', 'tourDeadline'].includes(name)) {
       // Strip non-digits
       nextValue = String(nextValue).replace(/[^0-9]/g, '');
       if (nextValue === '') {
@@ -222,6 +229,24 @@ const Step1BasicInfo = () => {
             showError('toast.max_capacity_range');
           }
           nextValue = clamped;
+        } else if (name === 'tourDeadline') {
+          const clamped = Math.max(0, Math.min(MAX_LEAD_DAYS, num));
+          let adjustedValue = clamped;
+          if (formData.tourExpirationDate) {
+            const leadDays = calculateLeadDays(formData.tourExpirationDate);
+            if (leadDays !== null && adjustedValue >= leadDays) {
+              adjustedValue = Math.max(0, leadDays - 1);
+              showError({ i18nKey: 'toast.field_invalid' });
+            }
+          }
+          nextValue = String(adjustedValue);
+          const updated = {
+            ...formData,
+            [name]: nextValue
+          };
+          setFormData(updated);
+          updateTourData(updated);
+          return;
         }
       }
     }
@@ -233,6 +258,38 @@ const Step1BasicInfo = () => {
     };
     setFormData(newFormData);
     updateTourData(newFormData);
+  };
+
+  const handleExpirationDateChange = (value) => {
+    if (value === '') {
+      const updated = { ...formData, tourExpirationDate: '' };
+      setFormData(updated);
+      updateTourData(updated);
+      return;
+    }
+    const leadDays = calculateLeadDays(value);
+    if (leadDays === null || leadDays < 0) {
+      showError({ i18nKey: 'toast.field_invalid' });
+      return;
+    }
+    let nextDeadline = formData.tourDeadline;
+    if (nextDeadline !== '') {
+      const deadlineNum = parseInt(nextDeadline, 10);
+      if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
+        const adjusted = Math.max(0, leadDays - 1);
+        if (String(adjusted) !== nextDeadline) {
+          showError({ i18nKey: 'toast.field_invalid' });
+        }
+        nextDeadline = String(adjusted);
+      }
+    }
+    const updated = {
+      ...formData,
+      tourExpirationDate: value,
+      tourDeadline: nextDeadline
+    };
+    setFormData(updated);
+    updateTourData(updated);
   };
 
 
@@ -377,23 +434,42 @@ const Step1BasicInfo = () => {
         </div>
 
         <div className={styles['form-group']}>
-          <label htmlFor="bookingDeadline" className={styles['form-label']}>
-            {t('tourWizard.step1.fields.bookingDeadline')}
+          <label htmlFor="tourDeadline" className={styles['form-label']}>
+            {t('tourWizard.step1.fields.tourDeadline')}
+          </label>
+          <input
+            type="number"
+            id="tourDeadline"
+            name="tourDeadline"
+            value={formData.tourDeadline}
+            onChange={handleChange}
+            className={styles['form-input']}
+            placeholder={t('tourWizard.step1.placeholders.tourDeadline')}
+            onKeyDown={preventInvalidNumberKeys}
+            onWheel={(e) => e.currentTarget.blur()}
+            min="0"
+            max={MAX_LEAD_DAYS}
+          />
+          <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
+        </div>
+
+        <div className={styles['form-group']}>
+          <label htmlFor="tourExpirationDate" className={styles['form-label']}>
+            {t('tourWizard.step1.fields.tourExpirationDate')}
           </label>
           <input
             type="date"
-            id="bookingDeadline"
-            name="bookingDeadline"
-            value={formData.bookingDeadline || ''}
-            onChange={handleChange}
+            id="tourExpirationDate"
+            name="tourExpirationDate"
+            value={formData.tourExpirationDate}
+            onChange={(e) => handleExpirationDateChange(e.target.value)}
             className={styles['form-input']}
-            placeholder={t('tourWizard.step1.placeholders.bookingDeadline')}
             min={new Date().toISOString().split('T')[0]}
           />
-          <small className={styles['form-help']}>{t('tourWizard.step1.help.bookingDeadline')}</small>
+          <small className={styles['form-help']}>
+            {t('tourWizard.step1.help.tourExpirationDate')}
+          </small>
         </div>
-
-        
       </div>
 
       <div className={styles['step-summary']}>
@@ -405,10 +481,8 @@ const Step1BasicInfo = () => {
           <p><strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}</p>
           <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}</p>
           <p><strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.tours')}</p>
-          {formData.bookingDeadline && (
-            <p><strong>{t('tourWizard.step1.summary.bookingDeadline')}</strong> {formData.bookingDeadline || t('tourWizard.step1.summary.notEntered')}</p>
-          )}
-          
+          <p><strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}</p>
+          <p><strong>{t('tourWizard.step1.summary.tourExpirationDate')}</strong> {formData.tourExpirationDate || t('tourWizard.step1.summary.notEntered')}</p>
         </div>
       </div>
     </div>

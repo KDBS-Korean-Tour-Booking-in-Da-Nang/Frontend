@@ -42,6 +42,8 @@ const TourWizardContent = () => {
       hasText(tourData.nights) ||
       hasText(tourData.tourType) ||
       hasText(tourData.maxCapacity) ||
+      hasText(tourData.tourDeadline) ||
+      hasText(tourData.tourExpirationDate) ||
       hasList(tourData.itinerary) ||
       hasText(tourData.adultPrice) ||
       hasText(tourData.childrenPrice) ||
@@ -194,6 +196,47 @@ const TourWizardContent = () => {
       const nights = parseInt(tourData.nights) || 0;
       const tourIntDuration = Math.max(days, nights);
 
+      const parseDeadline = (deadlineValue, expirationDate) => {
+        if (deadlineValue === undefined || deadlineValue === null || deadlineValue === '') return null;
+        const parsed = parseInt(deadlineValue, 10);
+        if (Number.isNaN(parsed)) return null;
+        const clamped = Math.max(0, parsed);
+        if (!expirationDate) return clamped;
+        const leadDays = (() => {
+          const parsedDate = new Date(`${expirationDate}T00:00:00`);
+          if (Number.isNaN(parsedDate.getTime())) return null;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const diff = Math.round((parsedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          return diff;
+        })();
+        if (leadDays === null) return clamped;
+        return clamped >= leadDays ? Math.max(0, leadDays - 1) : clamped;
+      };
+
+      const expirationDate = tourData.tourExpirationDate || null;
+      const deadlineDays = parseDeadline(tourData.tourDeadline, expirationDate);
+
+      if (deadlineDays === null || !expirationDate) {
+        showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const leadDaysForValidation = (() => {
+        const parsedDate = new Date(`${expirationDate}T00:00:00`);
+        if (Number.isNaN(parsedDate.getTime())) return null;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return Math.round((parsedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      })();
+
+      if (leadDaysForValidation === null || leadDaysForValidation < 0) {
+        showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Add tour data as JSON - Complete data with all wizard fields
       const tourRequest = {
         companyEmail: userEmail, // Use current user's email
@@ -211,6 +254,8 @@ const TourWizardContent = () => {
         adultPrice: parseFloat(tourData.adultPrice) || 0,
         childrenPrice: parseFloat(tourData.childrenPrice) || 0,
         babyPrice: parseFloat(tourData.babyPrice) || 0,
+        tourDeadline: deadlineDays,
+        tourExpirationDate: expirationDate,
         
         // Additional fields from wizard (bookingDeadline/surcharges removed)
         availableDates: tourData.availableDates || [],

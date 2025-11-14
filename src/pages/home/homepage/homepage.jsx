@@ -12,7 +12,7 @@ import { useToursAPI } from '../../../hooks/useToursAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 
 const Homepage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, getToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +23,36 @@ const Homepage = () => {
   const { tours, loading: toursLoading, error: toursError, fetchTours } = useToursAPI();
   const [pageRatings, setPageRatings] = useState({}); // { tourId: avg }
   const sliderRef = useRef(null);
+
+  const defaultTours = useMemo(() => ([
+    {
+      id: 'default-tour-1',
+      title: t('home.destinations.defaultCards.banaTitle', 'Khám phá Bà Nà Hills'),
+      tourDeparturePoint: t('home.destinations.defaultCards.banaDeparture', 'Đà Nẵng'),
+      price: 1899000,
+      image: '/tour1.jpg',
+      rating: 4.8,
+      isDefault: true
+    },
+    {
+      id: 'default-tour-2',
+      title: t('home.destinations.defaultCards.hoianTitle', 'Dạo bước Hội An cổ kính'),
+      tourDeparturePoint: t('home.destinations.defaultCards.hoianDeparture', 'Hội An'),
+      price: 1599000,
+      image: '/tour2.jpg',
+      rating: 4.7,
+      isDefault: true
+    },
+    {
+      id: 'default-tour-3',
+      title: t('home.destinations.defaultCards.culaoChamTitle', 'Khám phá Cù Lao Chàm'),
+      tourDeparturePoint: t('home.destinations.defaultCards.culaoChamDeparture', 'Quảng Nam'),
+      price: 1399000,
+      image: '/tour3.jpg',
+      rating: 4.6,
+      isDefault: true
+    }
+  ]), [i18n.language, t]);
 
   const vnd = useRef(new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }));
   
@@ -108,9 +138,28 @@ const Homepage = () => {
     return Array.isArray(tours) ? tours : [];
   }, [tours]);
 
+  const showingOnlyDefaultTours = useMemo(() => {
+    return !toursLoading && (toursList.length === 0 || Boolean(toursError));
+  }, [toursError, toursList.length, toursLoading]);
+
+  const displayTours = useMemo(() => {
+    if (showingOnlyDefaultTours) {
+      return defaultTours;
+    }
+
+    const validTours = toursList.filter(Boolean);
+    if (validTours.length >= 3) {
+      return validTours;
+    }
+
+    const neededDefaults = Math.max(0, 3 - validTours.length);
+    return [...validTours, ...defaultTours.slice(0, neededDefaults)];
+  }, [defaultTours, showingOnlyDefaultTours, toursList]);
+  const totalDisplayTours = displayTours.length;
+
   // Apply padding to slick-list after slider initializes
   useEffect(() => {
-    if (toursList.length > 0) {
+    if (totalDisplayTours > 0) {
       const applyStyles = () => {
         const slickList = document.querySelector('.destinations-slider .slick-list');
         if (slickList) {
@@ -128,7 +177,7 @@ const Homepage = () => {
         clearTimeout(timer2);
       };
     }
-  }, [toursList.length]);
+  }, [totalDisplayTours]);
 
   // Slider navigation handlers
   const handlePrevDest = useCallback(() => {
@@ -145,11 +194,11 @@ const Homepage = () => {
 
   // Slider settings
   const sliderSettings = useMemo(() => {
-    const totalTours = toursList.length;
+    const totalTours = totalDisplayTours;
     return {
       infinite: totalTours > 3, // Chỉ infinite khi có nhiều hơn 3 tours
       speed: 300, // Giảm tốc độ để bấm nhanh hơn
-      slidesToShow: Math.min(3, totalTours), // Hiển thị tối đa 3, hoặc số tours nếu ít hơn
+      slidesToShow: Math.min(3, Math.max(totalTours, 1)), // Hiển thị tối đa 3, hoặc số tours nếu ít hơn
       slidesToScroll: 1,
       arrows: false, // We'll use custom arrows
       dots: false,
@@ -162,7 +211,7 @@ const Homepage = () => {
         {
           breakpoint: 1024,
           settings: {
-            slidesToShow: Math.min(2, totalTours),
+            slidesToShow: Math.min(2, Math.max(totalTours, 1)),
             slidesToScroll: 1,
             infinite: totalTours > 2,
           }
@@ -177,7 +226,7 @@ const Homepage = () => {
         }
       ]
     };
-  }, [toursList.length]);
+  }, [totalDisplayTours]);
 
   // Fetch average rating for all tours
   useEffect(() => {
@@ -575,7 +624,7 @@ const Homepage = () => {
               <div className="flex gap-3">
                 <button 
                   onClick={handlePrevDest} 
-                  disabled={toursList.length <= 3} 
+                  disabled={totalDisplayTours <= 3} 
                   className="nav-arrow-btn w-12 h-12 bg-white border-2 border-gray-400 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100 z-10 relative"
                   style={{ zIndex: 10 }}
                 >
@@ -585,7 +634,7 @@ const Homepage = () => {
                 </button>
                 <button 
                   onClick={handleNextDest} 
-                  disabled={toursList.length <= 3} 
+                  disabled={totalDisplayTours <= 3} 
                   className="nav-arrow-btn w-12 h-12 bg-blue-600 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl hover:scale-110 hover:bg-blue-700 transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100 z-10 relative"
                   style={{ zIndex: 10 }}
                 >
@@ -598,60 +647,75 @@ const Homepage = () => {
 
             {/* Destination Carousel with React Slick */}
             <div className="mb-8 max-w-5xl mx-auto relative" style={{ zIndex: 1, overflow: 'visible' }}>
-              {toursList.length > 0 ? (
+              {toursLoading ? (
+                <div className="text-center py-12 text-gray-500">{t('home.destinations.loading', 'Đang tải danh sách tour...')}</div>
+              ) : totalDisplayTours > 0 ? (
                 <Slider ref={sliderRef} {...sliderSettings} className="destinations-slider">
-                  {toursList.map((item) => (
-                    <div key={item.id} className="px-4">
-                      <div
-                        className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem] relative"
-                        style={{ zIndex: 2, willChange: 'transform' }}
-                        onClick={() => {
-                          if (item?.id) {
-                            navigate(`/tour/${item.id}`);
-                          }
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.zIndex = '10';
-                          e.currentTarget.style.position = 'relative';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.zIndex = '2';
-                        }}
-                      >
-                        <div className="relative h-64">
-                          <img
-                            src={item?.image || '/default-Tour.jpg'}
-                            alt={item?.title || 'Tour'}
-                            className="w-full h-full object-cover"
-                            loading="eager"
-                            onError={(e) => {
-                              e.target.src = '/default-Tour.jpg';
-                            }}
-                          />
-                          <div className="absolute top-4 left-4">
-                            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                              {item?.tourDeparturePoint || item?.category || 'Tour'}
-                            </span>
+                  {displayTours.map((item) => {
+                    const ratingValue = item?.id && pageRatings[item.id] != null
+                      ? Number(pageRatings[item.id]).toFixed(1)
+                      : item?.rating != null
+                        ? Number(item.rating).toFixed(1)
+                        : '0.0';
+
+                    return (
+                      <div key={item.id} className="px-4">
+                        <div
+                          className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem] relative"
+                          style={{ zIndex: 2, willChange: 'transform' }}
+                          onClick={() => {
+                            const isDefaultCard = Boolean(item?.isDefault) || String(item?.id || '').startsWith('default-tour-');
+                            if (!isDefaultCard && item?.id) {
+                              navigate(`/tour/${item.id}`);
+                            } else {
+                              navigate('/tour');
+                            }
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.zIndex = '10';
+                            e.currentTarget.style.position = 'relative';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.zIndex = '2';
+                          }}
+                        >
+                          <div className="relative h-64">
+                            <img
+                              src={item?.image || '/default-Tour.jpg'}
+                              alt={item?.title || 'Tour'}
+                              className="w-full h-full object-cover"
+                              loading="eager"
+                              onError={(e) => {
+                                e.target.src = '/default-Tour.jpg';
+                              }}
+                            />
+                            <div className="absolute top-4 left-4">
+                              <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                {item?.tourDeparturePoint || item?.category || 'Tour'}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="p-6">
-                          <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
-                          <div className="flex items-center justify-between">
-                            <span className="text-blue-600 font-semibold text-lg">{vnd.current.format(Number(item?.price || 0))}</span>
-                            <div className="flex items-center gap-1">
-                              <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                              </svg>
-                              <span className="text-gray-700 font-medium text-xl">{item?.id && pageRatings[item.id] != null ? Number(pageRatings[item.id]).toFixed(1) : '0.0'}</span>
+                          <div className="p-6">
+                            <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>
+                            <div className="flex items-center justify-between">
+                              <span className="text-blue-600 font-semibold text-lg">{vnd.current.format(Number(item?.price || 0))}</span>
+                              <div className="flex items-center gap-1">
+                                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                <span className="text-gray-700 font-medium text-xl">{ratingValue}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </Slider>
               ) : (
-                <div className="text-center py-12 text-gray-500">Loading destinations...</div>
+                <div className="text-center py-12 text-gray-500">
+                  {t('home.destinations.empty', 'Hiện chưa có tour khả dụng, vui lòng quay lại sau.')}
+                </div>
               )}
             </div>
 
