@@ -1,16 +1,19 @@
 import { useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import TossWidgetContainer from '../../components/payment/TossWidgetContainer';
 import { useToast } from '../../contexts/ToastContext';
 
 const TossPaymentPage = () => {
-  const { bookingId } = useParams();
+  const [searchParams] = useSearchParams();
+  const bookingId = searchParams.get('id');
   const location = useLocation();
   const navigate = useNavigate();
   const { showError, showInfo } = useToast();
+  const { t } = useTranslation();
 
   const orderResponse = location?.state?.orderResponse || null;
-  const backUrl = location?.state?.backUrl || `/booking/${bookingId}/payment`;
+  const backUrl = location?.state?.backUrl || `/booking/payment?id=${bookingId}`;
 
   const canRender = useMemo(() => {
     if (!orderResponse) return false;
@@ -27,7 +30,7 @@ const TossPaymentPage = () => {
 
   useEffect(() => {
     if (!canRender) {
-      showError('Thiếu dữ liệu khởi tạo cổng thanh toán. Vui lòng khởi tạo lại.');
+      showError(t('payment.tossPayment.toast.missingData'));
       navigate(backUrl, { replace: true });
     }
   }, [canRender, navigate, backUrl, showError]);
@@ -38,12 +41,12 @@ const TossPaymentPage = () => {
 
   const handleError = (error) => {
     const message =
-      error?.message || 'Đã xảy ra lỗi khi khởi tạo cổng thanh toán Toss.';
+      error?.message || t('payment.tossPayment.toast.error');
     showError(message);
   };
 
   const handleReady = () => {
-    showInfo('Cổng thanh toán Toss đã sẵn sàng. Vui lòng hoàn tất giao dịch trong cửa sổ này.');
+    showInfo(t('payment.tossPayment.toast.ready'));
   };
 
   if (!canRender) {
@@ -51,32 +54,41 @@ const TossPaymentPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={handleClose}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          ← Quay lại
-        </button>
-      </div>
+    <div className="min-h-screen bg-white">
+      <div className="bg-white py-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          {/* Container chính với shadow */}
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-lg">
+            {/* Header với background nhẹ */}
+            <div className="border-b border-gray-200 bg-[#D4E8FF] px-8 py-6 rounded-t-2xl">
+              <div className="flex items-center gap-3 mb-2">
+                <svg className="h-6 w-6 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <h1 className="text-2xl font-bold text-gray-900">{t('payment.tossPayment.title')}</h1>
+              </div>
+              <p className="text-sm text-gray-700 ml-9">
+                {t('payment.tossPayment.subtitle')}
+              </p>
+            </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-lg font-semibold text-gray-900 mb-4">Thanh toán qua Toss</h1>
-        <TossWidgetContainer
-          clientKey={orderResponse.clientKey}
-          customerKey={orderResponse.customerKey}
-          amount={orderResponse.amount}
-          orderId={orderResponse.orderId}
-          successUrl={orderResponse.successUrl}
-          failUrl={orderResponse.failUrl}
-          message={orderResponse.message}
-          onClose={handleClose}
-          onCancel={handleClose}
-          onError={handleError}
-          onReady={handleReady}
-        />
+            <div className="px-8 py-8">
+              <TossWidgetContainer
+                clientKey={orderResponse.clientKey}
+                customerKey={orderResponse.customerKey}
+                amount={orderResponse.amount}
+                orderId={orderResponse.orderId}
+                successUrl={orderResponse.successUrl}
+                failUrl={orderResponse.failUrl}
+                message={orderResponse.message}
+                onClose={handleClose}
+                onCancel={handleClose}
+                onError={handleError}
+                onReady={handleReady}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

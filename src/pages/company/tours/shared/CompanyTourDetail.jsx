@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getTourById } from '../../../../utils/companyToursStorage';
 
 export default function CompanyTourDetail() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
   const tour = useMemo(() => getTourById(id), [id]);
 
   if (!tour) {
@@ -24,7 +25,7 @@ export default function CompanyTourDetail() {
         <h1 className="text-2xl font-semibold">{tour.title}</h1>
         <div className="flex gap-2">
           <button onClick={() => navigate('/company/tours')} className="px-3 py-2 bg-gray-100 rounded">Danh sách</button>
-          <button onClick={() => navigate(`/company/tours/${tour.id}/edit`)} className="px-3 py-2 bg-primary text-white rounded">Sửa</button>
+          <button onClick={() => navigate('/company/tours')} className="px-3 py-2 bg-primary text-white rounded">Quản lý Tours</button>
         </div>
       </div>
 

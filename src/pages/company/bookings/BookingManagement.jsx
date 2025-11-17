@@ -54,9 +54,9 @@ const BookingManagement = () => {
     // Preserve tourId in URL when navigating to booking detail
     const tourId = selectedTourId || searchParams.get('tourId');
     if (tourId) {
-      navigate(`/company/bookings/${bookingId}?tourId=${tourId}`);
+      navigate(`/company/bookings/detail?id=${bookingId}&tourId=${tourId}`);
     } else {
-      navigate(`/company/bookings/${bookingId}`);
+      navigate(`/company/bookings/detail?id=${bookingId}`);
     }
   };
 
@@ -392,25 +392,26 @@ const BookingManagement = () => {
   };
 
   return (
-    <div className="space-y-6 overflow-visible">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý Tour Booking</h1>
-          <p className="mt-1 text-sm text-gray-500">Quản lý tất cả các booking theo tour</p>
+    <div className={styles['booking-management']}>
+      {/* Header */}
+      <div className={styles['management-header']}>
+        <div className={styles['header-title']}>
+          <h1>Quản lý Tour Booking</h1>
         </div>
+        <p className={styles['header-subtitle']}>Quản lý tất cả các booking theo tour</p>
       </div>
 
-      {/* Tour Cards Selector */}
-      <div className="bg-white shadow-sm rounded-lg p-4">
-        <h2 className="text-lg font-semibold mb-3">Chọn tour để xem booking</h2>
+        {/* Tour Cards Selector */}
+        <div className={styles['tour-selector-container']}>
+        <h2 className={styles['tour-selector-title']}>Chọn tour để xem booking</h2>
         {toursLoading ? (
-          <div className="text-gray-500">Đang tải danh sách tour...</div>
+          <div className={styles['empty-state']}>Đang tải danh sách tour...</div>
         ) : tours.length === 0 ? (
-          <div className="text-gray-500">Chưa có tour nào.</div>
+          <div className={styles['empty-state']}>Chưa có tour nào.</div>
         ) : (
           <>
             {/* Tour Cards - Single Row */}
-            <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+            <div className={styles['tour-cards-container']}>
               {paginatedTours.map((tour) => {
                 const normalizedTourId = tour?.id != null ? tour.id.toString() : '';
                 const isSelected = selectedTourId === normalizedTourId;
@@ -418,14 +419,7 @@ const BookingManagement = () => {
                 return (
                   <button
                     key={tour.id}
-                    className={`flex-shrink-0 text-left border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow hover:border-green-500 ${
-                      isSelected ? 'border-green-600 border-2' : 'border-gray-200'
-                    }`}
-                    style={{ 
-                      width: '220px', 
-                      minWidth: '220px',
-                      boxShadow: isSelected ? '0 4px 12px rgba(34, 197, 94, 0.2)' : undefined
-                    }}
+                    className={`${styles['tour-card']} ${isSelected ? styles['selected'] : ''}`}
                     onClick={() => handleTourSelect(tour.id)}
                   >
                     {/* Fixed image height for uniform cards */}
@@ -434,17 +428,17 @@ const BookingManagement = () => {
                         <img
                           src={getImageSrc(tour.tourImgPath)}
                           alt={tour.tourName}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          className={styles['tour-card-image']}
                           onError={(e) => { e.currentTarget.src = '/default-Tour.jpg'; }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">🏞️</div>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>🏞️</div>
                       )}
                     </div>
                     {/* Fixed content height so cards align */}
-                    <div className="p-3 flex flex-col justify-between" style={{ height: 112 }}>
-                      <div className="font-semibold leading-snug line-clamp-2" title={tour.tourName || ''}>{tour.tourName}</div>
-                      <div className="text-sm text-gray-500 mt-2">Mã tour: {tour.id}</div>
+                    <div className={styles['tour-card-content']}>
+                      <div className={styles['tour-card-name']} title={tour.tourName || ''}>{tour.tourName}</div>
+                      <div className={styles['tour-card-id']}>Mã tour: {tour.id}</div>
                     </div>
                   </button>
                 );
@@ -453,86 +447,56 @@ const BookingManagement = () => {
 
             {/* Tour Pagination */}
             {totalTourPages > 1 && (
-              <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-                <div className="flex-1 flex justify-between sm:hidden">
+              <div className={styles['tour-pagination']}>
+                <div className={styles['tour-pagination-info']}>
+                  Hiển thị trang <strong>{currentTourPage}</strong> / <strong>{totalTourPages}</strong> của{' '}
+                  <strong>{tours.length}</strong> tour
+                </div>
+                <nav className={styles['tour-pagination-nav']} aria-label="Pagination">
                   <button
                     onClick={() => handleTourPageChange(currentTourPage - 1)}
                     disabled={currentTourPage === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={styles['tour-pagination-btn']}
                   >
-                    Trước
+                    <ChevronLeftIcon className={styles['pagination-icon']} />
                   </button>
+                  {new Array(totalTourPages).fill(null).map((_, idx) => {
+                    const page = idx + 1;
+                    if (totalTourPages <= 7 || page === 1 || page === totalTourPages || (page >= currentTourPage - 1 && page <= currentTourPage + 1)) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handleTourPageChange(page)}
+                          className={`${styles['tour-pagination-page']} ${currentTourPage === page ? styles['active'] : ''}`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (page === currentTourPage - 2 || page === currentTourPage + 2) {
+                      return <span key={page} className={styles['tour-pagination-ellipsis']}>...</span>;
+                    }
+                    return null;
+                  })}
                   <button
                     onClick={() => handleTourPageChange(currentTourPage + 1)}
                     disabled={currentTourPage === totalTourPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={styles['tour-pagination-btn']}
                   >
-                    Sau
+                    <ChevronRightIcon className={styles['pagination-icon']} />
                   </button>
-                </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm text-gray-700">
-                      Hiển thị trang <span className="font-medium">{currentTourPage}</span> / <span className="font-medium">{totalTourPages}</span> của{' '}
-                      <span className="font-medium">{tours.length}</span> tour
-                    </p>
-                  </div>
-                  <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                      <button
-                        onClick={() => handleTourPageChange(currentTourPage - 1)}
-                        disabled={currentTourPage === 1}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="sr-only">Trước</span>
-                        <ChevronLeftIcon className="h-5 w-5" />
-                      </button>
-                      {new Array(totalTourPages).fill(null).map((_, idx) => {
-                        const page = idx + 1;
-                        if (totalTourPages <= 7 || page === 1 || page === totalTourPages || (page >= currentTourPage - 1 && page <= currentTourPage + 1)) {
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => handleTourPageChange(page)}
-                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                currentTourPage === page
-                                  ? 'z-10 bg-red-600 border-red-600 text-white'
-                                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        } else if (page === currentTourPage - 2 || page === currentTourPage + 2) {
-                          return <span key={page} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>;
-                        }
-                        return null;
-                      })}
-                      <button
-                        onClick={() => handleTourPageChange(currentTourPage + 1)}
-                        disabled={currentTourPage === totalTourPages}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="sr-only">Sau</span>
-                        <ChevronRightIcon className="h-5 w-5" />
-                      </button>
-                    </nav>
-                  </div>
-                </div>
+                </nav>
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* Filters (always visible with mock data) */}
-      <div className="bg-white shadow-sm rounded-lg p-4 overflow-visible">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+      {/* Filters */}
+      <div className={styles['filters-container']}>
+        <div className={styles['filters-wrapper']}>
           {/* Search */}
-          <div className="relative flex-1 w-full sm:max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
+          <div className={styles['search-box']}>
+            <MagnifyingGlassIcon className={styles['search-icon']} />
             <input
               type="text"
               value={searchQuery}
@@ -541,19 +505,19 @@ const BookingManagement = () => {
                 setCurrentPage(1);
               }}
               placeholder="Tìm kiếm tên khách, mã booking..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+              className={styles['search-input']}
             />
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3 w-full sm:w-auto overflow-visible">
+          <div className={styles['filters-group']}>
             {/* Status */}
-            <div className={`${styles.selectWrapper} relative z-10`}>
-              <div className="border border-gray-300 rounded-md bg-white focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500">
+            <div className={styles['selectWrapper']}>
+              <div className={styles['select-container']}>
                 <select
                   value={statusFilter}
                   onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-transparent outline-none appearance-none border-0 sm:text-sm"
+                  className={styles['select-native']}
                 >
                   <option value="all">Tất cả trạng thái</option>
                   {statuses.map((status) => (
@@ -561,18 +525,18 @@ const BookingManagement = () => {
                   ))}
                 </select>
               </div>
-              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
                 <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
               </svg>
             </div>
 
             {/* Sort */}
-            <div className={`${styles.selectWrapper} relative z-10`}>
-              <div className="border border-gray-300 rounded-md bg-white focus-within:border-red-500 focus-within:ring-1 focus-within:ring-red-500">
+            <div className={styles['selectWrapper']}>
+              <div className={styles['select-container']}>
                 <select
                   value={sortBy}
                   onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-transparent outline-none appearance-none border-0 sm:text-sm"
+                  className={styles['select-native']}
                 >
                   <option value="newest">Sắp xếp theo: Mới nhất</option>
                   <option value="oldest">Sắp xếp theo: Cũ nhất</option>
@@ -580,7 +544,7 @@ const BookingManagement = () => {
                   <option value="amount-asc">Số tiền thấp → cao</option>
                 </select>
               </div>
-              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
                 <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
               </svg>
             </div>
@@ -589,57 +553,55 @@ const BookingManagement = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      <div className={styles['table-container']}>
+        <div className={styles['table-wrapper']}>
+          <table className={styles['bookings-table']}>
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                  <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                <th style={{ width: '48px' }}>
+                  <input type="checkbox" style={{ borderRadius: '4px' }} />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tour</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày khởi hành</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số tiền</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                <th>ID</th>
+                <th>Tour</th>
+                <th>Khách hàng</th>
+                <th>Ngày khởi hành</th>
+                <th>Số tiền</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {bookings.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="px-6 py-4 text-center text-sm text-gray-500">Không có booking nào</td>
+                  <td colSpan="9" className={styles['empty-cell']}>Không có booking nào</td>
                 </tr>
               ) : (
                 bookings.map((b) => (
-                  <tr key={b.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
+                  <tr key={b.id}>
+                    <td>
+                      <input type="checkbox" style={{ borderRadius: '4px' }} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{b.bookingId}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{b.tourName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{b.contactName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.departureDate}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(b.totalAmount || 0)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full" style={{ backgroundColor: `${getStatusColor(b.bookingStatus)}15`, color: getStatusColor(b.bookingStatus) }}>
+                    <td className={styles['booking-id']}>{b.bookingId}</td>
+                    <td>{b.tourName}</td>
+                    <td>{b.contactName}</td>
+                    <td>{b.departureDate}</td>
+                    <td className={styles['amount-cell']}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(b.totalAmount || 0)}</td>
+                    <td>
+                      <span className={styles['status-badge']} style={{ backgroundColor: `${getStatusColor(b.bookingStatus)}15`, color: getStatusColor(b.bookingStatus) }}>
                         {formatStatusDisplay(b.bookingStatus)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          title="Xem chi tiết"
-                          onClick={() => handleViewBooking(b.bookingId)}
-                          className="p-1 rounded hover:bg-gray-100 text-gray-600"
-                        >
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
-                      </div>
+                    <td>{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
+                    <td>
+                      <button
+                        type="button"
+                        title="Xem chi tiết"
+                        onClick={() => handleViewBooking(b.bookingId)}
+                        className={styles['action-btn']}
+                      >
+                        <EyeIcon className={styles['action-icon']} />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -649,72 +611,44 @@ const BookingManagement = () => {
         </div>
 
         {/* Pagination */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
+        <div className={styles['pagination']}>
+          <div className={styles['pagination-info']}>
+            Hiển thị trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> của{' '}
+            <strong>{totalItems}</strong> booking
+          </div>
+          <nav className={styles['pagination-nav']} aria-label="Pagination">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={styles['pagination-btn']}
             >
-              Trước
+              <ChevronLeftIcon className={styles['pagination-icon']} />
             </button>
+            {new Array(totalPages).fill(null).map((_, idx) => {
+              const page = idx + 1;
+              if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`${styles['pagination-page']} ${currentPage === page ? styles['active'] : ''}`}
+                  >
+                    {page}
+                  </button>
+                );
+              } else if (page === currentPage - 2 || page === currentPage + 2) {
+                return <span key={page} className={styles['pagination-ellipsis']}>...</span>;
+              }
+              return null;
+            })}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={styles['pagination-btn']}
             >
-              Sau
+              <ChevronRightIcon className={styles['pagination-icon']} />
             </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Hiển thị trang <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span> của{' '}
-                <span className="font-medium">{totalItems}</span> booking
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="sr-only">Trước</span>
-                  <ChevronLeftIcon className="h-5 w-5" />
-                </button>
-                {new Array(totalPages).fill(null).map((_, idx) => {
-                  const page = idx + 1;
-                  if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === page
-                            ? 'z-10 bg-red-600 border-red-600 text-white'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <span key={page} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>;
-                  }
-                  return null;
-                })}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="sr-only">Sau</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </nav>
-            </div>
-          </div>
+          </nav>
         </div>
       </div>
     </div>

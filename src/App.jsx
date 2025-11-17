@@ -70,7 +70,7 @@ function AppContent() {
   const isCompanyInfoPage = location.pathname === '/company-info' ||
                             location.pathname.endsWith('/company/company-info');
   // Hide footer on voucher detail page
-  const isVoucherDetailPage = location.pathname.startsWith('/tour/voucher/');
+  const isVoucherDetailPage = location.pathname === '/tour/voucher';
   
   // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, company info, or voucher detail page
   const shouldShowFooter = !isStaffAdminPage && !isBusinessDashboardPage && !isForumPage && !isTourWizardPage && !isTourBookingWizardPage && !isCompanyInfoPage && !isVoucherDetailPage;
@@ -134,16 +134,16 @@ function AppContent() {
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/profile" element={<UserProfile />} />
                   <Route path="/user/booking-history" element={<BookingHistory />} />
-                  <Route path="/user/booking/:id" element={<BookingDetail />} />
-                  <Route path="/booking/:bookingId/payment" element={<BookingCheckPaymentPage />} />
-                  <Route path="/booking/:bookingId/payment/checkout" element={<TossPaymentPage />} />
+                  <Route path="/user/booking" element={<BookingDetail />} />
+                  <Route path="/booking/payment" element={<BookingCheckPaymentPage />} />
+                  <Route path="/booking/payment/checkout" element={<TossPaymentPage />} />
                   <Route path="/transaction-result" element={<PaymentResultPage />} />
                   <Route path="/admin/*" element={<AdminDashboard />} />
                   <Route path="/forum" element={<Forum />} />
                   <Route path="/tour/voucher-list" element={<VoucherList />} />
-                  <Route path="/tour/voucher/:id" element={<VoucherDetailPage />} />
-                  <Route path="/tour/:id" element={<TourDetailPage />} />
-                  <Route path="/tour/:id/booking" element={<TourBookingWizard />} />
+                  <Route path="/tour/voucher" element={<VoucherDetailPage />} />
+                  <Route path="/tour/booking" element={<TourBookingWizard />} />
+                  <Route path="/tour/detail" element={<TourDetailPage />} />
                   <Route path="/tour" element={<Tour />} />
                   {/* Company Dashboard Routes */}
                   <Route path="/company" element={<BusinessDashboard />}> 
@@ -151,15 +151,15 @@ function AppContent() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="tours" element={<TourManagement />} />
                     <Route path="tours/wizard" element={<TourWizard />} />
-                    <Route path="tours/:id" element={<BusinessTourDetail />} />
+                    <Route path="tours/detail" element={<BusinessTourDetail />} />
                     <Route path="bookings" element={<BookingManagement />} />
-                    <Route path="bookings/:id" element={<CompanyBookingDetailWizard />} />
+                    <Route path="bookings/detail" element={<CompanyBookingDetailWizard />} />
                     <Route path="vouchers" element={<VoucherManagement />} />
                     {/** company-info route intentionally removed */}
                   </Route>
                   {/* News routes */}
+                  <Route path="/news/detail" element={<NewsDetail />} />
                   <Route path="/news" element={<News />} />
-                  <Route path="/news/:id" element={<NewsDetail />} />
                   {/* About Us route */}
                   <Route path="/about" element={<AboutUs />} />
                   {/* Staff routes */}

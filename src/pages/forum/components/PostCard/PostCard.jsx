@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../config/api';
@@ -11,7 +11,7 @@ import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import { DeleteConfirmModal, LoginRequiredModal } from '../../../../components';
 import styles from './PostCard.module.css';
 
-const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
+const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPost = false }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const navigate = useNavigate();
@@ -19,13 +19,19 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const postMenuRef = useRef(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.reactions?.likeCount || 0);
-  const [dislikeCount, setDislikeCount] = useState(0);
+  // Use initial data from API response if available
+  const [likeCount, setLikeCount] = useState(
+    post.reactions?.likeCount ?? 0
+  );
+  const [dislikeCount, setDislikeCount] = useState(
+    post.reactions?.dislikeCount ?? 0
+  );
   const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
   const [openViewer, setOpenViewer] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
-  const [saveCount, setSaveCount] = useState(0);
+  // Use initial saveCount from API response if available
+  const [saveCount, setSaveCount] = useState(post.saveCount || 0);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
   const [hasReported, setHasReported] = useState(false);
@@ -35,105 +41,220 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [tourLinkPreview, setTourLinkPreview] = useState(null);
   const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
   const userInfoRef = useRef(null);
-
-  useEffect(() => {
-    // Always fetch reaction summary and save count for all users (including guests)
-    fetchReactionSummary();
-    fetchSaveCount();
+  const imageContainerRef = useRef(null);
+  const [imagesInViewport, setImagesInViewport] = useState(isFirstPost);
+  
+  // Cache for resolved image URLs to avoid repeated processing
+  const imageUrlCache = useRef(new Map());
+  
+  // Resolve image URL helper function
+  const resolveImageUrl = (imgPath) => {
+    if (!imgPath) return '';
+    if (typeof imgPath !== 'string') return '';
+    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
     
-    // Only check user-specific data if user is logged in
-    if (user) {
-      checkIfSaved();
-      checkIfReported();
+    // Check cache first
+    if (imageUrlCache.current.has(imgPath)) {
+      return imageUrlCache.current.get(imgPath);
     }
-  }, [post.forumPostId, user?.email]);
-
-  // Detect tour link via metadata first, fallback to parsing content
-  useEffect(() => {
-    const fetchTourPreview = () => {
-      try {
-        const meta = post.metadata || post.meta || null;
-        let match = null;
-        if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
-          const idFromMeta = meta.linkRefId || (String(meta.linkUrl || '').match(/\/tour\/(\d+)/)?.[1]);
-          if (idFromMeta) match = [null, idFromMeta];
-        }
-        if (!match) {
-          const text = String(post.content || '');
-          const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-          const regex = new RegExp(`(?:${escapedBase})?/tour/(\\d+)`);
-          match = text.match(regex);
-        }
-        if (match && match[1]) {
-          const tourId = match[1];
-          setIsLoadingTourPreview(true);
-          // Use requestIdleCallback to avoid blocking main thread
-          if (window.requestIdleCallback) {
-            window.requestIdleCallback(() => {
-              fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
-                .then(r => (r.ok ? r.json() : Promise.reject()))
-                .then(data => {
-                  setTourLinkPreview({
-                    id: tourId,
-                    title: data.title || data.tourName,
-                    summary: data.summary || data.tourDescription,
-                    image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
-                  });
-                })
-                .catch(() => setTourLinkPreview(null))
-                .finally(() => setIsLoadingTourPreview(false));
-            });
-          } else {
-            // Fallback for browsers without requestIdleCallback
-            setTimeout(() => {
-              fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
-                .then(r => (r.ok ? r.json() : Promise.reject()))
-                .then(data => {
-                  setTourLinkPreview({
-                    id: tourId,
-                    title: data.title || data.tourName,
-                    summary: data.summary || data.tourDescription,
-                    image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
-                  });
-                })
-                .catch(() => setTourLinkPreview(null))
-                .finally(() => setIsLoadingTourPreview(false));
-            }, 0);
-          }
-        } else {
-          setTourLinkPreview(null);
-          setIsLoadingTourPreview(false);
-        }
-      } catch (_) { 
-        setTourLinkPreview(null);
-        setIsLoadingTourPreview(false);
-      }
-    };
-
-    // Debounce the fetch to avoid multiple rapid calls
-    const timeoutId = setTimeout(fetchTourPreview, 200);
-    return () => clearTimeout(timeoutId);
-  }, [post.forumPostId, post.content, post.metadata]);
-
-  // Preload first few images for better performance
-  useEffect(() => {
+    
+    const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+    const resolvedUrl = getImageUrl(normalized);
+    
+    // Cache the resolved URL
+    imageUrlCache.current.set(imgPath, resolvedUrl);
+    return resolvedUrl;
+  };
+  
+  // Resolve image URLs immediately on mount to avoid re-render delay
+  const initialImageSources = useMemo(() => {
     if (post.images && post.images.length > 0) {
-      const firstFewImages = post.images.slice(0, 3);
-      firstFewImages.forEach((img) => {
+      return post.images.map((img) => {
         const imgPath = typeof img === 'string' ? img : img.imgPath;
-        if (imgPath) {
-          const resolvedUrl = resolveImageUrl(imgPath);
-          if (resolvedUrl) {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.as = 'image';
-            link.href = resolvedUrl;
-            document.head.appendChild(link);
+        return resolveImageUrl(imgPath);
+      }).filter(Boolean);
+    }
+    return [];
+  }, [post.images]);
+  
+  const [imageSources, setImageSources] = useState(initialImageSources);
+
+  useEffect(() => {
+    // Use initial data from API response if available, only fetch if missing
+    const hasReactionData = post.reactions && (
+      (post.reactions.likeCount !== undefined && post.reactions.likeCount !== null) || 
+      (post.reactions.dislikeCount !== undefined && post.reactions.dislikeCount !== null)
+    );
+    
+    // Only fetch if we don't have initial data or need user-specific reaction status
+    if (!hasReactionData || (user && !post.reactions?.userReaction)) {
+      fetchReactionSummary();
+    } else if (post.reactions?.userReaction && user) {
+      // Set user reaction from initial data
+      setIsLiked(post.reactions.userReaction === 'LIKE');
+      setIsDisliked(post.reactions.userReaction === 'DISLIKE');
+    }
+    
+    // Only fetch save count if not provided in initial data
+    if (post.saveCount === undefined || post.saveCount === null) {
+      fetchSaveCount();
+    }
+    
+    // Only check user-specific data if user is logged in (defer to avoid blocking)
+    if (user) {
+      // Use requestIdleCallback to defer non-critical user data fetching
+      const fetchUserData = () => {
+        checkIfSaved();
+        checkIfReported();
+      };
+      
+      if (window.requestIdleCallback) {
+        window.requestIdleCallback(fetchUserData, { timeout: 2000 });
+      } else {
+        setTimeout(fetchUserData, 100);
+      }
+    }
+    
+    // Images are already resolved in useMemo, just ensure state is set
+    if (initialImageSources.length > 0 && imageSources.length === 0) {
+      setImageSources(initialImageSources);
+    }
+  }, [post.forumPostId, user?.email, initialImageSources, imageSources.length]);
+
+  // Intersection Observer for preloading images - images are already resolved, just preload
+  useEffect(() => {
+    if (isFirstPost || imagesInViewport) {
+      // For first post or already loaded, preload images immediately
+      if (initialImageSources.length > 0) {
+        initialImageSources.forEach((url) => {
+          if (url) {
+            const imagePreload = new Image();
+            imagePreload.src = url;
           }
+        });
+        setImagesInViewport(true);
+      }
+      return;
+    }
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Preload all images in parallel when post is about to enter viewport
+            if (initialImageSources.length > 0) {
+              initialImageSources.forEach((url) => {
+                if (url) {
+                  const imagePreload = new Image();
+                  imagePreload.src = url;
+                }
+              });
+              setImageSources(initialImageSources);
+            }
+            setImagesInViewport(true);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: '500px', // Start loading earlier for better UX
+        threshold: 0.01
+      }
+    );
+
+    if (imageContainerRef.current) {
+      observer.observe(imageContainerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isFirstPost, imagesInViewport, initialImageSources]);
+
+  // Extract tour ID immediately on mount (synchronous, no delay)
+  const tourId = useMemo(() => {
+    try {
+      const meta = post.metadata || post.meta || null;
+      let match = null;
+      if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
+        const urlStr = String(meta.linkUrl || '');
+        const idFromMeta = meta.linkRefId || 
+                         urlStr.match(/\/tour\/detail[?&]id=(\d+)/)?.[1] || 
+                         urlStr.match(/\/tour\/(\d+)/)?.[1];
+        if (idFromMeta) return idFromMeta;
+      }
+      const text = String(post.content || '');
+      const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
+      const regexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
+      match = text.match(regexNew) || text.match(regexOld);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  }, [post.content, post.metadata]);
+
+  // Set loading state immediately if tour ID exists (for skeleton display)
+  useEffect(() => {
+    if (tourId) {
+      setIsLoadingTourPreview(true);
+    } else {
+      setIsLoadingTourPreview(false);
+      setTourLinkPreview(null);
+    }
+  }, [tourId]);
+
+  // Load tour preview immediately if tour ID is detected
+  useEffect(() => {
+    if (!tourId) return;
+
+    const loadTourPreview = () => {
+      fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
+        .then(r => (r.ok ? r.json() : Promise.reject()))
+        .then(data => {
+          const imageUrl = getImageUrl(data.thumbnailUrl || data.tourImgPath);
+          const preview = {
+            id: tourId,
+            title: data.title || data.tourName,
+            summary: data.summary || data.tourDescription,
+            image: imageUrl
+          };
+          
+          // Preload tour preview image immediately
+          if (imageUrl) {
+            const img = new Image();
+            img.src = imageUrl;
+          }
+          
+          setTourLinkPreview(preview);
+        })
+        .catch(() => setTourLinkPreview(null))
+        .finally(() => setIsLoadingTourPreview(false));
+    };
+    
+    // Load immediately for first post or posts in viewport
+    if (isFirstPost || imagesInViewport) {
+      loadTourPreview();
+    } else {
+      // Use Promise.resolve().then() to load in next microtask - faster than setTimeout
+      Promise.resolve().then(loadTourPreview);
+    }
+  }, [tourId, isFirstPost, imagesInViewport]);
+
+  // Preload images immediately for visible posts
+  useEffect(() => {
+    if (initialImageSources.length > 0 && (isFirstPost || imagesInViewport)) {
+      initialImageSources.forEach((url) => {
+        if (url) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = url;
+          document.head.appendChild(link);
         }
       });
     }
-  }, [post.images]);
+  }, [initialImageSources, isFirstPost, imagesInViewport]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -289,7 +410,8 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         }
       }
     } catch (error) {
-      console.error('Error fetching reaction summary:', error);
+      // Silently fail - use initial data as fallback
+      console.debug('Error fetching reaction summary:', error);
     }
   };
 
@@ -310,7 +432,8 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         setIsSaved(data.result || false);
       }
     } catch (error) {
-      console.error('Error checking if saved:', error);
+      // Silently fail - user can still interact, will update on next check
+      console.debug('Error checking if saved:', error);
     }
   };
 
@@ -323,7 +446,8 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         setSaveCount(data.result || 0);
       }
     } catch (error) {
-      console.error('Error fetching save count:', error);
+      // Silently fail - use initial data as fallback
+      console.debug('Error fetching save count:', error);
     }
   };
 
@@ -341,7 +465,8 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         setHasReported(hasReportedResult);
       }
     } catch (error) {
-      console.error('Error checking if reported:', error);
+      // Silently fail - user can still interact
+      console.debug('Error checking if reported:', error);
     }
   };
 
@@ -487,27 +612,6 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
-  // Cache for resolved image URLs to avoid repeated processing
-  const imageUrlCache = useRef(new Map());
-  
-  const resolveImageUrl = (imgPath) => {
-    if (!imgPath) return '';
-    if (typeof imgPath !== 'string') return '';
-    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
-    
-    // Check cache first
-    if (imageUrlCache.current.has(imgPath)) {
-      return imageUrlCache.current.get(imgPath);
-    }
-    
-    const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
-    const resolvedUrl = getImageUrl(normalized);
-    
-    // Cache the resolved URL
-    imageUrlCache.current.set(imgPath, resolvedUrl);
-    return resolvedUrl;
-  };
-
   const defaultAvatar = '/default-avatar.png';
 
   // Function to render content with clickable links
@@ -534,101 +638,112 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   };
 
   const renderImages = () => {
-    // Show loading skeleton for tour link preview
-    if (isLoadingTourPreview) {
-      return (
-        <div className={styles['pc-link-card']} style={{cursor: 'default'}}>
-          <div className={styles['pc-link-thumb']}>
-            <div className={styles['pc-link-thumb-placeholder']} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
-              <div style={{width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px'}}></div>
+    // Show tour preview (with skeleton if loading) or normal images
+    // If tour ID exists, show tour preview area (either loading skeleton or actual preview)
+    if (tourId) {
+      // Show loading skeleton while fetching
+      if (isLoadingTourPreview || !tourLinkPreview) {
+        return (
+          <div className={styles['pc-link-card']} style={{cursor: 'default'}}>
+            <div className={styles['pc-link-thumb']}>
+              <div className={styles['pc-link-thumb-placeholder']} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
+                <div style={{width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px'}}></div>
+              </div>
+            </div>
+            <div className={styles['pc-link-meta']}>
+              <div className={styles['pc-link-title']} style={{backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+              <div className={styles['pc-link-desc']} style={{backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
             </div>
           </div>
-          <div className={styles['pc-link-meta']}>
-            <div className={styles['pc-link-title']} style={{backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
-            <div className={styles['pc-link-desc']} style={{backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+        );
+      }
+      
+      // Show actual tour preview
+      if (tourLinkPreview) {
+        return (
+          <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/detail?id=${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
+            <div className={styles['pc-link-thumb']}>
+              {tourLinkPreview.image ? (
+                <img 
+                  src={tourLinkPreview.image} 
+                  alt={tourLinkPreview.title}
+                  loading={isFirstPost ? "eager" : "lazy"}
+                  decoding="async"
+                  onError={(e) => {
+                    e.target.src = '/default-Tour.jpg';
+                  }}
+                />
+              ) : (
+                <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
+              )}
+            </div>
+            <div className={styles['pc-link-meta']}>
+              <div className={styles['pc-link-title']}>{tourLinkPreview.title}</div>
+              <div className={styles['pc-link-desc']}>{tourLinkPreview.summary}</div>
+            </div>
           </div>
-        </div>
-      );
-    }
-    
-    // If there is a tour link preview, show it as a link card before normal images
-    if (tourLinkPreview) {
-      return (
-        <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
-          <div className={styles['pc-link-thumb']}>
-            {tourLinkPreview.image ? (
-              <img 
-                src={tourLinkPreview.image} 
-                alt={tourLinkPreview.title}
-                loading="eager"
-                decoding="async"
-                onError={(e) => {
-                  e.target.src = '/default-Tour.jpg';
-                }}
-              />
-            ) : (
-              <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
-            )}
-          </div>
-          <div className={styles['pc-link-meta']}>
-            <div className={styles['pc-link-title']}>{tourLinkPreview.title}</div>
-            <div className={styles['pc-link-desc']}>{tourLinkPreview.summary}</div>
-          </div>
-        </div>
-      );
+        );
+      }
     }
     if (!post.images || post.images.length === 0) return null;
-    const imgs = post.images.map((img) => {
-      // Handle both object format {imgPath: "..."} and string format
-      const imgPath = typeof img === 'string' ? img : img.imgPath;
-      const resolvedUrl = resolveImageUrl(imgPath);
-      return resolvedUrl;
-    }).filter(Boolean);
+    
+    // Use resolved image sources (already resolved in useMemo)
+    const imgs = imageSources.length > 0 ? imageSources : initialImageSources;
     const count = imgs.length;
 
     if (count === 1) {
+      const shouldEagerLoad = isFirstPost || imagesInViewport;
       return (
-        <div className={`${styles['pc-images']} ${styles['one']}`}>
-          <img 
-            src={imgs[0]} 
-            alt="Post image" 
-            className={`${styles['pc-img']} ${styles['main']}`} 
-            loading="eager"
-            decoding="async"
-            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
+        <div className={`${styles['pc-images']} ${styles['one']}`} ref={imageContainerRef}>
+          {imgs[0] ? (
+            <img 
+              src={imgs[0]} 
+              alt="Post image" 
+              className={`${styles['pc-img']} ${styles['main']}`} 
+              loading={shouldEagerLoad ? "eager" : undefined}
+              fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
+              decoding="async"
+              onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : null}
         </div>
       );
     }
 
     if (count === 2) {
+      const shouldEagerLoad = isFirstPost || imagesInViewport;
       return (
-        <div className={`${styles['pc-images']} ${styles['two']}`}>
-          <img 
-            src={imgs[0]} 
-            alt="Post image 1" 
-            className={styles['pc-img']} 
-            loading="eager"
-            decoding="async"
-            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
-          <img 
-            src={imgs[1]} 
-            alt="Post image 2" 
-            className={styles['pc-img']} 
-            loading="eager"
-            decoding="async"
-            onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
+        <div className={`${styles['pc-images']} ${styles['two']}`} ref={imageContainerRef}>
+          {imgs[0] ? (
+            <img 
+              src={imgs[0]} 
+              alt="Post image 1" 
+              className={styles['pc-img']} 
+              loading={shouldEagerLoad ? "eager" : undefined}
+              fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
+              decoding="async"
+              onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : null}
+          {imgs[1] ? (
+            <img 
+              src={imgs[1]} 
+              alt="Post image 2" 
+              className={styles['pc-img']} 
+              loading={shouldEagerLoad ? "eager" : undefined}
+              decoding="async"
+              onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : null}
         </div>
       );
     }
@@ -636,37 +751,43 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     // 3 or more: one big on top, three small below (like collage)
     const rest = imgs.slice(1, 4);
     const remaining = count - 4;
+    const shouldEagerLoad = isFirstPost || imagesInViewport;
     return (
-      <div className={`${styles['pc-images']} ${styles['collage']}`}>
-        <img 
-          src={imgs[0]} 
-          alt="Post image main" 
-          className={`${styles['pc-img']} ${styles['main']}`} 
-          loading="eager"
-          decoding="async"
-          onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
+      <div className={`${styles['pc-images']} ${styles['collage']}`} ref={imageContainerRef}>
+        {imgs[0] ? (
+          <img 
+            src={imgs[0]} 
+            alt="Post image main" 
+            className={`${styles['pc-img']} ${styles['main']}`} 
+            loading={shouldEagerLoad ? "eager" : undefined}
+            fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
+            decoding="async"
+            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        ) : null}
         <div className={styles['pc-thumbs']}>
           {rest.map((src, idx) => (
-            <div key={idx} className={styles['pc-thumb-wrap']}>
-              <img 
-                src={src} 
-                alt={`Post image ${idx + 2}`} 
-                className={`${styles['pc-img']} ${styles['thumb']}`} 
-                loading={idx < 2 ? "eager" : "lazy"}
-                decoding="async"
-                onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              {idx === rest.length - 1 && remaining > 0 && (
-                <div className={styles['pc-more-overlay']}>+{remaining}</div>
-              )}
-            </div>
+            src ? (
+              <div key={idx} className={styles['pc-thumb-wrap']}>
+                <img 
+                  src={src} 
+                  alt={`Post image ${idx + 2}`} 
+                  className={`${styles['pc-img']} ${styles['thumb']}`} 
+                  loading={shouldEagerLoad ? "eager" : undefined}
+                  decoding="async"
+                  onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                {idx === rest.length - 1 && remaining > 0 && (
+                  <div className={styles['pc-more-overlay']}>+{remaining}</div>
+                )}
+              </div>
+            ) : null
           ))}
         </div>
       </div>
@@ -779,7 +900,14 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
            {renderContentWithLinks(
              String(post.content || '')
                .split(/\n+/)
-               .filter(line => !line.trim().match(new RegExp(`^(?:${BaseURL.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&')})?/tour/\\d+$`)))
+               .filter(line => {
+                 const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+                 // Match format 1: /tour/123 or http://domain/tour/123
+                 const regexOld = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/\\d+(?:[\\s\\?&#]|$)`);
+                 // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
+                 const regexNew = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=\\d+(?:[\\s&#]|$)`);
+                 return !line.trim().match(regexOld) && !line.trim().match(regexNew);
+               })
                .join('\n')
            )}
          </p>
@@ -958,6 +1086,30 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     />
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Return true if props are equal (skip re-render), false if different (re-render)
+  if (prevProps.post.forumPostId !== nextProps.post.forumPostId) return false;
+  if (prevProps.isFirstPost !== nextProps.isFirstPost) return false;
+  
+  // Compare reactions
+  const prevReactions = prevProps.post.reactions;
+  const nextReactions = nextProps.post.reactions;
+  if (prevReactions?.likeCount !== nextReactions?.likeCount) return false;
+  if (prevReactions?.dislikeCount !== nextReactions?.dislikeCount) return false;
+  
+  // Compare save count
+  if (prevProps.post.saveCount !== nextProps.post.saveCount) return false;
+  
+  // Compare comment count (approximate)
+  const prevCommentCount = prevProps.post.comments?.length || 0;
+  const nextCommentCount = nextProps.post.comments?.length || 0;
+  if (prevCommentCount !== nextCommentCount) return false;
+  
+  // Props are equal, skip re-render
+  return true;
+});
+
+PostCard.displayName = 'PostCard';
 
 export default PostCard;

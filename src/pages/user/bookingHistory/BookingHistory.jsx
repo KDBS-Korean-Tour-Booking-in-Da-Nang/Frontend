@@ -4,6 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
 import { getBookingTotal } from '../../../services/bookingAPI';
+import {
+  ArrowLeftIcon,
+  FunnelIcon,
+  CalendarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  DocumentTextIcon
+} from '@heroicons/react/24/outline';
 import BookingHistoryCard from './BookingHistoryCard';
 import styles from './BookingHistory.module.css';
 
@@ -283,7 +293,8 @@ const BookingHistory = () => {
             onClick={() => navigate(-1)}
             title={t('bookingHistory.backButton')}
           >
-            ← {t('bookingHistory.backButton')}
+            <ArrowLeftIcon className={styles['back-icon']} />
+            <span>{t('bookingHistory.backButton')}</span>
           </button>
           <h1 className={styles['booking-history-title']}>
             {t('bookingHistory.title')}
@@ -294,7 +305,8 @@ const BookingHistory = () => {
         <div className={styles['filters-section']}>
           <div className={styles['filter-group']}>
             <label className={styles['filter-label']}>
-              {t('bookingHistory.filters.status')}
+              <FunnelIcon className={styles['filter-label-icon']} />
+              <span>{t('bookingHistory.filters.status')}</span>
             </label>
             <select 
               className={styles['filter-select']}
@@ -313,7 +325,8 @@ const BookingHistory = () => {
           
           <div className={styles['filter-group']}>
             <label className={styles['filter-label']}>
-              {t('bookingHistory.filters.date')}
+              <CalendarIcon className={styles['filter-label-icon']} />
+              <span>{t('bookingHistory.filters.date')}</span>
             </label>
             <select 
               className={styles['filter-select']}
@@ -330,7 +343,7 @@ const BookingHistory = () => {
         <div className={styles['bookings-container']}>
           {bookings.length === 0 ? (
             <div className={styles['empty-state']}>
-              <div className={styles['empty-icon']}>📋</div>
+              <DocumentTextIcon className={styles['empty-icon']} />
               <h3>{t('bookingHistory.empty.title')}</h3>
               <p>{t('bookingHistory.empty.message')}</p>
             </div>
@@ -352,15 +365,17 @@ const BookingHistory = () => {
                     className={styles['pagination-btn']}
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(1)}
+                    title="Trang đầu"
                   >
-                    «
+                    <ChevronDoubleLeftIcon className={styles['pagination-icon']} />
                   </button>
                   <button 
                     className={styles['pagination-btn']}
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
+                    title="Trang trước"
                   >
-                    ‹
+                    <ChevronLeftIcon className={styles['pagination-icon']} />
                   </button>
                   
                   {/* Page numbers */}
@@ -393,15 +408,17 @@ const BookingHistory = () => {
                     className={styles['pagination-btn']}
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
+                    title="Trang sau"
                   >
-                    ›
+                    <ChevronRightIcon className={styles['pagination-icon']} />
                   </button>
                   <button 
                     className={styles['pagination-btn']}
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(totalPages)}
+                    title="Trang cuối"
                   >
-                    »
+                    <ChevronDoubleRightIcon className={styles['pagination-icon']} />
                   </button>
                 </div>
               )}

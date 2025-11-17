@@ -200,12 +200,12 @@
 }
 
 .btnPrimary {
-  background: #dc2626;
+  background: #10b981;
   color: white;
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background: #b91c1c;
+  background: #059669;
 }
 
 .btnSecondary {

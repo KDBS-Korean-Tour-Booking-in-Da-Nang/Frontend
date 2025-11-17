@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import {
   NewspaperIcon,
   Bars3Icon,
@@ -22,6 +22,7 @@ const StaffLayout = ({ children }) => {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -70,52 +71,65 @@ const StaffLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 h-screen bg-slate-900 text-slate-200 shadow-lg overflow-y-auto transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0`}>
-        <div className="flex items-center justify-between h-16 px-4 bg-slate-900 border-b border-slate-800">
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-72 h-screen bg-white border-r border-gray-100 shadow-lg overflow-y-auto transform ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-300 ease-in-out lg:translate-x-0`}
+      >
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-indigo-500 flex items-center justify-center font-bold">KS</div>
-            <span className="text-sm font-semibold tracking-wide">KDBS Staff</span>
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
+              <span className="text-blue-600 font-semibold">KS</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">KDBS Staff</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-slate-300 hover:text-white"
+            className="lg:hidden text-gray-400 hover:text-gray-600 transition-colors"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
-        <nav className="py-4">
+        {/* Navigation */}
+        <nav className="py-6">
           {menuSections.map((section) => (
-            <div key={section.title} className="mb-4">
-              <div className="px-4 pb-2 text-[11px] uppercase tracking-wider text-slate-400/90 font-semibold">{section.title}</div>
-              <ul className="px-3 space-y-1.5">
+            <div key={section.title} className="px-4 mb-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-semibold mb-3">{section.title}</p>
+              <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon;
+                  const isActive =
+                    item.to === '/staff'
+                      ? location.pathname === '/staff'
+                      : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
                   return (
-                    <li key={item.name}>
+                    <div key={item.name}>
                       <NavLink
                         to={item.to}
                         end={item.to === '/staff/news-management'}
-                        className={({ isActive }) => [
-                          'flex items-center gap-3 rounded-lg transition-colors duration-150',
-                          'text-[15px] leading-6 px-3 py-3',
-                          isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-                        ].join(' ')}
+                        className={({ isActive: navActive }) =>
+                          [
+                            'flex items-center rounded-xl px-3.5 py-2.5 transition-all duration-200 no-underline',
+                            navActive || isActive ? 'bg-blue-50 text-blue-600 font-semibold shadow-inner' : 'text-gray-700 hover:bg-gray-50'
+                          ].join(' ')
+                        }
                       >
-                        <Icon className="h-6 w-6" />
-                        <span className="font-medium">{item.name}</span>
+                        <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'} transition-colors`} />
+                        <span>{item.name}</span>
                       </NavLink>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             </div>
           ))}
         </nav>
       </aside>
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 lg:left-64 z-50 h-16 bg-white shadow">
+      <header className="fixed top-0 right-0 left-0 lg:left-72 z-50 h-16 bg-white shadow">
         <div className="flex h-16">
           <button
             type="button"
@@ -232,7 +246,7 @@ const StaffLayout = ({ children }) => {
       </header>
 
       {/* Page content */}
-      <main className="pt-24 lg:ml-64 min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 pb-8">
+      <main className="pt-24 lg:ml-72 min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 pb-8">
         <div className="w-full max-w-none">
           {children}
         </div>

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useToursAPI } from '../../../../../hooks/useToursAPI';
 import styles from './TourPreview.module.css';
 
 const TourPreview = () => {
-  const { id: tourId } = useParams();
+  const [searchParams] = useSearchParams();
+  const tourId = searchParams.get('id');
   const { fetchTourById, loading, error } = useToursAPI();
   const { t } = useTranslation();
   const [tour, setTour] = useState(null);
@@ -123,11 +124,6 @@ const TourPreview = () => {
             
             <div className={styles['tour-details-list']}>
               <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.code')}</span>
-                <span className={styles['detail-value']}>{fallbackTour.id}</span>
-              </div>
-              
-              <div className={styles['detail-item']}>
                 <span className={styles['detail-label']}>{t('booking.tourPreview.labels.duration')}</span>
                 <span className={styles['detail-value']}>{fallbackTour.duration}</span>
               </div>
@@ -209,11 +205,6 @@ const TourPreview = () => {
           <h3 className={styles['tour-preview-title']}>{tour.title}</h3>
           
           <div className={styles['tour-details-list']}>
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.code')}</span>
-              <span className={styles['detail-value']}>{tour.id || t('booking.tourPreview.labels.notAvailable')}</span>
-            </div>
-            
             <div className={styles['detail-item']}>
               <span className={styles['detail-label']}>{t('booking.tourPreview.labels.duration')}</span>
               <span className={styles['detail-value']}>

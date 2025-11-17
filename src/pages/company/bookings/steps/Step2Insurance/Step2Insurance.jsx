@@ -22,6 +22,7 @@ const Step2Insurance = ({
   const [loading, setLoading] = useState({});
   const [guestsState, setGuestsState] = useState(guests || []);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
   useEffect(() => {
     setGuestsState(guests || []);
   }, [guests]);
@@ -43,12 +44,15 @@ const Step2Insurance = ({
     showSuccess(`Đã cập nhật trạng thái bảo hiểm cho ${guestName}. Thay đổi sẽ được lưu khi bạn hoàn thành booking.`);
   };
 
-  const handleReject = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối booking này?')) {
-      return;
-    }
+  const handleReject = () => {
+    // Show confirmation modal
+    setShowRejectModal(true);
+  };
+
+  const handleConfirmReject = async () => {
     try {
       setLoading({ reject: true });
+      setShowRejectModal(false);
       const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED');
       onBookingUpdate(updatedBooking);
       showSuccess('Đã từ chối booking');
@@ -313,8 +317,8 @@ const Step2Insurance = ({
         onConfirm={handleConfirmContinue}
         title="Xác nhận duyệt bảo hiểm"
         message={`Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối? Những thay đổi này sẽ được lưu vào database khi bạn bấm "Hoàn thành" ở bước 3.`}
-        confirmText="Xác nhận"
-        cancelText="Hủy"
+        confirmText={t('common.confirm') || 'Xác nhận'}
+        cancelText={t('common.cancel') || 'Hủy'}
         icon="✓"
         danger={false}
         disableBackdropClose={loading.continue}
@@ -340,6 +344,22 @@ const Step2Insurance = ({
           </p>
         </div>
       </DeleteConfirmModal>
+
+      {/* Reject Confirmation Modal */}
+      {!isReadOnly && (
+        <DeleteConfirmModal
+          isOpen={showRejectModal}
+          onClose={() => setShowRejectModal(false)}
+          onConfirm={handleConfirmReject}
+          title="Xác nhận từ chối booking"
+          message="Bạn có chắc chắn muốn từ chối booking này không?"
+          confirmText={t('common.confirm') || 'Xác nhận'}
+          cancelText={t('common.cancel') || 'Hủy'}
+          icon="⚠"
+          danger={true}
+          disableBackdropClose={false}
+        />
+      )}
     </div>
   );
 };

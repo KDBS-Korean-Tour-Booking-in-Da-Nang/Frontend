@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Align with backend sample (checkout.html uses v2/standard)
 const TOSS_WIDGET_URL = 'https://js.tosspayments.com/v2/standard';
@@ -62,6 +63,7 @@ const TossWidgetContainer = ({
   onError,
   onReady,
 }) => {
+  const { t } = useTranslation();
   const paymentMethodsRef = useRef(null);
   const agreementRef = useRef(null);
   const widgetsRef = useRef(null);
@@ -181,7 +183,7 @@ const TossWidgetContainer = ({
       .catch((error) => {
         if (!isActive) return;
         console.error('[Payment] Toss widget init failed', error);
-        setInitError(error.message || 'Không thể khởi tạo cổng thanh toán Toss.');
+        setInitError(error.message || t('payment.tossPayment.widget.initError'));
         onErrorRef.current?.(error);
         setLoading(false);
       });
@@ -252,27 +254,20 @@ const TossWidgetContainer = ({
         >
           <div className="flex flex-col items-center gap-2 text-sm text-gray-600">
             <span className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500" />
-            <span>Đang tải cổng thanh toán Toss...</span>
+            <span>{t('payment.tossPayment.widget.loading')}</span>
           </div>
         </div>
       )}
 
       {!loading && !initError && (
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Đóng
-          </button>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="button"
             onClick={handleRequestPayment}
             disabled={requesting}
             className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-300"
           >
-            {requesting ? 'Đang chuyển hướng...' : 'Thanh toán qua Toss'}
+            {requesting ? t('payment.tossPayment.widget.redirecting') : t('payment.tossPayment.widget.payButton')}
           </button>
         </div>
       )}

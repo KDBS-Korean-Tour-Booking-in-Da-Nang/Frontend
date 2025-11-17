@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../contexts/ToastContext';
-import { DeleteConfirmModal } from '../../../../../components/modals';
+import { DeleteConfirmModal, RequestUpdateModal } from '../../../../../components/modals';
 import { changeBookingStatus } from '../../../../../services/bookingAPI';
 import styles from './Step1PersonalInfo.module.css';
 
@@ -10,6 +10,8 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   const { showError, showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRequestUpdateModal, setShowRequestUpdateModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   const handleApprove = () => {
     // Show confirmation modal before moving to step 2
@@ -30,12 +32,15 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
     onNext();
   };
 
-  const handleReject = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối booking này?')) {
-      return;
-    }
+  const handleReject = () => {
+    // Show confirmation modal
+    setShowRejectModal(true);
+  };
+
+  const handleConfirmReject = async () => {
     try {
       setLoading(true);
+      setShowRejectModal(false);
       const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED');
       onBookingUpdate(updatedBooking);
       showSuccess('Đã từ chối booking');
@@ -51,15 +56,22 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
     }
   };
 
-  const handleRequestUpdate = async () => {
-    if (!window.confirm('Bạn có muốn gửi yêu cầu cập nhật booking về cho khách hàng?')) {
-      return;
-    }
+  const handleRequestUpdate = () => {
+    // Open modal to input message
+    setShowRequestUpdateModal(true);
+  };
+
+  const handleConfirmRequestUpdate = async (message) => {
     try {
       setLoading(true);
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'WAITING_FOR_UPDATE');
+      const updatedBooking = await changeBookingStatus(booking.bookingId, 'WAITING_FOR_UPDATE', message);
       onBookingUpdate(updatedBooking);
+      setShowRequestUpdateModal(false);
       showSuccess('Đã gửi yêu cầu cập nhật booking');
+      // Navigate back to booking management after request update
+      setTimeout(() => {
+        onBack();
+      }, 1500);
     } catch (error) {
       console.error('Error requesting update:', error);
       showError(error.message || 'Không thể gửi yêu cầu cập nhật');
@@ -262,6 +274,34 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
             </p>
           </div>
         </DeleteConfirmModal>
+      )}
+
+      {/* Request Update Modal */}
+      {!isReadOnly && (
+        <RequestUpdateModal
+          isOpen={showRequestUpdateModal}
+          onClose={() => setShowRequestUpdateModal(false)}
+          onConfirm={handleConfirmRequestUpdate}
+          bookingId={booking?.bookingId}
+          title="Yêu cầu cập nhật booking"
+          message="Vui lòng nhập lý do yêu cầu cập nhật booking:"
+        />
+      )}
+
+      {/* Reject Confirmation Modal */}
+      {!isReadOnly && (
+        <DeleteConfirmModal
+          isOpen={showRejectModal}
+          onClose={() => setShowRejectModal(false)}
+          onConfirm={handleConfirmReject}
+          title="Xác nhận từ chối booking"
+          message="Bạn có chắc chắn muốn từ chối booking này không?"
+          confirmText={t('common.confirm') || 'Xác nhận'}
+          cancelText={t('common.cancel') || 'Hủy'}
+          icon="⚠"
+          danger={true}
+          disableBackdropClose={false}
+        />
       )}
     </div>
   );

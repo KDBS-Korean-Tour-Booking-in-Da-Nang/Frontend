@@ -328,7 +328,7 @@ const NewsManagement = () => {
               <button
                 onClick={loadArticles}
                 disabled={loadingArticles}
-                className="bg-secondary text-primary p-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border border-primary hover:bg-primary hover:text-white"
+                className="bg-color-white text-primary p-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border border-primary hover:bg-primary hover:text-white"
               >
                 {loadingArticles ? (
                   <>

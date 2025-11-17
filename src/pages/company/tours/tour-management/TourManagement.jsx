@@ -1,6 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { 
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  LinkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+  ClockIcon,
+  UserGroupIcon
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import EditTourModal from '../wizard/modals/EditTourModal';
@@ -17,12 +28,15 @@ const TourManagement = () => {
   const { t } = useTranslation();
   
   const [tours, setTours] = useState([]);
+  const [allTours, setAllTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTour, setSelectedTour] = useState(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareTourId, setShareTourId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8); // 2 rows x 4 columns
   
   // Update ref when showError changes
   useEffect(() => {
@@ -56,8 +70,11 @@ const TourManagement = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // Show all tours for now (backend response lacks companyEmail/companyId)
-        setTours(Array.isArray(data) ? data : []);
+        // Filter out DISABLED tours - these are soft-deleted tours (tours with bookings)
+        const activeTours = Array.isArray(data) 
+          ? data.filter(tour => tour.tourStatus !== 'DISABLED')
+          : [];
+        setAllTours(activeTours);
       } else {
         showErrorRef.current('toast.tour.load_failed');
       }
@@ -75,6 +92,23 @@ const TourManagement = () => {
     }
   }, [isBusinessUser, fetchTours]);
 
+  // Pagination logic
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedTours = allTours.slice(startIndex, endIndex);
+    setTours(paginatedTours);
+  }, [allTours, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(allTours.length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleCreateTour = () => {
     navigate('/company/tours/wizard');
   };
@@ -88,10 +122,34 @@ const TourManagement = () => {
   };
 
   const openTourDetail = (tourId) => {
-    navigate(`/tour/${tourId}`, { state: { fromManagement: true } });
+    navigate(`/tour/detail?id=${tourId}`, { state: { fromManagement: true } });
   };
 
-  // Removed toggle status UI per request
+  const handleToggleStatus = (tourId, e) => {
+    e.stopPropagation(); // Prevent card click
+    
+    setTours(prevTours => 
+      prevTours.map(tour => {
+        if (tour.id === tourId) {
+          // Toggle between PUBLIC and PRIVATE
+          // NOT_APPROVED tours cannot be toggled
+          if (tour.tourStatus === 'NOT_APPROVED') {
+            showError('toast.tour.status_not_approved');
+            return tour;
+          }
+          
+          const newStatus = tour.tourStatus === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
+          showSuccess(`toast.tour.status_changed_${newStatus.toLowerCase()}`);
+          
+          return {
+            ...tour,
+            tourStatus: newStatus
+          };
+        }
+        return tour;
+      })
+    );
+  };
 
   const handleDeleteTour = (tourId) => {
     const tour = tours.find(t => t.id === tourId);
@@ -125,9 +183,20 @@ const TourManagement = () => {
       });
 
       if (response.ok) {
+        // Backend logic:
+        // - If tour has bookings: soft delete (sets status to DISABLED) - still in DB
+        // - If tour has no bookings: hard delete (removes from DB)
+        // In both cases, we remove it from the UI as it won't be displayed
         showSuccess('toast.tour.delete_success');
-        // Remove tour from local state
-        setTours(tours.filter(tour => tour.id !== selectedTour.id));
+        // Remove tour from local state (works for both soft and hard delete)
+        const updatedTours = allTours.filter(tour => tour.id !== selectedTour.id);
+        setAllTours(updatedTours);
+        
+        // Adjust page if current page becomes empty
+        const newTotalPages = Math.ceil(updatedTours.length / itemsPerPage);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
       } else {
         showError('toast.tour.delete_error');
       }
@@ -217,24 +286,23 @@ const TourManagement = () => {
       <div className={styles['management-header']}>
         <div className={styles['header-content']}>
           <div className={styles['header-title']}>
-            <div className={styles['title-icon']}>🏔️</div>
             <h1>{t('tourManagement.header.title')}</h1>
+            <p className={styles['header-subtitle']}>Quản lý tất cả các tour của bạn</p>
           </div>
           <button 
             onClick={handleCreateTour}
             className={styles['add-tour-btn']}
           >
-            <span className={styles['btn-icon']}>+</span>
-            {t('tourManagement.header.addNew')}
+            <PlusIcon className={styles['btn-icon']} />
+            <span>{t('tourManagement.header.addNew')}</span>
           </button>
         </div>
       </div>
 
       {/* Tour Cards */}
       <div className={styles['tours-container']}>
-        {tours.length === 0 ? (
+        {allTours.length === 0 ? (
           <div className={styles['empty-state']}>
-            <div className={styles['empty-icon']}>🏔️</div>
             <h3>{t('tourManagement.empty.title')}</h3>
             <p>{t('tourManagement.empty.description')}</p>
             <button 
@@ -245,8 +313,9 @@ const TourManagement = () => {
             </button>
           </div>
         ) : (
-          <div className={styles['tours-grid']}>
-            {tours.map((tour) => (
+          <>
+            <div className={styles['tours-grid']}>
+              {tours.map((tour) => (
               <div 
                 key={tour.id} 
                 className={styles['tour-card']}
@@ -274,8 +343,33 @@ const TourManagement = () => {
                   )}
                   
                   {/* Status Badge */}
-                  <div className={`status-badge ${tour.tourStatus?.toLowerCase()}`}>
+                  <div className={`${styles['status-badge']} ${styles[tour.tourStatus?.toLowerCase() || 'active']}`}>
                     {t(`tourManagement.statusBadge.${tour.tourStatus || 'UNKNOWN'}`)}
+                  </div>
+                  
+                  {/* Status Toggle Switch */}
+                  <div className={styles['status-toggle-wrapper']}>
+                    <label 
+                      className={styles['toggle-switch']} 
+                      onClick={(e) => {
+                        if (tour.tourStatus !== 'NOT_APPROVED') {
+                          handleToggleStatus(tour.id, e);
+                        }
+                      }}
+                      style={{ cursor: tour.tourStatus === 'NOT_APPROVED' ? 'not-allowed' : 'pointer' }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={tour.tourStatus === 'PUBLIC'}
+                        onChange={() => {}} // Handled by onClick on label
+                        disabled={tour.tourStatus === 'NOT_APPROVED'}
+                        onClick={(e) => e.stopPropagation()}
+                        readOnly
+                      />
+                      <span 
+                        className={`${styles['toggle-slider']} ${tour.tourStatus === 'NOT_APPROVED' ? styles['disabled'] : ''}`}
+                      ></span>
+                    </label>
                   </div>
                 </div>
 
@@ -290,15 +384,15 @@ const TourManagement = () => {
 
                   <div className={styles['tour-details']}>
                     <div className={styles['detail-item']}>
-                      <span className={styles['detail-label']}>{t('tourManagement.card.durationLabel')}</span>
+                      <ClockIcon className={styles['detail-icon']} />
                       <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
                     </div>
                     <div className={styles['detail-item']}>
-                      <span className={styles['detail-label']}>{t('tourManagement.card.capacityLabel')}</span>
+                      <UserGroupIcon className={styles['detail-icon']} />
                       <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
                     </div>
                     <div className={styles['detail-item']}>
-                      <span className={styles['detail-label']}>{t('tourManagement.card.departureLabel')}</span>
+                      <MapPinIcon className={styles['detail-icon']} />
                       <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
                     </div>
                   </div>
@@ -309,32 +403,80 @@ const TourManagement = () => {
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleEditTour(tour.id); }}
                         className={styles['edit-btn']}
+                        title={t('tourManagement.actions.edit')}
                       >
-                        <span className={styles['edit-icon']}>✏️</span>
-                        {t('tourManagement.actions.edit')}
+                        <PencilIcon className={styles['action-icon']} />
+                        <span>{t('tourManagement.actions.edit')}</span>
                       </button>
                       
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleDeleteTour(tour.id); }}
                         className={styles['delete-btn']}
+                        title={t('tourManagement.actions.delete')}
                       >
-                        <span className={styles['delete-icon']}>🗑️</span>
-                        {t('tourManagement.actions.delete')}
+                        <TrashIcon className={styles['action-icon']} />
+                        <span>{t('tourManagement.actions.delete')}</span>
                       </button>
                       
                       <button
                         onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
                         className={styles['share-btn']}
+                        title={t('tourCard.share') || 'Chia sẻ'}
                       >
-                        <span className={styles['share-icon']}>🔗</span>
-                        {t('tourCard.share') || 'Chia sẻ'}
+                        <LinkIcon className={styles['action-icon']} />
+                        <span>{t('tourCard.share') || 'Chia sẻ'}</span>
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className={styles['pagination']}>
+                <div className={styles['pagination-info']}>
+                  <span>
+                    Trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> ({allTours.length} tour)
+                  </span>
+                </div>
+                <div className={styles['pagination-controls']}>
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={styles['pagination-button']}
+                  >
+                    <ChevronLeftIcon className={styles['pagination-icon']} />
+                  </button>
+                  {[...Array(totalPages)].map((_, idx) => {
+                    const page = idx + 1;
+                    if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`${styles['pagination-button']} ${currentPage === page ? styles['active'] : ''}`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className={styles['pagination-dots']}>...</span>;
+                    }
+                    return null;
+                  })}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={styles['pagination-button']}
+                  >
+                    <ChevronRightIcon className={styles['pagination-icon']} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

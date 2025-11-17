@@ -376,13 +376,20 @@ export const getGuestsByBookingId = async (bookingId) => {
  * Change booking status
  * @param {number} bookingId - The booking ID
  * @param {string} status - The new booking status (e.g., 'WAITING_FOR_APPROVED', 'BOOKING_REJECTED', 'WAITING_FOR_UPDATE', 'BOOKING_SUCCESS')
+ * @param {string} message - Optional message (for WAITING_FOR_UPDATE status)
  * @returns {Promise<Object>} - The updated booking response
  */
-export const changeBookingStatus = async (bookingId, status) => {
+export const changeBookingStatus = async (bookingId, status, message = null) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/change-status/${bookingId}?status=${status}`, {
+    const requestBody = { status };
+    if (message) {
+      requestBody.message = message;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/booking/change-status/${bookingId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -399,6 +406,38 @@ export const changeBookingStatus = async (bookingId, status) => {
     return result;
   } catch (error) {
     console.error('Error changing booking status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update booking
+ * @param {number} bookingId - The booking ID
+ * @param {Object} bookingData - The booking data (same structure as createBooking)
+ * @returns {Promise<Object>} - The updated booking response
+ */
+export const updateBooking = async (bookingId, bookingData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(bookingData),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      if (response.status === 401) {
+        throw new Error('Unauthenticated');
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error updating booking:', error);
     throw error;
   }
 };

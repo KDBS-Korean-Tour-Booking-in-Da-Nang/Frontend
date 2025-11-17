@@ -1,6 +1,17 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import {
+  CalendarIcon,
+  UserGroupIcon,
+  UserIcon,
+  PhoneIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  DocumentTextIcon
+} from '@heroicons/react/24/outline';
 import styles from './BookingHistoryCard.module.css';
 
 const STATUS_KEYS = {
@@ -93,7 +104,7 @@ const BookingHistoryCard = ({ booking }) => {
   };
 
   const handleViewDetails = () => {
-    navigate(`/user/booking/${booking.bookingId}`);
+    navigate(`/user/booking?id=${booking.bookingId}`);
   };
 
   // Compute effective booking status based on transaction
@@ -105,81 +116,115 @@ const BookingHistoryCard = ({ booking }) => {
     return normalizeStatus(rawStatus);
   })();
 
+  const getStatusIcon = () => {
+    switch (effectiveStatus) {
+      case STATUS_KEYS.BOOKING_SUCCESS:
+        return <CheckCircleIcon className={styles['status-icon']} />;
+      case STATUS_KEYS.BOOKING_REJECTED:
+      case STATUS_KEYS.BOOKING_FAILED:
+        return <XCircleIcon className={styles['status-icon']} />;
+      case STATUS_KEYS.WAITING_FOR_APPROVED:
+      case STATUS_KEYS.WAITING_FOR_UPDATE:
+        return <ClockIcon className={styles['status-icon']} />;
+      default:
+        return <ClockIcon className={styles['status-icon']} />;
+    }
+  };
+
+  const getStatusClass = () => {
+    switch (effectiveStatus) {
+      case STATUS_KEYS.BOOKING_SUCCESS:
+        return styles['status-success'];
+      case STATUS_KEYS.BOOKING_REJECTED:
+      case STATUS_KEYS.BOOKING_FAILED:
+        return styles['status-error'];
+      case STATUS_KEYS.WAITING_FOR_APPROVED:
+      case STATUS_KEYS.WAITING_FOR_UPDATE:
+        return styles['status-warning'];
+      default:
+        return styles['status-pending'];
+    }
+  };
+
   return (
     <div className={styles['booking-card']}>
-      <div className={styles['booking-content']}>
-        <div className={styles['booking-id']}>
-          {t('bookingHistory.card.bookingId')}: {booking.bookingId}
+      <div className={styles['card-header']}>
+        <div className={styles['booking-id-section']}>
+          <DocumentTextIcon className={styles['id-icon']} />
+          <div>
+            <div className={styles['booking-id-label']}>{t('bookingHistory.card.bookingId')}</div>
+            <div className={styles['booking-id']}>#{booking.bookingId}</div>
+          </div>
         </div>
-        
-        <div className={styles['booking-details']}>
-          <div className={styles['detail-row']}>
-            <span className={styles['detail-label']}>
-              {t('bookingHistory.card.departureDate')}
-            </span>
-            <span className={styles['detail-value']}>
-              {formatDate(booking.departureDate)}
-            </span>
-          </div>
-          
-          <div className={styles['detail-row']}>
-            <span className={styles['detail-label']}>
-              {t('bookingHistory.card.totalGuests')}
-            </span>
-            <span className={styles['detail-value']}>
-              {booking.totalGuests} {t('bookingHistory.card.guests')}
-            </span>
-          </div>
-          
-          <div className={styles['detail-row']}>
-            <span className={styles['detail-label']}>
-              {t('bookingHistory.card.contactName')}
-            </span>
-            <span className={styles['detail-value']}>
-              {booking.contactName}
-            </span>
-          </div>
-          
-          <div className={styles['detail-row']}>
-            <span className={styles['detail-label']}>
-              {t('bookingHistory.card.contactPhone')}
-            </span>
-            <span className={styles['detail-value']}>
-              {booking.contactPhone}
-            </span>
-          </div>
+        <div className={`${styles['status-badge']} ${getStatusClass()}`}>
+          {getStatusIcon()}
+          <span>{t(`bookingHistory.status.${effectiveStatus || STATUS_KEYS.PENDING_PAYMENT}`)}</span>
         </div>
       </div>
 
-      <div className={styles['booking-actions']}>
-        <div 
-          className={styles['status-badge']}
-          style={{ backgroundColor: getStatusColor(effectiveStatus) }}
-        >
-          {t(`bookingHistory.status.${effectiveStatus || STATUS_KEYS.PENDING_PAYMENT}`)}
+      <div className={styles['booking-content']}>
+        <div className={styles['info-grid']}>
+          <div className={styles['info-item']}>
+            <div className={styles['info-label']}>
+              <CalendarIcon className={styles['item-icon']} />
+              <span>{t('bookingHistory.card.departureDate')}</span>
+            </div>
+            <div className={styles['info-value']}>
+              {formatDate(booking.departureDate)}
+            </div>
+          </div>
+          
+          <div className={styles['info-item']}>
+            <div className={styles['info-label']}>
+              <UserGroupIcon className={styles['item-icon']} />
+              <span>{t('bookingHistory.card.totalGuests')}</span>
+            </div>
+            <div className={styles['info-value']}>
+              {booking.totalGuests} {t('bookingHistory.card.guests')}
+            </div>
+          </div>
+          
+          <div className={styles['info-item']}>
+            <div className={styles['info-label']}>
+              <UserIcon className={styles['item-icon']} />
+              <span>{t('bookingHistory.card.contactName')}</span>
+            </div>
+            <div className={styles['info-value']}>
+              {booking.contactName}
+            </div>
+          </div>
+          
+          <div className={styles['info-item']}>
+            <div className={styles['info-label']}>
+              <PhoneIcon className={styles['item-icon']} />
+              <span>{t('bookingHistory.card.contactPhone')}</span>
+            </div>
+            <div className={styles['info-value']}>
+              {booking.contactPhone}
+            </div>
+          </div>
         </div>
+
         {(booking?.transactionStatus || booking?.latestTransactionStatus) && (
-          <div 
-            className={styles['status-badge-secondary']}
-            style={{ backgroundColor: getTransactionStatusColor(normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus)) }}
-          >
-            {t('bookingHistory.card.transaction')}: {t(`bookingHistory.transactionStatus.${String(normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) || 'PENDING').toLowerCase()}`) || normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus)}
+          <div className={styles['transaction-badge']}>
+            <span className={styles['transaction-label']}>
+              {t('bookingHistory.card.transaction')}:
+            </span>
+            <span className={styles['transaction-value']}>
+              {t(`bookingHistory.transactionStatus.${String(normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus) || 'PENDING').toLowerCase()}`) || normalizeTransaction(booking.transactionStatus ?? booking.latestTransactionStatus)}
+            </span>
           </div>
         )}
+      </div>
+
+      <div className={styles['card-footer']}>
         <button 
           className={styles['view-details-btn']}
           onClick={handleViewDetails}
         >
-          {t('bookingHistory.card.viewDetails')}
+          <span>{t('bookingHistory.card.viewDetails')}</span>
+          <ArrowRightIcon className={styles['btn-icon']} />
         </button>
-        {String(effectiveStatus).toUpperCase() === 'CANCELLED' && (
-          <button 
-            className={styles['cancelled-btn']}
-            disabled={true}
-          >
-            {t('bookingHistory.card.cancelled') || 'Đã hủy'}
-          </button>
-        )}
       </div>
     </div>
   );

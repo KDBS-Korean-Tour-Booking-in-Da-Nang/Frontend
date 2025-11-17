@@ -145,9 +145,16 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const detectAndFetchPreview = async (text) => {
     if (!text) return;
     
-    // Check for tour links
-    const tourRegex = new RegExp(`(?:${FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})?/tour/(\\d+)`, 'i');
-    const tourMatch = text.match(tourRegex);
+    // Check for tour links - support both old format /tour/123 and new format /tour/detail?id=123
+    // Supports: full URL (with domain), relative path, or just the path part
+    const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    // Match format 1: /tour/123 or http://domain/tour/123
+    const tourRegexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
+    // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
+    const tourRegexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
+    const tourMatchOld = text.match(tourRegexOld);
+    const tourMatchNew = text.match(tourRegexNew);
+    const tourMatch = tourMatchNew || tourMatchOld;
     
     if (tourMatch) {
       const tourId = tourMatch[1];
@@ -162,7 +169,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             title: preview.title || preview.tourName,
             summary: preview.summary || preview.tourDescription,
             thumbnailUrl: preview.thumbnailUrl || preview.tourImgPath,
-            linkUrl: `${FrontendURL}/tour/${tourId}`
+            linkUrl: `${FrontendURL}/tour/detail?id=${tourId}`
           });
         } else {
           setLinkPreview(null);
@@ -189,8 +196,12 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   // Function to check if content contains tour links
   const hasTourLinksInContent = (text) => {
     if (!text) return false;
-    const tourRegex = new RegExp(`(?:${FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})?/tour/(\\d+)`, 'i');
-    return tourRegex.test(text);
+    const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    // Match format 1: /tour/123 or http://domain/tour/123
+    const tourRegexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
+    // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
+    const tourRegexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
+    return tourRegexOld.test(text) || tourRegexNew.test(text);
   };
 
   // Debounced preview detection

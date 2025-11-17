@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import Slider from 'react-slick';
 import { ArrowPathIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import articleService from '../../services/articleService';
 import { getArticleSummary, extractFirstImageUrl } from '../../utils/htmlConverter';
 import styles from './news.module.css';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const News = () => {
   const { t } = useTranslation();
@@ -55,33 +58,80 @@ const News = () => {
     }
   };
 
+  const heroSlides = [
+    {
+      title: t('news.hero.title'),
+      subtitle: t('news.hero.subtitle'),
+      eyebrow: t('news.hero.eyebrow', { defaultValue: 'Travel Journal' }),
+      image: '/tour1.jpg'
+    },
+    {
+      title: t('news.hero.slide2Title', { defaultValue: 'Exciting Travel Information' }),
+      subtitle: t('news.hero.slide2Subtitle', { defaultValue: 'Discover attractive destinations and curated itineraries designed for soft, effortless journeys.' }),
+      eyebrow: t('news.hero.slide2Eyebrow', { defaultValue: 'Destination Highlights' }),
+      image: '/tour2.jpg'
+    },
+    {
+      title: t('news.hero.slide3Title', { defaultValue: 'Unique Experiences' }),
+      subtitle: t('news.hero.slide3Subtitle', { defaultValue: 'Providing useful tips about activities, events, and cultural moments worth cherishing.' }),
+      eyebrow: t('news.hero.slide3Eyebrow', { defaultValue: 'Inspired Moments' }),
+      image: '/tour3.jpg'
+    }
+  ];
+
+  const carouselSettings = {
+    dots: true,
+    arrows: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    pauseOnHover: false,
+    fade: true,
+    cssEase: 'linear'
+  };
+
   return (
-    <div className={styles.pageRoot} style={{ marginTop: '0', paddingTop: '0' }}>
+    <div className={styles.pageRoot} style={{ marginTop: '5px', paddingTop: '0' }}>
       <div className={styles.pageBackground} aria-hidden="true" />
       <div className={`${styles.pageContainer} mx-auto w-full px-6 lg:px-12`}>
         <div className={`${styles.contentWrap} w-full max-w-none`}>
-          {/* Header (đỏ) – full-bleed across the viewport */}
+          {/* Header */}
           <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen -mt-12">
-            <div className={`${styles.headerCard}  w-full px-8 py-20 lg:py-28 text-center mb-12`}>
-              <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-3">
-                {t('news.hero.title')}
-              </h1>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                {t('news.hero.subtitle')}
-              </p>
+            <div className={`${styles.heroCanvas} w-full text-center mb-10 md:mb-14`}>
+              <div className={styles.heroSliderWrapper}>
+                <Slider {...carouselSettings} className={styles.heroSlider}>
+                  {heroSlides.map((slide, index) => (
+                    <div key={index} className={styles.heroSlide}>
+                      <img src={slide.image} alt={slide.title} className={styles.heroSlideImage} />
+                      <div className={styles.heroSlideOverlay}>
+                        <div className={styles.heroSlideContent}>
+                          <p className={styles.heroEyebrow}>{slide.eyebrow}</p>
+                          <h1 className={styles.heroHeading}>{slide.title}</h1>
+                          <p className={styles.heroDescription}>
+                            {slide.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </Slider>
+              </div>
             </div>
           </div>
 
-          {/* Mobile/Tablet Categories Toggle – placed right under header */}
-          <div className="w-full lg:hidden -mt-6 mb-6 px-2 sm:px-4 flex justify-end">
+          {/* Mobile/Tablet Categories Toggle */}
+          <div className="w-full lg:hidden -mt-4 mb-6 px-2 sm:px-4 flex justify-end">
             <button
               onClick={() => setShowCategories(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-900 border border-gray-300 shadow-md hover:shadow-lg hover:bg-gray-50 transition"
+              className={`${styles.softButton} ${styles.ghostButton} gap-2 text-sm`}
               aria-haspopup="dialog"
               aria-expanded={showCategories ? 'true' : 'false'}
             >
               {t('news.sidebar.title')}
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
           </div>
 
@@ -103,55 +153,58 @@ const News = () => {
                   const summary = article.articleDescription || getArticleSummary(article.articleContent || '', 150);
                   
                   return (
-                    <div key={article.articleId} className={`${styles.card} ${styles.articleCard} group shadow-sm hover:shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] cursor-pointer`}>
-                      <div className="flex flex-col sm:flex-row">
+                    <div key={article.articleId} className={`${styles.card} ${styles.articleCard} group cursor-pointer`}>
+                      <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
                         {/* Article Image */}
-                        <div className={`${styles.articleImageContainer} flex-shrink-0 w-full sm:w-[35%] md:w-[32%] lg:w-[30%] xl:w-[28%] overflow-hidden`}>
+                        <div className={`${styles.articleImageContainer} flex-shrink-0 w-full sm:w-[38%] md:w-[34%] lg:w-[32%] xl:w-[30%]`}>
                           {thumbnail ? (
                             <img
                               src={thumbnail}
                               alt={article.articleTitle}
-                              className={`${styles.articleImage} w-full h-full sm:h-full object-cover transition-transform duration-500 group-hover:scale-110`}
+                              className={`${styles.articleImage} w-full h-full sm:h-full object-cover`}
                             />
                           ) : (
-                            <div className={`${styles.articleImagePlaceholder} w-full h-full bg-slate-100 flex items-center justify-center`}>
-                              <span className="text-gray-500 text-xs sm:text-sm">{t('news.noImage')}</span>
+                            <div className={`${styles.articleImagePlaceholder} w-full h-full bg-slate-50 flex items-center justify-center`}>
+                              <span className="text-gray-400 text-xs sm:text-sm">{t('news.noImage')}</span>
                             </div>
                           )}
                         </div>
                         
                         {/* Article Content */}
-                        <div className="flex-1 p-3 sm:p-3.5 md:p-4 lg:p-5 flex flex-col justify-between min-w-0">
+                        <div className="flex-1 p-4 sm:p-3.5 md:p-5 lg:p-6 flex flex-col justify-between min-w-0">
                           <div className="min-w-0">
-                            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500 mb-2 sm:mb-2.5">
-                              <div className="flex items-center bg-gray-100 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">
-                                <CalendarIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 text-gray-600 flex-shrink-0" />
+                            <div className={styles.articleMeta}>
+                              <div className={`${styles.articleMetaPill} flex items-center`}>
+                                <CalendarIcon className="h-3.5 w-3.5 mr-2 text-gray-500 flex-shrink-0" />
                                 <span className="text-gray-700 font-medium text-xs sm:text-sm whitespace-nowrap">
                                   {new Date(article.articleCreatedDate).toLocaleDateString('vi-VN')}
                                 </span>
                               </div>
-                              <span className={`${styles.chip} px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap`}>
+                              <span className={`${styles.chip} px-3 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap`}>
                                 {t('news.category')}
                               </span>
                             </div>
                             
-                            <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2 sm:mb-2.5 line-clamp-2 leading-tight break-words">
+                            <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2 sm:mb-3 line-clamp-2 leading-tight break-words">
                               {article.articleTitle}
                             </h3>
                             
-                            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2.5 sm:mb-3 md:mb-4 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
+                            <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
                               {summary}
                             </p>
                           </div>
                           
-                          <div className="flex justify-end mt-auto pt-2 sm:pt-0">
+                          <div className="flex justify-between items-center mt-auto pt-2 sm:pt-0 text-sm text-gray-400">
+                            <span className="hidden sm:block text-xs uppercase tracking-[0.25em]">
+                              {t('news.readMore')}
+                            </span>
                             <Link
-                              to={`/news/${article.articleId}`}
-                              className="text-primary hover:text-primary-hover font-semibold text-xs sm:text-sm md:text-base flex items-center group transition-colors"
+                              to={`/news/detail?id=${article.articleId}`}
+                              className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-semibold text-sm md:text-base transition-colors"
                             >
-                              {t('news.readMore')} 
+                              {t('news.readMore')}
                               <svg className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 transform group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                               </svg>
                             </Link>
                           </div>
@@ -184,7 +237,7 @@ const News = () => {
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="bg-white text-black px-8 py-3 rounded-2xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto shadow-md hover:shadow-xl hover:scale-110"
+                  className={`${styles.softButton} flex items-center mx-auto`}
                 >
                   {loadingMore ? (
                     <>
@@ -199,69 +252,69 @@ const News = () => {
             )}
           </div>
 
-          {/* Sidebar – cột phải (xanh) */}
+          {/* Sidebar */}
             <div className="hidden lg:block lg:col-span-1 lg:pl-0 justify-self-end">
-            <div className={`${styles.card} p-6 shadow-sm rounded-xl lg:sticky lg:top-24 w-[320px]`}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('news.sidebar.title')}</h3>
+            <div className={`${styles.card} p-8 lg:sticky lg:top-24 w-[320px] space-y-6`}>
+              <h3 className="text-lg font-semibold text-gray-900">{t('news.sidebar.title')}</h3>
               
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {/* Tour Categories */}
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.domestic.title')}</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.north')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.central')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.south')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.teambuilding')}</a></li>
+                <div className={styles.sidebarBlock}>
+                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.domestic.title')}</h4>
+                  <ul className={styles.sidebarList}>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.north')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.central')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.south')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.teambuilding')}</a></li>
                   </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.international.title')}</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.japan')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.singapore')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.thailand')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.taiwan')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.korea')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.china')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.laos')}</a></li>
+                <div className={styles.sidebarBlock}>
+                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.international.title')}</h4>
+                  <ul className={styles.sidebarList}>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.japan')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.singapore')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.thailand')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.taiwan')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.korea')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.china')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.laos')}</a></li>
                   </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.dayTours.title')}</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.hue')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.baNa')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.hoiAn')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.mySon')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.sonTra')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.daNangCompany')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.chamIsland')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.daNangExplore')}</a></li>
+                <div className={styles.sidebarBlock}>
+                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.dayTours.title')}</h4>
+                  <ul className={styles.sidebarList}>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hue')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.baNa')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hoiAn')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.mySon')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.sonTra')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangCompany')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.chamIsland')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangExplore')}</a></li>
                   </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.daNangTours.title')}</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.1day')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.2days')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.3days')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.4days')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.5days')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.6days')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.7days')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.8days')}</a></li>
+                <div className={styles.sidebarBlock}>
+                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.daNangTours.title')}</h4>
+                  <ul className={styles.sidebarList}>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.1day')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.2days')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.3days')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.4days')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.5days')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.6days')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.7days')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.8days')}</a></li>
                   </ul>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.events.title')}</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.events.tet')}</a></li>
-                    <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.events.festival')}</a></li>
+                <div className={styles.sidebarBlock}>
+                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.events.title')}</h4>
+                  <ul className={styles.sidebarList}>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.tet')}</a></li>
+                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.festival')}</a></li>
                   </ul>
                 </div>
               </div>
@@ -274,7 +327,7 @@ const News = () => {
             <div className="lg:hidden fixed inset-0 z-[10000]" role="dialog" aria-modal="true">
               <div className="absolute inset-0 bg-black/40" onClick={() => setShowCategories(false)}></div>
               <div className="absolute left-0 right-0 top-20 mx-4 sm:mx-6 rounded-2xl overflow-hidden shadow-xl">
-                <div className={`${styles.card} p-5 bg-white`}>
+                <div className={`${styles.mobileSheet} p-5`}>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-semibold text-gray-900">{t('news.sidebar.title')}</h3>
                     <button onClick={() => setShowCategories(false)} className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
@@ -283,58 +336,58 @@ const News = () => {
                   </div>
                   <div className="space-y-4">
                     {/* Tour Categories (reuse markup) */}
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.domestic.title')}</h4>
-                      <ul className="space-y-1 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.north')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.central')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.south')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.domestic.teambuilding')}</a></li>
+                    <div className={styles.sidebarBlock}>
+                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.domestic.title')}</h4>
+                      <ul className={styles.sidebarList}>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.north')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.central')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.south')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.teambuilding')}</a></li>
                       </ul>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.international.title')}</h4>
-                      <ul className="space-y-1 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.japan')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.singapore')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.thailand')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.taiwan')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.korea')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.china')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.international.laos')}</a></li>
+                    <div className={styles.sidebarBlock}>
+                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.international.title')}</h4>
+                      <ul className={styles.sidebarList}>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.japan')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.singapore')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.thailand')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.taiwan')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.korea')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.china')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.laos')}</a></li>
                       </ul>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.dayTours.title')}</h4>
-                      <ul className="space-y-1 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.hue')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.baNa')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.hoiAn')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.mySon')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.sonTra')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.daNangCompany')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.chamIsland')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.dayTours.daNangExplore')}</a></li>
+                    <div className={styles.sidebarBlock}>
+                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.dayTours.title')}</h4>
+                      <ul className={styles.sidebarList}>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hue')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.baNa')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hoiAn')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.mySon')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.sonTra')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangCompany')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.chamIsland')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangExplore')}</a></li>
                       </ul>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.daNangTours.title')}</h4>
-                      <ul className="space-y-1 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.1day')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.2days')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.3days')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.4days')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.5days')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.6days')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.7days')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.daNangTours.8days')}</a></li>
+                    <div className={styles.sidebarBlock}>
+                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.daNangTours.title')}</h4>
+                      <ul className={styles.sidebarList}>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.1day')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.2days')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.3days')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.4days')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.5days')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.6days')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.7days')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.8days')}</a></li>
                       </ul>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-2">{t('news.sidebar.events.title')}</h4>
-                      <ul className="space-y-1 text-sm text-gray-600">
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.events.tet')}</a></li>
-                        <li><a href="#" className="hover:text-primary transition-colors">{t('news.sidebar.events.festival')}</a></li>
+                    <div className={styles.sidebarBlock}>
+                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.events.title')}</h4>
+                      <ul className={styles.sidebarList}>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.tet')}</a></li>
+                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.festival')}</a></li>
                       </ul>
                     </div>
                   </div>

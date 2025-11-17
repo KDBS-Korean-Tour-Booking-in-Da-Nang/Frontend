@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { getBookingById, getGuestsByBookingId, getTourCompletionStatus, changeBookingStatus, changeBookingGuestInsuranceStatus } from '../../../services/bookingAPI';
 import { useToast } from '../../../contexts/ToastContext';
 import { DeleteConfirmModal } from '../../../components/modals';
@@ -15,9 +15,9 @@ const STEPS = [
 ];
 
 const CompanyBookingDetailWizard = () => {
-  const { id: bookingId } = useParams();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const bookingId = searchParams.get('id');
+  const navigate = useNavigate();
   const location = useLocation();
   const { showSuccess, showError } = useToast();
   

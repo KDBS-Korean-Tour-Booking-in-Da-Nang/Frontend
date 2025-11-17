@@ -5,6 +5,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { getVouchersByCompanyId, getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 import VoucherCreateModal from './VoucherCreateModal';
+import styles from './VoucherManagement.module.css';
 
 const PAGE_SIZE = 15; // 3 rows x 5 columns
 
@@ -296,16 +297,16 @@ const VoucherManagement = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Quản lý Voucher</h2>
+    <div className={styles['voucher-management']}>
+      <div className={styles['management-header']}>
+        <h2 className={styles['header-title']}>Quản lý Voucher</h2>
         {loading ? (
-          <div className="px-4 py-2 text-gray-500">Đang tải...</div>
+          <div className={styles['loading-text']}>Đang tải...</div>
         ) : (
           <button
             onClick={() => setIsCreateOpen(true)}
             disabled={!companyId}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={styles['create-btn']}
           >
             Tạo voucher
           </button>
@@ -313,21 +314,20 @@ const VoucherManagement = () => {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Đang tải dữ liệu...</div>
+        <div className={styles['loading-container']}>
+          <div className={styles['loading-message']}>Đang tải dữ liệu...</div>
         </div>
       )}
 
       {!loading && (
-        <>
-
+        <div className={styles['content-wrapper']}>
           {!companyId && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
-              <p className="text-yellow-800 font-semibold mb-2">Không tìm thấy thông tin công ty.</p>
-              <p className="text-yellow-700 text-sm">
+            <div className={styles['warning-box']}>
+              <p className={styles['warning-title']}>Không tìm thấy thông tin công ty.</p>
+              <p className={styles['warning-text']}>
                 Vui lòng đảm bảo bạn đã đăng nhập với tài khoản có vai trò COMPANY và thông tin user đã được cập nhật đúng.
                 {user && (
-                  <span className="block mt-2 text-xs">
+                  <span className={styles['warning-info']}>
                     Thông tin hiện tại: Role = {user.role}, User ID = {user.id || 'N/A'}
                   </span>
                 )}
@@ -336,35 +336,44 @@ const VoucherManagement = () => {
           )}
 
           {vouchers.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-500">Chưa có voucher nào. Hãy tạo voucher đầu tiên!</p>
+            <div className={styles['empty-state']}>
+              <p className={styles['empty-message']}>Chưa có voucher nào. Hãy tạo voucher đầu tiên!</p>
             </div>
           ) : (
             <>
               {/* Grid 3 rows x 5 columns (15 per page) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              <div className={styles['voucher-grid']}>
                 {pageData.map((v) => (
-                  <div key={v.id || v.voucherId} className="bg-white rounded-lg shadow p-4 flex flex-col justify-between">
+                  <div key={v.id || v.voucherId} className={styles['voucher-card']}>
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-500">Mã</span>
-                        <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">{v.code}</span>
+                      <div className={styles['voucher-code-section']}>
+                        <span className={styles['voucher-code-label']}>Mã</span>
+                        <span className={styles['voucher-code']}>{v.code}</span>
                       </div>
-                      <h3 className="text-lg font-semibold mb-1">{v.name}</h3>
-                      <div className="text-sm text-gray-700 mb-1">Loại: {v.discountType === 'PERCENT' ? 'Giảm theo %' : v.discountType === 'FIXED' ? 'Giảm theo tiền' : 'Giảm theo tiền'}</div>
-                      <div className="text-sm text-gray-700 mb-1">Giá trị: {renderDiscount(v)}</div>
-                      <div className="text-sm text-gray-700 mb-1">Số lượng: {v.totalQuantity} ({v.remainingQuantity !== undefined ? `Còn lại: ${v.remainingQuantity}` : ''})</div>
-                      <div className="text-sm text-gray-700 mb-1">Trạng thái: <span className={`font-semibold ${v.status === 'ACTIVE' ? 'text-green-600' : v.status === 'EXPIRED' ? 'text-red-600' : 'text-gray-600'}`}>{v.status}</span></div>
+                      <h3 className={styles['voucher-name']}>{v.name}</h3>
+                      <div className={styles['voucher-info']}>Loại: {v.discountType === 'PERCENT' ? 'Giảm theo %' : v.discountType === 'FIXED' ? 'Giảm theo tiền' : 'Giảm theo tiền'}</div>
+                      <div className={styles['voucher-info']}>Giá trị: {renderDiscount(v)}</div>
+                      <div className={styles['voucher-info']}>Số lượng: {v.totalQuantity} {v.remainingQuantity !== undefined ? `(Còn lại: ${v.remainingQuantity})` : ''}</div>
+                      <div className={styles['voucher-status']}>
+                        Trạng thái:{' '}
+                        <span className={
+                          v.status === 'ACTIVE' ? styles['status-active'] :
+                          v.status === 'EXPIRED' ? styles['status-expired'] :
+                          styles['status-inactive']
+                        }>
+                          {v.status}
+                        </span>
+                      </div>
                       
                       {/* Display tours applied to this voucher */}
                       {v.tourIds && v.tourIds.length > 0 ? (
-                        <div className="text-sm text-gray-700 mb-1 mt-2">
-                          <div className="font-semibold mb-1">Áp dụng cho tour:</div>
-                          <div className="text-xs space-y-1 max-h-20 overflow-y-auto">
+                        <div className={styles['voucher-tours']}>
+                          <span className={styles['tours-label']}>Áp dụng cho tour:</span>
+                          <div className={styles['tours-list']}>
                             {v.tourIds.map((tourId, idx) => {
                               const tourName = allToursMap.get(tourId) || `Tour #${tourId}`;
                               return (
-                                <div key={idx} className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">
+                                <div key={idx} className={styles['tour-item']}>
                                   • {tourName}
                                 </div>
                               );
@@ -372,12 +381,12 @@ const VoucherManagement = () => {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-500 mb-1 mt-2 italic">
+                        <div className={styles['tours-global']}>
                           Áp dụng cho tất cả tour
                         </div>
                       )}
                     </div>
-                    <div className="mt-3 text-xs text-gray-500">
+                    <div className={styles['voucher-dates']}>
                       <div>Bắt đầu: {v.startDate ? new Date(v.startDate).toLocaleString('vi-VN') : '-'}</div>
                       <div>Hết hạn: {v.endDate ? new Date(v.endDate).toLocaleString('vi-VN') : '-'}</div>
                     </div>
@@ -387,41 +396,20 @@ const VoucherManagement = () => {
             </>
           )}
 
-          {/* Pagination */}
-          {totalPages > 0 && !loading && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Trước
-            </button>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Sau
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Hiển thị trang <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span> của{' '}
-                <span className="font-medium">{vouchers.length}</span> voucher
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          {/* Pagination - Fixed at bottom */}
+          {totalPages > 1 && !loading && vouchers.length > 0 && (
+            <div className={styles['pagination']}>
+              <div className={styles['pagination-info']}>
+                Hiển thị trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> của{' '}
+                <strong>{vouchers.length}</strong> voucher
+              </div>
+              <nav className={styles['pagination-nav']} aria-label="Pagination">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={styles['pagination-btn']}
                 >
-                  <span className="sr-only">Trước</span>
-                  <ChevronLeftIcon className="h-5 w-5" />
+                  <ChevronLeftIcon className={styles['pagination-icon']} />
                 </button>
                 {new Array(totalPages).fill(null).map((_, idx) => {
                   const page = idx + 1;
@@ -430,34 +418,27 @@ const VoucherManagement = () => {
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === page
-                            ? 'z-10 bg-red-600 border-red-600 text-white'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
+                        className={`${styles['pagination-page']} ${currentPage === page ? styles['active'] : ''}`}
                       >
                         {page}
                       </button>
                     );
                   } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <span key={page} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>;
+                    return <span key={page} className={styles['pagination-ellipsis']}>...</span>;
                   }
                   return null;
                 })}
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={styles['pagination-btn']}
                 >
-                  <span className="sr-only">Sau</span>
-                  <ChevronRightIcon className="h-5 w-5" />
+                  <ChevronRightIcon className={styles['pagination-icon']} />
                 </button>
               </nav>
             </div>
-            </div>
-          </div>
-        )}
-        </>
+          )}
+        </div>
       )}
 
       {/* Create Modal */}

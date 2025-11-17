@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -17,7 +17,10 @@ const CompanyDashboard = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [contentKey, setContentKey] = useState(0);
+  const contentAreaRef = useRef(null);
   const { user } = useAuth();
+  const prevLocationRef = useRef(location.pathname);
 
   // Build sidebar items; show Company Info only while pending
   const menuItems = [
@@ -66,6 +69,28 @@ const CompanyDashboard = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Handle smooth page transitions
+  useEffect(() => {
+    // Only trigger transition if pathname actually changed
+    if (prevLocationRef.current !== location.pathname) {
+      // Scroll to top smoothly
+      if (contentAreaRef.current) {
+        contentAreaRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Update content key for smooth transition
+      setContentKey(prev => prev + 1);
+
+      prevLocationRef.current = location.pathname;
+    }
+  }, [location.pathname]);
+
+  const handleNavClick = () => {
+    setSidebarOpen(false);
+  };
+
   return (
     <div className={styles.dashboardContainer}>
       
@@ -88,15 +113,17 @@ const CompanyDashboard = () => {
           <nav className={styles.sidebarNav}>
             {menuItems.map((item) => {
               const Icon = item.icon;
+              const active = isActive(item);
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`${styles.navItem} ${isActive(item) ? styles.navItemActive : ''}`}
-                  onClick={() => setSidebarOpen(false)}
+                  className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                  onClick={handleNavClick}
                 >
                   <Icon className={styles.navIcon} />
                   <span className={styles.navLabel}>{item.label}</span>
+                  {active && <div className={styles.activeIndicator} />}
                 </Link>
               );
             })}
@@ -119,8 +146,14 @@ const CompanyDashboard = () => {
           </div>
 
           {/* Content Area */}
-          <div className={styles.contentArea}>
-            <Outlet />
+          <div 
+            ref={contentAreaRef}
+            className={styles.contentArea}
+            key={contentKey}
+          >
+            <div className={styles.contentWrapper}>
+              <Outlet />
+            </div>
           </div>
         </main>
       </div>

@@ -6,6 +6,7 @@ import Dashboard from './Dashboard/Dashboard';
 import StaffManagement from './StaffManagement/StaffManagement';
 import CompanyManagement from './CompanyManagement/CompanyManagement';
 import UserManagement from './UserManagement/UserManagement';
+import CustomerManagement from './CustomerManagement/CustomerManagement';
 import ReportManagement from './ReportManagement/ReportManagement';
 import TourManagement from './TourManagement/TourManagement';
 import ForumManagement from './ForumManagement/ForumManagement';
@@ -63,6 +64,7 @@ const AdminDashboard = () => {
         <Route path="/report" element={<ReportManagement />} />
         <Route path="/tour" element={<TourManagement />} />
         <Route path="/forum" element={<ForumManagement />} />
+        <Route path="/customers" element={<CustomerManagement />} />
         <Route path="/contact" element={<CustomerContact />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>

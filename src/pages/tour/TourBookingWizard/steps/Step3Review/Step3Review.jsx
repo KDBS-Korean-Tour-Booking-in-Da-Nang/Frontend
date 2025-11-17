@@ -91,6 +91,10 @@ const Step3Review = () => {
         <h3 className={styles['review-title']}>{t('booking.step3.sections.contact')}</h3>
         <div className={styles['review-grid']}>
           <div className={styles['review-item']}>
+            <span className={styles['review-label']}>{t('booking.step3.labels.departureDate')}</span>
+            <span className={styles['review-value']}>{formatDate(plan.date)}</span>
+          </div>
+          <div className={styles['review-item']}>
             <span className={styles['review-label']}>{t('booking.step3.labels.fullName')}</span>
             <span className={styles['review-value']}>{contact.fullName}</span>
           </div>
@@ -121,14 +125,10 @@ const Step3Review = () => {
         </div>
       </div>
 
-      {/* Tour Details Review */}
+      {/* Guests Information Review */}
       <div className={styles['review-section']}>
-        <h3 className={styles['review-title']}>{t('booking.step3.sections.tour')}</h3>
-        <div className={styles['review-grid']}>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.departureDate')}</span>
-            <span className={styles['review-value']}>{formatDate(plan.date)}</span>
-          </div>
+        <h3 className={styles['review-title']}>{t('booking.step3.sections.guests')}</h3>
+        <div className={styles['guests-grid']}>
           <div className={styles['review-item']}>
             <span className={styles['review-label']}>{t('booking.step3.labels.totalGuests')}</span>
             <span className={styles['review-value']}>

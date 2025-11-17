@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronLeftIcon,
+  ArrowPathIcon,
+  FunnelIcon,
+  EyeIcon,
+} from '@heroicons/react/24/outline';
 import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
+import { getCompanyNames } from '../../../utils/companyUtils';
 
 const PAGE_SIZE = 15; // 3 rows x 5 columns
 
@@ -38,6 +44,7 @@ const VoucherList = () => {
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [companyNamesMap, setCompanyNamesMap] = useState(new Map());
   // Filter states
   const [filterType, setFilterType] = useState('ALL'); // 'ALL' | 'PERCENT' | 'AMOUNT'
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
@@ -108,6 +115,13 @@ const VoucherList = () => {
       });
       
       setVouchers(activeVouchers);
+      
+      // Fetch company names for all unique companyIds
+      const uniqueCompanyIds = [...new Set(activeVouchers.map(v => v.companyId).filter(Boolean))];
+      if (uniqueCompanyIds.length > 0) {
+        const namesMap = await getCompanyNames(uniqueCompanyIds);
+        setCompanyNamesMap(namesMap);
+      }
     } catch (err) {
       setError('Không thể tải danh sách voucher');
       setVouchers([]);
@@ -161,24 +175,25 @@ const VoucherList = () => {
   };
 
   // Get gradient colors based on voucher type
-  const getVoucherHeaderGradient = (discountType) => {
-    if (discountType === 'PERCENT') {
-      // Giảm %: Màu xanh da trời sáng (sky/cyan)
-      return 'bg-gradient-to-r from-sky-300 via-blue-300 to-cyan-300';
-    } else {
-      // Giảm tiền: Màu xanh da trời đậm (blue/indigo)
-      return 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600';
-    }
+  const getVoucherHeaderGradient = (discountType) =>
+    discountType === 'PERCENT' ? 'bg-[#2979FF]' : 'bg-[#36C2A8]';
+
+  const getDaysLeftText = (voucher) => {
+    if (!voucher?.endDate) return null;
+    const now = new Date();
+    const endDate = new Date(voucher.endDate);
+    if (Number.isNaN(endDate.getTime())) return null;
+    const diff = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return 'Đã hết hạn';
+    if (diff === 0) return 'Hết hạn hôm nay';
+    return `Còn ${diff} ngày`;
   };
 
   const getVoucherButtonGradient = (discountType) => {
     if (discountType === 'PERCENT') {
-      // Giảm %: Màu xanh da trời sáng
-      return 'bg-gradient-to-r from-sky-300 via-blue-300 to-cyan-300 hover:from-sky-400 hover:via-blue-400 hover:to-cyan-400';
-    } else {
-      // Giảm tiền: Màu xanh da trời đậm
-      return 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 hover:from-blue-600 hover:via-indigo-600 hover:to-blue-700';
+      return 'bg-[#2979FF] hover:bg-[#1f62d6]';
     }
+    return 'bg-[#36C2A8] hover:bg-[#2B9F89]';
   };
 
   const getStatusBadge = (voucher) => {
@@ -188,7 +203,7 @@ const VoucherList = () => {
     
     if (daysLeft !== null && daysLeft <= 7 && daysLeft > 0) {
       return (
-        <span className="absolute top-2 right-2 bg-yellow-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+        <span className="absolute top-3 right-3 bg-[#FFECC0] text-[#8B5E00] text-[11px] font-semibold px-2 py-1 rounded-full shadow-sm">
           Còn {daysLeft} ngày
         </span>
       );
@@ -231,18 +246,22 @@ const VoucherList = () => {
   }
 
   return (
-    <div className="page-gradient">
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="bg-transparent">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 px-1">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <button
               onClick={() => navigate('/tour')}
-              className="flex items-center text-sky-600 hover:text-sky-800 transition"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#dfe5ff] text-[#1f2e55] bg-[#f8faff] hover:bg-white hover:shadow-sm transition-all"
             >
-              <ChevronLeftIcon className="h-5 w-5 mr-1" />
-              <span>Quay lại danh sách tour</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#e6eeff] text-[#2a55c5]">
+                <ChevronLeftIcon className="h-4 w-4" />
+              </span>
+              <span className="font-semibold text-sm whitespace-nowrap">
+                Quay lại danh sách tour
+              </span>
             </button>
             <button
               onClick={() => {
@@ -250,59 +269,61 @@ const VoucherList = () => {
                 fetchVouchers();
               }}
               disabled={refreshing || loading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#dfe5ff] text-[#1f2e55] bg-[#f8faff] hover:bg-white hover:shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg 
-                className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>{refreshing ? 'Đang tải...' : 'Làm mới'}</span>
+              <ArrowPathIcon
+                className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`}
+              />
+              <span className="font-semibold text-sm">
+                {refreshing ? 'Đang tải…' : 'Làm mới'}
+              </span>
             </button>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            {t('tourList.voucherList.title') || 'Danh sách Voucher'}
-          </h1>
-          <p className="text-gray-600">
-            Khám phá các voucher ưu đãi đặc biệt dành cho bạn
-          </p>
+          <div className="mt-4">
+            <h1 className="text-3xl font-bold text-[#0f172a] tracking-tight">
+              {t('tourList.voucherList.title') || 'Danh sách Voucher'}
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Khám phá các voucher ưu đãi đặc biệt dành cho bạn
+            </p>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap gap-4 items-center">
+        <div className="mb-10 flex flex-wrap gap-4 items-center bg-white/90 rounded-[30px] shadow-sm px-6 py-4 border border-[#e5edff]">
           {/* Filter by Type */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Loại voucher:</span>
+            <span className="text-sm font-medium text-gray-600 inline-flex items-center gap-2">
+              <FunnelIcon className="h-4 w-4 text-gray-400" />
+              Loại voucher:
+            </span>
             <div className="flex gap-2">
               <button
                 onClick={() => setFilterType('ALL')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   filterType === 'ALL'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#2979FF] text-white shadow-md'
+                    : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
                 Tất cả
               </button>
               <button
                 onClick={() => setFilterType('PERCENT')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   filterType === 'PERCENT'
-                    ? 'bg-sky-400 text-white shadow-md'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#9ecbff] text-white shadow-md'
+                    : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
                 Giảm %
               </button>
               <button
                 onClick={() => setFilterType('AMOUNT')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   filterType === 'AMOUNT'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#36C2A8] text-white shadow-md'
+                    : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
                 Giảm tiền
@@ -311,25 +332,25 @@ const VoucherList = () => {
           </div>
 
           {/* Sort by Newest */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm font-medium text-gray-700">Sắp xếp:</span>
             <div className="flex gap-2">
               <button
                 onClick={() => setSortBy('newest')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   sortBy === 'newest'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#2979FF] text-white shadow-md'
+                    : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
                 Mới nhất
               </button>
               <button
                 onClick={() => setSortBy('oldest')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   sortBy === 'oldest'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-[#2979FF] text-white shadow-md'
+                    : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
                 Cũ nhất
@@ -337,15 +358,11 @@ const VoucherList = () => {
             </div>
           </div>
 
-          {/* Result count */}
-          <div className="ml-auto text-sm text-gray-600">
-            Hiển thị {displayedVouchers.length} / {filteredAndSortedVouchers.length} voucher
-          </div>
         </div>
 
         {/* Vouchers Grid */}
         {filteredAndSortedVouchers.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+          <div className="bg-white rounded-3xl shadow-md p-12 text-center border border-[#e4e9fb]">
             <svg
               className="mx-auto h-24 w-24 text-gray-400 mb-4"
               fill="none"
@@ -370,34 +387,37 @@ const VoucherList = () => {
             {filterType !== 'ALL' && (
               <button
                 onClick={() => setFilterType('ALL')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mr-2"
+                className="px-5 py-2 bg-[#2979FF] text-white rounded-full hover:bg-[#1f62d6] transition mr-2"
               >
                 Xem tất cả voucher
               </button>
             )}
             <button
               onClick={() => navigate('/tour')}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="px-6 py-2 bg-[#2979FF] text-white rounded-full hover:bg-[#1f62d6] transition"
             >
               Quay lại danh sách tour
             </button>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mb-10"
+              style={{ gridAutoRows: '1fr' }}
+            >
               {displayedVouchers.map((voucher) => (
                 <div
                   key={voucher.id}
-                  className="relative bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group transform hover:scale-105 flex flex-col"
+                  className="relative bg-white rounded-[24px] border border-[#e3e9ff] shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full"
                 >
                   {/* Status Badge */}
                   {getStatusBadge(voucher)}
                   
                   {/* Gradient Header */}
-                  <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-4 text-white`}>
+                  <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-3.5 text-white`}>
                     <div className="flex items-center justify-start mb-1">
-                      <span className="text-[10px] font-semibold opacity-90 truncate max-w-full" title={`Company ID: ${voucher.companyId || 'N/A'}`}>
-                        Company ID: {voucher.companyId || 'N/A'}
+                      <span className="text-[11px] font-semibold opacity-90 truncate max-w-full tracking-wide" title={companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}>
+                        {companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}
                       </span>
                     </div>
                     {/* Discount Value - Centered */}
@@ -425,14 +445,14 @@ const VoucherList = () => {
                   <div className="p-4 flex flex-col flex-grow">
                     {/* Top section - có thể co giãn */}
                     <div className="flex-grow min-h-0">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem]">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
                         {voucher.name}
                       </h3>
 
-                      <div className="space-y-2 mb-3">
-                        <div className="flex items-center text-xs text-gray-600">
+                      <div className="flex items-center justify-between mb-3 gap-3">
+                        <div className="flex items-center text-xs text-gray-500">
                           <svg
-                            className="h-3 w-3 mr-1.5 text-gray-400"
+                            className="h-4 w-4 mr-2 text-gray-400"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -444,20 +464,41 @@ const VoucherList = () => {
                               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                           </svg>
-                          <span className="leading-tight">Còn lại: <span className={`font-semibold ${voucher.discountType === 'PERCENT' ? 'text-sky-600' : 'text-blue-700'}`}>{voucher.remainingQuantity !== undefined ? voucher.remainingQuantity : voucher.totalQuantity}</span></span>
+                          <span className="leading-tight text-sm">
+                            Còn lại:{' '}
+                            <span
+                              className={`font-semibold ${
+                                voucher.discountType === 'PERCENT'
+                                  ? 'text-[#2979FF]'
+                                  : 'text-[#2BAF9F]'
+                              }`}
+                            >
+                              {voucher.remainingQuantity !== undefined
+                                ? voucher.remainingQuantity
+                                : voucher.totalQuantity}
+                            </span>
+                          </span>
                         </div>
+                        <button
+                          onClick={() =>
+                            navigate(`/tour/voucher?id=${voucher.id || voucher.voucherId}`)
+                          }
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1f2e55] border border-[#dfe3f8] rounded-full px-3 py-1.5 bg-[#f6f8ff] hover:bg-white hover:shadow-sm transition-colors"
+                        >
+                          <EyeIcon className="h-3.5 w-3.5 text-[#2979FF]" />
+                          Chi tiết
+                        </button>
                       </div>
                     </div>
 
                     {/* Bottom section - Fixed position above button */}
                     <div className="mt-auto">
-                      {/* Date Range and Tour Information - Side by side */}
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        {/* Date Range */}
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <div className="flex items-center text-[10px] text-gray-600 mb-1">
+                      {/* Date Range */}
+                      <div className="bg-[#f6f8ff] rounded-2xl p-3 border border-[#edf1ff] mb-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex items-center text-[11px] text-gray-600">
                             <svg
-                              className="h-3 w-3 mr-1 text-gray-400"
+                              className="h-4 w-4 mr-2 text-gray-400"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -471,38 +512,30 @@ const VoucherList = () => {
                             </svg>
                             <span className="font-medium">Thời gian</span>
                           </div>
-                          <div className="text-[10px] text-gray-700 space-y-0.5">
-                            <div>Từ: <span className="font-semibold">{formatDate(voucher.startDate)}</span></div>
-                            <div>Đến: <span className="font-semibold">{formatDate(voucher.endDate)}</span></div>
-                          </div>
-                        </div>
-
-                        {/* View Details - Clickable */}
-                        <div 
-                          className="bg-blue-50 rounded-lg p-2 cursor-pointer hover:bg-blue-100 transition-colors flex items-center justify-center min-h-[60px]"
-                          onClick={() => navigate(`/tour/voucher/${voucher.id || voucher.voucherId}`)}
-                        >
-                          <div className="flex items-center text-blue-600 font-semibold text-[10px]">
-                            <svg
-                              className="h-3 w-3 mr-1 text-blue-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                          {getDaysLeftText(voucher) && (
+                            <span
+                              className={`text-[11px] font-semibold px-3 py-1 rounded-full ${
+                                voucher.discountType === 'PERCENT'
+                                  ? 'bg-[#e5eeff] text-[#1f2e55]'
+                                  : 'bg-[#e1f7f1] text-[#1d6c5c]'
+                              }`}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                            <span>Chi tiết</span>
+                              {getDaysLeftText(voucher)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-700 space-y-0.5 font-medium leading-relaxed">
+                          <div>
+                            Từ:{' '}
+                            <span className="font-semibold">
+                              {formatDate(voucher.startDate)}
+                            </span>
+                          </div>
+                          <div>
+                            Đến:{' '}
+                            <span className="font-semibold">
+                              {formatDate(voucher.endDate)}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -524,7 +557,7 @@ const VoucherList = () => {
                             showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
                           }
                         }}
-                        className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200`}
+                        className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-2.5 px-3 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm`}
                       >
                         Sao chép mã
                       </button>
@@ -539,7 +572,7 @@ const VoucherList = () => {
               <div className="flex justify-center mt-8">
                 <button
                   onClick={handleLoadMore}
-                  className="bg-white text-black border-2 border-gray-300 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="bg-white text-[#05275b] border-2 border-[#dbe1ff] px-8 py-3 rounded-full font-semibold hover:bg-[#f6f8ff] hover:border-[#b9c7ff] transition-all duration-200 shadow-sm hover:shadow-lg"
                 >
                   Xem thêm
                 </button>

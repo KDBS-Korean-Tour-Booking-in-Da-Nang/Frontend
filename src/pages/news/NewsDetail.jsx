@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import articleService from '../../services/articleService';
@@ -7,7 +7,8 @@ import { htmlToJsx } from '../../utils/htmlConverter';
 import styles from './news.module.css';
 
 const NewsDetail = () => {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [article, setArticle] = useState(null);
@@ -43,15 +44,15 @@ const NewsDetail = () => {
   if (loading) {
     return (
       <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
-        <div className={styles.pageBackground} aria-hidden="true"></div>
-        <div className={styles.pageContainer}>
-          <div className={`${styles.contentWrap} flex items-center justify-center`}>
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-200 border-t-primary mx-auto mb-4"></div>
-              <p className="text-gray-600">{t('newsDetail.loading')}</p>
-            </div>
+      <div className={styles.pageBackground} aria-hidden="true"></div>
+      <div className={styles.pageContainer}>
+        <div className={`${styles.contentWrap} flex items-center justify-center`}>
+          <div className={`${styles.card} max-w-md w-full text-center py-12`}>
+            <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-200 border-t-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('newsDetail.loading')}</p>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -62,24 +63,24 @@ const NewsDetail = () => {
         <div className={styles.pageBackground} aria-hidden="true"></div>
         <div className={styles.pageContainer}>
           <div className={`${styles.contentWrap} flex items-center justify-center`}>
-            <div className={`${styles.card} max-w-md w-full p-8 text-center`}>
-          <DocumentTextIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('newsDetail.errorTitle')}</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <div className="space-y-3">
-            <button
-              onClick={() => loadArticle(id)}
-              className="w-full bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg transition-colors shadow-md"
-            >
-              {t('newsDetail.retry')}
-            </button>
-            <button
-              onClick={() => navigate('/news')}
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              {t('newsDetail.backToNewsPage')}
-            </button>
-          </div>
+          <div className={`${styles.card} max-w-md w-full p-8 text-center space-y-4`}>
+        <DocumentTextIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900">{t('newsDetail.errorTitle')}</h2>
+        <p className="text-gray-600">{error}</p>
+        <div className="space-y-3 pt-2">
+          <button
+            onClick={() => loadArticle(id)}
+            className={`${styles.softButton} w-full justify-center`}
+          >
+            {t('newsDetail.retry')}
+          </button>
+          <button
+            onClick={() => navigate('/news')}
+            className={`${styles.softButton} ${styles.ghostButton} w-full justify-center`}
+          >
+            {t('newsDetail.backToNewsPage')}
+          </button>
+        </div>
             </div>
           </div>
         </div>
@@ -93,16 +94,16 @@ const NewsDetail = () => {
         <div className={styles.pageBackground} aria-hidden="true"></div>
         <div className={styles.pageContainer}>
           <div className={`${styles.contentWrap} flex items-center justify-center`}>
-            <div className={`${styles.card} max-w-md w-full p-8 text-center`}>
-          <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('newsDetail.notFoundTitle')}</h2>
-          <p className="text-gray-600 mb-6">{t('newsDetail.notFoundMessage')}</p>
-          <button
-            onClick={() => navigate('/news')}
-            className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg transition-colors shadow-md"
-          >
-            {t('newsDetail.backToNewsPage')}
-          </button>
+          <div className={`${styles.card} max-w-md w-full p-8 text-center space-y-4`}>
+        <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+        <h2 className="text-2xl font-bold text-gray-900">{t('newsDetail.notFoundTitle')}</h2>
+        <p className="text-gray-600">{t('newsDetail.notFoundMessage')}</p>
+        <button
+          onClick={() => navigate('/news')}
+          className={`${styles.softButton} w-full justify-center`}
+        >
+          {t('newsDetail.backToNewsPage')}
+        </button>
             </div>
           </div>
         </div>
@@ -132,18 +133,17 @@ const NewsDetail = () => {
         {/* Header */}
         <div className={`${styles.contentWrap} pt-6 pb-0`}>
           <div className={`${styles.card} px-4 sm:px-6 lg:px-8 py-4`}>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-3 justify-between">
               <button
                 onClick={() => navigate('/news')}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                className={`${styles.softButton} ${styles.ghostButton} text-sm gap-2`}
               >
-                <ArrowLeftIcon className="h-5 w-5 mr-2" />
+                <ArrowLeftIcon className="h-4 w-4" />
                 {t('newsDetail.backToNews')}
               </button>
-              <div className="h-6 border-l border-gray-200" />
               <Link
                 to="/news"
-                className="text-primary hover:text-primary-hover font-medium transition-colors"
+                className="text-primary hover:text-primary-hover font-medium transition-colors text-sm"
               >
                 {t('newsDetail.news')}
               </Link>
@@ -155,12 +155,13 @@ const NewsDetail = () => {
         <div className={`${styles.contentWrap} pt-6`}>
           <article className={`${styles.card} overflow-hidden`}>
             {/* Article Header */}
-            <div className="p-8 border-b border-gray-200">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4 leading-tight">
+            <div className="p-8 border-b border-gray-200 space-y-4">
+              <p className={styles.heroEyebrow}>{t('newsDetail.pill', { defaultValue: 'Feature' })}</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
                 {article.articleTitle}
               </h1>
-              <div className="flex items-center space-x-6 text-sm text-gray-500 mb-1">
-                <div className="flex items-center">
+              <div className={styles.articleMeta}>
+                <div className={`${styles.articleMetaPill} flex items-center`}>
                   <CalendarIcon className="h-4 w-4 mr-2" />
                   {new Date(article.articleCreatedDate).toLocaleDateString('vi-VN', {
                     year: 'numeric',
@@ -168,7 +169,7 @@ const NewsDetail = () => {
                     day: 'numeric'
                   })}
                 </div>
-                <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-xs font-medium rounded-full">
+                <span className={`${styles.articleMetaPill} uppercase tracking-[0.2em] text-xs`}>
                   {t('newsDetail.category')}
                 </span>
               </div>
@@ -192,7 +193,7 @@ const NewsDetail = () => {
             </div>
 
             {/* Article Footer */}
-            <div className="px-8 py-6 bg-gray-50 border-t border-gray-200">
+            <div className={`${styles.articleFooter} px-8 py-6 border-t border-gray-200`}>
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">
                   {t('newsDetail.publishedAt')}: {new Date(article.articleCreatedDate).toLocaleString('vi-VN')}
@@ -200,13 +201,13 @@ const NewsDetail = () => {
                 <div className="flex space-x-4">
                   <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="text-primary hover:text-primary-hover font-medium text-sm transition-colors"
+                    className={`${styles.softButton} ${styles.ghostButton} text-sm px-4 py-2`}
                   >
                     {t('newsDetail.backToTop')}
                   </button>
                   <Link
                     to="/news"
-                    className="text-primary hover:text-primary-hover font-medium text-sm transition-colors"
+                    className={`${styles.softButton} text-sm px-4 py-2`}
                   >
                     {t('newsDetail.viewMoreNews')}
                   </Link>

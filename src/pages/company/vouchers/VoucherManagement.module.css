@@ -1,0 +1,404 @@
+/* Minimal Soft Korean Style - Voucher Management */
+
+.voucher-management {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 32px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.management-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.create-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1a8eea 0%, #3b82f6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(26, 142, 234, 0.2);
+  letter-spacing: 0.2px;
+}
+
+.create-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1478c3 0%, #2563eb 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.3);
+}
+
+.create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading-text {
+  padding: 12px 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.loading-message {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Warning Message */
+.warning-box {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.warning-title {
+  color: #92400e;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.warning-text {
+  color: #78350f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.warning-info {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #a16207;
+}
+
+/* Empty State */
+.empty-state {
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f0;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-message {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Content Wrapper */
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+/* Voucher Grid */
+.voucher-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
+}
+
+@media (min-width: 640px) {
+  .voucher-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .voucher-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .voucher-grid {
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: auto;
+  }
+}
+
+/* Voucher Card */
+.voucher-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.voucher-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: #e5e5e5;
+}
+
+.voucher-code-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.voucher-code-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.voucher-code {
+  font-size: 12px;
+  font-family: monospace;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.voucher-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+
+.voucher-info {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.voucher-status {
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.status-active {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.status-expired {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.status-inactive {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Tours List */
+.voucher-tours {
+  font-size: 13px;
+  color: #374151;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.tours-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.tours-list {
+  font-size: 12px;
+  max-height: 80px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tour-item {
+  background: #eff6ff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: #1a8eea;
+}
+
+.tours-global {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.voucher-dates {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* Pagination */
+.pagination {
+  background: #ffffff;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f5f5f5;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.pagination-info strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.pagination-nav {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #fafafa;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.pagination-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 20px;
+}
+
+.pagination-page:hover {
+  background: #fafafa;
+  border-color: #d1d5db;
+}
+
+.pagination-page.active {
+  background: linear-gradient(135deg, #1a8eea 0%, #3b82f6 100%);
+  border-color: #1a8eea;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(26, 142, 234, 0.2);
+}
+
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .voucher-management {
+    padding: 20px 12px;
+  }
+
+  .management-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .header-title {
+    font-size: 20px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pagination-info {
+    margin-bottom: 0;
+  }
+}
+

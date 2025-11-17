@@ -1,6 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import {
+  MagnifyingGlassIcon,
+  ClockIcon,
+  TicketIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  DocumentTextIcon
+} from "@heroicons/react/24/outline";
 import { useToursAPI } from "../../../hooks/useToursAPI";
 import { useAuth } from "../../../contexts/AuthContext";
 import TourCard from "../TourCard/TourCard";
@@ -26,28 +39,14 @@ const TourList = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1); // Pagination cho client-side (1-based)
   const TOURS_PER_PAGE = 12; // 4 cột x 3 hàng
   const debounceRef = useRef(null);
   const controllerRef = useRef(null);
-  const carouselIntervalRef = useRef(null);
+  const sliderRef = useRef(null);
 
   useEffect(() => {
     fetchTours();
-  }, []);
-
-  // Carousel auto-play
-  useEffect(() => {
-    carouselIntervalRef.current = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length);
-    }, 4000); // Change image every 4 seconds
-
-    return () => {
-      if (carouselIntervalRef.current) {
-        clearInterval(carouselIntervalRef.current);
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -140,14 +139,27 @@ const TourList = () => {
     navigate("/user/booking-history");
   };
 
-  const handleBannerClick = (index) => {
-    setCurrentBannerIndex(index);
-    if (carouselIntervalRef.current) {
-      clearInterval(carouselIntervalRef.current);
-    }
-    carouselIntervalRef.current = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length);
-    }, 4000);
+  // React Slick settings
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    pauseOnHover: true,
+    fade: true,
+    cssEase: 'linear',
+    arrows: false,
+    customPaging: (i) => (
+      <div className={styles['custom-dot']} />
+    ),
+    appendDots: (dots) => (
+      <div className={styles['slick-dots-container']}>
+        <ul className={styles['slick-dots']}>{dots}</ul>
+      </div>
+    )
   };
 
   // Tính toán pagination cho client-side (khi không ở search mode)
@@ -176,17 +188,14 @@ const TourList = () => {
 
   return (
     <div className={styles["tour-list-container"]}>
-      {/* Banner Carousel */}
+      {/* Banner Carousel with React Slick */}
       <div className={styles["banner-carousel"]}>
-        <div className={styles["carousel-wrapper"]}>
+        <Slider ref={sliderRef} {...sliderSettings}>
           {bannerImages.map((img, index) => (
-            <div
-              key={index}
-              className={`${styles["carousel-slide"]} ${
-                index === currentBannerIndex ? styles["active"] : ""
-              }`}
-            >
-              <img src={img} alt={`Banner ${index + 1}`} />
+            <div key={index} className={styles["carousel-slide"]}>
+              <div className={styles["slide-image"]}>
+                <img src={img} alt={`Banner ${index + 1}`} />
+              </div>
               <div className={styles["banner-overlay"]}>
                 <div className={styles["banner-content"]}>
                   <h1 className={styles["banner-title"]}>
@@ -199,19 +208,7 @@ const TourList = () => {
               </div>
             </div>
           ))}
-        </div>
-        <div className={styles["carousel-dots"]}>
-          {bannerImages.map((_, index) => (
-            <button
-              key={index}
-              className={`${styles["dot"]} ${
-                index === currentBannerIndex ? styles["active"] : ""
-              }`}
-              onClick={() => handleBannerClick(index)}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
+        </Slider>
       </div>
 
       {/* Search Section */}
@@ -220,19 +217,7 @@ const TourList = () => {
           <div className={styles["search-wrapper"]}>
             <div className={styles["search-bar"]}>
               <div className={styles["search-input-wrapper"]}>
-                <svg
-                  className={styles["search-icon"]}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                <MagnifyingGlassIcon className={styles["search-icon"]} />
                 <input
                   type="text"
                   placeholder={t("tourList.search.placeholder")}
@@ -253,19 +238,7 @@ const TourList = () => {
                   onClick={handleHistoryBooking}
                   title={t("tourList.historyBooking.title")}
                 >
-                  <svg
-                    className={styles["action-icon"]}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <ClockIcon className={styles["action-icon"]} />
                   <span className={styles["action-text"]}>
                     {t("tourList.historyBooking.title")}
                   </span>
@@ -278,19 +251,7 @@ const TourList = () => {
                 onClick={() => navigate("/tour/voucher-list")}
                 title={t("tourList.voucherList.title")}
               >
-                <svg
-                  className={styles["action-icon"]}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                  />
-                </svg>
+                <TicketIcon className={styles["action-icon"]} />
                 <span className={styles["action-text"]}>
                   {t("tourList.voucherList.title")}
                 </span>
@@ -329,19 +290,7 @@ const TourList = () => {
               ) : (
                 <div className={styles["no-tours"]}>
                   <div className={styles["no-tours-content"]}>
-                    <svg
-                      className={styles["no-tours-icon"]}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 6.291A7.962 7.962 0 0012 5c-2.34 0-4.29 1.009-5.824 2.709"
-                      />
-                    </svg>
+                    <DocumentTextIcon className={styles["no-tours-icon"]} />
                     <h3>{t("tourList.empty.title")}</h3>
                     <p>{t("tourList.empty.desc")}</p>
                   </div>
@@ -357,16 +306,18 @@ const TourList = () => {
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
                       aria-label="First page"
+                      title="Trang đầu"
                     >
-                      ««
+                      <ChevronDoubleLeftIcon className={styles["pagination-icon"]} />
                     </button>
                     <button
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(currentPage - 1)}
                       disabled={currentPage === 1}
                       aria-label="Previous page"
+                      title="Trang trước"
                     >
-                      ‹
+                      <ChevronLeftIcon className={styles["pagination-icon"]} />
                     </button>
 
                     {/* Page numbers */}
@@ -424,16 +375,18 @@ const TourList = () => {
                       onClick={() => setCurrentPage(currentPage + 1)}
                       disabled={currentPage === clientTotalPages}
                       aria-label="Next page"
+                      title="Trang sau"
                     >
-                      ›
+                      <ChevronRightIcon className={styles["pagination-icon"]} />
                     </button>
                     <button
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(clientTotalPages)}
                       disabled={currentPage === clientTotalPages}
                       aria-label="Last page"
+                      title="Trang cuối"
                     >
-                      »»
+                      <ChevronDoubleRightIcon className={styles["pagination-icon"]} />
                     </button>
                   </div>
                   <div className={styles["pagination-info"]}>

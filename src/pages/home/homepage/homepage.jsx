@@ -421,7 +421,7 @@ const Homepage = () => {
           <div className="py-8 sm:py-12 pb-16 sm:pb-20 px-4 sm:px-6 mt-16">
             <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
             {/* Left Content */}
-            <div className="space-y-4 sm:space-y-6 text-center lg:text-left lg:ml-16">
+            <div className="space-y-4 sm:space-y-6 text-left lg:ml-16">
               {/* Explore Danang Badge */}
               <div className="explore-badge inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-6 py-3 shadow-sm hover:shadow-lg hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                 <span className="text-gray-700 font-medium text-base">{t('home.hero.badge')}</span>
@@ -440,7 +440,7 @@ const Homepage = () => {
               </h1>
 
               {/* Description */}
-              <p className="hero-desc text-sm sm:text-base text-gray-600 max-w-sm mx-auto lg:mx-0 leading-relaxed">
+              <p className="hero-desc text-sm sm:text-base text-gray-600 max-w-sm leading-relaxed text-left">
                 {t('home.hero.desc')}
               </p>
 
@@ -607,7 +607,7 @@ const Homepage = () => {
             </div>
 
             {/* Destination Carousel with React Slick */}
-            <div className="mb-8 max-w-5xl mx-auto relative" style={{ zIndex: 1, overflow: 'visible' }}>
+            <div className="destinations-slider-wrapper mb-8 max-w-5xl mx-auto relative" style={{ zIndex: 1, overflow: 'visible' }}>
               {toursLoading ? (
                 <div className="text-center py-12 text-gray-500">{t('home.destinations.loading', 'Đang tải danh sách tour...')}</div>
               ) : totalDisplayTours > 0 ? (
@@ -627,7 +627,7 @@ const Homepage = () => {
                           onClick={() => {
                             const isDefaultCard = Boolean(item?.isDefault) || String(item?.id || '').startsWith('default-tour-');
                             if (!isDefaultCard && item?.id) {
-                              navigate(`/tour/${item.id}`);
+                              navigate(`/tour/detail?id=${item.id}`);
                             } else {
                               navigate('/tour');
                             }
@@ -712,11 +712,11 @@ const Homepage = () => {
             </div>
 
             {/* 2 columns - responsive layout */}
-            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
               {/* LEFT: feature cards — responsive width and margin */}
-              <div className="lg:col-span-6 order-2 lg:order-1">
+              <div className="lg:col-span-5 lg:col-start-2">
                 {/* Responsive width and margin */}
-                <div className="space-y-6 w-full max-w-[475px] mx-auto lg:mx-0 lg:ml-[96px] xl:ml-[120px]">
+                <div className="space-y-6 w-full max-w-[450px] mx-auto lg:mx-0">
                   {/* Card 1 */}
                   <div className="feature-card bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl hover:scale-105 hover:-translate-y-2 transition-all duration-500 ease-out cursor-pointer">
                     <div className="flex items-center gap-4">
@@ -766,7 +766,7 @@ const Homepage = () => {
               </div>
 
               {/* RIGHT: 2 ảnh cùng size với animation hover - responsive */}
-              <div className="lg:col-span-6 relative lg:pr-6 order-1 lg:order-2">
+              <div className="lg:col-span-6 lg:col-start-7 relative lg:pr-6">
                 {/* Responsive container for images */}
                 <div className="relative w-full max-w-[540px] h-[300px] sm:h-[400px] lg:h-[440px] mx-auto lg:ml-auto lg:translate-x-[64px] lg:-translate-y-[120px] group cursor-pointer">
                   <img

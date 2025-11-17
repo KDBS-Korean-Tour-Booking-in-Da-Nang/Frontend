@@ -42,6 +42,12 @@
   gap: 1rem;
 }
 
+.guests-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
 .review-item {
   display: flex;
   flex-direction: column;
@@ -147,6 +153,10 @@
 @media (max-width: 768px) {
   .review-grid {
     grid-template-columns: 1fr;
+  }
+
+  .guests-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .members-table {

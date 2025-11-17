@@ -6,7 +6,7 @@ import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
   const { contact, setContact } = useBooking();
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, loading: authLoading } = useAuth();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'vi';
   const [errors, setErrors] = useState({});
@@ -21,6 +21,7 @@ const Step1Contact = () => {
   const previousValueRef = useRef(''); // Track previous value to detect deletion
   const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
   const originalAutoFilledNameRef = useRef(null); // Track original auto-filled name with special characters
+  const [hasUserInStorage, setHasUserInStorage] = useState(false); // Track if user exists in storage
   
   // Date formatting helpers (copied from Step2Details)
   const getDateSeparator = () => {
@@ -459,7 +460,6 @@ const Step1Contact = () => {
       // Normalize to standard format (YYYY-MM-DD)
       return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     } catch (error) {
-      console.error('Error normalizing date:', error);
       return dateString;
     }
   };
@@ -641,18 +641,58 @@ const Step1Contact = () => {
   const handleUsePersonalInfo = async (checked) => {
     setUsePersonalInfo(checked);
     
-    if (checked && user) {
-      // Refresh user data from server to ensure we have the latest information
+    if (checked) {
+      // Get user data - try context first, then storage as fallback (for refresh scenarios)
       let currentUser = user;
-      try {
-        const refreshedUser = await refreshUser();
-        if (refreshedUser) {
-          currentUser = refreshedUser;
+      
+      // If user is not loaded from context yet, try to get from storage
+      if (!currentUser && !authLoading) {
+        try {
+          const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+          if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+          }
+        } catch (error) {
+          // Error parsing user from storage
         }
-      } catch (error) {
-        console.error('Error refreshing user data:', error);
-        // Continue with existing user data if refresh fails
       }
+      
+      // Wait for auth to finish loading if still loading
+      if (!currentUser && authLoading) {
+        // Wait a bit for auth to finish loading
+        await new Promise(resolve => setTimeout(resolve, 100));
+        currentUser = user;
+        // If still not available, try storage again
+        if (!currentUser) {
+          try {
+            const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+            if (savedUser) {
+              currentUser = JSON.parse(savedUser);
+            }
+          } catch (error) {
+            // Error parsing user from storage
+          }
+        }
+      }
+      
+      if (!currentUser) {
+        return;
+      }
+      
+      // Refresh user data from server to ensure we have the latest information
+      // Only refresh if context user is available (refreshUser requires context user)
+      if (user && user.email) {
+        try {
+          const refreshedUser = await refreshUser();
+          if (refreshedUser) {
+            currentUser = refreshedUser;
+          }
+        } catch (error) {
+          // Continue with existing user data if refresh fails
+        }
+      }
+      // If user was loaded from storage but context hasn't updated yet,
+      // use the stored user data directly (it will be refreshed next time when context loads)
       
       const newContact = { ...contact };
       const newAutoFilledFields = new Set();
@@ -735,15 +775,28 @@ const Step1Contact = () => {
         } catch (_) {}
       }
 
+      // Clear any existing errors before auto-filling to prevent showing errors
+      setErrors({});
+      
       // commit new contact after composing all fields (including dob if any)
       setContact(newContact);
       setAutoFilledFields(newAutoFilledFields);
       
-      // Validate auto-filled fields to clear any existing errors
+      // Don't mark auto-filled fields as touched to prevent showing errors
+      // Only mark fields that need validation feedback (like dob for age check)
+      const newTouchedFields = new Set();
+      // Only mark dob as touched if it was auto-filled and needs age validation
+      if (newContact.dob) {
+        newTouchedFields.add('dob');
+      }
+      setTouchedFields(newTouchedFields);
+      
+      // Validate auto-filled fields to ensure they're valid (but don't show errors)
       // Use setTimeout to ensure state updates are processed first
       setTimeout(() => {
         Object.keys(newContact).forEach(fieldName => {
           if (newContact[fieldName]) {
+            // Validate silently (errors won't show because fields aren't touched)
             validateField(fieldName, newContact[fieldName]);
           }
         });
@@ -813,6 +866,25 @@ const Step1Contact = () => {
     }
   }, [currentLanguage]); // Only trigger when language changes
 
+  // Check if user exists in storage (for refresh scenarios)
+  useEffect(() => {
+    const checkUserInStorage = () => {
+      try {
+        const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+        setHasUserInStorage(!!savedUser);
+      } catch (error) {
+        setHasUserInStorage(false);
+      }
+    };
+    
+    checkUserInStorage();
+    
+    // Also check when auth loading completes
+    if (!authLoading) {
+      checkUserInStorage();
+    }
+  }, [authLoading, user]);
+
   // Update error messages when language changes
   useEffect(() => {
     // If there are existing errors, re-translate them
@@ -878,42 +950,53 @@ const Step1Contact = () => {
 
     switch (name) {
       case 'fullName': {
-        // Regex to allow letters from all languages, spaces, hyphens, and apostrophes
+        // Regex to allow letters, numbers, spaces, hyphens, and apostrophes
         // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
-        const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
+        // Also allows numbers like: John123, Mary2, etc.
+        const nameRegex = /^[\p{L}\p{M}\d\s\-']+$/u;
         
         if (!value.trim()) {
           newErrors.fullName = t('booking.errors.fullNameRequired');
         } else {
-          // If name originally came from auto-fill, allow special characters from original
-          // This allows auto-filled names with special characters to pass validation
-          const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
+          // Check if there's at least one letter (required)
+          const hasLetter = /[\p{L}\p{M}]/u.test(value.trim());
           
-          if (hasOriginalAutoFilledName) {
-            // Extract allowed special characters from original auto-filled name
-            const original = originalAutoFilledNameRef.current;
-            const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-']/gu) || [];
-            const allowedSpecialCharsSet = new Set(allowedSpecialChars);
-            
-            // Check if current value only contains allowed characters (letters, spaces, hyphens, apostrophes, and original special chars)
-            const isValidName = value.trim().split('').every(char => {
-              const isLetterOrSpace = /[\p{L}\p{M}\s\-']/u.test(char);
-              const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
-              return isLetterOrSpace || isAllowedSpecialChar;
-            });
-            
-            if (!isValidName) {
-              // Contains new special characters not in original
-              newErrors.fullName = t('booking.errors.fullNameInvalid');
-            } else {
-              delete newErrors.fullName;
-            }
+          if (!hasLetter) {
+            // No letter found, invalid name
+            newErrors.fullName = t('booking.errors.fullNameInvalid');
           } else {
-            // No original auto-filled name, use strict validation
-            if (!nameRegex.test(value.trim())) {
-              newErrors.fullName = t('booking.errors.fullNameInvalid');
+            // If name originally came from auto-fill, allow special characters from original
+            // This allows auto-filled names with special characters to pass validation
+            const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
+            
+            if (hasOriginalAutoFilledName) {
+              // Extract allowed special characters from original auto-filled name
+              const original = originalAutoFilledNameRef.current;
+              const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-'\d]/gu) || [];
+              const allowedSpecialCharsSet = new Set(allowedSpecialChars);
+              
+              // Check if current value only contains allowed characters (letters, numbers, spaces, hyphens, apostrophes, and original special chars)
+              const isValidName = value.trim().split('').every(char => {
+                const isLetter = /[\p{L}\p{M}]/u.test(char);
+                const isDigit = /\d/u.test(char);
+                const isSpaceOrPunctuation = /[\s\-']/u.test(char);
+                const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
+                return isLetter || isDigit || isSpaceOrPunctuation || isAllowedSpecialChar;
+              });
+              
+              if (!isValidName) {
+                // Contains new special characters not in original
+                newErrors.fullName = t('booking.errors.fullNameInvalid');
+              } else {
+                delete newErrors.fullName;
+              }
             } else {
-              delete newErrors.fullName;
+              // No original auto-filled name, use validation that allows letters, numbers, spaces, hyphens, apostrophes
+              if (!nameRegex.test(value.trim())) {
+                newErrors.fullName = t('booking.errors.fullNameInvalid');
+              } else {
+                delete newErrors.fullName;
+              }
             }
           }
         }
@@ -1017,7 +1100,8 @@ const Step1Contact = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Special handling for full name input - only allow letters, spaces, hyphens, apostrophes
+    // Special handling for full name input - allow letters, numbers, spaces, hyphens, apostrophes
+    // But require at least one letter before allowing numbers
     let processedValue = value;
     if (name === 'fullName') {
       // If name originally came from auto-fill, allow special characters from original
@@ -1027,25 +1111,58 @@ const Step1Contact = () => {
       if (hasOriginalAutoFilledName) {
         // Extract allowed special characters from original auto-filled name
         const original = originalAutoFilledNameRef.current;
-        const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-']/gu) || [];
+        const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-'\d]/gu) || [];
         const allowedSpecialCharsSet = new Set(allowedSpecialChars);
         
-        // Allow letters, spaces, hyphens, apostrophes, and special chars from original
-        // Filter out any new special characters not in the original
+        // Check if there's at least one letter in the current value
+        const hasLetter = /[\p{L}\p{M}]/u.test(value);
+        
+        // Allow letters, numbers, spaces, hyphens, apostrophes, and special chars from original
+        // But only allow numbers if there's at least one letter
         processedValue = value.split('').filter(char => {
-          const isLetterOrSpace = /[\p{L}\p{M}\s\-']/u.test(char);
+          const isLetter = /[\p{L}\p{M}]/u.test(char);
+          const isDigit = /\d/u.test(char);
+          const isSpaceOrPunctuation = /[\s\-']/u.test(char);
           const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
-          return isLetterOrSpace || isAllowedSpecialChar;
+          
+          // Always allow letters, spaces, hyphens, apostrophes, and original special chars
+          if (isLetter || isSpaceOrPunctuation || isAllowedSpecialChar) {
+            return true;
+          }
+          // Allow digits only if there's at least one letter in the value
+          if (isDigit && hasLetter) {
+            return true;
+          }
+          return false;
         }).join('');
         
         // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
         processedValue = processedValue.replace(/\s+/g, ' ');
       } else {
-        // No original auto-filled name, apply strict filtering
-        // Filter out special characters (only allow letters, spaces, hyphens, apostrophes)
-        // This prevents typing numbers and special characters
+        // No original auto-filled name, allow letters, numbers, spaces, hyphens, apostrophes
+        // But require at least one letter before allowing numbers
         // Supports international names using Unicode properties
-        processedValue = value.replace(/[^\p{L}\p{M}\s\-']/gu, '');
+        
+        // Check if there's at least one letter in the current value
+        const hasLetter = /[\p{L}\p{M}]/u.test(value);
+        
+        // Filter characters: allow letters, spaces, hyphens, apostrophes always
+        // Allow digits only if there's at least one letter
+        processedValue = value.split('').filter(char => {
+          const isLetter = /[\p{L}\p{M}]/u.test(char);
+          const isDigit = /\d/u.test(char);
+          const isSpaceOrPunctuation = /[\s\-']/u.test(char);
+          
+          // Always allow letters, spaces, hyphens, apostrophes
+          if (isLetter || isSpaceOrPunctuation) {
+            return true;
+          }
+          // Allow digits only if there's at least one letter in the value
+          if (isDigit && hasLetter) {
+            return true;
+          }
+          return false;
+        }).join('');
         
         // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
         processedValue = processedValue.replace(/\s+/g, ' ');
@@ -1167,7 +1284,7 @@ const Step1Contact = () => {
   return (
     <div className={styles['contact-form']}>
       {/* Personal Info Auto-fill Option */}
-      {user && (
+      {(user || hasUserInStorage) && (
         <div className={styles['personal-info-option']}>
           <label className={styles['checkbox-label']}>
             <input

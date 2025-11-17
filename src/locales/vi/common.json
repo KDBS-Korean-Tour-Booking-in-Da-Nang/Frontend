@@ -29,6 +29,7 @@
   "common": {
     "close": "Đóng",
     "cancel": "Hủy",
+    "confirm": "Xác nhận",
     "delete": "Xóa",
     "processing": "Đang xử lý...",
     "item": "mục này",
@@ -1100,9 +1101,30 @@
       "checking": "Đang kiểm tra xác thực...",
       "loginRequiredTitle": "Yêu cầu đăng nhập",
       "loginRequiredMessage": "Bạn cần đăng nhập để đặt tour.",
-      "loginButton": "Đăng nhập"
+      "loginButton": "Đăng nhập",
+      "accessDeniedTitle": "Không thể đặt tour",
+      "companyNotAllowed": "Tài khoản doanh nghiệp (COMPANY) không thể đặt tour. Vui lòng sử dụng tài khoản người dùng."
     },
-    "processing": "Đang xử lý..."
+    "processing": "Đang xử lý...",
+    "toast": {
+      "formatDataError": "Không thể chuẩn bị dữ liệu đặt tour. Vui lòng kiểm tra lại thông tin.",
+      "validationError": "Dữ liệu không hợp lệ: {{errors}}",
+      "bookingSuccess": "Đặt tour thành công. Vui lòng tiến hành thanh toán để hoàn tất.",
+      "bookingError": "Không thể tạo booking. Vui lòng thử lại sau.",
+      "companyNotAllowedError": "Tài khoản doanh nghiệp không thể đặt tour."
+    },
+    "backToWizard": {
+      "modal": {
+        "title": "Xác nhận quay lại wizard",
+        "message": "Khi quay lại wizard, bạn cần điền lại thông tin từ đầu để tạo giao dịch mới.",
+        "confirm": "Xác nhận",
+        "cancel": "Hủy"
+      },
+      "button": "← Quay lại wizard để điền lại",
+      "success": "Đã quay lại wizard. Vui lòng điền lại thông tin từ đầu. Khi xác nhận, booking mới sẽ được tạo.",
+      "error": "Có lỗi xảy ra khi quay lại wizard. Vui lòng thử lại.",
+      "missingTourError": "Không thể quay lại wizard. Thiếu thông tin tour."
+    }
   },
   "tourManagement": {
     "title": "Quản lý tour",
@@ -1487,7 +1509,7 @@
         "noPrice": "Chưa có giá",
         "free": "Miễn phí"
       },
-      "dateDisplay": { "day": "Ngày", "month": "Tháng", "year": "Năm" },
+      "dateDisplay": { "day": "Ngày", "month": "Tháng", "year": "Năm", "selectedDate": "Ngày đã chọn" },
       "pax": {
         "adult": "Người lớn",
         "child": "Trẻ em",
@@ -1667,6 +1689,7 @@
       "sections": {
         "contact": "Thông tin liên hệ",
         "tour": "Thông tin tour",
+        "guests": "Thông tin hành khách",
         "members": "Danh sách đoàn",
         "price": "Tổng kết giá"
       },
@@ -1747,7 +1770,6 @@
     "paymentError": "Lỗi thanh toán",
     "errorOccurred": "Có lỗi xảy ra",
     "transactionTimeout": "Giao dịch đã hết hạn. Vui lòng thử lại hoặc hủy đặt tour.",
-    "paymentCancelled": "Thanh toán đã bị hủy",
     "paymentFailed": "Thanh toán thất bại",
     "loading": "Đang tải...",
     "vnpayPayment": "Thanh toán VNPay",
@@ -1764,13 +1786,10 @@
     "totalPayment": "Tổng thanh toán",
     "calculating": "Đang tính toán...",
     "retry": "Thử lại",
-    "paymentInfo": "Thông tin thanh toán",
     "vnpayDescription": "Thanh toán được xử lý bởi VNPay - Cổng thanh toán điện tử uy tín",
     "supportedPaymentMethods": "Hỗ trợ thanh toán qua thẻ ATM, Internet Banking, Ví điện tử",
     "securePayment": "Thông tin thanh toán được mã hóa và bảo mật",
     "confirmationEmail": "Sau khi thanh toán thành công, bạn sẽ nhận được email xác nhận",
-    "paymentFailed": "Thanh toán thất bại. Vui lòng thử lại.",
-    "transactionInfo": "Thông tin giao dịch",
     "transactionId": "Mã giao dịch",
     "paymentMethod": "Phương thức thanh toán",
     "responseCode": "Mã phản hồi",
@@ -1811,6 +1830,125 @@
     "child": "Trẻ em",
     "baby": "Em bé",
     "paymentCancelledFailed": "Thanh toán đã bị hủy hoặc thất bại",
+    "checkPayment": {
+      "title": "Thanh toán đơn đặt tour",
+      "subtitle": "Vui lòng kiểm tra kỹ thông tin trước khi bấm thanh toán. Cổng Toss sẽ mở trong cửa sổ này.",
+      "loadingBooking": "Đang tải thông tin booking...",
+      "bookingInfo": "Thông tin booking",
+      "bookingSummary": {
+        "tourBookingInfo": "Thông tin đặt tour",
+        "tourName": "Tên tour",
+        "departureDate": "Ngày khởi hành",
+        "guestCount": "Số khách",
+        "contactEmail": "Email liên hệ"
+      },
+      "guestsInfo": {
+        "title": "Thông tin hành khách ({{count}})",
+        "noGuests": "Chưa có thông tin hành khách"
+      },
+      "noBookingFound": "Không tìm thấy thông tin booking. Vui lòng kiểm tra lại mã booking.",
+      "paymentInfo": "Thông tin thanh toán",
+      "voucherCode": "Mã voucher (tuỳ chọn)",
+      "voucherPlaceholder": "Nhập mã voucher nếu có",
+      "voucherHint": "Nhập mã voucher và bấm \"Áp dụng voucher\" để xem chi tiết giảm giá. Voucher sẽ được lưu vào database khi bấm \"Thanh toán\".",
+      "applyVoucher": "Áp dụng voucher",
+      "voucherApplied": "Đang áp dụng",
+      "removeVoucher": "Bỏ chọn voucher",
+      "removeVoucherLabel": "Bỏ chọn voucher",
+      "totalAmount": "Tổng tiền tạm tính",
+      "totalPayment": "Tổng tiền thanh toán",
+      "originalPrice": "Giá gốc",
+      "discount": "Giảm giá (voucher)",
+      "finalAmount": "Tổng sau giảm",
+      "tempAmount": "Tạm tính",
+      "voucherAppliedMessage": "✓ Voucher đã được áp dụng. Bạn sẽ thanh toán {{amount}}.",
+      "voucherHintMessage": "Áp dụng voucher để được giảm giá. Khoản thanh toán cuối cùng sẽ được hiển thị sau khi áp dụng voucher.",
+      "noTotalAmountMessage": "Số tiền thực tế có thể thay đổi sau khi áp dụng voucher. Khoản thanh toán cuối cùng sẽ được hiển thị sau khi khởi tạo Toss.",
+      "actions": {
+        "backToWizard": "← Quay lại wizard để điền lại",
+        "viewHistory": "Xem lịch sử booking",
+        "pay": "Thanh toán",
+        "processing": "Đang khởi tạo..."
+      },
+      "toast": {
+        "missingBookingId": "Thiếu mã booking trong đường dẫn. Vui lòng quay lại trang đặt tour.",
+        "sessionExpired": "Phiên đăng nhập đã hết hạn hoặc thiếu quyền. Vui lòng đăng nhập lại.",
+        "cannotLoadBooking": "Không thể tải thông tin booking. Có thể booking không tồn tại hoặc dữ liệu không hợp lệ.",
+        "loginToViewBooking": "Vui lòng đăng nhập để xem thông tin booking.",
+        "cannotLoadBookingSupport": "Không thể tải thông tin booking. Vui lòng kiểm tra lại hoặc liên hệ hỗ trợ.",
+        "missingBookingIdError": "Không xác định được mã booking.",
+        "invalidEmail": "Email không hợp lệ.",
+        "tossPaymentSuccess": "Khởi tạo đơn thanh toán Toss thành công. Đang chuyển tới cổng thanh toán...",
+        "tossPaymentError": "Không thể khởi tạo thanh toán. Vui lòng thử lại.",
+        "voucherCodeRequired": "Vui lòng nhập mã voucher để áp dụng.",
+        "voucherInvalid": "Voucher không hợp lệ hoặc không áp dụng được cho booking này. Vui lòng chọn voucher từ danh sách hoặc kiểm tra lại mã voucher.",
+        "voucherAppliedSuccess": "Đã áp dụng voucher. Giảm {{amount}}. Voucher sẽ được lưu khi thanh toán.",
+        "voucherAppliedNoDiscount": "Voucher đã được áp dụng. Voucher sẽ được lưu khi thanh toán.",
+        "voucherApplyError": "Không thể áp dụng voucher. Vui lòng kiểm tra lại mã voucher.",
+        "voucherCalculationError": "Không thể tính toán giá gốc từ voucher.",
+        "backToWizardError": "Có lỗi xảy ra khi quay lại wizard. Vui lòng thử lại.",
+        "backToWizardMissingTour": "Không thể quay lại wizard. Thiếu thông tin tour.",
+        "backToWizardSuccess": "Đã quay lại wizard. Vui lòng điền lại thông tin từ đầu. Khi xác nhận, booking mới sẽ được tạo."
+      },
+      "voucherModal": {
+        "title": "Chọn voucher để áp dụng",
+        "subtitle": "Mỗi booking chỉ áp dụng được 1 voucher.",
+        "loading": "Đang tải voucher...",
+        "noVouchers": "Hiện chưa có voucher khả dụng từ công ty này.",
+        "close": "Đóng",
+        "removeSelected": "Bỏ chọn",
+        "apply": "Áp dụng",
+        "available": "Voucher khả dụng",
+        "discountLabel": "Giảm {{discount}}",
+        "savings": "Tiết kiệm {{amount}} so với giá gốc"
+      },
+      "backToWizardModal": {
+        "title": "Xác nhận quay lại wizard",
+        "message": "Khi quay lại wizard, bạn cần điền lại thông tin từ đầu để tạo giao dịch mới.",
+        "confirm": "Xác nhận",
+        "cancel": "Hủy"
+      },
+      "statusBanner": {
+        "tossRedirectInfo": "Đang chuyển tới cổng thanh toán Toss. Vui lòng hoàn tất giao dịch để hoàn tất đặt tour."
+      }
+    },
+    "result": {
+      "title": "Kết quả thanh toán",
+      "subtitle": "Đây là trang kết quả do hệ thống chuyển hướng sau khi xử lý thanh toán.",
+      "successTitle": "Thanh toán thành công",
+      "successMessage": "Cảm ơn bạn. Chúng tôi đã ghi nhận giao dịch và sẽ tiếp tục xử lý đơn đặt tour.",
+      "failedTitle": "Thanh toán không thành công",
+      "failedMessage": "Giao dịch thất bại hoặc đã bị huỷ. Bạn có thể thử lại hoặc liên hệ hỗ trợ.",
+      "unknownTitle": "Trạng thái giao dịch",
+      "unknownMessage": "Chúng tôi đã nhận phản hồi từ hệ thống. Vui lòng kiểm tra chi tiết bên dưới.",
+      "missingParams": "Thiếu tham số giao dịch trong đường dẫn. Vui lòng kiểm tra lại email xác nhận hoặc liên hệ bộ phận hỗ trợ để được trợ giúp.",
+      "transactionInfo": "Thông tin giao dịch",
+      "orderId": "Mã đơn hàng",
+      "status": "Trạng thái",
+      "paymentMethod": "Phương thức",
+      "amount": "Số tiền",
+      "actions": {
+        "viewBookingHistory": "Xem lịch sử booking",
+        "goHome": "Về trang chủ",
+        "contactSupport": "Liên hệ hỗ trợ"
+      }
+    },
+    "tossPayment": {
+      "title": "Thanh toán qua Toss",
+      "subtitle": "Vui lòng hoàn tất giao dịch thanh toán trong cửa sổ này. Bạn có thể quay lại nếu cần thay đổi.",
+      "backButton": "Quay lại",
+      "toast": {
+        "missingData": "Thiếu dữ liệu khởi tạo cổng thanh toán. Vui lòng khởi tạo lại.",
+        "error": "Đã xảy ra lỗi khi khởi tạo cổng thanh toán Toss.",
+        "ready": "Cổng thanh toán Toss đã sẵn sàng. Vui lòng hoàn tất giao dịch trong cửa sổ này."
+      },
+      "widget": {
+        "loading": "Đang tải cổng thanh toán Toss...",
+        "redirecting": "Đang chuyển hướng...",
+        "payButton": "Thanh toán qua Toss",
+        "initError": "Không thể khởi tạo cổng thanh toán Toss."
+      }
+    },
     "paymentSuspicious": "Trừ tiền thành công, giao dịch bị nghi ngờ (liên quan đến lừa đảo, giao dịch bất thường)",
     "paymentNotRegistered": "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking",
     "paymentVerificationFailed": "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần",

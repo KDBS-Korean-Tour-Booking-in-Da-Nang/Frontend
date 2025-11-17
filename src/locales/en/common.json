@@ -29,6 +29,7 @@
 	"common": {
 		"close": "Close",
 		"cancel": "Cancel",
+		"confirm": "Confirm",
 		"delete": "Delete",
 		"processing": "Processing...",
 		"item": "item",
@@ -1085,9 +1086,30 @@
 			"checking": "Checking authentication...",
 			"loginRequiredTitle": "Login Required",
 			"loginRequiredMessage": "You need to login to book a tour.",
-			"loginButton": "Login"
+			"loginButton": "Login",
+			"accessDeniedTitle": "Cannot book tour",
+			"companyNotAllowed": "Company accounts (COMPANY) cannot book tours. Please use a user account."
 		},
-		"processing": "Processing..."
+		"processing": "Processing...",
+		"toast": {
+			"formatDataError": "Unable to prepare booking data. Please check your information.",
+			"validationError": "Invalid data: {{errors}}",
+			"bookingSuccess": "Tour booking successful. Please proceed with payment to complete.",
+			"bookingError": "Unable to create booking. Please try again later.",
+			"companyNotAllowedError": "Company accounts cannot book tours."
+		},
+		"backToWizard": {
+			"modal": {
+				"title": "Confirm return to wizard",
+				"message": "When returning to wizard, you need to fill in information from the beginning to create a new transaction.",
+				"confirm": "Confirm",
+				"cancel": "Cancel"
+			},
+			"button": "← Return to wizard to re-enter",
+			"success": "Returned to wizard. Please fill in information from the beginning. A new booking will be created when you confirm.",
+			"error": "An error occurred while returning to wizard. Please try again.",
+			"missingTourError": "Cannot return to wizard. Missing tour information."
+		}
 	},
 	"tourManagement": {
 		"title": "Tour Management",
@@ -1470,7 +1492,7 @@
 				"noPrice": "No price set",
 				"free": "Free"
 			},
-			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year" },
+			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year", "selectedDate": "Selected Date" },
 			"pax": {
 				"adult": "Adult",
 				"child": "Children",
@@ -1635,6 +1657,7 @@
 			"sections": {
 				"contact": "Contact Information",
 				"tour": "Tour Information",
+				"guests": "Guests Information",
 				"members": "Group Members",
 				"price": "Price Summary"
 			},
@@ -1816,7 +1839,126 @@
 		"suggestionContactBankSupport": "Contact bank for support",
 		"suggestionCheckInternet": "Check internet connection",
 		"suggestionContactSupportIfIssue": "Contact support if issue persists",
-		"technicalDetails": "Technical Details (Development)"
+		"technicalDetails": "Technical Details (Development)",
+		"checkPayment": {
+			"title": "Pay for Tour Booking",
+			"subtitle": "Please check the information carefully before clicking pay. Toss payment gateway will open in this window.",
+			"loadingBooking": "Loading booking information...",
+			"bookingInfo": "Booking Information",
+			"bookingSummary": {
+				"tourBookingInfo": "Tour Booking Information",
+				"tourName": "Tour Name",
+				"departureDate": "Departure Date",
+				"guestCount": "Guest Count",
+				"contactEmail": "Contact Email"
+			},
+			"guestsInfo": {
+				"title": "Guest Information ({{count}})",
+				"noGuests": "No guest information available"
+			},
+			"noBookingFound": "Booking information not found. Please check the booking code.",
+			"paymentInfo": "Payment Information",
+			"voucherCode": "Voucher Code (Optional)",
+			"voucherPlaceholder": "Enter voucher code if available",
+			"voucherHint": "Enter voucher code and click \"Apply voucher\" to see discount details. Voucher will be saved to database when you click \"Pay\".",
+			"applyVoucher": "Apply Voucher",
+			"voucherApplied": "Applied",
+			"removeVoucher": "Remove Voucher",
+			"removeVoucherLabel": "Remove Voucher",
+			"totalAmount": "Provisional Total",
+			"totalPayment": "Total Payment",
+			"originalPrice": "Original Price",
+			"discount": "Discount (voucher)",
+			"finalAmount": "Final Amount After Discount",
+			"tempAmount": "Provisional",
+			"voucherAppliedMessage": "✓ Voucher has been applied. You will pay {{amount}}.",
+			"voucherHintMessage": "Apply voucher to get discount. Final payment amount will be displayed after applying voucher.",
+			"noTotalAmountMessage": "Actual amount may change after applying voucher. Final payment amount will be displayed after initializing Toss.",
+			"actions": {
+				"backToWizard": "← Return to wizard to re-enter",
+				"viewHistory": "View Booking History",
+				"pay": "Pay",
+				"processing": "Initializing..."
+			},
+			"toast": {
+				"missingBookingId": "Missing booking code in URL. Please return to tour booking page.",
+				"sessionExpired": "Login session has expired or you lack permission. Please login again.",
+				"cannotLoadBooking": "Cannot load booking information. Booking may not exist or data is invalid.",
+				"loginToViewBooking": "Please login to view booking information.",
+				"cannotLoadBookingSupport": "Cannot load booking information. Please check again or contact support.",
+				"missingBookingIdError": "Cannot determine booking code.",
+				"invalidEmail": "Invalid email.",
+				"tossPaymentSuccess": "Toss payment order created successfully. Redirecting to payment gateway...",
+				"tossPaymentError": "Cannot initialize payment. Please try again.",
+				"voucherCodeRequired": "Please enter voucher code to apply.",
+				"voucherInvalid": "Voucher is invalid or cannot be applied to this booking. Please select voucher from the list or check the voucher code.",
+				"voucherAppliedSuccess": "Voucher applied. Discount {{amount}}. Voucher will be saved when payment is made.",
+				"voucherAppliedNoDiscount": "Voucher has been applied. Voucher will be saved when payment is made.",
+				"voucherApplyError": "Cannot apply voucher. Please check the voucher code.",
+				"voucherCalculationError": "Cannot calculate original price from voucher.",
+				"backToWizardError": "An error occurred while returning to wizard. Please try again.",
+				"backToWizardMissingTour": "Cannot return to wizard. Missing tour information.",
+				"backToWizardSuccess": "Returned to wizard. Please fill in information from the beginning. A new booking will be created when you confirm."
+			},
+			"voucherModal": {
+				"title": "Select Voucher to Apply",
+				"subtitle": "Each booking can only apply 1 voucher.",
+				"loading": "Loading vouchers...",
+				"noVouchers": "Currently no vouchers available from this company.",
+				"close": "Close",
+				"removeSelected": "Remove Selected",
+				"apply": "Apply",
+				"available": "Available Voucher",
+				"discountLabel": "Discount {{discount}}",
+				"savings": "Save {{amount}} compared to original price"
+			},
+			"backToWizardModal": {
+				"title": "Confirm Return to Wizard",
+				"message": "When returning to wizard, you need to fill in information from the beginning to create a new transaction.",
+				"confirm": "Confirm",
+				"cancel": "Cancel"
+			},
+			"statusBanner": {
+				"tossRedirectInfo": "Redirecting to Toss payment gateway. Please complete the transaction to complete tour booking."
+			}
+		},
+		"result": {
+			"title": "Payment Result",
+			"subtitle": "This is the result page redirected by the system after processing payment.",
+			"successTitle": "Payment Successful",
+			"successMessage": "Thank you. We have recorded the transaction and will continue processing your tour booking.",
+			"failedTitle": "Payment Failed",
+			"failedMessage": "Transaction failed or was cancelled. You can try again or contact support.",
+			"unknownTitle": "Transaction Status",
+			"unknownMessage": "We have received a response from the system. Please check the details below.",
+			"missingParams": "Missing transaction parameters in URL. Please check your confirmation email or contact support for assistance.",
+			"transactionInfo": "Transaction Information",
+			"orderId": "Order ID",
+			"status": "Status",
+			"paymentMethod": "Method",
+			"amount": "Amount",
+			"actions": {
+				"viewBookingHistory": "View Booking History",
+				"goHome": "Go Home",
+				"contactSupport": "Contact Support"
+			}
+		},
+		"tossPayment": {
+			"title": "Payment via Toss",
+			"subtitle": "Please complete the payment transaction in this window. You can go back if you need to make changes.",
+			"backButton": "Go Back",
+			"toast": {
+				"missingData": "Missing payment gateway initialization data. Please reinitialize.",
+				"error": "An error occurred while initializing Toss payment gateway.",
+				"ready": "Toss payment gateway is ready. Please complete the transaction in this window."
+			},
+			"widget": {
+				"loading": "Loading Toss payment gateway...",
+				"redirecting": "Redirecting...",
+				"payButton": "Pay via Toss",
+				"initError": "Cannot initialize Toss payment gateway."
+			}
+		}
 	}
   ,
   "premium": {

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { formatPrice } from '../../../../../utils/priceRules';
 import styles from './Step2Details.module.css';
 
 const Step2Details = () => {
-  const { id: tourId } = useParams();
+  const [searchParams] = useSearchParams();
+  const tourId = searchParams.get('id');
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'vi';
   const { 
@@ -80,15 +81,17 @@ const Step2Details = () => {
   const computeMinDepartureDate = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // Nếu tour có hạn tối thiểu (deadlineDays), user chỉ có thể chọn ngày khởi hành sau số ngày đó
-    // Ví dụ: nếu deadlineDays = 7, thì từ hôm nay phải 7 ngày sau mới được chọn
+    // Nếu tour có hạn tối thiểu (deadlineDays), user chỉ có thể chọn ngày khởi hành SAU số ngày đó
+    // Ví dụ: nếu deadlineDays = 8, thì user KHÔNG được chọn ngày = today + 8, chỉ được chọn từ today + 9 trở đi
     if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
       const minDate = new Date(today);
-      minDate.setDate(minDate.getDate() + tourMeta.deadlineDays);
+      minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1); // +1 để không cho phép chọn ngày = today + deadlineDays
       return toIsoDate(minDate);
     }
     // Nếu không có deadline, chỉ cần không chọn ngày trong quá khứ
-    return toIsoDate(today);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return toIsoDate(tomorrow);
   };
 
   const computeMaxDepartureDate = () => {
@@ -873,10 +876,10 @@ const Step2Details = () => {
         for (let i = 0; i < plan.members.infant.length; i++) {
           convertMemberDob('infant', i);
         }
+        }
+      } catch (err) {
+        // Language change DOB conversion error
       }
-    } catch (err) {
-      console.error('Language change DOB conversion error:', err);
-    }
   }, [currentLanguage]);
 
   // Fetch tour data and prices
@@ -912,23 +915,60 @@ const Step2Details = () => {
        };
 
       const parseDeadlineDays = () => {
-        if (tourData.tourDeadline === undefined || tourData.tourDeadline === null || tourData.tourDeadline === '') {
+        // Try multiple field names to support different API response formats
+        const deadlineValue = tourData.tourDeadline ?? 
+                             tourData.tour_deadline ?? 
+                             tourData.minimumAdvanceDays ?? 
+                             tourData.minimum_advance_days;
+        
+        if (deadlineValue === undefined || deadlineValue === null || deadlineValue === '') {
           return null;
         }
-        const parsed = parseInt(tourData.tourDeadline, 10);
-        return Number.isNaN(parsed) ? null : parsed;
+        const parsed = parseInt(deadlineValue, 10);
+        return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
       };
 
+      const parseExpirationDate = () => {
+        // Try multiple field names to support different API response formats
+        const expirationValue = tourData.tourExpirationDate ?? 
+                               tourData.tour_expiration_date ?? 
+                               tourData.bookingDeadline ?? 
+                               tourData.booking_deadline;
+        
+        if (!expirationValue) return null;
+        
+        // If it's already a date string (YYYY-MM-DD), return it
+        if (typeof expirationValue === 'string' && /^\d{4}-\d{2}-\d{2}/.test(expirationValue)) {
+          return expirationValue.split('T')[0]; // Remove time part if present
+        }
+        
+        // If it's a Date object or timestamp, convert to YYYY-MM-DD
+        try {
+          const date = new Date(expirationValue);
+          if (!isNaN(date.getTime())) {
+            return date.toISOString().split('T')[0];
+          }
+        } catch (e) {
+          // Failed to parse expiration date
+        }
+        
+        return null;
+      };
+
+      const deadlineDays = parseDeadlineDays();
+      const expirationDate = parseExpirationDate();
+
       setTourMeta({
-        deadlineDays: parseDeadlineDays(),
-        expirationDate: tourData.tourExpirationDate || null
+        deadlineDays: deadlineDays,
+        expirationDate: expirationDate
       });
+      
       
       // Diagnostics removed
       
       setTourPrices(prices);
     } catch (error) {
-      console.error('Error loading tour prices:', error);
+      // Error loading tour prices
       
       // Set prices to null if API fails - no fallback prices
       setTourPrices({
@@ -951,14 +991,18 @@ const Step2Details = () => {
   useEffect(() => {
     if (plan.date.day && plan.date.month && plan.date.year) {
       const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
+      selectedDate.setHours(0, 0, 0, 0);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const minDate = new Date(today);
       
-      // Nếu tour có deadlineDays, tính minDate = today + deadlineDays
-      // Ví dụ: nếu deadlineDays = 7, thì từ hôm nay phải 7 ngày sau mới được chọn ngày khởi hành
+      // Nếu tour có deadlineDays, tính minDate = today + deadlineDays + 1
+      // Ví dụ: nếu deadlineDays = 8, thì user KHÔNG được chọn ngày = today + 8, chỉ được chọn từ today + 9 trở đi
       if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
-        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays);
+        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1); // +1 để không cho phép chọn ngày = today + deadlineDays
+      } else {
+        // Nếu không có deadline, minDate = tomorrow (không cho chọn hôm nay)
+        minDate.setDate(minDate.getDate() + 1);
       }
       
       // Nếu ngày đã chọn không hợp lệ (trước minDate hoặc sau expirationDate), clear nó
@@ -1035,23 +1079,54 @@ const Step2Details = () => {
     if (!plan.date.day || !plan.date.month || !plan.date.year) {
       newErrors.date = t('booking.step2.errors.dateRequired');
     } else {
+      // Create selected date and normalize to midnight for accurate comparison
       const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
+      selectedDate.setHours(0, 0, 0, 0);
+      
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const minDate = new Date(today);
       
-      // Tính minDate: nếu tour có deadlineDays (hạn tối thiểu), minDate = today + deadlineDays
-      // Ví dụ: nếu deadlineDays = 7, thì từ hôm nay phải 7 ngày sau mới được chọn ngày khởi hành
+      // Calculate minimum date: today + deadlineDays + 1 (Minimum Advance Days)
+      // Example: if deadlineDays = 8, user CANNOT select today + 8, only from today + 9 onwards
+      const minDate = new Date(today);
       if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
-        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays);
+        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1); // +1 để không cho phép chọn ngày = today + deadlineDays
+      } else {
+        // Nếu không có deadline, minDate = tomorrow (không cho chọn hôm nay)
+        minDate.setDate(minDate.getDate() + 1);
       }
 
+      // Validate: selected date must not be in the past
       if (selectedDate < today) {
         newErrors.date = t('booking.step2.errors.dateInPast');
-      } else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0 && selectedDate < minDate) {
-        // Ngày đã chọn trước hạn tối thiểu (deadlineDays)
-        newErrors.date = t('booking.step2.errors.dateBeforeDeadline', { days: tourMeta.deadlineDays });
-      } else if (tourMeta.expirationDate) {
+      } 
+      // Validate: selected date must be AFTER today + deadlineDays (not equal to)
+      else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+        if (selectedDate < minDate) {
+          // Selected date is before or equal to the minimum advance days requirement
+          newErrors.date = t('booking.step2.errors.dateBeforeDeadline', { days: tourMeta.deadlineDays });
+        } else if (tourMeta.expirationDate) {
+          // Validate: selected date must not exceed booking deadline (expiration date)
+          const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
+          expiration.setHours(0, 0, 0, 0);
+          if (selectedDate > expiration) {
+            newErrors.date = t('booking.step2.errors.dateAfterExpiration', { date: tourMeta.expirationDate });
+          } else {
+            delete newErrors.date;
+          }
+        } else {
+          // No expiration date, use fallback (1 month from today)
+          const fallbackMax = new Date(today);
+          fallbackMax.setMonth(fallbackMax.getMonth() + 1);
+          if (selectedDate > fallbackMax) {
+            newErrors.date = t('booking.step2.errors.dateOverOneMonth');
+          } else {
+            delete newErrors.date;
+          }
+        }
+      } 
+      // No deadlineDays requirement, but still check expiration date
+      else if (tourMeta.expirationDate) {
         const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
         expiration.setHours(0, 0, 0, 0);
         if (selectedDate > expiration) {
@@ -1059,13 +1134,21 @@ const Step2Details = () => {
         } else {
           delete newErrors.date;
         }
-      } else {
-        const fallbackMax = new Date(today);
-        fallbackMax.setMonth(fallbackMax.getMonth() + 1);
-        if (selectedDate > fallbackMax) {
-          newErrors.date = t('booking.step2.errors.dateOverOneMonth');
+      } 
+      // No constraints, just check it's not in the past and not today
+      else {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        if (selectedDate < tomorrow) {
+          newErrors.date = t('booking.step2.errors.dateInPast');
         } else {
-          delete newErrors.date;
+          const fallbackMax = new Date(today);
+          fallbackMax.setMonth(fallbackMax.getMonth() + 1);
+          if (selectedDate > fallbackMax) {
+            newErrors.date = t('booking.step2.errors.dateOverOneMonth');
+          } else {
+            delete newErrors.date;
+          }
         }
       }
     }
@@ -1331,15 +1414,11 @@ const Step2Details = () => {
       Object.keys(newErrors).forEach(key => {
         // Skip ID errors - they are handled by real-time validation only
         if (key.includes('_idNumber')) {
-          console.log('⏭️ useEffect skipping ID error setting for:', key, '- handled by real-time validation');
           return;
         }
         
         if (!validatingFieldsRef.current.has(key)) {
           updatedErrors[key] = newErrors[key];
-          console.log('🔄 useEffect setting error for:', key, 'value:', newErrors[key]);
-        } else {
-          console.log('⏭️ useEffect skipping error for:', key, 'because it\'s being validated manually');
         }
       });
       
@@ -1348,13 +1427,11 @@ const Step2Details = () => {
       Object.keys(updatedErrors).forEach(key => {
         // Skip ID errors - they are handled by real-time validation only
         if (key.includes('_idNumber')) {
-          console.log('⏭️ useEffect skipping ID error removal for:', key, '- handled by real-time validation');
           return;
         }
         
         if (!newErrors[key] && !validatingFieldsRef.current.has(key)) {
           delete updatedErrors[key];
-          console.log('🗑️ useEffect removing error for:', key);
         }
       });
       
@@ -1653,7 +1730,6 @@ const Step2Details = () => {
     setTouchedFields(prev => new Set(prev).add(touchedKey));
     
     // No need for validating flag since we disabled useEffect validation for ID
-    console.log('🔒 Real-time validation for:', idKey);
     
     // Real-time validation - show error immediately if invalid
     // Always validate format when user inputs something, regardless of whether ID is required
@@ -1671,7 +1747,6 @@ const Step2Details = () => {
             ...prev,
             [errorKey]: t('booking.step2.validation.vietnameseId')
           }));
-          console.log('❌ Real-time setting error for:', errorKey, 'value:', t('booking.step2.validation.vietnameseId'));
         } else {
           // Clear error if valid
           setErrors(prev => {
@@ -1679,7 +1754,6 @@ const Step2Details = () => {
             delete newErrors[errorKey];
             return newErrors;
           });
-          console.log('✅ Real-time clearing error for:', errorKey);
         }
       } else {
         // Passport validation: 6-9 characters, letters and numbers
@@ -1692,7 +1766,6 @@ const Step2Details = () => {
             ...prev,
             [errorKey]: t('booking.step2.validation.passport')
           }));
-          console.log('❌ Real-time setting error for:', errorKey, 'value:', t('booking.step2.validation.passport'));
         } else {
           // Clear error if valid
           setErrors(prev => {
@@ -1700,7 +1773,6 @@ const Step2Details = () => {
             delete newErrors[errorKey];
             return newErrors;
           });
-          console.log('✅ Real-time clearing error for:', errorKey);
         }
       }
     } else {
@@ -1710,7 +1782,6 @@ const Step2Details = () => {
         delete newErrors[errorKey];
         return newErrors;
       });
-      console.log('🧹 Real-time clearing error for empty value or no nationality:', errorKey);
     }
   };
 
@@ -1812,14 +1883,12 @@ const Step2Details = () => {
               ? t('booking.step2.validation.vietnameseId')
               : t('booking.step2.validation.passport')
           }));
-          console.log('❌ Nationality change validation - setting error for:', errorKey, 'value:', currentIdNumber);
         } else {
           setErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors[errorKey];
             return newErrors;
           });
-          console.log('✅ Nationality change validation - clearing error for:', errorKey, 'value:', currentIdNumber);
         }
       }
     } else {
@@ -1877,7 +1946,6 @@ const Step2Details = () => {
     
     // Always show representative form, even if data is missing (will be filled by sync)
     if (!representativeName && !representativeDob) {
-      // console.log('❌ renderRepresentativeForm - No contact data at all, showing loading state');
       return (
         <div className={styles['member-group']}>
           <h4 className={styles['member-group-title']}>
@@ -2054,7 +2122,6 @@ const Step2Details = () => {
         {members.map((member, localIndex) => {
           // Safety check: skip if member is undefined
           if (!member) {
-            console.warn(`⚠️ Undefined member found at ${memberType}[${localIndex}]`);
             return null;
           }
           
@@ -2457,65 +2524,64 @@ const Step2Details = () => {
       <div className={styles['form-section']}>
         <h3 className={styles['section-title']}>{t('booking.step2.sections.dateTitle')}</h3>
         <div className={styles['date-section']}>
-          {/* Date Picker Input */}
-          <div className={styles['date-picker-group']}>
-            <label htmlFor="departureDate" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.fields.date')}</label>
-            <input
-              type="date"
-              id="departureDate"
-              value={plan.date.year && plan.date.month && plan.date.day 
-                ? `${plan.date.year}-${plan.date.month.toString().padStart(2, '0')}-${plan.date.day.toString().padStart(2, '0')}`
-                : ''
-              }
-              onChange={(e) => {
-                const dateValue = e.target.value;
-                if (dateValue) {
-                  const [year, month, day] = dateValue.split('-');
-                  setDate({
-                    year: parseInt(year),
-                    month: parseInt(month),
-                    day: parseInt(day)
-                  });
-                } else {
-                  setDate({ day: null, month: null, year: null });
+          <div className={styles['date-input-wrapper']}>
+            {/* Date Picker Input */}
+            <div className={styles['date-picker-group']}>
+              <label htmlFor="departureDate" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.fields.date')}</label>
+              <input
+                type="date"
+                id="departureDate"
+                value={plan.date.year && plan.date.month && plan.date.day 
+                  ? `${plan.date.year}-${plan.date.month.toString().padStart(2, '0')}-${plan.date.day.toString().padStart(2, '0')}`
+                  : ''
                 }
-              }}
-              min={computeMinDepartureDate()} // Không cho chọn ngày trong quá khứ hoặc trước hạn tối thiểu
-              max={computeMaxDepartureDate()} // Giới hạn theo ngày hết hạn hoặc tối đa 1 tháng nếu chưa cấu hình
-              className={`${styles['form-input']} ${errors.date && dateTouched ? styles['error'] : ''}`}
-              onBlur={() => setDateTouched(true)}
-            />
-          </div>
-
-          {/* Display Selected Date in 3 separate boxes */}
-          {plan.date.day && plan.date.month && plan.date.year && (
-            <div className={styles['date-display-section']}>
-              <div className={styles['date-display-group']}>
-                <div className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.dateDisplay.day')}</div>
-                <div className={styles['date-display-box']}>
-                  {plan.date.day}
-                </div>
-              </div>
-
-              <div className={styles['date-display-group']}>
-                <div className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.dateDisplay.month')}</div>
-                <div className={styles['date-display-box']}>
-                  {plan.date.month}
-                </div>
-              </div>
-
-              <div className={styles['date-display-group']}>
-                <div className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.dateDisplay.year')}</div>
-                <div className={styles['date-display-box']}>
-                  {plan.date.year}
-                </div>
-              </div>
+                onChange={(e) => {
+                  const dateValue = e.target.value;
+                  if (dateValue) {
+                    const [year, month, day] = dateValue.split('-');
+                    setDate({
+                      year: parseInt(year),
+                      month: parseInt(month),
+                      day: parseInt(day)
+                    });
+                  } else {
+                    setDate({ day: null, month: null, year: null });
+                  }
+                }}
+                min={computeMinDepartureDate()}
+                max={computeMaxDepartureDate()}
+                className={`${styles['form-input']} ${errors.date && dateTouched ? styles['error'] : ''}`}
+                onBlur={() => setDateTouched(true)}
+              />
+              {errors.date && (
+                <span className={styles['form-error']}>{errors.date}</span>
+              )}
             </div>
-          )}
 
-          {errors.date && (
-            <span className={styles['form-error']}>{errors.date}</span>
-          )}
+            {/* Selected Date Display Card */}
+            {plan.date.day && plan.date.month && plan.date.year && (
+              <div className={styles['selected-date-card']}>
+                <div className={styles['selected-date-label']}>
+                  {t('booking.step2.dateDisplay.selectedDate') || 'Ngày đã chọn'}
+                </div>
+                <div className={styles['selected-date-value']}>
+                  {(() => {
+                    const separator = getDateSeparator();
+                    const day = plan.date.day.toString().padStart(2, '0');
+                    const month = plan.date.month.toString().padStart(2, '0');
+                    const year = plan.date.year;
+                    
+                    switch (currentLanguage) {
+                      case 'vi': return `${day}${separator}${month}${separator}${year}`;
+                      case 'en': return `${month}${separator}${day}${separator}${year}`;
+                      case 'ko': return `${year}${separator}${month}${separator}${day}`;
+                      default: return `${day}${separator}${month}${separator}${year}`;
+                    }
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

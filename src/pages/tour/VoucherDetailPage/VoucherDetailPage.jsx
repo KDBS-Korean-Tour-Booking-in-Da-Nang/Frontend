@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
+import { getCompanyName } from '../../../utils/companyUtils';
 
 const formatCurrency = (value) => {
   try {
@@ -46,7 +47,8 @@ const formatDateTime = (dateString) => {
 };
 
 const VoucherDetailPage = () => {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { showSuccess } = useToast();
@@ -54,6 +56,7 @@ const VoucherDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toursMap, setToursMap] = useState(new Map()); // Map tourId -> tour name
+  const [companyName, setCompanyName] = useState('N/A');
 
   // Fetch tour details from tourIds
   const fetchTourDetails = async (tourIds) => {
@@ -145,6 +148,12 @@ const VoucherDetailPage = () => {
 
         setVoucher(mappedVoucher);
         
+        // Fetch company name
+        if (mappedVoucher.companyId) {
+          const name = await getCompanyName(mappedVoucher.companyId);
+          setCompanyName(name);
+        }
+        
         // Fetch tour details if tourIds exist
         if (foundVoucher.tourIds && foundVoucher.tourIds.length > 0) {
           fetchTourDetails(foundVoucher.tourIds);
@@ -161,19 +170,37 @@ const VoucherDetailPage = () => {
   }, [id]);
 
   // Get gradient colors based on voucher type
-  const getVoucherHeaderGradient = (discountType) => {
-    if (discountType === 'PERCENT') {
-      return 'bg-gradient-to-r from-sky-300 via-blue-300 to-cyan-300';
-    } else {
-      return 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600';
-    }
+  const getVoucherHeaderGradient = (discountType) =>
+    discountType === 'PERCENT' ? 'bg-[#2979FF]' : 'bg-[#36C2A8]';
+
+  const getVoucherButtonGradient = (discountType) =>
+    discountType === 'PERCENT'
+      ? 'bg-[#2979FF] hover:bg-[#1f62d6]'
+      : 'bg-[#36C2A8] hover:bg-[#2b9f89]';
+
+  const getDaysLeftLabel = (endDate) => {
+    if (!endDate) return null;
+    const end = new Date(endDate);
+    if (Number.isNaN(end.getTime())) return null;
+    const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return 'Đã hết hạn';
+    if (diff === 0) return 'Hết hạn hôm nay';
+    return `Còn ${diff} ngày`;
   };
 
-  const getVoucherButtonGradient = (discountType) => {
-    if (discountType === 'PERCENT') {
-      return 'bg-gradient-to-r from-sky-300 via-blue-300 to-cyan-300 hover:from-sky-400 hover:via-blue-400 hover:to-cyan-400';
-    } else {
-      return 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 hover:from-blue-600 hover:via-indigo-600 hover:to-blue-700';
+  const formatReadableDateTime = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return '-';
     }
   };
 
@@ -206,7 +233,7 @@ const VoucherDetailPage = () => {
   }
 
   return (
-    <div className="page-gradient min-h-screen">
+    <div className="min-h-screen bg-white">
       <style>{`
         .tour-list-scrollable::-webkit-scrollbar {
           width: 8px;
@@ -223,22 +250,25 @@ const VoucherDetailPage = () => {
           background: #a0aec0;
         }
       `}</style>
-      <div 
-        className="px-4 sm:px-6 lg:px-8 py-4 flex items-start justify-center" 
-        style={{ 
-          paddingTop: '5rem',
-          paddingBottom: '2rem'
-        }}
-      >
-        <div className="max-w-2xl w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-10 flex items-start justify-center">
+        <div className="max-w-2xl w-full space-y-4">
+          <button
+            onClick={() => navigate('/tour/voucher-list')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#dfe5ff] text-[#1f2e55] bg-[#f8faff] hover:bg-white hover:shadow-sm transition font-semibold text-sm"
+          >
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#e6eeff] text-[#2a55c5]">
+              <ChevronLeftIcon className="h-4 w-4" />
+            </span>
+            <span>Quay lại danh sách voucher</span>
+          </button>
           {/* Voucher Header Card - Auto height based on content */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+          <div className="bg-white rounded-[28px] shadow-lg overflow-hidden flex flex-col border border-[#e0e9ff]">
             {/* Gradient Header */}
-            <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-4 text-white flex-shrink-0`}>
-              <div className="flex items-start justify-between">
+            <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-5 text-white flex-shrink-0`}>
+              <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider opacity-90 mb-2">
-                    Company ID: {voucher.companyId || 'N/A'}
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-90 mb-2">
+                    {companyName !== 'N/A' ? companyName : `Company ID: ${voucher.companyId || 'N/A'}`}
                   </div>
                   <div className="mb-3">
                     {voucher.discountType === 'PERCENT' ? (
@@ -251,16 +281,16 @@ const VoucherDetailPage = () => {
                       </div>
                     )}
                   </div>
-                  <div className="text-xs text-white">
+                  <div className="text-xs text-white opacity-90">
                     HSD: {formatDate(voucher.endDate)}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-mono font-bold tracking-wider mb-1">
+                  <div className="text-lg font-mono font-bold tracking-[0.12em] mb-1">
                     {voucher.code}
                   </div>
                   {voucher.remainingQuantity !== undefined && voucher.remainingQuantity !== null && (
-                    <div className="text-[10px] opacity-90">
+                    <div className="text-[11px] opacity-90">
                       Còn lại: {voucher.remainingQuantity} voucher
                     </div>
                   )}
@@ -269,24 +299,40 @@ const VoucherDetailPage = () => {
             </div>
 
             {/* Content Sections */}
-            <div className="p-4">
-              <div className="space-y-3">
+            <div className="p-6 bg-white">
+              <div className="space-y-4">
                 {/* Thời gian sử dụng mã */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1.5">Thời gian sử dụng mã</h3>
-                  <div className="bg-gray-50 rounded-lg p-2.5">
-                    <div className="text-xs text-gray-700">
-                      {formatDateTime(voucher.startDate)} - {formatDateTime(voucher.endDate)}
-                    </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-gray-900">Thời gian sử dụng mã</h3>
+                    {getDaysLeftLabel(voucher.endDate) && (
+                      <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-[#e5edff] text-[#1d2d50]">
+                        {getDaysLeftLabel(voucher.endDate)}
+                      </span>
+                    )}
                   </div>
+                        <div className="bg-[#f6f8ff] rounded-2xl p-3 border border-[#e0e9ff] space-y-2">
+                          <div className="text-sm text-gray-700 font-medium">
+                            Bắt đầu:
+                            <span className="font-semibold ml-1">
+                              {formatReadableDateTime(voucher.startDate)}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-700 font-medium">
+                            Kết thúc:
+                            <span className="font-semibold ml-1">
+                              {formatReadableDateTime(voucher.endDate)}
+                            </span>
+                          </div>
+                        </div>
                 </div>
 
                 {/* Đơn tối thiểu - Only show if minOrderValue exists */}
                 {voucher.minOrderValue && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-1.5">Đơn tối thiểu</h3>
-                    <div className="bg-gray-50 rounded-lg p-2.5">
-                      <div className="text-xs text-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Đơn tối thiểu</h3>
+                    <div className="bg-[#f6f8ff] rounded-2xl p-3 border border-[#e0e9ff]">
+                      <div className="text-sm text-gray-700 font-medium">
                         {formatCurrency(voucher.minOrderValue)}
                       </div>
                     </div>
@@ -296,11 +342,11 @@ const VoucherDetailPage = () => {
                 {/* Ưu đãi */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-1.5">Ưu đãi</h3>
-                  <div className="bg-gray-50 rounded-lg p-2.5">
-                    <p className="text-xs text-gray-700 mb-1.5">
+                  <div className="bg-[#fefefe] rounded-2xl p-3 border border-[#f0f0f0]">
+                    <p className="text-sm text-gray-600 mb-2">
                       Lượt sử dụng có hạn. Nhanh tay kẻo lỡ bạn nhé!
                     </p>
-                    <div className="space-y-0.5 text-xs text-gray-700">
+                    <div className="space-y-1 text-sm text-gray-700">
                       {voucher.discountType === 'PERCENT' ? (
                         <>
                           <div>• Giảm {voucher.discountValue}%</div>
@@ -317,21 +363,21 @@ const VoucherDetailPage = () => {
               </div>
 
               {/* Áp dụng cho tour */}
-              <div className="mt-3">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1.5">Áp dụng cho tour</h3>
-                <div className="bg-gray-50 rounded-lg p-2.5">
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Áp dụng cho tour</h3>
+                <div className="bg-[#fefefe] rounded-2xl p-3 border border-[#f0f0f0]">
                   {voucher.tourIds && voucher.tourIds.length > 0 ? (
-                    <div className="space-y-2">
-                      <p className="text-xs text-gray-700 font-semibold mb-2">
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-700 font-semibold">
                         Voucher này áp dụng cho các tour sau:
                       </p>
-                      <div className="space-y-1.5">
+                      <div className="space-y-2 tour-list-scrollable max-h-48 pr-1">
                         {voucher.tourIds.map((tourId, idx) => {
                           const tourName = toursMap.get(tourId) || `Tour #${tourId}`;
                           return (
-                            <div key={idx} className="flex items-center text-xs text-gray-700 bg-white px-3 py-2 rounded border border-gray-200">
-                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 flex-shrink-0"></span>
-                              <span>{tourName}</span>
+                            <div key={idx} className="flex items-center text-sm text-gray-700 bg-[#f6f8ff] px-3 py-2 rounded-2xl border border-[#e4ebff]">
+                              <span className="w-2 h-2 bg-[#2979FF] rounded-full mr-2 flex-shrink-0"></span>
+                              <span className="truncate">{tourName}</span>
                             </div>
                           );
                         })}
@@ -347,7 +393,7 @@ const VoucherDetailPage = () => {
             </div>
 
             {/* Action Button - Fixed at bottom */}
-            <div className="p-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+            <div className="p-4 bg-[#f6f8ff] border-t border-[#e0e9ff] flex-shrink-0">
               <button
                 onClick={async () => {
                   try {
@@ -363,7 +409,7 @@ const VoucherDetailPage = () => {
                     showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
                   }
                 }}
-                className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-lg`}
+                className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-3 px-4 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm`}
               >
                 Sao chép mã
               </button>

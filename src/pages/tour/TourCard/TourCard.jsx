@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import {
+  ClockIcon,
+  ShareIcon,
+  ArrowRightIcon
+} from '@heroicons/react/24/outline';
 import { ShareTourModal, LoginRequiredModal } from '../../../components/modals';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from './TourCard.module.css';
@@ -11,6 +16,7 @@ const TourCard = ({ tour }) => {
   const { user } = useAuth();
   const [openShare, setOpenShare] = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
+  const modalClosingRef = useRef(false);
   const { t, i18n } = useTranslation();
 
   const formatPrice = (price) => {
@@ -43,7 +49,7 @@ const TourCard = ({ tour }) => {
   };
 
   const handleViewDetails = () => {
-    navigate(`/tour/${tour.id}`);
+    navigate(`/tour/detail?id=${tour.id}`);
   };
 
   const handleShare = () => {
@@ -52,7 +58,11 @@ const TourCard = ({ tour }) => {
   };
 
   const handleCardClick = () => {
-    navigate(`/tour/${tour.id}`);
+    // Không navigate nếu modal đang mở hoặc đang trong quá trình đóng
+    if (openShare || showLoginRequired || modalClosingRef.current) {
+      return;
+    }
+    navigate(`/tour/detail?id=${tour.id}`);
   };
 
   const handleButtonClick = (e) => {
@@ -82,9 +92,7 @@ const TourCard = ({ tour }) => {
         <div className={styles['tour-card-bottom']}>
           <div className={styles['tour-card-info']}>
             <div className={styles['tour-duration']}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <ClockIcon className={styles['duration-icon']} />
               <span>{formatDurationLocalized()}</span>
             </div>
             
@@ -101,7 +109,8 @@ const TourCard = ({ tour }) => {
                 handleViewDetails();
               }}
             >
-              {t('tourCard.details')}
+              <span>{t('tourCard.details')}</span>
+              <ArrowRightIcon className={styles['btn-icon']} />
             </button>
             <button 
               className={styles['share-btn']}
@@ -110,7 +119,7 @@ const TourCard = ({ tour }) => {
                 handleShare();
               }}
             >
-              {t('tourCard.share') || 'Share'}
+              <ShareIcon className={styles['share-icon']} />
             </button>
           </div>
         </div>
@@ -118,23 +127,41 @@ const TourCard = ({ tour }) => {
       {openShare && createPortal(
         <ShareTourModal 
           isOpen={openShare} 
-          onClose={() => setOpenShare(false)} 
+          onClose={() => {
+            modalClosingRef.current = true;
+            setOpenShare(false);
+            // Reset flag sau một khoảng thời gian ngắn để đảm bảo event đã xử lý xong
+            setTimeout(() => {
+              modalClosingRef.current = false;
+            }, 100);
+          }} 
           tourId={tour.id}
           onShared={(post)=>{ 
             // Close modal then navigate to forum like TourDetailPage
+            modalClosingRef.current = true;
             setOpenShare(false);
-            setTimeout(() => navigate('/forum'), 100);
+            setTimeout(() => {
+              modalClosingRef.current = false;
+              navigate('/forum');
+            }, 100);
           }}
         />,
         document.body
       )}
       {showLoginRequired && createPortal(
-        <LoginRequiredModal 
+        <LoginRequiredModal
           isOpen={showLoginRequired}
-          onClose={() => setShowLoginRequired(false)}
+          onClose={() => {
+            modalClosingRef.current = true;
+            setShowLoginRequired(false);
+            // Reset flag sau một khoảng thời gian ngắn để đảm bảo event đã xử lý xong
+            setTimeout(() => {
+              modalClosingRef.current = false;
+            }, 100);
+          }}
           title={t('auth.loginRequired.title')}
           message={t('auth.loginRequired.message')}
-          returnTo={`/tour/${tour.id}`}
+          returnTo={`/tour/detail?id=${tour.id}`}
         />,
         document.body
       )}

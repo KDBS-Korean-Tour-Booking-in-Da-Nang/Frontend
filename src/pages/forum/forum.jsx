@@ -1,12 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl } from '../../config/api';
+import { API_ENDPOINTS, getAvatarUrl } from '../../config/api';
 import PostModal from './components/PostModal/PostModal';
-import PostCard from './components/PostCard/PostCard';
 import SearchSidebar from './components/SearchSidebar/SearchSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
 import styles from './forum.module.css';
+
+// Lazy load PostCard for better initial load performance
+const PostCard = lazy(() => import('./components/PostCard/PostCard'));
+
+// Constants
+const STORAGE_KEYS = {
+  SELECTED_HASHTAGS: 'forum-selected-hashtags',
+  SEARCH_KEYWORD: 'forum-search-keyword',
+  SEARCH_MODE: 'forum-search-mode',
+};
+
+const FETCH_TIMEOUT = 10000; // 10 seconds
+const PREFETCH_DELAY = 1000; // 1 second
+const PAGE_SIZE = 10;
 
 const Forum = () => {
   const { t } = useTranslation();
@@ -34,83 +47,76 @@ const Forum = () => {
   const isSwitchingModeRef = useRef(false);
 
   const measure = useCallback(() => {
-    if (isNarrow) return; // Không đo khi màn nhỏ
+    if (isNarrow) return;
 
     const slot = leftSlotRef.current;
-    const header = headerRef.current;
     if (!slot) return;
 
     const slotRect = slot.getBoundingClientRect();
     
-    // Sidebar luôn bắt đầu từ dưới navbar, bất kể có header hay không
-    // Tìm navbar thực tế để lấy chiều cao chính xác
-    let navbarHeight = 90; // default height (từ CSS: height: 90px)
-    
+    // Find navbar height
+    let navbarHeight = 90; // Default height
     const allNavs = document.querySelectorAll('nav');
     for (const nav of allNavs) {
       const styles = window.getComputedStyle(nav);
       const rect = nav.getBoundingClientRect();
-      // Kiểm tra nếu nav là fixed và ở top của viewport
       if (styles.position === 'fixed' && Math.abs(rect.top) < 5) {
         navbarHeight = rect.height;
         break;
       }
     }
     
-    const NAVBAR_PADDING = 0; // Không cần padding vì sidebar sẽ bắt đầu ngay dưới navbar
-    const top = navbarHeight + NAVBAR_PADDING;
-
-    const SAFE_WIDTH = 280; // fallback đúng với grid-template-columns
+    const top = navbarHeight;
+    const SAFE_WIDTH = 280;
     const left = Math.round(slotRect.left);
-    const width = Math.round(slotRect.width || SAFE_WIDTH); // fallback khi width = 0
-    // Tính height để sidebar full từ top đến bottom của viewport
+    const width = Math.round(slotRect.width || SAFE_WIDTH);
     const height = window.innerHeight - top;
 
     setFixedSBStyle({ position: 'fixed', top, left, width, height });
   }, [isNarrow]);
 
-  const showSinglePost = async (postId) => {
+  // Utility: Find post in current list as fallback
+  const findPostInList = useCallback((postId) => {
+    return posts.find(p => p.forumPostId === postId);
+  }, [posts]);
+
+  const showSinglePost = useCallback(async (postId) => {
     setSelectedPostId(postId);
     try {
       const response = await fetch(API_ENDPOINTS.POST_BY_ID(postId));
       if (response.ok) {
         const data = await response.json();
         setSinglePost(data);
-      } else {
-        console.error('Failed to fetch single post');
-        // Fallback: find post in current posts list
-        const post = posts.find(p => p.forumPostId === postId);
-        if (post) {
-          setSinglePost(post);
-        }
+        return;
       }
     } catch (error) {
-      console.error('Error fetching single post:', error);
-      // Fallback: find post in current posts list
-      const post = posts.find(p => p.forumPostId === postId);
-      if (post) {
-        setSinglePost(post);
-      }
+      // Silently handle error
     }
-  };
+    
+    // Fallback: find post in current posts list
+    const post = findPostInList(postId);
+    if (post) {
+      setSinglePost(post);
+    }
+  }, [findPostInList]);
 
-  const backToAllPosts = () => {
+  const backToAllPosts = useCallback(() => {
     setSelectedPostId(null);
     setSinglePost(null);
-  };
+  }, []);
 
   // Load saved filters on component mount
   useEffect(() => {
-    const savedHashtags = localStorage.getItem('forum-selected-hashtags');
-    const savedSearchKeyword = localStorage.getItem('forum-search-keyword');
-    const savedSearchMode = localStorage.getItem('forum-search-mode') === 'true';
+    const savedHashtags = localStorage.getItem(STORAGE_KEYS.SELECTED_HASHTAGS);
+    const savedSearchKeyword = localStorage.getItem(STORAGE_KEYS.SEARCH_KEYWORD);
+    const savedSearchMode = localStorage.getItem(STORAGE_KEYS.SEARCH_MODE) === 'true';
     
     if (savedHashtags) {
       try {
         const parsedHashtags = JSON.parse(savedHashtags);
         setSelectedHashtags(parsedHashtags);
-      } catch (error) {
-        console.error('Error parsing saved hashtags:', error);
+      } catch {
+        // Invalid data, ignore
       }
     }
     
@@ -130,9 +136,9 @@ const Forum = () => {
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  // Measure and update fixed sidebar position (chỉ khi màn lớn)
+  // Measure and update fixed sidebar position (only on wide screens)
   useEffect(() => {
-    if (isNarrow) return; // Không đo khi màn nhỏ
+    if (isNarrow) return;
     const onResize = () => measure();
     const onScroll = () => measure();
     setTimeout(measure, 0);
@@ -144,15 +150,147 @@ const Forum = () => {
     };
   }, [measure, isNarrow]);
 
-  // Re-measure when user/login or header changes (chỉ khi màn lớn)
+  // Re-measure when user/login or header changes (only on wide screens)
   useEffect(() => {
-    if (isNarrow) return; // Không đo khi màn nhỏ
+    if (isNarrow) return;
     setTimeout(measure, 0);
   }, [user, measure, isNarrow]);
 
+  // Cache for posts to avoid unnecessary refetches
+  const postsCache = useRef(new Map());
+  
+  // Utility: Clear cache and localStorage
+  const clearFiltersStorage = useCallback(() => {
+    postsCache.current.clear();
+    localStorage.removeItem(STORAGE_KEYS.SELECTED_HASHTAGS);
+    localStorage.removeItem(STORAGE_KEYS.SEARCH_KEYWORD);
+    localStorage.removeItem(STORAGE_KEYS.SEARCH_MODE);
+  }, []);
+
+  // Utility: Build API URL
+  const buildPostsUrl = useCallback((page) => {
+    if (isMyPostsMode && user) {
+      return `${API_ENDPOINTS.MY_POSTS}?page=${page}&size=${PAGE_SIZE}`;
+    }
+    
+    let url = `${API_ENDPOINTS.POST_SEARCH}?page=${page}&size=${PAGE_SIZE}&sort=createdAt,desc`;
+    
+    if (searchKeyword) {
+      url += `&keyword=${encodeURIComponent(searchKeyword)}`;
+    }
+    
+    if (selectedHashtags.length > 0) {
+      selectedHashtags.forEach(tag => {
+        url += `&hashtags=${encodeURIComponent(tag)}`;
+      });
+    }
+    
+    return url;
+  }, [isMyPostsMode, user, searchKeyword, selectedHashtags]);
+
+  // Utility: Get auth headers
+  const getAuthHeaders = useCallback(() => {
+    const headers = {};
+    if (isMyPostsMode && user) {
+      headers['User-Email'] = user.email;
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    return headers;
+  }, [isMyPostsMode, user]);
+
+  // Utility: Prefetch next page
+  const prefetchNextPage = useCallback((url, headers, currentPageNum) => {
+    setTimeout(() => {
+      const nextPageUrl = url.replace(`page=${currentPageNum}`, `page=${currentPageNum + 1}`);
+      fetch(nextPageUrl, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) {
+            const nextCacheKey = `${nextPageUrl}_${currentPageNum + 1}`;
+            postsCache.current.set(nextCacheKey, data);
+          }
+        })
+        .catch(() => {}); // Silently fail prefetch
+    }, PREFETCH_DELAY);
+  }, []);
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      const url = buildPostsUrl(currentPage);
+      const cacheKey = `${url}_${currentPage}`;
+      
+      // Check cache first for initial page load
+      if (currentPage === 0 && postsCache.current.has(cacheKey)) {
+        const cachedData = postsCache.current.get(cacheKey);
+        setPosts(cachedData.content || []);
+        setHasMorePosts(!cachedData.last);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        return;
+      }
+
+      // Set loading state
+      if (isSwitchingModeRef.current) {
+        isSwitchingModeRef.current = false;
+      } else if (currentPage === 0 && posts.length === 0) {
+        setIsLoading(true);
+      } else if (currentPage > 0) {
+        setIsLoadingMore(true);
+      }
+
+      const headers = getAuthHeaders();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+      
+      const response = await fetch(url, { 
+        headers,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Cache the response for initial page loads
+        if (currentPage === 0) {
+          postsCache.current.set(cacheKey, data);
+        }
+        
+        // Update posts
+        if (currentPage === 0) {
+          setPosts(data.content || []);
+        } else {
+          setPosts(prev => [...prev, ...(data.content || [])]);
+        }
+        
+        setHasMorePosts(!data.last);
+        
+        // Prefetch next page if conditions are met
+        if (!data.last && currentPage === 0 && !searchKeyword && selectedHashtags.length === 0 && !isMyPostsMode) {
+          prefetchNextPage(url, headers, currentPage);
+        }
+      } else {
+        throw new Error('Failed to fetch posts');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError' && currentPage === 0) {
+        // Only show error on initial load, not on pagination
+        setPosts([]);
+      }
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [currentPage, buildPostsUrl, getAuthHeaders, prefetchNextPage, posts.length, searchKeyword, selectedHashtags.length, isMyPostsMode]);
+
+  // Fetch posts when dependencies change
   useEffect(() => {
     fetchPosts();
-  }, [searchKeyword, selectedHashtags, currentPage, isMyPostsMode]);
+  }, [fetchPosts]);
 
   // Cleanup Intersection Observer on unmount
   useEffect(() => {
@@ -163,160 +301,7 @@ const Forum = () => {
     };
   }, []);
 
-  // Cache for posts to avoid unnecessary refetches
-  const postsCache = useRef(new Map());
-  
-  const fetchPosts = async () => {
-    try {
-      let url;
-      
-      // Check if we're in My Posts mode
-      if (isMyPostsMode && user) {
-        url = `${API_ENDPOINTS.MY_POSTS}?page=${currentPage}&size=10`;
-      } else {
-        url = `${API_ENDPOINTS.POST_SEARCH}?page=${currentPage}&size=10&sort=createdAt,desc`;
-        
-        if (searchKeyword) {
-          url += `&keyword=${encodeURIComponent(searchKeyword)}`;
-        }
-        
-        if (selectedHashtags.length > 0) {
-          selectedHashtags.forEach(tag => {
-            url += `&hashtags=${encodeURIComponent(tag)}`;
-          });
-        }
-      }
-
-      // Check cache first for initial page load
-      const cacheKey = `${url}_${currentPage}`;
-      if (currentPage === 0 && postsCache.current.has(cacheKey)) {
-        const cachedData = postsCache.current.get(cacheKey);
-        setPosts(cachedData.content || []);
-        setHasMorePosts(!cachedData.last);
-        setIsLoading(false);
-        setIsLoadingMore(false);
-        return;
-      }
-
-      // Only set loading state if we don't have posts yet (initial load) or loading more
-      // Don't show loading when switching modes to avoid flickering
-      if (isSwitchingModeRef.current) {
-        // When switching modes, don't show loading - just fetch silently
-        isSwitchingModeRef.current = false;
-      } else if (currentPage === 0 && posts.length === 0) {
-        setIsLoading(true);
-      } else if (currentPage > 0) {
-        setIsLoadingMore(true);
-      }
-
-      const headers = {};
-      if (isMyPostsMode && user) {
-        headers['User-Email'] = user.email;
-        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-      }
-      
-      const response = await fetch(url, { headers });
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Cache the response for initial page loads
-        if (currentPage === 0) {
-          postsCache.current.set(cacheKey, data);
-        }
-        
-        if (currentPage === 0) {
-          setPosts(data.content || []);
-        } else {
-          setPosts(prev => [...prev, ...(data.content || [])]);
-        }
-        
-        setHasMorePosts(!data.last);
-      } else {
-        throw new Error('Failed to fetch posts');
-      }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      // Fallback to mock data for development
-      if (currentPage === 0) {
-        setPosts(getMockPosts());
-      }
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  };
-
-  const getMockPosts = () => {
-    return [
-      {
-        forumPostId: 1,
-        title: t('forum.mockPosts.ai.title'),
-        content: t('forum.mockPosts.ai.content'),
-        username: 'Nguyễn Văn A',
-        userAvatar: '/default-avatar.png',
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        hashtags: [
-          { content: 'ai' },
-          { content: 'technology' },
-          { content: 'innovation' }
-        ],
-        images: [
-          { imgPath: '/uploads/posts/images/ai-tech.jpg' }
-        ],
-        reactions: { likeCount: 45, commentCount: 12 },
-        comments: [
-          {
-            forumCommentId: 1,
-            content: t('forum.mockPosts.ai.comment'),
-            username: 'Trần Thị B',
-            userAvatar: '/default-avatar.png',
-            createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-          }
-        ]
-      },
-      {
-        forumPostId: 2,
-        title: t('forum.mockPosts.startup.title'),
-        content: t('forum.mockPosts.startup.content'),
-        username: 'Lê Văn C',
-        userAvatar: '/default-avatar.png',
-        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        hashtags: [
-          { content: 'startup' },
-          { content: 'business' },
-          { content: 'success' }
-        ],
-        images: [],
-        reactions: { likeCount: 23, commentCount: 8 },
-        comments: []
-      },
-      {
-        forumPostId: 3,
-        title: t('forum.mockPosts.marketing.title'),
-        content: t('forum.mockPosts.marketing.content'),
-        username: 'Phạm Thị D',
-        userAvatar: '/default-avatar.png',
-        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-        hashtags: [
-          { content: 'marketing' },
-          { content: 'digital' },
-          { content: 'strategy' }
-        ],
-        images: [
-          { imgPath: '/uploads/posts/images/digital-marketing.jpg' },
-          { imgPath: '/uploads/posts/images/marketing-tools.jpg' }
-        ],
-        reactions: { likeCount: 67, commentCount: 15 },
-        comments: []
-      }
-    ];
-  };
-
-  const handleCreatePost = (post) => {
+  const handleCreatePost = useCallback((post) => {
     if (editingPost) {
       // Update existing post
       setPosts(prev => 
@@ -334,116 +319,65 @@ const Forum = () => {
     }
     // notify sidebar to refresh popular hashtags
     window.dispatchEvent(new Event('refresh-popular-hashtags'));
-  };
+  }, [editingPost, isSearchMode, isMyPostsMode]);
 
 
-  const handlePostDeleted = (postId) => {
+  const handlePostDeleted = useCallback((postId) => {
     setPosts(prev => prev.filter(post => post.forumPostId !== postId));
-  };
+  }, []);
 
-  const handleSearch = (keyword) => {
-    // Clear hashtag filter first, then set search keyword
+  // Utility: Reset to default state
+  const resetToDefaultState = useCallback(() => {
+    setSelectedPostId(null);
+    setSinglePost(null);
+    isSwitchingModeRef.current = true;
+    setSearchKeyword('');
+    setSelectedHashtags([]);
+    setCurrentPage(0);
+    setIsSearchMode(false);
+    setIsMyPostsMode(false);
+    clearFiltersStorage();
+  }, [clearFiltersStorage]);
+
+  const handleSearch = useCallback((keyword) => {
     setSelectedHashtags([]);
     setSearchKeyword(keyword);
     setCurrentPage(0);
-    setIsSearchMode(true); // Set search mode
-    setIsMyPostsMode(false); // Exit My Posts mode
-    
-    // Clear posts cache to prevent showing stale data
-    postsCache.current.clear();
-    
-    // Save to localStorage
-    localStorage.setItem('forum-selected-hashtags', JSON.stringify([]));
-    localStorage.setItem('forum-search-keyword', keyword);
-    localStorage.setItem('forum-search-mode', 'true');
-  };
+    setIsSearchMode(true);
+    setIsMyPostsMode(false);
+    clearFiltersStorage();
+    localStorage.setItem(STORAGE_KEYS.SELECTED_HASHTAGS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, keyword);
+    localStorage.setItem(STORAGE_KEYS.SEARCH_MODE, 'true');
+  }, [clearFiltersStorage]);
 
-  const handleHashtagFilter = (hashtags) => {
-    // Clear search keyword first, then set hashtag filter
+  const handleHashtagFilter = useCallback((hashtags) => {
     setSearchKeyword('');
-    // Handle both single hashtag (string) and array of hashtags
     const hashtagArray = Array.isArray(hashtags) ? hashtags : [hashtags];
     setSelectedHashtags(hashtagArray);
     setCurrentPage(0);
-    setIsSearchMode(false); // Set filter mode
-    setIsMyPostsMode(false); // Exit My Posts mode
-    
-    // Clear posts cache to prevent showing stale data
-    postsCache.current.clear();
-    
-    // Save to localStorage
-    localStorage.setItem('forum-selected-hashtags', JSON.stringify(hashtagArray));
-    localStorage.setItem('forum-search-keyword', '');
-    localStorage.setItem('forum-search-mode', 'false');
-  };
+    setIsSearchMode(false);
+    setIsMyPostsMode(false);
+    clearFiltersStorage();
+    localStorage.setItem(STORAGE_KEYS.SELECTED_HASHTAGS, JSON.stringify(hashtagArray));
+    localStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, '');
+    localStorage.setItem(STORAGE_KEYS.SEARCH_MODE, 'false');
+  }, [clearFiltersStorage]);
 
-  const clearAllFilters = () => {
-    // Close single post view if open
-    setSelectedPostId(null);
-    setSinglePost(null);
-    
-    // Mark that we're switching modes to avoid showing loading
-    isSwitchingModeRef.current = true;
-    
-    setSearchKeyword('');
-    setSelectedHashtags([]);
-    setCurrentPage(0);
-    setIsSearchMode(false); // Reset to normal mode
-    setIsMyPostsMode(false); // Exit My Posts mode
-    
-    // Clear posts cache to prevent showing stale data
-    postsCache.current.clear();
-    
-    // Clear localStorage
-    localStorage.removeItem('forum-selected-hashtags');
-    localStorage.removeItem('forum-search-keyword');
-    localStorage.removeItem('forum-search-mode');
-  };
+  const clearAllFilters = useCallback(() => {
+    resetToDefaultState();
+  }, [resetToDefaultState]);
 
-  const handleMyPostsClick = () => {
-    // Close single post view if open
-    setSelectedPostId(null);
-    setSinglePost(null);
-    
-    // Mark that we're switching modes to avoid showing loading
-    isSwitchingModeRef.current = true;
-    
+  const handleMyPostsClick = useCallback(() => {
+    resetToDefaultState();
     setIsMyPostsMode(true);
-    setShowSavedPostsModal(false); // Close saved posts modal if open
-    setIsSearchMode(false);
-    setSearchKeyword('');
-    setSelectedHashtags([]);
-    setCurrentPage(0);
-    
-    // Clear posts cache to prevent showing stale data
-    postsCache.current.clear();
-    
-    // Clear localStorage
-    localStorage.removeItem('forum-selected-hashtags');
-    localStorage.removeItem('forum-search-keyword');
-    localStorage.removeItem('forum-search-mode');
-  };
+    setShowSavedPostsModal(false);
+  }, [resetToDefaultState]);
 
-  const handleSavedPostsClick = () => {
-    // Close single post view if open
-    setSelectedPostId(null);
-    setSinglePost(null);
-    
+  const handleSavedPostsClick = useCallback(() => {
+    resetToDefaultState();
     setShowSavedPostsModal(true);
-    setIsMyPostsMode(false); // Close my posts mode if open
-    setIsSearchMode(false);
-    setSearchKeyword('');
-    setSelectedHashtags([]);
-    setCurrentPage(0);
-    
-    // Clear posts cache to prevent showing stale data
-    postsCache.current.clear();
-    
-    // Clear localStorage
-    localStorage.removeItem('forum-selected-hashtags');
-    localStorage.removeItem('forum-search-keyword');
-    localStorage.removeItem('forum-search-mode');
-  };
+  }, [resetToDefaultState]);
 
   const handleLoadMore = useCallback(() => {
     if (!isLoadingMore && hasMorePosts) {
@@ -464,17 +398,17 @@ const Forum = () => {
     if (node) observerRef.current.observe(node);
   }, [isLoadingMore, hasMorePosts, handleLoadMore]);
 
-  const openEditModal = (post) => {
+  const openEditModal = useCallback((post) => {
     setEditingPost(post);
     setShowPostModal(true);
-  };
+  }, []);
 
-  const closePostModal = () => {
+  const closePostModal = useCallback(() => {
     setShowPostModal(false);
     setEditingPost(null);
-  };
+  }, []);
 
-  const handleCommentAdded = (comment) => {
+  const handleCommentAdded = useCallback((comment) => {
     // Update comment count in the post
     setPosts(prev => 
       prev.map(post => {
@@ -490,17 +424,29 @@ const Forum = () => {
           return post;
         })
       );
-  };
+  }, []);
+
+  // Memoize posts list rendering to avoid unnecessary re-renders
+  const postsList = useMemo(() => {
+    return posts.map((post, index) => (
+      <PostCard 
+        key={post.forumPostId}
+        post={post}
+        onPostUpdated={handleCreatePost}
+        onPostDeleted={handlePostDeleted}
+        onEdit={openEditModal}
+        onHashtagClick={handleHashtagFilter}
+        isFirstPost={index === 0}
+      />
+    ));
+  }, [posts, handleCreatePost, handlePostDeleted, openEditModal, handleHashtagFilter]);
 
   return (
     <div className={styles.pageRoot}>
-      {/* Layer nền gradient phủ toàn màn hình */}
       <div className={styles.pageBackground} aria-hidden="true"></div>
-
-      {/* Toàn bộ forum */}
       <div className={styles['forum-container']}>
         <div className={styles['forum-content']}>
-        {/* Header: HÀNG 1 của grid */}
+        {/* Header Section */}
         {user && (
           <div id="forum-header" ref={headerRef} className={styles['forum-header']}>
             <div className={styles['forum-header__inner']}>
@@ -557,7 +503,7 @@ const Forum = () => {
             </div>
           </div>
         )}
-      {/* LEFT PLACEHOLDER – CHỈ MÀN RỘNG */}
+      {/* Left placeholder for wide screens */}
         {!isNarrow && (
           <div
             className={`${styles['forum-sidebar']} ${styles['left']}`}
@@ -567,7 +513,7 @@ const Forum = () => {
           />
         )}
 
-        {/* SIDEBAR CHO MÀN HẸP – ĐẶT TRÊN FEED */}
+        {/* Sidebar for narrow screens */}
         {isNarrow && (
           <div className={`${styles['forum-sidebar']} ${styles['left']}`}>
             <SearchSidebar
@@ -701,28 +647,33 @@ const Forum = () => {
                   </button>
                 </div>
                 <div className={styles['posts-feed']}>
-                  <PostCard 
-                    key={singlePost.forumPostId}
-                    post={singlePost}
-                    onPostUpdated={handleCreatePost}
-                    onPostDeleted={handlePostDeleted}
-                    onEdit={openEditModal}
-                    onHashtagClick={handleHashtagFilter}
-                  />
+                  <Suspense fallback={
+                    <div className={styles['loading-container']}>
+                      <div className={styles['loading-spinner']}></div>
+                      <p>{t('forum.post.loading')}</p>
+                    </div>
+                  }>
+                    <PostCard 
+                      key={singlePost.forumPostId}
+                      post={singlePost}
+                      onPostUpdated={handleCreatePost}
+                      onPostDeleted={handlePostDeleted}
+                      onEdit={openEditModal}
+                      onHashtagClick={handleHashtagFilter}
+                    />
+                  </Suspense>
                 </div>
               </div>
             ) : (
               <div className={styles['posts-feed']}>
-                {posts.map((post) => (
-                  <PostCard 
-                    key={post.forumPostId}
-                    post={post}
-                    onPostUpdated={handleCreatePost}
-                    onPostDeleted={handlePostDeleted}
-                    onEdit={openEditModal}
-                    onHashtagClick={handleHashtagFilter}
-                  />
-                ))}
+                <Suspense fallback={
+                  <div className={styles['loading-container']}>
+                    <div className={styles['loading-spinner']}></div>
+                    <p>{t('forum.post.loading')}</p>
+                  </div>
+                }>
+                  {postsList}
+                </Suspense>
               </div>
             )}
             
@@ -768,7 +719,7 @@ const Forum = () => {
         />
       )}
 
-      {/* SIDEBAR CHO MÀN RỘNG – fixed ngoài grid */}
+      {/* Fixed sidebar for wide screens */}
       {!isNarrow && (
         <SearchSidebar
           mode="fixed"

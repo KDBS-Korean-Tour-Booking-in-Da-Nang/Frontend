@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { API_ENDPOINTS, createAuthFormHeaders, getTourImageUrl, BaseURL } from '../../../config/api';
+import { API_ENDPOINTS, createAuthFormHeaders, getTourImageUrl, FrontendURL } from '../../../config/api';
 import styles from './ShareTourModal.module.css';
 
 const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const { showError } = useToast();
@@ -42,7 +44,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
             title: data.tourName || '',
             summary: data.tourDescription || '',
             thumbnailUrl: getTourImageUrl(data.tourImgPath || data.thumbnailUrl),
-            linkUrl: `${BaseURL}/tour/${tourId}`
+            linkUrl: `${FrontendURL}/tour/detail?id=${tourId}`
           });
         }
       } catch (e) {
@@ -134,8 +136,17 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       const res = await fetch(API_ENDPOINTS.POSTS, { method: 'POST', headers, body: formData });
       if (!res.ok) throw new Error('create post failed');
       const post = await res.json();
+      
+      // Call onShared callback if provided
       onShared && onShared(post);
+      
+      // Close modal
       onClose && onClose();
+      
+      // Navigate to forum after a short delay to ensure modal closes smoothly
+      setTimeout(() => {
+        navigate('/forum');
+      }, 100);
     } catch (e) {
       console.error(e);
       showError('toast.forum.post_create_failed');

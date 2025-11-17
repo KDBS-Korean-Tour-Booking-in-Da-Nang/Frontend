@@ -23,12 +23,16 @@ export const useBookingStepValidation = (bookingData) => {
     return emailRegex.test(email);
   };
 
-  // Helper function to validate full name format (letters from all languages, spaces, hyphens, apostrophes)
+  // Helper function to validate full name format (letters, numbers, spaces, hyphens, apostrophes)
+  // Requires at least one letter
   const isValidFullName = (fullName) => {
     if (!fullName?.trim()) return false;
     // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
-    const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
-    return nameRegex.test(fullName.trim());
+    // Also allows numbers like: John123, Mary2, etc.
+    const nameRegex = /^[\p{L}\p{M}\d\s\-']+$/u;
+    const trimmed = fullName.trim();
+    // Must match regex and have at least one letter
+    return nameRegex.test(trimmed) && /[\p{L}\p{M}]/u.test(trimmed);
   };
 
   // Helper function to calculate age from date of birth at a specific date (same as Step2Details)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { TourBookingProvider, useBooking } from '../../../contexts/TourBookingContext';
 import { formatBookingData, validateBookingData } from '../../../utils/bookingFormatter';
 import { useBookingAPI } from '../../../hooks/useBookingAPI';
@@ -21,14 +21,15 @@ const STEPS = [
 
 // Inner component that uses the booking context
 const BookingWizardContent = () => {
-  const { id: tourId } = useParams();
+  const [searchParams] = useSearchParams();
+  const tourId = searchParams.get('id');
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const { showError, showBatch, showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
   const showErrorRef = useRef(showError);
-  const {
+    const {
     resetBooking,
     contact,
     plan,
@@ -44,6 +45,9 @@ const BookingWizardContent = () => {
     setBookingSuccess,
     clearBookingStatus
   } = useBooking();
+  
+  // Track if we've restored data to avoid duplicate restores
+  const hasRestoredRef = useRef(false);
   const { createBookingAPI } = useBookingAPI();
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -72,7 +76,7 @@ const BookingWizardContent = () => {
         };
           localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
       } catch (error) {
-        console.error('Error auto-saving booking data:', error);
+        // Error auto-saving booking data
       }
     }
   }, [contact, plan, tourId]);
@@ -135,17 +139,58 @@ const BookingWizardContent = () => {
   // Block COMPANY role from booking
   useEffect(() => {
     if (!authLoading && user && user.role === 'COMPANY') {
-      showErrorRef.current('Tài khoản doanh nghiệp không thể đặt tour.');
+      showErrorRef.current(t('bookingWizard.toast.companyNotAllowedError'));
     }
   }, [authLoading, user]);
 
   // Reset booking when component mounts or tourId changes
   useEffect(() => {
-    if (user) {
+    // Reset restore flag when tourId changes
+    hasRestoredRef.current = false;
+  }, [tourId]);
+  
+  // Handle navigation state (step, clearExistingData)
+  useEffect(() => {
+    // If clearExistingData flag is set (from payment page), clear all data
+    if (location.state?.clearExistingData) {
+      try {
+        localStorage.removeItem(`bookingData_${tourId}`);
+        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+        localStorage.removeItem(`existingBookingId_${tourId}`);
+        resetBooking();
+        setCurrentStep(1);
+        hasRestoredRef.current = true;
+      } catch (error) {
+        // Error clearing existing booking data
+      }
+      return;
+    }
+    
+    // Handle step from navigation state
+    if (location.state?.step && location.state.step >= 1 && location.state.step <= 3) {
+      setCurrentStep(location.state.step);
+    }
+  }, [location, tourId, resetBooking]);
+  
+  useEffect(() => {
+    if (user && !hasRestoredRef.current) {
+      // Check if clearExistingData was set - if so, skip restore
+      if (location.state?.clearExistingData) {
+        hasRestoredRef.current = true;
+        return;
+      }
+      
       // Check if user has confirmed to leave before
       const hasConfirmedLeaveFlag = localStorage.getItem(`hasConfirmedLeave_${tourId}`);
       if (hasConfirmedLeaveFlag === 'true') {
         resetBooking();
+        // Clear the flag after processing so reload can restore data
+        try {
+          localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+        } catch (error) {
+          // Error clearing hasConfirmedLeave flag
+        }
+        hasRestoredRef.current = true;
         return;
       }
       
@@ -172,40 +217,62 @@ const BookingWizardContent = () => {
               setPax(parsedData.plan.pax);
             }
 
-            // Restore members
-            if (parsedData.plan.members) {
-              // Restore adult members
-              if (parsedData.plan.members.adult) {
-                parsedData.plan.members.adult.forEach((member, index) => {
-                  setMember('adult', index, member);
-                });
-              }
+            // Wait for pax to be set and members to be rebuilt before restoring member data
+            // Use setTimeout to ensure pax state update and rebuildMembers have processed
+            setTimeout(() => {
+              // Rebuild members based on pax first
+              rebuildMembers();
               
-              // Restore child members
-              if (parsedData.plan.members.child) {
-                parsedData.plan.members.child.forEach((member, index) => {
-                  setMember('child', index, member);
-                });
-              }
-              
-              // Restore infant members
-              if (parsedData.plan.members.infant) {
-                parsedData.plan.members.infant.forEach((member, index) => {
-                  setMember('infant', index, member);
-                });
-              }
-            }
+              // Then restore members data
+              setTimeout(() => {
+                if (parsedData.plan.members) {
+                  // Restore adult members (only if they have data)
+                  if (parsedData.plan.members.adult && Array.isArray(parsedData.plan.members.adult)) {
+                    parsedData.plan.members.adult.forEach((member, index) => {
+                      // Only set member if it has meaningful data
+                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
+                        setMember('adult', index, member);
+                      }
+                    });
+                  }
+                  
+                  // Restore child members (only if they have data)
+                  if (parsedData.plan.members.child && Array.isArray(parsedData.plan.members.child)) {
+                    parsedData.plan.members.child.forEach((member, index) => {
+                      // Only set member if it has meaningful data
+                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
+                        setMember('child', index, member);
+                      }
+                    });
+                  }
+                  
+                  // Restore infant members (only if they have data)
+                  if (parsedData.plan.members.infant && Array.isArray(parsedData.plan.members.infant)) {
+                    parsedData.plan.members.infant.forEach((member, index) => {
+                      // Only set member if it has meaningful data
+                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
+                        setMember('infant', index, member);
+                      }
+                    });
+                  }
+                }
+              }, 50);
+            }, 50);
           }
         } else {
           // No saved data, reset to initial state
           resetBooking();
         }
+        
+        // Mark as restored to avoid duplicate restores
+        hasRestoredRef.current = true;
       } catch (error) {
-        console.error('Error restoring booking data:', error);
+        // Error restoring booking data
         resetBooking();
+        hasRestoredRef.current = true;
       }
     }
-  }, [tourId, resetBooking, user, setContact, setDate, setMember]);
+  }, [tourId, resetBooking, user, setContact, setDate, setMember, setPax, rebuildMembers]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -270,7 +337,7 @@ const BookingWizardContent = () => {
             };
             localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
           } catch (error) {
-            console.error('Error saving booking data:', error);
+            // Error saving booking data
           }
 
           setCurrentStep(2);
@@ -286,7 +353,7 @@ const BookingWizardContent = () => {
             };
             localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
           } catch (error) {
-            console.error('Error saving booking data:', error);
+            // Error saving booking data
           }
           
           setCurrentStep(currentStep + 1);
@@ -308,14 +375,14 @@ const BookingWizardContent = () => {
     try {
       bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
     } catch (error) {
-      console.error('[Booking] Failed to format booking data', error);
-      showError(error?.message || 'Không thể chuẩn bị dữ liệu đặt tour. Vui lòng kiểm tra lại thông tin.');
+      // Failed to format booking data
+      showError(error?.message || t('bookingWizard.toast.formatDataError'));
       return;
     }
 
     const validation = validateBookingData(bookingData);
     if (!validation.isValid) {
-      showError(`Dữ liệu không hợp lệ: ${validation.errors.join(', ')}`);
+      showError(t('bookingWizard.toast.validationError', { errors: validation.errors.join(', ') }));
       return;
     }
 
@@ -328,7 +395,7 @@ const BookingWizardContent = () => {
       };
       localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(finalBookingData));
     } catch (error) {
-      console.error('Error saving final booking data:', error);
+      // Error saving final booking data
     }
 
     clearBookingStatus();
@@ -345,9 +412,9 @@ const BookingWizardContent = () => {
 
       resetBooking();
 
-      showSuccess('Đặt tour thành công. Vui lòng tiến hành thanh toán để hoàn tất.');
+      showSuccess(t('bookingWizard.toast.bookingSuccess'));
 
-      navigate(`/booking/${createdBooking.bookingId}/payment`, {
+      navigate(`/booking/payment?id=${createdBooking.bookingId}`, {
         state: {
           bookingId: createdBooking.bookingId,
           userEmail: createdBooking.contactEmail || bookingData.userEmail,
@@ -355,8 +422,8 @@ const BookingWizardContent = () => {
         }
       });
     } catch (error) {
-      console.error('[Booking] Create booking failed', error);
-      const message = error?.message || 'Không thể tạo booking. Vui lòng thử lại sau.';
+      // Create booking failed
+      const message = error?.message || t('bookingWizard.toast.bookingError');
       setBookingError(message);
       showError(message);
       if (message === 'Unauthenticated') {
@@ -406,7 +473,7 @@ const BookingWizardContent = () => {
       localStorage.removeItem(`bookingData_${tourId}`);
       localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
     } catch (error) {
-      console.error('Error clearing booking data:', error);
+      // Error clearing booking data
     }
     
     if (pendingNavigation) {
@@ -479,12 +546,12 @@ const BookingWizardContent = () => {
         <div className={styles['tour-booking-wizard']}>
           <div className={styles['step-content']}>
             <div className={styles['auth-required']}>
-              <h2>🚫 {t('bookingWizard.auth.accessDeniedTitle') || 'Không thể đặt tour'}</h2>
-              <p>{t('bookingWizard.auth.companyNotAllowed') || 'Tài khoản doanh nghiệp (COMPANY) không thể đặt tour. Vui lòng sử dụng tài khoản người dùng.'}</p>
+              <h2>🚫 {t('bookingWizard.auth.accessDeniedTitle')}</h2>
+              <p>{t('bookingWizard.auth.companyNotAllowed')}</p>
               <button 
                 type="button"
                 className={styles['btn-primary']}
-                onClick={() => navigate(`/tour/${tourId}`)}
+                onClick={() => navigate(`/tour/detail?id=${tourId}`)}
               >
                 {t('bookingWizard.navigation.backToTour') || 'Quay lại trang tour'}
               </button>

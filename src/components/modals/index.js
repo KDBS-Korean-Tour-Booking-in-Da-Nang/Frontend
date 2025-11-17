@@ -4,3 +4,5 @@ export { default as DeleteConfirmModal } from './DeleteConfirmModal/DeleteConfir
 export { default as LoginRequiredModal } from './LoginRequiredModal/LoginRequiredModal';
 export { default as ShareTourModal } from './ShareTourModal/ShareTourModal';
 export { default as Step2InfoModal } from './Step2InfoModal/Step2InfoModal';
+export { default as VoucherDetailModal } from './VoucherDetailModal/VoucherDetailModal';
+export { default as RequestUpdateModal } from './RequestUpdateModal/RequestUpdateModal';
