@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,7 +9,6 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import { API_ENDPOINTS } from '../../../config/api';
-
 const FALLBACK_GALLERY_IMAGE = '/default-Tour.jpg';
 
 const Homepage = () => {
@@ -162,27 +161,46 @@ const Homepage = () => {
   }, [defaultTours, showingOnlyDefaultTours, toursList]);
   const totalDisplayTours = displayTours.length;
 
+  // Apply padding callback for slider
+  const applySliderPadding = useCallback(() => {
+    const slickList = document.querySelector('.destinations-slider .slick-list');
+    if (slickList) {
+      slickList.style.paddingTop = '20px';
+      slickList.style.paddingBottom = '20px';
+    }
+  }, []);
+
   // Apply padding to slick-list after slider initializes
+  // Use both useEffect and useLayoutEffect to ensure padding is applied
+  useLayoutEffect(() => {
+    if (totalDisplayTours > 0) {
+      // Apply immediately in layout effect
+      applySliderPadding();
+    }
+  }, [totalDisplayTours, displayTours, showingOnlyDefaultTours, applySliderPadding]);
+
   useEffect(() => {
     if (totalDisplayTours > 0) {
-      const applyStyles = () => {
-        const slickList = document.querySelector('.destinations-slider .slick-list');
-        if (slickList) {
-          slickList.style.paddingTop = '30px';
-          slickList.style.paddingBottom = '30px';
-        }
-      };
-      
       // Apply immediately and after delays to ensure slider is initialized
-      applyStyles();
-      const timer1 = setTimeout(applyStyles, 100);
-      const timer2 = setTimeout(applyStyles, 300);
+      // Increased delays and retries to handle both real data and defaultTours
+      applySliderPadding();
+      const timer1 = setTimeout(applySliderPadding, 50);
+      const timer2 = setTimeout(applySliderPadding, 150);
+      const timer3 = setTimeout(applySliderPadding, 300);
+      const timer4 = setTimeout(applySliderPadding, 500);
+      const timer5 = setTimeout(applySliderPadding, 700);
+      const timer6 = setTimeout(applySliderPadding, 1000);
+      
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
+        clearTimeout(timer3);
+        clearTimeout(timer4);
+        clearTimeout(timer5);
+        clearTimeout(timer6);
       };
     }
-  }, [totalDisplayTours]);
+  }, [totalDisplayTours, displayTours, showingOnlyDefaultTours, applySliderPadding]);
 
   // Slider navigation handlers
   const handlePrevDest = useCallback(() => {
@@ -212,6 +230,8 @@ const Homepage = () => {
       autoplay: false, // Tắt autoplay, người dùng tự điều khiển
       pauseOnHover: false, // Tắt pause on hover để bấm nhanh hơn
       cssEase: 'ease-out', // Smooth transition
+      onInit: applySliderPadding, // Apply padding when slider initializes
+      onReInit: applySliderPadding, // Apply padding when slider re-initializes
       responsive: [
         {
           breakpoint: 1024,
@@ -231,7 +251,7 @@ const Homepage = () => {
         }
       ]
     };
-  }, [totalDisplayTours]);
+  }, [totalDisplayTours, applySliderPadding]);
 
   // Fetch average rating for all tours
   useEffect(() => {
@@ -622,7 +642,7 @@ const Homepage = () => {
                     return (
                       <div key={item.id} className="px-4">
                         <div
-                          className="destination-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem] relative"
+                          className="destination-card bg-white rounded-2xl overflow-hidden border border-gray-300 hover:scale-105 transition-all duration-300 cursor-pointer h-[28rem] relative"
                           style={{ zIndex: 2, willChange: 'transform' }}
                           onClick={() => {
                             const isDefaultCard = Boolean(item?.isDefault) || String(item?.id || '').startsWith('default-tour-');

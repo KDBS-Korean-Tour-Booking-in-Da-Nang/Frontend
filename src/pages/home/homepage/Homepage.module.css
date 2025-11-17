@@ -448,26 +448,22 @@ figure { margin: 0; }
 /* ===== React Slick Slider for Top Destinations ===== */
 .destinations-slider {
   position: relative;
-  overflow: visible !important; /* Cho phép card hover mở rộng ra ngoài */
-  padding: 20px 0; /* Thêm padding để card có không gian mở rộng khi hover */
-  margin: -20px 0; /* Compensate padding để không ảnh hưởng layout */
   background: transparent !important;
 }
 
 .destinations-slider .slick-slide {
-  padding: 0 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 
 .destinations-slider .slick-list {
-  margin: 0 -8px;
+  margin: 0 -12px;
   overflow: visible !important; /* Cho phép card hover mở rộng ra ngoài */
-  padding: 30px 0 !important; /* Override CSS từ slick.css */
+  padding: 40px 0 !important; /* Padding top/bottom để card có không gian */
   background: transparent !important;
 }
 
 .destinations-slider .slick-track {
-  display: flex;
-  align-items: stretch;
   overflow: visible !important; /* Cho phép card hover mở rộng ra ngoài */
   background: transparent !important;
 }
@@ -490,13 +486,11 @@ figure { margin: 0; }
 .destinations-slider .slick-slide > div {
   position: relative;
   z-index: 2;
-  height: 100%;
   overflow: visible !important; /* Cho phép card hover mở rộng ra ngoài */
 }
 
 .destinations-slider .slick-slide > div:hover {
   z-index: 10 !important;
-  transform: scale(1.05); /* Scale khi hover */
 }
 
 .explore-badge {
