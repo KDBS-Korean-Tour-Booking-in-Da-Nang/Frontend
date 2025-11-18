@@ -312,7 +312,7 @@ const { name, value } = e.target;
           <div className={styles['register-form-section']}>
             <div className={styles['register-header']}>
               <div className={styles['register-logo']}>
-                <UserPlusIcon className="h-8 w-8 text-white" />
+                <UserPlusIcon className="h-6 w-6" strokeWidth={1.5} />
               </div>
               <h2 className={styles['register-title']}>
                 {t('auth.register.title')}

@@ -151,15 +151,7 @@ const TourList = () => {
     pauseOnHover: true,
     fade: true,
     cssEase: 'linear',
-    arrows: false,
-    customPaging: (i) => (
-      <div className={styles['custom-dot']} />
-    ),
-    appendDots: (dots) => (
-      <div className={styles['slick-dots-container']}>
-        <ul className={styles['slick-dots']}>{dots}</ul>
-      </div>
-    )
+    arrows: false
   };
 
   // Tính toán pagination cho client-side (khi không ở search mode)
@@ -190,7 +182,7 @@ const TourList = () => {
     <div className={styles["tour-list-container"]}>
       {/* Banner Carousel with React Slick */}
       <div className={styles["banner-carousel"]}>
-        <Slider ref={sliderRef} {...sliderSettings}>
+        <Slider ref={sliderRef} {...sliderSettings} className={styles["banner-slider"]}>
           {bannerImages.map((img, index) => (
             <div key={index} className={styles["carousel-slide"]}>
               <div className={styles["slide-image"]}>

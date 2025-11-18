@@ -161,7 +161,7 @@ const ForgotPassword = () => {
             <div className={styles['forgot-form-section']}>
               <div className={styles['forgot-header']}>
               <div className={styles['forgot-logo']}>
-                <KeyIcon className="h-8 w-8 text-white" />
+                <KeyIcon className="h-6 w-6" strokeWidth={1.5} />
               </div>
               <h2 className={styles['forgot-title']}>
                 {t('auth.verify.title')}
@@ -243,7 +243,7 @@ const ForgotPassword = () => {
           <div className={styles['forgot-form-section']}>
             <div className={styles['forgot-header']}>
               <div className={styles['forgot-logo']}>
-              <KeyIcon className="h-8 w-8 text-white" />
+              <KeyIcon className="h-6 w-6" strokeWidth={1.5} />
             </div>
             <h2 className={styles['forgot-title']}>
               {t('auth.forgot.title')}

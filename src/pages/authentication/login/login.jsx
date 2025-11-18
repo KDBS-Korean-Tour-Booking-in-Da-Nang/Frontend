@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { UserCircleIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { validateEmail } from '../../../utils/emailValidator';
 import gsap from 'gsap';
 import styles from './login.module.css';
@@ -333,7 +333,7 @@ const Login = () => {
           <div className={styles['login-form-section']}>
             <div className={styles['login-header']}>
               <div className={styles['login-logo']}>
-                <UserCircleIcon className="h-8 w-8 text-white" />
+                <UserCircleIcon className="h-6 w-6" strokeWidth={1.5} />
               </div>
               <h2 className={styles['login-title']}>
                 {t('auth.login.title')}
