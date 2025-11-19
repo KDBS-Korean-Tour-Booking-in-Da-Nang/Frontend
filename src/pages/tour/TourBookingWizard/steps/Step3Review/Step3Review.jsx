@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import TourPreview from '../TourPreview/TourPreview';
@@ -7,6 +7,7 @@ import styles from './Step3Review.module.css';
 const Step3Review = () => {
   const { contact, plan } = useBooking();
   const { t } = useTranslation();
+  const bookingCreatedAtRef = useRef(new Date().toISOString());
 
   const formatDate = (dateObj) => {
     if (!dateObj.day || !dateObj.month || !dateObj.year) {
@@ -84,7 +85,7 @@ const Step3Review = () => {
   return (
     <div className={styles['review-form']}>
       {/* Tour Preview */}
-      <TourPreview />
+      <TourPreview createdAt={bookingCreatedAtRef.current} />
       
       {/* Contact Information Review */}
       <div className={styles['review-section']}>

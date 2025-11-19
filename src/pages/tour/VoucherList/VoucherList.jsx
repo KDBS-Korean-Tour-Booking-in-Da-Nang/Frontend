@@ -414,42 +414,42 @@ const VoucherList = () => {
                   {getStatusBadge(voucher)}
                   
                   {/* Gradient Header */}
-                  <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-3.5 text-white`}>
-                    <div className="flex items-center justify-start mb-1">
-                      <span className="text-[11px] font-semibold opacity-90 truncate max-w-full tracking-wide" title={companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}>
+                  <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-3 text-white`}>
+                    <div className="flex items-center justify-start mb-0.5">
+                      <span className="text-[10px] font-semibold opacity-90 truncate max-w-full tracking-wide" title={companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}>
                         {companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}
                       </span>
                     </div>
                     {/* Discount Value - Centered */}
-                    <div className="mb-2 text-center">
+                    <div className="mb-1.5 text-center">
                       {voucher.discountType === 'PERCENT' ? (
                         <div className="flex items-baseline justify-center">
-                          <span className="text-3xl font-bold text-white">{voucher.discountValue}</span>
-                          <span className="text-xl font-semibold text-white ml-1">%</span>
+                          <span className="text-2xl font-bold text-white">{voucher.discountValue}</span>
+                          <span className="text-lg font-semibold text-white ml-1">%</span>
                         </div>
                       ) : (
                         <div className="flex items-baseline justify-center">
-                          <span className="text-2xl font-bold text-white">{formatCurrency(voucher.discountValue)}</span>
+                          <span className="text-xl font-bold text-white">{formatCurrency(voucher.discountValue)}</span>
                         </div>
                       )}
                     </div>
                     {/* Voucher Code - Centered */}
-                    <div className="border-t border-white border-opacity-20 pt-2 text-center">
-                      <div className="text-xs font-mono font-bold tracking-wider">
+                    <div className="border-t border-white border-opacity-20 pt-1.5 text-center">
+                      <div className="text-[10px] font-mono font-bold tracking-wider">
                         {voucher.code}
                       </div>
                     </div>
                   </div>
 
                   {/* Content - Flex grow để đẩy button xuống */}
-                  <div className="p-4 flex flex-col flex-grow">
+                  <div className="p-3 flex flex-col flex-grow">
                     {/* Top section - có thể co giãn */}
                     <div className="flex-grow min-h-0">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="text-xs font-semibold text-gray-900 mb-1.5 line-clamp-2">
                         {voucher.name}
                       </h3>
 
-                      <div className="flex items-center justify-between mb-3 gap-3">
+                      <div className="flex items-center justify-between mb-2 gap-3">
                         <div className="flex items-center text-xs text-gray-500">
                           <svg
                             className="h-4 w-4 mr-2 text-gray-400"
@@ -494,11 +494,11 @@ const VoucherList = () => {
                     {/* Bottom section - Fixed position above button */}
                     <div className="mt-auto">
                       {/* Date Range */}
-                      <div className="bg-[#f6f8ff] rounded-2xl p-3 border border-[#edf1ff] mb-4">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center text-[11px] text-gray-600">
+                      <div className="bg-[#f6f8ff] rounded-xl p-2.5 border border-[#edf1ff] mb-3">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="flex items-center text-[10px] text-gray-600">
                             <svg
-                              className="h-4 w-4 mr-2 text-gray-400"
+                              className="h-3.5 w-3.5 mr-1.5 text-gray-400"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -514,7 +514,7 @@ const VoucherList = () => {
                           </div>
                           {getDaysLeftText(voucher) && (
                             <span
-                              className={`text-[11px] font-semibold px-3 py-1 rounded-full ${
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                                 voucher.discountType === 'PERCENT'
                                   ? 'bg-[#e5eeff] text-[#1f2e55]'
                                   : 'bg-[#e1f7f1] text-[#1d6c5c]'
@@ -524,7 +524,7 @@ const VoucherList = () => {
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-700 space-y-0.5 font-medium leading-relaxed">
+                        <div className="text-[10px] text-gray-700 space-y-0.5 font-medium leading-tight">
                           <div>
                             Từ:{' '}
                             <span className="font-semibold">
@@ -557,7 +557,7 @@ const VoucherList = () => {
                             showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
                           }
                         }}
-                        className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-2.5 px-3 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm`}
+                        className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-2 px-3 rounded-full text-xs font-semibold transition-all duration-200 shadow-sm`}
                       >
                         Sao chép mã
                       </button>

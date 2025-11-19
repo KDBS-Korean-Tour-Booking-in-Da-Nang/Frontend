@@ -1704,6 +1704,7 @@
 				"vehicle": "Vehicle:",
 				"category": "Category:",
 				"schedule": "Schedule:",
+				"createdAt": "Created at:",
 				"noSchedule": "No schedule",
 				"notAvailable": "N/A"
 			},
@@ -1850,7 +1851,8 @@
 				"tourName": "Tour Name",
 				"departureDate": "Departure Date",
 				"guestCount": "Guest Count",
-				"contactEmail": "Contact Email"
+				"contactEmail": "Contact Email",
+				"createdAt": "Created At"
 			},
 			"guestsInfo": {
 				"title": "Guest Information ({{count}})",

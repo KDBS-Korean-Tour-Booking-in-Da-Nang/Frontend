@@ -116,35 +116,22 @@ const BookingHistoryCard = ({ booking }) => {
     return normalizeStatus(rawStatus);
   })();
 
-  const getStatusIcon = () => {
+const getStatusIcon = (iconColor) => {
     switch (effectiveStatus) {
       case STATUS_KEYS.BOOKING_SUCCESS:
-        return <CheckCircleIcon className={styles['status-icon']} />;
+      return <CheckCircleIcon className={styles['status-icon']} style={{ color: iconColor }} />;
       case STATUS_KEYS.BOOKING_REJECTED:
       case STATUS_KEYS.BOOKING_FAILED:
-        return <XCircleIcon className={styles['status-icon']} />;
+      return <XCircleIcon className={styles['status-icon']} style={{ color: iconColor }} />;
       case STATUS_KEYS.WAITING_FOR_APPROVED:
       case STATUS_KEYS.WAITING_FOR_UPDATE:
-        return <ClockIcon className={styles['status-icon']} />;
+      return <ClockIcon className={styles['status-icon']} style={{ color: iconColor }} />;
       default:
-        return <ClockIcon className={styles['status-icon']} />;
+      return <ClockIcon className={styles['status-icon']} style={{ color: iconColor }} />;
     }
   };
 
-  const getStatusClass = () => {
-    switch (effectiveStatus) {
-      case STATUS_KEYS.BOOKING_SUCCESS:
-        return styles['status-success'];
-      case STATUS_KEYS.BOOKING_REJECTED:
-      case STATUS_KEYS.BOOKING_FAILED:
-        return styles['status-error'];
-      case STATUS_KEYS.WAITING_FOR_APPROVED:
-      case STATUS_KEYS.WAITING_FOR_UPDATE:
-        return styles['status-warning'];
-      default:
-        return styles['status-pending'];
-    }
-  };
+  const statusColor = getStatusColor(effectiveStatus);
 
   return (
     <div className={styles['booking-card']}>
@@ -156,8 +143,15 @@ const BookingHistoryCard = ({ booking }) => {
             <div className={styles['booking-id']}>#{booking.bookingId}</div>
           </div>
         </div>
-        <div className={`${styles['status-badge']} ${getStatusClass()}`}>
-          {getStatusIcon()}
+        <div
+          className={styles['status-badge']}
+          style={{
+            backgroundColor: `${statusColor}15`,
+            color: statusColor,
+            border: `1px solid ${statusColor}30`
+          }}
+        >
+          {getStatusIcon(statusColor)}
           <span>{t(`bookingHistory.status.${effectiveStatus || STATUS_KEYS.PENDING_PAYMENT}`)}</span>
         </div>
       </div>

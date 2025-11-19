@@ -2558,29 +2558,6 @@ const Step2Details = () => {
               )}
             </div>
 
-            {/* Selected Date Display Card */}
-            {plan.date.day && plan.date.month && plan.date.year && (
-              <div className={styles['selected-date-card']}>
-                <div className={styles['selected-date-label']}>
-                  {t('booking.step2.dateDisplay.selectedDate') || 'Ngày đã chọn'}
-                </div>
-                <div className={styles['selected-date-value']}>
-                  {(() => {
-                    const separator = getDateSeparator();
-                    const day = plan.date.day.toString().padStart(2, '0');
-                    const month = plan.date.month.toString().padStart(2, '0');
-                    const year = plan.date.year;
-                    
-                    switch (currentLanguage) {
-                      case 'vi': return `${day}${separator}${month}${separator}${year}`;
-                      case 'en': return `${month}${separator}${day}${separator}${year}`;
-                      case 'ko': return `${year}${separator}${month}${separator}${day}`;
-                      default: return `${day}${separator}${month}${separator}${year}`;
-                    }
-                  })()}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -60,6 +60,15 @@ const normalizeStatus = (status) => {
   return statusMap[raw] || 'PENDING_PAYMENT';
 };
 
+const STATUS_COLOR_MAP = {
+  PENDING_PAYMENT: '#F59E0B',
+  WAITING_FOR_APPROVED: '#3B82F6',
+  WAITING_FOR_UPDATE: '#8B5CF6',
+  BOOKING_REJECTED: '#EF4444',
+  BOOKING_FAILED: '#DC2626',
+  BOOKING_SUCCESS: '#10B981'
+};
+
 const BookingDetail = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
@@ -159,32 +168,19 @@ const BookingDetail = () => {
     }
   };
 
+  const statusColor = STATUS_COLOR_MAP[status] || '#6B7280';
+
   const getStatusIcon = () => {
     switch (status) {
       case 'BOOKING_SUCCESS':
-        return <CheckCircleIcon className={styles['status-icon']} />;
+        return <CheckCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       case 'BOOKING_REJECTED':
-        return <XCircleIcon className={styles['status-icon']} />;
+        return <XCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       case 'WAITING_FOR_APPROVED':
       case 'WAITING_FOR_UPDATE':
-        return <ClockIcon className={styles['status-icon']} />;
+        return <ClockIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       default:
-        return <ClockIcon className={styles['status-icon']} />;
-    }
-  };
-
-  const getStatusClass = () => {
-    switch (status) {
-      case 'BOOKING_SUCCESS':
-        return styles['status-success'];
-      case 'BOOKING_REJECTED':
-      case 'BOOKING_FAILED':
-        return styles['status-error'];
-      case 'WAITING_FOR_APPROVED':
-      case 'WAITING_FOR_UPDATE':
-        return styles['status-warning'];
-      default:
-        return styles['status-pending'];
+        return <ClockIcon className={styles['status-icon']} style={{ color: statusColor }} />;
     }
   };
 
@@ -235,7 +231,14 @@ const BookingDetail = () => {
               <div className={styles['booking-id']}>#{booking.bookingId}</div>
             </div>
           </div>
-          <div className={`${styles['status-badge']} ${getStatusClass()}`}>
+          <div
+            className={styles['status-badge']}
+            style={{
+              backgroundColor: `${statusColor}15`,
+              color: statusColor,
+              border: `1px solid ${statusColor}30`
+            }}
+          >
             {getStatusIcon()}
             <span>
               {status === 'BOOKING_SUCCESS' || status === 'PURCHASED' 

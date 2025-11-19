@@ -71,9 +71,32 @@ function AppContent() {
                             location.pathname.endsWith('/company/company-info');
   // Hide footer on voucher detail page
   const isVoucherDetailPage = location.pathname === '/tour/voucher';
+  const isVoucherListPage = location.pathname === '/tour/voucher-list';
+  const isBookingHistoryPage = location.pathname === '/user/booking-history';
+  const authenticationPaths = [
+    '/login',
+    '/staff/login',
+    '/admin/login',
+    '/register',
+    '/verify-email',
+    '/google/callback',
+    '/naver/callback',
+    '/forgot-password',
+    '/reset-password'
+  ];
+  const isAuthenticationPage = authenticationPaths.includes(location.pathname);
   
-  // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, company info, or voucher detail page
-  const shouldShowFooter = !isStaffAdminPage && !isBusinessDashboardPage && !isForumPage && !isTourWizardPage && !isTourBookingWizardPage && !isCompanyInfoPage && !isVoucherDetailPage;
+  // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, company info, voucher detail page, booking history, voucher list, or authentication pages
+  const shouldShowFooter = !isStaffAdminPage 
+    && !isBusinessDashboardPage 
+    && !isForumPage 
+    && !isTourWizardPage 
+    && !isTourBookingWizardPage 
+    && !isCompanyInfoPage 
+    && !isVoucherDetailPage
+    && !isVoucherListPage
+    && !isBookingHistoryPage
+    && !isAuthenticationPage;
 
   // Use useEffect to ensure page is ready before showing footer
   useEffect(() => {

@@ -16,9 +16,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import { API_ENDPOINTS } from '../../../config/api';
+import worldMapData from '../../../assets/data/world-110m.json';
 
-// World map geo URL
-const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+// World map geo data imported locally to avoid CORS issues
+const geoData = worldMapData;
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -520,13 +521,13 @@ const Dashboard = () => {
               }}
               style={{ width: '100%', height: '400px' }}
             >
-              <Geographies geography={geoUrl}>
+              <Geographies geography={geoData}>
                 {({ geographies }) =>
                   geographies.map((geo) => {
                     const isHighlighted = geo.properties.ISO_A2 === 'VN' || geo.properties.ISO_A2 === 'KR';
                     return (
                       <Geography
-                        key={geo.rsmKey}
+                        key={geo.rsmKey || geo.properties.ISO_A3 || geo.properties.name}
                         geography={geo}
                         fill={isHighlighted ? '#2979FF' : '#E5E7EB'}
                         stroke={isHighlighted ? '#1976D2' : '#D1D5DB'}
@@ -550,8 +551,8 @@ const Dashboard = () => {
                   })
                 }
               </Geographies>
-              {topCountries.map((country, index) => (
-                <Marker key={index} coordinates={country.coordinates}>
+              {topCountries.map((country) => (
+                <Marker key={country.code} coordinates={country.coordinates}>
                   <circle
                     r={8}
                     fill="#2979FF"

@@ -729,6 +729,23 @@ const BookingCheckPaymentPage = () => {
     }
   };
 
+  const formatDateTimeDisplay = (dateString) => {
+    if (!dateString) return '—';
+    try {
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return dateString;
+      return date.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   // Helper function để format gender
   const formatGenderDisplay = (gender) => {
     if (!gender) return '—';
@@ -844,6 +861,12 @@ const BookingCheckPaymentPage = () => {
                                   <span className="text-sm font-semibold text-gray-600 min-w-[140px]">{t('payment.checkPayment.bookingSummary.contactEmail')}</span>
                                   <span className="text-sm font-semibold text-gray-900 text-right flex-1 break-words">{booking.contactEmail || booking.userEmail || '—'}</span>
                                 </div>
+                              {booking.createdAt && (
+                                <div className="flex items-start justify-between py-2">
+                                  <span className="text-sm font-semibold text-gray-600 min-w-[140px]">{t('payment.checkPayment.bookingSummary.createdAt')}</span>
+                                  <span className="text-sm font-semibold text-gray-900 text-right flex-1">{formatDateTimeDisplay(booking.createdAt)}</span>
+                                </div>
+                              )}
                               </div>
                             </div>
                           </div>

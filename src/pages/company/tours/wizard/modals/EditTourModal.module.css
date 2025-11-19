@@ -8,10 +8,11 @@
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  padding-top: 5vh;
 }
 
 .edit-tour-modal {
@@ -967,6 +968,7 @@
 @media (max-width: 768px) {
   .modal-overlay {
     padding: 10px;
+    padding-top: 3vh;
   }
   
   .edit-tour-modal {

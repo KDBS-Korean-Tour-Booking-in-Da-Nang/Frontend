@@ -37,12 +37,13 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
     setShowRejectModal(true);
   };
 
-  const handleConfirmReject = async () => {
+  const handleConfirmReject = async (message) => {
+    if (!message?.trim()) return;
     try {
       setLoading(true);
-      setShowRejectModal(false);
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED');
+      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED', message.trim());
       onBookingUpdate(updatedBooking);
+      setShowRejectModal(false);
       showSuccess('Đã từ chối booking');
       // Navigate back to booking list after rejection
       setTimeout(() => {
@@ -288,19 +289,15 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
         />
       )}
 
-      {/* Reject Confirmation Modal */}
+      {/* Reject Reason Modal */}
       {!isReadOnly && (
-        <DeleteConfirmModal
+        <RequestUpdateModal
           isOpen={showRejectModal}
           onClose={() => setShowRejectModal(false)}
           onConfirm={handleConfirmReject}
-          title="Xác nhận từ chối booking"
-          message="Bạn có chắc chắn muốn từ chối booking này không?"
-          confirmText={t('common.confirm') || 'Xác nhận'}
-          cancelText={t('common.cancel') || 'Hủy'}
-          icon="⚠"
-          danger={true}
-          disableBackdropClose={false}
+          bookingId={booking?.bookingId}
+          title="Lý do từ chối booking"
+          message="Vui lòng nhập lý do từ chối booking này:"
         />
       )}
     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../contexts/ToastContext';
 import { changeBookingStatus } from '../../../../../services/bookingAPI';
-import { DeleteConfirmModal } from '../../../../../components/modals';
+import { DeleteConfirmModal, RequestUpdateModal } from '../../../../../components/modals';
 import styles from './Step2Insurance.module.css';
 
 const Step2Insurance = ({
@@ -49,12 +49,13 @@ const Step2Insurance = ({
     setShowRejectModal(true);
   };
 
-  const handleConfirmReject = async () => {
+  const handleConfirmReject = async (message) => {
+    if (!message?.trim()) return;
     try {
       setLoading({ reject: true });
-      setShowRejectModal(false);
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED');
+      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED', message.trim());
       onBookingUpdate(updatedBooking);
+      setShowRejectModal(false);
       showSuccess('Đã từ chối booking');
       // Navigate back after rejection
       setTimeout(() => {
@@ -345,19 +346,15 @@ const Step2Insurance = ({
         </div>
       </DeleteConfirmModal>
 
-      {/* Reject Confirmation Modal */}
+      {/* Reject Reason Modal */}
       {!isReadOnly && (
-        <DeleteConfirmModal
+        <RequestUpdateModal
           isOpen={showRejectModal}
           onClose={() => setShowRejectModal(false)}
           onConfirm={handleConfirmReject}
-          title="Xác nhận từ chối booking"
-          message="Bạn có chắc chắn muốn từ chối booking này không?"
-          confirmText={t('common.confirm') || 'Xác nhận'}
-          cancelText={t('common.cancel') || 'Hủy'}
-          icon="⚠"
-          danger={true}
-          disableBackdropClose={false}
+          bookingId={booking?.bookingId}
+          title="Lý do từ chối booking"
+          message="Vui lòng nhập lý do từ chối booking ở bước bảo hiểm:"
         />
       )}
     </div>

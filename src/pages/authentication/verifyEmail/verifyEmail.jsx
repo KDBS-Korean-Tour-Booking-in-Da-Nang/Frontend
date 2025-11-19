@@ -133,16 +133,35 @@ const VerifyEmail = () => {
     setResendLoading(true);
     setError('');
 
+    // Validate email exists before sending request
+    if (!email || !email.trim()) {
+      showError('Email is required');
+      setResendLoading(false);
+      return;
+    }
+
     try {
+      // Backend requires otpCode field with @NotBlank validation, but we don't have one for resend
+      // Send a dummy 6-character code that meets validation - backend will ignore it for regenerate
       const response = await fetch('/api/users/regenerate-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: email,
+          email: email.trim(),
+          otpCode: '000000', // Dummy code to pass backend validation - backend ignores this for regenerate
         }),
       });
+
+      // Check if response is ok before parsing JSON
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        showError(errorMessage);
+        setResendLoading(false);
+        return;
+      }
 
       const data = await response.json();
 
@@ -160,9 +179,12 @@ const VerifyEmail = () => {
         }, 1000);
         showSuccess('toast.auth.otp_sent_success');
       } else {
-        showError(data.message || 'toast.auth.otp_resend_failed');
+        // Show detailed error message from backend
+        const errorMessage = data.message || data.error || 'toast.auth.otp_resend_failed';
+        showError(errorMessage);
       }
     } catch (err) {
+      console.error('Resend OTP error:', err);
       showError('toast.auth.otp_resend_failed');
     } finally {
       setResendLoading(false);
@@ -176,7 +198,7 @@ const VerifyEmail = () => {
           <div className={styles['verify-form-section']}>
             <div className={styles['verify-header']}>
             <div className={styles['verify-logo']}>
-              <EnvelopeIcon className="h-8 w-8 text-white" />
+              <EnvelopeIcon className={styles['verify-icon']} strokeWidth={1.25} />
             </div>
             <h2 className={styles['verify-title']}>
               {t('auth.verify.title')}

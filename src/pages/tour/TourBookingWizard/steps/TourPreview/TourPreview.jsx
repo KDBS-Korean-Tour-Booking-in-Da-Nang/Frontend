@@ -4,11 +4,11 @@ import { useSearchParams } from 'react-router-dom';
 import { useToursAPI } from '../../../../../hooks/useToursAPI';
 import styles from './TourPreview.module.css';
 
-const TourPreview = () => {
+const TourPreview = ({ createdAt = null }) => {
   const [searchParams] = useSearchParams();
   const tourId = searchParams.get('id');
   const { fetchTourById, loading, error } = useToursAPI();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tour, setTour] = useState(null);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +80,22 @@ const TourPreview = () => {
     return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/uploads/tours/thumbnails/${imagePath}`;
   };
 
+  const formatCreatedAt = (value) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    try {
+      return new Intl.DateTimeFormat(i18n.language || 'vi', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(date);
+    } catch {
+      return date.toLocaleString();
+    }
+  };
+
+  const createdAtDisplay = formatCreatedAt(createdAt);
+
   if (isLoading || loading) {
     return (
       <div className={styles['tour-preview']}>
@@ -143,6 +159,13 @@ const TourPreview = () => {
                 <span className={styles['detail-value']}>{getCategoryLabel(fallbackTour.category)}</span>
               </div>
               
+              {createdAtDisplay && (
+                <div className={styles['detail-item']}>
+                  <span className={styles['detail-label']}>{t('booking.tourPreview.labels.createdAt')}</span>
+                  <span className={styles['detail-value']}>{createdAtDisplay}</span>
+                </div>
+              )}
+
               <div className={styles['detail-item']}>
                 <span className={styles['detail-label']}>{t('booking.tourPreview.labels.schedule')}</span>
                 <span className={styles['detail-value']}>
@@ -240,6 +263,13 @@ const TourPreview = () => {
               <span className={styles['detail-value']}>{getCategoryLabel(tour.category || 'Standard')}</span>
             </div>
             
+            {createdAtDisplay && (
+              <div className={styles['detail-item']}>
+                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.createdAt')}</span>
+                <span className={styles['detail-value']}>{createdAtDisplay}</span>
+              </div>
+            )}
+
             <div className={styles['detail-item']}>
               <span className={styles['detail-label']}>{t('booking.tourPreview.labels.schedule')}</span>
               <span className={styles['detail-value']}>

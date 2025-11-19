@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@iconify/react';
 import { validateEmail } from '../../../utils/emailValidator';
 import gsap from 'gsap';
 import styles from './register.module.css';
@@ -348,6 +349,7 @@ const { name, value } = e.target;
               <div className={styles['form-group']}>
                 <label htmlFor="email" className={styles['form-label']}>
                   {t('auth.common.email')}
+                  <Icon icon="lucide:mail" className={styles['form-label-icon']} />
                 </label>
                 <input
                   id="email"
@@ -378,6 +380,7 @@ const { name, value } = e.target;
               <div className={styles['form-group']}>
                 <label htmlFor="password" className={styles['form-label']}>
                   {t('auth.register.password')}
+                  <Icon icon="lucide:lock" className={styles['form-label-icon']} />
                 </label>
                 <input
                   id="password"
@@ -399,6 +402,7 @@ const { name, value } = e.target;
               <div className={styles['form-group']}>
                 <label htmlFor="confirmPassword" className={styles['form-label']}>
                   {t('auth.register.confirmPassword')}
+                  <Icon icon="lucide:shield-check" className={styles['form-label-icon']} />
                 </label>
                 <input
                   id="confirmPassword"

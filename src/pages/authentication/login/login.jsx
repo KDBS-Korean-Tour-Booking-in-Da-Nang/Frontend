@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-do
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@iconify/react';
 import { validateEmail } from '../../../utils/emailValidator';
 import gsap from 'gsap';
 import styles from './login.module.css';
@@ -346,6 +347,7 @@ const Login = () => {
               <div className={styles['form-group']}>
                 <label htmlFor="email" className={styles['form-label']}>
                   {t('auth.common.email')}
+                  <Icon icon="lucide:mail" className={styles['form-label-icon']} />
                 </label>
                 <input
                   id="email"
@@ -368,6 +370,7 @@ const Login = () => {
               <div className={styles['form-group']}>
                 <label htmlFor="password" className={styles['form-label']}>
                   {t('auth.common.password')}
+                  <Icon icon="lucide:lock" className={styles['form-label-icon']} />
                 </label>
                 <input
                   id="password"

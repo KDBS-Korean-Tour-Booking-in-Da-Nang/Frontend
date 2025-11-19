@@ -169,8 +169,8 @@ const ResetPassword = () => {
           <div className={styles['reset-form-section']}>
             <div className={styles['reset-header']}>
               <div className={styles['reset-logo']}>
-              <LockClosedIcon className="h-8 w-8 text-white" />
-            </div>
+                <LockClosedIcon className={styles['reset-icon']} strokeWidth={1.5} />
+              </div>
             <h2 className={styles['reset-title']}>
               {t('auth.reset.title')}
             </h2>

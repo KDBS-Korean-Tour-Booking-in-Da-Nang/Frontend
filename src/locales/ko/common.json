@@ -1709,6 +1709,7 @@
 				"vehicle": "교통수단:",
 				"category": "형태:",
 				"schedule": "일정:",
+				"createdAt": "예약 시각:",
 				"noSchedule": "일정 없음",
 				"notAvailable": "없음"
 			},
@@ -1855,7 +1856,8 @@
 				"tourName": "투어명",
 				"departureDate": "출발일",
 				"guestCount": "인원 수",
-				"contactEmail": "연락처 이메일"
+				"contactEmail": "연락처 이메일",
+				"createdAt": "예약 생성일"
 			},
 			"guestsInfo": {
 				"title": "고객 정보 ({{count}})",

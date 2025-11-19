@@ -1736,6 +1736,7 @@
         "vehicle": "Phương tiện:",
         "category": "Hình thức:",
         "schedule": "Lịch trình:",
+        "createdAt": "Thời gian đặt:",
         "noSchedule": "Chưa có lịch trình",
         "notAvailable": "Chưa có"
       },
@@ -1840,7 +1841,8 @@
         "tourName": "Tên tour",
         "departureDate": "Ngày khởi hành",
         "guestCount": "Số khách",
-        "contactEmail": "Email liên hệ"
+        "contactEmail": "Email liên hệ",
+        "createdAt": "Ngày tạo"
       },
       "guestsInfo": {
         "title": "Thông tin hành khách ({{count}})",
