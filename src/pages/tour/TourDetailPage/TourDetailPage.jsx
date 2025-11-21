@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useToursAPI } from "../../../hooks/useToursAPI";
 import styles from "./TourDetailPage.module.css";
-import { ShareTourModal, LoginRequiredModal, VoucherDetailModal } from "../../../components";
+import { ShareTourModal, LoginRequiredModal, VoucherDetailModal, VoucherListModal } from "../../../components";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { sanitizeHtml } from "../../../utils/sanitizeHtml";
@@ -14,24 +14,26 @@ import { getBookingsByTourId } from "../../../services/bookingAPI";
 import {
   getAllVouchers,
   getAvailableVouchersForBooking,
+  getVouchersByCompanyId,
 } from "../../../services/voucherAPI";
 import { getCompanyNames } from "../../../utils/companyUtils";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import {
-  ArrowLeftIcon,
-  ClockIcon,
-  MapPinIcon,
-  StarIcon,
-  ShareIcon,
-  EyeIcon,
-  MagnifyingGlassIcon,
-  EllipsisVerticalIcon,
-  TrashIcon,
-  CurrencyDollarIcon,
-  CalendarIcon
-} from "@heroicons/react/24/outline";
+  ArrowLeft,
+  Clock,
+  MapPin,
+  Star,
+  Share2,
+  Eye,
+  Search,
+  MoreVertical,
+  Trash2,
+  Banknote,
+  Calendar,
+  Percent,
+} from "lucide-react";
 
 // Adjust color brightness by percentage (negative to darken)
 const shadeColor = (hex, percent) => {
@@ -78,6 +80,7 @@ const TourDetailPage = () => {
   const [showLoginRequired, setShowLoginRequired] = useState(false);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [selectedVoucherId, setSelectedVoucherId] = useState(null);
+  const [isVoucherListModalOpen, setIsVoucherListModalOpen] = useState(false);
   const {
     ratings,
     submitRating,
@@ -93,7 +96,7 @@ const TourDetailPage = () => {
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherError, setVoucherError] = useState("");
   const [voucherEmptyReason, setVoucherEmptyReason] = useState("");
-  const [companyNamesMap, setCompanyNamesMap] = useState(new Map());
+  const [_companyNamesMap, setCompanyNamesMap] = useState(new Map());
   // close open menu on outside click
   useEffect(() => {
     if (!openMenuId) return;
@@ -193,40 +196,118 @@ const TourDetailPage = () => {
       setVoucherEmptyReason("");
 
       try {
-        const bookingsPayload = await getBookingsByTourId(Number(tour.id));
-        const bookingsList = Array.isArray(bookingsPayload?.bookings)
-          ? bookingsPayload.bookings
-          : Array.isArray(bookingsPayload)
-          ? bookingsPayload
-          : [];
-        const sampleBooking = bookingsList.find(
-          (booking) => booking && (booking.bookingId || booking.id)
-        );
+        const tourId = Number(tour.id);
+        let vouchersFromBooking = [];
+        let companyId = null;
 
-        if (!sampleBooking) {
-          if (isSubscribed) {
-            setVoucherSuggestions([]);
-            setVoucherEmptyReason(t("tourPage.detail.vouchers.noBooking"));
+        // Strategy 1: Try to get vouchers from booking (if exists)
+        try {
+          const bookingsPayload = await getBookingsByTourId(tourId);
+          const bookingsList = Array.isArray(bookingsPayload?.bookings)
+            ? bookingsPayload.bookings
+            : Array.isArray(bookingsPayload)
+            ? bookingsPayload
+            : [];
+          const sampleBooking = bookingsList.find(
+            (booking) => booking && (booking.bookingId || booking.id)
+          );
+
+          if (sampleBooking) {
+            const bookingId = sampleBooking.bookingId || sampleBooking.id;
+            vouchersFromBooking = await getAvailableVouchersForBooking(
+              bookingId
+            );
+
+            // Try to get companyId from voucher response
+            if (Array.isArray(vouchersFromBooking) && vouchersFromBooking.length > 0) {
+              const firstVoucher = vouchersFromBooking[0];
+              companyId = firstVoucher.companyId || firstVoucher.meta?.companyId || null;
+            }
           }
-          return;
+        } catch (error) {
+          // If booking fetch fails, continue with company vouchers
+          console.warn("Failed to fetch vouchers from booking:", error);
         }
 
-        const bookingId = sampleBooking.bookingId || sampleBooking.id;
-        const availableVouchers = await getAvailableVouchersForBooking(
-          bookingId
-        );
+        // Strategy 2: Get vouchers from company (if we have companyId)
+        // If we don't have companyId from booking, try to get it from tour object
+        // Note: TourResponse doesn't include companyId currently, so this is a fallback
+        if (!companyId && tour?.companyId) {
+          companyId = tour.companyId;
+        }
 
-        let enrichedVouchers = availableVouchers;
+        let vouchersFromCompany = [];
+        if (companyId) {
+          try {
+            const companyVouchers = await getVouchersByCompanyId(companyId);
+            if (Array.isArray(companyVouchers) && companyVouchers.length > 0) {
+              // Filter vouchers that apply to this tour:
+              // 1. Voucher has no tourIds (null or empty array) -> applies to all tours of that company
+              // 2. Voucher has tourIds and current tour is in the list
+              vouchersFromCompany = companyVouchers.filter((voucher) => {
+                const tourIds = voucher.tourIds || [];
+                // If tourIds is null or empty array, voucher applies to all tours of the company
+                if (!tourIds || tourIds.length === 0) {
+                  return true;
+                }
+                // Check if current tour is in the tourIds list
+                return tourIds.includes(tourId);
+              });
+            }
+          } catch (error) {
+            // If company vouchers fetch fails, continue with booking vouchers
+            console.warn("Failed to fetch vouchers from company:", error);
+          }
+        }
+
+        // Merge vouchers from booking and company, remove duplicates
+        const voucherMap = new Map();
+        
+        // Add vouchers from booking first (they're already validated by backend)
+        if (Array.isArray(vouchersFromBooking)) {
+          vouchersFromBooking.forEach((voucher) => {
+            const voucherId = voucher.voucherId || voucher.id || voucher.voucherCode;
+            if (voucherId) {
+              voucherMap.set(voucherId, { ...voucher, source: "booking" });
+            }
+          });
+        }
+
+        // Add vouchers from company (avoid duplicates)
+        if (Array.isArray(vouchersFromCompany)) {
+          vouchersFromCompany.forEach((voucher) => {
+            const voucherId = voucher.voucherId || voucher.id || voucher.code;
+            if (voucherId && !voucherMap.has(voucherId)) {
+              // Transform company voucher to match booking voucher format
+              voucherMap.set(voucherId, {
+                voucherId: voucher.voucherId || voucher.id,
+                voucherCode: voucher.code || voucher.voucherCode,
+                discountType: voucher.discountType,
+                discountValue: voucher.discountValue,
+                companyId: voucher.companyId,
+                startDate: voucher.startDate,
+                endDate: voucher.endDate,
+                meta: voucher, // Store full metadata
+                source: "company"
+              });
+            }
+          });
+        }
+
+        // Convert map to array
+        let allVouchers = Array.from(voucherMap.values());
+
+        // Enrich with metadata from getAllVouchers for better display
         try {
           const metadata = await getAllVouchers();
           if (Array.isArray(metadata) && metadata.length > 0) {
-            enrichedVouchers = availableVouchers.map((voucher) => {
+            allVouchers = allVouchers.map((voucher) => {
               const meta =
                 metadata.find(
                   (item) =>
                     item?.voucherId === voucher?.voucherId ||
                     item?.code === voucher?.voucherCode
-                ) || null;
+                ) || voucher.meta || null;
               return { ...voucher, meta };
             });
           }
@@ -235,13 +316,17 @@ const TourDetailPage = () => {
         }
 
         if (isSubscribed) {
-          setVoucherSuggestions(enrichedVouchers);
-          if (!enrichedVouchers.length) {
-            setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
+          setVoucherSuggestions(allVouchers);
+          if (!allVouchers.length) {
+            if (!companyId) {
+              setVoucherEmptyReason(t("tourPage.detail.vouchers.noBooking"));
+            } else {
+              setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
+            }
           }
           
           // Fetch company names for all unique companyIds
-          const uniqueCompanyIds = [...new Set(enrichedVouchers.map(v => v.companyId || v.meta?.companyId).filter(Boolean))];
+          const uniqueCompanyIds = [...new Set(allVouchers.map(v => v.companyId || v.meta?.companyId).filter(Boolean))];
           if (uniqueCompanyIds.length > 0) {
             const namesMap = await getCompanyNames(uniqueCompanyIds);
             setCompanyNamesMap(namesMap);
@@ -329,14 +414,6 @@ const TourDetailPage = () => {
     }).format(price);
   };
 
-  const formatVoucherDiscount = (voucher) => {
-    if (!voucher) return "-";
-    const value = Number(voucher.discountValue || 0);
-    if (voucher.discountType === "PERCENT") {
-      return `-${Math.round(value * 100) / 100}%`;
-    }
-    return `-${formatPrice(value)}`;
-  };
 
   // Format currency helper (similar to VoucherList)
   const formatCurrency = (value) => {
@@ -387,26 +464,19 @@ const TourDetailPage = () => {
     return null;
   };
 
-  // Get gradient colors based on voucher type (similar to VoucherList)
-  const getVoucherHeaderGradient = (discountType) => {
-    if (discountType === "PERCENT") {
-      // Giảm %: Màu xanh da trời sáng (sky/cyan)
-      return styles["voucher-header-gradient-percent"];
-    } else {
-      // Giảm tiền: Màu xanh da trời đậm (blue/indigo)
-      return styles["voucher-header-gradient-amount"];
-    }
+  // Get days left text for date range badge
+  const getDaysLeftText = (voucher) => {
+    if (!voucher?.endDate) return null;
+    const now = new Date();
+    const endDate = new Date(voucher.endDate);
+    if (Number.isNaN(endDate.getTime())) return null;
+    const diff = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return null;
+    if (diff === 0) return 'Hết hạn hôm nay';
+    if (diff <= 7) return `Còn ${diff} ngày`;
+    return null;
   };
 
-  const getVoucherButtonGradient = (discountType) => {
-    if (discountType === "PERCENT") {
-      // Giảm %: Màu xanh da trời sáng
-      return styles["voucher-button-gradient-percent"];
-    } else {
-      // Giảm tiền: Màu xanh da trời đậm
-      return styles["voucher-button-gradient-amount"];
-    }
-  };
 
   const handleBookNow = () => {
     if (!user) {
@@ -432,13 +502,6 @@ const TourDetailPage = () => {
     navigate("/company/tours");
   };
 
-  const handleShare = () => {
-    if (!user) {
-      setShowLoginRequired(true);
-      return;
-    }
-    setOpenShare(true);
-  };
 
   const itinerary = getItineraryFromTour(tour);
   const ratingStats = (() => {
@@ -485,7 +548,7 @@ const TourDetailPage = () => {
                 onClick={handleBackToManagement}
                 className={styles["back-button"]}
               >
-                <ArrowLeftIcon className={styles["back-icon"]} />
+                <ArrowLeft className={styles["back-icon"]} />
                 <span>{t("tourPage.detail.backToManagement")}</span>
               </button>
             ) : (
@@ -493,7 +556,7 @@ const TourDetailPage = () => {
                 onClick={handleBackToList}
                 className={styles["back-button"]}
               >
-                <ArrowLeftIcon className={styles["back-icon"]} />
+                <ArrowLeft className={styles["back-icon"]} />
                 <span>{t("tourPage.detail.back")}</span>
               </button>
             )}
@@ -505,11 +568,11 @@ const TourDetailPage = () => {
               <h1 className={styles["hero-title"]}>{tour.title}</h1>
               <div className={styles["hero-meta"]}>
                 <div className={styles["meta-item"]}>
-                  <ClockIcon className={styles["meta-icon"]} />
+                  <Clock className={styles["meta-icon"]} />
                   <span>{tour.duration}</span>
                 </div>
                 <div className={styles["meta-item"]}>
-                  <MapPinIcon className={styles["meta-icon"]} />
+                  <MapPin className={styles["meta-icon"]} />
                   <span>
                     {tour.category === "domestic"
                       ? "Trong nước"
@@ -519,7 +582,7 @@ const TourDetailPage = () => {
                   </span>
                 </div>
                 <div className={styles["meta-item"]}>
-                  <StarIcon className={styles["meta-icon"]} />
+                  <Star className={styles["meta-icon"]} />
                   <span>4.8/5 (127 đánh giá)</span>
                 </div>
               </div>
@@ -791,52 +854,18 @@ const TourDetailPage = () => {
                       <>
                         <div className={styles["voucher-list"]}>
                           {voucherSuggestions.slice(0, 3).map((voucher) => {
-                            const tagConfig = (() => {
-                              const tourIds = Array.isArray(
-                                voucher?.meta?.tourIds
-                              )
-                                ? voucher.meta.tourIds
-                                : [];
-                              const isSpecific = tourIds.some(
-                                (tourIdValue) =>
-                                  String(tourIdValue) === String(tour.id)
-                              );
-                              if (!voucher?.meta) {
-                                return {
-                                  label: t(
-                                    "tourPage.detail.vouchers.tagGeneric"
-                                  ),
-                                  variant: "generic",
-                                };
-                              }
-                              if (tourIds.length === 0) {
-                                return {
-                                  label: t(
-                                    "tourPage.detail.vouchers.tagGlobal"
-                                  ),
-                                  variant: "global",
-                                };
-                              }
-                              return {
-                                label: isSpecific
-                                  ? t("tourPage.detail.vouchers.tagTour")
-                                  : t("tourPage.detail.vouchers.tagGeneric"),
-                                variant: isSpecific ? "specific" : "generic",
-                              };
-                            })();
-
-                            // Get discount type for styling - handle FIXED/AMOUNT for display
+                            // --- LOGIC XỬ LÝ DỮ LIỆU ---
                             const rawDiscountType =
                               voucher.discountType ||
                               voucher.meta?.discountType ||
                               "PERCENT";
-                            // Map FIXED -> AMOUNT for display (backend uses FIXED, frontend displays as AMOUNT)
                             const discountType =
                               rawDiscountType === "FIXED"
                                 ? "AMOUNT"
                                 : rawDiscountType === "AMOUNT"
                                 ? "AMOUNT"
                                 : "PERCENT";
+
                             const voucherCode =
                               voucher.voucherCode ||
                               voucher.code ||
@@ -846,34 +875,26 @@ const TourDetailPage = () => {
                               voucher?.meta?.name ||
                               voucher.name ||
                               t("tourPage.detail.vouchers.unknownName");
-                            const remainingQuantity =
-                              voucher.remainingQuantity !== undefined
-                                ? voucher.remainingQuantity
-                                : voucher.meta?.remainingQuantity !== undefined
-                                ? voucher.meta.remainingQuantity
-                                : voucher.totalQuantity ||
-                                  voucher.meta?.totalQuantity ||
-                                  0;
-                            const startDate =
-                              voucher.startDate ||
-                              voucher.meta?.startDate ||
-                              "";
-                            const endDate =
-                              voucher.endDate ||
-                              voucher.meta?.endDate ||
-                              "";
-                            const companyId =
-                              voucher.companyId || voucher.meta?.companyId;
 
+                            const startDate =
+                              voucher.startDate || voucher.meta?.startDate || "";
+                            const endDate =
+                              voucher.endDate || voucher.meta?.endDate || "";
+
+                            const discountValueDisplay =
+                              voucher.discountValue ||
+                              voucher.meta?.discountValue ||
+                              0;
+
+                            // --- RENDER ---
                             return (
                               <div
                                 key={
                                   voucher.voucherId ||
-                                  voucher.voucherCode ||
                                   voucher.id ||
-                                  ""
+                                  voucherCode
                                 }
-                                className={styles["voucher-card-new"]}
+                                className={styles["voucher-card-horizontal"]}
                               >
                                 {/* Status Badge */}
                                 {getStatusBadge({
@@ -881,164 +902,113 @@ const TourDetailPage = () => {
                                   meta: { endDate },
                                 })}
 
-                                {/* Gradient Header */}
+                                {/* LEFT SECTION (MÀU) */}
                                 <div
-                                  className={`${styles["voucher-header"]} ${getVoucherHeaderGradient(
-                                    discountType
-                                  )}`}
+                                  className={`${styles["voucher-left-section"]} ${
+                                    discountType === "PERCENT"
+                                      ? styles["voucher-header-gradient-percent"]
+                                      : styles["voucher-header-gradient-amount"]
+                                  }`}
                                 >
-                                  {companyId && (
-                                    <div className={styles["voucher-company-id"]}>
-                                      {companyNamesMap.get(companyId) || `Company ID: ${companyId}`}
-                                    </div>
-                                  )}
-                                  {/* Discount Value - Centered */}
-                                  <div className={styles["voucher-discount-header"]}>
+                                  <div className={styles["voucher-left-content"]}>
                                     {discountType === "PERCENT" ? (
-                                      <div
-                                        className={
-                                          styles["voucher-discount-value"]
-                                        }
-                                      >
-                                        <span
-                                          className={
-                                            styles["voucher-discount-number"]
-                                          }
+                                      <>
+                                        <Percent
+                                          className={styles["voucher-icon-large"]}
+                                        />
+                                        <div
+                                          className={styles["voucher-value-wrapper"]}
                                         >
-                                          {voucher.discountValue ||
-                                            voucher.meta?.discountValue ||
-                                            0}
-                                        </span>
-                                        <span
-                                          className={
-                                            styles["voucher-discount-percent"]
-                                          }
-                                        >
-                                          %
-                                        </span>
-                                      </div>
+                                          <span
+                                            className={styles["voucher-value-text"]}
+                                          >
+                                            {discountValueDisplay}
+                                          </span>
+                                          <span
+                                            className={styles["voucher-value-symbol"]}
+                                          >
+                                            %
+                                          </span>
+                                        </div>
+                                      </>
                                     ) : (
-                                      <div
-                                        className={
-                                          styles["voucher-discount-value"]
-                                        }
-                                      >
-                                        <span
-                                          className={
-                                            styles["voucher-discount-amount"]
-                                          }
+                                      <>
+                                        <Banknote
+                                          className={styles["voucher-icon-large"]}
+                                        />
+                                        <div
+                                          className={styles["voucher-value-wrapper"]}
                                         >
-                                          {formatCurrency(
-                                            voucher.discountValue ||
-                                              voucher.meta?.discountValue ||
-                                              0
-                                          )}
-                                        </span>
-                                      </div>
+                                          <span
+                                            className={
+                                              styles["voucher-value-text-small"]
+                                            }
+                                          >
+                                            {formatCurrency(discountValueDisplay)
+                                              .replace(/₫/g, "")
+                                              .trim()}
+                                          </span>
+                                          <span
+                                            className={styles["voucher-value-symbol"]}
+                                          >
+                                            ₫
+                                          </span>
+                                        </div>
+                                      </>
                                     )}
                                   </div>
-                                  {/* Voucher Code - Centered */}
-                                  <div className={styles["voucher-code-header"]}>
-                                    <div
-                                      className={styles["voucher-code-text"]}
-                                    >
+                                  <div className={styles["voucher-code-container"]}>
+                                    <span className={styles["voucher-code-text"]}>
                                       {voucherCode}
-                                    </div>
+                                    </span>
                                   </div>
                                 </div>
 
-                                {/* Content */}
-                                <div className={styles["voucher-content"]}>
-                                  <div className={styles["voucher-content-top"]}>
-                                    <h3 className={styles["voucher-name-new"]}>
-                                      {voucherName}
-                                    </h3>
+                                {/* RIGHT SECTION (TRẮNG) */}
+                                <div className={styles["voucher-right-section"]}>
+                                  <div>
+                                    <div className={styles["voucher-info-top"]}>
+                                      <h3 className={styles["voucher-title"]}>
+                                        {voucherName}
+                                      </h3>
+                                      <div className={styles["voucher-subtitle"]}>
+                                        {discountType === "PERCENT"
+                                          ? `Giảm ${discountValueDisplay}%`
+                                          : `Giảm ${formatCurrency(
+                                              discountValueDisplay
+                                            )}`}
+                                      </div>
+                                    </div>
 
-                                    <div className={styles["voucher-remaining"]}>
-                                      <ClockIcon className={styles["voucher-icon"]} />
-                                      <span>
-                                        Còn lại:{" "}
+                                    <div className={styles["voucher-date-box"]}>
+                                      <div className={styles["voucher-date-row"]}>
+                                        <Calendar
+                                          size={14}
+                                          className={styles["voucher-icon-small"]}
+                                        />
                                         <span
-                                          className={`${styles["voucher-remaining-number"]} ${
-                                            discountType === "PERCENT"
-                                              ? styles["voucher-remaining-percent"]
-                                              : styles["voucher-remaining-amount"]
-                                          }`}
+                                          className={styles["voucher-date-label"]}
                                         >
-                                          {remainingQuantity}
+                                          Thời gian
                                         </span>
-                                      </span>
+                                        {getDaysLeftText({ endDate }) && (
+                                          <span
+                                            className={
+                                              styles["voucher-countdown-badge"]
+                                            }
+                                          >
+                                            {getDaysLeftText({ endDate })}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className={styles["voucher-date-range"]}>
+                                        Từ: {formatDate(startDate)} <br />
+                                        Đến: {formatDate(endDate)}
+                                      </div>
                                     </div>
                                   </div>
 
-                                  {/* Bottom section */}
-                                  <div className={styles["voucher-content-bottom"]}>
-                                    {/* Date Range and View Details - Side by side */}
-                                    <div
-                                      className={styles["voucher-info-grid"]}
-                                    >
-                                      {/* Date Range */}
-                                      <div className={styles["voucher-date-box"]}>
-                                        <div
-                                          className={
-                                            styles["voucher-date-header"]
-                                          }
-                                        >
-                                          <CalendarIcon className={styles["voucher-icon-small"]} />
-                                          <span>Thời gian</span>
-                                        </div>
-                                        <div
-                                          className={styles["voucher-date-values"]}
-                                        >
-                                          <div>
-                                            Từ:{" "}
-                                            <span
-                                              className={
-                                                styles["voucher-date-value"]
-                                              }
-                                            >
-                                              {formatDate(startDate)}
-                                            </span>
-                                          </div>
-                                          <div>
-                                            Đến:{" "}
-                                            <span
-                                              className={
-                                                styles["voucher-date-value"]
-                                              }
-                                            >
-                                              {formatDate(endDate)}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* View Details - Clickable */}
-                                      <div
-                                        className={styles["voucher-details-box"]}
-                                        onClick={() => {
-                                          const voucherId =
-                                            voucher.voucherId ||
-                                            voucher.id ||
-                                            null;
-                                          if (voucherId) {
-                                            setSelectedVoucherId(voucherId);
-                                            setIsVoucherModalOpen(true);
-                                          }
-                                        }}
-                                      >
-                                        <div
-                                          className={
-                                            styles["voucher-details-content"]
-                                          }
-                                        >
-                                          <EyeIcon className={styles["voucher-icon-small"]} />
-                                          <span>Chi tiết</span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Copy Code Button */}
+                                  <div className={styles["voucher-actions"]}>
                                     <button
                                       onClick={async () => {
                                         try {
@@ -1046,10 +1016,9 @@ const TourDetailPage = () => {
                                             voucherCode
                                           );
                                           showSuccess(
-                                            `Đã sao chép mã voucher: ${voucherCode}`
+                                            `Đã sao chép: ${voucherCode}`
                                           );
-                                        } catch (err) {
-                                          // Fallback for older browsers
+                                        } catch {
                                           const textArea =
                                             document.createElement("textarea");
                                           textArea.value = voucherCode;
@@ -1058,15 +1027,34 @@ const TourDetailPage = () => {
                                           document.execCommand("copy");
                                           document.body.removeChild(textArea);
                                           showSuccess(
-                                            `Đã sao chép mã voucher: ${voucherCode}`
+                                            `Đã sao chép: ${voucherCode}`
                                           );
                                         }
                                       }}
-                                      className={`${styles["voucher-copy-button"]} ${getVoucherButtonGradient(
-                                        discountType
-                                      )}`}
+                                      className={`${styles["btn-copy"]} ${
+                                        discountType === "PERCENT"
+                                          ? styles[
+                                              "voucher-button-gradient-percent"
+                                            ]
+                                          : styles[
+                                              "voucher-button-gradient-amount"
+                                            ]
+                                      }`}
                                     >
                                       Sao chép mã
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const vId =
+                                          voucher.voucherId || voucher.id;
+                                        if (vId) {
+                                          setSelectedVoucherId(vId);
+                                          setIsVoucherModalOpen(true);
+                                        }
+                                      }}
+                                      className={styles["btn-detail"]}
+                                    >
+                                      <Eye size={14} /> Chi tiết
                                     </button>
                                   </div>
                                 </div>
@@ -1077,15 +1065,18 @@ const TourDetailPage = () => {
 
                         <div className={styles["voucher-footer"]}>
                           <span className={styles["voucher-help-text"]}>
-                            {t("tourPage.detail.vouchers.helper")}
+                            Previewed from a sample booking so you know what to
+                            expect.
                           </span>
-                          <button
-                            type="button"
-                            className={styles["voucher-cta"]}
-                            onClick={() => navigate("/tour/voucher-list")}
-                          >
-                            {t("tourPage.detail.vouchers.cta")}
-                          </button>
+                          {voucherSuggestions.length > 3 && (
+                            <button
+                              type="button"
+                              className={styles["voucher-cta"]}
+                              onClick={() => setIsVoucherListModalOpen(true)}
+                            >
+                              Xem tất cả
+                            </button>
+                          )}
                         </div>
                       </>
                     )}
@@ -1263,7 +1254,7 @@ const TourDetailPage = () => {
                       }}
                     />
                     <div className={styles["gallery-overlay"]}>
-                      <MagnifyingGlassIcon className={styles["gallery-icon"]} />
+                      <Search className={styles["gallery-icon"]} />
                     </div>
                   </div>
                 ))}
@@ -1369,7 +1360,7 @@ const TourDetailPage = () => {
                   gap: 6,
                 }}
               >
-                {[5, 4, 3, 2, 1].map((s, idx) => {
+                {[5, 4, 3, 2, 1].map((s) => {
                   const count = ratingStats.dist[s - 1] || 0;
                   const percent = ratingStats.total
                     ? (count / ratingStats.total) * 100
@@ -1542,7 +1533,7 @@ const TourDetailPage = () => {
                                   transition: "background 0.2s",
                                 }}
                               >
-                                <EllipsisVerticalIcon className={styles["menu-icon"]} />
+                                <MoreVertical className={styles["menu-icon"]} />
                               </button>
                               {openMenuId === r.tourRatedId && (
                                 <div
@@ -1577,7 +1568,7 @@ const TourDetailPage = () => {
                                       borderRadius: 8,
                                     }}
                                   >
-                                    <TrashIcon className={styles["delete-icon"]} />
+                                    <Trash2 className={styles["delete-icon"]} />
                                     <span>{t("tourPage.detail.reviews.delete") ||
                                       "Xóa"}</span>
                                   </button>
@@ -1669,6 +1660,16 @@ const TourDetailPage = () => {
           setSelectedVoucherId(null);
         }}
         voucherId={selectedVoucherId}
+      />
+      <VoucherListModal
+        isOpen={isVoucherListModalOpen}
+        onClose={() => setIsVoucherListModalOpen(false)}
+        vouchers={voucherSuggestions}
+        onVoucherClick={(voucherId) => {
+          setSelectedVoucherId(voucherId);
+          setIsVoucherListModalOpen(false);
+          setIsVoucherModalOpen(true);
+        }}
       />
     </div>
   );

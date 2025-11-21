@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
+import { DatePicker } from 'react-rainbow-components';
+import { Calendar } from 'lucide-react';
 import styles from './Step1BasicInfo.module.css';
 
 const DEFAULT_NIGHTS_FOR_ONE_DAY = 0; // đổi thành 1 nếu muốn mặc định là 1 đêm
@@ -11,6 +13,7 @@ const Step1BasicInfo = () => {
   const { t } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
   const { showError } = useToast();
+  const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
   const [formData, setFormData] = useState({
     tourName: '',
     departurePoint: t('common.departurePoints.daNang'), // Default departure point (i18n)
@@ -457,15 +460,56 @@ const calculateLeadDays = (isoDate) => {
           <label htmlFor="tourExpirationDate" className={styles['form-label']}>
             {t('tourWizard.step1.fields.tourExpirationDate')}
           </label>
-          <input
-            type="date"
-            id="tourExpirationDate"
-            name="tourExpirationDate"
-            value={formData.tourExpirationDate}
-            onChange={(e) => handleExpirationDateChange(e.target.value)}
-            className={styles['form-input']}
-            min={new Date().toISOString().split('T')[0]}
-          />
+          <div className={styles['date-input-container']}>
+            <input
+              type="text"
+              id="tourExpirationDate"
+              readOnly
+              value={formData.tourExpirationDate || ''}
+              className={`${styles['form-input']} ${styles['date-input']}`}
+              placeholder={t('tourWizard.step1.placeholders.tourExpirationDate') || 'YYYY-MM-DD'}
+            />
+            <div className={styles['date-picker-wrapper']}>
+              <button
+                type="button"
+                className={styles['calendar-button']}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Trigger the hidden DatePicker
+                  if (datePickerRef.current) {
+                    const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
+                    if (input) {
+                      input.focus();
+                      input.click();
+                    }
+                  }
+                }}
+                title="Open date picker"
+              >
+                <Calendar className={styles['calendar-icon']} />
+              </button>
+              <div ref={datePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                <DatePicker
+                  value={formData.tourExpirationDate ? new Date(formData.tourExpirationDate) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      // Use local date components to avoid timezone issues
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const value = `${year}-${month}-${day}`;
+                      handleExpirationDateChange(value);
+                    } else {
+                      handleExpirationDateChange('');
+                    }
+                  }}
+                  minDate={new Date()}
+                  className={styles['form-input']}
+                />
+              </div>
+            </div>
+          </div>
           <small className={styles['form-help']}>
             {t('tourWizard.step1.help.tourExpirationDate')}
           </small>

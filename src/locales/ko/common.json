@@ -1515,7 +1515,8 @@
 				"chooseNationality": "국적을 선택하세요",
 				"idVietnam": "숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)",
 				"idPassport": "여권 번호 입력 (6-9자)",
-				"dateFormat": "{{format}} 형식으로 입력"
+				"dateFormat": "{{format}} 형식으로 입력",
+				"selectDepartureDate": "출발일 선택"
 			},
 			"datePicker": {
 				"open": "날짜 선택기 열기"

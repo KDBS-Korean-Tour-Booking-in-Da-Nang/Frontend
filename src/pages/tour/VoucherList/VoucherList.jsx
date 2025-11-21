@@ -2,16 +2,23 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  ChevronLeftIcon,
-  ArrowPathIcon,
-  FunnelIcon,
-  EyeIcon,
-} from '@heroicons/react/24/outline';
+  ChevronLeft,
+  RotateCw,
+  Filter,
+  Eye,
+  Banknote,
+  Percent,
+  Clock,
+  Calendar,
+  ChevronDown,
+} from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { getCompanyNames } from '../../../utils/companyUtils';
+import styles from './VoucherList.module.css';
 
-const PAGE_SIZE = 15; // 3 rows x 5 columns
+const INITIAL_DISPLAY = 6; // 3 rows x 2 columns
+const LOAD_MORE_INCREMENT = 6; // Load 6 more items each time
 
 const formatCurrency = (value) => {
   try {
@@ -41,10 +48,10 @@ const VoucherList = () => {
   const { showSuccess } = useToast();
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+  const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [companyNamesMap, setCompanyNamesMap] = useState(new Map());
+  const [_companyNamesMap, setCompanyNamesMap] = useState(new Map());
   // Filter states
   const [filterType, setFilterType] = useState('ALL'); // 'ALL' | 'PERCENT' | 'AMOUNT'
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
@@ -97,7 +104,6 @@ const VoucherList = () => {
         }
         
         // Check if voucher is currently valid (between startDate and endDate)
-        const startDate = v.startDate ? new Date(v.startDate) : null;
         const endDate = v.endDate ? new Date(v.endDate) : null;
         
         // Allow vouchers that haven't started yet (startDate in future) - they're still valid
@@ -122,7 +128,7 @@ const VoucherList = () => {
         const namesMap = await getCompanyNames(uniqueCompanyIds);
         setCompanyNamesMap(namesMap);
       }
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách voucher');
       setVouchers([]);
     } finally {
@@ -167,16 +173,12 @@ const VoucherList = () => {
   
   // Reset display count when filter changes
   useEffect(() => {
-    setDisplayCount(PAGE_SIZE);
+    setDisplayCount(INITIAL_DISPLAY);
   }, [filterType, sortBy]);
 
   const handleLoadMore = () => {
-    setDisplayCount(prev => prev + PAGE_SIZE);
+    setDisplayCount(prev => prev + LOAD_MORE_INCREMENT);
   };
-
-  // Get gradient colors based on voucher type
-  const getVoucherHeaderGradient = (discountType) =>
-    discountType === 'PERCENT' ? 'bg-[#2979FF]' : 'bg-[#36C2A8]';
 
   const getDaysLeftText = (voucher) => {
     if (!voucher?.endDate) return null;
@@ -189,13 +191,6 @@ const VoucherList = () => {
     return `Còn ${diff} ngày`;
   };
 
-  const getVoucherButtonGradient = (discountType) => {
-    if (discountType === 'PERCENT') {
-      return 'bg-[#2979FF] hover:bg-[#1f62d6]';
-    }
-    return 'bg-[#36C2A8] hover:bg-[#2B9F89]';
-  };
-
   const getStatusBadge = (voucher) => {
     const now = new Date();
     const endDate = voucher.endDate ? new Date(voucher.endDate) : null;
@@ -203,7 +198,7 @@ const VoucherList = () => {
     
     if (daysLeft !== null && daysLeft <= 7 && daysLeft > 0) {
       return (
-        <span className="absolute top-3 right-3 bg-[#FFECC0] text-[#8B5E00] text-[11px] font-semibold px-2 py-1 rounded-full shadow-sm">
+        <span className={styles.statusBadge}>
           Còn {daysLeft} ngày
         </span>
       );
@@ -257,7 +252,7 @@ const VoucherList = () => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#dfe5ff] text-[#1f2e55] bg-[#f8faff] hover:bg-white hover:shadow-sm transition-all"
             >
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#e6eeff] text-[#2a55c5]">
-                <ChevronLeftIcon className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4" />
               </span>
               <span className="font-semibold text-sm whitespace-nowrap">
                 Quay lại danh sách tour
@@ -271,7 +266,7 @@ const VoucherList = () => {
               disabled={refreshing || loading}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#dfe5ff] text-[#1f2e55] bg-[#f8faff] hover:bg-white hover:shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ArrowPathIcon
+              <RotateCw
                 className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`}
               />
               <span className="font-semibold text-sm">
@@ -294,7 +289,7 @@ const VoucherList = () => {
           {/* Filter by Type */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-600 inline-flex items-center gap-2">
-              <FunnelIcon className="h-4 w-4 text-gray-400" />
+              <Filter className="h-4 w-4 text-gray-400" />
               Loại voucher:
             </span>
             <div className="flex gap-2">
@@ -402,152 +397,135 @@ const VoucherList = () => {
         ) : (
           <>
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mb-10"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 max-w-5xl mx-auto"
               style={{ gridAutoRows: '1fr' }}
             >
               {displayedVouchers.map((voucher) => (
                 <div
                   key={voucher.id}
-                  className="relative bg-white rounded-[24px] border border-[#e3e9ff] shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full"
+                  className={styles.voucherCard}
                 >
                   {/* Status Badge */}
                   {getStatusBadge(voucher)}
                   
-                  {/* Gradient Header */}
-                  <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-3 text-white`}>
-                    <div className="flex items-center justify-start mb-0.5">
-                      <span className="text-[10px] font-semibold opacity-90 truncate max-w-full tracking-wide" title={companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}>
-                        {companyNamesMap.get(voucher.companyId) || `Company ID: ${voucher.companyId || 'N/A'}`}
-                      </span>
-                    </div>
-                    {/* Discount Value - Centered */}
-                    <div className="mb-1.5 text-center">
+                  {/* LEFT SECTION - 30% with serrated edge */}
+                  <div 
+                    className={`${styles.leftSection} ${
+                      voucher.discountType === 'PERCENT' 
+                        ? styles.leftSectionPercent 
+                        : styles.leftSectionAmount
+                    }`}
+                  >
+                    {/* Discount Icon/Percentage */}
+                    <div className={styles.leftContent}>
                       {voucher.discountType === 'PERCENT' ? (
-                        <div className="flex items-baseline justify-center">
-                          <span className="text-2xl font-bold text-white">{voucher.discountValue}</span>
-                          <span className="text-lg font-semibold text-white ml-1">%</span>
-                        </div>
+                        <>
+                          <div className="mb-2">
+                            <Percent className={styles.discountIcon} />
+                          </div>
+                          <div className={styles.discountValue}>
+                            <span className={styles.discountNumber}>{voucher.discountValue}</span>
+                            <span className={styles.discountPercent}>%</span>
+                          </div>
+                        </>
                       ) : (
-                        <div className="flex items-baseline justify-center">
-                          <span className="text-xl font-bold text-white">{formatCurrency(voucher.discountValue)}</span>
-                        </div>
+                        <>
+                          <div className="mb-2">
+                            <Banknote className={styles.discountIcon} />
+                          </div>
+                          <div className={styles.discountValue}>
+                            <span className={styles.discountAmount}>
+                              {formatCurrency(voucher.discountValue)}
+                            </span>
+                          </div>
+                        </>
                       )}
-                    </div>
-                    {/* Voucher Code - Centered */}
-                    <div className="border-t border-white border-opacity-20 pt-1.5 text-center">
-                      <div className="text-[10px] font-mono font-bold tracking-wider">
-                        {voucher.code}
+                      
+                      {/* Voucher Code */}
+                      <div className={styles.voucherCodeContainer}>
+                        <div className={styles.voucherCode}>
+                          {voucher.code}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Content - Flex grow để đẩy button xuống */}
-                  <div className="p-3 flex flex-col flex-grow">
-                    {/* Top section - có thể co giãn */}
-                    <div className="flex-grow min-h-0">
-                      <h3 className="text-xs font-semibold text-gray-900 mb-1.5 line-clamp-2">
-                        {voucher.name}
-                      </h3>
+                  {/* RIGHT SECTION - 70% with light background */}
+                  <div className={styles.rightSection}>
+                    {/* Voucher Name */}
+                    <h3 className={styles.voucherName}>
+                      {voucher.name}
+                    </h3>
 
-                      <div className="flex items-center justify-between mb-2 gap-3">
-                        <div className="flex items-center text-xs text-gray-500">
-                          <svg
-                            className="h-4 w-4 mr-2 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <span className="leading-tight text-sm">
-                            Còn lại:{' '}
-                            <span
-                              className={`font-semibold ${
-                                voucher.discountType === 'PERCENT'
-                                  ? 'text-[#2979FF]'
-                                  : 'text-[#2BAF9F]'
-                              }`}
-                            >
-                              {voucher.remainingQuantity !== undefined
-                                ? voucher.remainingQuantity
-                                : voucher.totalQuantity}
-                            </span>
-                          </span>
-                        </div>
-                        <button
-                          onClick={() =>
-                            navigate(`/tour/voucher?id=${voucher.id || voucher.voucherId}`)
-                          }
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1f2e55] border border-[#dfe3f8] rounded-full px-3 py-1.5 bg-[#f6f8ff] hover:bg-white hover:shadow-sm transition-colors"
+                    {/* Discount Info & Remaining */}
+                    <div className={styles.discountInfoRow}>
+                      <div className="flex items-center">
+                        <span
+                          className={`${styles.discountText} ${
+                            voucher.discountType === 'PERCENT'
+                              ? styles.discountTextPercent
+                              : styles.discountTextAmount
+                          }`}
                         >
-                          <EyeIcon className="h-3.5 w-3.5 text-[#2979FF]" />
-                          Chi tiết
-                        </button>
+                          {voucher.discountType === 'PERCENT' 
+                            ? `Giảm ${voucher.discountValue}%`
+                            : `Giảm ${formatCurrency(voucher.discountValue)}`
+                          }
+                        </span>
+                      </div>
+                      <div className={styles.remainingInfo}>
+                        <Clock className={styles.remainingIcon} />
+                        <span>
+                          Còn {voucher.remainingQuantity !== undefined ? voucher.remainingQuantity : voucher.totalQuantity}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Bottom section - Fixed position above button */}
-                    <div className="mt-auto">
-                      {/* Date Range */}
-                      <div className="bg-[#f6f8ff] rounded-xl p-2.5 border border-[#edf1ff] mb-3">
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <div className="flex items-center text-[10px] text-gray-600">
-                            <svg
-                              className="h-3.5 w-3.5 mr-1.5 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              />
-                            </svg>
-                            <span className="font-medium">Thời gian</span>
+                    {/* Date Range */}
+                    <div className={styles.dateRangeContainer}>
+                      <div className={styles.dateRangeBox}>
+                        <div className={styles.dateRangeHeader}>
+                          <div className={styles.dateRangeLabel}>
+                            <Calendar className={styles.dateRangeIcon} />
+                            <span className={styles.dateRangeText}>Thời gian</span>
                           </div>
                           {getDaysLeftText(voucher) && (
                             <span
-                              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                              className={`${styles.daysLeftBadge} ${
                                 voucher.discountType === 'PERCENT'
-                                  ? 'bg-[#e5eeff] text-[#1f2e55]'
-                                  : 'bg-[#e1f7f1] text-[#1d6c5c]'
+                                  ? styles.daysLeftBadgePercent
+                                  : styles.daysLeftBadgeAmount
                               }`}
                             >
                               {getDaysLeftText(voucher)}
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-gray-700 space-y-0.5 font-medium leading-tight">
+                        <div className={styles.dateRangeContent}>
                           <div>
-                            Từ:{' '}
-                            <span className="font-semibold">
+                            <span className={styles.dateRangeItem}>Từ:</span>{' '}
+                            <span className={styles.dateRangeValue}>
                               {formatDate(voucher.startDate)}
                             </span>
                           </div>
                           <div>
-                            Đến:{' '}
-                            <span className="font-semibold">
+                            <span className={styles.dateRangeItem}>Đến:</span>{' '}
+                            <span className={styles.dateRangeValue}>
                               {formatDate(voucher.endDate)}
                             </span>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Copy Code Button - Fixed at bottom */}
+                    {/* Action Buttons */}
+                    <div className={styles.actionButtons}>
                       <button
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(voucher.code);
                             showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
-                          } catch (err) {
-                            // Fallback for older browsers
+                          } catch {
                             const textArea = document.createElement('textarea');
                             textArea.value = voucher.code;
                             document.body.appendChild(textArea);
@@ -557,9 +535,22 @@ const VoucherList = () => {
                             showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
                           }
                         }}
-                        className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-2 px-3 rounded-full text-xs font-semibold transition-all duration-200 shadow-sm`}
+                        className={`${styles.copyButton} ${
+                          voucher.discountType === 'PERCENT'
+                            ? styles.copyButtonPercent
+                            : styles.copyButtonAmount
+                        }`}
                       >
                         Sao chép mã
+                      </button>
+                      <button
+                        onClick={() =>
+                          navigate(`/tour/voucher?id=${voucher.id || voucher.voucherId}`)
+                        }
+                        className={styles.detailsButton}
+                      >
+                        <Eye className={styles.detailsButtonIcon} />
+                        Chi tiết
                       </button>
                     </div>
                   </div>
@@ -567,14 +558,15 @@ const VoucherList = () => {
               ))}
             </div>
 
-            {/* Load More Button */}
+            {/* Load More Button - Minimal Soft Korean */}
             {hasMore && (
-              <div className="flex justify-center mt-8">
+              <div className="flex justify-center mt-10 mb-6">
                 <button
                   onClick={handleLoadMore}
-                  className="bg-white text-[#05275b] border-2 border-[#dbe1ff] px-8 py-3 rounded-full font-semibold hover:bg-[#f6f8ff] hover:border-[#b9c7ff] transition-all duration-200 shadow-sm hover:shadow-lg"
+                  className={styles.loadMoreButton}
                 >
-                  Xem thêm
+                  <span className={styles.loadMoreText}>Xem thêm</span>
+                  <ChevronDown className={styles.loadMoreIcon} size={18} strokeWidth={1.5} />
                 </button>
               </div>
             )}

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { ChevronLeft } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 import { getCompanyName } from '../../../utils/companyUtils';
+import styles from './VoucherDetailPage.module.css';
 
 const formatCurrency = (value) => {
   try {
@@ -31,26 +31,11 @@ const formatDate = (dateString) => {
   }
 };
 
-const formatDateTime = (dateString) => {
-  if (!dateString) return '-';
-  try {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${day} Th${month} ${year} ${hours}:${minutes}`;
-  } catch {
-    return '-';
-  }
-};
 
 const VoucherDetailPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { showSuccess } = useToast();
   const [voucher, setVoucher] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -169,15 +154,6 @@ const VoucherDetailPage = () => {
     fetchVoucher();
   }, [id]);
 
-  // Get gradient colors based on voucher type
-  const getVoucherHeaderGradient = (discountType) =>
-    discountType === 'PERCENT' ? 'bg-[#2979FF]' : 'bg-[#36C2A8]';
-
-  const getVoucherButtonGradient = (discountType) =>
-    discountType === 'PERCENT'
-      ? 'bg-[#2979FF] hover:bg-[#1f62d6]'
-      : 'bg-[#36C2A8] hover:bg-[#2b9f89]';
-
   const getDaysLeftLabel = (endDate) => {
     if (!endDate) return null;
     const end = new Date(endDate);
@@ -206,13 +182,9 @@ const VoucherDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="page-gradient">
-        <div className="min-h-screen py-4 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-            </div>
-          </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingContent}>
+          <div className={styles.loadingSpinner}></div>
         </div>
       </div>
     );
@@ -220,12 +192,10 @@ const VoucherDetailPage = () => {
 
   if (error || !voucher) {
     return (
-      <div className="page-gradient">
-        <div className="min-h-screen py-4 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <div className="text-red-500 text-base mb-4">{error || 'Voucher không tồn tại'}</div>
-            </div>
+      <div className={styles.errorContainer}>
+        <div className={styles.errorContent}>
+          <div className={styles.errorBox}>
+            <div className={styles.errorText}>{error || 'Voucher không tồn tại'}</div>
           </div>
         </div>
       </div>
@@ -233,64 +203,52 @@ const VoucherDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <style>{`
-        .tour-list-scrollable::-webkit-scrollbar {
-          width: 8px;
-        }
-        .tour-list-scrollable::-webkit-scrollbar-track {
-          background: #f7fafc;
-          border-radius: 4px;
-        }
-        .tour-list-scrollable::-webkit-scrollbar-thumb {
-          background: #cbd5e0;
-          border-radius: 4px;
-        }
-        .tour-list-scrollable::-webkit-scrollbar-thumb:hover {
-          background: #a0aec0;
-        }
-      `}</style>
-      <div className="px-4 sm:px-6 lg:px-8 py-10 flex items-start justify-center">
-        <div className="max-w-2xl w-full space-y-4">
+    <div className={styles.voucherContainer}>
+      <div className={styles.contentWrapper}>
+        <div className={styles.maxWidth}>
           <button
             onClick={() => navigate('/tour/voucher-list')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#dfe5ff] text-[#1f2e55] bg-[#f8faff] hover:bg-white hover:shadow-sm transition font-semibold text-sm"
+            className={styles.backButton}
           >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#e6eeff] text-[#2a55c5]">
-              <ChevronLeftIcon className="h-4 w-4" />
+            <span className={styles.backButtonIcon}>
+              <ChevronLeft />
             </span>
             <span>Quay lại danh sách voucher</span>
           </button>
           {/* Voucher Header Card - Auto height based on content */}
-          <div className="bg-white rounded-[28px] shadow-lg overflow-hidden flex flex-col border border-[#e0e9ff]">
-            {/* Gradient Header */}
-            <div className={`${getVoucherHeaderGradient(voucher.discountType)} p-5 text-white flex-shrink-0`}>
-              <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] opacity-90 mb-2">
+          <div className={styles.voucherCard}>
+            {/* Gradient Header with Serrated Bottom Edge */}
+            <div className={`${styles.gradientHeader} ${
+              voucher.discountType === 'PERCENT' 
+                ? styles.gradientHeaderPercent 
+                : styles.gradientHeaderAmount
+            }`}>
+              <div className={styles.headerContent}>
+                <div className={styles.headerLeft}>
+                  <div className={styles.companyName}>
                     {companyName !== 'N/A' ? companyName : `Company ID: ${voucher.companyId || 'N/A'}`}
                   </div>
-                  <div className="mb-3">
+                  <div className={styles.discountValue}>
                     {voucher.discountType === 'PERCENT' ? (
-                      <div className="flex items-baseline flex-wrap gap-2">
-                        <span className="text-3xl font-bold text-white">Giảm {voucher.discountValue}%</span>
+                      <div className={styles.discountText}>
+                        Giảm {voucher.discountValue}%
                       </div>
                     ) : (
-                      <div className="text-3xl font-bold text-white">
+                      <div className={styles.discountText}>
                         {formatCurrency(voucher.discountValue)}
                       </div>
                     )}
                   </div>
-                  <div className="text-xs text-white opacity-90">
+                  <div className={styles.expiryDate}>
                     HSD: {formatDate(voucher.endDate)}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-mono font-bold tracking-[0.12em] mb-1">
+                <div className={styles.headerRight}>
+                  <div className={styles.voucherCode}>
                     {voucher.code}
                   </div>
                   {voucher.remainingQuantity !== undefined && voucher.remainingQuantity !== null && (
-                    <div className="text-[11px] opacity-90">
+                    <div className={styles.remainingQuantity}>
                       Còn lại: {voucher.remainingQuantity} voucher
                     </div>
                   )}
@@ -299,40 +257,40 @@ const VoucherDetailPage = () => {
             </div>
 
             {/* Content Sections */}
-            <div className="p-6 bg-white">
-              <div className="space-y-4">
+            <div className={styles.contentSections}>
+              <div className={styles.sectionGroup}>
                 {/* Thời gian sử dụng mã */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900">Thời gian sử dụng mã</h3>
+                <div className={styles.section}>
+                  <div className={styles.sectionHeader}>
+                    <h3 className={styles.sectionTitle}>Thời gian sử dụng mã</h3>
                     {getDaysLeftLabel(voucher.endDate) && (
-                      <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-[#e5edff] text-[#1d2d50]">
+                      <span className={styles.daysLeftBadge}>
                         {getDaysLeftLabel(voucher.endDate)}
                       </span>
                     )}
                   </div>
-                        <div className="bg-[#f6f8ff] rounded-2xl p-3 border border-[#e0e9ff] space-y-2">
-                          <div className="text-sm text-gray-700 font-medium">
-                            Bắt đầu:
-                            <span className="font-semibold ml-1">
-                              {formatReadableDateTime(voucher.startDate)}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-700 font-medium">
-                            Kết thúc:
-                            <span className="font-semibold ml-1">
-                              {formatReadableDateTime(voucher.endDate)}
-                            </span>
-                          </div>
-                        </div>
+                  <div className={styles.timeBox}>
+                    <div className={styles.timeItem}>
+                      Bắt đầu:
+                      <span className={styles.timeValue}>
+                        {formatReadableDateTime(voucher.startDate)}
+                      </span>
+                    </div>
+                    <div className={styles.timeItem}>
+                      Kết thúc:
+                      <span className={styles.timeValue}>
+                        {formatReadableDateTime(voucher.endDate)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Đơn tối thiểu - Only show if minOrderValue exists */}
                 {voucher.minOrderValue && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Đơn tối thiểu</h3>
-                    <div className="bg-[#f6f8ff] rounded-2xl p-3 border border-[#e0e9ff]">
-                      <div className="text-sm text-gray-700 font-medium">
+                  <div className={styles.section}>
+                    <h3 className={styles.sectionTitle}>Đơn tối thiểu</h3>
+                    <div className={styles.minOrderBox}>
+                      <div className={styles.minOrderValue}>
                         {formatCurrency(voucher.minOrderValue)}
                       </div>
                     </div>
@@ -340,13 +298,13 @@ const VoucherDetailPage = () => {
                 )}
 
                 {/* Ưu đãi */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1.5">Ưu đãi</h3>
-                  <div className="bg-[#fefefe] rounded-2xl p-3 border border-[#f0f0f0]">
-                    <p className="text-sm text-gray-600 mb-2">
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Ưu đãi</h3>
+                  <div className={styles.benefitBox}>
+                    <p className={styles.benefitText}>
                       Lượt sử dụng có hạn. Nhanh tay kẻo lỡ bạn nhé!
                     </p>
-                    <div className="space-y-1 text-sm text-gray-700">
+                    <div className={styles.benefitList}>
                       {voucher.discountType === 'PERCENT' ? (
                         <>
                           <div>• Giảm {voucher.discountValue}%</div>
@@ -363,28 +321,28 @@ const VoucherDetailPage = () => {
               </div>
 
               {/* Áp dụng cho tour */}
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Áp dụng cho tour</h3>
-                <div className="bg-[#fefefe] rounded-2xl p-3 border border-[#f0f0f0]">
+              <div className={styles.tourSection}>
+                <h3 className={styles.sectionTitle}>Áp dụng cho tour</h3>
+                <div className={styles.tourBox}>
                   {voucher.tourIds && voucher.tourIds.length > 0 ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-700 font-semibold">
+                    <div className={styles.sectionGroup}>
+                      <p className={styles.tourListTitle}>
                         Voucher này áp dụng cho các tour sau:
                       </p>
-                      <div className="space-y-2 tour-list-scrollable max-h-48 pr-1">
+                      <div className={styles.tourListScrollable}>
                         {voucher.tourIds.map((tourId, idx) => {
                           const tourName = toursMap.get(tourId) || `Tour #${tourId}`;
                           return (
-                            <div key={idx} className="flex items-center text-sm text-gray-700 bg-[#f6f8ff] px-3 py-2 rounded-2xl border border-[#e4ebff]">
-                              <span className="w-2 h-2 bg-[#2979FF] rounded-full mr-2 flex-shrink-0"></span>
-                              <span className="truncate">{tourName}</span>
+                            <div key={idx} className={styles.tourItem}>
+                              <span className={styles.tourDot}></span>
+                              <span className={styles.tourName}>{tourName}</span>
                             </div>
                           );
                         })}
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-700">
+                    <p className={styles.tourGlobalText}>
                       Voucher này áp dụng cho tất cả các tour của công ty.
                     </p>
                   )}
@@ -393,13 +351,13 @@ const VoucherDetailPage = () => {
             </div>
 
             {/* Action Button - Fixed at bottom */}
-            <div className="p-4 bg-[#f6f8ff] border-t border-[#e0e9ff] flex-shrink-0">
+            <div className={styles.actionSection}>
               <button
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(voucher.code);
                     showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
-                  } catch (err) {
+                  } catch {
                     const textArea = document.createElement('textarea');
                     textArea.value = voucher.code;
                     document.body.appendChild(textArea);
@@ -409,7 +367,11 @@ const VoucherDetailPage = () => {
                     showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
                   }
                 }}
-                className={`w-full ${getVoucherButtonGradient(voucher.discountType)} text-white py-3 px-4 rounded-full text-sm font-semibold transition-all duration-200 shadow-sm`}
+                className={`${styles.copyButton} ${
+                  voucher.discountType === 'PERCENT'
+                    ? styles.copyButtonPercent
+                    : styles.copyButtonAmount
+                }`}
               >
                 Sao chép mã
               </button>

@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { formatPrice } from '../../../../../utils/priceRules';
+import { DatePicker } from 'react-rainbow-components';
+import { Calendar } from 'lucide-react';
 import styles from './Step2Details.module.css';
 
 const Step2Details = () => {
@@ -31,6 +33,7 @@ const Step2Details = () => {
   const [isDeleting, setIsDeleting] = useState(false); // Track if user is deleting
   const previousValueRef = useRef(''); // Track previous value to detect deletion
   const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
+  const departureDatePickerRef = useRef(null); // Ref for departure DatePicker to trigger programmatically
   const [tourPrices, setTourPrices] = useState({
     adult: null,
     child: null,
@@ -592,6 +595,29 @@ const Step2Details = () => {
         return `${year}${separator}${month}${separator}${day}`;
       default:
         return `${day}${separator}${month}${separator}${year}`;
+    }
+  };
+
+  // Format departure date from plan.date (year, month, day) to display format
+  const formatDepartureDateForDisplay = () => {
+    if (!plan.date.year || !plan.date.month || !plan.date.day) {
+      return '';
+    }
+    
+    const year = String(plan.date.year);
+    const month = String(plan.date.month).padStart(2, '0');
+    const day = String(plan.date.day).padStart(2, '0');
+    const separator = getDateSeparator();
+    
+    switch (currentLanguage) {
+      case 'vi':
+        return `${day}${separator}${month}${separator}${year}`;
+      case 'en':
+        return `${month}${separator}${day}${separator}${year}`;
+      case 'ko':
+        return `${year}${separator}${month}${separator}${day}`;
+      default:
+        return `${year}-${month}-${day}`;
     }
   };
 
@@ -2248,121 +2274,96 @@ const Step2Details = () => {
                      placeholder={getDateFormat()}
                      title={t('booking.step2.placeholders.dateFormat', { format: getDateFormat() })}
                    />
-                   {/* Hidden date input for calendar picker - positioned over the text input */}
-                   <input
-                     type="date"
-                     id={`${memberType}-${localIndex}-dob-hidden`}
-                     style={{ 
-                       position: 'absolute',
-                       left: '0',
-                       top: '0',
-                       width: '100%',
-                       height: '100%',
-                       opacity: '0',
-                       pointerEvents: 'none',
-                       border: 'none',
-                       outline: 'none',
-                       zIndex: '10'
-                     }}
-                     max={new Date().toISOString().split('T')[0]}
-                     onChange={(e) => {
-                       if (e.target.value) {
-                         // Convert to display format and update
-                         const normalizedDate = e.target.value;
-                         const displayFormat = formatDateFromNormalized(normalizedDate);
-                         
-                         // Use handleDateChange for proper validation
-                         handleDateChange(memberType, globalIndex, displayFormat);
-                         
-                         // Remove from editing state to show formatted date
-                         const fieldKey = `${memberType}-${localIndex}-dob`;
-                         setEditingFields(prev => {
-                           const newSet = new Set(prev);
-                           newSet.delete(fieldKey);
-                           return newSet;
-                         });
-                         
-                   // Set validating flag to prevent useEffect override
-                   const calendarFieldKey = `${memberType}_${localIndex}_dob`;
-                   const dobKey = `${memberType}_${localIndex}_dob`;
-                   setValidatingFields(prev => new Set(prev).add(calendarFieldKey));
-                   validatingFieldsRef.current.add(calendarFieldKey);
-                   
-                   // Validate immediately since user has finished selecting from calendar
-                   setTimeout(() => {
-                     const validationResult = validateMemberAge(memberType, normalizedDate);
-                     
-                     // Set error state immediately and persistently
-                     setErrors(prev => {
-                       const newErrors = { ...prev };
-                       if (validationResult.isValid) {
-                         delete newErrors[dobKey];
-                       } else {
-                         newErrors[dobKey] = validationResult.error;
-                       }
-                       return newErrors;
-                     });
-                     
-                     // Clear validating flag after delay, but only if no error
-                     setTimeout(() => {
-                       // Only clear validating flag if there's no error for this field
-                       setErrors(prev => {
-                         const hasError = prev[dobKey];
-                         if (!hasError) {
-                       setValidatingFields(prev => {
-                         const newSet = new Set(prev);
-                         newSet.delete(calendarFieldKey);
-                         return newSet;
-                       });
-                       validatingFieldsRef.current.delete(calendarFieldKey);
+                   <div className={styles['date-picker-wrapper']}>
+                     <button
+                       type="button"
+                       className={styles['date-picker-button']}
+                       onClick={(e) => {
+                         e.preventDefault();
+                         e.stopPropagation();
+                         // Trigger the hidden DatePicker for this member
+                         const wrapper = e.currentTarget.parentElement;
+                         const hiddenDatePicker = wrapper?.querySelector('input') || wrapper?.querySelector('button[type="button"]:not(.date-picker-button)');
+                         if (hiddenDatePicker && hiddenDatePicker !== e.currentTarget) {
+                           hiddenDatePicker.focus();
+                           hiddenDatePicker.click();
                          }
-                         return prev;
-                       });
-                     }, 500); // 500ms to ensure useEffect doesn't override
-                   }, 100); // 100ms delay to avoid conflict
-                       }
-                     }}
-                   />
-                   <button
-                     type="button"
-                     className={styles['date-picker-button']}
-                     onClick={(e) => {
-                       e.preventDefault();
-                       e.stopPropagation();
-                       
-                       // Trigger the hidden date input
-                       const hiddenInput = document.getElementById(`${memberType}-${localIndex}-dob-hidden`);
-                       if (hiddenInput) {
-                         // Focus the input first, then trigger click
-                         hiddenInput.focus();
-                         
-                         // Use a small delay to ensure focus is set
-                         setTimeout(() => {
-                           // Use showPicker if available, otherwise click
-                           if (hiddenInput.showPicker) {
-                             try {
-                               const showPickerResult = hiddenInput.showPicker();
-                               // If showPicker returns a promise, handle it
-                               if (showPickerResult && typeof showPickerResult.catch === 'function') {
-                                 showPickerResult.catch(() => {
-                                   // Fallback to click if showPicker fails
-                                   hiddenInput.click();
+                       }}
+                       title="Open date picker"
+                     >
+                       <Calendar className={styles['calendar-icon']} />
+                     </button>
+                     <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                       <DatePicker
+                         value={(() => {
+                           if (!member.dob) return null;
+                           const normalized = validateDateInput(member.dob);
+                           return normalized ? new Date(normalized) : null;
+                         })()}
+                         onChange={(date) => {
+                           if (date) {
+                             // Use local date components to avoid timezone issues
+                             const year = date.getFullYear();
+                             const month = String(date.getMonth() + 1).padStart(2, '0');
+                             const day = String(date.getDate()).padStart(2, '0');
+                             const normalizedDate = `${year}-${month}-${day}`;
+                             const displayFormat = formatDateFromNormalized(normalizedDate);
+                             
+                             // Use handleDateChange for proper validation
+                             handleDateChange(memberType, globalIndex, displayFormat);
+                             
+                             // Remove from editing state to show formatted date
+                             const fieldKey = `${memberType}-${localIndex}-dob`;
+                             setEditingFields(prev => {
+                               const newSet = new Set(prev);
+                               newSet.delete(fieldKey);
+                               return newSet;
+                             });
+                             
+                             // Set validating flag to prevent useEffect override
+                             const calendarFieldKey = `${memberType}_${localIndex}_dob`;
+                             const dobKey = `${memberType}_${localIndex}_dob`;
+                             setValidatingFields(prev => new Set(prev).add(calendarFieldKey));
+                             validatingFieldsRef.current.add(calendarFieldKey);
+                             
+                             // Validate immediately since user has finished selecting from calendar
+                             setTimeout(() => {
+                               const validationResult = validateMemberAge(memberType, normalizedDate);
+                               
+                               // Set error state immediately and persistently
+                               setErrors(prev => {
+                                 const newErrors = { ...prev };
+                                 if (validationResult.isValid) {
+                                   delete newErrors[dobKey];
+                                 } else {
+                                   newErrors[dobKey] = validationResult.error;
+                                 }
+                                 return newErrors;
+                               });
+                               
+                               // Clear validating flag after delay, but only if no error
+                               setTimeout(() => {
+                                 // Only clear validating flag if there's no error for this field
+                                 setErrors(prev => {
+                                   const hasError = prev[dobKey];
+                                   if (!hasError) {
+                                     setValidatingFields(prev => {
+                                       const newSet = new Set(prev);
+                                       newSet.delete(calendarFieldKey);
+                                       return newSet;
+                                     });
+                                     validatingFieldsRef.current.delete(calendarFieldKey);
+                                   }
+                                   return prev;
                                  });
-                               }
-                             } catch (error) {
-                               // Fallback to click if showPicker throws error
-                               hiddenInput.click();
-                             }
-                           } else {
-                             hiddenInput.click();
+                               }, 500); // 500ms to ensure useEffect doesn't override
+                             }, 100); // 100ms delay to avoid conflict
                            }
-                         }, 10);
-                       }
-                     }}
-                     title="Open date picker"
-                   >
-                     📅
-                   </button>
+                         }}
+                         maxDate={new Date()}
+                       />
+                     </div>
+                   </div>
                  </div>
                 {errors[`${memberType}_${localIndex}_dob`] && touchedFields.has(`${memberType}_${localIndex}_dob`) && (
                   <span className={styles['form-error']}>{errors[`${memberType}_${localIndex}_dob`]}</span>
@@ -2528,36 +2529,76 @@ const Step2Details = () => {
             {/* Date Picker Input */}
             <div className={styles['date-picker-group']}>
               <label htmlFor="departureDate" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.fields.date')}</label>
-              <input
-                type="date"
-                id="departureDate"
-                value={plan.date.year && plan.date.month && plan.date.day 
-                  ? `${plan.date.year}-${plan.date.month.toString().padStart(2, '0')}-${plan.date.day.toString().padStart(2, '0')}`
-                  : ''
-                }
-                onChange={(e) => {
-                  const dateValue = e.target.value;
-                  if (dateValue) {
-                    const [year, month, day] = dateValue.split('-');
-                    setDate({
-                      year: parseInt(year),
-                      month: parseInt(month),
-                      day: parseInt(day)
-                    });
-                  } else {
-                    setDate({ day: null, month: null, year: null });
-                  }
-                }}
-                min={computeMinDepartureDate()}
-                max={computeMaxDepartureDate()}
-                className={`${styles['form-input']} ${errors.date && dateTouched ? styles['error'] : ''}`}
-                onBlur={() => setDateTouched(true)}
-              />
+              <div className={styles['date-input-container']}>
+                <input
+                  type="text"
+                  id="departureDate"
+                  readOnly
+                  value={formatDepartureDateForDisplay()}
+                  className={`${styles['form-input']} ${styles['date-input']}`}
+                  placeholder={t('booking.step2.placeholders.selectDepartureDate')}
+                  title={t('booking.step2.placeholders.dateFormat', { format: getDateFormat() })}
+                />
+                <div className={styles['date-picker-wrapper']}>
+                  <button
+                    type="button"
+                    className={styles['date-picker-button']}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Trigger the hidden DatePicker
+                      if (departureDatePickerRef.current) {
+                        const input = departureDatePickerRef.current.querySelector('input') || departureDatePickerRef.current.querySelector('button');
+                        if (input) {
+                          input.focus();
+                          input.click();
+                        }
+                      }
+                    }}
+                    title="Open date picker"
+                  >
+                    <Calendar className={styles['calendar-icon']} />
+                  </button>
+                  <div ref={departureDatePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                    <DatePicker
+                      value={plan.date.year && plan.date.month && plan.date.day 
+                        ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
+                        : null
+                      }
+                      onChange={(date) => {
+                        if (date) {
+                          // Keep original logic: setDate with year, month, day separately
+                          setDate({
+                            year: date.getFullYear(),
+                            month: date.getMonth() + 1,
+                            day: date.getDate()
+                          });
+                        } else {
+                          setDate({ day: null, month: null, year: null });
+                        }
+                        setDateTouched(true);
+                      }}
+                      minDate={(() => {
+                        const minDateStr = computeMinDepartureDate();
+                        if (!minDateStr) return null;
+                        const [year, month, day] = minDateStr.split('-');
+                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                      })()}
+                      maxDate={(() => {
+                        const maxDateStr = computeMaxDepartureDate();
+                        if (!maxDateStr) return null;
+                        const [year, month, day] = maxDateStr.split('-');
+                        return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                      })()}
+                      onBlur={() => setDateTouched(true)}
+                    />
+                  </div>
+                </div>
+              </div>
               {errors.date && (
                 <span className={styles['form-error']}>{errors.date}</span>
               )}
             </div>
-
           </div>
         </div>
       </div>

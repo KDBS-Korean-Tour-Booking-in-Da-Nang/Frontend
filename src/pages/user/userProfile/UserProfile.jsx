@@ -5,6 +5,8 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { Modal } from '../../../components';
 import { updateUserProfile, validateUserProfile } from '../../../services/userService';
+import { DatePicker } from 'react-rainbow-components';
+import { Calendar } from 'lucide-react';
 import { 
   PencilIcon, 
   EyeIcon, 
@@ -45,6 +47,7 @@ const UserProfile = () => {
   const [dobError, setDobError] = useState('');
   const [editingFields, setEditingFields] = useState(new Set());
   const isDeletingRef = useRef(false);
+  const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
 
   // All users can change avatar regardless of login method
 
@@ -891,49 +894,51 @@ const UserProfile = () => {
                 placeholder={(() => { const sep=getDateSeparator(); return i18n.language==='ko' ? `YYYY${sep}MM${sep}DD` : (i18n.language==='vi'?`DD${sep}MM${sep}YYYY`:`MM${sep}DD${sep}YYYY`); })()}
                 title={t('booking.step1.placeholders.dateFormat', { format: (()=>{ const sep=getDateSeparator(); return i18n.language==='ko' ? `YYYY${sep}MM${sep}DD` : (i18n.language==='vi'?`DD${sep}MM${sep}YYYY`:`MM${sep}DD${sep}YYYY`); })() })}
               />
-              <input
-                type="date"
-                id="profile-dob-hidden"
-                className={styles['calendar-anchor-input']}
-                onChange={(e) => {
-                  const iso = e.target.value; // YYYY-MM-DD
-                  const display = formatDateFromNormalizedSafe(iso);
-                  setEditForm(prev => ({ ...prev, dob: display }));
-                  setEditingFields(prev => { const s=new Set(prev); s.delete('dob'); return s; });
-                  validateDob(display);
-                }}
-                min="1900-01-01"
-                max={(() => { const d=new Date(); return d.toISOString().slice(0,10); })()}
-              />
-              <button
-                type="button"
-                className={styles['calendar-button']}
-                onClick={(e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  const hidden = document.getElementById('profile-dob-hidden');
-                  if (hidden) {
-                    hidden.style.pointerEvents = 'auto';
-                    hidden.focus();
-                    setTimeout(()=>{
-                      if (hidden.showPicker) {
-                        try {
-                          const p = hidden.showPicker();
-                          if (p && typeof p.catch === 'function') {
-                            p.catch(()=> hidden.click());
-                          }
-                        } catch {
-                          hidden.click();
-                        }
-                      } else {
-                        hidden.click();
+              <div className={styles['date-picker-wrapper']}>
+                <button
+                  type="button"
+                  className={styles['calendar-button']}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Trigger the hidden DatePicker
+                    if (datePickerRef.current) {
+                      const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
+                      if (input) {
+                        input.focus();
+                        input.click();
                       }
-                      // disable interactions again after opening
-                      setTimeout(()=>{ hidden.style.pointerEvents = 'none'; }, 0);
-                    }, 10);
-                  }
-                }}
-                title="Open date picker"
-              >📅</button>
+                    }
+                  }}
+                  title="Open date picker"
+                >
+                  <Calendar className={styles['calendar-icon']} />
+                </button>
+                <div ref={datePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                  <DatePicker
+                    value={(() => {
+                      if (!editForm.dob) return null;
+                      const iso = parseDateFromDisplayToISO(editForm.dob);
+                      return iso ? new Date(iso) : null;
+                    })()}
+                    onChange={(date) => {
+                      if (date) {
+                        // Use local date components to avoid timezone issues
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const iso = `${year}-${month}-${day}`;
+                        const displayValue = formatDateFromNormalizedSafe(iso);
+                        setEditForm(prev => ({ ...prev, dob: displayValue }));
+                        setEditingFields(prev => { const s=new Set(prev); s.delete('dob'); return s; });
+                        validateDob(displayValue);
+                      }
+                    }}
+                    minDate={new Date('1900-01-01')}
+                    maxDate={new Date()}
+                  />
+                </div>
+              </div>
             </div>
             {dobError && (
               <div className={styles['field-hint']} style={{ color: '#e11d48' }}>{dobError}</div>

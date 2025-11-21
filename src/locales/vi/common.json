@@ -1533,7 +1533,8 @@
         "chooseNationality": "Chọn quốc tịch",
         "idVietnam": "Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)",
         "idPassport": "Nhập số hộ chiếu (6-9 ký tự)",
-        "dateFormat": "Nhập theo định dạng {{format}}"
+        "dateFormat": "Nhập theo định dạng {{format}}",
+        "selectDepartureDate": "Chọn ngày khởi hành"
       },
       "datePicker": {
         "open": "Mở date picker"

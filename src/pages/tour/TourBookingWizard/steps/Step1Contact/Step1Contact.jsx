@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { DatePicker } from 'react-rainbow-components';
+import { Calendar } from 'lucide-react';
 import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
@@ -22,6 +24,7 @@ const Step1Contact = () => {
   const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
   const originalAutoFilledNameRef = useRef(null); // Track original auto-filled name with special characters
   const [hasUserInStorage, setHasUserInStorage] = useState(false); // Track if user exists in storage
+  const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
   
   // Date formatting helpers (copied from Step2Details)
   const getDateSeparator = () => {
@@ -1509,141 +1512,107 @@ const Step1Contact = () => {
                 placeholder={getDateFormat()}
                 title={t('booking.step1.placeholders.dateFormat', { format: getDateFormat() })}
               />
-              {/* Hidden date input for calendar picker - positioned over the text input */}
-              <input
-                type="date"
-                id="dob-hidden"
-                style={{ 
-                  position: 'absolute',
-                  left: '0',
-                  top: '0',
-                  width: '100%',
-                  height: '100%',
-                  opacity: '0',
-                  pointerEvents: 'none',
-                  border: 'none',
-                  outline: 'none',
-                  zIndex: '10'
-                }}
-                onChange={(e) => {
-                  const normalizedDate = e.target.value;
-                  const displayFormat = formatDateFromNormalized(normalizedDate);
-                  
-                  // Always update the input first (so user can see what they selected)
-                  handleDateChange(displayFormat);
-                  
-                  // Remove from editing state to show formatted date
-                  const fieldKey = 'dob';
-                  setEditingFields(prev => {
-                    const newSet = new Set(prev);
-                    newSet.delete(fieldKey);
-                    return newSet;
-                  });
-                  
-                  // Mark field as touched
-                  setTouchedFields(prev => new Set(prev).add('dob'));
-                  
-                  // Set validating flag to prevent useEffect override
-                  const dobKey = 'dob';
-                  setValidatingFields(prev => new Set(prev).add(dobKey));
-                  validatingFieldsRef.current.add(dobKey);
-                  
-                  // Validate immediately since user has finished selecting from calendar
-                  setTimeout(() => {
-                    
-                    const validationResult = validateDateInput(displayFormat);
-                    
-                    
-                    // Validate age (≥18 for representative)
-                    const birthDate = new Date(normalizedDate);
-                    const today = new Date();
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const monthDiff = today.getMonth() - birthDate.getMonth();
-                    
-                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                      age--;
+              <div className={styles['date-picker-wrapper']}>
+                <button
+                  type="button"
+                  className={styles['calendar-button']}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Trigger the hidden DatePicker
+                    if (datePickerRef.current) {
+                      const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
+                      if (input) {
+                        input.focus();
+                        input.click();
+                      }
                     }
-                    
-                    // Set error state immediately and persistently
-                    setErrors(prev => {
-                      const newErrors = { ...prev };
-                      if (age >= 18) {
+                  }}
+                  title="Open date picker"
+                >
+                  <Calendar className={styles['calendar-icon']} />
+                </button>
+                <div ref={datePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                  <DatePicker
+                    value={(() => {
+                      if (!contact.dob) return null;
+                      const normalized = validateDateInput(contact.dob);
+                      return normalized ? new Date(normalized) : null;
+                    })()}
+                    onChange={(date) => {
+                      if (date) {
+                        // Use local date components to avoid timezone issues
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const normalizedDate = `${year}-${month}-${day}`;
+                        const displayFormat = formatDateFromNormalized(normalizedDate);
                         
-                        delete newErrors[dobKey];
-                      } else {
-                        newErrors[dobKey] = t('booking.errors.representativeTooYoung');
-                      }
-                      return newErrors;
-                    });
-                    
-                    // Clear validating flag after delay
-                    setTimeout(() => {
-                      setValidatingFields(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(dobKey);
-                        return newSet;
-                      });
-                      validatingFieldsRef.current.delete(dobKey);
-                    }, 500); // 500ms to ensure useEffect doesn't override
-                  }, 100); // 100ms delay
-                }}
-                min="1900-01-01"
-                max={(() => {
-                  const maxDate = new Date();
-                  maxDate.setMonth(maxDate.getMonth() + 1);
-                  return maxDate.toISOString().split('T')[0];
-                })()} // Giới hạn chọn trong vòng 1 tháng
-              />
-              {/* Calendar button */}
-              <button
-                type="button"
-                className={styles['calendar-button']}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  
-                  // Trigger the hidden date input
-                  const hiddenInput = document.getElementById('dob-hidden');
-                  
-                  if (hiddenInput) {
-                    // Focus the input first, then trigger click
-                    hiddenInput.focus();
-                    
-                    
-                    // Use a small delay to ensure focus is set
-                    setTimeout(() => {
-                      // Use showPicker if available, otherwise click
-                      if (hiddenInput.showPicker) {
-                        try {
+                        // Always update the input first (so user can see what they selected)
+                        handleDateChange(displayFormat);
+                        
+                        // Remove from editing state to show formatted date
+                        const fieldKey = 'dob';
+                        setEditingFields(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(fieldKey);
+                          return newSet;
+                        });
+                        
+                        // Mark field as touched
+                        setTouchedFields(prev => new Set(prev).add('dob'));
+                        
+                        // Set validating flag to prevent useEffect override
+                        const dobKey = 'dob';
+                        setValidatingFields(prev => new Set(prev).add(dobKey));
+                        validatingFieldsRef.current.add(dobKey);
+                        
+                        // Validate immediately since user has finished selecting from calendar
+                        setTimeout(() => {
+                          const validationResult = validateDateInput(displayFormat);
                           
-                          const showPickerResult = hiddenInput.showPicker();
-                          // If showPicker returns a promise, handle it
-                          if (showPickerResult && typeof showPickerResult.catch === 'function') {
-                            showPickerResult.catch(() => {
-                              // Fallback to click if showPicker fails
-                              
-                              hiddenInput.click();
-                            });
+                          // Validate age (≥18 for representative)
+                          const birthDate = new Date(normalizedDate);
+                          const today = new Date();
+                          let age = today.getFullYear() - birthDate.getFullYear();
+                          const monthDiff = today.getMonth() - birthDate.getMonth();
+                          
+                          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
                           }
-                        } catch (error) {
-                          // Fallback to click if showPicker throws error
                           
-                          hiddenInput.click();
-                        }
-                      } else {
-                        
-                        hiddenInput.click();
+                          // Set error state immediately and persistently
+                          setErrors(prev => {
+                            const newErrors = { ...prev };
+                            if (age >= 18) {
+                              delete newErrors[dobKey];
+                            } else {
+                              newErrors[dobKey] = t('booking.errors.representativeTooYoung');
+                            }
+                            return newErrors;
+                          });
+                          
+                          // Clear validating flag after delay
+                          setTimeout(() => {
+                            setValidatingFields(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(dobKey);
+                              return newSet;
+                            });
+                            validatingFieldsRef.current.delete(dobKey);
+                          }, 500); // 500ms to ensure useEffect doesn't override
+                        }, 100); // 100ms delay
                       }
-                    }, 10);
-                  } else {
-                    
-                  }
-                }}
-                title="Open date picker"
-              >
-                📅
-              </button>
+                    }}
+                    minDate={new Date('1900-01-01')}
+                    maxDate={(() => {
+                      const maxDate = new Date();
+                      maxDate.setMonth(maxDate.getMonth() + 1);
+                      return maxDate;
+                    })()}
+                  />
+                </div>
+              </div>
             </div>
             {errors.dob && touchedFields.has('dob') && (
               <span className={styles['form-error']}>{errors.dob}</span>

@@ -495,6 +495,29 @@
   background-color: rgba(0, 0, 0, 0.2);
 }
 
+.calendar-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #6b7280;
+  background: transparent;
+  transition: color 0.2s ease;
+}
+
+.date-picker-button:hover .calendar-icon {
+  color: #111827;
+}
+
+.date-picker-wrapper {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ID Input Notice */
 .id-input-notice {
   margin-bottom: 0.5rem;

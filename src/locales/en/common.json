@@ -1516,7 +1516,8 @@
 				"chooseNationality": "Select nationality",
 				"idVietnam": "Digits only: 12 digits (CCCD) or 9 digits (CMND/CMT)",
 				"idPassport": "Enter passport number (6-9 characters)",
-				"dateFormat": "Enter in {{format}} format"
+				"dateFormat": "Enter in {{format}} format",
+				"selectDepartureDate": "Select a departure date"
 			},
 			"datePicker": {
 				"open": "Open date picker"

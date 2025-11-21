@@ -248,8 +248,31 @@
   transform: translateY(-50%) scale(1.1);
 }
 
+.calendar-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #6b7280;
+  background: transparent;
+  transition: color 0.2s ease;
+}
+
+.calendar-button:hover .calendar-icon {
+  color: #111827;
+}
+
 .calendar-button:active {
   transform: translateY(-50%) scale(0.95);
+}
+
+.date-picker-wrapper {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsive Design */

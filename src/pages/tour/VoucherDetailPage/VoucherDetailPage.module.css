@@ -1,0 +1,437 @@
+/* Voucher Detail Page Container */
+.voucherContainer {
+  min-height: 100vh;
+  background: white;
+}
+
+.contentWrapper {
+  padding: 2.5rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.maxWidth {
+  max-width: 42rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Back Button */
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #dfe5ff;
+  color: #1f2e55;
+  background: #f8faff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.backButton:hover {
+  background: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.backButtonIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: #e6eeff;
+  color: #2a55c5;
+}
+
+.backButtonIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Voucher Card */
+.voucherCard {
+  background: white;
+  border-radius: 1.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e9ff;
+}
+
+/* Gradient Header with Serrated Bottom Edge */
+.gradientHeader {
+  padding: 1.25rem;
+  /* Tăng khoảng trống bên dưới để chứa răng cưa */
+  padding-bottom: 2rem; 
+  color: white;
+  flex-shrink: 0;
+  position: relative; /* Quan trọng: để làm mốc cho lớp phủ răng cưa */
+}
+
+/* White Triangle Overlay for Serrated Edge */
+.gradientHeader::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 12px; 
+  z-index: 1;
+  
+  background-color: transparent;
+  background-size: 24px 24px;
+  
+  /* Giữ nguyên góc độ bạn đã chọn */
+  background-image: 
+    linear-gradient(45deg, white 25%, transparent 25%),
+    linear-gradient(-45deg, white 25%, transparent 25%);
+    
+  /* --- SỬA LẠI DÒNG NÀY --- */
+  /* Đổi từ '0 0' thành '0 100%' để hiển thị phần chân của răng cưa */
+  background-position: 0 100%; 
+  
+  background-repeat: repeat-x;
+}
+
+.gradientHeaderPercent {
+  background: #2979FF;
+}
+
+.gradientHeaderAmount {
+  background: #36C2A8;
+}
+
+.headerContent {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.companyName {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.discountValue {
+  margin-bottom: 0.75rem;
+}
+
+.discountText {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: white;
+}
+
+.expiryDate {
+  font-size: 0.75rem;
+  color: white;
+  opacity: 0.9;
+}
+
+.headerRight {
+  text-align: right;
+}
+
+.voucherCode {
+  font-size: 1.125rem;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.25rem;
+}
+
+.remainingQuantity {
+  font-size: 0.6875rem;
+  opacity: 0.9;
+}
+
+/* Content Sections */
+.contentSections {
+  padding: 1.5rem;
+  background: white;
+}
+
+.sectionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Section Styles */
+.section {
+  margin-bottom: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.daysLeftBadge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: #e5edff;
+  color: #1d2d50;
+}
+
+.timeBox {
+  background: #f6f8ff;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #e0e9ff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timeItem {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.timeValue {
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.minOrderBox {
+  background: #f6f8ff;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #e0e9ff;
+}
+
+.minOrderValue {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.benefitBox {
+  background: #fefefe;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #f0f0f0;
+}
+
+.benefitText {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+}
+
+.benefitList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Tour List Section */
+.tourSection {
+  margin-top: 1rem;
+}
+
+.tourBox {
+  background: #fefefe;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #f0f0f0;
+}
+
+.tourListTitle {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.tourListScrollable {
+  max-height: 12rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Custom scrollbar for tour list */
+.tourListScrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tourListScrollable::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.tourListScrollable::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.tourListScrollable::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+.tourItem {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #374151;
+  background: #f6f8ff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid #e4ebff;
+}
+
+.tourDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #2979FF;
+  border-radius: 9999px;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.tourName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tourGlobalText {
+  font-size: 0.75rem;
+  color: #374151;
+}
+
+/* Action Button */
+.actionSection {
+  padding: 1rem;
+  background: #f6f8ff;
+  border-top: 1px solid #e0e9ff;
+  flex-shrink: 0;
+}
+
+.copyButton {
+  width: 100%;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none;
+  cursor: pointer;
+}
+
+.copyButtonPercent {
+  background: #2979FF;
+}
+
+.copyButtonPercent:hover {
+  background: #1f62d6;
+}
+
+.copyButtonAmount {
+  background: #36C2A8;
+}
+
+.copyButtonAmount:hover {
+  background: #2b9f89;
+}
+
+/* Loading and Error States */
+.loadingContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.loadingContent {
+  min-height: 100vh;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingSpinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border-width: 2px;
+  border-bottom-color: #2563eb;
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.errorContent {
+  min-height: 100vh;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorBox {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+

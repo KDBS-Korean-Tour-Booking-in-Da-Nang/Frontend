@@ -4,6 +4,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 import { getCompanyName } from '../../../utils/companyUtils';
+import { Calendar, Copy, Percent, Banknote, Clock, Minus } from 'lucide-react';
 import Modal from '../Modal';
 import styles from './VoucherDetailModal.module.css';
 
@@ -217,9 +218,10 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
       isOpen={isOpen}
       onClose={onClose}
       title="Chi tiết Voucher"
-      size="lg"
+      size="md"
     >
-      <div className={styles['voucher-detail-container']}>
+      <div className={styles['voucher-detail-wrapper']}>
+        <div className={styles['voucher-detail-container']}>
         {loading && (
           <div className={styles['loading-container']}>
             <div className={styles['spinner']}></div>
@@ -270,27 +272,33 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
               </div>
             </div>
 
-            {/* Content Sections */}
+            {/* Content Sections - Compact Layout */}
             <div className={styles['voucher-content']}>
               <div className={styles['voucher-section']}>
-                <div className="voucher-section-header">
-                  <h3 className={styles['section-title']}>Thời gian sử dụng mã</h3>
+                <div className={styles['voucher-section-header']}>
+                  <div className={styles['section-title-wrapper']}>
+                    <Calendar className={styles['section-icon']} size={14} strokeWidth={1.5} />
+                    <h3 className={styles['section-title']}>Thời gian sử dụng</h3>
+                  </div>
                   {getDaysLeftLabel(voucher.endDate) && (
-                    <span className="voucher-days-left">
+                    <span className={styles['voucher-days-left']}>
                       {getDaysLeftLabel(voucher.endDate)}
                     </span>
                   )}
                 </div>
                 <div className={styles['section-box']}>
                   <div className={styles['section-text']}>
-                    {formatDateTime(voucher.startDate)} - {formatDateTime(voucher.endDate)}
+                    {formatDateTime(voucher.startDate)} <Minus className={styles['inline-icon']} size={12} strokeWidth={1.5} /> {formatDateTime(voucher.endDate)}
                   </div>
                 </div>
               </div>
 
               {voucher.minOrderValue && (
                 <div className={styles['voucher-section']}>
-                  <h3 className={styles['section-title']}>Đơn tối thiểu</h3>
+                  <div className={styles['section-title-wrapper']}>
+                    <Banknote className={styles['section-icon']} size={14} strokeWidth={1.5} />
+                    <h3 className={styles['section-title']}>Đơn tối thiểu</h3>
+                  </div>
                   <div className={styles['section-box']}>
                     <div className={styles['section-text']}>
                       {formatCurrency(voucher.minOrderValue)}
@@ -300,53 +308,56 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
               )}
 
               <div className={styles['voucher-section']}>
-                <h3 className={styles['section-title']}>Ưu đãi</h3>
+                <div className={styles['section-title-wrapper']}>
+                  {voucher.discountType === 'PERCENT' ? (
+                    <Percent className={styles['section-icon']} size={14} strokeWidth={1.5} />
+                  ) : (
+                    <Banknote className={styles['section-icon']} size={14} strokeWidth={1.5} />
+                  )}
+                  <h3 className={styles['section-title']}>Ưu đãi</h3>
+                </div>
                 <div className={styles['section-box']}>
-                  <p className={styles['section-text']} style={{ marginBottom: '6px' }}>
-                    Lượt sử dụng có hạn. Nhanh tay kẻo lỡ bạn nhé!
-                  </p>
                   <div className={styles['benefits-list']}>
                     {voucher.discountType === 'PERCENT' ? (
                       <>
-                        <div>• Giảm {voucher.discountValue}%</div>
+                        <div className={styles['benefit-item']}>Giảm {voucher.discountValue}%</div>
                         {voucher.minOrderValue && (
-                          <div>• Giảm tối đa {formatCurrency(Math.min(voucher.minOrderValue, 100000))}</div>
+                          <div className={styles['benefit-item']}>Tối đa {formatCurrency(Math.min(voucher.minOrderValue, 100000))}</div>
                         )}
                       </>
                     ) : (
-                      <div>• Giảm {formatCurrency(voucher.discountValue)}</div>
+                      <div className={styles['benefit-item']}>Giảm {formatCurrency(voucher.discountValue)}</div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className={styles['voucher-section']}>
-                <h3 className={styles['section-title']}>Áp dụng cho tour</h3>
-                <div className={styles['section-box']}>
-                  {voucher.tourIds && voucher.tourIds.length > 0 ? (
-                    <div className={styles['tours-list']}>
-                      <p className={styles['tours-intro']}>
-                        Voucher này áp dụng cho các tour sau:
-                      </p>
-                      <div className={styles['tours-items']}>
-                        {voucher.tourIds.map((tourId, idx) => {
-                          const tourName = toursMap.get(tourId) || `Tour #${tourId}`;
-                          return (
-                            <div key={idx} className={styles['tour-item']}>
-                              <span className={styles['tour-bullet']}></span>
-                              <span>{tourName}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+              {voucher.tourIds && voucher.tourIds.length > 0 && (
+                <div className={styles['voucher-section']}>
+                  <div className={styles['section-title-wrapper']}>
+                    <Clock className={styles['section-icon']} size={14} strokeWidth={1.5} />
+                    <h3 className={styles['section-title']}>Áp dụng cho tour</h3>
+                  </div>
+                  <div className={styles['section-box']}>
+                    <div className={styles['tours-items']}>
+                      {voucher.tourIds.slice(0, 3).map((tourId, idx) => {
+                        const tourName = toursMap.get(tourId) || `Tour #${tourId}`;
+                        return (
+                          <div key={idx} className={styles['tour-item']}>
+                            <span className={styles['tour-bullet']}></span>
+                            <span>{tourName}</span>
+                          </div>
+                        );
+                      })}
+                      {voucher.tourIds.length > 3 && (
+                        <div className={styles['tour-item']}>
+                          <span className={styles['tour-more']}>+{voucher.tourIds.length - 3} tour khác</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <p className={styles['section-text']}>
-                      Voucher này áp dụng cho tất cả các tour của công ty.
-                    </p>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Action Button */}
@@ -355,11 +366,13 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                 onClick={handleCopyCode}
                 className={`${styles['copy-button']} ${getVoucherButtonGradient(voucher.discountType)}`}
               >
+                <Copy className={styles['copy-icon']} size={16} strokeWidth={2} />
                 Sao chép mã
               </button>
             </div>
           </div>
         )}
+        </div>
       </div>
     </Modal>
   );

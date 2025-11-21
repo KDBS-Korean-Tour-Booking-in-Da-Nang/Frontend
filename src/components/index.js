@@ -2,4 +2,4 @@
 export { Navbar, ConditionalNavbar } from './navbar';
 
 // Modal components
-export { Modal, DeleteConfirmModal, LoginRequiredModal, ShareTourModal, VoucherDetailModal } from './modals';
+export { Modal, DeleteConfirmModal, LoginRequiredModal, ShareTourModal, VoucherDetailModal, VoucherListModal } from './modals';

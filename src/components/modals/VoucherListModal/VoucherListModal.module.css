@@ -1,0 +1,435 @@
+/* Minimal Soft Korean Style Modal */
+
+/* Overlay - Soft white backdrop */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Container - Rounded 24-28px */
+.modalContainer {
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 900px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modalTitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.closeButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: none;
+  background: #f8f8f8;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* Content */
+.modalContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+.modalContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalContent::-webkit-scrollbar-track {
+  background: #f8f8f8;
+  border-radius: 4px;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+/* Voucher Grid - 1 column layout */
+.voucherGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Voucher Card */
+.voucherCard {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: row;
+  height: 180px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.voucherCard:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.statusBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+  color: #6b7280;
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* LEFT SECTION */
+.leftSection {
+  width: 28%;
+  min-width: 95px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  color: white;
+  position: relative;
+  clip-path: polygon(
+    0% 0%, 
+    calc(100% - 7px) 0%, 
+    100% 7px, 
+    calc(100% - 7px) 14px, 
+    100% 21px, 
+    calc(100% - 7px) 28px,
+    100% 35px,
+    calc(100% - 7px) 42px,
+    100% 49px,
+    calc(100% - 7px) 56px,
+    100% 63px,
+    calc(100% - 7px) 70px,
+    100% 77px,
+    calc(100% - 7px) 84px,
+    100% 91px,
+    calc(100% - 7px) 98px,
+    100% 105px,
+    calc(100% - 7px) 112px,
+    100% 119px,
+    calc(100% - 7px) 126px,
+    100% 133px,
+    calc(100% - 7px) 140px,
+    100% 147px,
+    calc(100% - 7px) 154px,
+    100% 161px,
+    calc(100% - 7px) 168px,
+    100% 175px,
+    calc(100% - 7px) 182px,
+    calc(100% - 7px) 100%,
+    0% 100%
+  );
+}
+
+.headerGradientPercent {
+  background: linear-gradient(135deg, #2979FF, #1E88E5);
+}
+
+.headerGradientAmount {
+  background: linear-gradient(135deg, #36C2A8, #2BAF9F);
+}
+
+.leftContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconLarge {
+  width: 26px;
+  height: 26px;
+  opacity: 0.95;
+  margin-bottom: 4px;
+  color: white;
+  stroke-width: 1.8;
+  flex-shrink: 0;
+}
+
+.valueWrapper {
+  display: flex;
+  align-items: baseline;
+}
+
+.valueText {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  color: white;
+}
+
+.valueTextSmall {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  color: white;
+}
+
+.valueSymbol {
+  font-size: 15px;
+  font-weight: 700;
+  margin-left: 2px;
+  color: white;
+}
+
+.codeContainer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.4);
+  width: 100%;
+  text-align: center;
+}
+
+.codeText {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: white;
+}
+
+/* RIGHT SECTION */
+.rightSection {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.infoTop {
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  margin-top: 2px;
+}
+
+.dateBox {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 6px 10px;
+  margin: 8px 0;
+}
+
+.dateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.iconSmall {
+  width: 14px;
+  height: 14px;
+  color: #9ca3af;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.dateLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-left: 4px;
+  flex: 1;
+}
+
+.countdownBadge {
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.dateRange {
+  font-size: 10px;
+  color: #374151;
+  line-height: 1.4;
+  margin-left: 18px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnCopy {
+  flex: 1;
+  border: none;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.btnCopy:hover {
+  opacity: 0.9;
+}
+
+.buttonGradientPercent {
+  background: linear-gradient(135deg, #2979FF, #1E88E5);
+}
+
+.buttonGradientAmount {
+  background: linear-gradient(135deg, #36C2A8, #2BAF9F);
+}
+
+.btnDetail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnDetail:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modalContainer {
+    max-width: 95%;
+    border-radius: 24px;
+  }
+
+  .modalHeader {
+    padding: 20px 24px;
+  }
+
+  .modalTitle {
+    font-size: 20px;
+  }
+
+  .modalContent {
+    padding: 20px 24px;
+  }
+
+  .voucherCard {
+    height: 170px;
+  }
+
+  .leftSection {
+    width: 30%;
+    min-width: 90px;
+  }
+}
+

@@ -429,6 +429,18 @@
   color: #111827;
 }
 
+.calendar-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #6b7280;
+  background: transparent;
+  transition: color 0.2s ease;
+}
+
+.calendar-button:hover .calendar-icon {
+  color: #111827;
+}
+
 /* Invisible anchor input to position native date picker under the icon */
 .calendar-anchor-input {
   position: absolute;
@@ -443,6 +455,17 @@
   background: transparent;
   pointer-events: none; /* enabled programmatically when opening */
   z-index: 11;
+}
+
+.date-picker-wrapper {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-select {

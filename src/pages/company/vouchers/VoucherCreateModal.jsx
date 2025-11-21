@@ -298,10 +298,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>Ngày bắt đầu</label>
-              <input 
+              <input
                 className={`${styles['form-input']} ${errors.startDate ? styles['error'] : ''}`}
-                type="datetime-local" 
-                value={form.startDate} 
+                type="datetime-local"
+                value={form.startDate}
                 onChange={(e) => handleChange('startDate', e.target.value)}
                 min={new Date().toISOString().slice(0, 16)}
               />
@@ -309,10 +309,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             </div>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>Ngày kết thúc</label>
-              <input 
+              <input
                 className={`${styles['form-input']} ${errors.endDate ? styles['error'] : ''}`}
-                type="datetime-local" 
-                value={form.endDate} 
+                type="datetime-local"
+                value={form.endDate}
                 onChange={(e) => handleChange('endDate', e.target.value)}
                 min={form.startDate || new Date().toISOString().slice(0, 16)}
               />
