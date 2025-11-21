@@ -1,6 +1,21 @@
 import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import {
+  CheckCircle2,
+  XCircle,
+  Info,
+  History,
+  Home,
+  Mail,
+  CreditCard,
+  Receipt,
+  Clock3,
+  Hash,
+  BadgeCheck,
+  Coins,
+} from 'lucide-react';
+import styles from './PaymentResultPage.module.css';
 
 function sanitize(value) {
   if (typeof value !== 'string') return '';
@@ -38,10 +53,11 @@ export default function PaymentResultPage() {
   const isSuccess = status === 'SUCCESS';
   const isFailed = status === 'FAILED';
 
+  const bannerIcon = isSuccess ? CheckCircle2 : isFailed ? XCircle : Info;
   const bannerClasses = isSuccess
-    ? 'border-green-200 bg-green-50 text-green-900'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
     : isFailed
-    ? 'border-red-200 bg-red-50 text-red-900'
+    ? 'border-rose-200 bg-rose-50 text-rose-900'
     : 'border-blue-200 bg-blue-50 text-blue-900';
 
   const title = isSuccess
@@ -57,107 +73,108 @@ export default function PaymentResultPage() {
     : t('payment.result.unknownMessage');
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="bg-white py-8">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          {/* Container chính với shadow */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-lg">
-            {/* Header với background nhẹ */}
-            <div className="border-b border-gray-200 bg-[#D4E8FF] px-8 py-6 rounded-t-2xl">
-              <div className="flex items-center gap-3 mb-2">
-                <svg className="h-6 w-6 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h1 className="text-2xl font-bold text-gray-900">{t('payment.result.title')}</h1>
+    <div className={styles.shell}>
+      <div className={styles.cardWrapper}>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1.5 text-xs font-semibold text-gray-600">
+                <CreditCard className="h-4 w-4 text-[#1a8eea]" />
+                {t('payment.result.title')}
               </div>
-              <p className="text-sm text-gray-700 ml-9">
+              <h1 className="text-2xl font-semibold text-gray-900">
                 {t('payment.result.subtitle')}
-              </p>
+              </h1>
+            </div>
+          </div>
+
+          <div className={styles.cardBody}>
+            <div className={`mb-5 flex items-center gap-3 rounded-[18px] border px-4 py-3 text-sm shadow-[0_16px_40px_rgba(164,176,209,0.2)] ${bannerClasses}`}>
+              {(() => {
+                const Icon = bannerIcon;
+                return <Icon className="h-6 w-6 flex-shrink-0" />;
+              })()}
+              <div className="flex-1">
+                <p className="text-[11px] uppercase tracking-[0.35em] text-gray-500 mb-0.5">
+                  {t('payment.result.statusLabel', { defaultValue: 'Status' })}
+                </p>
+                <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+                <p className="text-xs text-gray-700 mt-0.5">
+                  {subtitle}
+                </p>
+              </div>
             </div>
 
-            <div className="px-8 py-8">
-              {/* Banner status */}
-              <div className={`rounded-xl border px-5 py-4 mb-6 ${bannerClasses}`}>
-                <h2 className="text-xl font-bold">{title}</h2>
-                <p className="mt-2 text-sm leading-6">{subtitle}</p>
+            {!hasParams && (
+              <div
+                role="alert"
+                className="mb-8 rounded-[18px] border border-rose-200 bg-rose-50/90 px-5 py-4 text-sm text-rose-800 shadow-inner"
+              >
+                {t('payment.result.missingParams')}
               </div>
+            )}
 
-              {!hasParams && (
-                <div
-                  role="alert"
-                  className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-                >
-                    <p>
-                      {t('payment.result.missingParams')}
-                    </p>
+            {hasParams && (
+              <div className="mb-8 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-gray-500" />
+                  <h2 className="text-lg font-semibold text-gray-900">{t('payment.result.transactionInfo')}</h2>
                 </div>
-              )}
-
-              {hasParams && (
-                <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <h2 className="text-xl font-bold text-gray-900">{t('payment.result.transactionInfo')}</h2>
-                  </div>
-                  <dl className="grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-4">
-                      <dt className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">{t('payment.result.orderId')}</dt>
-                      <dd className="break-all text-sm font-semibold text-gray-900">{orderId}</dd>
-                    </div>
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-4">
-                      <dt className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">{t('payment.result.status')}</dt>
-                      <dd className="text-sm font-semibold text-gray-900">{status}</dd>
-                    </div>
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-4">
-                      <dt className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">{t('payment.result.paymentMethod')}</dt>
-                      <dd className="text-sm font-semibold text-gray-900">{paymentMethod}</dd>
-                    </div>
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-4">
-                      <dt className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">{t('payment.result.amount')}</dt>
-                      <dd className="text-sm font-semibold text-gray-900">
-                        {formatCurrencyVND(amountRaw)}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              )}
-
-              {/* Action buttons */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => navigate('/user/booking-history')}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {t('payment.result.actions.viewBookingHistory')}
-                </button>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/')}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    {t('payment.result.actions.goHome')}
-                  </button>
-                  <a
-                    href="mailto:support@kdbs.com"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[#1a8eea] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1670c4] focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {t('payment.result.actions.contactSupport')}
-                  </a>
-                </div>
+                <dl className="grid gap-4 lg:grid-cols-2">
+                  {[
+                    { label: t('payment.result.orderId'), value: orderId, icon: Hash, compact: true },
+                    { label: t('payment.result.status'), value: status, icon: BadgeCheck, compact: true },
+                    { label: t('payment.result.paymentMethod'), value: paymentMethod, icon: CreditCard },
+                    { label: t('payment.result.amount'), value: formatCurrencyVND(amountRaw), icon: Coins },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div
+                        key={item.label}
+                        className={`flex items-center gap-3 rounded-[20px] border border-gray-100 bg-white/90 px-4 shadow-inner ${item.compact ? 'py-2.5' : 'py-3'}`}
+                      >
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#EAF3FF] text-[#1a8eea]">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <dt className="text-[10px] uppercase tracking-[0.35em] text-gray-500">{item.label}</dt>
+                          <dd
+                            className={`mt-1 font-semibold text-gray-900 ${item.compact ? 'text-xs leading-snug break-all' : 'text-sm break-all'}`}
+                          >
+                            {item.value}
+                          </dd>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </dl>
               </div>
+            )}
+
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2.5">
+              <button
+                type="button"
+                onClick={() => navigate('/user/booking-history')}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[18px] border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300 sm:w-[200px]"
+              >
+                <History className="h-4 w-4" />
+                {t('payment.result.actions.viewBookingHistory')}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[18px] border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300 sm:w-[130px]"
+              >
+                <Home className="h-4 w-4" />
+                {t('payment.result.actions.goHome')}
+              </button>
+              <a
+                href="mailto:support@kdbs.com"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[18px] border border-transparent bg-[#1a8eea] px-4 py-2.5 text-xs font-semibold text-white no-underline shadow-[0_12px_30px_rgba(26,142,234,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1670c4] sm:w-[165px]"
+              >
+                <Mail className="h-4 w-4" />
+                {t('payment.result.actions.contactSupport')}
+              </a>
             </div>
           </div>
         </div>

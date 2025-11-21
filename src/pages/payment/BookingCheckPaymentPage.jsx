@@ -7,6 +7,23 @@ import { getAvailableVouchersForBooking } from '../../services/voucherAPI';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { validateEmail } from '../../utils/emailValidator';
+import {
+  ArrowLeft,
+  CreditCard,
+  Users,
+  ClipboardList,
+  Tag,
+  Sparkles,
+  Loader2,
+  History,
+  Home,
+  CheckCircle2,
+  XCircle,
+  Info,
+  Ticket,
+  X,
+} from 'lucide-react';
+import './paymentSoftLayout.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -68,6 +85,7 @@ const BookingCheckPaymentPage = () => {
   const loadAvailableVouchersRef = useRef(null);
   const guestsLoadedRef = useRef(false);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [showBackToWizardModal, setShowBackToWizardModal] = useState(false);
 
   // Load booking information và tính toán tổng tiền
@@ -766,339 +784,334 @@ const BookingCheckPaymentPage = () => {
     return type;
   };
 
+  const statusBannerStyles = {
+    error: {
+      classes: 'border-rose-200 bg-rose-50/90 text-rose-900',
+      Icon: XCircle,
+    },
+    warning: {
+      classes: 'border-amber-200 bg-amber-50/90 text-amber-900',
+      Icon: Info,
+    },
+    info: {
+      classes: 'border-[#1a8eea]/30 bg-[#EAF3FF] text-[#1a8eea]',
+      Icon: CheckCircle2,
+    },
+  };
+
+  const limitedGuests = Array.isArray(guests) ? guests.slice(0, 3) : [];
+  const hasMoreGuests = Array.isArray(guests) && guests.length > 3;
+
   return (
     <>
-      <div className="min-h-screen bg-white">
-        {/* Background với màu trắng */}
-        <div className="bg-white py-8">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-            {/* Nút quay lại với icon */}
-            <button
-              type="button"
-              onClick={handleBackToWizardClick}
-              className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[#1a8eea] transition hover:text-[#1670c4] focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2 rounded-md px-2 py-1"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              <span>{t('payment.checkPayment.actions.backToWizard')}</span>
-            </button>
+      <div className="payment-soft-shell">
+        <div className="payment-soft-card-wrapper">
+          <button
+            type="button"
+            onClick={handleBackToWizardClick}
+            className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:text-[#1670c4]"
+          >
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EAF3FF] text-[#1a8eea]">
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </span>
+            <span>{t('payment.checkPayment.actions.backToWizard')}</span>
+          </button>
 
-            {/* Container chính với shadow */}
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-lg">
-              {/* Header với background nhẹ */}
-              <div className="border-b border-gray-200 bg-[#D4E8FF] px-8 py-6 rounded-t-2xl">
-                <div className="flex items-center gap-3 mb-2">
-                  <svg className="h-6 w-6 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    Thanh toán đơn đặt tour
-                  </h1>
+          <div className="payment-soft-card">
+            <div className="payment-soft-card__header">
+              <div className="flex flex-col gap-3">
+                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1.5 text-xs font-semibold text-gray-600">
+                  <CreditCard className="h-4 w-4 text-[#1a8eea]" />
+                  {t('payment.checkPayment.badge', { defaultValue: 'Payment Checkout' })}
                 </div>
-                <p className="text-sm text-gray-700 ml-9">
-                  Vui lòng kiểm tra kỹ thông tin trước khi bấm thanh toán. Cổng Toss sẽ mở trong cửa sổ này.
-                </p>
+                <div>
+                  <h1 className="text-2xl font-semibold text-gray-900">
+                    {t('payment.checkPayment.heroTitle', { defaultValue: 'Thanh toán đơn đặt tour' })}
+                  </h1>
+                  <p className="mt-1.5 max-w-3xl text-sm text-gray-600 leading-relaxed">
+                    {t('payment.checkPayment.heroSubtitle', {
+                      defaultValue: 'Kiểm tra thông tin, áp dụng voucher và hoàn tất thanh toán dưới đây.'
+                    })}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              <div className="px-8 py-8">
-                {/* Hiển thị status banner */}
-                {statusBanner && (
-                  <div
-                    role="status"
-                    className={`mb-6 rounded-lg border px-4 py-3 text-sm ${
-                      statusBanner.type === 'error'
-                        ? 'border-red-200 bg-red-50 text-red-800'
-                        : statusBanner.type === 'warning'
-                        ? 'border-yellow-200 bg-yellow-50 text-yellow-800'
-                        : 'border-[#1a8eea] bg-[#D4E8FF] text-gray-900'
-                    }`}
-                  >
-                    {statusBanner.text}
+            <div className="payment-soft-card__body">
+              {statusBanner && (() => {
+                const style = statusBannerStyles[statusBanner.type] || statusBannerStyles.info;
+                const Icon = style.Icon;
+                return (
+                  <div className={`mb-6 flex items-start gap-3 rounded-[20px] border px-4 py-4 text-sm font-medium shadow-inner ${style.classes}`}>
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span>{statusBanner.text}</span>
                   </div>
-                )}
+                );
+              })()}
 
-                {/* Loading state */}
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-20">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#1a8eea]" />
-                      <span className="text-gray-600 font-medium">{t('payment.checkPayment.loadingBooking')}</span>
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center gap-4 py-20 text-gray-600">
+                  <Loader2 className="h-10 w-10 animate-spin text-[#1a8eea]" />
+                  <span className="font-medium">{t('payment.checkPayment.loadingBooking')}</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <section aria-labelledby="booking-summary" className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5 text-gray-500" />
+                      <h2 id="booking-summary" className="text-xl font-semibold text-gray-900">
+                        {t('payment.checkPayment.bookingInfo')}
+                      </h2>
                     </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-10">
-                    {/* Section: Thông tin booking */}
-                    <section aria-labelledby="booking-summary" className="space-y-5">
-                      <div className="flex items-center gap-2 mb-4">
-                        <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <h2 id="booking-summary" className="text-xl font-bold text-gray-900">
-                          {t('payment.checkPayment.bookingInfo')}
-                        </h2>
-                      </div>
 
-                      {/* Hiển thị thông tin booking */}
-                      {booking ? (
-                        <div className="grid gap-6 md:grid-cols-2">
-                          {/* Container 1: Thông tin booking cơ bản */}
-                          <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-                            <div className="border-b border-gray-200 bg-[#D4E8FF] px-6 py-4 rounded-t-xl">
-                              <h3 className="text-base font-bold text-gray-900">{t('payment.checkPayment.bookingSummary.tourBookingInfo')}</h3>
-                            </div>
-                            <div className="px-6 py-5 space-y-4">
-                              <div className="space-y-3">
-                                <div className="flex items-start justify-between py-2 border-b border-gray-100">
-                                  <span className="text-sm font-semibold text-gray-600 min-w-[140px]">{t('payment.checkPayment.bookingSummary.tourName')}</span>
-                                  <span className="text-sm font-semibold text-gray-900 text-right flex-1">{booking.tourName || '—'}</span>
-                                </div>
-                                <div className="flex items-start justify-between py-2 border-b border-gray-100">
-                                  <span className="text-sm font-semibold text-gray-600 min-w-[140px]">{t('payment.checkPayment.bookingSummary.departureDate')}</span>
-                                  <span className="text-sm font-semibold text-gray-900 text-right flex-1">{booking.departureDate ? formatDisplayDate(booking.departureDate) : '—'}</span>
-                                </div>
-                                <div className="flex items-start justify-between py-2">
-                                  <span className="text-sm font-semibold text-gray-600 min-w-[140px]">{t('payment.checkPayment.bookingSummary.contactEmail')}</span>
-                                  <span className="text-sm font-semibold text-gray-900 text-right flex-1 break-words">{booking.contactEmail || booking.userEmail || '—'}</span>
-                                </div>
-                              {booking.createdAt && (
-                                <div className="flex items-start justify-between py-2">
-                                  <span className="text-sm font-semibold text-gray-600 min-w-[140px]">{t('payment.checkPayment.bookingSummary.createdAt')}</span>
-                                  <span className="text-sm font-semibold text-gray-900 text-right flex-1">{formatDateTimeDisplay(booking.createdAt)}</span>
-                                </div>
-                              )}
-                              </div>
-                            </div>
+                    {booking ? (
+                      <div className="grid gap-5 lg:grid-cols-2">
+                        <div className="rounded-[24px] border border-gray-100 bg-gradient-to-br from-white to-[#f6f9ff] shadow-inner">
+                          <div className="rounded-t-[24px] border-b border-white/70 bg-white/70 px-5 py-3">
+                            <h3 className="text-base font-semibold text-gray-900">
+                              {t('payment.checkPayment.bookingSummary.tourBookingInfo')}
+                            </h3>
                           </div>
-
-                          {/* Container 2: Booking details với guests */}
-                          <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-                            <div className="border-b border-gray-200 bg-[#D4E8FF] px-6 py-4 rounded-t-xl">
-                              <div className="flex items-center gap-2">
-                                <svg className="h-5 w-5 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                                <h3 className="text-base font-bold text-gray-900">{t('payment.checkPayment.guestsInfo.title', { count: guests?.length || 0 })}</h3>
+                          <div className="px-5 py-4 space-y-2.5">
+                            <div className="flex items-start justify-between border-b border-gray-100/60 pb-3">
+                              <span className="text-sm font-semibold text-gray-500">{t('payment.checkPayment.bookingSummary.tourName')}</span>
+                              <span className="text-sm font-semibold text-gray-900 text-right flex-1 pl-4">{booking.tourName || '—'}</span>
+                            </div>
+                            <div className="flex items-start justify-between border-b border-gray-100/60 pb-3">
+                              <span className="text-sm font-semibold text-gray-500">{t('payment.checkPayment.bookingSummary.departureDate')}</span>
+                              <span className="text-sm font-semibold text-gray-900 text-right flex-1 pl-4">
+                                {booking.departureDate ? formatDisplayDate(booking.departureDate) : '—'}
+                              </span>
+                            </div>
+                            <div className="flex items-start justify-between border-b border-gray-100/60 pb-3">
+                              <span className="text-sm font-semibold text-gray-500">{t('payment.checkPayment.bookingSummary.contactEmail')}</span>
+                              <span className="text-sm font-semibold text-gray-900 text-right flex-1 break-words pl-4">
+                                {booking.contactEmail || booking.userEmail || '—'}
+                              </span>
+                            </div>
+                            {booking.createdAt && (
+                              <div className="flex items-start justify-between">
+                                <span className="text-sm font-semibold text-gray-500">{t('payment.checkPayment.bookingSummary.createdAt')}</span>
+                                <span className="text-sm font-semibold text-gray-900 text-right flex-1 pl-4">
+                                  {formatDateTimeDisplay(booking.createdAt)}
+                                </span>
                               </div>
-                            </div>
-                            <div className="px-6 py-5">
-                              {guests && guests.length > 0 ? (
-                                <div className="space-y-3">
-                                  {guests.map((guest, index) => (
-                                    <div key={guest.bookingGuestId || index} className="flex items-start justify-between py-2 border-b border-gray-100 last:border-b-0">
-                                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1a8eea] text-white text-xs font-bold flex-shrink-0">
-                                          {index + 1}
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-900 flex-1 min-w-0 truncate">{guest.fullName || '—'}</span>
-                                      </div>
-                                      <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-[#D4E8FF] text-[#1a8eea] text-xs font-semibold">
-                                          {formatGuestType(guest.bookingGuestType)}
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-900 min-w-[60px] text-right">
-                                          {formatGenderDisplay(guest.gender)}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-center py-8">
-                                  <svg className="h-12 w-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                  </svg>
-                                  <p className="text-sm text-gray-500">{t('payment.checkPayment.guestsInfo.noGuests')}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center">
-                          <p className="text-sm text-gray-600">
-                            {t('payment.checkPayment.noBookingFound')}
-                          </p>
-                        </div>
-                      )}
-                    </section>
-
-                    {/* Section: Thông tin thanh toán */}
-                    <section aria-labelledby="payment-form" className="space-y-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <h2 id="payment-form" className="text-xl font-bold text-gray-900">
-                          {t('payment.checkPayment.paymentInfo')}
-                        </h2>
-                      </div>
-
-                      {/* Form input: Email và Voucher code */}
-                      <div className="grid gap-6 md:grid-cols-1">
-                        {/* Input email - hidden */}
-                        <div className="hidden">
-                          <label htmlFor="userEmail" className="text-sm font-semibold text-gray-700 mb-2 block">
-                            Email người thanh toán
-                          </label>
-                          <input
-                            id="userEmail"
-                            type="email"
-                            required
-                            value={userEmail}
-                            onChange={handleEmailChange}
-                            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-[#1a8eea] focus:outline-none focus:ring-2 focus:ring-[#1a8eea]"
-                            aria-describedby="userEmail-hint"
-                          />
-                        </div>
-
-                        {/* Input voucher code */}
-                        <div className="flex flex-col gap-3">
-                          <label htmlFor="voucherCode" className="text-sm font-semibold text-gray-700">
-                            {t('payment.checkPayment.voucherCode')}
-                          </label>
-                          <div className="flex items-stretch gap-3">
-                            <div className="flex-1 relative">
-                              <input
-                                id="voucherCode"
-                                type="text"
-                                value={voucherCode}
-                                onChange={handleVoucherChange}
-                                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-[#1a8eea] focus:outline-none focus:ring-2 focus:ring-[#1a8eea]"
-                                placeholder={t('payment.checkPayment.voucherPlaceholder')}
-                                aria-describedby="voucherCode-hint"
-                              />
-                            </div>
-                            {voucherApplied && voucherCode ? (
-                              <div className="relative inline-flex items-center rounded-lg border-2 border-[#1a8eea] bg-[#D4E8FF] px-4 py-3 pr-10 text-sm font-semibold text-gray-900">
-                                <svg className="h-5 w-5 mr-2 text-[#1a8eea] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="flex-1">{voucherCode}</span>
-                                <button
-                                  type="button"
-                                  onClick={handleClearVoucher}
-                                  className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-400 hover:bg-gray-500 text-white text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-gray-400"
-                                  aria-label={t('payment.checkPayment.removeVoucherLabel')}
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => setIsVoucherModalOpen(true)}
-                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[#1a8eea] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1670c4] focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2 whitespace-nowrap"
-                              >
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                {t('payment.checkPayment.applyVoucher')}
-                              </button>
                             )}
                           </div>
-                          <p id="voucherCode-hint" className="text-xs text-gray-500">
-                            {t('payment.checkPayment.voucherHint')}
-                          </p>
                         </div>
-                      </div>
 
-                      {/* Hiển thị tổng tiền và giảm giá */}
-                      <div className="rounded-xl border-2 border-[#1a8eea] bg-[#D4E8FF] px-6 py-5">
-                        <div className="flex items-center gap-2 mb-4">
-                          <svg className="h-5 w-5 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <p className="text-base font-bold text-gray-900">
-                            {voucherApplied ? t('payment.checkPayment.totalPayment') : t('payment.checkPayment.totalAmount')}
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                          {/* Giá gốc */}
-                          {Number.isFinite(Number(originalTotal)) && originalTotal > 0 && (
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-600">{t('payment.checkPayment.originalPrice')}</span>
-                              <span className={voucherApplied ? 'line-through text-gray-500' : 'font-semibold text-gray-900'}>
-                                {formatCurrency(originalTotal)}
-                              </span>
+                        <div className="rounded-[24px] border border-gray-100 bg-gradient-to-br from-white to-[#f6f9ff] shadow-inner">
+                          <div className="rounded-t-[24px] border-b border-white/70 bg-white/70 px-5 py-3">
+                            <div className="flex items-center gap-2 text-gray-900">
+                              <Users className="h-5 w-5 text-[#1a8eea]" />
+                              <h3 className="text-base font-semibold">
+                                {t('payment.checkPayment.guestsInfo.title', { count: guests?.length || 0 })}
+                              </h3>
                             </div>
-                          )}
-                          {/* Giảm giá từ voucher */}
-                          {voucherApplied && Number(discountAmount) > 0 && (
-                            <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
-                              <span className="flex items-center gap-1">
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                </svg>
-                                {t('payment.checkPayment.discount')}
-                              </span>
-                              <span className="text-[#1a8eea]">-{formatCurrency(discountAmount)}</span>
-                            </div>
-                          )}
-                          {/* Tổng sau giảm */}
-                          <div className="flex items-center justify-between pt-3 mt-3 border-t-2 border-[#1a8eea]">
-                            <span className="text-lg font-bold text-gray-900">
-                              {voucherApplied ? t('payment.checkPayment.finalAmount') : t('payment.checkPayment.tempAmount')}
-                            </span>
-                            <span className="text-2xl font-bold text-[#1a8eea]">
-                              {formatCurrency(totalAmount)}
-                            </span>
+                          </div>
+                          <div className="px-5 py-4">
+                            {guests && guests.length > 0 ? (
+                              <div className="space-y-2.5">
+                                {limitedGuests.map((guest, index) => (
+                                  <div
+                                    key={guest.bookingGuestId || index}
+                                    className="flex items-center gap-3 rounded-[14px] border border-white/70 bg-white/90 px-3.5 py-2 text-sm font-semibold text-gray-900"
+                                  >
+                                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#1a8eea] text-[11px] font-bold text-white">
+                                      {index + 1}
+                                    </span>
+                                    <span className="truncate">{guest.fullName || '—'}</span>
+                                    <span className="text-xs font-medium text-gray-500">{formatGenderDisplay(guest.gender)}</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#EAF3FF] px-2.5 py-1 text-[11px] font-semibold text-[#1a8eea]">
+                                      <Users className="h-3 w-3" />
+                                      {formatGuestType(guest.bookingGuestType)}
+                                    </span>
+                                  </div>
+                                ))}
+                                {hasMoreGuests && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsGuestModalOpen(true)}
+                                    className="flex w-full items-center justify-center gap-2 rounded-[16px] border border-dashed border-[#1a8eea]/50 bg-white/60 px-4 py-2 text-sm font-semibold text-[#1a8eea] transition hover:border-[#1a8eea]"
+                                  >
+                                    <span>+{guests.length - 3}</span>
+                                    {t('payment.checkPayment.guestsInfo.viewAll', { defaultValue: 'View all guests' })}
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-3 py-10 text-gray-500">
+                                <Users className="h-10 w-10 text-gray-400" />
+                                <p className="text-sm">{t('payment.checkPayment.guestsInfo.noGuests')}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        {/* Thông báo trạng thái voucher */}
-                        {voucherApplied && Number(discountAmount) > 0 && (
-                          <div className="mt-4 flex items-center gap-2 text-sm text-gray-700">
-                            <svg className="h-5 w-5 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="font-medium">{t('payment.checkPayment.voucherAppliedMessage', { amount: formatCurrency(totalAmount) })}</span>
-                          </div>
-                        )}
-                        {!voucherApplied && (
-                          <p className="mt-4 text-xs text-gray-700">
-                            {originalTotal
-                              ? t('payment.checkPayment.voucherHintMessage')
-                              : t('payment.checkPayment.noTotalAmountMessage')}
-                          </p>
-                        )}
                       </div>
-                    </section>
+                    ) : (
+                      <div className="rounded-[28px] border border-gray-100 bg-white/80 px-6 py-6 text-center text-sm text-gray-600 shadow-inner">
+                        {t('payment.checkPayment.noBookingFound')}
+                      </div>
+                    )}
+                  </section>
 
-                    {/* Action buttons */}
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end pt-6 border-t border-gray-200">
-                      <button
-                        type="button"
-                        onClick={() => navigate('/user/booking-history')}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {t('payment.checkPayment.actions.viewHistory')}
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isSubmitting || !booking}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[#1a8eea] px-8 py-3 text-base font-bold text-white shadow-lg transition hover:bg-[#1670c4] focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                            <span>{t('payment.checkPayment.actions.processing')}</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
-                            <span>{t('payment.checkPayment.actions.pay')}</span>
-                          </>
-                        )}
-                      </button>
+                  <section aria-labelledby="payment-form" className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-gray-500" />
+                      <h2 id="payment-form" className="text-xl font-semibold text-gray-900">
+                        {t('payment.checkPayment.paymentInfo')}
+                      </h2>
                     </div>
-                  </form>
-                )}
-              </div>
+
+                    <div className="grid gap-4">
+                      <div className="hidden">
+                        <label htmlFor="userEmail" className="mb-2 block text-sm font-semibold text-gray-700">
+                          Email người thanh toán
+                        </label>
+                        <input
+                          id="userEmail"
+                          type="email"
+                          required
+                          value={userEmail}
+                          onChange={handleEmailChange}
+                          className="w-full rounded-[18px] border border-gray-200 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-[#1a8eea] focus:outline-none focus:ring-2 focus:ring-[#1a8eea]/40"
+                          aria-describedby="userEmail-hint"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor="voucherCode" className="text-sm font-semibold text-gray-700">
+                          {t('payment.checkPayment.voucherCode')}
+                        </label>
+                        <div className="flex w-full flex-col gap-2.5 sm:flex-row">
+                          <div className="relative flex-1">
+                            <Tag className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                            <input
+                              id="voucherCode"
+                              type="text"
+                              value={voucherCode}
+                              onChange={handleVoucherChange}
+                              className="w-full rounded-[18px] border border-gray-200 bg-white px-9 py-3 text-sm text-gray-900 shadow-sm focus:border-[#1a8eea] focus:outline-none focus:ring-2 focus:ring-[#1a8eea]/40"
+                              placeholder={t('payment.checkPayment.voucherPlaceholder')}
+                              aria-describedby="voucherCode-hint"
+                            />
+                          </div>
+                          {voucherApplied && voucherCode ? (
+                            <div className="relative inline-flex items-center rounded-[20px] border border-[#1a8eea]/40 bg-[#EAF3FF] px-4 py-3 text-sm font-semibold text-gray-900 shadow-inner">
+                              <CheckCircle2 className="mr-2 h-5 w-5 text-[#1a8eea]" />
+                              <span className="flex-1">{voucherCode}</span>
+                              <button
+                                type="button"
+                                onClick={handleClearVoucher}
+                                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-500 text-xs font-bold text-white shadow hover:bg-gray-600"
+                                aria-label={t('payment.checkPayment.removeVoucherLabel')}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setIsVoucherModalOpen(true)}
+                              className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-transparent bg-[#1a8eea] px-5 py-3 text-sm font-semibold text-white shadow-[0_15px_40px_rgba(26,142,234,0.35)] transition hover:-translate-y-0.5 hover:bg-[#1670c4]"
+                            >
+                              <Tag className="h-4 w-4" />
+                              {t('payment.checkPayment.applyVoucher')}
+                            </button>
+                          )}
+                        </div>
+                        <p id="voucherCode-hint" className="text-xs text-gray-500 leading-relaxed">
+                          {t('payment.checkPayment.voucherHint')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-[24px] border border-[#1a8eea]/40 bg-gradient-to-br from-[#fefefe] to-[#eaf3ff] px-4 py-4 shadow-[0_20px_70px_rgba(157,168,199,0.2)] sm:px-5 sm:py-4">
+                      <div className="flex items-center gap-2 text-gray-900 mb-1.5">
+                        <Sparkles className="h-5 w-5 text-[#1a8eea]" />
+                        <p className="text-base font-semibold">
+                          {voucherApplied ? t('payment.checkPayment.totalPayment') : t('payment.checkPayment.totalAmount')}
+                        </p>
+                      </div>
+                      <div className="space-y-2 rounded-[18px] bg-white/85 px-4 py-2.5">
+                        {Number.isFinite(Number(originalTotal)) && originalTotal > 0 && (
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <span>{t('payment.checkPayment.originalPrice')}</span>
+                            <span className={voucherApplied ? 'line-through text-gray-400' : 'font-semibold text-gray-900'}>
+                              {formatCurrency(originalTotal)}
+                            </span>
+                          </div>
+                        )}
+                        {voucherApplied && Number(discountAmount) > 0 && (
+                          <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
+                            <span className="flex items-center gap-2 text-[#1a8eea]">
+                              <Tag className="h-4 w-4" />
+                              {t('payment.checkPayment.discount')}
+                            </span>
+                            <span>-{formatCurrency(discountAmount)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between border-t border-dashed border-[#1a8eea]/30 pt-2.5">
+                          <span className="text-base font-bold text-gray-900">
+                            {voucherApplied ? t('payment.checkPayment.finalAmount') : t('payment.checkPayment.tempAmount')}
+                          </span>
+                          <span className="text-2xl font-bold text-[#1a8eea]">
+                            {formatCurrency(totalAmount)}
+                          </span>
+                        </div>
+                      </div>
+                      {voucherApplied && Number(discountAmount) > 0 ? (
+                        <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#1a8eea]">
+                          <CheckCircle2 className="h-4 w-4" />
+                          {t('payment.checkPayment.voucherAppliedMessage', { amount: formatCurrency(totalAmount) })}
+                        </div>
+                      ) : (
+                        <p className="mt-1.5 text-xs text-gray-500 leading-relaxed">
+                          {originalTotal
+                            ? t('payment.checkPayment.voucherHintMessage')
+                            : t('payment.checkPayment.noTotalAmountMessage')}
+                        </p>
+                      )}
+                    </div>
+                  </section>
+
+                  <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/user/booking-history')}
+                      className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300"
+                    >
+                      <History className="h-4 w-4" />
+                      {t('payment.checkPayment.actions.viewHistory')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/')}
+                      className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300"
+                    >
+                      <Home className="h-4 w-4" />
+                      {t('payment.checkPayment.actions.viewHome', { defaultValue: 'Về trang chủ' })}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !booking}
+                      className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-transparent bg-[#1a8eea] px-8 py-3 text-base font-bold text-white shadow-[0_18px_45px_rgba(26,142,234,0.35)] transition hover:-translate-y-0.5 hover:bg-[#1670c4] disabled:cursor-not-allowed disabled:bg-gray-400"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin text-white" />
+                          <span>{t('payment.checkPayment.actions.processing')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-5 w-5" />
+                          <span>{t('payment.checkPayment.actions.pay')}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>
@@ -1108,38 +1121,40 @@ const BookingCheckPaymentPage = () => {
       {isVoucherModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setIsVoucherModalOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative z-50 w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-start justify-between border-b border-gray-200 bg-[#D4E8FF] px-6 py-5">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{t('payment.checkPayment.voucherModal.title')}</h3>
-                <p className="text-sm text-gray-700">{t('payment.checkPayment.voucherModal.subtitle')}</p>
+          <div className="relative z-50 w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/70 bg-white/95 shadow-[0_35px_110px_rgba(164,176,209,0.4)]">
+            <div className="flex items-start justify-between border-b border-white/60 bg-gradient-to-r from-[#eaf3ff] to-[#fff6fb] px-6 py-5">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1 text-xs font-semibold text-gray-600">
+                  <Ticket className="h-3.5 w-3.5 text-[#1a8eea]" />
+                  {t('payment.checkPayment.voucherModal.badge', { defaultValue: 'Voucher soft list' })}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">{t('payment.checkPayment.voucherModal.title')}</h3>
+                <p className="text-sm text-gray-600">{t('payment.checkPayment.voucherModal.subtitle')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsVoucherModalOpen(false)}
-                className="rounded-full p-2 text-gray-600 transition hover:bg-white hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1a8eea]"
+                className="rounded-full bg-white/70 p-2 text-gray-600 transition hover:-translate-y-0.5 hover:text-gray-900"
                 aria-label={t('payment.checkPayment.voucherModal.close')}
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
+            <div className="max-h-[65vh] overflow-y-auto px-6 py-6">
               {isLoadingVouchers ? (
-                <div className="flex flex-col items-center justify-center gap-4 py-16">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#1a8eea]" />
-                  <span className="text-gray-600 font-medium">{t('payment.checkPayment.voucherModal.loading')}</span>
+                <div className="flex flex-col items-center justify-center gap-4 py-16 text-gray-600">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#1a8eea]" />
+                  <span className="font-medium">{t('payment.checkPayment.voucherModal.loading')}</span>
                 </div>
               ) : availableVouchers.length > 0 ? (
                 <div className="space-y-3">
                   {availableVouchers.map((v) => {
-                    const discountBadge = v.discountLabel || "";
+                    const discountBadge = v.discountLabel || '';
                     const isSelected =
                       voucherCode &&
                       v.code &&
@@ -1148,27 +1163,25 @@ const BookingCheckPaymentPage = () => {
                       <div
                         key={v.id || v.voucherId || v.code}
                         onClick={() => handleSelectVoucherFromList(v)}
-                        className={`cursor-pointer rounded-xl border-2 px-5 py-4 transition ${
+                        className={`cursor-pointer rounded-[24px] border px-5 py-4 transition ${
                           isSelected
-                            ? "border-[#1a8eea] bg-[#D4E8FF]"
-                            : "border-gray-200 bg-white hover:border-[#1a8eea] hover:bg-gray-50"
+                            ? 'border-[#1a8eea] bg-[#EAF3FF]'
+                            : 'border-gray-200 bg-white hover:border-[#1a8eea] hover:bg-gray-50'
                         }`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <svg className="h-5 w-5 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                              </svg>
-                              <p className="text-base font-bold text-gray-900">{v.code}</p>
-                              {isSelected && (
-                                <svg className="h-5 w-5 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                              )}
+                            <div className="mb-1 flex items-center gap-2">
+                              <Ticket className="h-5 w-5 text-[#1a8eea]" />
+                              <p className="text-base font-semibold text-gray-900">{v.code}</p>
+                              {isSelected && <CheckCircle2 className="h-5 w-5 text-[#1a8eea]" />}
                             </div>
-                            <p className="text-sm text-gray-600 ml-7">
-                              {discountBadge ? t('payment.checkPayment.voucherModal.discountLabel', { discount: discountBadge.replace(/^-/, "") }) : t('payment.checkPayment.voucherModal.available')}
+                            <p className="ml-7 text-sm text-gray-500">
+                              {discountBadge
+                                ? t('payment.checkPayment.voucherModal.discountLabel', {
+                                    discount: discountBadge.replace(/^-/, ''),
+                                  })
+                                : t('payment.checkPayment.voucherModal.available')}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1180,7 +1193,7 @@ const BookingCheckPaymentPage = () => {
                                   handleClearVoucher();
                                   setIsVoucherModalOpen(false);
                                 }}
-                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                                className="inline-flex items-center justify-center gap-2 rounded-[18px] border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
                               >
                                 {t('payment.checkPayment.voucherModal.removeSelected')}
                               </button>
@@ -1191,10 +1204,10 @@ const BookingCheckPaymentPage = () => {
                                 e.stopPropagation();
                                 handleSelectVoucherFromList(v);
                               }}
-                              className={`inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              className={`inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent px-4 py-2 text-sm font-semibold text-white transition ${
                                 isSelected
-                                  ? "bg-gray-500 hover:bg-gray-600 focus:ring-gray-500"
-                                  : "bg-[#1a8eea] hover:bg-[#1670c4] focus:ring-[#1a8eea]"
+                                  ? 'bg-gray-500 hover:bg-gray-600'
+                                  : 'bg-[#1a8eea] hover:bg-[#1670c4]'
                               }`}
                             >
                               {isSelected ? t('payment.checkPayment.voucherApplied') : t('payment.checkPayment.voucherModal.apply')}
@@ -1202,10 +1215,8 @@ const BookingCheckPaymentPage = () => {
                           </div>
                         </div>
                         {Number(v.discountAmount) > 0 && (
-                          <div className="mt-3 ml-7 inline-flex items-center gap-1 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#1a8eea] border border-[#1a8eea]">
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
+                          <div className="ml-7 mt-3 inline-flex items-center gap-1 rounded-full border border-[#1a8eea]/30 bg-white px-3 py-1 text-xs font-semibold text-[#1a8eea]">
+                            <Tag className="h-3.5 w-3.5" />
                             {t('payment.checkPayment.voucherModal.savings', { amount: formatCurrency(v.discountAmount) })}
                           </div>
                         )}
@@ -1214,22 +1225,109 @@ const BookingCheckPaymentPage = () => {
                   })}
                 </div>
               ) : (
-                <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
-                  <svg className="h-12 w-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                  <p className="text-sm font-medium text-gray-600">{t('payment.checkPayment.voucherModal.noVouchers')}</p>
+                <div className="rounded-[24px] border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
+                  <Ticket className="mx-auto h-10 w-10 text-gray-400" />
+                  <p className="mt-3 text-sm font-medium text-gray-600">
+                    {t('payment.checkPayment.voucherModal.noVouchers')}
+                  </p>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-white/80 px-6 py-4">
               <button
                 type="button"
                 onClick={() => setIsVoucherModalOpen(false)}
-                className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
+                className="rounded-[18px] border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
               >
                 {t('payment.checkPayment.voucherModal.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal xem toàn bộ khách */}
+      {isGuestModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsGuestModalOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-50 w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/70 bg-white/95 shadow-[0_35px_110px_rgba(164,176,209,0.38)]">
+            <div className="flex items-start justify-between border-b border-white/60 bg-gradient-to-r from-[#eaf3ff] to-[#fff6fb] px-6 py-5">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1 text-xs font-semibold text-gray-600">
+                  <Users className="h-4 w-4 text-[#1a8eea]" />
+                  {t('payment.checkPayment.guestsInfo.badge', { defaultValue: 'Guest list' })}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {t('payment.checkPayment.guestsInfo.fullTitle', { defaultValue: 'Danh sách hành khách' })}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {t('payment.checkPayment.guestsInfo.fullSubtitle', { defaultValue: 'Tất cả hành khách trong booking này' })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsGuestModalOpen(false)}
+                className="rounded-full bg-white/70 p-2 text-gray-600 transition hover:-translate-y-0.5 hover:text-gray-900"
+                aria-label={t('payment.checkPayment.guestsInfo.closeModal', { defaultValue: 'Đóng danh sách hành khách' })}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
+              {Array.isArray(guests) && guests.length > 0 ? (
+                <div className="space-y-3">
+                  {guests.map((guest, index) => (
+                    <div
+                      key={guest.bookingGuestId || index}
+                      className="rounded-[20px] border border-gray-100 bg-white/90 px-5 py-4 shadow-sm"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a8eea] text-sm font-bold text-white shadow">
+                            {index + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {guest.fullName || '—'}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatGenderDisplay(guest.gender)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-600">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#EAF3FF] px-3 py-1 text-[#1a8eea]">
+                            <Users className="h-3.5 w-3.5" />
+                            {formatGuestType(guest.bookingGuestType)}
+                          </span>
+                          {guest.dateOfBirth && (
+                            <span className="rounded-full bg-gray-100 px-3 py-1">
+                              {formatDisplayDate(guest.dateOfBirth)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-sm text-gray-500">
+                  {t('payment.checkPayment.guestsInfo.noGuests')}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-end border-t border-gray-100 bg-white/80 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setIsGuestModalOpen(false)}
+                className="rounded-[18px] border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+              >
+                {t('payment.checkPayment.guestsInfo.close', { defaultValue: 'Đóng' })}
               </button>
             </div>
           </div>
@@ -1240,37 +1338,35 @@ const BookingCheckPaymentPage = () => {
       {showBackToWizardModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={handleBackToWizardCancel}
             aria-hidden="true"
           />
-          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="border-b border-gray-200 bg-[#D4E8FF] px-6 py-5">
-              <div className="flex items-center gap-2 mb-2">
-                <svg className="h-6 w-6 text-[#1a8eea]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <h3 className="text-xl font-bold text-gray-900">
+          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-[28px] border border-white/70 bg-white/95 shadow-[0_30px_100px_rgba(157,168,199,0.35)]">
+            <div className="border-b border-white/60 bg-gradient-to-r from-[#eaf3ff] to-[#fff6fb] px-6 py-5">
+              <div className="mb-2 flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-[#1a8eea]" />
+                <h3 className="text-xl font-semibold text-gray-900">
                   {t('payment.checkPayment.backToWizardModal.title')}
                 </h3>
               </div>
             </div>
             <div className="px-6 py-6">
-              <p className="text-sm text-gray-700 mb-6">
+              <p className="mb-6 text-sm text-gray-600">
                 {t('payment.checkPayment.backToWizardModal.message')}
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={handleBackToWizardCancel}
-                  className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
+                  className="rounded-[18px] border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
                 >
                   {t('payment.checkPayment.backToWizardModal.cancel')}
                 </button>
                 <button
                   type="button"
                   onClick={handleBackToWizardConfirm}
-                  className="rounded-lg border border-transparent bg-[#1a8eea] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#1670c4] focus:outline-none focus:ring-2 focus:ring-[#1a8eea] focus:ring-offset-2"
+                  className="rounded-[18px] border border-transparent bg-[#1a8eea] px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(26,142,234,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1670c4]"
                 >
                   {t('payment.checkPayment.backToWizardModal.confirm')}
                 </button>
