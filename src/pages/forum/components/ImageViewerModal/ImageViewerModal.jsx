@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { getImageUrl, getAvatarUrl } from '../../../../config/api';
 import styles from './ImageViewerModal.module.css';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
   const { user } = useAuth();
@@ -45,7 +46,9 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
             <img src={getAvatarUrl(post.userAvatar)} alt={post.username} />
             <div className={styles['ivm-user-name']}>{post.username}</div>
           </div>
-          <button className={styles['ivm-close']} onClick={onClose}>✕</button>
+          <button className={styles['ivm-close']} onClick={onClose}>
+            <X strokeWidth={1.6} />
+          </button>
         </div>
         <div className={styles['ivm-body']}>
           {imgs.length > 0 && (
@@ -53,8 +56,12 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
               <img className={styles['ivm-image']} src={imgs[current]} alt={`image ${current + 1}`} />
               {imgs.length > 1 && (
                 <>
-                  <button className={`${styles['ivm-nav']} ${styles['ivm-prev']}`} disabled={current === 0} onClick={() => setCurrent(c => Math.max(0, c - 1))}>‹</button>
-                  <button className={`${styles['ivm-nav']} ${styles['ivm-next']}`} disabled={current === imgs.length - 1} onClick={() => setCurrent(c => Math.min(imgs.length - 1, c + 1))}>›</button>
+                  <button className={`${styles['ivm-nav']} ${styles['ivm-prev']}`} disabled={current === 0} onClick={() => setCurrent(c => Math.max(0, c - 1))}>
+                    <ChevronLeft strokeWidth={1.6} />
+                  </button>
+                  <button className={`${styles['ivm-nav']} ${styles['ivm-next']}`} disabled={current === imgs.length - 1} onClick={() => setCurrent(c => Math.min(imgs.length - 1, c + 1))}>
+                    <ChevronRight strokeWidth={1.6} />
+                  </button>
                   <div className={styles['ivm-counter']}>{current + 1}/{imgs.length}</div>
                 </>
               )}

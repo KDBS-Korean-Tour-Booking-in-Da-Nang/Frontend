@@ -11,7 +11,8 @@ import {
   MapPinIcon,
   EyeIcon,
   PencilIcon,
-  XMarkIcon
+  NoSymbolIcon,
+  ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
 
 const avatarBasePath = '/assets/images/user-list';
@@ -236,8 +237,12 @@ const CustomerManagement = () => {
                       <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-amber-600 hover:border-amber-200 transition" title="Chỉnh sửa">
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" title="Ban user">
-                        <XMarkIcon className="h-4 w-4" />
+                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" title={customer.status === 'active' ? 'Ban user' : 'Unban user'}>
+                        {customer.status === 'active' ? (
+                          <NoSymbolIcon className="h-4 w-4" />
+                        ) : (
+                          <ShieldExclamationIcon className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </td>

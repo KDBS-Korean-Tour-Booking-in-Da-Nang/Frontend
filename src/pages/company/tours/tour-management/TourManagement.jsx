@@ -68,6 +68,13 @@ const TourManagement = () => {
         }
       });
       
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        const { checkAndHandle401 } = await import('../../../../utils/apiErrorHandler');
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         // Filter out DISABLED tours - these are soft-deleted tours (tours with bookings)

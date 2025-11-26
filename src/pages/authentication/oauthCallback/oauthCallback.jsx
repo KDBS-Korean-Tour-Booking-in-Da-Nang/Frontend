@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 
 const OAuthCallback = () => {
   const { t } = useTranslation();
@@ -84,6 +85,13 @@ const OAuthCallback = () => {
               'Authorization': `Bearer ${decodedToken}`
             }
           });
+          
+          // Handle 401 if token expired (unlikely in OAuth callback, but handle for safety)
+          if (!meRes.ok && meRes.status === 401) {
+            await checkAndHandle401(meRes);
+            return; // Exit early if 401
+          }
+          
           if (meRes.ok) {
             const meData = await meRes.json();
             if ((meData.code === 1000 || meData.code === 0) && meData.result) {
@@ -112,7 +120,7 @@ const OAuthCallback = () => {
       const currentUserStatus = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).status) : undefined;
 
       if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING') {
-        window.location.href = '/company-info';
+        window.location.href = '/pending-page';
         return;
       }
       // Clear stale onboarding flags for non-pending users

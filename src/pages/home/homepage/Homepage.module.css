@@ -4,6 +4,11 @@
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #fef2f2 100%);
 }
 
+/* Homepage-specific gradient override to match AboutUs gradient */
+.homepageGradient::before {
+  background: linear-gradient(to bottom, #fefefe, #f8f6ff, #f3fbff) !important;
+}
+
 /* Hero */
 .hero {
   position: relative;

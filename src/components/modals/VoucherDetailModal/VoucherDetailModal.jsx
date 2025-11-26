@@ -4,6 +4,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 import { getCompanyName } from '../../../utils/companyUtils';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import { Calendar, Copy, Percent, Banknote, Clock, Minus } from 'lucide-react';
 import Modal from '../Modal';
 import styles from './VoucherDetailModal.module.css';
@@ -96,6 +97,12 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
           'Authorization': `Bearer ${token}`
         }
       });
+
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
 
       if (response.ok) {
         const allTours = await response.json();

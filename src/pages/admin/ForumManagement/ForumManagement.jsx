@@ -13,10 +13,16 @@ import {
   ChevronRightIcon,
   HeartIcon,
   PhotoIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  FunnelIcon,
+  ArrowDownTrayIcon,
+  NewspaperIcon,
+  ChatBubbleBottomCenterTextIcon,
+  FlagIcon
 } from '@heroicons/react/24/outline';
-import { API_ENDPOINTS, getImageUrl, getAvatarUrl } from '../../../config/api';
+import { API_ENDPOINTS, getImageUrl, getAvatarUrl, FrontendURL } from '../../../config/api';
 import { useToast } from '../../../contexts/ToastContext';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 
 const ForumManagement = () => {
   const [posts, setPosts] = useState([]);
@@ -28,6 +34,7 @@ const ForumManagement = () => {
   const [reportFilter, setReportFilter] = useState('all'); // 'all', 'POST', 'COMMENT'
   const [selectedPost, setSelectedPost] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tourPreviews, setTourPreviews] = useState({}); // Store tour previews by tour ID
   
   // Pagination and filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +78,12 @@ const ForumManagement = () => {
         }
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setAllPosts(Array.isArray(data) ? data : []);
@@ -100,6 +113,12 @@ const ForumManagement = () => {
         }
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         const reportsList = data.content || data || [];
@@ -206,36 +225,141 @@ const ForumManagement = () => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  // Extract tour ID from post content or metadata
+  const extractTourId = (post) => {
+    try {
+      // Check metadata first
+      const meta = post.metadata || post.meta || null;
+      if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
+        const urlStr = String(meta.linkUrl || '');
+        const idFromMeta = meta.linkRefId || 
+                         urlStr.match(/\/tour\/detail[?&]id=(\d+)/)?.[1] || 
+                         urlStr.match(/\/tour\/(\d+)/)?.[1];
+        if (idFromMeta) return idFromMeta;
+      }
+      
+      // Check content for tour links
+      const text = String(post.content || '');
+      const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
+      const regexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
+      const match = text.match(regexNew) || text.match(regexOld);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Remove URLs from content for display
+  const cleanContent = (content) => {
+    if (!content) return '';
+    // Remove URLs (http://, https://)
+    return content.replace(/https?:\/\/[^\s]+/gi, '').trim();
+  };
+
+  // Fetch tour preview
+  const fetchTourPreview = async (tourId) => {
+    if (tourPreviews[tourId]) return; // Already fetched
+    
+    try {
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      
+      const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTourPreviews(prev => ({
+          ...prev,
+          [tourId]: {
+            title: data.title || data.tourName,
+            thumbnailUrl: getImageUrl(data.thumbnailUrl || data.tourImgPath)
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching tour preview:', error);
+    }
+  };
+
+  // Load tour previews for posts
+  useEffect(() => {
+    if (posts.length > 0) {
+      posts.forEach(post => {
+        const tourId = extractTourId(post);
+        if (tourId && !tourPreviews[tourId]) {
+          fetchTourPreview(tourId);
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts]);
+
+  const stats = {
+    total: allPosts.length,
+    active: allPosts.filter((p) => p.status !== 'inactive').length,
+    reports: reports.length,
+    comments: allPosts.reduce((sum, p) => sum + (p.reactions?.commentCount || 0), 0)
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Forum Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Quản lý các bài viết và bình luận trong forum</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Forum Management</p>
+          <h1 className="text-3xl font-bold text-gray-900">View & moderate community posts</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Quản lý các bài viết và bình luận trong forum, xử lý báo cáo vi phạm.
+          </p>
         </div>
-        <button
-          onClick={() => setShowReports(!showReports)}
-          className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
-            showReports 
-              ? 'bg-red-600 hover:bg-red-700' 
-              : 'bg-gray-600 hover:bg-gray-700'
-          } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-        >
-          <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
-          {showReports ? 'Ẩn Báo cáo' : 'Báo cáo'}
-        </button>
+        <div className="flex gap-3">
+          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
+            <FunnelIcon className="h-5 w-5" />
+            Bộ lọc nâng cao
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
+            <ArrowDownTrayIcon className="h-5 w-5" />
+            Xuất báo cáo
+          </button>
+          <button
+            onClick={() => setShowReports(!showReports)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold shadow ${
+              showReports 
+                ? 'bg-red-600 hover:bg-red-700 text-white' 
+                : 'border border-gray-200 text-gray-600 hover:border-gray-300'
+            }`}
+          >
+            <FlagIcon className="h-5 w-5" />
+            {showReports ? 'Ẩn Báo cáo' : 'Báo cáo'}
+          </button>
+        </div>
       </div>
 
+      {!showReports && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <StatCard icon={NewspaperIcon} label="Tổng bài viết" value={stats.total} trend="+5 tuần này" />
+          <StatCard icon={DocumentTextIcon} label="Đang hoạt động" value={stats.active} trend="+3 tuần này" color="text-green-600" />
+          <StatCard icon={ChatBubbleBottomCenterTextIcon} label="Tổng bình luận" value={stats.comments} trend="+12% MoM" color="text-blue-600" />
+          <StatCard icon={ExclamationTriangleIcon} label="Báo cáo" value={stats.reports} trend="Cần xử lý" color="text-amber-500" />
+        </div>
+      )}
+
       {showReports ? (
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-gray-700">Lọc theo:</span>
               <button
                 onClick={() => setReportFilter('all')}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg ${
                   reportFilter === 'all'
-                    ? 'bg-red-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -243,9 +367,9 @@ const ForumManagement = () => {
               </button>
               <button
                 onClick={() => setReportFilter('POST')}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg ${
                   reportFilter === 'POST'
-                    ? 'bg-red-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -253,9 +377,9 @@ const ForumManagement = () => {
               </button>
               <button
                 onClick={() => setReportFilter('COMMENT')}
-                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg ${
                   reportFilter === 'COMMENT'
-                    ? 'bg-red-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -266,7 +390,7 @@ const ForumManagement = () => {
 
           {reportsLoading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : filteredReports.length === 0 ? (
             <div className="text-center py-12">
@@ -275,7 +399,7 @@ const ForumManagement = () => {
           ) : (
             <div className="divide-y divide-gray-200">
               {filteredReports.map((report) => (
-                <div key={report.reportId} className="p-6 hover:bg-gray-50 transition-colors">
+                <div key={report.reportId} className="p-6 hover:bg-blue-50/40 transition-colors border-b border-gray-100 last:border-b-0">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -329,10 +453,10 @@ const ForumManagement = () => {
                     <div className="ml-4">
                       <button
                         onClick={() => handleViewReportDetails(report)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
                         title="Xem chi tiết"
                       >
-                        <EyeIcon className="h-5 w-5" />
+                        <EyeIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -344,13 +468,10 @@ const ForumManagement = () => {
       ) : (
         <>
           {/* Search and Filters */}
-          <div className="bg-white shadow-sm rounded-lg p-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              {/* Search */}
-              <div className="relative flex-1 w-full sm:max-w-md">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full lg:max-w-xs">
+                <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -358,36 +479,33 @@ const ForumManagement = () => {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  placeholder="Tìm kiếm bài viết..."
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  placeholder="Tìm theo nội dung, tác giả hoặc ID bài viết..."
+                  className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-
-              {/* Filters */}
-              <div className="flex gap-3 w-full sm:w-auto">
+              <div className="flex flex-wrap gap-3">
                 <select
                   value={statusFilter}
                   onChange={(e) => {
                     setStatusFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="all">Tất cả trạng thái</option>
                   <option value="active">Hoạt động</option>
                   <option value="inactive">Tạm khóa</option>
                 </select>
-
                 <select
                   value={sortBy}
                   onChange={(e) => {
                     setSortBy(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="block w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="newest">Sắp xếp theo: Mới nhất</option>
-                  <option value="oldest">Sắp xếp theo: Cũ nhất</option>
+                  <option value="newest">Mới nhất</option>
+                  <option value="oldest">Cũ nhất</option>
                 </select>
               </div>
             </div>
@@ -396,72 +514,68 @@ const ForumManagement = () => {
           {/* Table */}
           {loading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : (
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-100">
+                  <thead className="bg-gray-50/70">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                        <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Bài viết
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tác giả
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Lượt thích
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Bình luận
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ngày đăng
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Thao tác
-                      </th>
+                      {['ID', 'Bài viết', 'Tác giả', 'Lượt thích', 'Bình luận', 'Ngày đăng', 'Thao tác'].map((header) => (
+                        <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          {header}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-50">
                     {posts.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
-                          Không có bài viết nào
+                        <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                          Không tìm thấy bài viết phù hợp với bộ lọc hiện tại.
                         </td>
                       </tr>
                     ) : (
                       posts.map((post) => (
-                        <tr key={post.forumPostId || post.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" className="rounded border-gray-300 text-red-600 focus:ring-red-500" />
-                          </td>
+                        <tr key={post.forumPostId || post.id} className="hover:bg-blue-50/40 transition">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             POST-{post.forumPostId || post.id || 'N/A'}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center">
-                              {post.images && post.images.length > 0 && (
-                                <img
-                                  src={getImageUrl(typeof post.images[0] === 'string' ? post.images[0] : post.images[0]?.imgPath)}
-                                  alt="Post"
-                                  className="h-12 w-12 rounded-lg object-cover mr-3"
-                                  onError={(e) => { e.target.style.display = 'none'; }}
-                                />
-                              )}
-                              <div className="max-w-xs">
-                                <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                                  {post.content ? (post.content.substring(0, 80) + (post.content.length > 80 ? '...' : '')) : 'N/A'}
+                            {(() => {
+                              const tourId = extractTourId(post);
+                              const tourPreview = tourId ? tourPreviews[tourId] : null;
+                              const hasImages = post.images && post.images.length > 0;
+                              const displayImage = tourPreview?.thumbnailUrl || 
+                                (hasImages ? getImageUrl(typeof post.images[0] === 'string' ? post.images[0] : post.images[0]?.imgPath) : null);
+                              const cleanText = cleanContent(post.content || '');
+                              const displayTitle = post.title || (tourPreview?.title || null);
+                              const displayContent = cleanText || 'N/A';
+                              
+                              return (
+                                <div className="flex items-start gap-3">
+                                  {displayImage && (
+                                    <img
+                                      src={displayImage}
+                                      alt={displayTitle || "Post"}
+                                      className="h-16 w-16 rounded-lg object-cover border border-gray-100 flex-shrink-0"
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    {displayTitle && (
+                                      <div className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
+                                        {displayTitle}
+                                      </div>
+                                    )}
+                                    <div className="text-sm text-gray-600 line-clamp-2">
+                                      {displayContent}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
+                              );
+                            })()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {post.username || 'N/A'}
@@ -478,7 +592,7 @@ const ForumManagement = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => handleView(post)}
-                              className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
                               title="Xem chi tiết"
                             >
                               <EyeIcon className="h-4 w-4" />
@@ -491,8 +605,8 @@ const ForumManagement = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              {posts.length > 0 && (
+                <div className="px-4 py-3 flex items-center justify-between border-t border-gray-100 sm:px-6">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -535,7 +649,7 @@ const ForumManagement = () => {
                               onClick={() => handlePageChange(page)}
                               className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                                 currentPage === page
-                                  ? 'z-10 bg-red-600 border-red-600 text-white'
+                                  ? 'z-10 bg-blue-600 border-blue-600 text-white'
                                   : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                               }`}
                             >
@@ -558,7 +672,8 @@ const ForumManagement = () => {
                     </nav>
                   </div>
                 </div>
-              </div>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -572,7 +687,7 @@ const ForumManagement = () => {
 
             <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
               {/* Header */}
-              <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white bg-opacity-20 rounded-lg">
@@ -657,7 +772,7 @@ const ForumManagement = () => {
 
                   {/* Stats */}
                   {selectedPost.reactions && (
-                    <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100">
+                    <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-red-100 rounded-lg">
                           <HeartIcon className="h-5 w-5 text-red-600" />
@@ -685,13 +800,13 @@ const ForumManagement = () => {
               <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-gray-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-gray-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Đóng
                 </button>
                 <button
                   onClick={() => handleViewDetails(selectedPost.forumPostId || selectedPost.id)}
-                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-5 py-2.5 bg-red-600 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-5 py-2.5 bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Xem chi tiết
                 </button>
@@ -703,5 +818,22 @@ const ForumManagement = () => {
     </div>
   );
 };
+
+const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+          <IconComponent className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className="text-xl font-bold text-gray-900">{value}</p>
+        </div>
+      </div>
+      <span className={`text-xs font-semibold ${color}`}>{trend}</span>
+    </div>
+  </div>
+);
 
 export default ForumManagement;

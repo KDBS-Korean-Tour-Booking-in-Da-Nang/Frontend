@@ -52,6 +52,13 @@ const TourManagement = () => {
         }
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        const { checkAndHandle401 } = await import('../../../utils/apiErrorHandler');
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setAllTours(Array.isArray(data) ? data : []);
@@ -147,6 +154,14 @@ const TourManagement = () => {
     }
   };
 
+  // Helper to get tour image URL without default fallback
+  const getTourImageUrlWithoutDefault = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    const BaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+    return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  };
+
   return (
     <div className={styles.tourManagement}>
       {/* Header */}
@@ -222,11 +237,13 @@ const TourManagement = () => {
               <div key={tour.tourId || tour.id} className={styles.tourCard}>
                 <div className={styles.cardImageContainer}>
                   <img
-                    src={getTourImageUrl(tour.thumbnailUrl)}
+                    src={getTourImageUrlWithoutDefault(tour.tourImgPath || tour.thumbnailUrl) || '/default-Tour.jpg'}
                     alt={tour.title || tour.tourName}
                     className={styles.cardImage}
                     onError={(e) => {
-                      e.target.src = '/default-Tour.jpg';
+                      if (e.target.src !== '/default-Tour.jpg') {
+                        e.target.src = '/default-Tour.jpg';
+                      }
                     }}
                   />
                 </div>
@@ -346,11 +363,13 @@ const TourManagement = () => {
             <div className={styles.modalBody}>
               <div className={styles.modalImageContainer}>
                 <img
-                  src={getTourImageUrl(selectedTour.thumbnailUrl)}
+                  src={getTourImageUrlWithoutDefault(selectedTour.tourImgPath || selectedTour.thumbnailUrl) || '/default-Tour.jpg'}
                   alt={selectedTour.title || selectedTour.tourName}
                   className={styles.modalImage}
                   onError={(e) => {
-                    e.target.src = '/default-Tour.jpg';
+                    if (e.target.src !== '/default-Tour.jpg') {
+                      e.target.src = '/default-Tour.jpg';
+                    }
                   }}
                 />
               </div>

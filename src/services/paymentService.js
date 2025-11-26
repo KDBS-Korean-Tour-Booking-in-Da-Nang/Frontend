@@ -1,3 +1,5 @@
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 const jsonHeaders = {
@@ -32,6 +34,12 @@ export const createTossBookingPayment = async (payload) => {
     });
 
     if (!response.ok) {
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        throw new Error('Session expired. Please login again.');
+      }
+      
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorData = await response.json();

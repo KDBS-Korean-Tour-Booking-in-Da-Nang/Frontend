@@ -4,6 +4,24 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import LoginRequiredModal from '../../../components/modals/LoginRequiredModal/LoginRequiredModal';
 import { useToast } from '../../../contexts/ToastContext';
+import { 
+  Upload, 
+  FileText, 
+  Image, 
+  CheckCircle2, 
+  AlertCircle, 
+  Loader2, 
+  ArrowLeft, 
+  FileCheck, 
+  Shield, 
+  Info,
+  Home,
+  CheckCircle,
+  AlertTriangle,
+  FileUp,
+  Clock
+} from 'lucide-react';
+import styles from './companyInfo.module.css';
 
 const CompanyInfo = () => {
   const { t } = useTranslation();
@@ -21,6 +39,11 @@ const CompanyInfo = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [fileErrors, setFileErrors] = useState({
+    businessLicense: '',
+    idCardFront: '',
+    idCardBack: ''
+  });
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState({
     businessLicenseName: '',
@@ -113,6 +136,11 @@ const CompanyInfo = () => {
         ...prev,
         [fileType]: file
       }));
+      // Clear error for this specific file when user selects new file
+      setFileErrors(prev => ({
+        ...prev,
+        [fileType]: ''
+      }));
       setError('');
     }
   };
@@ -125,6 +153,12 @@ const CompanyInfo = () => {
     setLoading(true);
     setError('');
     setSuccess('');
+    // Clear all file errors
+    setFileErrors({
+      businessLicense: '',
+      idCardFront: '',
+      idCardBack: ''
+    });
 
     // Collect all validation errors
     const errors = [];
@@ -215,6 +249,13 @@ const CompanyInfo = () => {
       console.log('Response status:', response.status);
       console.log('Response status text:', response.statusText);
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        const { handleApiError } = await import('../../../utils/apiErrorHandler');
+        await handleApiError(response);
+        return;
+      }
+      
       if (response.ok) {
         showSuccess('toast.company.info_submit_success');
         // Ghi nhận đã nộp hồ sơ (theo email) trên thiết bị này để chặn nộp lại
@@ -236,30 +277,88 @@ const CompanyInfo = () => {
           idCardFrontName: files.idCardFront?.name || '',
           idCardBackName: files.idCardBack?.name || ''
         });
-        // Chuyển đến trang pending sau 2 giây
-        setTimeout(() => {
-          navigate('/pending-page');
-        }, 2000);
+        // Chuyển đến trang pending ngay lập tức
+        navigate('/pending-page', { replace: true });
       } else {
+        // Reset ID card files to force re-upload (keep business license)
+        const resetIdCards = {
+          businessLicense: files.businessLicense, // Keep business license if valid
+          idCardFront: null,
+          idCardBack: null
+        };
+        
         let errorMessage = 'Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại.';
+        let idCardError = '';
         
         try {
-          const data = await response.json();
-          errorMessage = data.message || errorMessage;
-          console.log('Error response data:', data);
-          
-          // Xử lý lỗi FPT API
-          if (errorMessage.includes('Unable to find ID card') || errorMessage.includes('ID card')) {
-            errorMessage = 'Không thể nhận diện CCCD. Vui lòng đảm bảo: 1) Ảnh CCCD rõ ràng, 2) Không bị mờ hoặc che khuất, 3) Là ảnh thật không phải ảnh màn hình';
+          // Try to parse JSON response
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            errorMessage = data.message || errorMessage;
+            console.log('Error response data:', data);
+            
+            // Check for ID card recognition errors
+            const lowerMessage = (errorMessage || '').toLowerCase();
+            
+            if (lowerMessage.includes('unable to find id card') || 
+                lowerMessage.includes('id card') ||
+                lowerMessage.includes('không thể nhận diện') ||
+                lowerMessage.includes('runtime exception')) {
+              // This is an ID card recognition error - typically affects front image
+              idCardError = 'Không thể nhận diện CCCD trong ảnh. Vui lòng đảm bảo:\n1) Ảnh CCCD rõ ràng, không bị mờ\n2) Không bị che khuất hoặc cắt xén\n3) Là ảnh thật (không phải ảnh chụp màn hình)\n4) Đủ ánh sáng, không bị phản quang\n5) CCCD phải còn nguyên vẹn, không bị rách';
+              
+              // Set error for front ID card (usually processed first)
+              setFileErrors({
+                businessLicense: '',
+                idCardFront: idCardError,
+                idCardBack: ''
+              });
+              
+              // Clear the problematic files
+              setFiles(resetIdCards);
+              
+              showError('Không thể xử lý ảnh CCCD. Vui lòng kiểm tra và upload lại ảnh CCCD hợp lệ.');
+            } else {
+              // Other errors
+              showError(errorMessage);
+            }
+          } else {
+            // Response is not JSON, try to read as text
+            const text = await response.text();
+            console.log('Error response text:', text);
+            
+            if (text.includes('Unable to find ID card') || text.toLowerCase().includes('id card')) {
+              idCardError = 'Không thể nhận diện CCCD trong ảnh. Vui lòng upload lại ảnh CCCD hợp lệ.';
+              setFileErrors({
+                businessLicense: '',
+                idCardFront: idCardError,
+                idCardBack: ''
+              });
+              setFiles(resetIdCards);
+              showError(idCardError);
+            } else {
+              errorMessage = `HTTP ${response.status}: ${response.statusText || 'Lỗi không xác định'}`;
+              showError(errorMessage);
+            }
           }
-        } catch (e) {
-          console.log('Could not parse error response as JSON');
-          const text = await response.text();
-          console.log('Error response text:', text);
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        } catch (parseError) {
+          console.error('Could not parse error response:', parseError);
+          // Fallback error handling
+          if (response.status === 500) {
+            errorMessage = 'Lỗi xử lý trên máy chủ. Vui lòng kiểm tra lại ảnh CCCD và thử lại.';
+            idCardError = 'Có vấn đề với ảnh CCCD. Vui lòng upload lại ảnh CCCD hợp lệ.';
+            setFileErrors({
+              businessLicense: '',
+              idCardFront: idCardError,
+              idCardBack: ''
+            });
+            setFiles(resetIdCards);
+          } else {
+            errorMessage = `HTTP ${response.status}: ${response.statusText || 'Lỗi không xác định'}`;
+          }
+          showError(errorMessage);
         }
-        
-        showError(errorMessage);
       }
     } catch (error) {
       console.error('Error uploading files:', error);
@@ -271,8 +370,9 @@ const CompanyInfo = () => {
 
   if (authLoading || !initialized) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-gray-600">{t('company.loading')}</div>
+      <div className={styles.loadingContainer}>
+        <Loader2 style={{ width: '2rem', height: '2rem', color: '#718096', animation: 'spin 1s linear infinite' }} />
+        <div className={styles.loadingText}>{t('company.loading')}</div>
       </div>
     );
   }
@@ -293,15 +393,25 @@ const CompanyInfo = () => {
 
   if (!userEmail) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('company.notFoundTitle')}</h2>
-          <button
-            onClick={() => navigate('/register')}
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover"
-          >
-            {t('company.backToRegister')}
-          </button>
+      <div className={styles.emptyContainer}>
+        <div className={styles.backgroundBlobs}>
+          <div className={styles.blob1} />
+          <div className={styles.blob2} />
+          <div className={styles.blob3} />
+        </div>
+        <div className={styles.emptyCard}>
+          <div className={styles.emptyCardContent}>
+            <div className={styles.emptyIconWrapper}>
+              <AlertCircle className={styles.emptyIcon} />
+            </div>
+            <h2 className={styles.emptyTitle}>{t('company.notFoundTitle')}</h2>
+            <button
+              onClick={() => navigate('/register')}
+              className={styles.primaryButton}
+            >
+              {t('company.backToRegister')}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -310,55 +420,41 @@ const CompanyInfo = () => {
   // Trạng thái cho tài khoản doanh nghiệp
   const isCompanyApproved = user && user.role === 'COMPANY' && user.status === 'UNBANNED';
   const isCompanyPending = user && user.role === 'COMPANY' && user.status === 'COMPANY_PENDING';
-  if (isCompanyPending) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="bg-white shadow rounded-lg p-8">
-            <div className="mb-6">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
-                <svg className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Hồ sơ đang được xét duyệt</h2>
-              <p className="text-gray-600">
-                Cảm ơn bạn đã cung cấp thông tin. Hồ sơ doanh nghiệp đang ở trạng thái chờ duyệt. Thời gian xử lý thường từ 1-3 ngày làm việc.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  
+  // Nếu đã upload files rồi và đang pending, tự động redirect đến pending-page
+  // (sẽ được xử lý ở phần alreadySubmitted check phía dưới, nơi có nút điều hướng đến pending-page)
   if (isCompanyApproved) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="bg-white shadow rounded-lg p-8">
-            <div className="mb-6">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-                <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tài khoản doanh nghiệp</h2>
-              <p className="text-gray-600 mb-6">
-                Tài khoản của bạn đã được xác nhận là doanh nghiệp. Bạn có thể truy cập vào các tính năng dành cho doanh nghiệp.
-              </p>
+      <div className={styles.emptyContainer}>
+        <div className={styles.backgroundBlobs}>
+          <div className={styles.blob1} />
+          <div className={styles.blob2} />
+          <div className={styles.blob3} />
+        </div>
+        <div className={styles.emptyCard}>
+          <div className={styles.emptyCardContent}>
+            <div className={styles.emptyIconWrapper} style={{ background: 'linear-gradient(to bottom right, #e9fff7, #f0f5ff)' }}>
+              <CheckCircle className={styles.emptyIcon} style={{ color: '#048a59' }} />
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={() => navigate('/company/dashboard')}
-                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            <h2 className={styles.emptyTitle}>Tài khoản doanh nghiệp</h2>
+            <p className={styles.emptyText}>
+              Tài khoản của bạn đã được xác nhận là doanh nghiệp. Bạn có thể truy cập vào các tính năng dành cho doanh nghiệp.
+            </p>
+            <div className={styles.buttonGroup} style={{ marginTop: '1.5rem' }}>
+              <button
+                onClick={() => navigate('/company/dashboard')}
+                className={styles.primaryButton}
+                aria-label="Vào trang quản lý"
               >
-                Vào trang quản lý
+                <span>Vào trang quản lý</span>
               </button>
               <button
                 onClick={() => navigate('/')}
-                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className={styles.secondaryButton}
+                aria-label="Về trang chủ"
               >
-                Về trang chủ
+                <Home size={16} strokeWidth={2} />
+                <span>Về trang chủ</span>
               </button>
             </div>
           </div>
@@ -375,23 +471,33 @@ const CompanyInfo = () => {
       // (tiếp tục xuống phần render form phía dưới)
     } else {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="bg-white shadow rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.loginRequired.title')}</h2>
-            <p className="text-gray-600 mb-6">Vui lòng đăng ký/đăng nhập bằng tài khoản Company để tiếp tục.</p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className={styles.emptyContainer}>
+        <div className={styles.backgroundBlobs}>
+          <div className={styles.blob1} />
+          <div className={styles.blob2} />
+          <div className={styles.blob3} />
+        </div>
+        <div className={styles.emptyCard}>
+          <div className={styles.emptyCardContent}>
+            <div className={styles.emptyIconWrapper} style={{ background: 'linear-gradient(to bottom right, #fff4ec, #f0f5ff)' }}>
+              <Shield className={styles.emptyIcon} />
+            </div>
+            <h2 className={styles.emptyTitle}>{t('auth.loginRequired.title')}</h2>
+            <p className={styles.emptyText}>Vui lòng đăng ký/đăng nhập bằng tài khoản Company để tiếp tục.</p>
+            <div className={styles.buttonGroup} style={{ marginTop: '1.5rem' }}>
               <button
                 onClick={() => navigate('/register')}
-                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className={styles.primaryButton}
+                aria-label="Đăng ký tài khoản Company"
               >
-                Đăng ký tài khoản Company
+                <span>Đăng ký tài khoản Company</span>
               </button>
               <button
                 onClick={() => navigate('/login')}
-                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className={styles.secondaryButton}
+                aria-label="Đăng nhập"
               >
-                Đăng nhập
+                <span>Đăng nhập</span>
               </button>
             </div>
           </div>
@@ -404,62 +510,66 @@ const CompanyInfo = () => {
   // Nếu đã nộp hồ sơ trước đó, hiển thị lại các mục với dấu tick và tên file
   if (alreadySubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 py-6 sm:py-12">
-        <div className="max-w-2xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="bg-white shadow rounded-lg">
-            <div className="px-3 py-4 sm:px-4 sm:py-5 lg:p-6">
-              <div className="mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('company.submittedTitle')}</h2>
-                <p className="text-sm sm:text-base text-gray-600">{t('company.submittedSubtitle')}</p>
+      <div className={styles.container}>
+        <div className={styles.backgroundBlobs}>
+          <div className={styles.blob1} />
+          <div className={styles.blob2} />
+          <div className={styles.blob3} />
+        </div>
+        <div className={styles.contentWrapper}>
+          <div className={styles.submittedCard}>
+            <div className={styles.cardContent}>
+              <div className={styles.header}>
+                <h2 className={styles.title}>{t('company.submittedTitle')}</h2>
+                <p className={styles.subtitle}>{t('company.submittedSubtitle')}</p>
               </div>
 
-              <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('company.form.businessLicense')}</label>
-                  <div className="mt-2 flex items-center text-sm">
-                    <span className="inline-flex items-center text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-                      <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      {submittedData.businessLicenseName || t('company.submit')}
-                    </span>
-                  </div>
+              <div className={styles.form} style={{ gap: '1rem' }}>
+                <div className={styles.submittedItem}>
+                  <label className={styles.formLabel}>
+                    <FileText className={styles.labelIcon} />
+                    {t('company.form.businessLicense')}
+                  </label>
+                  <span className={styles.submittedBadge}>
+                    <CheckCircle2 className={styles.submittedBadgeIcon} />
+                    {submittedData.businessLicenseName || t('company.submit')}
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text.sm font-medium text-gray-700">{t('company.form.idFront')}</label>
-                  <div className="mt-2 flex items-center text-sm">
-                    <span className="inline-flex items-center text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-                      <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      {submittedData.idCardFrontName || t('company.submit')}
-                    </span>
-                  </div>
+                <div className={styles.submittedItem}>
+                  <label className={styles.formLabel}>
+                    <Image className={styles.labelIcon} />
+                    {t('company.form.idFront')}
+                  </label>
+                  <span className={styles.submittedBadge}>
+                    <CheckCircle2 className={styles.submittedBadgeIcon} />
+                    {submittedData.idCardFrontName || t('company.submit')}
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">{t('company.form.idBack')}</label>
-                  <div className="mt-2 flex items-center text-sm">
-                    <span className="inline-flex items-center text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
-                      <svg className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                      {submittedData.idCardBackName || t('company.submit')}
-                    </span>
-                  </div>
+                <div className={styles.submittedItem}>
+                  <label className={styles.formLabel}>
+                    <Image className={styles.labelIcon} />
+                    {t('company.form.idBack')}
+                  </label>
+                  <span className={styles.submittedBadge}>
+                    <CheckCircle2 className={styles.submittedBadgeIcon} />
+                    {submittedData.idCardBackName || t('company.submit')}
+                  </span>
                 </div>
               </div>
 
-              <div className="bg-secondary border border-primary rounded-lg p-3 sm:p-4 my-4 sm:my-6">
-                <p className="text-primary text-xs sm:text-sm">{t('company.submittedSubtitle')}</p>
+              <div className={styles.submittedInfoBox}>
+                <p className={styles.submittedInfoText}>{t('company.submittedSubtitle')}</p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className={styles.buttonGroup}>
                 <button
                   onClick={() => navigate('/pending-page')}
-                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-primary hover:bg-primary-hover"
+                  className={styles.primaryButton}
+                  aria-label={t('company.submittedViewPending')}
                 >
-                  {t('company.submittedViewPending')}
-                </button>
-                <button
-                  onClick={() => navigate('/')}
-                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  {t('pending.btnHome')}
+                  <Clock size={16} strokeWidth={2} />
+                  <span>{t('company.submittedViewPending')}</span>
                 </button>
               </div>
             </div>
@@ -470,79 +580,129 @@ const CompanyInfo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 sm:py-12">
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 lg:px-8">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-3 py-4 sm:px-4 sm:py-5 lg:p-6">
-            <div className="mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{t('company.heading')}</h2>
-              <p className="text-sm sm:text-base text-gray-600">{t('company.subtitle')}</p>
+    <div className={styles.container}>
+      <div className={styles.backgroundBlobs}>
+        <div className={styles.blob1} />
+        <div className={styles.blob2} />
+        <div className={styles.blob3} />
+      </div>
+      <div className={styles.contentWrapper}>
+        <div className={styles.card}>
+          <div className={styles.cardContent}>
+            <div className={styles.header}>
+              <h2 className={styles.title}>{t('company.heading')}</h2>
+              <p className={styles.subtitle}>{t('company.subtitle')}</p>
             </div>
 
             {success && (
-              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm mb-4">
+              <div className={`${styles.alert} ${styles.alertSuccess}`}>
+                <CheckCircle2 className={styles.icon} style={{ width: '1rem', height: '1rem', flexShrink: 0 }} />
                 {success}
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm mb-4">
+              <div className={`${styles.alert} ${styles.alertError}`}>
+                <AlertTriangle className={styles.icon} style={{ width: '1rem', height: '1rem', flexShrink: 0 }} />
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-              <div>
-                <label htmlFor="businessLicense" className="block text-sm font-medium text-gray-700">{t('company.form.businessLicense')}</label>
-                <div className="mt-1">
-                  <input
-                    type="file"
-                    id="businessLicense"
-                    accept=".pdf"
-                    onChange={(e) => handleFileChange(e, 'businessLicense')}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-primary hover:file:bg-primary"
-                  />
-                </div>
-                {files.businessLicense && (
-                  <p className="mt-2 text-sm text-green-600">{t('company.selectedPrefix')} {files.businessLicense.name}</p>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label htmlFor="businessLicense" className={styles.formLabel}>
+                  <FileText className={styles.labelIcon} />
+                  {t('company.form.businessLicense')}
+                </label>
+                <input
+                  type="file"
+                  id="businessLicense"
+                  accept=".pdf"
+                  onChange={(e) => handleFileChange(e, 'businessLicense')}
+                  className={styles.fileInput}
+                />
+                {files.businessLicense && !fileErrors.businessLicense && (
+                  <p className={styles.fileSelected}>
+                    <CheckCircle2 className={styles.fileSelectedIcon} />
+                    {t('company.selectedPrefix')} {files.businessLicense.name}
+                  </p>
+                )}
+                {fileErrors.businessLicense && (
+                  <p className={styles.fileError}>
+                    <AlertTriangle className={styles.fileErrorIcon} />
+                    {fileErrors.businessLicense}
+                  </p>
                 )}
               </div>
 
-              <div>
-                <label htmlFor="idCardFront" className="block text-sm font-medium text-gray-700">{t('company.form.idFront')}</label>
-                <div className="mt-1">
-                  <input
-                    type="file"
-                    id="idCardFront"
-                    accept=".jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, 'idCardFront')}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-primary hover:file:bg-primary"
-                  />
-                </div>
-                {files.idCardFront && (
-                  <p className="mt-2 text-sm text-green-600">{t('company.selectedPrefix')} {files.idCardFront.name}</p>
+              <div className={styles.formGroup}>
+                <label htmlFor="idCardFront" className={styles.formLabel}>
+                  <Image className={styles.labelIcon} />
+                  {t('company.form.idFront')}
+                </label>
+                <input
+                  type="file"
+                  id="idCardFront"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, 'idCardFront')}
+                  className={styles.fileInput}
+                  key={`idCardFront-${fileErrors.idCardFront ? 'error' : files.idCardFront?.name || 'default'}`}
+                />
+                {files.idCardFront && !fileErrors.idCardFront && (
+                  <p className={styles.fileSelected}>
+                    <CheckCircle2 className={styles.fileSelectedIcon} />
+                    {t('company.selectedPrefix')} {files.idCardFront.name}
+                  </p>
+                )}
+                {fileErrors.idCardFront && (
+                  <div className={styles.fileError}>
+                    <AlertTriangle className={styles.fileErrorIcon} />
+                    <div className={styles.fileErrorMessage}>
+                      {fileErrors.idCardFront.split('\n').map((line, idx) => (
+                        <div key={idx}>{line}</div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              <div>
-                <label htmlFor="idCardBack" className="block text-sm font-medium text-gray-700">{t('company.form.idBack')}</label>
-                <div className="mt-1">
-                  <input
-                    type="file"
-                    id="idCardBack"
-                    accept=".jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, 'idCardBack')}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-primary hover:file:bg-primary"
-                  />
-                </div>
-                {files.idCardBack && (
-                  <p className="mt-2 text-sm text-green-600">{t('company.selectedPrefix')} {files.idCardBack.name}</p>
+              <div className={styles.formGroup}>
+                <label htmlFor="idCardBack" className={styles.formLabel}>
+                  <Image className={styles.labelIcon} />
+                  {t('company.form.idBack')}
+                </label>
+                <input
+                  type="file"
+                  id="idCardBack"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, 'idCardBack')}
+                  className={styles.fileInput}
+                  key={`idCardBack-${fileErrors.idCardBack ? 'error' : files.idCardBack?.name || 'default'}`}
+                />
+                {files.idCardBack && !fileErrors.idCardBack && (
+                  <p className={styles.fileSelected}>
+                    <CheckCircle2 className={styles.fileSelectedIcon} />
+                    {t('company.selectedPrefix')} {files.idCardBack.name}
+                  </p>
+                )}
+                {fileErrors.idCardBack && (
+                  <div className={styles.fileError}>
+                    <AlertTriangle className={styles.fileErrorIcon} />
+                    <div className={styles.fileErrorMessage}>
+                      {fileErrors.idCardBack.split('\n').map((line, idx) => (
+                        <div key={idx}>{line}</div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
-              <div className="bg-secondary border border-primary rounded-lg p-3 sm:p-4">
-                <h3 className="text-xs sm:text-sm font-medium text-primary mb-2">{t('company.important.title')}</h3>
-                <ul className="text-xs sm:text-sm text-primary space-y-1">
+              <div className={styles.infoBox}>
+                <h3 className={styles.infoTitle}>
+                  <Info className={styles.icon} style={{ width: '0.875rem', height: '0.875rem', display: 'inline', marginRight: '0.25rem', verticalAlign: 'middle' }} />
+                  {t('company.important.title')}
+                </h3>
+                <ul className={styles.infoList}>
                   <li>{t('company.important.i1')}</li>
                   <li>{t('company.important.i2')}</li>
                   <li>{t('company.important.i3')}</li>
@@ -552,20 +712,33 @@ const CompanyInfo = () => {
                 </ul>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 sm:space-x-0">
+              <div className={styles.buttonGroup}>
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  className={styles.secondaryButton}
+                  aria-label={t('company.back')}
                 >
-                  {t('company.back')}
+                  <ArrowLeft size={16} strokeWidth={2} />
+                  <span>{t('company.back')}</span>
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+                  className={styles.primaryButton}
+                  aria-label={loading ? t('company.submitting') : t('company.submit')}
                 >
-                  {loading ? t('company.submitting') : t('company.submit')}
+                  {loading ? (
+                    <>
+                      <Loader2 size={16} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
+                      <span>{t('company.submitting')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileUp size={16} strokeWidth={2} />
+                      <span>{t('company.submit')}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CheckCircle2 } from 'lucide-react';
 import styles from './CommentReportSuccessModal.module.css';
 
 const CommentReportSuccessModal = ({ isOpen, onClose }) => {
@@ -40,22 +41,7 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
     <div className={styles['comment-report-success-overlay']} onClick={onClose}>
       <div className={styles['comment-report-success-modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['success-icon']}>
-          <svg 
-            width="48" 
-            height="48" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="12" cy="12" r="10" fill="#10b981" />
-            <path 
-              d="M9 12l2 2 4-4" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CheckCircle2 size={56} strokeWidth={1.5} />
         </div>
         
         <div className={styles['success-content']}>

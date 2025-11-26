@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_ENDPOINTS, getImageUrl, getTourImageUrl } from '../config/api';
+import { checkAndHandle401 } from '../utils/apiErrorHandler';
 
 // Helper function to strip HTML tags from text
 const stripHtmlTags = (html) => {
@@ -65,6 +66,10 @@ export const useToursAPI = () => {
       });
       
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (await checkAndHandle401(response)) {
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -99,6 +104,10 @@ export const useToursAPI = () => {
       });
       
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (await checkAndHandle401(response)) {
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -165,6 +174,10 @@ export const useToursAPI = () => {
         }
       });
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (await checkAndHandle401(response)) {
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

@@ -11,6 +11,8 @@ import ReportManagement from './ReportManagement/ReportManagement';
 import TourManagement from './TourManagement/TourManagement';
 import ForumManagement from './ForumManagement/ForumManagement';
 import CustomerContact from './CustomerContact/CustomerContact';
+import NewsManagement from './NewsManagement/NewsManagement';
+import TransactionManagement from './TransactionManagement/TransactionManagement';
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
@@ -66,6 +68,8 @@ const AdminDashboard = () => {
         <Route path="/forum" element={<ForumManagement />} />
         <Route path="/customers" element={<CustomerManagement />} />
         <Route path="/contact" element={<CustomerContact />} />
+        <Route path="/news" element={<NewsManagement />} />
+        <Route path="/transactions" element={<TransactionManagement />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>

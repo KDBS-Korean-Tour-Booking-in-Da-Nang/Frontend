@@ -1,3 +1,5 @@
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+
 const getApiBaseUrl = () => {
   if (import.meta.env.PROD) {
     // Production: sử dụng current domain
@@ -44,6 +46,11 @@ class ChatApiService {
       );
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -69,6 +76,11 @@ class ChatApiService {
       );
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -92,6 +104,11 @@ class ChatApiService {
       );
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -120,6 +137,11 @@ class ChatApiService {
       );
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -143,6 +165,11 @@ class ChatApiService {
       );
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -167,6 +194,11 @@ class ChatApiService {
       );
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

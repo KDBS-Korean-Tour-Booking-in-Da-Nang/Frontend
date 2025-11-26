@@ -54,12 +54,10 @@
   gap: 0.5rem;
 }
 
-.section-title::before {
-  content: '';
-  width: 4px;
-  height: 1.25rem;
-  background-color: #3b82f6;
-  border-radius: 2px;
+.section-icon {
+  width: 20px;
+  height: 20px;
+  color: #10b981;
 }
 
 /* Date Selection */
@@ -121,6 +119,35 @@
   align-items: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.deadline-notice {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+  width: 100%;
+  line-height: 1.5;
+}
+
+.deadline-notice--highlight {
+  background: linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(255, 240, 203, 0.95));
+  border: 1px solid rgba(251, 191, 36, 0.8);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  color: #7c2d12;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.deadline-notice--highlight::before {
+  content: '';
+  width: 32px;
+  height: 32px;
+  background: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='rgba(124,45,18,0.7)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 9v4m0 4h.01'/%3E%3Cpath d='M10.29 3.859 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3l-8.48-14.142a2 2 0 0 0-3.42 0Z'/%3E%3C/svg%3E") no-repeat center / contain;
+  flex-shrink: 0;
 }
 
 .selected-date-card {
@@ -254,12 +281,26 @@
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .pax-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.pax-title svg {
+  width: 18px;
+  height: 18px;
+  color: #2563eb;
 }
 
 .pax-price {
@@ -326,12 +367,42 @@
 }
 
 .member-group-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #374151;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.member-group-title-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.member-group-icon-wrapper {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  align-items: center;
+  justify-content: center;
+}
+
+.member-group-icon {
+  width: 18px;
+  height: 18px;
+  color: #10b981;
+}
+
+.member-group-price {
+  font-weight: 600;
+  color: #10b981;
 }
 
 .member-card {
@@ -361,6 +432,30 @@
   gap: 0.5rem;
 }
 
+.label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.field-icon {
+  width: 16px;
+  height: 16px;
+  color: #10b981;
+}
+
+.gender-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.gender-icon svg {
+  width: 18px;
+  height: 18px;
+  color: #10b981;
+}
+
 .form-input {
   padding: 0.75rem;
   border: 1px solid #d1d5db;  /* Mặc định xám nhạt, chỉ đỏ khi có lỗi */
@@ -380,6 +475,19 @@
 .form-input.error {
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-input.disabled,
+.form-input:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+}
+
+.form-input.disabled::placeholder,
+.form-input:disabled::placeholder {
+  color: #a1a1aa;
 }
 
 /* Price Summary */

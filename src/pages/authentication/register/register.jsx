@@ -23,7 +23,8 @@ const Register = () => {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [usernameError, setUsernameError] = useState('');
-  const { showError, showSuccess, showBatch } = useToast();
+  const [generalError, setGeneralError] = useState('');
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -63,11 +64,49 @@ const Register = () => {
     return cleaned;
   };
 
+  const handlePasswordBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return;
+    // Block space character
+    if (data === ' ' || data === '\u00A0') {
+      e.preventDefault();
+    }
+  };
+
+  const handlePasswordPaste = (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    // Remove all spaces from pasted text
+    const cleaned = pasted.replace(/\s/g, '');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const newValue = current.slice(0, start) + cleaned + current.slice(end);
+    
+    // Update form data
+    setFormData(prev => ({ ...prev, [target.name]: newValue }));
+    
+    // Manually trigger validation by creating a synthetic event
+    const syntheticEvent = {
+      target: { ...target, value: newValue, name: target.name },
+      currentTarget: target
+    };
+    handleChange(syntheticEvent);
+  };
+
   const handleChange = (e) => {
 const { name, value } = e.target;
     if (name === 'username') {
       const sanitized = sanitizeUsername(value);
       setFormData(prev => ({ ...prev, username: sanitized }));
+    } else if (name === 'password' || name === 'confirmPassword') {
+      // Remove all spaces from password fields
+      const cleaned = value.replace(/\s/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: cleaned
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -78,6 +117,11 @@ const { name, value } = e.target;
     // Clear email error when user starts typing
     if (name === 'email' && emailError) {
       setEmailError('');
+    }
+
+    // Clear general error when user starts typing
+    if (generalError) {
+      setGeneralError('');
     }
 
     // Real-time username validation
@@ -96,6 +140,7 @@ const { name, value } = e.target;
 
     // Real-time password validation
     if (name === 'password') {
+      // Value is already cleaned (no spaces) from handleChange
       if (value.length > 0 && value.length < 8) {
         setPasswordError(t('auth.register.errors.passwordMinLength'));
       } else {
@@ -111,6 +156,7 @@ const { name, value } = e.target;
 
     // Real-time confirm password validation
     if (name === 'confirmPassword') {
+      // Value is already cleaned (no spaces) from handleChange
       if (value && formData.password && value !== formData.password) {
         setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
       } else {
@@ -165,45 +211,99 @@ const { name, value } = e.target;
     e.preventDefault();
     setLoading(true);
     setEmailError('');
+    setUsernameError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+    setGeneralError('');
 
-    // Collect all validation errors to show multiple toasts at once
-    const validationErrors = [];
+    // Check fields in order: username, email, password, confirmPassword
+    // Find the first missing (unfilled) field and show only 1 toast for it
+    // Set error state for all missing (unfilled) fields to show error messages
+    // Don't show error messages for fields that are filled but have validation errors
 
-    // Email validation
-    if (!formData.email.trim()) {
-      validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
-    } else {
-      const emailValidation = validateEmail(formData.email);
-      if (!emailValidation.isValid) {
-        validationErrors.push(t('auth.common.form.email.invalid'));
-      }
-    }
+    let firstMissingField = null;
+    let firstMissingFieldName = '';
+    let hasUnfilledFields = false;
+    let hasValidationErrors = false;
 
-    // Username validation
+    // Check username first
     if (!formData.username.trim()) {
-      validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.register.username') } });
+      if (!firstMissingField) {
+        firstMissingField = 'username';
+        firstMissingFieldName = t('auth.register.username');
+      }
+      setUsernameError(t('toast.name_required') || 'Không để trống tên');
+      hasUnfilledFields = true;
+      hasValidationErrors = true;
     } else {
       const trimmed = formData.username.trim();
       const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
       if (!usernameRegex.test(trimmed)) {
-        validationErrors.push('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+        // Username is filled but invalid - block submission but don't show error message
+        hasValidationErrors = true;
+        if (!firstMissingField) {
+          firstMissingField = 'username';
+          firstMissingFieldName = t('auth.register.username');
+        }
       }
     }
 
-    // Password validation
-    if (!formData.password.trim()) {
-      validationErrors.push({ i18nKey: 'toast.required', values: { field: t('auth.register.password') } });
+    // Check email
+    if (!formData.email.trim()) {
+      if (!firstMissingField) {
+        firstMissingField = 'email';
+        firstMissingFieldName = t('auth.common.email');
+      }
+      setEmailError('required');
+      hasUnfilledFields = true;
+      hasValidationErrors = true;
+    } else {
+      const emailValidation = validateEmail(formData.email);
+      if (!emailValidation.isValid) {
+        // Email is filled but invalid - block submission but don't show error message
+        hasValidationErrors = true;
+        if (!firstMissingField) {
+          firstMissingField = 'email';
+          firstMissingFieldName = t('auth.common.email');
+        }
+      }
+    }
+
+    // Check password
+    // Password is already cleaned (no spaces) from handleChange
+    if (!formData.password) {
+      if (!firstMissingField) {
+        firstMissingField = 'password';
+        firstMissingFieldName = t('auth.register.password');
+      }
+      setPasswordError(t('auth.register.errors.passwordMinLength'));
+      hasUnfilledFields = true;
+      hasValidationErrors = true;
     } else if (formData.password.length < 8) {
-      validationErrors.push(t('auth.register.errors.passwordMinLength'));
+      // Password is filled but too short - set error message
+      hasValidationErrors = true;
+      if (!firstMissingField) {
+        firstMissingField = 'password';
+        firstMissingFieldName = t('auth.register.password');
+      }
+      setPasswordError(t('auth.register.errors.passwordMinLength'));
     }
 
-    // Confirm password validation
+    // Check confirm password
+    // Confirm password is already cleaned (no spaces) from handleChange
     if (formData.password !== formData.confirmPassword) {
-      validationErrors.push(t('auth.register.errors.passwordMismatch'));
+      // Confirm password mismatch - set error message
+      hasValidationErrors = true;
+      if (!firstMissingField) {
+        firstMissingField = 'confirmPassword';
+        firstMissingFieldName = t('auth.register.confirmPassword');
+      }
+      setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
     }
 
-    if (validationErrors.length > 0) {
-      showBatch(validationErrors, 'error', 5000);
+    // If there are validation errors
+    if (hasValidationErrors) {
+      // Error messages are already set above for each field
       setLoading(false);
       return;
     }
@@ -211,6 +311,8 @@ const { name, value } = e.target;
     try {
       // Map frontend role to backend enum
       const backendRole = (formData.role === 'business') ? 'COMPANY' : 'USER';
+      // Password is already cleaned (no spaces) from handleChange, but trim for safety
+      const trimmedPassword = formData.password.trim();
       const response = await fetch('/api/users/register', {
         method: 'POST',
         headers: {
@@ -219,7 +321,7 @@ const { name, value } = e.target;
         body: JSON.stringify({
           username: formData.username,
           email: formData.email,
-          password: formData.password,
+          password: trimmedPassword,
           role: backendRole,
         }),
       });
@@ -234,7 +336,7 @@ const { name, value } = e.target;
         // Lưu tạm email/password để auto-login sau khi verify (session only)
         try {
           sessionStorage.setItem('post_reg_email', formData.email);
-          sessionStorage.setItem('post_reg_password', formData.password);
+          sessionStorage.setItem('post_reg_password', trimmedPassword);
         } catch {}
         
         // Show success message
@@ -252,14 +354,13 @@ const { name, value } = e.target;
         // Check if it's an email already exists error
         if (data.code === 1001 || data.message?.includes('Email has existed')) {
           setEmailError('exists');
-          showError('toast.auth.email_already_exists');
         } else {
-          showError(data.message || t('auth.register.errors.registerFailed') || 'toast.auth.general_error');
+          setGeneralError(data.message || t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
         }
       }
     } catch (error) {
       console.error('Registration error:', error);
-      showError(t('auth.register.errors.registerFailed') || 'toast.auth.general_error');
+      setGeneralError(t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -365,6 +466,9 @@ const { name, value } = e.target;
                 {emailError && (
                   <div className={styles['field-error']}>
                     {(() => {
+                      if (emailError === 'required') {
+                        return t('toast.required', { field: t('auth.common.email') }) || 'Email là bắt buộc';
+                      }
                       if (emailError === 'invalid') {
                         return t('auth.common.form.email.invalid') || 'Email không đúng định dạng';
                       }
@@ -389,6 +493,8 @@ const { name, value } = e.target;
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBeforeInput={handlePasswordBeforeInput}
+                  onPaste={handlePasswordPaste}
                   className={`${styles['form-input']} ${passwordError ? styles['input-error'] : ''}`}
                   placeholder="••••••••"
                 />
@@ -411,6 +517,8 @@ const { name, value } = e.target;
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  onBeforeInput={handlePasswordBeforeInput}
+                  onPaste={handlePasswordPaste}
                   className={`${styles['form-input']} ${confirmPasswordError ? styles['input-error'] : ''}`}
                   placeholder="••••••••"
                 />
@@ -445,6 +553,11 @@ const { name, value } = e.target;
                 </div>
               </div>
 
+              {generalError && (
+                <div className={styles['field-error']} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                  {generalError}
+                </div>
+              )}
 
               <button
                 type="submit"

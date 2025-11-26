@@ -312,6 +312,13 @@ const TourWizardContent = () => {
         body: formData
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        const { handleApiError } = await import('../../../../utils/apiErrorHandler');
+        await handleApiError(response);
+        return;
+      }
+      
       if (response.ok) {
         showSuccess('toast.tour.create_success');
         navigate('/company/tours');

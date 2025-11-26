@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { getCompanyNames } from '../../../utils/companyUtils';
 import styles from './VoucherList.module.css';
@@ -46,6 +47,7 @@ const VoucherList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { showSuccess } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY);
@@ -55,6 +57,18 @@ const VoucherList = () => {
   // Filter states
   const [filterType, setFilterType] = useState('ALL'); // 'ALL' | 'PERCENT' | 'AMOUNT'
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
+
+  // Redirect to login if user is not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login', { 
+        state: { 
+          message: 'Vui lòng đăng nhập để xem danh sách voucher',
+          from: '/tour/voucher-list'
+        } 
+      });
+    }
+  }, [user, authLoading, navigate]);
   
   // Refetch function that can be called manually
   const fetchVouchers = useCallback(async () => {
@@ -138,8 +152,11 @@ const VoucherList = () => {
   }, []);
 
   useEffect(() => {
-    fetchVouchers();
-  }, [fetchVouchers]);
+    // Chỉ fetch vouchers nếu user đã đăng nhập
+    if (user && !authLoading) {
+      fetchVouchers();
+    }
+  }, [fetchVouchers, user, authLoading]);
 
   // Filter and sort vouchers
   const filteredAndSortedVouchers = useMemo(() => {
@@ -206,7 +223,8 @@ const VoucherList = () => {
     return null;
   };
 
-  if (loading) {
+  // Show loading while checking auth or fetching vouchers
+  if (authLoading || (!user && !authLoading) || loading) {
     return (
       <div className="page-gradient">
         <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">

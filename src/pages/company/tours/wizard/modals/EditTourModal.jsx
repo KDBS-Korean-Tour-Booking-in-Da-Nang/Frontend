@@ -149,6 +149,13 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           body: formData
         });
         
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          const { checkAndHandle401 } = await import('../../../../../utils/apiErrorHandler');
+          await checkAndHandle401(response);
+          throw new Error('Session expired. Please login again.');
+        }
+        
         if (response.ok) {
           const imageUrl = await response.text();
           console.log('Uploaded image URL:', imageUrl);
@@ -680,6 +687,13 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         body: formDataToSend
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        const { handleApiError } = await import('../../../../../utils/apiErrorHandler');
+        await handleApiError(response);
+        return;
+      }
+      
       if (response.ok) {
         showSuccess({ i18nKey: 'toast.save_success' });
         // Close modal immediately

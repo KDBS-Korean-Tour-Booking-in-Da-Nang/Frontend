@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_ENDPOINTS, getAvatarUrl } from '../../config/api';
 import PostModal from './components/PostModal/PostModal';
+import EditPostModal from './components/EditPostModal/EditPostModal';
 import SearchSidebar from './components/SearchSidebar/SearchSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
 import styles from './forum.module.css';
@@ -27,6 +28,7 @@ const Forum = () => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [isMyPostsMode, setIsMyPostsMode] = useState(false);
   const [showSavedPostsModal, setShowSavedPostsModal] = useState(false);
@@ -252,6 +254,13 @@ const Forum = () => {
       
       clearTimeout(timeoutId);
       
+      // Handle 401 if token expired (only for authenticated requests)
+      if (!response.ok && response.status === 401 && headers['Authorization']) {
+        const { checkAndHandle401 } = await import('../../utils/apiErrorHandler');
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         
@@ -400,11 +409,15 @@ const Forum = () => {
 
   const openEditModal = useCallback((post) => {
     setEditingPost(post);
-    setShowPostModal(true);
+    setShowEditModal(true);
   }, []);
 
   const closePostModal = useCallback(() => {
     setShowPostModal(false);
+  }, []);
+
+  const closeEditModal = useCallback(() => {
+    setShowEditModal(false);
     setEditingPost(null);
   }, []);
 
@@ -706,7 +719,16 @@ const Forum = () => {
           isOpen={showPostModal}
           onClose={closePostModal}
           onPostCreated={handleCreatePost}
-          editPost={editingPost}
+        />
+      )}
+
+      {/* Edit Post Modal - Only show if user is logged in */}
+      {user && (
+        <EditPostModal 
+          isOpen={showEditModal}
+          onClose={closeEditModal}
+          onPostUpdated={handleCreatePost}
+          post={editingPost}
         />
       )}
 

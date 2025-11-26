@@ -39,31 +39,71 @@ const ResetPassword = () => {
     };
   }, [success, navigate]);
 
+  const handlePasswordBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return;
+    // Block space character
+    if (data === ' ' || data === '\u00A0') {
+      e.preventDefault();
+    }
+  };
+
+  const handlePasswordPaste = (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    // Remove all spaces from pasted text
+    const cleaned = pasted.replace(/\s/g, '');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const newValue = current.slice(0, start) + cleaned + current.slice(end);
+    
+    // Update form data
+    setFormData(prev => ({ ...prev, [target.name]: newValue }));
+    
+    // Manually trigger validation by creating a synthetic event
+    const syntheticEvent = {
+      target: { ...target, value: newValue, name: target.name },
+      currentTarget: target
+    };
+    handleChange(syntheticEvent);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Remove all spaces from password fields
+    let cleanedValue = value;
+    if (name === 'newPassword' || name === 'confirmPassword') {
+      cleanedValue = value.replace(/\s/g, '');
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: cleanedValue
     }));
 
     // Real-time password validation
     if (name === 'newPassword') {
-      if (value.length > 0 && value.length < 8) {
+      // Value is already cleaned (no spaces) from handleChange
+      if (cleanedValue.length > 0 && cleanedValue.length < 8) {
         setPasswordError(t('auth.reset.errors.passwordMinLength'));
       } else {
         setPasswordError('');
       }
       // Also check confirm password if it has value
-      if (formData.confirmPassword && formData.confirmPassword !== value) {
+      if (formData.confirmPassword && formData.confirmPassword !== cleanedValue) {
         setConfirmPasswordError(t('auth.reset.errors.passwordMismatch'));
-      } else if (formData.confirmPassword && formData.confirmPassword === value) {
+      } else if (formData.confirmPassword && formData.confirmPassword === cleanedValue) {
         setConfirmPasswordError('');
       }
     }
 
     // Real-time confirm password validation
     if (name === 'confirmPassword') {
-      if (value && formData.newPassword && value !== formData.newPassword) {
+      // Value is already cleaned (no spaces) from handleChange
+      if (cleanedValue && formData.newPassword && cleanedValue !== formData.newPassword) {
         setConfirmPasswordError(t('auth.reset.errors.passwordMismatch'));
       } else {
         setConfirmPasswordError('');
@@ -77,6 +117,7 @@ const ResetPassword = () => {
     setError('');
 
     // Validation
+    // Passwords are already cleaned (no spaces) from handleChange
     if (formData.newPassword !== formData.confirmPassword) {
       setError(t('auth.reset.errors.passwordMismatch'));
       setLoading(false);
@@ -90,6 +131,8 @@ const ResetPassword = () => {
     }
 
     try {
+      // Password is already cleaned (no spaces) from handleChange, but trim for safety
+      const trimmedPassword = formData.newPassword.trim();
       // Use the verified OTP from the previous step
       const response = await fetch('/api/auth/forgot-password/reset', {
         method: 'POST',
@@ -99,7 +142,7 @@ const ResetPassword = () => {
         body: JSON.stringify({
           email: email,
           otpCode: otpCode, // Use the verified OTP
-          newPassword: formData.newPassword,
+          newPassword: trimmedPassword,
         }),
       });
 
@@ -191,6 +234,8 @@ const ResetPassword = () => {
                 required
                 value={formData.newPassword}
                 onChange={handleChange}
+                onBeforeInput={handlePasswordBeforeInput}
+                onPaste={handlePasswordPaste}
                 className={`${styles['form-input']} ${passwordError ? styles['input-error'] : ''}`}
                 placeholder="••••••••"
               />
@@ -213,6 +258,8 @@ const ResetPassword = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onBeforeInput={handlePasswordBeforeInput}
+                onPaste={handlePasswordPaste}
                 className={`${styles['form-input']} ${confirmPasswordError ? styles['input-error'] : ''}`}
                 placeholder="••••••••"
               />

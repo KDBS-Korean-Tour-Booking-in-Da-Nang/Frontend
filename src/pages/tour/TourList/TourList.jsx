@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useToursAPI } from "../../../hooks/useToursAPI";
 import { useAuth } from "../../../contexts/AuthContext";
+import { API_ENDPOINTS } from "../../../config/api";
 import TourCard from "../TourCard/TourCard";
 import styles from "./TourList.module.css";
 
@@ -32,7 +33,7 @@ const TourList = () => {
 
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
 
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [filteredTours, setFilteredTours] = useState([]);
@@ -40,6 +41,8 @@ const TourList = () => {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1); // Pagination cho client-side (1-based)
+  const [top3Tours, setTop3Tours] = useState([]);
+  const [top3Loading, setTop3Loading] = useState(false);
   const TOURS_PER_PAGE = 12; // 4 cột x 3 hàng
   const debounceRef = useRef(null);
   const controllerRef = useRef(null);
@@ -48,6 +51,102 @@ const TourList = () => {
   useEffect(() => {
     fetchTours();
   }, []);
+
+  // Fetch top 3 tours based on bookings and 5-star ratings
+  useEffect(() => {
+    const calculateTop3Tours = async () => {
+      if (!tours || tours.length === 0) {
+        setTop3Tours([]);
+        return;
+      }
+
+      setTop3Loading(true);
+      try {
+        const token = getToken && getToken();
+        const toursWithScores = await Promise.all(
+          tours.map(async (tour) => {
+            try {
+              // Fetch bookings count
+              let bookingCount = 0;
+              try {
+                const bookingRes = await fetch(
+                  API_ENDPOINTS.BOOKING_BY_TOUR_ID(tour.id),
+                  token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+                );
+                if (bookingRes.ok) {
+                  const bookings = await bookingRes.json();
+                  bookingCount = Array.isArray(bookings) ? bookings.length : 0;
+                }
+              } catch (err) {
+                console.warn(`Failed to fetch bookings for tour ${tour.id}:`, err);
+              }
+
+              // Fetch ratings
+              let fiveStarRatings = 0;
+              let averageRating = 0;
+              try {
+                const ratingRes = await fetch(
+                  API_ENDPOINTS.TOUR_RATED_BY_TOUR(tour.id),
+                  token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+                );
+                if (ratingRes.ok) {
+                  const ratings = await ratingRes.json();
+                  if (Array.isArray(ratings) && ratings.length > 0) {
+                    fiveStarRatings = ratings.filter((r) => Number(r.star) === 5).length;
+                    // Calculate average rating
+                    const sum = ratings.reduce((acc, r) => acc + (Number(r.star) || 0), 0);
+                    averageRating = sum / ratings.length;
+                  }
+                }
+              } catch (err) {
+                console.warn(`Failed to fetch ratings for tour ${tour.id}:`, err);
+              }
+
+              // Calculate score: booking count + 5-star ratings count
+              const score = bookingCount + fiveStarRatings;
+
+              return {
+                ...tour,
+                bookingCount,
+                fiveStarRatings,
+                averageRating: Number.isFinite(averageRating) ? Math.round(averageRating * 10) / 10 : 0,
+                score,
+              };
+            } catch (error) {
+              console.warn(`Error processing tour ${tour.id}:`, error);
+              return {
+                ...tour,
+                bookingCount: 0,
+                fiveStarRatings: 0,
+                averageRating: 0,
+                score: 0,
+              };
+            }
+          })
+        );
+
+        // Sort by score (descending) and take top 3
+        const sorted = toursWithScores
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+
+        setTop3Tours(sorted);
+      } catch (error) {
+        console.error("Error calculating top 3 tours:", error);
+        setTop3Tours([]);
+      } finally {
+        setTop3Loading(false);
+      }
+    };
+
+    // Only calculate when not in search mode and tours are loaded
+    if (!isSearchMode && tours && tours.length > 0) {
+      calculateTop3Tours();
+    } else {
+      setTop3Tours([]);
+      setTop3Loading(false);
+    }
+  }, [tours, isSearchMode, getToken]);
 
   useEffect(() => {
     if (!isSearchMode) {
@@ -177,6 +276,9 @@ const TourList = () => {
   const displayTours = getPaginatedTours();
   const shouldShowPagination =
     !isSearchMode && filteredTours.length > TOURS_PER_PAGE;
+  const showTop3Skeleton = loading || top3Loading;
+  const showTop3Section =
+    !isSearchMode && (showTop3Skeleton || top3Tours.length > 0);
 
   return (
     <div className={styles["tour-list-container"]}>
@@ -237,25 +339,105 @@ const TourList = () => {
                 </button>
               )}
 
-              {/* List All Voucher Button */}
-              <button
-                className={styles["action-btn"]}
-                onClick={() => navigate("/tour/voucher-list")}
-                title={t("tourList.voucherList.title")}
-              >
-                <TicketIcon className={styles["action-icon"]} />
-                <span className={styles["action-text"]}>
-                  {t("tourList.voucherList.title")}
-                </span>
-              </button>
+              {/* List All Voucher Button - Chỉ hiển thị khi user đã đăng nhập */}
+              {user && (
+                <button
+                  className={styles["action-btn"]}
+                  onClick={() => navigate("/tour/voucher-list")}
+                  title={t("tourList.voucherList.title")}
+                >
+                  <TicketIcon className={styles["action-icon"]} />
+                  <span className={styles["action-text"]}>
+                    {t("tourList.voucherList.title")}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tours Grid */}
+      {/* Tours Section - Combined Top 3 and All Tours */}
       <div className={styles["tours-section"]}>
         <div className={styles["container"]}>
+          {/* Top 3 Tours Section */}
+          {showTop3Section && (
+            <>
+              <div className={styles["top-tours-header"]}>
+                <h2 className={styles["top-tours-title"]}>
+                  {t("tourList.topTours.title")}
+                </h2>
+                <p className={styles["top-tours-subtitle"]}>
+                  {t("tourList.topTours.subtitle")}
+                </p>
+              </div>
+              <div className={styles["top-tours-grid"]}>
+                {showTop3Skeleton
+                  ? Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={`top-tour-skeleton-${index}`}
+                        className={styles["top-tour-card-wrapper"]}
+                      >
+                        <div className={styles["top-tour-skeleton"]}>
+                          <div className={styles["skeleton-thumbnail"]} />
+                          <div className={styles["skeleton-content"]}>
+                            <div className={styles["skeleton-line"]} />
+                            <div className={`${styles["skeleton-line"]} ${styles["short"]}`} />
+                            <div className={styles["skeleton-footer"]}>
+                              <div className={styles["skeleton-pill"]} />
+                              <div className={`${styles["skeleton-pill"]} ${styles["small"]}`} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  : top3Tours.map((tour, index) => (
+                      <div key={tour.id} className={styles["top-tour-card-wrapper"]}>
+                        <div className={styles["top-tour-card"]}>
+                          {/* Top Badge - Left Top */}
+                          <div className={styles["top-badge-overlay"]}>
+                            <div className={styles[`top-badge-${index + 1}`]}>
+                              <span className={styles["badge-emoji"]}>
+                                {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
+                              </span>
+                              <span className={styles["badge-text"]}>
+                                {t("tourList.topTours.badge", { rank: index + 1 })}
+                              </span>
+                            </div>
+                          </div>
+                          {/* Rating - Right Top */}
+                          {tour.averageRating > 0 && (
+                            <div className={styles["top-rating-overlay"]}>
+                              <div className={styles["rating-badge"]}>
+                                <svg className={styles["star-icon"]} fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                <span className={styles["rating-value"]}>{tour.averageRating.toFixed(1)}</span>
+                              </div>
+                            </div>
+                          )}
+                          <TourCard tour={tour} />
+                        </div>
+                      </div>
+                    ))}
+              </div>
+
+              {/* Separator between Top Tours and All Tours */}
+              {!showTop3Skeleton && top3Tours.length > 0 && (
+                <div className={styles["section-separator"]}>
+                  <div className={styles["separator-line"]}></div>
+                  <div className={styles["separator-text"]}>
+                    <h2 className={styles["all-tours-title"]}>
+                      {t("tourList.allTours.title")}
+                    </h2>
+                  </div>
+                  <div className={styles["separator-line"]}></div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* All Tours Grid */}
           {loading ? (
             <div className={styles["loading-container"]}>
               <div className={styles["loading-spinner"]}></div>
@@ -297,8 +479,8 @@ const TourList = () => {
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(1)}
                       disabled={currentPage === 1}
-                      aria-label="First page"
-                      title="Trang đầu"
+                      aria-label={t("tourList.pagination.firstPage")}
+                      title={t("tourList.pagination.firstPage")}
                     >
                       <ChevronDoubleLeftIcon className={styles["pagination-icon"]} />
                     </button>
@@ -306,8 +488,8 @@ const TourList = () => {
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      aria-label="Previous page"
-                      title="Trang trước"
+                      aria-label={t("tourList.pagination.previousPage")}
+                      title={t("tourList.pagination.previousPage")}
                     >
                       <ChevronLeftIcon className={styles["pagination-icon"]} />
                     </button>
@@ -366,8 +548,8 @@ const TourList = () => {
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(currentPage + 1)}
                       disabled={currentPage === clientTotalPages}
-                      aria-label="Next page"
-                      title="Trang sau"
+                      aria-label={t("tourList.pagination.nextPage")}
+                      title={t("tourList.pagination.nextPage")}
                     >
                       <ChevronRightIcon className={styles["pagination-icon"]} />
                     </button>
@@ -375,8 +557,8 @@ const TourList = () => {
                       className={styles["pagination-btn"]}
                       onClick={() => setCurrentPage(clientTotalPages)}
                       disabled={currentPage === clientTotalPages}
-                      aria-label="Last page"
-                      title="Trang cuối"
+                      aria-label={t("tourList.pagination.lastPage")}
+                      title={t("tourList.pagination.lastPage")}
                     >
                       <ChevronDoubleRightIcon className={styles["pagination-icon"]} />
                     </button>

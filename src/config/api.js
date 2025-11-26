@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
   USERS: `${BaseURL}/api/users`,
   UPDATE_USER: `${BaseURL}/api/users/update`,
   GET_USER: (email) => `${BaseURL}/api/users/${encodeURIComponent(email)}`,
+  CHANGE_PASSWORD: `${BaseURL}/api/auth/change-password`,
   
   // Tours
   TOURS: `${BaseURL}/api/tour`,

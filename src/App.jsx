@@ -5,11 +5,11 @@ import { store } from './store';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ChatProvider } from './contexts/ChatContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConditionalNavbar } from './components';
 import Footer from './components/Footer/Footer';
 import { useAuth } from './contexts/AuthContext';
+import { setNavigateCallback } from './utils/apiErrorHandler';
 import Homepage from './pages/home/homepage/homepage';
 import Login from './pages/authentication/login/login';
 import StaffLogin from './pages/authentication/staffLogin/staffLogin';
@@ -17,7 +17,7 @@ import AdminLogin from './pages/authentication/adminLogin/adminLogin';
 import Register from './pages/authentication/register/register';
 import VerifyEmail from './pages/authentication/verifyEmail/verifyEmail';
 import OAuthCallback from './pages/authentication/oauthCallback/oauthCallback';
-// Removed direct access route for Company Info
+import CompanyInfo from './pages/company/companyInfo/companyInfo';
 import PendingPage from './pages/home/pendingPage/pendingPage';
 import ForgotPassword from './pages/authentication/forgotPassword/forgotPassword';
 import ResetPassword from './pages/authentication/resetPassword/resetPassword';
@@ -42,11 +42,13 @@ import VoucherManagement from './pages/company/vouchers/VoucherManagement';
 import News from './pages/news/News';
 import NewsManagement from './pages/staff/news-management/NewsManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
-import NewsDetail from './pages/news/NewsDetail';
+import NewsDetail from './pages/news/NewsDetail/NewsDetail';
 import AboutUs from './pages/about/AboutUs';
-import BookingCheckPaymentPage from './pages/payment/BookingCheckPaymentPage';
-import PaymentResultPage from './pages/payment/PaymentResultPage';
-import TossPaymentPage from './pages/payment/TossPaymentPage';
+import Contact from './pages/contact/Contact';
+import BookingCheckPaymentPage from './pages/payment/BookingCheckPaymentPage/BookingCheckPaymentPage';
+import PaymentResultPage from './pages/payment/PaymentResultPage/PaymentResultPage';
+import TossPaymentPage from './pages/payment/TossPaymentPage/TossPaymentPage';
+import { Error404, Error403, Error500, Error401 } from './pages/home/errorPages';
 
 
 function AppContent() {
@@ -73,6 +75,11 @@ function AppContent() {
   const isVoucherDetailPage = location.pathname === '/tour/voucher';
   const isVoucherListPage = location.pathname === '/tour/voucher-list';
   const isBookingHistoryPage = location.pathname === '/user/booking-history';
+  // Error pages should not show footer
+  const isErrorPage = location.pathname === '/error/404' || 
+                      location.pathname === '/error/403' || 
+                      location.pathname === '/error/500' ||
+                      location.pathname === '/error/401';
   const authenticationPaths = [
     '/login',
     '/staff/login',
@@ -86,7 +93,7 @@ function AppContent() {
   ];
   const isAuthenticationPage = authenticationPaths.includes(location.pathname);
   
-  // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, company info, voucher detail page, booking history, voucher list, or authentication pages
+  // Footer should not show on staff/admin pages, company dashboard, forum, tour wizard, tour booking wizard, company info, voucher detail page, booking history, voucher list, authentication pages, or error pages
   const shouldShowFooter = !isStaffAdminPage 
     && !isBusinessDashboardPage 
     && !isForumPage 
@@ -96,7 +103,8 @@ function AppContent() {
     && !isVoucherDetailPage
     && !isVoucherListPage
     && !isBookingHistoryPage
-    && !isAuthenticationPage;
+    && !isAuthenticationPage
+    && !isErrorPage;
 
   // Use useEffect to ensure page is ready before showing footer
   useEffect(() => {
@@ -123,17 +131,39 @@ function AppContent() {
     }
   }, [location.pathname]);
 
-  // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING to Pending Page
+  // Set navigate callback for apiErrorHandler
+  useEffect(() => {
+    setNavigateCallback(navigate);
+    return () => {
+      setNavigateCallback(null);
+    };
+  }, [navigate]);
+
+  // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING
+  // If user has submitted documents, redirect to pending-page
+  // If user hasn't submitted, allow access to company-info to upload
   useEffect(() => {
     if (loading) return;
     const role = user?.role;
     const status = user?.status;
     const isCompanyRole = role === 'COMPANY' || role === 'BUSINESS';
     const isPending = status === 'COMPANY_PENDING';
+    const onCompanyInfoPage = location.pathname === '/company-info';
     const onPendingPage = location.pathname === '/pending-page';
-
-    if (isCompanyRole && isPending && !onPendingPage) {
-      navigate('/pending-page', { replace: true });
+    
+    if (isCompanyRole && isPending && !onCompanyInfoPage && !onPendingPage) {
+      // Check if user has submitted documents (from localStorage as quick check)
+      const email = user?.email || localStorage.getItem('userEmail');
+      const hasSubmitted = email && localStorage.getItem(`businessUploadStatus:${email}`) === 'submitted';
+      
+      // If submitted, go to pending-page; otherwise allow company-info access
+      // When user logs in again with COMPANY_PENDING, if they've submitted before, go to pending-page
+      if (hasSubmitted) {
+        navigate('/pending-page', { replace: true });
+      } else {
+        // Allow access to company-info to upload documents
+        navigate('/company-info', { replace: true });
+      }
       return;
     }
   }, [user, loading, location.pathname, navigate]);
@@ -151,7 +181,7 @@ function AppContent() {
                   <Route path="/verify-email" element={<VerifyEmail />} />
                   <Route path="/google/callback" element={<OAuthCallback />} />
                   <Route path="/naver/callback" element={<OAuthCallback />} />
-                  {/** Removed /company-info route to disable direct access */}
+                  <Route path="/company-info" element={<CompanyInfo />} />
                   <Route path="/pending-page" element={<PendingPage />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
@@ -183,10 +213,18 @@ function AppContent() {
                   {/* News routes */}
                   <Route path="/news/detail" element={<NewsDetail />} />
                   <Route path="/news" element={<News />} />
-                  {/* About Us route */}
+                  {/* About & Contact routes */}
                   <Route path="/about" element={<AboutUs />} />
+                  <Route path="/contact" element={<Contact />} />
                   {/* Staff routes */}
                   <Route path="/staff/*" element={<StaffDashboard />} />
+                  {/* Error pages */}
+                  <Route path="/error/404" element={<Error404 />} />
+                  <Route path="/error/403" element={<Error403 />} />
+                  <Route path="/error/500" element={<Error500 />} />
+                  <Route path="/error/401" element={<Error401 />} />
+                  {/* Catch-all route for 404 - must be last */}
+                  <Route path="*" element={<Error404 />} />
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
@@ -197,19 +235,17 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <ChatProvider>
-              <NotificationProvider>
-                <Router>
-                  <AppContent />
-                </Router>
-              </NotificationProvider>
-            </ChatProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <ChatProvider>
+            <NotificationProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </NotificationProvider>
+          </ChatProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Provider>
   );
 }

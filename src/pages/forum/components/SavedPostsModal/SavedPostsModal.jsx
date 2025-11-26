@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
+import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
+import { X, User, Calendar, Bookmark, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import styles from './SavedPostsModal.module.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
@@ -44,6 +46,12 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
         headers: createAuthHeaders(token, { 'User-Email': email })
       });
       
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         const allPosts = data.result || [];
@@ -79,6 +87,12 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
       });
+      
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       
       if (response.ok) {
         // Remove from local state
@@ -137,13 +151,15 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
       <div className={styles['saved-posts-modal']}>
         <div className={styles['saved-posts-header']}>
           <h2>{t('forum.modals.savedPosts.title')}</h2>
-          <button className={styles['close-btn']} onClick={onClose}>&times;</button>
+          <button className={styles['close-btn']} onClick={onClose}>
+            <X size={20} strokeWidth={1.5} />
+          </button>
         </div>
         
         <div className={styles['saved-posts-content']}>
           {isLoading ? (
             <div className={styles['loading-container']}>
-              <div className={styles['loading-spinner']}></div>
+              <Loader2 size={32} strokeWidth={1.5} className={styles['loading-icon']} />
               <p>{t('forum.loading')}</p>
             </div>
           ) : error ? (
@@ -174,9 +190,18 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                     <h3 className={styles['saved-post-title']}>{savedPost.postTitle}</h3>
                     <p className={styles['saved-post-text']}>{savedPost.postContent}</p>
                     <div className={styles['saved-post-meta']}>
-                      <span className={styles['saved-post-author']}>👤 {savedPost.postAuthor}</span>
-                      <span className={styles['saved-post-date']}>📅 {formatDate(savedPost.postCreatedAt)}</span>
-                      <span className={styles['saved-at']}>💾 {t('forum.modals.savedPosts.savedAt')}: {formatDate(savedPost.savedAt)}</span>
+                      <span className={styles['saved-post-author']}>
+                        <User size={12} strokeWidth={1.5} />
+                        {savedPost.postAuthor}
+                      </span>
+                      <span className={styles['saved-post-date']}>
+                        <Calendar size={12} strokeWidth={1.5} />
+                        {formatDate(savedPost.postCreatedAt)}
+                      </span>
+                      <span className={styles['saved-at']}>
+                        <Bookmark size={12} strokeWidth={1.5} />
+                        {t('forum.modals.savedPosts.savedAt')}: {formatDate(savedPost.savedAt)}
+                      </span>
                     </div>
                     {savedPost.note && (
                       <div className={styles['saved-post-note']}>
@@ -192,7 +217,8 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                       }}
                       className={styles['unsave-btn']}
                     >
-                      🗑️ {t('forum.modals.savedPosts.unsave')}
+                      <Trash2 size={14} strokeWidth={1.5} />
+                      <span>{t('forum.modals.savedPosts.unsave')}</span>
                     </button>
                   </div>
                 </div>
@@ -209,14 +235,15 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  ← {t('forum.modals.savedPosts.previous')}
+                  <ChevronLeft size={16} strokeWidth={1.5} />
+                  <span>{t('forum.modals.savedPosts.previous')}</span>
                 </button>
                 
                 <div className={styles['pagination-numbers']}>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
-                      className={`pagination-number ${currentPage === page ? 'active' : ''}`}
+                      className={`${styles['pagination-number']} ${currentPage === page ? styles['active'] : ''}`}
                       onClick={() => handlePageChange(page)}
                     >
                       {page}
@@ -229,7 +256,8 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
-                  {t('forum.modals.savedPosts.next')} →
+                  <span>{t('forum.modals.savedPosts.next')}</span>
+                  <ChevronRight size={16} strokeWidth={1.5} />
                 </button>
               </div>
               

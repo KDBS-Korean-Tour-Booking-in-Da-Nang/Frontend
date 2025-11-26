@@ -143,7 +143,10 @@
 			"submit": "이메일 보내기",
 			"sending": "전송 중...",
 			"success": "OTP가 이메일로 전송되었습니다.",
-			"error": "OTP 전송 실패. 다시 시도해주세요."
+			"error": "OTP 전송 실패. 다시 시도해주세요.",
+			"errors": {
+				"oauthOnly": "이 계정은 Google/Naver로 로그인한 계정이며 비밀번호가 없습니다. Google/Naver로 로그인해주세요."
+			}
 		},
 		"verify": {
 			"title": "이메일 인증",
@@ -441,6 +444,7 @@
 			"phone": "전화번호",
 			"dob": "생년월일",
 			"gender": "성별",
+			"address": "주소",
 			"cccd": "신분증 번호",
 			"id": "ID",
 			"role": "역할",
@@ -459,7 +463,80 @@
 			"other": "기타"
 		},
 		"cancel": "취소",
-		"saveChanges": "변경 사항 저장"
+		"saveChanges": "변경 사항 저장",
+		"sidebar": {
+			"profile": "개인 정보",
+			"settings": "설정",
+			"changePassword": "비밀번호 변경",
+			"favorites": "즐겨찾기",
+			"payments": "결제 수단",
+			"notifications": "알림"
+		},
+		"actions": {
+			"edit": "프로필 수정",
+			"chooseAvatar": "프로필 사진 선택",
+			"cancel": "취소",
+			"save": "변경 사항 저장",
+			"updating": "업데이트 중..."
+		},
+		"settings": {
+			"language": "언어",
+			"theme": "테마",
+			"themeOptions": {
+				"light": "라이트",
+				"dark": "다크"
+			}
+		},
+		"password": {
+			"current": "현재 비밀번호",
+			"new": "새 비밀번호",
+			"confirm": "새 비밀번호 확인",
+			"submit": "비밀번호 업데이트",
+			"processing": "업데이트 중...",
+			"success": "비밀번호가 성공적으로 변경되었습니다!",
+			"socialDisabled": "소셜 계정으로 로그인한 경우 여기에서 비밀번호를 변경할 수 없습니다.",
+			"errors": {
+				"currentRequired": "현재 비밀번호를 입력하세요",
+				"newRequired": "새 비밀번호를 입력하세요",
+				"confirmRequired": "새 비밀번호를 다시 입력하세요",
+				"minLength": "새 비밀번호는 최소 8자 이상이어야 합니다",
+				"match": "비밀번호 확인이 일치하지 않습니다",
+				"sameAsCurrent": "새 비밀번호가 현재 비밀번호와 같을 수 없습니다",
+				"generic": "비밀번호를 변경할 수 없습니다. 다시 시도하세요.",
+				"oauthOnly": "이 계정은 Google/Naver로 로그인한 계정이며 비밀번호가 없습니다. 비밀번호를 변경할 수 없습니다."
+			}
+		},
+		"favorites": {
+			"title": "즐겨찾기 투어",
+			"empty": "아직 즐겨찾기한 투어가 없습니다."
+		},
+		"payments": {
+			"title": "결제 수단",
+			"empty": "등록된 결제 수단이 없습니다."
+		},
+		"notifications": {
+			"email": "이메일 알림",
+			"push": "푸시 알림",
+			"enabled": "켜짐",
+			"disabled": "꺼짐"
+		},
+		"placeholders": {
+			"addressOptional": "주소 입력 (선택 사항)"
+		},
+		"datePicker": {
+			"open": "날짜 선택기 열기"
+		},
+		"errors": {
+			"invalidName": "이름이 올바르지 않습니다: 숫자로 시작하거나 특수 문자를 포함할 수 없습니다.",
+			"avatarSize": "이미지 크기는 5MB를 초과할 수 없습니다",
+			"avatarFormat": "지원되지 않는 이미지 형식입니다 (JPG, PNG, GIF, WebP만 허용)",
+			"tokenMissing": "인증 토큰을 찾을 수 없습니다",
+			"updateFailed": "정보를 업데이트하는 동안 오류가 발생했습니다",
+			"mustBe13": "만 13세 이상이어야 합니다"
+		},
+		"toast": {
+			"updateSuccess": "정보가 성공적으로 업데이트되었습니다!"
+		}
 	},
 	"oauth": {
 		"successLogin": "성공적으로 로그인되었습니다!",
@@ -757,6 +834,7 @@
 	},
 	"toast": {
 		"required": "{{field}}는 필수입니다",
+		"fill_missing_field": "누락된 {{field}}을(를) 입력해주세요",
 		"name_required": "이름은 필수입니다",
 		"login_required": "계속하려면 로그인하세요",
 		"save_success": "저장 성공",
@@ -1353,7 +1431,19 @@
 		},
 		"loadMore": "더 보기",
 		"pagination": {
-			"showing": "총 {{total}}개 투어 중 {{start}}~{{end}}개 표시"
+			"showing": "총 {{total}}개 투어 중 {{start}}~{{end}}개 표시",
+			"firstPage": "첫 페이지",
+			"previousPage": "이전 페이지",
+			"nextPage": "다음 페이지",
+			"lastPage": "마지막 페이지"
+		},
+		"topTours": {
+			"title": "인기 투어 Top 3",
+			"subtitle": "예약이 가장 많고 5성 평점이 가장 높은 투어",
+			"badge": "Top {{rank}}"
+		},
+		"allTours": {
+			"title": "전체 투어"
 		}
 	},
 	"bookingHistory": {
@@ -1513,6 +1603,7 @@
 				"fullName": "성명을 입력하세요",
 				"chooseGender": "성별을 선택하세요",
 				"chooseNationality": "국적을 선택하세요",
+				"selectNationalityFirst": "먼저 국적을 선택해주세요",
 				"idVietnam": "숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)",
 				"idPassport": "여권 번호 입력 (6-9자)",
 				"dateFormat": "{{format}} 형식으로 입력",
@@ -1529,6 +1620,7 @@
 			},
 			"fields": {
 				"date": "출발일",
+				"deadlineNotice": "이 투어는 {{days}}일의 처리 기간이 필요하므로 {{minDate}} 이후의 출발일을 선택해 주세요",
 				"adultPax": "성인 인원수",
 				"adultName1": "성인 1 이름",
 				"adultName2": "성인 2 이름",

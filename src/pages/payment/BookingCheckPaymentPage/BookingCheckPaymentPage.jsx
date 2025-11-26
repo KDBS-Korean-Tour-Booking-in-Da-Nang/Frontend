@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getBookingById, getBookingTotal, getGuestsByBookingId } from '../../services/bookingAPI';
-import { createTossBookingPayment } from '../../services/paymentService';
-import { getAvailableVouchersForBooking } from '../../services/voucherAPI';
-import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { validateEmail } from '../../utils/emailValidator';
+import { getBookingById, getBookingTotal, getGuestsByBookingId } from '../../../services/bookingAPI';
+import { createTossBookingPayment } from '../../../services/paymentService';
+import { getAvailableVouchersForBooking } from '../../../services/voucherAPI';
+import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { validateEmail } from '../../../utils/emailValidator';
 import {
   ArrowLeft,
   CreditCard,
@@ -23,7 +23,7 @@ import {
   Ticket,
   X,
 } from 'lucide-react';
-import './paymentSoftLayout.css';
+import styles from './BookingCheckPaymentPage.module.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -804,8 +804,8 @@ const BookingCheckPaymentPage = () => {
 
   return (
     <>
-      <div className="payment-soft-shell">
-        <div className="payment-soft-card-wrapper">
+      <div className={styles['payment-soft-shell']}>
+        <div className={styles['payment-soft-card-wrapper']}>
           <button
             type="button"
             onClick={handleBackToWizardClick}
@@ -817,8 +817,8 @@ const BookingCheckPaymentPage = () => {
             <span>{t('payment.checkPayment.actions.backToWizard')}</span>
           </button>
 
-          <div className="payment-soft-card">
-            <div className="payment-soft-card__header">
+          <div className={styles['payment-soft-card']}>
+            <div className={styles['payment-soft-card__header']}>
               <div className="flex flex-col gap-3">
                 <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1.5 text-xs font-semibold text-gray-600">
                   <CreditCard className="h-4 w-4 text-[#1a8eea]" />
@@ -837,7 +837,7 @@ const BookingCheckPaymentPage = () => {
               </div>
             </div>
 
-            <div className="payment-soft-card__body">
+            <div className={styles['payment-soft-card__body']}>
               {statusBanner && (() => {
                 const style = statusBannerStyles[statusBanner.type] || statusBannerStyles.info;
                 const Icon = style.Icon;

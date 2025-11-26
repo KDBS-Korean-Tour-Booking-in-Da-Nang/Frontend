@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { BaseURL, API_ENDPOINTS } from '../../../../config/api';
+import { Search, Hash, User, FileText, TrendingUp, X, Check, Clock, History } from 'lucide-react';
 import styles from './SearchSidebar.module.css';
 
 const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
@@ -336,7 +337,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
               text: p.title, 
               subtitle: `${t('forum.search.by')} ${p.username}`,
               postId: p.forumPostId,
-              icon: '📝'
+              icon: 'post'
             });
           }
           
@@ -346,7 +347,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
               type: 'user', 
               text: p.username, 
               subtitle: t('forum.search.user'),
-              icon: '👤'
+              icon: 'user'
             });
           }
         });
@@ -363,7 +364,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
             text: `#${h.content}`, 
             subtitle: `${h.postCount || 0} ${t('forum.search.posts')}`,
             hashtag: h.content,
-            icon: '#'
+            icon: 'hashtag'
           });
         });
       }
@@ -371,10 +372,10 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
       // Add trending topics if query is short
       if (q.length <= 2) {
         const trendingTopics = [
-          { type: 'trending', text: 'Công nghệ AI mới nhất', icon: '🔥' },
-          { type: 'trending', text: 'Startup thành công', icon: '🚀' },
-          { type: 'trending', text: 'Marketing số', icon: '📈' },
-          { type: 'trending', text: 'Đầu tư tài chính', icon: '💰' }
+          { type: 'trending', text: 'Công nghệ AI mới nhất', icon: 'trending' },
+          { type: 'trending', text: 'Startup thành công', icon: 'trending' },
+          { type: 'trending', text: 'Marketing số', icon: 'trending' },
+          { type: 'trending', text: 'Đầu tư tài chính', icon: 'trending' }
         ];
         result.push(...trendingTopics);
       }
@@ -488,7 +489,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
               ref={inputRef}
             />
             <button type="submit" className={styles['search-btn']}>
-              🔍
+              <Search size={18} strokeWidth={1.5} />
             </button>
           </div>
           {showSuggest && (suggestions.length > 0 || (searchHistory.length > 0 && !searchKeyword.trim())) && createPortal(
@@ -502,7 +503,19 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
                     className={`${styles['suggest-item']} ${styles[s.type] || ''} ${selectedIndex === idx ? styles['selected'] : ''}`}
                     onClick={(e) => clickSuggestion(s, e)}
                   >
-                    <span className={styles['icon']}>{s.icon || (s.type === 'hashtag' ? '#' : s.type === 'user' ? '👤' : '🔎')}</span>
+                    <span className={styles['icon']}>
+                      {s.icon === 'hashtag' || s.type === 'hashtag' ? (
+                        <Hash size={16} strokeWidth={1.5} />
+                      ) : s.icon === 'user' || s.type === 'user' ? (
+                        <User size={16} strokeWidth={1.5} />
+                      ) : s.icon === 'post' || s.type === 'post' ? (
+                        <FileText size={16} strokeWidth={1.5} />
+                      ) : s.icon === 'trending' || s.type === 'trending' ? (
+                        <TrendingUp size={16} strokeWidth={1.5} />
+                      ) : (
+                        <Search size={16} strokeWidth={1.5} />
+                      )}
+                    </span>
                     <div className={styles['suggest-content']}>
                       <span className={styles['text']}>{s.text}</span>
                       {s.subtitle && <span className={styles['subtitle']}>{s.subtitle}</span>}
@@ -514,14 +527,17 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
                 searchHistory.length > 0 && (
                   <>
                     <div className={styles['history-header']}>
-                      <span className={styles['history-title']}>{t('forum.search.recentSearches')}</span>
+                      <div className={styles['history-title-wrapper']}>
+                        <History size={14} strokeWidth={1.5} />
+                        <span className={styles['history-title']}>{t('forum.search.recentSearches')}</span>
+                      </div>
                       <button
                         type="button"
                         onClick={handleClearAllHistory}
                         className={styles['clear-all-history-btn']}
                         title={t('forum.search.clearRecent')}
                       >
-                        ✕
+                        <X size={14} strokeWidth={1.5} />
                       </button>
                     </div>
                     {searchHistory.map((keyword, index) => (
@@ -544,7 +560,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
                           className={styles['remove-history-btn']}
                           title={t('forum.search.removeFromHistory')}
                         >
-                          ✕
+                          <X size={12} strokeWidth={1.5} />
                         </button>
                       </div>
                     ))}
@@ -569,7 +585,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
               }}
               title={t('forum.filter.clearAll')}
             >
-              ✕
+              <X size={16} strokeWidth={1.5} />
             </button>
           )}
         </div>
@@ -582,7 +598,11 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
                 onClick={(e) => handleHashtagClick(hashtag, e)}
                 className={`${styles['hashtag-item']} ${isSelected ? styles['selected'] : ''}`}
               >
-                {isSelected && <span className={styles['hashtag-check']}>✓</span>}
+                {isSelected && (
+                  <span className={styles['hashtag-check']}>
+                    <Check size={14} strokeWidth={2.5} />
+                  </span>
+                )}
                 <span className={styles['hashtag-text']}>#{hashtag.content}</span>
                 <span className={styles['hashtag-count']}>{hashtag.count}</span>
               </button>

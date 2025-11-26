@@ -171,6 +171,7 @@ const Navbar = () => {
             <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
             <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
             <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
+            <Link to="/contact" className={styles['nav-link']}>{t('nav.contact')}</Link>
           </div>
 
           {/* Right Section */}
@@ -357,6 +358,14 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             {t('nav.about')}
+          </Link>
+
+          <Link
+            to="/contact"
+            className={styles['mobile-nav-link']}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {t('nav.contact')}
           </Link>
 
           {user && (

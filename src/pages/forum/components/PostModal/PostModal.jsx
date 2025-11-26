@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, createAuthHeaders, FrontendURL } from '../../../../config/api';
+import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
+import { X, Image, Hash, Loader2, Link2, XCircle } from 'lucide-react';
 import styles from './PostModal.module.css';
 
-const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
+const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const { showError, showSuccess, showBatch } = useToast();
@@ -24,34 +26,18 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
   const [linkPreview, setLinkPreview] = useState(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
-  // Load edit data when editPost changes
+  // Reset form when modal opens
   useEffect(() => {
-    if (editPost) {
-      setTitle(editPost.title || '');
-      setContent(editPost.content || '');
-      setHashtags(editPost.hashtags?.map(h => h.content) || []);
-      
-      // Load existing images
-      if (editPost.images && editPost.images.length > 0) {
-        const existingImages = editPost.images.map(img => 
-          getImageUrl(img.imgPath)
-        );
-        setImages(existingImages);
-        setImageFiles([]); // No new files when editing
-      } else {
-        setImages([]);
-        setImageFiles([]);
-      }
-    } else {
-      // Reset form for new post
+    if (isOpen) {
       setTitle('');
       setContent('');
       setHashtags([]);
       setImages([]);
       setImageFiles([]);
+      setLinkPreview(null);
+      setHashtagInput('');
     }
-    setHashtagInput('');
-  }, [editPost]);
+  }, [isOpen]);
 
   const commitTag = (raw) => {
     const cleaned = (raw || '')
@@ -225,25 +211,29 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     setLinkPreview(null);
   };
 
+  const trimmedTitle = title.trim();
+  const trimmedContent = content.trim();
+  const isSubmitDisabled = isLoading || trimmedContent.length === 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!trimmedContent) {
+      return;
+    }
     
     // Collect all validation errors
     const errors = [];
     
     // Check if content contains only links (no other text)
-    const hasOnlyLinks = content.trim().split(/\s+/).every(part => {
+    const hasOnlyLinks = trimmedContent.split(/\s+/).every(part => {
       const trimmed = part.trim();
       return !trimmed || /^https?:\/\/.+/.test(trimmed);
     });
     
     // If content has only links, title is not required
-    if (!hasOnlyLinks && !title.trim()) {
+    if (!hasOnlyLinks && !trimmedTitle) {
       errors.push('Tiêu đề bài viết là bắt buộc');
-    }
-    
-    if (!content.trim()) {
-      errors.push('Nội dung bài viết là bắt buộc');
     }
     
     // Show all errors if any
@@ -256,8 +246,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     try {
       const formData = new FormData();
       formData.append('userEmail', user.email);
-      formData.append('title', title.trim());
-      formData.append('content', content.trim());
+      formData.append('title', trimmedTitle);
+      formData.append('content', trimmedContent);
       
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);
@@ -275,27 +265,27 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         }));
       }
       
-      // Only append new image files when creating new post and no links in content
-      if (!editPost && !hasLinksInContent(content)) {
+      // Only append new image files when no links in content
+      if (!hasLinksInContent(content)) {
         imageFiles.forEach(file => {
           formData.append('images', file);
         });
       }
 
-      const url = editPost 
-        ? API_ENDPOINTS.POST_BY_ID(editPost.forumPostId)
-        : API_ENDPOINTS.POSTS;
-      
-      const method = editPost ? 'PUT' : 'POST';
-
       const token = getToken();
       const headers = createAuthFormHeaders(token);
 
-      const response = await fetch(url, {
-        method: method,
+      const response = await fetch(API_ENDPOINTS.POSTS, {
+        method: 'POST',
         headers,
         body: formData,
       });
+
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
 
       if (response.ok) {
         const result = await response.json();
@@ -322,14 +312,18 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
         }
         
         // If we sent images but backend didn't return them, try to fetch the post again
-        if (!editPost && imageFiles.length > 0 && !hasLinksInContent(content) && (!result.images || result.images.length === 0)) {
+        if (imageFiles.length > 0 && !hasLinksInContent(content) && (!result.images || result.images.length === 0)) {
           try {
             const token = getToken();
             const headers = createAuthHeaders(token);
             const fetchResponse = await fetch(API_ENDPOINTS.POST_BY_ID(result.forumPostId), {
               headers
             });
-            if (fetchResponse.ok) {
+            
+            // Handle 401 if token expired
+            if (!fetchResponse.ok && fetchResponse.status === 401) {
+              await checkAndHandle401(fetchResponse);
+            } else if (fetchResponse.ok) {
               const fetchedPost = await fetchResponse.json();
               if (fetchedPost.images && fetchedPost.images.length > 0) {
                 result.images = fetchedPost.images;
@@ -340,15 +334,9 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           }
         }
 
-        if (editPost) {
-          // Call onPostCreated with the updated post for edit mode
-          onPostCreated(result);
-          showSuccess('toast.forum.post_update_success');
-        } else {
-          // Call onPostCreated with the new post for create mode
+        // Call onPostCreated with the new post
           onPostCreated(result);
           showSuccess('toast.forum.post_create_success');
-        }
         onClose();
         resetForm();
       } else {
@@ -361,11 +349,11 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
         }
         
-        throw new Error(errorData.message || (editPost ? 'Failed to update post' : 'Failed to create post'));
+        throw new Error(errorData.message || 'Failed to create post');
       }
     } catch (error) {
-      console.error('Error creating/updating post:', error);
-      showError(editPost ? 'toast.forum.post_update_failed' : 'toast.forum.post_create_failed');
+      console.error('Error creating post:', error);
+      showError('toast.forum.post_create_failed');
     } finally {
       setIsLoading(false);
     }
@@ -381,17 +369,27 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
     setLinkPreview(null);
   };
 
+  // Clear link preview when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setLinkPreview(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className={styles['post-modal-overlay']}>
       <div className={styles['post-modal']}>
         <div className={styles['post-modal-header']}>
-          <h2>{editPost ? t('forum.createPost.editTitle') : t('forum.createPost.title')}</h2>
-          <button className={styles['close-btn']} onClick={onClose}>&times;</button>
+          <h2>{t('forum.createPost.title')}</h2>
+          <button className={styles['close-btn']} onClick={onClose}>
+            <X size={20} strokeWidth={1.5} />
+          </button>
         </div>
         
         <form onSubmit={handleSubmit} className={styles['post-form']}>
+          <div className={styles['form-content-wrapper']}>
           <div className={styles['form-group']}>
             <input
               type="text"
@@ -444,7 +442,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             {/* Link Preview */}
             {isLoadingPreview && (
               <div className={styles['preview-loading']}>
-                <div className={styles['loading-spinner']}></div>
+                <Loader2 size={16} strokeWidth={1.5} className={styles['loading-icon']} />
                 <span>Đang tải preview...</span>
               </div>
             )}
@@ -458,7 +456,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                     onClick={removeLinkPreview}
                     className={styles['remove-preview-btn']}
                   >
-                    ×
+                    <X size={16} strokeWidth={1.5} />
                   </button>
                 </div>
                 <div 
@@ -475,7 +473,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                       }}
                     />
                     <div className={styles['preview-thumb-placeholder']} style={{ display: 'none' }}>
-                      🏞️
+                      <Image size={40} strokeWidth={1.5} />
                     </div>
                   </div>
                   <div className={styles['preview-meta']}>
@@ -525,7 +523,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                       onClick={() => removeHashtag(tag)}
                       className={styles['remove-hashtag']}
                     >
-                      ×
+                      <X size={12} strokeWidth={2} />
                     </button>
                   </span>
                 ))}
@@ -534,14 +532,15 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
           </div>
 
           <div className={styles['form-group']}>
-            {!editPost && !hasLinksInContent(content) && (
+            {!hasLinksInContent(content) && (
               <div className={styles['image-upload-section']}>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
                   className={styles['upload-btn']}
                 >
-                  📷 {t('forum.createPost.addImages')}
+                  <Image size={18} strokeWidth={1.5} />
+                  <span>{t('forum.createPost.addImages')}</span>
                 </button>
                 <input
                   ref={fileInputRef}
@@ -554,32 +553,19 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
               </div>
             )}
             
-            {!editPost && hasLinksInContent(content) && (
+            {hasLinksInContent(content) && (
               <div className={styles['image-upload-disabled']}>
-                <p className={styles['disabled-message']}>
-                  📷 {t('forum.createPost.imageUploadDisabled')}
-                </p>
+                <div className={styles['disabled-message']}>
+                  <Image size={18} strokeWidth={1.5} />
+                  <span>{t('forum.createPost.imageUploadDisabled')}</span>
+                </div>
                 <p className={styles['disabled-reason']}>
                   {t('forum.createPost.imageUploadDisabledReason')}
                 </p>
               </div>
             )}
             
-            {editPost && images.length > 0 && (
-              <div className={styles['existing-images-section']}>
-                <h4>{t('forum.createPost.imagesLabel')}:</h4>
-                <div className={styles['image-preview']}>
-                  {images.map((image, index) => (
-                    <div key={index} className={styles['image-item']}>
-                      <img src={image} alt={`Current image ${index + 1}`} />
-                    </div>
-                  ))}
-                </div>
-                <p className={styles['image-note']}>* {t('forum.createPost.errors.imageEditNote')}</p>
-              </div>
-            )}
-            
-            {!editPost && images.length > 0 && !hasLinksInContent(content) && (
+            {images.length > 0 && !hasLinksInContent(content) && (
               <div className={styles['image-preview']}>
                 {images.map((image, index) => (
                   <div key={index} className={styles['image-item']}>
@@ -589,23 +575,25 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
                       onClick={() => removeImage(index)}
                       className={styles['remove-image']}
                     >
-                      ×
+                      <X size={14} strokeWidth={2} />
                     </button>
                   </div>
                 ))}
               </div>
             )}
             
-            {!editPost && images.length > 0 && hasLinksInContent(content) && (
+            {images.length > 0 && hasLinksInContent(content) && (
               <div className={styles['image-preview-disabled']}>
-                <p className={styles['disabled-message']}>
-                  🖼️ {t('forum.createPost.existingImagesRemoved')}
-                </p>
+                <div className={styles['disabled-message']}>
+                  <Image size={18} strokeWidth={1.5} />
+                  <span>{t('forum.createPost.existingImagesRemoved')}</span>
+                </div>
                 <p className={styles['disabled-reason']}>
                   {t('forum.createPost.existingImagesRemovedReason')}
                 </p>
               </div>
             )}
+          </div>
           </div>
 
           <div className={styles['form-actions']}>
@@ -620,9 +608,9 @@ const PostModal = ({ isOpen, onClose, onPostCreated, editPost = null }) => {
             <button
               type="submit"
               className={styles['submit-btn']}
-              disabled={isLoading}
+              disabled={isSubmitDisabled}
             >
-              {isLoading ? (editPost ? t('forum.createPost.updating') : t('forum.createPost.submitting')) : (editPost ? t('forum.createPost.update') : t('forum.createPost.submit'))}
+              {isLoading ? t('forum.createPost.submitting') : t('forum.createPost.submit')}
             </button>
           </div>
         </form>

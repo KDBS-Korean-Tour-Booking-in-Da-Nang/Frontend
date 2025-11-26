@@ -16,9 +16,11 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [generalError, setGeneralError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -36,11 +38,11 @@ const Login = () => {
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam) {
-      showError(decodeURIComponent(errorParam));
+      setGeneralError(decodeURIComponent(errorParam));
       // Clear the error parameter from URL
       navigate(location.pathname, { replace: true });
     }
-  }, [searchParams, navigate, location.pathname, showError]);
+  }, [searchParams, navigate, location.pathname]);
 
   // GSAP animations
   useEffect(() => {
@@ -66,6 +68,56 @@ const Login = () => {
     // Clear email error when user starts typing
     if (emailError) {
       setEmailError('');
+    }
+    // Clear general error when user starts typing
+    if (generalError) {
+      setGeneralError('');
+    }
+  };
+
+  const handlePasswordBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return;
+    // Block space character
+    if (data === ' ' || data === '\u00A0') {
+      e.preventDefault();
+    }
+  };
+
+  const handlePasswordPaste = (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    // Remove all spaces from pasted text
+    const cleaned = pasted.replace(/\s/g, '');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const newValue = current.slice(0, start) + cleaned + current.slice(end);
+    
+    // Update password state
+    setPassword(newValue);
+    
+    // Clear errors
+    if (passwordError) {
+      setPasswordError('');
+    }
+    if (generalError) {
+      setGeneralError('');
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    // Remove all spaces from password
+    const cleaned = e.target.value.replace(/\s/g, '');
+    setPassword(cleaned);
+    // Clear password error when user starts typing
+    if (passwordError) {
+      setPasswordError('');
+    }
+    // Clear general error when user starts typing
+    if (generalError) {
+      setGeneralError('');
     }
   };
 
@@ -169,30 +221,57 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setEmailError('');
+    setPasswordError('');
+    setGeneralError('');
 
-    // Email validation
+    // Check fields in order: email, password
+    // Set error state for all missing (unfilled) fields to show error messages
+    // Don't show error messages for fields that are filled but have validation errors
+
+    let firstMissingField = null;
+    let hasUnfilledFields = false;
+    let hasValidationErrors = false;
+
+    // Check email first
     if (!email.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
-      setLoading(false);
-      return;
-    }
-    {
+      if (!firstMissingField) {
+        firstMissingField = 'email';
+      }
+      setEmailError('required');
+      hasUnfilledFields = true;
+      hasValidationErrors = true;
+    } else {
       const emailValidation = validateEmail(email);
       if (!emailValidation.isValid) {
-        showError(t('auth.common.form.email.invalid'));
-        setLoading(false);
-        return;
+        // Email is filled but invalid - set error message
+        hasValidationErrors = true;
+        if (!firstMissingField) {
+          firstMissingField = 'email';
+        }
+        setEmailError('invalid');
       }
     }
 
-    // Password validation
-    if (!password.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.password') } });
+    // Check password
+    // Password is already cleaned (no spaces) from handlePasswordChange
+    if (!password) {
+      if (!firstMissingField) {
+        firstMissingField = 'password';
+      }
+      setPasswordError(t('toast.required', { field: t('auth.common.password') }) || 'Mật khẩu là bắt buộc');
+      hasUnfilledFields = true;
+      hasValidationErrors = true;
+    }
+
+    // If there are validation errors
+    if (hasValidationErrors) {
       setLoading(false);
       return;
     }
 
     try {
+      // Password is already cleaned (no spaces) from handlePasswordChange, but trim for safety
+      const trimmedPassword = password.trim();
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -200,7 +279,7 @@ const Login = () => {
         },
         body: JSON.stringify({
           email,
-          password,
+          password: trimmedPassword,
         }),
       });
 
@@ -226,10 +305,10 @@ const Login = () => {
           showSuccess('toast.auth.login_success');
           
           // Navigate based on user role and any saved return path
-          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to company-info
+          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to pending-page
           if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING') {
             // Keep onboarding flags for pending flow
-            window.location.href = '/company-info';
+            window.location.href = '/pending-page';
             return;
           }
 
@@ -275,13 +354,22 @@ const Login = () => {
       } else {
         const mapped = mapLoginErrorToI18nKey(data.message);
         if (mapped) {
-          showError(mapped);
+          // Map error to appropriate field or general error
+          if (mapped.i18nKey === 'toast.auth.email_not_found') {
+            setEmailError('not_found');
+          } else if (mapped.i18nKey === 'toast.auth.wrong_password') {
+            setPasswordError(t('toast.auth.wrong_password') || 'Mật khẩu không đúng');
+          } else if (mapped.i18nKey === 'toast.auth.both_invalid') {
+            setGeneralError(mapped.defaultMessage || t('toast.auth.both_invalid') || 'Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.');
+          } else {
+            setGeneralError(mapped.defaultMessage || data.message || t('toast.auth.login_failed') || 'Đăng nhập thất bại');
+          }
         } else {
-          showError(data.message || 'toast.auth.login_failed');
+          setGeneralError(data.message || t('toast.auth.login_failed') || 'Đăng nhập thất bại');
         }
       }
     } catch (err) {
-      showError(t('auth.login.error') || 'toast.auth.general_error');
+      setGeneralError(t('auth.login.error') || t('toast.auth.general_error') || 'Đăng nhập thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -299,10 +387,10 @@ const Login = () => {
         localStorage.setItem('oauth_provider', 'GOOGLE');
         window.location.href = data.result;
       } else {
-        showError('toast.auth.google_connection_failed');
+        setGeneralError(t('toast.auth.google_connection_failed') || 'Không thể kết nối với Google. Vui lòng thử lại.');
       }
     } catch (err) {
-      showError('toast.auth.google_connection_failed');
+      setGeneralError(t('toast.auth.google_connection_failed') || 'Không thể kết nối với Google. Vui lòng thử lại.');
     }
   };
 
@@ -318,10 +406,10 @@ const Login = () => {
         localStorage.setItem('oauth_provider', 'NAVER');
         window.location.href = data.result;
       } else {
-        showError('toast.auth.naver_connection_failed');
+        setGeneralError(t('toast.auth.naver_connection_failed') || 'Không thể kết nối với Naver. Vui lòng thử lại.');
       }
     } catch (err) {
-      showError('toast.auth.naver_connection_failed');
+      setGeneralError(t('toast.auth.naver_connection_failed') || 'Không thể kết nối với Naver. Vui lòng thử lại.');
     }
   };
 
@@ -362,7 +450,18 @@ const Login = () => {
                 />
                 {emailError && (
                   <div className={styles['field-error']}>
-                    {emailError === 'invalid' ? (t('auth.common.form.email.invalid') || 'lỗi sai email không đúng định dạng') : ''}
+                    {(() => {
+                      if (emailError === 'required') {
+                        return t('toast.required', { field: t('auth.common.email') }) || 'Email là bắt buộc';
+                      }
+                      if (emailError === 'invalid') {
+                        return t('auth.common.form.email.invalid') || 'Email không đúng định dạng';
+                      }
+                      if (emailError === 'not_found') {
+                        return t('toast.auth.email_not_found') || 'Email không tồn tại';
+                      }
+                      return '';
+                    })()}
                   </div>
                 )}
               </div>
@@ -378,10 +477,17 @@ const Login = () => {
                   type="password"
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={styles['form-input']}
+                  onChange={handlePasswordChange}
+                  onBeforeInput={handlePasswordBeforeInput}
+                  onPaste={handlePasswordPaste}
+                  className={`${styles['form-input']} ${passwordError ? styles['input-error'] : ''}`}
                   placeholder="••••••••"
                 />
+                {passwordError && (
+                  <div className={styles['field-error']}>
+                    {passwordError}
+                  </div>
+                )}
               </div>
 
               <div className={styles['remember-me']}>
@@ -398,10 +504,15 @@ const Login = () => {
                 </label>
               </div>
 
+              {generalError && (
+                <div className={styles['field-error']} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                  {generalError}
+                </div>
+              )}
 
               <button
                 type="submit"
-                disabled={loading || emailError}
+                disabled={loading || emailError || passwordError}
                 className={styles['login-button']}
               >
                 {loading ? (

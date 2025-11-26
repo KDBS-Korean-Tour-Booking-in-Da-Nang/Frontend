@@ -31,6 +31,16 @@
   padding-top: 30px;
 }
 
+.detailContainer {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(0.75rem, 3vw, 1.75rem);
+  padding-right: clamp(0.75rem, 3vw, 1.75rem);
+  width: 100%;
+  box-sizing: border-box;
+}
+
 @supports not (height: 100svh) {
   .pageContainer {
     min-height: 100vh;
@@ -151,7 +161,7 @@
 .articleProse img {
   display: block !important;
   margin: 1rem auto !important;
-  max-width: 75% !important;
+  max-width: 100% !important;
   height: auto !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }

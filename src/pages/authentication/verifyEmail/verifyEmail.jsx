@@ -83,40 +83,52 @@ const VerifyEmail = () => {
         // Keep loading spinner visible until redirect occurs
         // Auto navigate based on role after 2 seconds
         setTimeout(async () => {
-          // Auto-login after verify if registration intent is business
-          if (role === 'business') {
-            try {
-              const email = sessionStorage.getItem('post_reg_email');
-              const password = sessionStorage.getItem('post_reg_password');
-              if (email && password) {
-                const resp = await fetch('/api/auth/login', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email, password })
-                });
-                const data = await resp.json();
-                if ((data.code === 1000 || data.code === 0) && data.result) {
-                  const token = data.result.token;
-                  const userObj = data.result.user ? {
-                    id: data.result.user.userId,
-                    email: data.result.user.email,
-                    role: data.result.user.role,
-                    status: data.result.user.status,
-                    name: data.result.user.username,
-                    avatar: data.result.user.avatar,
-                    balance: data.result.user.balance
-                  } : null;
-                  if (userObj) {
-                    // Ghi nhớ theo lựa chọn mặc định (không remember)
-                    login(userObj, token, false);
+          // Auto-login after verify for all users
+          try {
+            const email = sessionStorage.getItem('post_reg_email');
+            const password = sessionStorage.getItem('post_reg_password');
+            if (email && password) {
+              const resp = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+              });
+              const data = await resp.json();
+              if ((data.code === 1000 || data.code === 0) && data.result) {
+                const token = data.result.token;
+                const userObj = data.result.user ? {
+                  id: data.result.user.userId,
+                  email: data.result.user.email,
+                  role: data.result.user.role,
+                  status: data.result.user.status,
+                  name: data.result.user.username,
+                  avatar: data.result.user.avatar,
+                  balance: data.result.user.balance
+                } : null;
+                if (userObj) {
+                  // Ghi nhớ theo lựa chọn mặc định (không remember)
+                  login(userObj, token, false);
+                  
+                  // Navigate based on role
+                  if (role === 'business') {
+                    // Điều hướng tới trang upload company info
+                    navigate('/company-info', { replace: true, state: { type: 'success' } });
+                  } else {
+                    // Điều hướng tới Homepage
+                    window.location.href = '/';
                   }
+                  return;
                 }
               }
-            } catch {}
-            // Điều hướng tới trang upload company info
+            }
+          } catch {}
+          
+          // Fallback navigation if auto-login fails
+          if (role === 'business') {
             navigate('/company-info', { replace: true, state: { type: 'success' } });
           } else {
-            navigate('/login', { state: { type: 'success' } });
+            // Fallback to homepage even if login fails
+            window.location.href = '/';
           }
         }, 2000);
       } else {

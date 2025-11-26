@@ -135,14 +135,17 @@
         "registerFailed": "Đăng ký thất bại. Vui lòng thử lại."
       }
     },
-    "forgot": {
-      "title": "Quên mật khẩu",
-      "subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
-      "submit": "Gửi email",
-      "sending": "Đang gửi...",
-      "success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
-      "error": "Gửi OTP thất bại. Vui lòng thử lại."
-    },
+		"forgot": {
+			"title": "Quên mật khẩu",
+			"subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
+			"submit": "Gửi email",
+			"sending": "Đang gửi...",
+			"success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+			"error": "Gửi OTP thất bại. Vui lòng thử lại.",
+			"errors": {
+				"oauthOnly": "Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver."
+			}
+		},
     "verify": {
       "title": "Xác thực Email",
       "subtitle": "Chúng tôi đã gửi mã xác thực đến {{email}}",
@@ -439,6 +442,7 @@
       "phone": "Số điện thoại",
       "dob": "Ngày sinh",
       "gender": "Giới tính",
+      "address": "Địa chỉ",
       "cccd": "CCCD",
       "id": "ID",
       "role": "Vai trò",
@@ -457,7 +461,80 @@
       "other": "Khác"
     },
     "cancel": "Hủy",
-    "saveChanges": "Lưu thay đổi"
+    "saveChanges": "Lưu thay đổi",
+    "sidebar": {
+      "profile": "Thông tin cá nhân",
+      "settings": "Cài đặt",
+      "changePassword": "Đổi mật khẩu",
+      "favorites": "Yêu thích",
+      "payments": "Thanh toán",
+      "notifications": "Thông báo"
+    },
+    "actions": {
+      "edit": "Chỉnh sửa",
+      "chooseAvatar": "Chọn ảnh đại diện",
+      "cancel": "Hủy",
+      "save": "Lưu thay đổi",
+      "updating": "Đang cập nhật..."
+    },
+    "settings": {
+      "language": "Ngôn ngữ",
+      "theme": "Chủ đề",
+      "themeOptions": {
+        "light": "Sáng",
+        "dark": "Tối"
+      }
+    },
+    "password": {
+      "current": "Mật khẩu hiện tại",
+      "new": "Mật khẩu mới",
+      "confirm": "Xác nhận mật khẩu mới",
+      "submit": "Cập nhật mật khẩu",
+      "processing": "Đang cập nhật...",
+      "success": "Đổi mật khẩu thành công!",
+      "socialDisabled": "Tài khoản đăng nhập bằng mạng xã hội không thể đổi mật khẩu tại đây.",
+      "errors": {
+        "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
+        "newRequired": "Vui lòng nhập mật khẩu mới",
+        "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
+        "minLength": "Mật khẩu mới phải có ít nhất 8 ký tự",
+        "match": "Mật khẩu xác nhận không khớp",
+        "sameAsCurrent": "Mật khẩu mới không được trùng với mật khẩu hiện tại",
+        "generic": "Không thể đổi mật khẩu. Vui lòng thử lại.",
+        "oauthOnly": "Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Không thể đổi mật khẩu."
+      }
+    },
+    "favorites": {
+      "title": "Tour yêu thích",
+      "empty": "Bạn chưa có tour yêu thích nào."
+    },
+    "payments": {
+      "title": "Phương thức thanh toán",
+      "empty": "Bạn chưa thêm phương thức thanh toán nào."
+    },
+    "notifications": {
+      "email": "Email thông báo",
+      "push": "Thông báo đẩy",
+      "enabled": "Bật",
+      "disabled": "Tắt"
+    },
+    "placeholders": {
+      "addressOptional": "Nhập địa chỉ (không bắt buộc)"
+    },
+    "datePicker": {
+      "open": "Mở bộ chọn ngày"
+    },
+    "errors": {
+      "invalidName": "Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.",
+      "avatarSize": "Kích thước ảnh không được vượt quá 5MB",
+      "avatarFormat": "Định dạng ảnh không được hỗ trợ (chỉ chấp nhận JPG, PNG, GIF, WebP)",
+      "tokenMissing": "Không tìm thấy token xác thực",
+      "updateFailed": "Có lỗi xảy ra khi cập nhật thông tin",
+      "mustBe13": "Bạn phải từ 13 tuổi trở lên"
+    },
+    "toast": {
+      "updateSuccess": "Cập nhật thông tin thành công!"
+    }
   },
   "oauth": {
     "successLogin": "Đăng nhập thành công!",
@@ -758,6 +835,7 @@
   },
   "toast": {
     "required": "{{field}} là bắt buộc",
+    "fill_missing_field": "Điền vào {{field}} còn thiếu",
     "name_required": "Không để trống tên",
     "login_required": "Vui lòng đăng nhập để tiếp tục",
     "save_success": "Lưu thành công",
@@ -1369,7 +1447,19 @@
     },
     "loadMore": "Xem thêm",
     "pagination": {
-      "showing": "Hiển thị {{start}} đến {{end}} trong tổng số {{total}} tour"
+      "showing": "Hiển thị {{start}} đến {{end}} trong tổng số {{total}} tour",
+      "firstPage": "Trang đầu",
+      "previousPage": "Trang trước",
+      "nextPage": "Trang sau",
+      "lastPage": "Trang cuối"
+    },
+    "topTours": {
+      "title": "Top 3 Tours Phổ Biến Nhất",
+      "subtitle": "Những tour được đặt nhiều nhất và có đánh giá 5 sao cao nhất",
+      "badge": "Top {{rank}}"
+    },
+    "allTours": {
+      "title": "Tất Cả Tours"
     }
   },
   "bookingHistory": {
@@ -1531,6 +1621,7 @@
         "fullName": "Nhập họ và tên",
         "chooseGender": "Chọn giới tính",
         "chooseNationality": "Chọn quốc tịch",
+        "selectNationalityFirst": "Vui lòng chọn quốc tịch trước",
         "idVietnam": "Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)",
         "idPassport": "Nhập số hộ chiếu (6-9 ký tự)",
         "dateFormat": "Nhập theo định dạng {{format}}",
@@ -1547,6 +1638,7 @@
       },
       "fields": {
         "date": "Ngày khởi hành",
+        "deadlineNotice": "Tour này cần {{days}} ngày để xử lý thủ tục nên vui lòng chọn ngày khởi hành sau {{minDate}}",
         "adultPax": "Số lượng người lớn",
         "adultName1": "Tên người lớn 1",
         "adultName2": "Tên người lớn 2",

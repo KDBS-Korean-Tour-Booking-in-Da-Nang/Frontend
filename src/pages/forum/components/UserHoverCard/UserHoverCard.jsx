@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useChat } from '../../../../contexts/ChatContext';
 import { getAvatarUrl } from '../../../../config/api';
 import styles from './UserHoverCard.module.css';
+import { MessageCircle } from 'lucide-react';
 
 const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
   const { t } = useTranslation();
@@ -236,7 +238,7 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
   const displayName = user.username || user.userName || user.name || 'Unknown User';
   const avatarUrl = getAvatarUrl(user.userAvatar || user.avatar) || '/default-avatar.png';
 
-  return (
+  const cardContent = (
     <div
       ref={cardRef}
       className={styles['user-hover-card']}
@@ -267,22 +269,19 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
             className={styles['send-message-btn']}
             onClick={handleSendMessage}
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-            >
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-            </svg>
+            <MessageCircle strokeWidth={1.6} />
             {t('common.sendMessage')}
           </button>
         </div>
       )}
     </div>
   );
+
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(cardContent, document.body);
 };
 
 export default UserHoverCard;

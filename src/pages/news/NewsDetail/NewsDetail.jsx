@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import articleService from '../../services/articleService';
-import { htmlToJsx } from '../../utils/htmlConverter';
-import styles from './news.module.css';
+import articleService from '../../../services/articleService';
+import { htmlToJsx } from '../../../utils/htmlConverter';
+import styles from './NewsDetail.module.css';
 
 const NewsDetail = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +14,7 @@ const NewsDetail = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const detailContainerClass = `${styles.pageContainer} ${styles.detailContainer}`;
 
   useEffect(() => {
     if (id) {
@@ -45,7 +46,7 @@ const NewsDetail = () => {
     return (
       <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
       <div className={styles.pageBackground} aria-hidden="true"></div>
-      <div className={styles.pageContainer}>
+      <div className={detailContainerClass}>
         <div className={`${styles.contentWrap} flex items-center justify-center`}>
           <div className={`${styles.card} max-w-md w-full text-center py-12`}>
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-200 border-t-primary mx-auto mb-4"></div>
@@ -61,7 +62,7 @@ const NewsDetail = () => {
     return (
       <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
         <div className={styles.pageBackground} aria-hidden="true"></div>
-        <div className={styles.pageContainer}>
+        <div className={detailContainerClass}>
           <div className={`${styles.contentWrap} flex items-center justify-center`}>
           <div className={`${styles.card} max-w-md w-full p-8 text-center space-y-4`}>
         <DocumentTextIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
@@ -92,7 +93,7 @@ const NewsDetail = () => {
     return (
       <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
         <div className={styles.pageBackground} aria-hidden="true"></div>
-        <div className={styles.pageContainer}>
+        <div className={detailContainerClass}>
           <div className={`${styles.contentWrap} flex items-center justify-center`}>
           <div className={`${styles.card} max-w-md w-full p-8 text-center space-y-4`}>
         <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-2" />
@@ -129,7 +130,7 @@ const NewsDetail = () => {
   return (
     <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
       <div className={styles.pageBackground} aria-hidden="true"></div>
-      <div className={styles.pageContainer}>
+      <div className={detailContainerClass}>
         {/* Header */}
         <div className={`${styles.contentWrap} pt-6 pb-0`}>
           <div className={`${styles.card} px-4 sm:px-6 lg:px-8 py-4`}>

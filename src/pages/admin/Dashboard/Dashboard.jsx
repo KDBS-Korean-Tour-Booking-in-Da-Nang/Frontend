@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import { API_ENDPOINTS } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import worldMapData from '../../../assets/data/world-110m.json';
 
 // World map geo data imported locally to avoid CORS issues
@@ -56,11 +57,25 @@ const Dashboard = () => {
 
         // Fetch all tours
         const toursRes = await fetch(API_ENDPOINTS.TOURS, { headers });
+        
+        // Handle 401 if token expired
+        if (!toursRes.ok && toursRes.status === 401) {
+          await checkAndHandle401(toursRes);
+          return;
+        }
+        
         const tours = toursRes.ok ? await toursRes.json() : [];
         const toursArray = Array.isArray(tours) ? tours : [];
 
         // Fetch all users
         const usersRes = await fetch(API_ENDPOINTS.USERS, { headers });
+        
+        // Handle 401 if token expired
+        if (!usersRes.ok && usersRes.status === 401) {
+          await checkAndHandle401(usersRes);
+          return;
+        }
+        
         const users = usersRes.ok ? await usersRes.json() : [];
         const usersArray = Array.isArray(users) ? users : [];
         

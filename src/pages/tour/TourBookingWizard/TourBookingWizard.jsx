@@ -54,6 +54,7 @@ const BookingWizardContent = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
+  const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 2
   
   // Update ref when showError changes
   useEffect(() => {
@@ -281,23 +282,35 @@ const BookingWizardContent = () => {
       const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
       
       if (!isCurrentStepValid) {
-        // Get validation errors for current step
-        const errors = getStepErrors(currentStep);
-        
-        if (errors.length > 0) {
-          const messages = errors.map(errorKey => {
-            // Check if it's a toast message key (contains 'toast')
-            if (errorKey.includes('toast')) {
-              return { i18nKey: errorKey };
-            } else {
-              // It's a field name, use the required toast format
-              const fieldName = t(errorKey);
-              return { i18nKey: 'toast.required', values: { field: fieldName } };
-            }
-          });
+        // For step 1, find the first missing (unfilled) field and show only 1 toast
+        if (currentStep === 1) {
+          // Trigger validation in Step1Contact to show inline error messages
+          window.dispatchEvent(new CustomEvent('validateStep1'));
+        } else if (currentStep === 2) {
+          // Mark that user has attempted validation for Step 2
+          setStep2ValidationAttempted(true);
           
-          // Queue this batch; if another click happens, the next batch will wait until this one is done
-          showBatch(messages, 'error', 5000);
+          // Trigger validation in Step2Details to show error messages for missing fields
+          window.dispatchEvent(new CustomEvent('validateStep2'));
+        } else {
+          // For other steps, use the original batch toast logic
+          const errors = getStepErrors(currentStep);
+          
+          if (errors.length > 0) {
+            const messages = errors.map(errorKey => {
+              // Check if it's a toast message key (contains 'toast')
+              if (errorKey.includes('toast')) {
+                return { i18nKey: errorKey };
+              } else {
+                // It's a field name, use the required toast format
+                const fieldName = t(errorKey);
+                return { i18nKey: 'toast.required', values: { field: fieldName } };
+              }
+            });
+            
+            // Queue this batch; if another click happens, the next batch will wait until this one is done
+            showBatch(messages, 'error', 5000);
+          }
         }
       } else {
         // Special handling when moving from step 1 to step 2
@@ -340,6 +353,8 @@ const BookingWizardContent = () => {
             // Error saving booking data
           }
 
+          // Reset Step 2 validation attempted state when entering Step 2
+          setStep2ValidationAttempted(false);
           setCurrentStep(2);
         } else {
           // For other steps, save and move forward normally
@@ -356,6 +371,11 @@ const BookingWizardContent = () => {
             // Error saving booking data
           }
           
+          // Reset Step 2 validation attempted state when leaving Step 2
+          if (currentStep === 2) {
+            setStep2ValidationAttempted(false);
+          }
+          
           setCurrentStep(currentStep + 1);
         }
       }
@@ -364,6 +384,10 @@ const BookingWizardContent = () => {
 
   const handleBack = () => {
     if (currentStep > 1) {
+      // Reset validation attempted state when going back
+      if (currentStep === 2) {
+        setStep2ValidationAttempted(false);
+      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -441,6 +465,10 @@ const BookingWizardContent = () => {
   const handleStepClick = (stepId) => {
     // Only allow clicking on completed steps or current step
     if (isStepCompletedByValidation(stepId) || stepId === currentStep) {
+      // Reset Step 2 validation attempted state when leaving Step 2
+      if (currentStep === 2 && stepId !== 2) {
+        setStep2ValidationAttempted(false);
+      }
       setCurrentStep(stepId);
     }
   };
@@ -619,6 +647,29 @@ const BookingWizardContent = () => {
               type="button" 
               className={styles['btn-primary']} 
               onClick={handleNext}
+              disabled={(() => {
+                // For Step 1: always allow clicking so inline errors can be shown
+                if (currentStep === 1) {
+                  return false;
+                }
+                
+                // For Step 2: only disable after user has attempted validation and form is still invalid
+                if (currentStep === 2) {
+                  if (!step2ValidationAttempted) {
+                    // Allow clicking before validation attempt
+                    return false;
+                  }
+                  // After validation attempt, disable if form is still invalid
+                  const currentStepKey = `step${currentStep}`;
+                  const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                  return !isCurrentStepValid;
+                }
+                
+                // For other steps, use default validation
+                const currentStepKey = `step${currentStep}`;
+                const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                return !isCurrentStepValid;
+              })()}
             >
               {t('bookingWizard.navigation.next')}
             </button>

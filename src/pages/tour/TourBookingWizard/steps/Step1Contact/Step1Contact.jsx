@@ -3,7 +3,18 @@ import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { DatePicker } from 'react-rainbow-components';
-import { Calendar } from 'lucide-react';
+import {
+  Calendar,
+  UserRound,
+  Phone,
+  Mail,
+  Home,
+  MapPin,
+  PenSquare,
+  CalendarDays,
+  StickyNote,
+  UserCheck
+} from 'lucide-react';
 import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
@@ -16,6 +27,7 @@ const Step1Contact = () => {
   const [usePersonalInfo, setUsePersonalInfo] = useState(false);
   const [autoFilledFields, setAutoFilledFields] = useState(new Set());
   const [touchedFields, setTouchedFields] = useState(new Set());
+  const touchedFieldsRef = useRef(new Set()); // Ref to track touched fields for event handler
   const [editingFields, setEditingFields] = useState(new Set()); // Track which fields are being edited
   const [validatingFields, setValidatingFields] = useState(new Set()); // Track fields being validated manually
   const validatingFieldsRef = useRef(new Set()); // Ref to avoid useEffect dependency
@@ -25,6 +37,15 @@ const Step1Contact = () => {
   const originalAutoFilledNameRef = useRef(null); // Track original auto-filled name with special characters
   const [hasUserInStorage, setHasUserInStorage] = useState(false); // Track if user exists in storage
   const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
+  
+  // Helper function to set touched fields and sync with ref
+  const setTouchedFieldsWithRef = (updater) => {
+    setTouchedFields(prev => {
+      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      touchedFieldsRef.current = newValue;
+      return newValue;
+    });
+  };
   
   // Date formatting helpers (copied from Step2Details)
   const getDateSeparator = () => {
@@ -756,7 +777,7 @@ const Step1Contact = () => {
               // set dob into contact object before committing state
               newContact.dob = displayDob;
               // mark as touched so error shows
-              setTouchedFields(prev => new Set(prev).add('dob'));
+              setTouchedFieldsWithRef(prev => new Set(prev).add('dob'));
               // validate 18+
               const normalized = validateDateInput(displayDob);
               if (normalized) {
@@ -792,7 +813,7 @@ const Step1Contact = () => {
       if (newContact.dob) {
         newTouchedFields.add('dob');
       }
-      setTouchedFields(newTouchedFields);
+      setTouchedFieldsWithRef(newTouchedFields);
       
       // Validate auto-filled fields to ensure they're valid (but don't show errors)
       // Use setTimeout to ensure state updates are processed first
@@ -839,119 +860,18 @@ const Step1Contact = () => {
     window.bookingStep1Valid = isValid;
   }, [isValid]);
 
-  // Handle language change and convert date format
+  // Sync touchedFieldsRef with touchedFields state
   useEffect(() => {
-    // Check contact.dob only
-    const currentDob = contact.dob;
-    
-    if (currentDob && currentDob.trim() !== '') {
-      // Always try to convert when language changes, regardless of current format
-      // This ensures proper conversion between Vietnamese and English formats
-      
-      // Detect source language by separator and structure (same as Step2Details)
-      let fromLang = null;
-      if (currentDob.includes('.')) {
-        fromLang = 'ko';
-      } else if (currentDob.includes('/')) {
-        const parts = currentDob.split('/');
-        if (parts.length === 3) {
-          const first = parseInt(parts[0], 10);
-          const second = parseInt(parts[1], 10);
-          fromLang = (first > 12) ? 'vi' : 'en';
-        }
-      }
-      
-      const convertedDate = parseAndConvertDate(currentDob, fromLang, currentLanguage);
-      
-      if (convertedDate && convertedDate !== currentDob) {
-        handleDateChange(convertedDate);
-      }
-    }
-  }, [currentLanguage]); // Only trigger when language changes
-
-  // Check if user exists in storage (for refresh scenarios)
-  useEffect(() => {
-    const checkUserInStorage = () => {
-      try {
-        const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
-        setHasUserInStorage(!!savedUser);
-      } catch (error) {
-        setHasUserInStorage(false);
-      }
-    };
-    
-    checkUserInStorage();
-    
-    // Also check when auth loading completes
-    if (!authLoading) {
-      checkUserInStorage();
-    }
-  }, [authLoading, user]);
-
-  // Update error messages when language changes
-  useEffect(() => {
-    // If there are existing errors, re-translate them
-    if (Object.keys(errors).length > 0) {
-      const updatedErrors = {};
-      
-      Object.keys(errors).forEach(fieldName => {
-        const errorValue = errors[fieldName];
-        
-        // Re-translate error messages based on field and current error type
-        switch (fieldName) {
-          case 'fullName':
-            if (!contact.fullName?.trim()) {
-              updatedErrors.fullName = t('booking.errors.fullNameRequired');
-            } else {
-              updatedErrors.fullName = t('booking.errors.fullNameInvalid');
-            }
-            break;
-          case 'phone':
-            if (!contact.phone?.trim()) {
-              updatedErrors.phone = t('booking.errors.phoneRequired');
-            } else {
-              updatedErrors.phone = t('booking.errors.phoneInvalid');
-            }
-            break;
-          case 'email':
-            if (!contact.email?.trim()) {
-              updatedErrors.email = t('booking.errors.emailRequired');
-            } else if (errorValue.includes('không khớp') || errorValue.includes('does not match') || errorValue.includes('일치하지')) {
-              updatedErrors.email = t('booking.errors.emailMismatch');
-            } else {
-              updatedErrors.email = t('booking.errors.emailInvalid');
-            }
-            break;
-          case 'dob':
-            if (!contact.dob?.trim()) {
-              updatedErrors.dob = t('booking.errors.dobRequired');
-            } else if (errorValue.includes('18 tuổi') || errorValue.includes('18 years') || errorValue.includes('18세')) {
-              updatedErrors.dob = t('booking.errors.representativeTooYoung');
-            } else {
-              updatedErrors.dob = t('booking.errors.dobInvalidFormat');
-            }
-            break;
-          case 'address':
-            updatedErrors.address = t('booking.errors.addressRequired');
-            break;
-          case 'pickupPoint':
-            updatedErrors.pickupPoint = t('booking.errors.pickupPointRequired');
-            break;
-          default:
-            // Keep original error if we don't know how to translate it
-            updatedErrors[fieldName] = errorValue;
-        }
-      });
-      
-      setErrors(updatedErrors);
-    }
-  }, [currentLanguage, t]); // Trigger when language or translation function changes
+    touchedFieldsRef.current = touchedFields;
+  }, [touchedFields]);
 
   // Validation rules
   const validateField = (name, value) => {
-    const newErrors = { ...errors };
+    // Use functional updater to avoid race conditions when validating multiple fields
+    setErrors(prevErrors => {
+      const newErrors = { ...prevErrors };
 
-    switch (name) {
+      switch (name) {
       case 'fullName': {
         // Regex to allow letters, numbers, spaces, hyphens, and apostrophes
         // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
@@ -1082,11 +1002,165 @@ const Step1Contact = () => {
 
       default:
         break;
-    }
+      }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      return newErrors;
+    });
   };
+
+  // Listen for validation trigger from parent component (when Next is clicked)
+  useEffect(() => {
+    const handleValidateAll = () => {
+      // Only validate and mark touched for fields that haven't been touched yet
+      // This preserves the realtime validation logic for fields that user has already interacted with
+      const requiredFields = ['fullName', 'phone', 'email', 'dob', 'address', 'pickupPoint'];
+      
+      // Get current touched fields from ref (to avoid closure issues)
+      const currentTouchedFields = touchedFieldsRef.current;
+      const fieldsToValidate = [];
+      
+      // Identify fields that haven't been touched yet
+      requiredFields.forEach(fieldName => {
+        if (!currentTouchedFields.has(fieldName)) {
+          fieldsToValidate.push(fieldName);
+        }
+      });
+      
+      // Mark untouched fields as touched and validate them
+      if (fieldsToValidate.length > 0) {
+        // First, mark all untouched fields as touched
+        setTouchedFieldsWithRef(prev => {
+          const newTouchedFields = new Set(prev);
+          fieldsToValidate.forEach(fieldName => {
+            newTouchedFields.add(fieldName);
+          });
+          return newTouchedFields;
+        });
+        
+        // Then validate all untouched fields immediately (don't wait for state update)
+        // This ensures errors are set right away
+        fieldsToValidate.forEach(fieldName => {
+          const value = contact[fieldName];
+          validateField(fieldName, value || '');
+        });
+      }
+    };
+    
+    // Listen for custom event from parent component
+    window.addEventListener('validateStep1', handleValidateAll);
+    
+    return () => {
+      window.removeEventListener('validateStep1', handleValidateAll);
+    };
+  }, [contact, validateField]);
+
+  // Handle language change and convert date format
+  useEffect(() => {
+    // Check contact.dob only
+    const currentDob = contact.dob;
+    
+    if (currentDob && currentDob.trim() !== '') {
+      // Always try to convert when language changes, regardless of current format
+      // This ensures proper conversion between Vietnamese and English formats
+      
+      // Detect source language by separator and structure (same as Step2Details)
+      let fromLang = null;
+      if (currentDob.includes('.')) {
+        fromLang = 'ko';
+      } else if (currentDob.includes('/')) {
+        const parts = currentDob.split('/');
+        if (parts.length === 3) {
+          const first = parseInt(parts[0], 10);
+          const second = parseInt(parts[1], 10);
+          fromLang = (first > 12) ? 'vi' : 'en';
+        }
+      }
+      
+      const convertedDate = parseAndConvertDate(currentDob, fromLang, currentLanguage);
+      
+      if (convertedDate && convertedDate !== currentDob) {
+        handleDateChange(convertedDate);
+      }
+    }
+  }, [currentLanguage]); // Only trigger when language changes
+
+  // Check if user exists in storage (for refresh scenarios)
+  useEffect(() => {
+    const checkUserInStorage = () => {
+      try {
+        const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+        setHasUserInStorage(!!savedUser);
+      } catch (error) {
+        setHasUserInStorage(false);
+      }
+    };
+    
+    checkUserInStorage();
+    
+    // Also check when auth loading completes
+    if (!authLoading) {
+      checkUserInStorage();
+    }
+  }, [authLoading, user]);
+
+  // Update error messages when language changes
+  useEffect(() => {
+    // If there are existing errors, re-translate them
+    if (Object.keys(errors).length > 0) {
+      const updatedErrors = {};
+      
+      Object.keys(errors).forEach(fieldName => {
+        const errorValue = errors[fieldName];
+        
+        // Re-translate error messages based on field and current error type
+        switch (fieldName) {
+          case 'fullName':
+            if (!contact.fullName?.trim()) {
+              updatedErrors.fullName = t('booking.errors.fullNameRequired');
+            } else {
+              updatedErrors.fullName = t('booking.errors.fullNameInvalid');
+            }
+            break;
+          case 'phone':
+            if (!contact.phone?.trim()) {
+              updatedErrors.phone = t('booking.errors.phoneRequired');
+            } else {
+              updatedErrors.phone = t('booking.errors.phoneInvalid');
+            }
+            break;
+          case 'email':
+            if (!contact.email?.trim()) {
+              updatedErrors.email = t('booking.errors.emailRequired');
+            } else if (errorValue.includes('không khớp') || errorValue.includes('does not match') || errorValue.includes('일치하지')) {
+              updatedErrors.email = t('booking.errors.emailMismatch');
+            } else {
+              updatedErrors.email = t('booking.errors.emailInvalid');
+            }
+            break;
+          case 'dob':
+            if (!contact.dob?.trim()) {
+              updatedErrors.dob = t('booking.errors.dobRequired');
+            } else if (errorValue.includes('18 tuổi') || errorValue.includes('18 years') || errorValue.includes('18세')) {
+              updatedErrors.dob = t('booking.errors.representativeTooYoung');
+            } else {
+              updatedErrors.dob = t('booking.errors.dobInvalidFormat');
+            }
+            break;
+          case 'address':
+            updatedErrors.address = t('booking.errors.addressRequired');
+            break;
+          case 'pickupPoint':
+            updatedErrors.pickupPoint = t('booking.errors.pickupPointRequired');
+            break;
+          default:
+            // Keep original error if we don't know how to translate it
+            updatedErrors[fieldName] = errorValue;
+        }
+      });
+      
+      setErrors(updatedErrors);
+    }
+  }, [currentLanguage, t]); // Trigger when language or translation function changes
 
   // Check if all required fields are valid
   useEffect(() => {
@@ -1262,7 +1336,7 @@ const Step1Contact = () => {
     setContact({ ...contact, [name]: processedValue });
     
     // Mark field as touched
-    setTouchedFields(prev => new Set(prev).add(name));
+    setTouchedFieldsWithRef(prev => new Set(prev).add(name));
     
     // Always validate on change for real-time feedback
     validateField(name, processedValue);
@@ -1277,7 +1351,7 @@ const Step1Contact = () => {
 
   const handleInputBlur = (e) => {
     const { name, value } = e.target;
-    setTouchedFields(prev => new Set(prev).add(name));
+    setTouchedFieldsWithRef(prev => new Set(prev).add(name));
     validateField(name, value);
   };
 
@@ -1297,6 +1371,7 @@ const Step1Contact = () => {
               onChange={(e) => handleUsePersonalInfo(e.target.checked)}
             />
             <span className={styles['checkbox-text']}>
+              <UserCheck className={styles['personal-info-icon']} />
               {t('booking.step1.usePersonalInfo')}
             </span>
           </label>
@@ -1313,13 +1388,19 @@ const Step1Contact = () => {
       )}
 
       <div className={styles['form-section']}>
-        <h3 className={styles['section-title']}>{t('booking.step1.sectionTitle')}</h3>
+        <h3 className={styles['section-title']}>
+          <UserRound className={styles['section-icon']} />
+          {t('booking.step1.sectionTitle')}
+        </h3>
         
         <div className={styles['form-grid']}>
           <div className={styles['form-group']}>
-            <label htmlFor="fullName" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.fullName')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <PenSquare className={styles['field-icon']} />
+              <label htmlFor="fullName" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.fullName')}
+              </label>
+            </div>
             <input
               type="text"
               id="fullName"
@@ -1337,9 +1418,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="phone" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.phone')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <Phone className={styles['field-icon']} />
+              <label htmlFor="phone" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.phone')}
+              </label>
+            </div>
             <input
               type="tel"
               id="phone"
@@ -1357,9 +1441,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="email" className={`${styles['form-label']} ${styles['required']}`}>
-              Email
-            </label>
+            <div className={styles['label-with-icon']}>
+              <Mail className={styles['field-icon']} />
+              <label htmlFor="email" className={`${styles['form-label']} ${styles['required']}`}>
+                Email
+              </label>
+            </div>
             <input
               type="email"
               id="email"
@@ -1377,9 +1464,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="dob" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.dob')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <CalendarDays className={styles['field-icon']} />
+              <label htmlFor="dob" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.dob')}
+              </label>
+            </div>
             <div className={styles['date-input-container']}>
               <input
                 type="text"
@@ -1446,7 +1536,7 @@ const Step1Contact = () => {
                   });
                   
                   // Mark field as touched
-                  setTouchedFields(prev => new Set(prev).add('dob'));
+                  setTouchedFieldsWithRef(prev => new Set(prev).add('dob'));
                   
                   // Validate when user finishes typing (onBlur)
                   if (displayValue && displayValue.length >= 8) {
@@ -1620,9 +1710,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="address" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.address')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <Home className={styles['field-icon']} />
+              <label htmlFor="address" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.address')}
+              </label>
+            </div>
             <input
               type="text"
               id="address"
@@ -1640,9 +1733,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="pickupPoint" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.pickupPoint')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <MapPin className={styles['field-icon']} />
+              <label htmlFor="pickupPoint" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.pickupPoint')}
+              </label>
+            </div>
             <input
               type="text"
               id="pickupPoint"
@@ -1660,9 +1756,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']} style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="note" className={styles['form-label']}>
-              {t('booking.step1.fields.note')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <StickyNote className={styles['field-icon']} />
+              <label htmlFor="note" className={styles['form-label']}>
+                {t('booking.step1.fields.note')}
+              </label>
+            </div>
             <textarea
               id="note"
               name="note"

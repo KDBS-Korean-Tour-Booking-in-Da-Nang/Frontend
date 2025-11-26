@@ -3,12 +3,25 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../config/api';
 import { useNavigate } from 'react-router-dom';
+import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
 import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import { DeleteConfirmModal, LoginRequiredModal } from '../../../../components';
+import {
+  Bookmark,
+  BookmarkCheck,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  Flag,
+  CheckCircle2,
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle
+} from 'lucide-react';
 import styles from './PostCard.module.css';
 
 const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPost = false }) => {
@@ -326,6 +339,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           body: JSON.stringify(reactionRequest),
         });
         
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        
         if (response.ok) {
           setIsLiked(true);
           if (isDisliked) {
@@ -371,6 +390,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
+        
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        
         if (response.ok) {
           setIsDisliked(true);
           setDislikeCount(prev => prev + 1);
@@ -493,6 +519,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           headers: createAuthHeaders(token, { 'User-Email': email })
         });
         
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        
         if (response.ok) {
           setIsSaved(false);
           setSaveCount(prev => Math.max(0, prev - 1));
@@ -507,6 +539,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             note: ''
           })
         });
+        
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
         
         if (response.ok) {
           setIsSaved(true);
@@ -828,15 +866,11 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                 className={`${styles['save-btn']} ${isSaved ? styles['saved'] : ''}`}
                 title={isSaved ? t('forum.post.unsave') : t('forum.post.save')}
               >
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                  className={styles['bookmark-icon']}
-                >
-                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-                </svg>
+                {isSaved ? (
+                  <BookmarkCheck className={styles['bookmark-icon']} strokeWidth={1.6} />
+                ) : (
+                  <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
+                )}
               </button>
             ) : (
               <div 
@@ -844,15 +878,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                 title={t('forum.guest.loginToSave')}
                 onClick={() => setShowLoginRequiredModal(true)}
               >
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                  className={styles['bookmark-icon']}
-                >
-                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-                </svg>
+                <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
               </div>
             )}
             <span className={styles['save-count']}>{saveCount}</span>
@@ -863,7 +889,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               className={styles['menu-btn']}
               onClick={() => setShowMenu(!showMenu)}
             >
-              ⋯
+              <MoreHorizontal className={styles['menu-icon']} strokeWidth={1.7} />
             </button>
             
             {showMenu && (
@@ -871,10 +897,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                 {isOwnPost ? (
                   <>
                     <button onClick={handleEdit} className={styles['menu-item']}>
-                      ✏️ {t('forum.post.edit')}
+                      <Edit3 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                      {t('forum.post.edit')}
                     </button>
                     <button onClick={handleDelete} className={`${styles['menu-item']} ${styles['delete']}`}>
-                      🗑️ {t('forum.post.delete')}
+                      <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                      {t('forum.post.delete')}
                     </button>
                   </>
                 ) : (
@@ -883,7 +911,17 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                     className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
                     disabled={hasReported}
                   >
-                    {hasReported ? `✅ ${t('forum.modals.report.success')}` : `⚠️ ${t('forum.post.report')}`}
+                    {hasReported ? (
+                      <>
+                        <CheckCircle2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                        {t('forum.modals.report.success')}
+                      </>
+                    ) : (
+                      <>
+                        <Flag className={styles['menu-item-icon']} strokeWidth={1.6} />
+                        {t('forum.post.report')}
+                      </>
+                    )}
                   </button>
                 )}
               </div>
@@ -949,30 +987,14 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               className={`${styles['action-btn']} ${styles['like-btn']} ${isLiked ? styles['active'] : ''}`}
               onClick={handleLike}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
+              <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
               <span className={styles['action-text']}>{t('forum.post.like')}</span>
             </button>
             <button 
               className={`${styles['action-btn']} ${styles['dislike-btn']} ${isDisliked ? styles['active'] : ''}`}
               onClick={handleDislike}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
+              <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
               <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
             </button>
             
@@ -980,15 +1002,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               className={`${styles['action-btn']} ${styles['comment-btn']}`}
               onClick={() => setShowCommentInput(!showCommentInput)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
-              </svg>
+              <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
               <span className={styles['action-text']}>{t('forum.post.comment')}</span>
             </button>
           </>
@@ -999,15 +1013,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               title={t('forum.guest.loginToReact')}
               onClick={() => setShowLoginRequiredModal(true)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
+              <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
               <span className={styles['action-text']}>{t('forum.post.like')}</span>
             </div>
             <div 
@@ -1015,15 +1021,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               title={t('forum.guest.loginToReact')}
               onClick={() => setShowLoginRequiredModal(true)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
+              <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
               <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
             </div>
             <div 
@@ -1031,15 +1029,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               title={t('forum.guest.loginToComment')}
               onClick={() => setShowLoginRequiredModal(true)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
-              </svg>
+              <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
               <span className={styles['action-text']}>{t('forum.post.comment')}</span>
             </div>
           </div>

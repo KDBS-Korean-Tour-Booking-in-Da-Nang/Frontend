@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { X } from 'lucide-react';
 import styles from './CommentReportModal.module.css';
 
 const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
@@ -74,7 +75,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            ×
+            <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -97,7 +98,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
               {reportReasons.map((reason) => (
                 <div 
                   key={reason.value}
-                  className={`reason-item ${selectedReasons.includes(reason.value) ? 'selected' : ''}`}
+                  className={`${styles['reason-item']} ${selectedReasons.includes(reason.value) ? styles['selected'] : ''}`}
                   onClick={() => handleReasonToggle(reason.value)}
                 >
                   <div className={styles['reason-checkbox']}>

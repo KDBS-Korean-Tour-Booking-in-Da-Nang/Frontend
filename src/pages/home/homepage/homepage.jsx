@@ -9,6 +9,8 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import { API_ENDPOINTS } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import styles from './Homepage.module.css';
 const FALLBACK_GALLERY_IMAGE = '/default-Tour.jpg';
 
 const Homepage = () => {
@@ -267,11 +269,20 @@ const Homepage = () => {
         return;
       }
       try {
+        let has401 = false;
         const entries = await Promise.all(ids.map(async (id) => {
           const res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(id), {
             signal: controller.signal,
             headers: { Authorization: `Bearer ${token}` }
           });
+          
+          // Handle 401 if token expired
+          if (!res.ok && res.status === 401) {
+            has401 = true;
+            await checkAndHandle401(res);
+            return [id, null];
+          }
+          
           if (!res.ok) return [id, null];
           const list = await res.json();
           if (!Array.isArray(list) || list.length === 0) return [id, 0];
@@ -279,8 +290,12 @@ const Homepage = () => {
           const avg = sum / list.length;
           return [id, Number.isFinite(avg) ? Math.round(avg * 10) / 10 : 0];
         }));
-        const map = Object.fromEntries(entries);
-        setPageRatings(map);
+        
+        // Only set ratings if no 401 occurred (to avoid setting state after logout)
+        if (!has401) {
+          const map = Object.fromEntries(entries);
+          setPageRatings(map);
+        }
       } catch {
         // ignore
       }
@@ -394,7 +409,7 @@ const Homepage = () => {
 
 
   return (
-    <div className="page-gradient">
+    <div className={`page-gradient ${styles.homepageGradient}`}>
       <div 
         className="min-h-screen"
         style={{ 
@@ -703,7 +718,7 @@ const Homepage = () => {
             {/* See All Button */}
             <div className="text-center">
               <button 
-                className="bg-[#1a8eea] hover:bg-[#0f7bd4] text-white font-semibold px-8 py-4 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 inline-flex items-center gap-2"
+                className="bg-[#1a8eea] hover:bg-[#0f7bd4] text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 inline-flex items-center gap-2"
                 onClick={() => navigate('/tour')}
               >
                 See All

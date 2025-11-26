@@ -53,6 +53,13 @@ const VoucherManagement = () => {
         }
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        const { checkAndHandle401 } = await import('../../../utils/apiErrorHandler');
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         const toursList = Array.isArray(data) ? data : [];

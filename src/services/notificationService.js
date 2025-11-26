@@ -1,3 +1,5 @@
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 const getAuthHeaders = () => {
@@ -17,6 +19,12 @@ const withUserEmail = (headers, userEmail) => ({
 
 const parseJson = async (res) => {
   if (!res.ok) {
+    // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+    const wasHandled = await checkAndHandleApiError(res, true);
+    if (wasHandled) {
+      // Đã redirect, throw error để dừng xử lý tiếp
+      throw new Error('Session expired. Please login again.');
+    }
     const text = await res.text().catch(() => '');
     const err = new Error(`HTTP ${res.status} ${res.statusText}`);
     err.body = text;

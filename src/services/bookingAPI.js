@@ -1,4 +1,6 @@
 // Booking API service
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 const parseErrorMessage = async (response) => {
@@ -54,17 +56,14 @@ export const createBooking = async (bookingData) => {
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response);
-      console.error('Booking creation failed:', { status: response.status, message });
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const message = await parseErrorMessage(response);
+      console.error('Booking creation failed:', { status: response.status, message });
       throw new Error(message);
     }
 
@@ -91,13 +90,14 @@ export const getBookingById = async (bookingId) => {
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response);
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Do not clear token here to avoid logging user out during background checks
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      // Note: For background checks, we might not want to redirect, but for consistency we'll do it
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
+      
+      const message = await parseErrorMessage(response);
       
       // 400 often indicates BE mapping error when tour is null; surface friendly text
       if (response.status === 400) {
@@ -132,16 +132,13 @@ export const getAllBookings = async (companyId) => {
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response);
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const message = await parseErrorMessage(response);
       throw new Error(message);
     }
 
@@ -173,16 +170,13 @@ export const createVNPayPayment = async (paymentData) => {
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response);
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const message = await parseErrorMessage(response);
       throw new Error(message);
     }
 
@@ -208,13 +202,13 @@ export const getBookingTotal = async (bookingId) => {
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response);
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Do not clear token here to avoid logging user out during background checks
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
+      
+      const message = await parseErrorMessage(response);
       if (response.status === 400) {
         // Allow caller to continue without total
         throw new Error('Bad Request');
@@ -243,16 +237,13 @@ export const getBookingDetails = async (bookingId) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -321,8 +312,10 @@ export const getBookingsByTourId = async (tourId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -357,8 +350,10 @@ export const getGuestsByBookingId = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -395,8 +390,10 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -427,8 +424,10 @@ export const updateBooking = async (bookingId, bookingData) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -458,8 +457,10 @@ export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -488,8 +489,10 @@ export const companyConfirmTourCompletion = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -518,8 +521,10 @@ export const userConfirmTourCompletion = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
       throw new Error(message);
@@ -546,13 +551,15 @@ export const getTourCompletionStatus = async (bookingId) => {
     });
 
     if (!response.ok) {
-      const message = await parseErrorMessage(response);
-      
-      if (response.status === 401) {
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return false; // Đã redirect, trả về false
       }
 
-      if (response.status === 400 || response.status === 404) {
+      const message = await parseErrorMessage(response);
+
+      if (response.status === 400) {
         console.warn('Tour completion status not available yet:', {
           bookingId,
           status: response.status,

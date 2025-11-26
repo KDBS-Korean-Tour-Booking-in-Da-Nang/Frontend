@@ -51,7 +51,19 @@ const ForgotPassword = () => {
         setSent(true);
         setCountdown(60);
       } else {
-        showError(data.message || 'toast.auth.general_error');
+        // Check if it's an OAuth-only user error
+        const errorMessage = data.message || '';
+        // If backend returns error for OAuth-only users, show specific message and don't proceed
+        if (errorMessage.toLowerCase().includes('oauth') || 
+            errorMessage.toLowerCase().includes('social') ||
+            errorMessage.toLowerCase().includes('google') ||
+            errorMessage.toLowerCase().includes('naver') ||
+            data.code === 1001 || // Assuming backend uses specific error code
+            response.status === 400) {
+          showError(data.message || t('auth.forgot.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver.');
+        } else {
+          showError(data.message || 'toast.auth.general_error');
+        }
       }
     } catch (err) {
       showError('toast.auth.general_error');

@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
 import { ArrowPathIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import articleService from '../../services/articleService';
 import { getArticleSummary, extractFirstImageUrl } from '../../utils/htmlConverter';
-import styles from './news.module.css';
+import styles from './News.module.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 const News = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -153,7 +154,19 @@ const News = () => {
                   const summary = article.articleDescription || getArticleSummary(article.articleContent || '', 150);
                   
                   return (
-                    <div key={article.articleId} className={`${styles.card} ${styles.articleCard} group cursor-pointer`}>
+                    <div
+                      key={article.articleId}
+                      className={`${styles.card} ${styles.articleCard} group cursor-pointer`}
+                      onClick={() => navigate(`/news/detail?id=${article.articleId}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          navigate(`/news/detail?id=${article.articleId}`);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
                       <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
                         {/* Article Image */}
                         <div className={`${styles.articleImageContainer} flex-shrink-0 w-full sm:w-[38%] md:w-[34%] lg:w-[32%] xl:w-[30%]`}>

@@ -142,7 +142,10 @@
 			"submit": "Send email",
 			"sending": "Sending...",
 			"success": "OTP has been sent to your email.",
-			"error": "Failed to send OTP. Please try again."
+			"error": "Failed to send OTP. Please try again.",
+			"errors": {
+				"oauthOnly": "This account is logged in via Google/Naver and does not have a password. Please log in using Google/Naver."
+			}
 		},
 		"verify": {
 			"title": "Verify Email",
@@ -440,6 +443,7 @@
 			"phone": "Phone",
 			"dob": "Date of birth",
 			"gender": "Gender",
+			"address": "Address",
 			"cccd": "ID number",
 			"id": "ID",
 			"role": "Role",
@@ -458,7 +462,80 @@
 			"other": "Other"
 		},
 		"cancel": "Cancel",
-		"saveChanges": "Save changes"
+		"saveChanges": "Save changes",
+		"sidebar": {
+			"profile": "Profile",
+			"settings": "Settings",
+			"changePassword": "Change password",
+			"favorites": "Favorites",
+			"payments": "Payments",
+			"notifications": "Notifications"
+		},
+		"actions": {
+			"edit": "Edit profile",
+			"chooseAvatar": "Choose avatar",
+			"cancel": "Cancel",
+			"save": "Save changes",
+			"updating": "Updating..."
+		},
+		"settings": {
+			"language": "Language",
+			"theme": "Theme",
+			"themeOptions": {
+				"light": "Light",
+				"dark": "Dark"
+			}
+		},
+		"password": {
+			"current": "Current password",
+			"new": "New password",
+			"confirm": "Confirm new password",
+			"submit": "Update password",
+			"processing": "Updating...",
+			"success": "Password updated successfully!",
+			"socialDisabled": "Accounts logged in via social providers cannot change passwords here.",
+			"errors": {
+				"currentRequired": "Please enter your current password",
+				"newRequired": "Please enter a new password",
+				"confirmRequired": "Please confirm your new password",
+				"minLength": "New password must be at least 8 characters",
+				"match": "Password confirmation does not match",
+				"sameAsCurrent": "New password cannot match the current password",
+				"generic": "Unable to change password. Please try again.",
+				"oauthOnly": "This account is logged in via Google/Naver and does not have a password. Cannot change password."
+			}
+		},
+		"favorites": {
+			"title": "Favorite tours",
+			"empty": "You don't have any favorite tours yet."
+		},
+		"payments": {
+			"title": "Payment methods",
+			"empty": "You haven't added any payment methods yet."
+		},
+		"notifications": {
+			"email": "Email notifications",
+			"push": "Push notifications",
+			"enabled": "Enabled",
+			"disabled": "Disabled"
+		},
+		"placeholders": {
+			"addressOptional": "Enter address (optional)"
+		},
+		"datePicker": {
+			"open": "Open date picker"
+		},
+		"errors": {
+			"invalidName": "Invalid name: cannot start with a number or contain special characters.",
+			"avatarSize": "Image size must not exceed 5MB",
+			"avatarFormat": "Unsupported image format (only JPG, PNG, GIF, WebP are allowed)",
+			"tokenMissing": "Authentication token not found",
+			"updateFailed": "An error occurred while updating information",
+			"mustBe13": "You must be at least 13 years old"
+		},
+		"toast": {
+			"updateSuccess": "Profile updated successfully!"
+		}
 	},
 	"oauth": {
 		"successLogin": "Login successful!",
@@ -756,6 +833,7 @@
 	},
 	"toast": {
 		"required": "{{field}} is required",
+		"fill_missing_field": "Please fill in the missing {{field}}",
 		"name_required": "Name is required",
 		"login_required": "Please login to continue",
 		"save_success": "Save successful",
@@ -1354,7 +1432,19 @@
 		},
 		"loadMore": "Load more",
 		"pagination": {
-			"showing": "Showing {{start}} to {{end}} of {{total}} tours"
+			"showing": "Showing {{start}} to {{end}} of {{total}} tours",
+			"firstPage": "First page",
+			"previousPage": "Previous page",
+			"nextPage": "Next page",
+			"lastPage": "Last page"
+		},
+		"topTours": {
+			"title": "Top 3 Most Popular Tours",
+			"subtitle": "Tours with the most bookings and highest 5-star ratings",
+			"badge": "Top {{rank}}"
+		},
+		"allTours": {
+			"title": "All Tours"
 		}
 	},
 	"bookingHistory": {
@@ -1514,6 +1604,7 @@
 				"fullName": "Enter full name",
 				"chooseGender": "Select gender",
 				"chooseNationality": "Select nationality",
+				"selectNationalityFirst": "Please select nationality first",
 				"idVietnam": "Digits only: 12 digits (CCCD) or 9 digits (CMND/CMT)",
 				"idPassport": "Enter passport number (6-9 characters)",
 				"dateFormat": "Enter in {{format}} format",
@@ -1530,6 +1621,7 @@
 			},
 			"fields": {
 				"date": "Departure Date",
+				"deadlineNotice": "This tour requires {{days}} days for processing, please select a departure date after {{minDate}}",
 				"adultPax": "Adult Count",
 				"adultName1": "Adult 1 Name",
 				"adultName2": "Adult 2 Name",

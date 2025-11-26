@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { getUserByEmail } from '../services/userService';
+import { setLogoutCallback } from '../utils/apiErrorHandler';
 
 const AuthContext = createContext();
 
@@ -306,9 +307,18 @@ export const AuthProvider = ({ children }) => {
       return null;
     } catch (error) {
       console.error('Error refreshing user data:', error);
+      // If 401, logout will be handled by apiErrorHandler
       return null;
     }
   };
+
+  // Register logout callback for API error handler
+  useEffect(() => {
+    setLogoutCallback(logout);
+    return () => {
+      setLogoutCallback(null);
+    };
+  }, [logout]);
 
   const value = {
     user,

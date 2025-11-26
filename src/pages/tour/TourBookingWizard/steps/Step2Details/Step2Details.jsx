@@ -4,8 +4,29 @@ import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { formatPrice } from '../../../../../utils/priceRules';
 import { DatePicker } from 'react-rainbow-components';
-import { Calendar } from 'lucide-react';
+import {
+  Calendar,
+  CalendarRange,
+  Users as UsersIcon,
+  IdCard,
+  UserRound,
+  Baby,
+  User,
+  PenSquare,
+  CalendarDays,
+  Globe,
+  BookUser,
+  Venus,
+  Mars
+} from 'lucide-react';
 import styles from './Step2Details.module.css';
+
+const GenderIcon = ({ className = '' }) => (
+  <span className={`${styles['gender-icon']} ${className}`}>
+    <Mars />
+    <Venus />
+  </span>
+);
 
 const Step2Details = () => {
   const [searchParams] = useSearchParams();
@@ -26,6 +47,7 @@ const Step2Details = () => {
   const [errors, setErrors] = useState({});
   const [confirmedNationalities, setConfirmedNationalities] = useState({});
   const [touchedFields, setTouchedFields] = useState(new Set());
+  const touchedFieldsRef = useRef(new Set()); // Ref to track touched fields for event handler
   const [dateTouched, setDateTouched] = useState(false);
   const [editingFields, setEditingFields] = useState(new Set()); // Track which fields are being edited
   const [validatingFields, setValidatingFields] = useState(new Set()); // Track fields being validated manually
@@ -598,6 +620,39 @@ const Step2Details = () => {
     }
   };
 
+  // Format date with month name for better readability (e.g., "12 tháng 2, 2025")
+  const formatDateWithMonthName = (normalizedDate) => {
+    if (!normalizedDate || !/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+      return normalizedDate;
+    }
+    
+    const [year, month, day] = normalizedDate.split('-');
+    const monthNum = parseInt(month, 10);
+    const dayNum = parseInt(day, 10);
+    
+    const monthNames = {
+      vi: ['', 'tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6', 
+           'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'],
+      en: ['', 'January', 'February', 'March', 'April', 'May', 'June',
+           'July', 'August', 'September', 'October', 'November', 'December'],
+      ko: ['', '1월', '2월', '3월', '4월', '5월', '6월',
+           '7월', '8월', '9월', '10월', '11월', '12월']
+    };
+    
+    const monthName = monthNames[currentLanguage]?.[monthNum] || month;
+    
+    switch (currentLanguage) {
+      case 'vi':
+        return `${dayNum} ${monthName}, ${year}`;
+      case 'en':
+        return `${monthName} ${dayNum}, ${year}`;
+      case 'ko':
+        return `${year}년 ${monthName} ${dayNum}일`;
+      default:
+        return `${dayNum} ${monthName}, ${year}`;
+    }
+  };
+
   // Format departure date from plan.date (year, month, day) to display format
   const formatDepartureDateForDisplay = () => {
     if (!plan.date.year || !plan.date.month || !plan.date.day) {
@@ -902,10 +957,10 @@ const Step2Details = () => {
         for (let i = 0; i < plan.members.infant.length; i++) {
           convertMemberDob('infant', i);
         }
-        }
-      } catch (err) {
-        // Language change DOB conversion error
       }
+    } catch (err) {
+      // Language change DOB conversion error
+    }
   }, [currentLanguage]);
 
   // Fetch tour data and prices
@@ -928,6 +983,12 @@ const Step2Details = () => {
       });
       
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (response.status === 401) {
+          const { handleApiError } = await import('../../../../../utils/apiErrorHandler');
+          await handleApiError(response);
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -1097,13 +1158,107 @@ const Step2Details = () => {
 
   // Removed cleanup useEffect since we no longer use timeouts
 
+  // Helper function to set touched fields and sync with ref
+  const setTouchedFieldsWithRef = (updater) => {
+    setTouchedFields(prev => {
+      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      touchedFieldsRef.current = newValue;
+      return newValue;
+    });
+  };
+
+  // Sync touchedFieldsRef with touchedFields state
+  useEffect(() => {
+    touchedFieldsRef.current = touchedFields;
+  }, [touchedFields]);
+
+  // Listen for validation trigger from parent component (when Next is clicked)
+  useEffect(() => {
+    const handleValidateAll = () => {
+      // Only validate and mark touched for fields that haven't been touched yet
+      // This preserves the realtime validation logic for fields that user has already interacted with
+      
+      // Get current touched fields from ref (to avoid closure issues)
+      const currentTouchedFields = touchedFieldsRef.current;
+      const fieldsToValidate = [];
+      
+      // Check date field
+      if (!currentTouchedFields.has('date') && !dateTouched) {
+        fieldsToValidate.push({ type: 'date', key: 'date' });
+      }
+      
+      // Check all members
+      const allMembers = [
+        ...plan.members.adult.map((m, i) => ({ member: m, type: 'adult', index: i })),
+        ...plan.members.child.map((m, i) => ({ member: m, type: 'child', index: i })),
+        ...plan.members.infant.map((m, i) => ({ member: m, type: 'infant', index: i }))
+      ];
+      
+      allMembers.forEach(({ member, type, index }) => {
+        if (!member) return;
+        
+        // Check each field
+        const fields = ['fullName', 'dob', 'gender', 'nationality', 'idNumber'];
+        fields.forEach(field => {
+          // For idNumber, use different key format
+          let fieldKey;
+          if (field === 'idNumber') {
+            // All members use the same pattern: {type}_{index}_idNumber
+            fieldKey = `${type}_${index}_idNumber`;
+          } else {
+            fieldKey = `${type}_${index}_${field}`;
+          }
+          
+          if (!currentTouchedFields.has(fieldKey)) {
+            fieldsToValidate.push({ type: 'member', memberType: type, index, field, key: fieldKey });
+          }
+        });
+      });
+      
+        // Mark untouched fields as touched and validate them
+        if (fieldsToValidate.length > 0) {
+          // First, mark all untouched fields as touched
+          const newTouchedFields = new Set(touchedFieldsRef.current);
+          fieldsToValidate.forEach(({ key }) => {
+            if (key) {
+              newTouchedFields.add(key);
+            }
+          });
+          
+          // Update ref immediately to ensure validation can access it
+          touchedFieldsRef.current = newTouchedFields;
+          
+          // Update state to trigger validation useEffect
+          setTouchedFieldsWithRef(newTouchedFields);
+          
+          // Mark date as touched if needed
+          if (fieldsToValidate.some(f => f.type === 'date')) {
+            setDateTouched(true);
+          }
+          
+          // Validation will be handled by the existing useEffect that watches touchedFields
+          // The useEffect will automatically validate all touched fields
+        }
+    };
+    
+    // Listen for custom event from parent component
+    window.addEventListener('validateStep2', handleValidateAll);
+    
+    return () => {
+      window.removeEventListener('validateStep2', handleValidateAll);
+    };
+  }, [plan.members, dateTouched]);
+
   // Validate form
   useEffect(() => {
     const newErrors = {};
 
-    // Check date
+    // Check date - only validate if dateTouched is true
     if (!plan.date.day || !plan.date.month || !plan.date.year) {
-      newErrors.date = t('booking.step2.errors.dateRequired');
+      // Only show error if field has been touched (user tried to proceed)
+      if (dateTouched) {
+        newErrors.date = t('booking.step2.errors.dateRequired');
+      }
     } else {
       // Create selected date and normalize to midnight for accurate comparison
       const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
@@ -1231,37 +1386,28 @@ const Step2Details = () => {
         newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
       }
       
-      // ID validation for Next button blocking (but not for UI display)
-      // Real-time validation handles UI display, useEffect handles Next button blocking
-      const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber) {
-          // Check if ID is required based on nationality and age
-          const idRequired = isIdRequired(member.dob, member.nationality);
-          if (idRequired) {
-            // Validate format based on nationality
-            if (member.nationality === 'VN') {
-              const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-              if (!vietnameseIdRegex.test(member.idNumber)) {
-                newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-              }
-            } else {
-              const passportRegex = /^[A-Z0-9]{6,9}$/i;
-              if (!passportRegex.test(member.idNumber)) {
-                newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-              }
-            }
-          }
-        } else if (touchedFields.has(idKey)) {
-          // Check if ID is required but not provided
-          const idRequired = isIdRequired(member.dob, member.nationality);
-          if (idRequired) {
-            if (member.nationality === 'VN') {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-            } else {
-              newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-            }
+      // ID validation - always required when field is touched
+      // Use consistent error key matching handleIdNumberChange and render
+      // All adult members use the same pattern: adult_{index}_idNumber
+      const idErrorKey = `${memberType}_${index}_idNumber`;
+      const idTouchedKey = `${memberType}_${index}_idNumber`;
+      
+      if (touchedFields.has(idTouchedKey)) {
+        // Always validate when field is touched
+        // Passport is always required for all nationalities (currently only Korea)
+        // Validate regardless of nationality selection to show error message
+        if (!member.idNumber || !member.idNumber.trim()) {
+          // ID is required but not provided
+          newErrors[idErrorKey] = t('booking.step2.validation.passport');
+        } else {
+          // Validate format - Passport validation: 6-9 characters, letters and numbers
+          const passportRegex = /^[A-Z0-9]{6,9}$/i;
+          const isValid = passportRegex.test(member.idNumber);
+          if (!isValid) {
+            newErrors[idErrorKey] = t('booking.step2.validation.passport');
           }
         }
+      }
     });
 
     // Validate child members
@@ -1319,30 +1465,24 @@ const Step2Details = () => {
         newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
       }
       
-      // ID validation for Next button blocking (but not for UI display)
-      // Real-time validation handles UI display, useEffect handles Next button blocking
-      const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
-        // Always validate format when ID is provided, regardless of whether it's required
-        if (member.nationality === 'VN') {
-          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-          if (!vietnameseIdRegex.test(member.idNumber)) {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-          }
+      // ID validation - always required when field is touched
+      // Use globalIndex to match render and handleIdNumberChange
+      // For child members: globalIndex = plan.members.adult.length + index
+      const idErrorKey = `${memberType}_${globalIndex}_idNumber`;
+      const idTouchedKey = `${memberType}_${index}_idNumber`; // Use localIndex for touched key
+      
+      if (touchedFields.has(idTouchedKey)) {
+        // Always validate when field is touched
+        // Passport is always required for all nationalities (currently only Korea)
+        // Validate regardless of nationality selection to show error message
+        if (!member.idNumber || !member.idNumber.trim()) {
+          // ID is required but not provided
+          newErrors[idErrorKey] = t('booking.step2.validation.passport');
         } else {
+          // Validate format - Passport validation: 6-9 characters, letters and numbers
           const passportRegex = /^[A-Z0-9]{6,9}$/i;
           if (!passportRegex.test(member.idNumber)) {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-          }
-        }
-      } else if (touchedFields.has(idKey)) {
-        // Check if ID is required but not provided
-        const idRequired = isIdRequired(member.dob, member.nationality);
-        if (idRequired) {
-          if (member.nationality === 'VN') {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-          } else {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+            newErrors[idErrorKey] = t('booking.step2.validation.passport');
           }
         }
       }
@@ -1402,30 +1542,26 @@ const Step2Details = () => {
         newErrors[`member_${globalIndex}_nationality`] = t('booking.step2.errors.nationalityRequired');
       }
       
-      // ID validation for Next button blocking (but not for UI display)
-      // Real-time validation handles UI display, useEffect handles Next button blocking
-      const idKey = `${memberType}_${index}_idNumber`;
-      if (touchedFields.has(idKey) && member.idNumber && member.nationality) {
-        // Always validate format when ID is provided, regardless of whether it's required
-        if (member.nationality === 'VN') {
-          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-          if (!vietnameseIdRegex.test(member.idNumber)) {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-          }
+      // ID validation - always required when field is touched
+      // Use globalIndex to match render and handleIdNumberChange
+      // For infant members: globalIndex = plan.members.adult.length + plan.members.child.length + index
+      // All members use the same pattern: {memberType}_{globalIndex}_idNumber for error key
+      // and {memberType}_{localIndex}_idNumber for touched key
+      const idErrorKey = `${memberType}_${globalIndex}_idNumber`;
+      const idTouchedKey = `${memberType}_${index}_idNumber`; // Use localIndex for touched key
+      
+      if (touchedFields.has(idTouchedKey)) {
+        // Always validate when field is touched
+        // Passport is always required for all nationalities (currently only Korea)
+        // Validate regardless of nationality selection to show error message
+        if (!member.idNumber || !member.idNumber.trim()) {
+          // ID is required but not provided
+          newErrors[idErrorKey] = t('booking.step2.validation.passport');
         } else {
+          // Validate format - Passport validation: 6-9 characters, letters and numbers
           const passportRegex = /^[A-Z0-9]{6,9}$/i;
           if (!passportRegex.test(member.idNumber)) {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
-          }
-        }
-      } else if (touchedFields.has(idKey)) {
-        // Check if ID is required but not provided
-        const idRequired = isIdRequired(member.dob, member.nationality);
-        if (idRequired) {
-          if (member.nationality === 'VN') {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.vietnameseId');
-          } else {
-            newErrors[`member_${globalIndex}_idNumber`] = t('booking.step2.validation.passport');
+            newErrors[idErrorKey] = t('booking.step2.validation.passport');
           }
         }
       }
@@ -1435,35 +1571,65 @@ const Step2Details = () => {
     setErrors(prev => {
       const updatedErrors = { ...prev };
       
-      // Only override errors for fields that are not being validated manually
-      // Skip ID errors completely - they are handled by real-time validation only
+      // Merge newErrors into updatedErrors (this will add/update errors from useEffect)
       Object.keys(newErrors).forEach(key => {
-        // Skip ID errors - they are handled by real-time validation only
-        if (key.includes('_idNumber')) {
-          return;
-        }
-        
         if (!validatingFieldsRef.current.has(key)) {
           updatedErrors[key] = newErrors[key];
         }
       });
       
       // Remove errors for fields that are no longer invalid and not being validated manually
-      // Skip ID errors completely - they are handled by real-time validation only
+      // BUT: Don't remove idNumber errors if field is touched (preserve realtime validation errors)
       Object.keys(updatedErrors).forEach(key => {
-        // Skip ID errors - they are handled by real-time validation only
-        if (key.includes('_idNumber')) {
-          return;
-        }
-        
         if (!newErrors[key] && !validatingFieldsRef.current.has(key)) {
+          // Check if this is an idNumber error and field is touched - preserve it
+          const isIdNumberError = key.includes('_idNumber');
+          if (isIdNumberError) {
+            // Check if corresponding touched field exists
+            let shouldPreserve = false;
+            // Check if corresponding touched field exists
+            // For adult[0], touched key is adult_0_idNumber (not representative_idNumber)
+            if (key === 'adult_0_idNumber') {
+              shouldPreserve = touchedFields.has('adult_0_idNumber');
+            } else {
+              // Extract memberType and index from error key (e.g., "adult_1_idNumber" or "child_2_idNumber")
+              // Note: error key format is memberType_globalIndex_idNumber
+              // touched key format is memberType_localIndex_idNumber
+              const match = key.match(/^(adult|child|infant)_(\d+)_idNumber$/);
+              if (match) {
+                const [, memberType, globalIndexStr] = match;
+                const globalIndex = parseInt(globalIndexStr, 10);
+                
+                // Calculate localIndex from globalIndex
+                let localIndex;
+                if (memberType === 'adult') {
+                  localIndex = globalIndex; // Adult members: globalIndex = localIndex
+                } else if (memberType === 'child') {
+                  localIndex = globalIndex - plan.members.adult.length;
+                } else if (memberType === 'infant') {
+                  localIndex = globalIndex - plan.members.adult.length - plan.members.child.length;
+                } else {
+                  localIndex = globalIndex;
+                }
+                
+                const touchedKey = `${memberType}_${localIndex}_idNumber`;
+                shouldPreserve = touchedFields.has(touchedKey);
+              }
+            }
+            
+            if (shouldPreserve) {
+              // Don't delete - preserve realtime validation error
+              return;
+            }
+          }
+          
           delete updatedErrors[key];
         }
       });
       
       return updatedErrors;
     });
-  }, [plan.date, plan.members, touchedFields, t, tourMeta.deadlineDays, tourMeta.expirationDate]);
+  }, [plan.date, plan.members, touchedFields, dateTouched, t, tourMeta.deadlineDays, tourMeta.expirationDate]);
 
   const handlePaxChange = (type, action) => {
     
@@ -1504,7 +1670,10 @@ const Step2Details = () => {
     setMember(memberType, index, { [field]: processedValue });
     
     // Mark field as touched for real-time validation
-    setTouchedFields(prev => new Set(prev).add(`${memberType}_${index}_${field}`));
+    // BUT: Don't set touched for idNumber - it's handled in handleIdNumberBlur
+    if (field !== 'idNumber') {
+      setTouchedFieldsWithRef(prev => new Set(prev).add(`${memberType}_${index}_${field}`));
+    }
     
     // Clear error if input becomes valid
     const globalIndex = getGlobalIndex(memberType, index);
@@ -1542,7 +1711,7 @@ const Step2Details = () => {
     
     // Real-time validation for DOB - use localIndex to match render
     const dobKey = `${memberType}_${localIndex}_dob`;
-    setTouchedFields(prev => new Set(prev).add(dobKey));
+    setTouchedFieldsWithRef(prev => new Set(prev).add(dobKey));
     
     // Real-time validation: add or clear errors immediately
     if (value) {
@@ -1667,24 +1836,12 @@ const Step2Details = () => {
     const nationality = confirmedNationalities[key];
     
     if (nationality && value.trim()) {
-      const isVietnamese = nationality === 'VN';
-      
-      if (isVietnamese) {
-        // Vietnamese ID validation: exactly 12 digits (CCCD) or exactly 9 digits (CMND/CMT)
-        const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-        if (!vietnameseIdRegex.test(value)) {
-          return { isValid: false, error: t('booking.step2.validation.vietnameseId') };
-        } else {
-          return { isValid: true };
-        }
+      // Passport validation: 6-9 characters, letters and numbers
+      const passportRegex = /^[A-Z0-9]{6,9}$/i;
+      if (!passportRegex.test(value)) {
+        return { isValid: false, error: t('booking.step2.validation.passport') };
       } else {
-        // Passport validation: 6-9 characters, letters and numbers
-        const passportRegex = /^[A-Z0-9]{6,9}$/i;
-        if (!passportRegex.test(value)) {
-          return { isValid: false, error: t('booking.step2.validation.passport') };
-        } else {
-          return { isValid: true };
-        }
+        return { isValid: true };
       }
     }
     
@@ -1692,133 +1849,117 @@ const Step2Details = () => {
     return { isValid: true };
   };
 
-  // Handle ID number input with blur validation
+  // Handle ID number input - with realtime error display
+  // Note: For representative, index is localIndex (0). For other members, index is globalIndex.
   const handleIdNumberChange = (memberType, index, value) => {
-    // Check nationality to determine input filtering
-    const key = `${memberType}-${index}`;
-    const nationality = confirmedNationalities[key] || 
-                       (memberType === 'adult' && index === 0 ? plan.members.adult[0]?.nationality :
-                        memberType === 'adult' ? plan.members.adult[index]?.nationality :
-                        memberType === 'child' ? plan.members.child[index]?.nationality :
-                        memberType === 'infant' ? plan.members.infant[index]?.nationality : null);
-    
-    let processedValue = value;
-    
-    if (nationality === 'VN') {
-      // For Vietnamese nationality: only allow digits (0-9) and limit to 12 characters
-      processedValue = value.replace(/[^0-9]/g, '');
-      // Limit to maximum 12 digits for CCCD
-      if (processedValue.length > 12) {
-        processedValue = processedValue.substring(0, 12);
-      }
-    } else {
-      // For other nationalities: allow alphanumeric characters (passport format) and limit to 9 characters
-      processedValue = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-      // Limit to maximum 9 characters for passport
-      if (processedValue.length > 9) {
-        processedValue = processedValue.substring(0, 9);
-      }
+    // For all nationalities: allow alphanumeric characters (passport format) and limit to 9 characters
+    let processedValue = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    // Limit to maximum 9 characters for passport
+    if (processedValue.length > 9) {
+      processedValue = processedValue.substring(0, 9);
     }
     
-    handleMemberChange(memberType, index, 'idNumber', processedValue);
-    
-    // Real-time validation for ID number
-    // For representative (adult[0]), use 'representative_idNumber' key to match UI
-    const idKey = memberType === 'adult' && index === 0 ? 'representative_idNumber' : `${memberType}_${index}_idNumber`;
-    
-    // Calculate correct error key to match UI display logic
-    let errorKey;
-    if (memberType === 'adult' && index === 0) {
-      // Representative
-      errorKey = `member_${index}_idNumber`;
-    } else if (memberType === 'adult') {
-      // Other adult members: convert globalIndex to localIndex for UI consistency
-      const localIndex = index - 1; // adult[1] -> localIndex 0, adult[2] -> localIndex 1, etc.
-      errorKey = `${memberType}_${localIndex}_idNumber`;
-    } else {
-      // Child and infant members: use index directly
-      errorKey = `${memberType}_${index}_idNumber`;
-    }
-    
-    // Set touchedFields with the key that matches UI display logic
+    // Determine localIndex and globalIndex
+    let localIndex;
+    let globalIndex;
     let touchedKey;
-    if (memberType === 'adult' && index === 0) {
-      // Representative
-      touchedKey = 'representative_idNumber';
-    } else if (memberType === 'adult') {
-      // Other adult members: convert globalIndex to localIndex for UI consistency
-      const localIndex = index - 1; // adult[1] -> localIndex 0, adult[2] -> localIndex 1, etc.
-      touchedKey = `${memberType}_${localIndex}_idNumber`;
-    } else {
-      // Child and infant members: use index directly
-      touchedKey = `${memberType}_${index}_idNumber`;
-    }
-    setTouchedFields(prev => new Set(prev).add(touchedKey));
+    let errorKey;
     
-    // No need for validating flag since we disabled useEffect validation for ID
-    
-    // Real-time validation - show error immediately if invalid
-    // Always validate format when user inputs something, regardless of whether ID is required
-    if (processedValue && nationality) {
-      let isValid = false;
+    // All members: index passed from render is globalIndex
+    globalIndex = index;
       
-      if (nationality === 'VN') {
-        // Vietnamese ID validation: exactly 12 digits (CCCD) or exactly 9 digits (CMND/CMT)
-        const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-        isValid = vietnameseIdRegex.test(processedValue);
-        
-        // Show error if not exactly 9 or 12 digits
-        if (!isValid) {
-          setErrors(prev => ({
-            ...prev,
-            [errorKey]: t('booking.step2.validation.vietnameseId')
-          }));
-        } else {
-          // Clear error if valid
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[errorKey];
-            return newErrors;
-          });
-        }
-      } else {
-        // Passport validation: 6-9 characters, letters and numbers
-        const passportRegex = /^[A-Z0-9]{6,9}$/i;
-        isValid = passportRegex.test(processedValue);
-        
-        // Show error if invalid passport format
-        if (!isValid) {
-          setErrors(prev => ({
+    // Calculate localIndex from globalIndex
+    if (memberType === 'adult') {
+      localIndex = globalIndex; // Adult members: globalIndex = localIndex
+    } else if (memberType === 'child') {
+      localIndex = globalIndex - plan.members.adult.length;
+    } else if (memberType === 'infant') {
+      localIndex = globalIndex - plan.members.adult.length - plan.members.child.length;
+    } else {
+      localIndex = globalIndex;
+    }
+      
+    touchedKey = `${memberType}_${localIndex}_idNumber`;
+    errorKey = `${memberType}_${globalIndex}_idNumber`;
+    
+    // Store the processed value using localIndex
+    handleMemberChange(memberType, localIndex, 'idNumber', processedValue);
+    
+    // Mark field as touched for validation
+    setTouchedFieldsWithRef(prev => {
+      const newSet = new Set(prev);
+      newSet.add(touchedKey);
+      touchedFieldsRef.current = newSet;
+      return newSet;
+    });
+    
+    // Realtime validation: validate passport format (6-9 characters, letters and numbers)
+    if (processedValue && processedValue.trim()) {
+      const passportRegex = /^[A-Z0-9]{6,9}$/i;
+      const isValid = passportRegex.test(processedValue);
+      
+      if (!isValid) {
+        // Invalid format - show error
+        setErrors(prev => {
+          const newErrors = {
             ...prev,
             [errorKey]: t('booking.step2.validation.passport')
-          }));
-        } else {
-          // Clear error if valid
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[errorKey];
-            return newErrors;
-          });
-        }
+          };
+          return newErrors;
+        });
+      } else {
+        // Valid format (6-9 characters) - clear error
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[errorKey];
+          return newErrors;
+        });
       }
     } else {
-      // Clear error if empty or no nationality
+      // Empty value - always set error if field is touched (for realtime feedback)
+      // Mark as touched first if not already touched
+      if (!touchedFieldsRef.current.has(touchedKey)) {
+        setTouchedFieldsWithRef(prev => {
+          const newSet = new Set(prev);
+          newSet.add(touchedKey);
+          touchedFieldsRef.current = newSet;
+          return newSet;
+        });
+      }
+      
       setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[errorKey];
+        const newErrors = {
+          ...prev,
+          [errorKey]: t('booking.step2.validation.passport')
+        };
         return newErrors;
       });
     }
   };
 
-  const handleIdNumberBlur = (memberType, index, value) => {
-    // Mark field as touched
-    // For representative (adult[0]), use 'representative_idNumber' key to match UI
-    const fieldKey = memberType === 'adult' && index === 0 ? 'representative_idNumber' : `${memberType}_${index}_idNumber`;
-    setTouchedFields(prev => new Set(prev).add(fieldKey));
+  const handleIdNumberBlur = (memberType, index) => {
+    // All members: index is globalIndex, calculate localIndex
+    let localIndex;
+    if (memberType === 'adult') {
+      localIndex = index; // Adult members: globalIndex = localIndex
+    } else if (memberType === 'child') {
+      localIndex = index - plan.members.adult.length;
+    } else if (memberType === 'infant') {
+      localIndex = index - plan.members.adult.length - plan.members.child.length;
+    } else {
+      localIndex = index;
+    }
+    const touchedKey = `${memberType}_${localIndex}_idNumber`;
     
-    // Validate ID number only on blur
-    validateIdNumber(memberType, index, value);
+    setTouchedFieldsWithRef(prev => {
+      const newSet = new Set(prev);
+      newSet.add(touchedKey);
+      touchedFieldsRef.current = newSet;
+      return newSet;
+    });
+    
+    // Realtime validation is handled in handleIdNumberChange
+    // This blur handler just ensures field is marked as touched
   };
 
   const handleNationalityChange = (memberType, globalIndex, value) => {
@@ -1830,7 +1971,7 @@ const Step2Details = () => {
     
     // Real-time validation for nationality
     const nationalityKey = `${memberType}_${localIndex}_nationality`;
-    setTouchedFields(prev => new Set(prev).add(nationalityKey));
+    setTouchedFieldsWithRef(prev => new Set(prev).add(nationalityKey));
     
     // Clear error if nationality becomes valid
     if (value && errors[`member_${globalIndex}_nationality`]) {
@@ -1850,10 +1991,9 @@ const Step2Details = () => {
                       memberType === 'child' ? globalIndex : // Child members start from 0
                       globalIndex; // Infant members start from 0
     
-    // Auto-detect Vietnamese nationality and show ID field
+    // Show ID/Passport field for any selected nationality
     // Use globalIndex for key to ensure uniqueness between representative and adult members
     const key = `${memberType}-${globalIndex}`;
-    const isVietnamese = value === 'VN';
     
     if (value && value.trim()) {
       // Show ID/Passport field for any selected nationality
@@ -1880,42 +2020,22 @@ const Step2Details = () => {
       }
       
       if (currentIdNumber && currentIdNumber.trim()) {
-        // Trigger validation for existing ID with new nationality
-        const idKey = memberType === 'adult' && globalIndex === 0 ? 'representative_idNumber' : `${memberType}_${globalIndex}_idNumber`;
-        const errorKey = `member_${globalIndex}_idNumber`;
-        
-        // Mark field as touched to show validation
-        setTouchedFields(prev => new Set(prev).add(idKey));
-        
-        // Validate existing ID with new nationality
-        const isVietnamese = value === 'VN';
-        let isValid = false;
-        
-        if (isVietnamese) {
-          // Vietnamese ID validation: exactly 12 digits (CCCD) or exactly 9 digits (CMND/CMT)
-          const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
-          isValid = vietnameseIdRegex.test(currentIdNumber);
+        // Mark field as touched for validation (but no error display)
+        // Calculate localIndex for touched key
+        let localIndex;
+        if (memberType === 'adult') {
+          localIndex = globalIndex; // Adult members: globalIndex = localIndex
+        } else if (memberType === 'child') {
+          localIndex = globalIndex - plan.members.adult.length;
+        } else if (memberType === 'infant') {
+          localIndex = globalIndex - plan.members.adult.length - plan.members.child.length;
         } else {
-          // Passport validation: 6-9 characters, letters and numbers
-          const passportRegex = /^[A-Z0-9]{6,9}$/i;
-          isValid = passportRegex.test(currentIdNumber);
+          localIndex = globalIndex;
         }
+        const idKey = `${memberType}_${localIndex}_idNumber`;
+        setTouchedFieldsWithRef(prev => new Set(prev).add(idKey));
         
-        // Set or clear error based on validation result
-        if (!isValid) {
-          setErrors(prev => ({
-            ...prev,
-            [errorKey]: isVietnamese 
-              ? t('booking.step2.validation.vietnameseId')
-              : t('booking.step2.validation.passport')
-          }));
-        } else {
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[errorKey];
-            return newErrors;
-          });
-        }
+        // No error display - validation only happens in useEffect for Next button blocking
       }
     } else {
       // Clear when empty
@@ -1944,6 +2064,12 @@ const Step2Details = () => {
     }
   };
 
+  const memberTypeIcons = {
+    adult: UserRound,
+    child: UsersIcon,
+    infant: Baby
+  };
+
   const getMemberTypePrice = (type) => {
     const price = (() => {
       switch (type) {
@@ -1962,8 +2088,8 @@ const Step2Details = () => {
   const renderRepresentativeForm = () => {
     // Lấy tên từ contact, ngày sinh từ member (bookingGuest)
     const representativeName = contact?.fullName;
-  // Prefer member's DOB (kept in Step 2 and converted on language change), fallback to contact
-  const representativeDob = plan.members.adult[0]?.dob || contact?.dob;
+    // Prefer member's DOB (kept in Step 2 and converted on language change), fallback to contact
+    const representativeDob = plan.members.adult[0]?.dob || contact?.dob;
     
     // Format date for display
     const displayDob = representativeDob ? formatDateForDisplay(representativeDob, 'representative-dob') : '';
@@ -1999,9 +2125,13 @@ const Step2Details = () => {
 
     return (
       <div className={styles['member-group']}>
-        <h4 className={styles['member-group-title']}>
-          {t('booking.step2.representative.title')} - {getMemberTypePrice('adult')}
-        </h4>
+        <div className={styles['member-group-title']}>
+          <div className={styles['member-group-title-text']}>
+            <UserRound className={styles['member-group-icon']} />
+            <span>{t('booking.step2.representative.title')}</span>
+          </div>
+          <span className={styles['member-group-price']}>{getMemberTypePrice('adult')}</span>
+        </div>
         <div className={styles['member-card']}>
           <div className={styles['member-title']}>
             {t('booking.step2.representative.label')}
@@ -2009,7 +2139,10 @@ const Step2Details = () => {
           <div className={styles['member-form']}>
             {/* Full Name - Read Only */}
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>{t('booking.step2.labels.fullName')}</label>
+              <div className={styles['label-with-icon']}>
+                <PenSquare className={styles['field-icon']} />
+                <label className={styles['form-label']}>{t('booking.step2.labels.fullName')}</label>
+              </div>
               <input
                 type="text"
                 value={representativeName || ''}
@@ -2021,7 +2154,10 @@ const Step2Details = () => {
 
             {/* Date of Birth - Read Only */}
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>{t('booking.step2.labels.dob')}</label>
+              <div className={styles['label-with-icon']}>
+                <CalendarDays className={styles['field-icon']} />
+                <label className={styles['form-label']}>{t('booking.step2.labels.dob')}</label>
+              </div>
               <input
                 type="text"
                 value={displayDob}
@@ -2033,7 +2169,10 @@ const Step2Details = () => {
 
             {/* Gender - Read Only (from Step 1) */}
             <div className={styles['form-group']}>
-              <label className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
+              <div className={styles['label-with-icon']}>
+                <GenderIcon />
+                <label className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
+              </div>
               <input
                 type="text"
                 value={(() => {
@@ -2052,13 +2191,16 @@ const Step2Details = () => {
 
             {/* Nationality - Editable */}
             <div className={styles['form-group']}>
-              <label htmlFor="representative-nationality" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.nationality')}</label>
+              <div className={styles['label-with-icon']}>
+                <Globe className={styles['field-icon']} />
+                <label htmlFor="representative-nationality" className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.nationality')}</label>
+              </div>
               <select
                 id="representative-nationality"
                 value={plan.members.adult[0]?.nationality || ''}
                 onChange={(e) => handleNationalityChange('adult', 0, e.target.value)}
-                onBlur={() => setTouchedFields(prev => new Set(prev).add('representative_nationality'))}
-                className={`${styles['form-select']} ${errors['member_0_nationality'] && touchedFields.has('representative_nationality') ? styles['error'] : ''}`}
+                onBlur={() => setTouchedFieldsWithRef(prev => new Set(prev).add('adult_0_nationality'))}
+                className={`${styles['form-select']} ${errors['adult_0_nationality'] && touchedFields.has('adult_0_nationality') ? styles['error'] : ''}`}
               >
                 <option value="">{t('booking.step2.placeholders.chooseNationality')}</option>
                 {countries.map(({code, label}) => (
@@ -2067,70 +2209,53 @@ const Step2Details = () => {
                   </option>
                 ))}
               </select>
-              {errors['member_0_nationality'] && touchedFields.has('representative_nationality') && (
-                <span className={styles['form-error']}>{errors['member_0_nationality']}</span>
+              {errors['adult_0_nationality'] && touchedFields.has('adult_0_nationality') && (
+                <span className={styles['form-error']}>{errors['adult_0_nationality']}</span>
               )}
             </div>
 
-            {/* ID Number - Conditional */}
-            {(confirmedNationalities['adult-0'] || plan.members.adult[0]?.nationality) && (
-              <div className={styles['form-group']}>
-                {(() => {
-                  const nationality = confirmedNationalities['adult-0'] || plan.members.adult[0]?.nationality;
-                  const departureDate = plan.date.year && plan.date.month && plan.date.day 
-                    ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
-                    : null;
-                  const idRequired = isIdRequired(plan.members.adult[0]?.dob, nationality);
-                  const age = calculateAge(plan.members.adult[0]?.dob, departureDate);
-                  
-                  // Representative always shows ID field when nationality is selected
-                  // Show info message for Vietnamese who don't need ID but still allow input
-                  return (
-                    <>
-                      {!idRequired && nationality === 'VN' && (
-                        <div className={styles['id-info-message']}>
-                          <div className={styles['info-icon']}>ℹ️</div>
-                          <div className={styles['info-text']}>
-                            {age < 2 && t('booking.step2.idInfo.baby')}
-                            {age >= 2 && age < 14 && t('booking.step2.idInfo.child')}
-                            {age >= 14 && age < 16 && t('booking.step2.idInfo.teen')}
-                          </div>
-                        </div>
-                      )}
-                      
+            {/* ID Number - Always visible, disabled until nationality is selected */}
+            <div className={styles['form-group']}>
+              {(() => {
+                const nationality = confirmedNationalities['adult-0'] || plan.members.adult[0]?.nationality;
+                const departureDate = plan.date.year && plan.date.month && plan.date.day 
+                  ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
+                  : null;
+                const idRequired = isIdRequired(plan.members.adult[0]?.dob, nationality);
+                const age = calculateAge(plan.members.adult[0]?.dob, departureDate);
+                
+                // Adult[0] always shows ID field (for testing error messages)
+                const touchedKey = 'adult_0_idNumber';
+                const errorKey = 'adult_0_idNumber';
+                const hasError = errors[errorKey] && touchedFields.has(touchedKey);
+                const isDisabled = !nationality; // Disable when no nationality selected
+                
+                return (
+                  <>
+                    <div className={styles['label-with-icon']}>
+                      <BookUser className={styles['field-icon']} />
                       <label htmlFor="representative-idNumber" className={`${styles['form-label']} ${idRequired ? styles['required'] : ''}`}>
-                        {nationality === 'VN' ? t('booking.step2.labels.idNumberCCCD') : t('booking.step2.labels.idNumberPassport')}
-                </label>
-                      {nationality === 'VN' && (
-                        <div className={styles['id-input-notice']}>
-                          <span className={styles['notice-text']}>💡 {
-                            currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' :
-                            currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
-                            'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)'
-                          }</span>
-                        </div>
-                      )}
-                <input
-                  type="text"
-                  id="representative-idNumber"
-                        value={plan.members.adult[0]?.idNumber || ''}
-                        onChange={(e) => handleIdNumberChange('adult', 0, e.target.value)}
-                        onBlur={(e) => handleIdNumberBlur('adult', 0, e.target.value)}
-                        className={`${styles['form-input']} ${errors['member_0_idNumber'] && touchedFields.has('representative_idNumber') ? styles['error'] : ''}`}
-                        placeholder={nationality === 'VN' ? 
-                    (currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' : 
-                     currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
-                     'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)') : 
-                    t('booking.step2.placeholders.idPassport')}
-                />
-                      {errors['member_0_idNumber'] && touchedFields.has('representative_idNumber') && (
-                        <span className={styles['form-error']}>{errors['member_0_idNumber']}</span>
-                )}
-                    </>
-                  );
-                })()}
-              </div>
-            )}
+                        {t('booking.step2.labels.idNumberPassport')}
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      id="representative-idNumber"
+                      value={plan.members.adult[0]?.idNumber || ''}
+                      onChange={(e) => handleIdNumberChange('adult', 0, e.target.value)}
+                      onBlur={() => handleIdNumberBlur('adult', 0)}
+                      disabled={isDisabled}
+                      className={`${styles['form-input']} ${hasError ? styles['error'] : ''} ${isDisabled ? styles['disabled'] : ''}`}
+                      placeholder={isDisabled ? t('booking.step2.placeholders.selectNationalityFirst') || 'Vui lòng chọn quốc tịch trước' : t('booking.step2.placeholders.idPassport')}
+                    />
+                    {/* Always show error if exists, regardless of touched state (for debugging) */}
+                    {errors[errorKey] && (
+                      <span className={styles['form-error']}>{errors[errorKey]}</span>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       </div>
@@ -2142,9 +2267,17 @@ const Step2Details = () => {
 
     return (
       <div key={memberType} className={styles['member-group']}>
-        <h4 className={styles['member-group-title']}>
-          {`${getMemberTypeLabel(memberType)} (${members.length} người) - ${getMemberTypePrice(memberType)}`}
-        </h4>
+        <div className={styles['member-group-title']}>
+          <div className={styles['member-group-title-text']}>
+            {memberTypeIcons[memberType] && (
+              <span className={styles['member-group-icon-wrapper']}>
+                {React.createElement(memberTypeIcons[memberType], { className: styles['member-group-icon'] })}
+              </span>
+            )}
+            <span>{`${getMemberTypeLabel(memberType)} (${members.length})`}</span>
+          </div>
+          <span className={styles['member-group-price']}>{getMemberTypePrice(memberType)}</span>
+        </div>
         {members.map((member, localIndex) => {
           // Safety check: skip if member is undefined
           if (!member) {
@@ -2152,24 +2285,48 @@ const Step2Details = () => {
           }
           
           // Calculate global index to match useEffect validation
-          // For all member types: globalIndex = localIndex (no representative anymore)
-          const globalIndex = localIndex;
+          // For adult: globalIndex = localIndex
+          // For child: globalIndex = localIndex + adult.length
+          // For infant: globalIndex = localIndex + adult.length + child.length
+          let globalIndex;
+          if (memberType === 'adult') {
+            globalIndex = localIndex;
+          } else if (memberType === 'child') {
+            globalIndex = localIndex + plan.members.adult.length;
+          } else if (memberType === 'infant') {
+            globalIndex = localIndex + plan.members.adult.length + plan.members.child.length;
+          } else {
+            globalIndex = localIndex;
+          }
           
           
           return (
             <div key={`${memberType}-${localIndex}`} className={styles['member-card']}>
               <div className={styles['member-title']}>
-                {`${getMemberTypeLabel(memberType)} ${localIndex + 1}`}
+                <div className={styles['label-with-icon']}>
+                  {memberTypeIcons[memberType] && (
+                    React.createElement(memberTypeIcons[memberType], { className: styles['field-icon'] })
+                  )}
+                  <span>{`${getMemberTypeLabel(memberType)} ${localIndex + 1}`}</span>
+                </div>
               </div>
-            <div className={styles['member-form']}>
+              <div className={styles['member-form']}>
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${localIndex}-fullName`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.fullName')}</label>
+                <div className={styles['label-with-icon']}>
+                  <PenSquare className={styles['field-icon']} />
+                  <label
+                    htmlFor={`${memberType}-${localIndex}-fullName`}
+                    className={`${styles['form-label']} ${styles['required']}`}
+                  >
+                    {t('booking.step2.labels.fullName')}
+                  </label>
+                </div>
                 <input
                   type="text"
                   id={`${memberType}-${localIndex}-fullName`}
                     value={member.fullName || ''}
                   onChange={(e) => handleMemberChange(memberType, globalIndex, 'fullName', e.target.value)}
-                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_fullName`))}
+                  onBlur={() => setTouchedFieldsWithRef(prev => new Set(prev).add(`${memberType}_${localIndex}_fullName`))}
                   className={`${styles['form-input']} ${errors[`member_${globalIndex}_name`] && touchedFields.has(`${memberType}_${localIndex}_fullName`) ? styles['error'] : ''}`}
                   placeholder={t('booking.step2.placeholders.fullName')}
                 />
@@ -2179,8 +2336,16 @@ const Step2Details = () => {
               </div>
 
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${localIndex}-dob`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.dob')}</label>
-                 <div className={styles['date-input-container']}>
+                <div className={styles['label-with-icon']}>
+                  <CalendarDays className={styles['field-icon']} />
+                  <label
+                    htmlFor={`${memberType}-${localIndex}-dob`}
+                    className={`${styles['form-label']} ${styles['required']}`}
+                  >
+                    {t('booking.step2.labels.dob')}
+                  </label>
+                </div>
+                <div className={styles['date-input-container']}>
                 <input
                      type="text"
                   id={`${memberType}-${localIndex}-dob`}
@@ -2361,6 +2526,9 @@ const Step2Details = () => {
                            }
                          }}
                          maxDate={new Date()}
+                         onFocus={() => {}}
+                         onBlur={() => {}}
+                         onClick={() => {}}
                        />
                      </div>
                    </div>
@@ -2371,12 +2539,20 @@ const Step2Details = () => {
               </div>
 
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${localIndex}-gender`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.gender')}</label>
+                <div className={styles['label-with-icon']}>
+                  <GenderIcon />
+                  <label
+                    htmlFor={`${memberType}-${localIndex}-gender`}
+                    className={`${styles['form-label']} ${styles['required']}`}
+                  >
+                    {t('booking.step2.labels.gender')}
+                  </label>
+                </div>
                 <select
                   id={`${memberType}-${localIndex}-gender`}
                     value={member.gender || ''}
                   onChange={(e) => handleMemberChange(memberType, globalIndex, 'gender', e.target.value)}
-                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_gender`))}
+                  onBlur={() => setTouchedFieldsWithRef(prev => new Set(prev).add(`${memberType}_${localIndex}_gender`))}
                   className={`${styles['form-select']} ${errors[`member_${globalIndex}_gender`] && touchedFields.has(`${memberType}_${localIndex}_gender`) ? styles['error'] : ''}`}
                 >
                   <option value="">{t('booking.step2.placeholders.chooseGender')}</option>
@@ -2390,12 +2566,20 @@ const Step2Details = () => {
               </div>
 
               <div className={styles['form-group']}>
-                <label htmlFor={`${memberType}-${localIndex}-nationality`} className={`${styles['form-label']} ${styles['required']}`}>{t('booking.step2.labels.nationality')}</label>
+                <div className={styles['label-with-icon']}>
+                  <Globe className={styles['field-icon']} />
+                  <label
+                    htmlFor={`${memberType}-${localIndex}-nationality`}
+                    className={`${styles['form-label']} ${styles['required']}`}
+                  >
+                    {t('booking.step2.labels.nationality')}
+                  </label>
+                </div>
                 <select
                   id={`${memberType}-${localIndex}-nationality`}
                     value={member.nationality || ''}
                   onChange={(e) => handleNationalityChange(memberType, globalIndex, e.target.value)}
-                  onBlur={() => setTouchedFields(prev => new Set(prev).add(`${memberType}_${localIndex}_nationality`))}
+                  onBlur={() => setTouchedFieldsWithRef(prev => new Set(prev).add(`${memberType}_${localIndex}_nationality`))}
                   className={`${styles['form-select']} ${errors[`member_${globalIndex}_nationality`] && touchedFields.has(`${memberType}_${localIndex}_nationality`) ? styles['error'] : ''}`}
                 >
                   <option value="">{t('booking.step2.placeholders.chooseNationality')}</option>
@@ -2410,98 +2594,59 @@ const Step2Details = () => {
                 )}
               </div>
 
-              {/* Dynamic ID/Passport field based on confirmed nationality and age */}
-              {(() => {
-                // Use globalIndex for key to ensure uniqueness between representative and adult members
-                const key = `${memberType}-${globalIndex}`;
-                const hasConfirmedNationality = confirmedNationalities[key];
-                const hasMemberNationality = member.nationality && member.nationality.trim();
-                
-                // Show ID field if either confirmedNationalities or member.nationality exists
-                // This ensures ID field shows when returning from other steps
-                return hasConfirmedNationality || hasMemberNationality;
-              })() && (
-                <div className={styles['form-group']}>
-                  {(() => {
-                        const nationality = confirmedNationalities[`${memberType}-${globalIndex}`] || member.nationality;
-                    const departureDate = plan.date.year && plan.date.month && plan.date.day 
-                      ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
-                      : null;
-                    const idRequired = isIdRequired(member.dob, nationality);
-                    const age = calculateAge(member.dob, departureDate);
-                    
-                    // Handle ID field display based on nationality and member type
-                    // For Vietnamese children/infants: only show info message, no input
-                    // For other nationalities: show passport input
-                    
-                    // For Vietnamese children and infants: only show info message
-                    if (nationality === 'VN' && (memberType === 'child' || memberType === 'infant')) {
-                        return (
-                          <div className={styles['id-info-message']}>
-                            <div className={styles['info-icon']}>ℹ️</div>
-                            <div className={styles['info-text']}>
-                            {memberType === 'infant' && t('booking.step2.idInfo.baby')}
-                            {memberType === 'child' && t('booking.step2.idInfo.child')}
-                            </div>
-                          </div>
-                        );
-                    }
-                    
-                    // For Vietnamese adults: show ID field with age-based requirement
-                    // For other nationalities (all ages): show passport field (required)
-                    const isIdRequiredForValidation = nationality === 'VN' ? 
-                      (memberType === 'adult' && idRequired) : // Vietnamese: only required for adults 14+
-                      true; // Other nationalities: always required
-                    
-                    return (
-                      <>
-                        {nationality === 'VN' && memberType === 'adult' && !idRequired && (
-                          <div className={styles['id-info-message']}>
-                            <div className={styles['info-icon']}>ℹ️</div>
-                            <div className={styles['info-text']}>
-                              {t('booking.step2.idInfo.adult')}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className={styles['form-group']}>
-                          <label htmlFor={`${memberType}-${localIndex}-idNumber`} className={`${styles['form-label']} ${isIdRequiredForValidation ? styles['required'] : ''}`}>
-                          {nationality === 'VN' ? t('booking.step2.labels.idNumberCCCD') : t('booking.step2.labels.idNumberPassport')}
+              {/* ID/Passport field - Always visible, disabled until nationality is selected */}
+              <div className={styles['form-group']}>
+                {(() => {
+                  // Use globalIndex for key to ensure uniqueness between representative and adult members
+                  const key = `${memberType}-${globalIndex}`;
+                  const nationality = confirmedNationalities[key] || member.nationality;
+                  const departureDate = plan.date.year && plan.date.month && plan.date.day 
+                    ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
+                    : null;
+                  const idRequired = isIdRequired(member.dob, nationality);
+                  const age = calculateAge(member.dob, departureDate);
+                  
+                  // For all nationalities: show passport field (required)
+                  const isIdRequiredForValidation = true; // Always required for passport
+                  
+                  // Error key and touched key for validation
+                  const touchedKey = `${memberType}_${localIndex}_idNumber`;
+                  const errorKey = `${memberType}_${globalIndex}_idNumber`;
+                  const hasError = errors[errorKey] && touchedFields.has(touchedKey);
+                  const isDisabled = !nationality; // Disable when no nationality selected
+                  
+                  return (
+                    <>
+                      <div className={styles['label-with-icon']}>
+                        <BookUser className={styles['field-icon']} />
+                        <label
+                          htmlFor={`${memberType}-${localIndex}-idNumber`}
+                          className={`${styles['form-label']} ${isIdRequiredForValidation ? styles['required'] : ''}`}
+                        >
+                          {t('booking.step2.labels.idNumberPassport')}
                         </label>
-                        {nationality === 'VN' && (
-                          <div className={styles['id-input-notice']}>
-                            <span className={styles['notice-text']}>💡 {
-                              currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' :
-                              currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
-                              'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)'
-                            }</span>
-                          </div>
-                        )}
-                        <input
-                          type="text"
-                          id={`${memberType}-${localIndex}-idNumber`}
-                              value={member.idNumber || ''}
-                              onChange={(e) => handleIdNumberChange(memberType, globalIndex, e.target.value)}
-                              onBlur={(e) => handleIdNumberBlur(memberType, globalIndex, e.target.value)}
-                          className={`${styles['form-input']} ${errors[`${memberType}_${localIndex}_idNumber`] && touchedFields.has(`${memberType}_${localIndex}_idNumber`) ? styles['error'] : ''}`}
-                          placeholder={nationality === 'VN' ? 
-                            (currentLanguage === 'ko' ? '숫자만 입력: 12자리 (CCCD) 또는 9자리 (CMND/CMT)' : 
-                             currentLanguage === 'en' ? 'Numbers only: 12 digits (CCCD) or 9 digits (CMND/CMT)' :
-                             'Chỉ nhập số: 12 số (CCCD) hoặc 9 số (CMND/CMT)') : 
-                            t('booking.step2.placeholders.idPassport')}
-                        />
-                        {errors[`${memberType}_${localIndex}_idNumber`] && touchedFields.has(`${memberType}_${localIndex}_idNumber`) && (
-                          <span className={styles['form-error']}>{errors[`${memberType}_${localIndex}_idNumber`]}</span>
-                        )}
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
+                      </div>
+                      <input
+                        type="text"
+                        id={`${memberType}-${localIndex}-idNumber`}
+                        value={member.idNumber || ''}
+                        onChange={(e) => handleIdNumberChange(memberType, globalIndex, e.target.value)}
+                        onBlur={() => handleIdNumberBlur(memberType, globalIndex)}
+                        disabled={isDisabled}
+                        className={`${styles['form-input']} ${hasError ? styles['error'] : ''} ${isDisabled ? styles['disabled'] : ''}`}
+                        placeholder={isDisabled ? t('booking.step2.placeholders.selectNationalityFirst') || 'Vui lòng chọn quốc tịch trước' : t('booking.step2.placeholders.idPassport')}
+                      />
+                      {/* Always show error if exists, regardless of touched state (for debugging) */}
+                      {errors[errorKey] && (
+                        <span className={styles['form-error']}>{errors[errorKey]}</span>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
-          );
+          </div>
+        );
         })}
       </div>
     );
@@ -2523,8 +2668,28 @@ const Step2Details = () => {
     <div className={styles['details-form']}>
       {/* Date Selection */}
       <div className={styles['form-section']}>
-        <h3 className={styles['section-title']}>{t('booking.step2.sections.dateTitle')}</h3>
+        <h3 className={styles['section-title']}>
+          <CalendarRange className={styles['section-icon']} />
+          {t('booking.step2.sections.dateTitle')}
+        </h3>
         <div className={styles['date-section']}>
+          {/* Deadline notice - show first if tour has deadlineDays requirement */}
+          {tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0 && (() => {
+            // Calculate minimum date (today + deadlineDays + 1)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const minDate = new Date(today);
+            minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1);
+            const minDateFormatted = formatDateWithMonthName(toIsoDate(minDate));
+            return (
+              <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`}>
+                {t('booking.step2.fields.deadlineNotice', { 
+                  days: tourMeta.deadlineDays, 
+                  minDate: minDateFormatted 
+                })}
+              </div>
+            );
+          })()}
           <div className={styles['date-input-wrapper']}>
             {/* Date Picker Input */}
             <div className={styles['date-picker-group']}>
@@ -2590,12 +2755,14 @@ const Step2Details = () => {
                         const [year, month, day] = maxDateStr.split('-');
                         return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
                       })()}
-                      onBlur={() => setDateTouched(true)}
+                      onFocus={() => {}}
+                      onBlur={() => {}}
+                      onClick={() => {}}
                     />
                   </div>
                 </div>
               </div>
-              {errors.date && (
+              {errors.date && dateTouched && (
                 <span className={styles['form-error']}>{errors.date}</span>
               )}
             </div>
@@ -2605,7 +2772,10 @@ const Step2Details = () => {
 
       {/* Pax Counter */}
       <div className={styles['form-section']}>
-        <h3 className={styles['section-title']}>{t('booking.step2.sections.paxTitle')}</h3>
+        <h3 className={styles['section-title']}>
+          <UsersIcon className={styles['section-icon']} />
+          {t('booking.step2.sections.paxTitle')}
+        </h3>
         <div className={styles['pax-section']}>
            <div className={styles['pax-card']}>
              <div className={styles['pax-title']}>{t('booking.step2.pax.adult')}</div>
@@ -2693,7 +2863,10 @@ const Step2Details = () => {
 
       {/* Members List */}
       <div className={styles['form-section']}>
-        <h3 className={styles['section-title']}>{t('booking.step2.sections.membersTitle')}</h3>
+        <h3 className={styles['section-title']}>
+          <IdCard className={styles['section-icon']} />
+          {t('booking.step2.sections.membersTitle')}
+        </h3>
         <div className={styles['members-section']}>
           {/* All adult members (no representative anymore) */}
           {plan.members.adult.length > 0 && renderMemberForm('adult', plan.members.adult)}
@@ -2707,7 +2880,5 @@ const Step2Details = () => {
   );
 };
 
-
 // No props needed - navigation handled by parent
-
 export default Step2Details;

@@ -71,6 +71,7 @@
   align-items: center;
   gap: clamp(1rem, 2vw, 2rem);
   justify-self: center;
+  margin-left: clamp(2.5rem, 9vw, 14rem);
   justify-content: center;
   max-width: 100%;
   overflow: visible; /* allow dropdowns inside to overflow */

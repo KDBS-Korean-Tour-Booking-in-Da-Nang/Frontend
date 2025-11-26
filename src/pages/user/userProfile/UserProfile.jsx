@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useTheme } from '../../../contexts/ThemeContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { Modal } from '../../../components';
-import { updateUserProfile, validateUserProfile } from '../../../services/userService';
+import { updateUserProfile, validateUserProfile, changeUserPassword } from '../../../services/userService';
 import { DatePicker } from 'react-rainbow-components';
-import { Calendar } from 'lucide-react';
+import { Calendar, UserRound, Phone, Mail, MapPin, Venus, Mars } from 'lucide-react';
 import { 
   PencilIcon, 
   EyeIcon, 
@@ -17,20 +16,23 @@ import {
   CreditCardIcon,
   BellIcon,
   ChevronDownIcon,
-  SunIcon,
-  MoonIcon
 } from '@heroicons/react/24/outline';
 import styles from './UserProfile.module.css';
+
+const GenderLabelIcon = () => (
+  <span className={styles['gender-label-icon']}>
+    <Mars />
+    <Venus />
+  </span>
+);
 
 const UserProfile = () => {
   const { t, i18n } = useTranslation();
   const { user, updateUser, getToken, refreshUser } = useAuth();
-  const { theme, setTheme } = useTheme();
   const { showSuccess, showError } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
-  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [editForm, setEditForm] = useState({
     name: user?.username || user?.name || '',
     phone: user?.phone || '',
@@ -42,10 +44,140 @@ const UserProfile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const isSocialProvider = (user?.authProvider === 'GOOGLE' || user?.authProvider === 'NAVER');
   const [nameError, setNameError] = useState('');
   const [dobError, setDobError] = useState('');
   const [editingFields, setEditingFields] = useState(new Set());
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const localeMap = {
+    vi: 'vi-VN',
+    en: 'en-US',
+    ko: 'ko-KR'
+  };
+
+  const notUpdatedLabel = t('profile.notUpdated');
+
+  const getLanguageName = (lang) => {
+    const key = `lang.${lang}`;
+    const translated = t(key);
+    return translated || t('lang.vi');
+  };
+
+  const getFlagFileName = (lang) => {
+    const flagMap = {
+      vi: 'VN',
+      en: 'EN',
+      ko: 'KR'
+    };
+    return flagMap[lang] || 'VN';
+  };
+
+  const formatGenderLabel = (gender) => {
+    if (!gender) return notUpdatedLabel;
+    if (gender === 'M') return t('profile.genderOptions.male');
+    if (gender === 'F') return t('profile.genderOptions.female');
+    if (gender === 'O') return t('profile.genderOptions.other');
+    return gender;
+  };
+
+  const formatDobForDisplay = (dob) => {
+    if (!dob) return notUpdatedLabel;
+    try {
+      return new Date(dob).toLocaleDateString(localeMap[i18n.language] || 'vi-VN');
+    } catch {
+      return notUpdatedLabel;
+    }
+  };
+
+  const resetPasswordForm = () => {
+    setPasswordForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmNewPassword: ''
+    });
+    setPasswordErrors({});
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+    setPasswordErrors((prev) => ({
+      ...prev,
+      [name]: ''
+    }));
+  };
+
+  const validatePasswordForm = () => {
+    const errors = {};
+    if (!passwordForm.currentPassword.trim()) {
+      errors.currentPassword = t('profile.password.errors.currentRequired');
+    }
+    if (!passwordForm.newPassword.trim()) {
+      errors.newPassword = t('profile.password.errors.newRequired');
+    } else if (passwordForm.newPassword.length < 8) {
+      errors.newPassword = t('profile.password.errors.minLength');
+    } else if (passwordForm.newPassword === passwordForm.currentPassword) {
+      errors.newPassword = t('profile.password.errors.sameAsCurrent');
+    }
+    if (!passwordForm.confirmNewPassword.trim()) {
+      errors.confirmNewPassword = t('profile.password.errors.confirmRequired');
+    } else if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+      errors.confirmNewPassword = t('profile.password.errors.match');
+    }
+    setPasswordErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!validatePasswordForm()) return;
+    try {
+      setIsChangingPassword(true);
+      const token = getToken();
+      if (!token) {
+        throw new Error(t('profile.errors.tokenMissing'));
+      }
+      await changeUserPassword(
+        {
+          email: user?.email,
+          oldPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword
+        },
+        token
+      );
+      showSuccess(t('profile.password.success'));
+      resetPasswordForm();
+    } catch (error) {
+      // Check if it's an OAuth-only user error
+      const errorMessage = error?.message || '';
+      let message = errorMessage;
+      
+      // If backend returns error for OAuth-only users, show specific message
+      if (errorMessage.toLowerCase().includes('oauth') || 
+          errorMessage.toLowerCase().includes('social') ||
+          errorMessage.toLowerCase().includes('google') ||
+          errorMessage.toLowerCase().includes('naver') ||
+          errorMessage.toLowerCase().includes('không có mật khẩu') ||
+          errorMessage.toLowerCase().includes('does not have a password') ||
+          errorMessage.toLowerCase().includes('비밀번호가 없습니다')) {
+        message = t('profile.password.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Không thể đổi mật khẩu.';
+      } else if (!message) {
+        message = t('profile.password.errors.generic');
+      }
+      showError(message);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
   const isDeletingRef = useRef(false);
   const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
 
@@ -144,7 +276,7 @@ const UserProfile = () => {
     if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
     // Require at least 13 years old
     if (age < 13) {
-      setDobError(t('profile.errors.mustBe13') || 'Bạn phải từ 13 tuổi trở lên');
+      setDobError(t('profile.errors.mustBe13'));
       return false;
     }
     // No upper age limit, just check for negative age (future date)
@@ -187,13 +319,12 @@ const UserProfile = () => {
   
 
   const sidebarMenuItems = [
-    { id: 'profile', label: 'Thông tin cá nhân', icon: UserIcon },
-    
-    { id: 'settings', label: 'Cài đặt', icon: CogIcon },
-    { id: 'security', label: 'Bảo mật', icon: ShieldCheckIcon },
-    { id: 'favorites', label: 'Yêu thích', icon: HeartIcon },
-    { id: 'payments', label: 'Thanh toán', icon: CreditCardIcon },
-    { id: 'notifications', label: 'Thông báo', icon: BellIcon }
+    { id: 'profile', label: t('profile.sidebar.profile'), icon: UserIcon },
+    { id: 'settings', label: t('profile.sidebar.settings'), icon: CogIcon },
+    { id: 'changePassword', label: t('profile.sidebar.changePassword'), icon: ShieldCheckIcon },
+    { id: 'favorites', label: t('profile.sidebar.favorites'), icon: HeartIcon },
+    { id: 'payments', label: t('profile.sidebar.payments'), icon: CreditCardIcon },
+    { id: 'notifications', label: t('profile.sidebar.notifications'), icon: BellIcon }
   ];
 
   const handleEditChange = (e) => {
@@ -228,9 +359,9 @@ const UserProfile = () => {
     setEditForm(prev => ({ ...prev, name: sanitized }));
     const trimmed = (sanitized || '').trim();
     if (!trimmed) {
-      setNameError(t('toast.name_required') || 'Không để trống tên');
+      setNameError(t('toast.name_required'));
     } else if (!isValidUsername(sanitized)) {
-      setNameError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+      setNameError(t('profile.errors.invalidName'));
     } else {
       setNameError('');
     }
@@ -256,9 +387,9 @@ const UserProfile = () => {
       setEditForm(prev => ({ ...prev, name: fixed }));
       const trimmedInserted = (inserted || '').trim();
       if (!trimmedInserted) {
-        setNameError(t('toast.name_required') || 'Không để trống tên');
+        setNameError(t('toast.name_required'));
       } else {
-        setNameError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+        setNameError(t('profile.errors.invalidName'));
       }
     }
   };
@@ -272,12 +403,12 @@ const UserProfile = () => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
     if (file.size > maxSize) {
-      showError('Kích thước ảnh không được vượt quá 5MB');
+      showError(t('profile.errors.avatarSize'));
       return;
     }
     
     if (!allowedTypes.includes(file.type)) {
-      showError('Định dạng ảnh không được hỗ trợ (chỉ chấp nhận JPG, PNG, GIF, WebP)');
+      showError(t('profile.errors.avatarFormat'));
       return;
     }
     
@@ -310,8 +441,8 @@ const UserProfile = () => {
     // Real-time guard: name required
     const trimmedName = (userData.name || '').trim();
     if (!trimmedName) {
-      setNameError(t('toast.name_required') || 'Không để trống tên');
-      showError('toast.name_required');
+      setNameError(t('toast.name_required'));
+      showError(t('toast.name_required'));
       return;
     }
 
@@ -321,7 +452,7 @@ const UserProfile = () => {
       // Must start with a letter; allow letters (including accents), spaces, and digits after the first letter; no special characters
       const nameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
       if (!nameRegex.test(name)) {
-        showError('Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.');
+        showError(t('profile.errors.invalidName'));
         return;
       }
     }
@@ -330,7 +461,7 @@ const UserProfile = () => {
     const normalizedDob = parseDateFromDisplayToISO(userData.dob || '');
     // Only validate DOB if user entered something - allow empty DOB
     if (userData.dob && userData.dob.trim() && !normalizedDob) {
-      showError(t('booking.errors.dobInvalidFormat') || 'Ngày sinh không hợp lệ');
+      showError(t('booking.errors.dobInvalidFormat'));
       return;
     }
     // Prepare data for validation: use normalized DOB if available, otherwise empty
@@ -353,7 +484,7 @@ const UserProfile = () => {
       const token = getToken();
       
       if (!token) {
-        throw new Error('Không tìm thấy token xác thực');
+        throw new Error(t('profile.errors.tokenMissing'));
       }
       
       // Call API to update user profile with normalized DOB
@@ -404,7 +535,7 @@ const UserProfile = () => {
         updateUser(updatedUser);
       }
       
-      showSuccess('Cập nhật thông tin thành công!');
+      showSuccess(t('profile.toast.updateSuccess'));
       
       // Clear avatar file after successful update
       setAvatarFile(null);
@@ -414,7 +545,7 @@ const UserProfile = () => {
       
     } catch (error) {
       console.error('Error updating profile:', error);
-      const errorMessage = error.message || 'Có lỗi xảy ra khi cập nhật thông tin';
+      const errorMessage = error.message || t('profile.errors.updateFailed');
       // Only show toast error, don't set updateError state
       showError(errorMessage);
     } finally {
@@ -426,36 +557,10 @@ const UserProfile = () => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   };
 
-  const getLanguageName = (lang) => {
-    const languages = {
-      'vi': 'Tiếng Việt',
-      'en': 'English',
-      'ko': '한국어'
-    };
-    return languages[lang] || 'Tiếng Việt';
-  };
-
-  const getFlagFileName = (lang) => {
-    const flagMap = {
-      'vi': 'VN',
-      'en': 'EN',
-      'ko': 'KR'
-    };
-    return flagMap[lang] || 'VN';
-  };
-
-  const getThemeName = (currentTheme) => {
-    return currentTheme === 'light' ? 'Sáng' : 'Tối';
-  };
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
     setShowLanguageDropdown(false);
-  };
-
-  const changeTheme = (newTheme) => {
-    setTheme(newTheme);
-    setShowThemeDropdown(false);
   };
 
   const renderContent = () => {
@@ -464,44 +569,44 @@ const UserProfile = () => {
         return (
           <div className={styles['profile-info']}>
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Họ và tên</label>
+              <label className={styles['info-label']}>{t('profile.labels.fullName')}</label>
               <div className={`${styles['info-value']} ${!user?.username && !user?.name ? styles['empty'] : ''}`}>
-                {user?.username || user?.name || 'Chưa cập nhật'}
+                {user?.username || user?.name || notUpdatedLabel}
               </div>
             </div>
             
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Email</label>
+              <label className={styles['info-label']}>{t('profile.labels.email')}</label>
               <div className={styles['info-value']}>
-                {user?.email || 'Chưa cập nhật'}
+                {user?.email || notUpdatedLabel}
               </div>
             </div>
             
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Số điện thoại</label>
+              <label className={styles['info-label']}>{t('profile.labels.phone')}</label>
               <div className={`${styles['info-value']} ${!user?.phone ? styles['empty'] : ''}`}>
-                {user?.phone || 'Chưa cập nhật'}
+                {user?.phone || notUpdatedLabel}
               </div>
             </div>
             
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Ngày sinh</label>
+              <label className={styles['info-label']}>{t('profile.labels.dob')}</label>
               <div className={`${styles['info-value']} ${!user?.dob ? styles['empty'] : ''}`}>
-                {user?.dob ? new Date(user.dob).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                {formatDobForDisplay(user?.dob)}
               </div>
             </div>
             
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Giới tính</label>
+              <label className={styles['info-label']}>{t('profile.labels.gender')}</label>
               <div className={`${styles['info-value']} ${!user?.gender ? styles['empty'] : ''}`}>
-                {user?.gender ? (user.gender === 'M' ? 'Nam' : user.gender === 'F' ? 'Nữ' : user.gender === 'O' ? 'Khác' : user.gender) : 'Chưa cập nhật'}
+                {formatGenderLabel(user?.gender)}
               </div>
             </div>
             
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Địa chỉ</label>
+              <label className={styles['info-label']}>{t('profile.labels.address')}</label>
               <div className={`${styles['info-value']} ${!user?.address ? styles['empty'] : ''}`}>
-                {user?.address || 'Chưa cập nhật'}
+                {user?.address || notUpdatedLabel}
               </div>
             </div>
             
@@ -516,8 +621,8 @@ const UserProfile = () => {
           <div className={styles['profile-info']}>
             {/* Language Selector */}
             <div className={styles['setting-group']}>
-              <label className={styles['info-label']}>Ngôn ngữ</label>
-              <div className={styles['dropdown-container']}>
+              <label className={styles['info-label']}>{t('profile.settings.language')}</label>
+              <div className={`${styles['dropdown-container']} ${styles['language-dropdown']}`}>
                 <button 
                   className={styles['setting-dropdown']}
                   onClick={() => {
@@ -527,7 +632,7 @@ const UserProfile = () => {
                 >
                   <img 
                     src={`/${getFlagFileName(i18n.language)}.png`} 
-                    alt={i18n.language} 
+                    alt={getLanguageName(i18n.language)} 
                     className={styles['flag-icon']}
                   />
                   <span>{getLanguageName(i18n.language)}</span>
@@ -539,86 +644,102 @@ const UserProfile = () => {
                       className={`${styles['dropdown-option']} ${i18n.language === 'vi' ? styles['active'] : ''}`}
                       onClick={() => changeLanguage('vi')}
                     >
-                      <img src="/VN.png" alt="VN" className={styles['flag-icon']} />
-                      <span>Tiếng Việt</span>
+                      <img src="/VN.png" alt={getLanguageName('vi')} className={styles['flag-icon']} />
+                      <span>{getLanguageName('vi')}</span>
                     </button>
                     <button 
                       className={`${styles['dropdown-option']} ${i18n.language === 'en' ? styles['active'] : ''}`}
                       onClick={() => changeLanguage('en')}
                     >
-                      <img src="/EN.png" alt="EN" className={styles['flag-icon']} />
-                      <span>English</span>
+                      <img src="/EN.png" alt={getLanguageName('en')} className={styles['flag-icon']} />
+                      <span>{getLanguageName('en')}</span>
                     </button>
                     <button 
                       className={`${styles['dropdown-option']} ${i18n.language === 'ko' ? styles['active'] : ''}`}
                       onClick={() => changeLanguage('ko')}
                     >
-                      <img src="/KR.png" alt="KR" className={styles['flag-icon']} />
-                      <span>한국어</span>
+                      <img src="/KR.png" alt={getLanguageName('ko')} className={styles['flag-icon']} />
+                      <span>{getLanguageName('ko')}</span>
                     </button>
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Theme Selector */}
-            <div className={styles['setting-group']}>
-              <label className={styles['info-label']}>Chủ đề</label>
-              <div className={styles['dropdown-container']}>
-                <button 
-                  className={styles['setting-dropdown']}
-                  onClick={() => {
-                    setShowThemeDropdown(!showThemeDropdown);
-                    setShowLanguageDropdown(false);
-                  }}
-                >
-                  {theme === 'light' ? (
-                    <SunIcon className={styles['theme-icon']} />
-                  ) : (
-                    <MoonIcon className={styles['theme-icon']} />
-                  )}
-                  <span>{getThemeName(theme)}</span>
-                  <ChevronDownIcon className={styles['chevron-icon']} />
-                </button>
-                {showThemeDropdown && (
-                  <div className={styles['dropdown-menu']}>
-                    <button 
-                      className={`${styles['dropdown-option']} ${theme === 'light' ? styles['active'] : ''}`}
-                      onClick={() => changeTheme('light')}
-                    >
-                      <SunIcon className={styles['theme-icon']} />
-                      <span>Sáng</span>
-                    </button>
-                    <button 
-                      className={`${styles['dropdown-option']} ${theme === 'dark' ? styles['active'] : ''}`}
-                      onClick={() => changeTheme('dark')}
-                    >
-                      <MoonIcon className={styles['theme-icon']} />
-                      <span>Tối</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         );
       
-      case 'security':
+      case 'changePassword':
         return (
           <div className={styles['profile-info']}>
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Mật khẩu</label>
-              <div className={styles['info-value']}>
-                ••••••••
-              </div>
-            </div>
-            
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Xác thực 2 bước</label>
-              <div className={styles['info-value']}>
-                Chưa bật
-              </div>
-            </div>
+            <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+                <div className={styles['form-group']}>
+                  <label htmlFor="currentPassword" className={styles['form-label']}>
+                    {t('profile.password.current')}
+                  </label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={passwordForm.currentPassword}
+                    onChange={handlePasswordInputChange}
+                    className={styles['form-input']}
+                  />
+                  {passwordErrors.currentPassword && (
+                    <div className={styles['field-hint']} style={{ color: '#e11d48' }}>
+                      {passwordErrors.currentPassword}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label htmlFor="newPassword" className={styles['form-label']}>
+                    {t('profile.password.new')}
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordInputChange}
+                    className={styles['form-input']}
+                  />
+                  {passwordErrors.newPassword && (
+                    <div className={styles['field-hint']} style={{ color: '#e11d48' }}>
+                      {passwordErrors.newPassword}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles['form-group']}>
+                  <label htmlFor="confirmNewPassword" className={styles['form-label']}>
+                    {t('profile.password.confirm')}
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmNewPassword"
+                    name="confirmNewPassword"
+                    value={passwordForm.confirmNewPassword}
+                    onChange={handlePasswordInputChange}
+                    className={styles['form-input']}
+                  />
+                  {passwordErrors.confirmNewPassword && (
+                    <div className={styles['field-hint']} style={{ color: '#e11d48' }}>
+                      {passwordErrors.confirmNewPassword}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles['form-actions']}>
+                  <button
+                    type="submit"
+                    className={styles['btn-primary']}
+                    disabled={isChangingPassword}
+                  >
+                    {isChangingPassword ? t('profile.password.processing') : t('profile.password.submit')}
+                  </button>
+                </div>
+              </form>
           </div>
         );
       
@@ -626,9 +747,9 @@ const UserProfile = () => {
         return (
           <div className={styles['profile-info']}>
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Tour yêu thích</label>
-              <div className={styles['info-value']}>
-                Chưa có tour yêu thích nào
+              <label className={styles['info-label']}>{t('profile.favorites.title')}</label>
+              <div className={`${styles['info-value']} ${styles['empty']}`}>
+                {t('profile.favorites.empty')}
               </div>
             </div>
           </div>
@@ -638,9 +759,9 @@ const UserProfile = () => {
         return (
           <div className={styles['profile-info']}>
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Phương thức thanh toán</label>
-              <div className={styles['info-value']}>
-                Chưa có phương thức thanh toán nào
+              <label className={styles['info-label']}>{t('profile.payments.title')}</label>
+              <div className={`${styles['info-value']} ${styles['empty']}`}>
+                {t('profile.payments.empty')}
               </div>
             </div>
           </div>
@@ -650,16 +771,16 @@ const UserProfile = () => {
         return (
           <div className={styles['profile-info']}>
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Email thông báo</label>
+              <label className={styles['info-label']}>{t('profile.notifications.email')}</label>
               <div className={styles['info-value']}>
-                Bật
+                {t('profile.notifications.enabled')}
               </div>
             </div>
             
             <div className={styles['info-group']}>
-              <label className={styles['info-label']}>Thông báo đẩy</label>
+              <label className={styles['info-label']}>{t('profile.notifications.push')}</label>
               <div className={styles['info-value']}>
-                Bật
+                {t('profile.notifications.enabled')}
               </div>
             </div>
           </div>
@@ -752,7 +873,7 @@ const UserProfile = () => {
                 }}
               >
                 <PencilIcon className={styles['edit-icon']} />
-                Chỉnh sửa
+                {t('profile.actions.edit')}
               </button>
             )}
           </div>
@@ -779,14 +900,15 @@ const UserProfile = () => {
           // Reset avatar preview to current user avatar
           setAvatarPreview(user?.avatar || '/default-avatar.png');
         }}
-        title="Chỉnh sửa thông tin"
+        title={t('profile.editModalTitle')}
         size="lg"
       >
         {/* Success messages removed - only show toast notifications */}
 
         {/* Error messages removed - only show toast notifications */}
 
-        <form onSubmit={handleEditSubmit} className="space-y-4">
+        <form onSubmit={handleEditSubmit} className={styles['edit-form']}>
+          <div className={styles['modal-card']}>
            <div className={styles['avatar-upload']}>
              {/* Show avatar preview (current or newly selected) */}
              {avatarPreview ? (
@@ -812,14 +934,19 @@ const UserProfile = () => {
                 className={styles['file-input']}
               />
               <label htmlFor="avatar-upload" className={styles['file-label']}>
-                Chọn ảnh đại diện
+                {t('profile.actions.chooseAvatar')}
               </label>
            </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="name" className={styles['form-label']}>
-              Họ tên
-            </label>
+            <div className={styles['fields-grid']}>
+              <div className={styles['field-column']}>
+                <div className={styles['form-group']}>
+                  <div className={styles['label-with-icon']}>
+                    <UserRound className={styles['label-icon']} />
+                    <label htmlFor="name" className={styles['form-label']}>
+                      {t('profile.labels.fullName')}
+                    </label>
+                  </div>
             <input
               type="text"
               id="name"
@@ -835,24 +962,13 @@ const UserProfile = () => {
             )}
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="email" className={styles['form-label']}>
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={user?.email || ''}
-              readOnly
-              className={`${styles['form-input']} ${styles['readonly-input']}`}
-            />
-          </div>
-
-          <div className={styles['form-group']}>
-            <label htmlFor="phone" className={styles['form-label']}>
-              Số điện thoại
-            </label>
+                <div className={styles['form-group']}>
+                  <div className={styles['label-with-icon']}>
+                    <Phone className={styles['label-icon']} />
+                    <label htmlFor="phone" className={styles['form-label']}>
+                      {t('profile.labels.phone')}
+                    </label>
+                  </div>
             <input
               type="tel"
               id="phone"
@@ -863,10 +979,53 @@ const UserProfile = () => {
             />
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="dob" className={styles['form-label']}>
-              Ngày sinh
-            </label>
+                <div className={styles['form-group']}>
+                  <div className={styles['label-with-icon']}>
+                    <GenderLabelIcon />
+                    <label htmlFor="gender" className={styles['form-label']}>
+                      {t('profile.labels.gender')}
+                    </label>
+                  </div>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={editForm.gender}
+                    onChange={handleEditChange}
+                    className={styles['form-select']}
+                  >
+                    <option value="">{t('profile.genderOptions.unknown')}</option>
+                    <option value="M">{t('profile.genderOptions.male')}</option>
+                    <option value="F">{t('profile.genderOptions.female')}</option>
+                    <option value="O">{t('profile.genderOptions.other')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles['field-column']}>
+                <div className={styles['form-group']}>
+                  <div className={styles['label-with-icon']}>
+                    <Mail className={styles['label-icon']} />
+                    <label htmlFor="email" className={styles['form-label']}>
+                      {t('profile.labels.email')}
+                    </label>
+                  </div>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={user?.email || ''}
+                    readOnly
+                    className={`${styles['form-input']} ${styles['readonly-input']}`}
+                  />
+                </div>
+
+                <div className={styles['form-group']}>
+                  <div className={styles['label-with-icon']}>
+                    <Calendar className={styles['label-icon']} />
+                    <label htmlFor="dob" className={styles['form-label']}>
+                      {t('profile.labels.dob')}
+                    </label>
+                  </div>
             <div className={styles['date-input-container']}>
               <input
                 type="text"
@@ -878,7 +1037,6 @@ const UserProfile = () => {
                   const raw = e.target.value;
                   const formatted = formatDobInputOnType(raw);
                   setEditForm(prev => ({ ...prev, dob: formatted }));
-                  // real-time: only validate when looks like complete
                   if (formatted.split(getDateSeparator()).join('').length >= 6) {
                     validateDob(formatted);
                   } else {
@@ -901,7 +1059,6 @@ const UserProfile = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Trigger the hidden DatePicker
                     if (datePickerRef.current) {
                       const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
                       if (input) {
@@ -910,7 +1067,7 @@ const UserProfile = () => {
                       }
                     }
                   }}
-                  title="Open date picker"
+                title={t('profile.datePicker.open')}
                 >
                   <Calendar className={styles['calendar-icon']} />
                 </button>
@@ -923,7 +1080,6 @@ const UserProfile = () => {
                     })()}
                     onChange={(date) => {
                       if (date) {
-                        // Use local date components to avoid timezone issues
                         const year = date.getFullYear();
                         const month = String(date.getMonth() + 1).padStart(2, '0');
                         const day = String(date.getDate()).padStart(2, '0');
@@ -945,28 +1101,13 @@ const UserProfile = () => {
             )}
           </div>
 
-          <div className={styles['form-group']}>
-            <label htmlFor="gender" className={styles['form-label']}>
-              Giới tính
-            </label>
-            <select
-              id="gender"
-              name="gender"
-              value={editForm.gender}
-              onChange={handleEditChange}
-              className={styles['form-select']}
-            >
-              <option value="">Chưa cập nhật</option>
-              <option value="M">Nam</option>
-              <option value="F">Nữ</option>
-              <option value="O">Khác</option>
-            </select>
-          </div>
-
-          <div className={styles['form-group']}>
-            <label htmlFor="address" className={styles['form-label']}>
-              Địa chỉ
-            </label>
+                <div className={styles['form-group']}>
+                  <div className={styles['label-with-icon']}>
+                    <MapPin className={styles['label-icon']} />
+                    <label htmlFor="address" className={styles['form-label']}>
+                      {t('profile.labels.address')}
+                    </label>
+                  </div>
             <input
               type="text"
               id="address"
@@ -974,11 +1115,12 @@ const UserProfile = () => {
               value={editForm.address}
               onChange={handleEditChange}
               className={styles['form-input']}
-              placeholder="Nhập địa chỉ (không bắt buộc)"
+              placeholder={t('profile.placeholders.addressOptional')}
             />
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Removed CCCD/CMND update field as requested */}
 
           <div className={styles['form-actions']}>
             <button
@@ -1000,7 +1142,7 @@ const UserProfile = () => {
               className={styles['btn-secondary']}
               disabled={isUpdating}
             >
-              Hủy
+              {t('profile.actions.cancel')}
             </button>
             <button
               type="submit"
@@ -1013,10 +1155,10 @@ const UserProfile = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Đang cập nhật...
+                  {t('profile.actions.updating')}
                 </div>
               ) : (
-                'Lưu thay đổi'
+                t('profile.actions.save')
               )}
             </button>
           </div>

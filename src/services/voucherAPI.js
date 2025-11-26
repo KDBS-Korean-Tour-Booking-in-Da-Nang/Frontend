@@ -1,4 +1,6 @@
 // Voucher API service
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 /**
@@ -36,14 +38,13 @@ export const createVoucher = async (voucherData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -67,15 +68,13 @@ export const getVouchersByCompanyId = async (companyId) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -98,15 +97,13 @@ export const getAllVouchers = async () => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -152,14 +149,10 @@ export const getAvailableVouchersForBooking = async (bookingId) => {
         }
       }
       
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
-      }
-      
-      if (response.status === 404) {
-        throw new Error(errorData.message || 'Booking not found');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return []; // Đã redirect, trả về mảng rỗng
       }
       
       throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);

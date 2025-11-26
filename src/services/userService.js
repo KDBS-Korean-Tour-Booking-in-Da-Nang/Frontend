@@ -1,4 +1,5 @@
 import { API_ENDPOINTS, createAuthFormHeaders, createAuthHeaders, getAvatarUrl } from '../config/api';
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
 
 /**
  * Update user profile information
@@ -84,6 +85,12 @@ export const updateUserProfile = async (userData, token) => {
     });
     
     if (!response.ok) {
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
       let errorMessage = `HTTP error! status: ${response.status}`;
       
       try {
@@ -259,6 +266,12 @@ export const getUserByEmail = async (email, token) => {
     });
     
     if (!response.ok) {
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
       let errorMessage = `HTTP error! status: ${response.status}`;
       
       try {
@@ -282,6 +295,64 @@ export const getUserByEmail = async (email, token) => {
       throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
     }
     
+    throw error;
+  }
+};
+
+/**
+ * Change user password
+ * @param {{ email: string; oldPassword: string; newPassword: string }} payload
+ * @param {string} token
+ * @returns {Promise<Object>} Api response
+ */
+export const changeUserPassword = async (payload, token) => {
+  try {
+    if (!token) {
+      throw new Error('Token xác thực không được cung cấp');
+    }
+
+    if (!payload?.email) {
+      throw new Error('Email không được để trống');
+    }
+
+    const headers = createAuthHeaders(token);
+
+    const response = await fetch(API_ENDPOINTS.CHANGE_PASSWORD, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        email: payload.email,
+        oldPassword: payload.oldPassword,
+        newPassword: payload.newPassword
+      })
+    });
+
+    if (!response.ok) {
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return;
+      }
+
+      let errorMessage = `HTTP error! status: ${response.status}`;
+
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error changing password:', error);
+
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
+    }
+
     throw error;
   }
 };

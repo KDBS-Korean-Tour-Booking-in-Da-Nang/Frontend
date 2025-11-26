@@ -6,6 +6,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
 import { getAllBookings, getBookingsByTourId, getBookingTotal } from '../../../services/bookingAPI';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
@@ -266,6 +267,14 @@ const BookingManagement = () => {
       const res = await fetch(API_ENDPOINTS.TOURS, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Handle 401 if token expired
+      if (!res.ok && res.status === 401) {
+        await checkAndHandle401(res);
+        setTours([]);
+        return;
+      }
+      
       if (!res.ok) {
         setTours([]);
       } else {

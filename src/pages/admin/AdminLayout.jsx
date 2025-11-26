@@ -20,7 +20,8 @@ import {
   ChevronDownIcon,
   Cog6ToothIcon,
   LifebuoyIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 
 const AdminLayout = ({ children }) => {
@@ -58,13 +59,11 @@ const AdminLayout = ({ children }) => {
       title: 'MENU',
       items: [
         { name: 'Dashboard', to: '/admin', icon: ChartBarIcon },
-        { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
-        { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },
-        { name: 'Forum Management', to: '/admin/forum', icon: ChatBubbleLeftRightIcon },
         { name: 'Customer Management', to: '/admin/customers', icon: UsersIcon },
-        // { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
-        // { name: 'User Management', to: '/admin/user', icon: UsersIcon },
-        { name: 'Report Management', to: '/admin/report', icon: DocumentTextIcon },
+        { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
+        { name: 'News Management', to: '/admin/news', icon: DocumentTextIcon },
+        { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },
+        { name: 'Transaction Management', to: '/admin/transactions', icon: CurrencyDollarIcon },
       ],
     },
     {
@@ -94,7 +93,7 @@ const AdminLayout = ({ children }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 h-screen bg-white border-r border-gray-100 shadow-lg overflow-y-auto transform ${
+        className={`fixed inset-y-0 left-0 z-40 w-72 h-screen bg-white border-r border-gray-100 overflow-y-auto transform ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } transition-transform duration-300 ease-in-out lg:translate-x-0`}
       >
@@ -135,7 +134,7 @@ const AdminLayout = ({ children }) => {
                         }
                       >
                         <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'} transition-colors`} />
-                        <span>{item.name}</span>
+                        <span className="truncate">{item.name}</span>
                       </NavLink>
                     </div>
                   );
@@ -147,7 +146,7 @@ const AdminLayout = ({ children }) => {
       </aside>
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 lg:left-72 z-50 h-16 bg-white shadow">
+      <header className="fixed top-0 right-0 left-0 lg:left-72 z-50 h-16 bg-white border-b border-gray-200">
         <div className="flex h-16">
           <button
             type="button"
@@ -157,8 +156,8 @@ const AdminLayout = ({ children }) => {
             <Bars3Icon className="h-6 w-6" />
           </button>
           
-          <div className="flex-1 px-4 flex justify-between">
-            <div className="flex-1 flex">
+          <div className="flex-1 px-4 flex justify-between items-center">
+            <div className="flex-1 flex items-center">
               <form className="w-full flex md:ml-0" action="#" method="GET">
                 <label htmlFor="search-field" className="sr-only">
                   Search

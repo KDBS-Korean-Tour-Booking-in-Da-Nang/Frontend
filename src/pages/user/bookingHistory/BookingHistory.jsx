@@ -110,6 +110,8 @@ const BookingHistory = () => {
         
         if (!response.ok) {
           if (response.status === 401) {
+            const { handleApiError } = await import('../../../utils/apiErrorHandler');
+            await handleApiError(response);
             throw new Error('Authentication failed. Please login again.');
           }
           throw new Error(`Failed to fetch booking history: ${response.status} ${response.statusText}`);

@@ -33,93 +33,97 @@
 }
 
 .forum-header {
-  background: white;
-  border-radius: 12px;
-  padding: 24px 32px;
-  margin: 0 auto 20px auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #ffffff 0%, #fefaf6 100%);
+  border-radius: 28px;
+  padding: 28px 36px;
+  margin: 0 auto 24px auto;
+  box-shadow: 0 25px 45px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
 }
 
 .create-post-section {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .create-post-input {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 14px;
-  background-color: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 24px;
+  padding: 14px 18px;
+  background-color: rgba(248, 250, 252, 0.95);
+  border: 2px solid rgba(226, 232, 240, 0.9);
+  border-radius: 28px;
   cursor: pointer;
   transition: all 0.3s ease;
   flex: 1;
   max-width: 600px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 18px 40px rgba(15, 23, 42, 0.08);
 }
 
 .create-post-input:hover {
-  background-color: #f1f5f9;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
-  transform: translateY(-1px);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(148, 163, 184, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 22px 45px rgba(59, 130, 246, 0.12);
+  transform: translateY(-2px);
 }
 
 .user-avatar-small {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #e4e6eb;
+  border: 2px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
 }
 
 .create-post-text {
-  color: #65676b;
-  font-size: 14px;
-  font-weight: 500;
+  color: #475569;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .header-buttons {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .saved-posts-btn, .my-posts-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 14px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  border-radius: 20px;
+  padding: 10px 18px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: #0f172a;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(6px);
 }
 
 .saved-posts-btn:hover, .my-posts-btn:hover {
-  background: #f9fafb;
-  color: #111827;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  border-color: #d1d5db;
+  background: rgba(243, 244, 255, 0.95);
+  color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 35px rgba(79, 70, 229, 0.2);
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
 .saved-posts-btn-icon, .my-posts-btn-icon {
   width: 18px;
   height: 18px;
-  color: #374151;
+  color: currentColor;
   transition: color 0.2s ease;
   flex-shrink: 0;
 }
@@ -442,6 +446,23 @@
     margin-bottom: 0;
   }
   
+  .create-post-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .header-buttons {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .saved-posts-btn,
+  .my-posts-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  
   .forum-sidebar.left {
     max-width: 100%;
     margin-bottom: 12px;
@@ -569,25 +590,28 @@
 
 /* Search Results Header Styles */
 .search-results-header {
-  background: white;
-  border-radius: 16px;
-  padding: 20px 24px;
-  margin: 0 auto 24px auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #ffffff 0%, #fefaf6 100%);
+  border-radius: 24px;
+  padding: 24px 28px;
+  margin: 0 auto 28px auto;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   width: 100%;
-  max-width: 600px;
+  max-width: 620px;
+  flex-wrap: wrap;
 }
 
 .search-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .search-icon {
@@ -595,44 +619,46 @@
 }
 
 .search-text {
-  color: #1c1e21;
+  color: #0f172a;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .search-text strong {
-  color: #1877f2;
+  color: #2563eb;
 }
 
 .search-count {
-  color: #65676b;
-  font-size: 14px;
-  background-color: #f0f2f5;
-  padding: 4px 8px;
-  border-radius: 12px;
+  color: #475569;
+  font-size: 13px;
+  background-color: rgba(248, 250, 252, 0.95);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .back-to-forum-btn {
-  background-color: #3b82f6;
-  color: white;
+  background: #3b82f6;
+  color: #ffffff;
   border: none;
-  border-radius: 12px;
-  padding: 10px 18px;
-  font-size: 14px;
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 15px 30px rgba(96, 165, 250, 0.35);
 }
 
 .back-to-forum-btn:hover {
-  background-color: #2563eb;
+  background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 25px 35px rgba(59, 130, 246, 0.35);
 }
 
 .filter-info {
@@ -785,6 +811,6 @@
   position: fixed;
   inset: 0;
   z-index: 0; /* không dùng -1 nữa */
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
+  background: linear-gradient(to bottom, #fefefe, #f8f6ff, #f3fbff);
   pointer-events: none; /* không chặn tương tác */
 }

@@ -611,10 +611,12 @@
   display: flex;
   flex-direction: row;
   /* QUAN TRỌNG: Bỏ height cứng, dùng min-height để co giãn */
-  min-height: 160px;
+  min-height: 130px;
   height: auto;
   overflow: hidden;
   transition: all 0.2s ease;
+  max-width: 550px;
+  width: 100%;
 }
 
 .voucher-card-horizontal:hover {
@@ -645,13 +647,13 @@
 
 /* --- LEFT SECTION (BLUE/GREEN) --- */
 .voucher-left-section {
-  width: 130px; /* Chiều rộng cố định cho phần màu */
+  width: 115px; /* Chiều rộng cố định cho phần màu - tăng lên để code không bị che */
   flex-shrink: 0; /* Không bị co lại */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: 10px;
   color: white;
   position: relative;
   /* XÓA CLIP-PATH CŨ */
@@ -710,13 +712,13 @@
 }
 
 .voucher-value-text {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
   color: white;
 }
 
 .voucher-value-text-small {
-  font-size: 20px; /* Font nhỏ hơn cho số tiền lớn */
+  font-size: 18px; /* Font nhỏ hơn cho số tiền lớn */
   font-weight: 800;
   color: white;
 }
@@ -750,7 +752,7 @@
 /* --- RIGHT SECTION (WHITE) --- */
 .voucher-right-section {
   flex: 1;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -759,7 +761,7 @@
 
 /* Thông tin trên cùng bên phải */
 .voucher-info-top {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .voucher-title {
@@ -785,8 +787,8 @@
   background: #f9fafb;
   border: 1px solid #f3f4f6;
   border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
 }
 
 .voucher-date-row {

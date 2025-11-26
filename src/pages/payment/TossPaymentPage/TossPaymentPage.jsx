@@ -2,8 +2,8 @@ import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, ShieldCheck, ArrowLeft } from 'lucide-react';
-import TossWidgetContainer from '../../components/payment/TossWidgetContainer';
-import { useToast } from '../../contexts/ToastContext';
+import TossWidgetContainer from '../../../components/payment/TossWidgetContainer';
+import { useToast } from '../../../contexts/ToastContext';
 import styles from './TossPaymentPage.module.css';
 
 const TossPaymentPage = () => {

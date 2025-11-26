@@ -1,3 +1,5 @@
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 class ArticleService {
@@ -11,6 +13,11 @@ class ArticleService {
       });
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -31,6 +38,11 @@ class ArticleService {
       });
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -51,6 +63,11 @@ class ArticleService {
       });
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -72,6 +89,11 @@ class ArticleService {
       });
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -92,6 +114,11 @@ class ArticleService {
       });
 
       if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

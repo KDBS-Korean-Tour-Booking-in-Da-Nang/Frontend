@@ -92,6 +92,13 @@ const Step2Itinerary = () => {
           body: formData
         });
         
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          const { checkAndHandle401 } = await import('../../../../../../utils/apiErrorHandler');
+          await checkAndHandle401(response);
+          throw new Error('Session expired. Please login again.');
+        }
+        
         if (response.ok) {
           const imageUrl = await response.text();
           console.log('Uploaded image URL:', imageUrl);

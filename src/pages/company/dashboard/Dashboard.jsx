@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
@@ -46,6 +47,13 @@ const Dashboard = () => {
         const toursRes = await fetch(API_ENDPOINTS.TOURS, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        
+        // Handle 401 if token expired
+        if (!toursRes.ok && toursRes.status === 401) {
+          await checkAndHandle401(toursRes);
+          return;
+        }
+        
         const tours = toursRes.ok ? await toursRes.json() : [];
         let toursArray = Array.isArray(tours) ? tours : [];
         if (toursArray.length === 0) {
@@ -64,6 +72,13 @@ const Dashboard = () => {
             const bookingsRes = await fetch(API_ENDPOINTS.BOOKING_BY_EMAIL(user.email), {
               headers: { Authorization: `Bearer ${token}` }
             });
+            
+            // Handle 401 if token expired
+            if (!bookingsRes.ok && bookingsRes.status === 401) {
+              await checkAndHandle401(bookingsRes);
+              return;
+            }
+            
             if (bookingsRes.ok) {
               const bookings = await bookingsRes.json();
               bookingsArray = Array.isArray(bookings) ? bookings : [];
