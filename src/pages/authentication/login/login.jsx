@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useToast } from '../../../contexts/ToastContext';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
 import { validateEmail } from '../../../utils/emailValidator';
@@ -20,19 +19,12 @@ const Login = () => {
   const [generalError, setGeneralError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
-  const { showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Check for success message from navigation state
-  useEffect(() => {
-    if (location.state?.message && location.state?.type === 'success') {
-      showSuccess(location.state.message);
-      // Clear the state to prevent showing message again on refresh
-      navigate(location.pathname, { replace: true });
-    }
-  }, [location.state, navigate, location.pathname, showSuccess]);
+  // Note: Toast messages from navigation state are handled in App.jsx
+  // No need to handle them here to avoid duplicate toasts
 
   // Check for error from URL parameters (OAuth callback errors)
   useEffect(() => {
@@ -302,42 +294,52 @@ const Login = () => {
           };
 
           login(user, token, rememberMe);
-          showSuccess('toast.auth.login_success');
           
-          // Navigate based on user role and any saved return path
-          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to pending-page
-          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING') {
-            // Keep onboarding flags for pending flow
-            window.location.href = '/pending-page';
-            return;
-          }
-
           // Clear any stale onboarding flags for non-pending users
           if (!(user.role === 'COMPANY' || user.role === 'BUSINESS') || user.status !== 'COMPANY_PENDING') {
             localStorage.removeItem('registration_intent');
             localStorage.removeItem('company_onboarding_pending');
           }
+          
+          // Navigate immediately and show toast on the new page
+          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to pending-page
+          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING') {
+            // Keep onboarding flags for pending flow
+            // Use window.location.href for pending-page to ensure full page reload
+            window.location.href = '/pending-page';
+            return;
+          }
+
           const returnAfterLogin = localStorage.getItem('returnAfterLogin');
           if (returnAfterLogin) {
             localStorage.removeItem('returnAfterLogin');
             if (user.role === 'COMPANY') {
-              window.location.href = returnAfterLogin;
+              navigate(returnAfterLogin, { 
+                replace: true,
+                state: { message: 'toast.auth.login_success', type: 'success' }
+              });
               return;
             }
             // Non-company users are sent to homepage
-            window.location.href = '/';
+            navigate('/', { 
+              replace: true,
+              state: { message: 'toast.auth.login_success', type: 'success' }
+            });
             return;
           }
 
-          // Default navigation by role
+          // Default navigation by role - use navigate to avoid page reload
+          let targetPath = '/';
           if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
-            window.location.href = '/company/dashboard';
+            targetPath = '/company/dashboard';
           } else if (user.role === 'ADMIN' || user.role === 'STAFF') {
-            window.location.href = '/admin';
-          } else {
-            // Regular user goes to homepage
-            window.location.href = '/';
+            targetPath = '/admin';
           }
+          
+          navigate(targetPath, { 
+            replace: true,
+            state: { message: 'toast.auth.login_success', type: 'success' }
+          });
         } else {
           // Fallback to mock data if user info not available
           const user = {
@@ -348,8 +350,11 @@ const Login = () => {
             authProvider: 'LOCAL'
           };
           login(user, token, rememberMe);
-          showSuccess('toast.auth.login_success');
-          window.location.href = '/';
+          // Navigate immediately and show toast on the new page
+          navigate('/', { 
+            replace: true,
+            state: { message: 'toast.auth.login_success', type: 'success' }
+          });
         }
       } else {
         const mapped = mapLoginErrorToI18nKey(data.message);

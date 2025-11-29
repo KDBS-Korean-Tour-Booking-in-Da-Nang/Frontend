@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { KeyRound, UserRound } from 'lucide-react';
 
 const AdminLogin = () => {
   const [username, setUsername] = useState('');
@@ -116,23 +116,28 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-600 rounded-lg flex items-center justify-center">
-            <ShieldCheckIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-          </div>
-        </div>
-        <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">Đăng nhập Admin</h2>
-        <p className="mt-2 text-center text-xs sm:text-sm text-gray-600 px-4">Vui lòng đăng nhập bằng tài khoản Admin</p>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fff6f6] via-[#fff0f0] to-[#ffe3e6] flex items-center justify-center px-4 py-10 sm:px-8">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-10 right-10 w-32 h-32 rounded-[32px] bg-white/40 blur-3xl animate-pulse" />
+        <div className="absolute bottom-16 left-14 w-28 h-28 rounded-[32px] bg-[#ffd6dc]/60 blur-2xl animate-pulse delay-200" />
       </div>
 
-      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-6 px-4 sm:py-8 sm:px-10 shadow-xl rounded-lg border border-gray-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="relative w-full max-w-xl">
+        <div className="bg-white/90 backdrop-blur-xl rounded-[28px] border border-white/80 shadow-[0px_20px_45px_rgba(197,92,92,0.18)] p-6 sm:p-10">
+          <div className="flex flex-col items-center text-center text-[#d94848]">
+            <div className="w-12 h-12 rounded-2xl bg-[#ffe6ea] flex items-center justify-center">
+              <KeyRound className="w-6 h-6" strokeWidth={1.4} />
+            </div>
+            <p className="mt-4 text-sm font-semibold tracking-[0.2em] uppercase">Sign in</p>
+            <p className="text-xs text-[#b85858]">Chào quản trị viên</p>
+          </div>
+
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-xs sm:text-sm font-medium text-gray-700">Username</label>
-              <div className="mt-1">
+              <label htmlFor="username" className="text-xs uppercase tracking-[0.3em] text-[#a86060]">
+                Username
+              </label>
+              <div className="mt-2 rounded-3xl bg-[#fff1f1] border border-[#ffd7d7] px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all">
                 <input
                   id="username"
                   name="username"
@@ -141,15 +146,17 @@ const AdminLogin = () => {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  placeholder="admin"
+                  className="w-full bg-transparent text-sm text-[#3f1f1f] placeholder:text-[#ba8686] focus:outline-none"
+                  placeholder="Tên đăng nhập admin"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700">Mật khẩu</label>
-              <div className="mt-1">
+              <label htmlFor="password" className="text-xs uppercase tracking-[0.3em] text-[#a86060]">
+                Mật khẩu
+              </label>
+              <div className="mt-2 rounded-3xl bg-[#fff1f1] border border-[#ffd7d7] px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all flex items-center gap-2">
                 <input
                   id="password"
                   name="password"
@@ -158,57 +165,45 @@ const AdminLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
+                  className="flex-1 bg-transparent text-sm text-[#3f1f1f] placeholder:text-[#ba8686] focus:outline-none"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-3 rounded-md text-xs sm:text-sm">
+              <div className="rounded-2xl border border-[#ffdede] bg-[#fff5f5] px-4 py-3 text-xs text-[#b02a37]">
                 {error}
               </div>
             )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
-              >
-                {loading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    <span className="text-xs sm:text-sm">Đang đăng nhập...</span>
-                  </div>
-                ) : (
-                  <span className="text-xs sm:text-sm">Đăng nhập</span>
-                )}
-              </button>
-              
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-3xl bg-gradient-to-r from-[#f06f76] via-[#f16d61] to-[#f28776] py-3 text-sm font-semibold text-white shadow-[0px_12px_30px_rgba(240,111,118,0.35)] transition-all hover:shadow-[0px_16px_35px_rgba(240,111,118,0.45)] disabled:opacity-60"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 rounded-full border-2 border-white/60 border-t-transparent animate-spin" />
+                  <span>Đang đăng nhập...</span>
+                </div>
+              ) : (
+                'Đăng nhập'
+              )}
+            </button>
           </form>
 
-          <div className="mt-4 sm:mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs sm:text-sm">
-                <span className="px-2 bg-white text-gray-500">hoặc</span>
-              </div>
-            </div>
+          <div className="mt-6 border-t border-[#ffe3e6]" />
 
-            <div className="mt-4 sm:mt-6 text-center">
-              <Link
-                to="/login"
-                className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center"
-              >
-                <UserCircleIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                Đăng nhập người dùng/doanh nghiệp
-              </Link>
-            </div>
-          </div>
+          <Link
+            to="/login"
+            className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-[#b85858] hover:text-[#a03c3c] transition-colors"
+          >
+            <UserRound className="w-4 h-4" strokeWidth={1.5} />
+            Đăng nhập người dùng / doanh nghiệp
+          </Link>
+
+          <div className="mt-6 h-6" />
         </div>
       </div>
     </div>

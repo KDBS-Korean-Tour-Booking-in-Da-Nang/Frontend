@@ -39,7 +39,6 @@ const NewsManagement = () => {
     setLoadingArticles(true);
     try {
       const data = await articleService.getAllArticles();
-      console.log('Articles data:', data); // Debug log
       const newArticles = data || [];
       // Sort: UNAPPROVED (pending) first, then newest by created date
       const sortedArticles = [...newArticles].sort((a, b) => {
@@ -283,10 +282,11 @@ const NewsManagement = () => {
       <div className={softUI.container}>
         <div className="space-y-3 text-center md:text-left">
           <p className="uppercase text-[0.7rem] tracking-[0.5em] text-[#b7b3ab]">
+            {/* Giữ subtitle cũ nếu có i18n, không bắt buộc */}
             {t('newsManagement.subtitle')}
           </p>
           <h1 className="text-4xl md:text-5xl font-semibold text-[#2f2f2f]">
-            {t('newsManagement.title')}
+            Article Management
           </h1>
           <p className="text-[#8c8f97] text-base md:text-lg max-w-2xl">
             {t('newsManagement.welcome.description')}

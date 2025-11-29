@@ -10,6 +10,7 @@ import {
   MinusIcon
 } from '@heroicons/react/24/outline';
 import { useChat } from '../../contexts/ChatContext';
+import { getAvatarUrl } from '../../config/api';
 import styles from './ChatBox.module.css';
 
 // Utility functions for time handling
@@ -84,6 +85,9 @@ const shouldShowDateHeader = (messages, currentIndex) => {
   return currentDate !== previousDate;
 };
 
+const resolveUserAvatar = (user) =>
+  getAvatarUrl(user?.avatar || user?.userAvatar || user?.avatarUrl || '');
+
 const ChatBox = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const { state, actions } = useChat();
@@ -109,6 +113,12 @@ const ChatBox = ({ isOpen, onClose }) => {
   // Helper to get active chat key
   const getActiveChatKey = () =>
     state.activeChatUser?.userId ?? state.activeChatUser?.username ?? 'unknown';
+  const activeChatAvatar = state.activeChatUser ? resolveUserAvatar(state.activeChatUser) : '/default-avatar.png';
+  useEffect(() => {
+    if (isOpen && (!state.allUsers || state.allUsers.length === 0)) {
+      actions.loadAllUsers?.();
+    }
+  }, [isOpen, state.allUsers?.length]);
 
   const scrollToBottom = (instant = false) => {
     const s = messagesContainerRef.current;
@@ -404,8 +414,8 @@ const ChatBox = ({ isOpen, onClose }) => {
         <div className={styles.chatHeader}>
           <div className={styles.chatInfo}>
             <div className={styles.avatar}>
-              {state.activeChatUser?.avatar ? (
-                <img src={state.activeChatUser.avatar} alt={state.activeChatUser.userName} />
+              {state.activeChatUser ? (
+                <img src={activeChatAvatar} alt={state.activeChatUser.userName || state.activeChatUser.username || 'user'} />
               ) : (
                 <UserIcon className="w-6 h-6" />
               )}
@@ -567,6 +577,7 @@ const ChatBox = ({ isOpen, onClose }) => {
         const isCurrentActiveChat = state.activeChatUser && 
           (state.activeChatUser.userName === minimizedChat.userId || 
            state.activeChatUser.username === minimizedChat.userId);
+        const bubbleAvatar = resolveUserAvatar(minimizedChat.user);
         
         return (
           <div 
@@ -579,8 +590,8 @@ const ChatBox = ({ isOpen, onClose }) => {
             onClick={() => actions.restoreChatFromBubble(minimizedChat.userId)}
           >
           <div className={styles.bubbleAvatar}>
-            {minimizedChat.user.avatar ? (
-              <img src={minimizedChat.user.avatar} alt={minimizedChat.user.userName} />
+            {minimizedChat.user ? (
+              <img src={bubbleAvatar} alt={minimizedChat.user.userName || minimizedChat.user.username || 'user'} />
             ) : (
               <UserIcon className="w-6 h-6" />
             )}

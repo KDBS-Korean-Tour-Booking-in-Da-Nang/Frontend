@@ -10,21 +10,6 @@
   margin-bottom: 30px;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 12px;
-  padding: 8px 0;
-  transition: color 0.3s ease;
-}
-
-.back-button:hover {
-  color: #dc2626;
-}
-
 .wizard-title {
   font-size: 28px;
   font-weight: 700;
@@ -228,9 +213,9 @@
 .step-content {
   background-color: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 1rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  margin-bottom: 32px;
+  margin-bottom: 1rem;
   min-height: 500px;
 }
 

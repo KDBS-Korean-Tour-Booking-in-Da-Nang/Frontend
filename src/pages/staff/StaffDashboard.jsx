@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import StaffLayout from './StaffLayout';
 import NewsManagement from '../staff/news-management/NewsManagement';
 import CustomerContact from './CustomerContact/CustomerContact';
+import TaskManagement from './TaskManagement/TaskManagement';
 
 const StaffDashboard = () => {
   const { user, loading } = useAuth();
@@ -42,9 +43,10 @@ const StaffDashboard = () => {
   return (
     <StaffLayout>
       <Routes>
+        <Route path="/tasks" element={<TaskManagement />} />
         <Route path="/news-management" element={<NewsManagement />} />
         <Route path="/contact" element={<CustomerContact />} />
-        <Route path="*" element={<Navigate to="/staff/news-management" replace />} />
+        <Route path="*" element={<Navigate to="/staff/tasks" replace />} />
       </Routes>
     </StaffLayout>
   );

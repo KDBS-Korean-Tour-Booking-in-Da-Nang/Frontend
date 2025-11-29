@@ -135,17 +135,17 @@
         "registerFailed": "Đăng ký thất bại. Vui lòng thử lại."
       }
     },
-		"forgot": {
-			"title": "Quên mật khẩu",
-			"subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
-			"submit": "Gửi email",
-			"sending": "Đang gửi...",
-			"success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+    "forgot": {
+      "title": "Quên mật khẩu",
+      "subtitle": "Nhập email của bạn để nhận mã OTP đặt lại mật khẩu",
+      "submit": "Gửi email",
+      "sending": "Đang gửi...",
+      "success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
 			"error": "Gửi OTP thất bại. Vui lòng thử lại.",
 			"errors": {
 				"oauthOnly": "Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver."
 			}
-		},
+    },
     "verify": {
       "title": "Xác thực Email",
       "subtitle": "Chúng tôi đã gửi mã xác thực đến {{email}}",

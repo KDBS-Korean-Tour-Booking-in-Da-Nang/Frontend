@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ShieldCheck, UsersRound, Check, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useToast } from '../../../../../contexts/ToastContext';
 import { changeBookingStatus } from '../../../../../services/bookingAPI';
 import { DeleteConfirmModal, RequestUpdateModal } from '../../../../../components/modals';
@@ -14,6 +15,7 @@ const Step2Insurance = ({
   onBack,
   isReadOnly = false,
   isStep1Completed = false,
+  isStep2Completed = false,
   onStepCompleted,
   onInsuranceUpdatesPending
 }) => {
@@ -23,9 +25,58 @@ const Step2Insurance = ({
   const [guestsState, setGuestsState] = useState(guests || []);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const storageKey = booking?.bookingId ? `booking_insurance_state_${booking.bookingId}` : null;
+
+  const mergeWithSavedState = (guestList) => {
+    if (!storageKey) return guestList;
+    try {
+      const savedRaw = localStorage.getItem(storageKey);
+      if (!savedRaw) return guestList;
+      const savedMap = JSON.parse(savedRaw);
+      if (!savedMap) return guestList;
+      return guestList.map((guest) => {
+        const savedStatus = savedMap[guest.bookingGuestId];
+        if (savedStatus) {
+          return { ...guest, insuranceStatus: savedStatus };
+        }
+        return guest;
+      });
+    } catch (err) {
+      console.warn('Unable to load saved insurance state', err);
+      return guestList;
+    }
+  };
+
+  const persistInsuranceState = (guestList) => {
+    if (!storageKey) return;
+    try {
+      const map = guestList.reduce((acc, guest) => {
+        if (guest.bookingGuestId && guest.insuranceStatus) {
+          acc[guest.bookingGuestId] = guest.insuranceStatus;
+        }
+        return acc;
+      }, {});
+      localStorage.setItem(storageKey, JSON.stringify(map));
+    } catch (err) {
+      console.warn('Unable to persist insurance state', err);
+    }
+  };
+
   useEffect(() => {
-    setGuestsState(guests || []);
-  }, [guests]);
+    const merged = mergeWithSavedState(guests || []);
+    setGuestsState(merged);
+  }, [guests, booking?.bookingId]);
+
+  useEffect(() => {
+    if (!storageKey) return;
+    if (
+      booking?.bookingStatus === 'BOOKING_SUCCESS' ||
+      booking?.bookingStatus === 'BOOKING_REJECTED' ||
+      booking?.bookingStatus === 'BOOKING_FAILED'
+    ) {
+      localStorage.removeItem(storageKey);
+    }
+  }, [booking?.bookingStatus, storageKey]);
 
   const handleInsuranceStatusChange = (guestId, status) => {
     // Don't save to DB yet, just update local state
@@ -39,6 +90,7 @@ const Step2Insurance = ({
         : g
     );
     setGuestsState(updatedGuests);
+    persistInsuranceState(updatedGuests);
 
     const guestName = updatedGuests.find(g => g.bookingGuestId === guestId)?.fullName || 'khách';
     showSuccess(`Đã cập nhật trạng thái bảo hiểm cho ${guestName}. Thay đổi sẽ được lưu khi bạn hoàn thành booking.`);
@@ -74,6 +126,7 @@ const Step2Insurance = ({
     // The actual DB update will happen when user confirms in modal
     const updatedGuests = guestsState.map(g => ({ ...g, insuranceStatus: 'Success' }));
     setGuestsState(updatedGuests);
+    persistInsuranceState(updatedGuests);
 
     showSuccess('Đã duyệt tất cả bảo hiểm. Thay đổi sẽ được lưu khi bạn hoàn thành booking.');
   };
@@ -116,6 +169,7 @@ const Step2Insurance = ({
       }
 
       onGuestsUpdate(guestsState);
+      persistInsuranceState(guestsState);
 
       if (onStepCompleted) {
         onStepCompleted(2, 3);
@@ -140,18 +194,6 @@ const Step2Insurance = ({
     }
   };
 
-  const getInsuranceStatusColor = (status) => {
-    switch (status) {
-      case 'Success':
-        return '#10b981';
-      case 'Failed':
-        return '#ef4444';
-      case 'Pending':
-      default:
-        return '#f59e0b';
-    }
-  };
-
   const getInsuranceStatusLabel = (status) => {
     switch (status) {
       case 'Success':
@@ -164,6 +206,12 @@ const Step2Insurance = ({
     }
   };
 
+  const getStatusClass = (status) => {
+    if (status === 'Success') return styles.statusSuccess;
+    if (status === 'Failed') return styles.statusFailed;
+    return styles.statusPending;
+  };
+
   const allSuccess = guestsState.length > 0 && 
     guestsState.every(g => g.insuranceStatus === 'Success');
   
@@ -172,33 +220,53 @@ const Step2Insurance = ({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Thông tin bảo hiểm</h2>
-        <p className={styles.description}>
-          Quản lý trạng thái bảo hiểm cho từng khách. Tất cả khách phải có trạng thái SUCCESS để tiếp tục.
-        </p>
+        <div className={styles.headerCard}>
+          <div className={styles.headerIcon}>
+            <ShieldCheck size={28} strokeWidth={1.6} />
+          </div>
+          <div>
+            <h2 className={styles.title}>Thông tin bảo hiểm</h2>
+            <p className={styles.description}>
+              Duy trì tone pastel, tập trung vào trạng thái bảo hiểm của từng khách. Đảm bảo tất cả đều SUCCESS trước khi tiếp tục.
+            </p>
+          </div>
+          <span className={styles.stepBadge}>Bước 2 / 3</span>
+        </div>
       </div>
 
       {/* Summary */}
       <div className={styles.summary}>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Tổng số khách:</span>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabelRow}>
+            <UsersRound className={styles.summaryIcon} strokeWidth={1.5} />
+            <span className={styles.summaryLabel}>Tổng khách</span>
+          </div>
           <span className={styles.summaryValue}>{guestsState.length}</span>
         </div>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>SUCCESS:</span>
-          <span className={styles.summaryValue} style={{ color: '#10b981' }}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabelRow}>
+            <ShieldCheck className={`${styles.summaryIcon} ${styles.success}`} strokeWidth={1.5} />
+            <span className={styles.summaryLabel}>SUCCESS</span>
+          </div>
+          <span className={styles.summaryValue}>
             {guestsState.filter(g => g.insuranceStatus === 'Success').length}
           </span>
         </div>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>FAILED:</span>
-          <span className={styles.summaryValue} style={{ color: '#ef4444' }}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabelRow}>
+            <AlertTriangle className={`${styles.summaryIcon} ${styles.failed}`} strokeWidth={1.5} />
+            <span className={styles.summaryLabel}>FAILED</span>
+          </div>
+          <span className={styles.summaryValue}>
             {guestsState.filter(g => g.insuranceStatus === 'Failed').length}
           </span>
         </div>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>PENDING:</span>
-          <span className={styles.summaryValue} style={{ color: '#f59e0b' }}>
+        <div className={styles.summaryCard}>
+          <div className={styles.summaryLabelRow}>
+            <ArrowRight className={styles.summaryIcon} strokeWidth={1.5} />
+            <span className={styles.summaryLabel}>PENDING</span>
+          </div>
+          <span className={styles.summaryValue}>
             {guestsState.filter(g => !g.insuranceStatus || g.insuranceStatus === 'Pending').length}
           </span>
         </div>
@@ -206,7 +274,10 @@ const Step2Insurance = ({
 
       {/* Guests Insurance Table */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Danh sách khách và bảo hiểm</h3>
+        <h3 className={styles.sectionTitle}>
+          <ShieldCheck className={styles.sectionIcon} strokeWidth={1.5} />
+          Danh sách khách và bảo hiểm
+        </h3>
         {guestsState && guestsState.length > 0 ? (
           <div className={styles.guestsTable}>
             <table className={styles.table}>
@@ -231,13 +302,7 @@ const Step2Insurance = ({
                       <td>{formatDate(guest.birthDate)}</td>
                       <td>{guest.idNumber || '-'}</td>
                       <td>
-                        <span
-                          className={styles.statusBadge}
-                          style={{
-                            backgroundColor: `${getInsuranceStatusColor(currentStatus)}15`,
-                            color: getInsuranceStatusColor(currentStatus)
-                          }}
-                        >
+                        <span className={`${styles.statusBadge} ${getStatusClass(currentStatus)}`}>
                           {getInsuranceStatusLabel(currentStatus)}
                         </span>
                       </td>
@@ -250,7 +315,7 @@ const Step2Insurance = ({
                               disabled={currentStatus === 'Success' || loading.continue}
                               title="Duyệt bảo hiểm"
                             >
-                              ✓
+                              <Check size={16} strokeWidth={2.5} />
                             </button>
                             <button
                               onClick={() => handleInsuranceStatusChange(guest.bookingGuestId, 'FAILED')}
@@ -258,7 +323,7 @@ const Step2Insurance = ({
                               disabled={currentStatus === 'Failed' || loading.continue}
                               title="Từ chối bảo hiểm"
                             >
-                              ✕
+                              <X size={16} strokeWidth={2.5} />
                             </button>
                           </div>
                         </td>
@@ -281,25 +346,38 @@ const Step2Insurance = ({
             {hasPending && (
               <button
                 onClick={handleApproveAll}
-                className={styles.btnWarning}
+                className={`${styles.actionButton} ${styles.btnWarning}`}
                 disabled={loading.reject || loading.continue}
               >
+                <ShieldCheck size={18} />
                 Duyệt tất cả
               </button>
             )}
             <button
               onClick={handleReject}
-              className={styles.btnDanger}
+              className={`${styles.actionButton} ${styles.btnDanger}`}
               disabled={loading.reject || booking.bookingStatus === 'BOOKING_REJECTED'}
             >
+              <X size={18} />
               {loading.reject ? 'Đang xử lý...' : 'Từ chối booking'}
             </button>
             <button
               onClick={handleContinue}
-              className={styles.btnPrimary}
-              disabled={!allSuccess || loading.reject || loading.continue || booking.bookingStatus === 'BOOKING_SUCCESS'}
+              className={`${styles.actionButton} ${styles.btnPrimary}`}
+              disabled={
+                isStep2Completed ||
+                !allSuccess ||
+                loading.reject ||
+                loading.continue ||
+                booking.bookingStatus === 'BOOKING_SUCCESS'
+              }
             >
-              {loading.continue ? 'Đang xử lý...' : 'Xác nhận và tiếp tục'}
+              <ArrowRight size={18} />
+              {isStep2Completed
+                ? 'Đã ghi nhận'
+                : loading.continue
+                  ? 'Đang xử lý...'
+                  : 'Xác nhận và tiếp tục'}
             </button>
           </div>
         </div>
@@ -307,7 +385,8 @@ const Step2Insurance = ({
 
       {!allSuccess && guestsState.length > 0 && (
         <div className={styles.warning}>
-          <p>⚠️ Tất cả khách phải có trạng thái bảo hiểm là SUCCESS để tiếp tục.</p>
+          <AlertTriangle size={18} />
+          <p>Tất cả khách phải có trạng thái bảo hiểm SUCCESS để tiếp tục.</p>
         </div>
       )}
 

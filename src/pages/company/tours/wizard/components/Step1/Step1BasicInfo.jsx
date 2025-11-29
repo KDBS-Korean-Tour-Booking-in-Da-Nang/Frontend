@@ -13,7 +13,7 @@ const Step1BasicInfo = () => {
   const { t } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
   const { showError } = useToast();
-  const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
+  const datePickerRef = useRef(null); // Ref to interact with hidden DatePicker
   const [formData, setFormData] = useState({
     tourName: '',
     departurePoint: t('common.departurePoints.daNang'), // Default departure point (i18n)
@@ -469,28 +469,26 @@ const calculateLeadDays = (isoDate) => {
               className={`${styles['form-input']} ${styles['date-input']}`}
               placeholder={t('tourWizard.step1.placeholders.tourExpirationDate') || 'YYYY-MM-DD'}
             />
-            <div className={styles['date-picker-wrapper']}>
+              <div className={styles['date-picker-wrapper']}>
               <button
                 type="button"
                 className={styles['calendar-button']}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // Trigger the hidden DatePicker
-                  if (datePickerRef.current) {
-                    const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
-                    if (input) {
-                      input.focus();
-                      input.click();
+                    // Trigger the hidden DatePicker via its exposed handlers
+                    if (datePickerRef.current) {
+                      datePickerRef.current.focus?.();
+                      datePickerRef.current.click?.();
                     }
-                  }
                 }}
                 title="Open date picker"
               >
                 <Calendar className={styles['calendar-icon']} />
               </button>
-              <div ref={datePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
                 <DatePicker
+                    ref={datePickerRef}
                   value={formData.tourExpirationDate ? new Date(formData.tourExpirationDate) : null}
                   onChange={(date) => {
                     if (date) {
@@ -506,6 +504,9 @@ const calculateLeadDays = (isoDate) => {
                   }}
                   minDate={new Date()}
                   className={styles['form-input']}
+                    onFocus={() => {}}
+                    onBlur={() => {}}
+                    onClick={() => {}}
                 />
               </div>
             </div>

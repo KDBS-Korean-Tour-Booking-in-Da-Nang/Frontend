@@ -22,6 +22,18 @@ const FETCH_TIMEOUT = 10000; // 10 seconds
 const PREFETCH_DELAY = 1000; // 1 second
 const PAGE_SIZE = 10;
 
+const upsertPostInCollection = (collection = [], post, maxItems) => {
+  if (!post) return Array.isArray(collection) ? [...collection] : [];
+  const list = Array.isArray(collection) ? [...collection] : [];
+  const index = list.findIndex(item => item.forumPostId === post.forumPostId);
+  if (index !== -1) {
+    list[index] = { ...list[index], ...post };
+    return maxItems ? list.slice(0, maxItems) : list;
+  }
+  const updated = [post, ...list];
+  return maxItems ? updated.slice(0, maxItems) : updated;
+};
+
 const Forum = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -269,11 +281,16 @@ const Forum = () => {
           postsCache.current.set(cacheKey, data);
         }
         
-        // Update posts
+        // Update posts - deduplicate to avoid duplicate keys
+        const newPosts = (data.content || []).filter(post => post?.forumPostId);
         if (currentPage === 0) {
-          setPosts(data.content || []);
+          setPosts(newPosts);
         } else {
-          setPosts(prev => [...prev, ...(data.content || [])]);
+          setPosts(prev => {
+            const existingIds = new Set(prev.map(p => p.forumPostId));
+            const uniqueNewPosts = newPosts.filter(post => !existingIds.has(post.forumPostId));
+            return [...prev, ...uniqueNewPosts];
+          });
         }
         
         setHasMorePosts(!data.last);
@@ -311,24 +328,30 @@ const Forum = () => {
   }, []);
 
   const handleCreatePost = useCallback((post) => {
-    if (editingPost) {
-      // Update existing post
-      setPosts(prev => 
-        prev.map(p => 
-          p.forumPostId === post.forumPostId ? post : p
-        )
-      );
-      setEditingPost(null);
+    if (!post) return;
+
+    setPosts(prev => upsertPostInCollection(prev, post));
+    setSinglePost(current => current?.forumPostId === post.forumPostId ? { ...current, ...post } : current);
+    setEditingPost(null);
+
+    const cacheKey = `${buildPostsUrl(0)}_0`;
+    const cachedPage = postsCache.current.get(cacheKey);
+    if (cachedPage) {
+      const updatedContent = upsertPostInCollection(cachedPage.content || [], post, PAGE_SIZE);
+      postsCache.current.set(cacheKey, {
+        ...cachedPage,
+        content: updatedContent,
+      });
     } else {
-      // Only add new post if not in search mode or My Posts mode
-      // In search mode, new posts should not appear until user goes back to forum
-      if (!isSearchMode && !isMyPostsMode) {
-        setPosts(prev => [post, ...prev]);
-      }
+      postsCache.current.set(cacheKey, {
+        content: [post],
+        last: false,
+        number: 0,
+      });
     }
-    // notify sidebar to refresh popular hashtags
+
     window.dispatchEvent(new Event('refresh-popular-hashtags'));
-  }, [editingPost, isSearchMode, isMyPostsMode]);
+  }, [buildPostsUrl]);
 
 
   const handlePostDeleted = useCallback((postId) => {
@@ -440,10 +463,22 @@ const Forum = () => {
   }, []);
 
   // Memoize posts list rendering to avoid unnecessary re-renders
+  // Deduplicate posts and ensure unique keys
   const postsList = useMemo(() => {
-    return posts.map((post, index) => (
+    // Deduplicate posts by forumPostId
+    const seenIds = new Set();
+    const uniquePosts = posts.filter(post => {
+      const id = post?.forumPostId;
+      if (!id || seenIds.has(id)) {
+        return false;
+      }
+      seenIds.add(id);
+      return true;
+    });
+
+    return uniquePosts.map((post, index) => (
       <PostCard 
-        key={post.forumPostId}
+        key={`post-${post.forumPostId}-${index}`}
         post={post}
         onPostUpdated={handleCreatePost}
         onPostDeleted={handlePostDeleted}
@@ -552,7 +587,7 @@ const Forum = () => {
                 </span>
                 <div className={styles['filter-info']}>
                   {selectedHashtags.map((tag, index) => (
-                    <span key={index} className={`${styles['filter-tag']} ${styles['hashtag-tag']}`}>
+                    <span key={`hashtag-${tag}-${index}`} className={`${styles['filter-tag']} ${styles['hashtag-tag']}`}>
                       #{tag}
                     </span>
                   ))}
@@ -667,7 +702,7 @@ const Forum = () => {
                     </div>
                   }>
                     <PostCard 
-                      key={singlePost.forumPostId}
+                      key={`single-post-${singlePost?.forumPostId || 'unknown'}`}
                       post={singlePost}
                       onPostUpdated={handleCreatePost}
                       onPostDeleted={handlePostDeleted}

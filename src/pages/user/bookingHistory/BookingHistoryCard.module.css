@@ -8,6 +8,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid #f0f0f0;
   transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
 }
 
 .booking-card:hover {
@@ -169,6 +171,8 @@
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(26, 142, 234, 0.2);
   letter-spacing: 0.2px;
+  position: relative;
+  z-index: 1;
 }
 
 .view-details-btn:hover {

@@ -55,6 +55,33 @@ const UserProfile = () => {
     confirmNewPassword: ''
   });
   const [passwordErrors, setPasswordErrors] = useState({});
+  
+  // Check if user is OAuth-only (no real password) from localStorage
+  const [isOAuthOnly, setIsOAuthOnly] = useState(() => {
+    if (user?.email) {
+      try {
+        const oauthOnlyFlag = localStorage.getItem(`isOAuthOnly_${user.email}`);
+        const hasPasswordFlag = localStorage.getItem(`hasPassword_${user.email}`);
+        
+        // If explicitly marked as OAuth-only, hide form
+        if (oauthOnlyFlag === 'true') {
+          return true;
+        }
+        
+        // If social provider and no hasPassword flag, assume OAuth-only (hide form)
+        // This handles: user logs in with Google for first time → no form shown
+        if (isSocialProvider && hasPasswordFlag !== 'true') {
+          return true;
+        }
+        
+        return false;
+      } catch {
+        // If error reading localStorage, check if social provider
+        return isSocialProvider;
+      }
+    }
+    return false;
+  });
   const localeMap = {
     vi: 'vi-VN',
     en: 'en-US',
@@ -156,10 +183,20 @@ const UserProfile = () => {
       );
       showSuccess(t('profile.password.success'));
       resetPasswordForm();
+      // Mark user as having password if change succeeds (user has real password)
+      // This proves user has a real password, not OAuth dummy password
+      if (user?.email) {
+        try {
+          localStorage.setItem(`hasPassword_${user.email}`, 'true');
+          localStorage.removeItem(`isOAuthOnly_${user.email}`);
+          setIsOAuthOnly(false);
+        } catch {}
+      }
     } catch (error) {
       // Check if it's an OAuth-only user error
       const errorMessage = error?.message || '';
       let message = errorMessage;
+      let isOAuthError = false;
       
       // If backend returns error for OAuth-only users, show specific message
       if (errorMessage.toLowerCase().includes('oauth') || 
@@ -168,8 +205,19 @@ const UserProfile = () => {
           errorMessage.toLowerCase().includes('naver') ||
           errorMessage.toLowerCase().includes('không có mật khẩu') ||
           errorMessage.toLowerCase().includes('does not have a password') ||
-          errorMessage.toLowerCase().includes('비밀번호가 없습니다')) {
+          errorMessage.toLowerCase().includes('비밀번호가 없습니다') ||
+          errorMessage.toLowerCase().includes('cannot change password') ||
+          errorMessage.toLowerCase().includes('không thể đổi mật khẩu')) {
+        isOAuthError = true;
         message = t('profile.password.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Không thể đổi mật khẩu.';
+        
+        // Save OAuth-only status to localStorage
+        if (user?.email) {
+          try {
+            localStorage.setItem(`isOAuthOnly_${user.email}`, 'true');
+            setIsOAuthOnly(true);
+          } catch {}
+        }
       } else if (!message) {
         message = t('profile.password.errors.generic');
       }
@@ -182,6 +230,46 @@ const UserProfile = () => {
   const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
 
   // All users can change avatar regardless of login method
+
+  // Update isOAuthOnly when user email or authProvider changes
+  useEffect(() => {
+    if (user?.email) {
+      try {
+        const oauthOnlyFlag = localStorage.getItem(`isOAuthOnly_${user.email}`);
+        const hasPasswordFlag = localStorage.getItem(`hasPassword_${user.email}`);
+        
+        // If explicitly marked as OAuth-only, hide form
+        if (oauthOnlyFlag === 'true') {
+          setIsOAuthOnly(true);
+          return;
+        }
+        
+        // If explicitly marked as having password, show form
+        // This handles: user registered email+password → logged in Google → can change password
+        if (hasPasswordFlag === 'true') {
+          setIsOAuthOnly(false);
+          return;
+        }
+        
+        // If social provider and no flags, assume OAuth-only (hide form)
+        // This handles: 
+        // - User logs in with Google for first time → no form shown
+        // - User logs in with Google again (already in DB) → no form shown (still OAuth-only)
+        if (isSocialProvider) {
+          setIsOAuthOnly(true);
+          return;
+        }
+        
+        // If not social provider, show form (user registered with email+password)
+        setIsOAuthOnly(false);
+      } catch {
+        // If error reading localStorage, check if social provider
+        setIsOAuthOnly(isSocialProvider);
+      }
+    } else {
+      setIsOAuthOnly(false);
+    }
+  }, [user?.email, isSocialProvider]);
 
   // Fetch user data on component mount and after updates
   useEffect(() => {
@@ -672,7 +760,14 @@ const UserProfile = () => {
       case 'changePassword':
         return (
           <div className={styles['profile-info']}>
-            <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+            {isOAuthOnly ? (
+              <div className={styles['info-group']}>
+                <div className={`${styles['info-value']} ${styles['empty']}`}>
+                  {t('profile.password.socialDisabled')}
+                </div>
+              </div>
+            ) : (
+              <form className="space-y-4" onSubmit={handlePasswordSubmit}>
                 <div className={styles['form-group']}>
                   <label htmlFor="currentPassword" className={styles['form-label']}>
                     {t('profile.password.current')}
@@ -740,6 +835,7 @@ const UserProfile = () => {
                   </button>
                 </div>
               </form>
+            )}
           </div>
         );
       
@@ -1060,19 +1156,17 @@ const UserProfile = () => {
                     e.preventDefault();
                     e.stopPropagation();
                     if (datePickerRef.current) {
-                      const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
-                      if (input) {
-                        input.focus();
-                        input.click();
-                      }
+                      datePickerRef.current.focus?.();
+                      datePickerRef.current.click?.();
                     }
                   }}
                 title={t('profile.datePicker.open')}
                 >
                   <Calendar className={styles['calendar-icon']} />
                 </button>
-                <div ref={datePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
                   <DatePicker
+                    ref={datePickerRef}
                     value={(() => {
                       if (!editForm.dob) return null;
                       const iso = parseDateFromDisplayToISO(editForm.dob);
@@ -1092,6 +1186,9 @@ const UserProfile = () => {
                     }}
                     minDate={new Date('1900-01-01')}
                     maxDate={new Date()}
+                    onFocus={() => {}}
+                    onBlur={() => {}}
+                    onClick={() => {}}
                   />
                 </div>
               </div>

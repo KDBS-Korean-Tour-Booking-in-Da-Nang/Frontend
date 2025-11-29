@@ -477,6 +477,15 @@
   transform: translateY(-1px);
 }
 
+.action-btn:disabled,
+.action-btn-disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  color: #cbd5f5;
+  background: transparent;
+  transform: none;
+}
+
 .action-icon {
   width: 20px;
   height: 20px;

@@ -44,7 +44,7 @@ const NewsDetail = () => {
 
   if (loading) {
     return (
-      <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
+      <div className={styles.pageRoot}>
       <div className={styles.pageBackground} aria-hidden="true"></div>
       <div className={detailContainerClass}>
         <div className={`${styles.contentWrap} flex items-center justify-center`}>
@@ -60,7 +60,7 @@ const NewsDetail = () => {
 
   if (error) {
     return (
-      <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
+      <div className={styles.pageRoot}>
         <div className={styles.pageBackground} aria-hidden="true"></div>
         <div className={detailContainerClass}>
           <div className={`${styles.contentWrap} flex items-center justify-center`}>
@@ -91,7 +91,7 @@ const NewsDetail = () => {
 
   if (!article) {
     return (
-      <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
+      <div className={styles.pageRoot}>
         <div className={styles.pageBackground} aria-hidden="true"></div>
         <div className={detailContainerClass}>
           <div className={`${styles.contentWrap} flex items-center justify-center`}>
@@ -128,12 +128,12 @@ const NewsDetail = () => {
   };
 
   return (
-    <div className={styles.pageRoot} style={{ marginTop: '30px' }}>
+    <div className={styles.pageRoot}>
       <div className={styles.pageBackground} aria-hidden="true"></div>
       <div className={detailContainerClass}>
         {/* Header */}
-        <div className={`${styles.contentWrap} pt-6 pb-0`}>
-          <div className={`${styles.card} px-4 sm:px-6 lg:px-8 py-4`}>
+        <div className={`${styles.contentWrap} pt-2 pb-0`}>
+          <div className={`${styles.card} px-4 sm:px-6 lg:px-8 py-3`}>
             <div className="flex flex-wrap items-center gap-3 justify-between">
               <button
                 onClick={() => navigate('/news')}

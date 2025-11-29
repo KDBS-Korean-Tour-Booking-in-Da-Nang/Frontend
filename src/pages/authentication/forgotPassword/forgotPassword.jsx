@@ -50,6 +50,13 @@ const ForgotPassword = () => {
         showSuccess('toast.auth.password_reset_email_sent');
         setSent(true);
         setCountdown(60);
+        // Mark user as having password if forgot password succeeds (user has real password)
+        if (email) {
+          try {
+            localStorage.setItem(`hasPassword_${email}`, 'true');
+            localStorage.removeItem(`isOAuthOnly_${email}`);
+          } catch {}
+        }
       } else {
         // Check if it's an OAuth-only user error
         const errorMessage = data.message || '';
@@ -58,8 +65,21 @@ const ForgotPassword = () => {
             errorMessage.toLowerCase().includes('social') ||
             errorMessage.toLowerCase().includes('google') ||
             errorMessage.toLowerCase().includes('naver') ||
+            errorMessage.toLowerCase().includes('không có mật khẩu') ||
+            errorMessage.toLowerCase().includes('does not have a password') ||
+            errorMessage.toLowerCase().includes('비밀번호가 없습니다') ||
+            errorMessage.toLowerCase().includes('cannot reset password') ||
+            errorMessage.toLowerCase().includes('không thể đặt lại mật khẩu') ||
             data.code === 1001 || // Assuming backend uses specific error code
             response.status === 400) {
+          
+          // Save OAuth-only status to localStorage
+          if (email) {
+            try {
+              localStorage.setItem(`isOAuthOnly_${email}`, 'true');
+            } catch {}
+          }
+          
           showError(data.message || t('auth.forgot.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver.');
         } else {
           showError(data.message || 'toast.auth.general_error');
@@ -154,7 +174,30 @@ const ForgotPassword = () => {
         
         // Reset countdown
         setCountdown(60);
+        // Mark user as having password if resend succeeds (user has real password)
+        if (email) {
+          try {
+            localStorage.setItem(`hasPassword_${email}`, 'true');
+            localStorage.removeItem(`isOAuthOnly_${email}`);
+          } catch {}
+        }
       } else {
+        // Check if it's an OAuth-only user error
+        const errorMessage = data.message || '';
+        if (errorMessage.toLowerCase().includes('oauth') || 
+            errorMessage.toLowerCase().includes('social') ||
+            errorMessage.toLowerCase().includes('google') ||
+            errorMessage.toLowerCase().includes('naver') ||
+            errorMessage.toLowerCase().includes('không có mật khẩu') ||
+            errorMessage.toLowerCase().includes('does not have a password')) {
+          
+          // Save OAuth-only status to localStorage
+          if (email) {
+            try {
+              localStorage.setItem(`isOAuthOnly_${email}`, 'true');
+            } catch {}
+          }
+        }
         showError(data.message || 'toast.auth.general_error');
       }
     } catch (err) {

@@ -99,24 +99,18 @@ const Homepage = () => {
     }));
   };
 
-  // Check for success message from navigation state or localStorage (avoid route replace to prevent flicker)
+  // Note: Toast messages from navigation state are handled in App.jsx
+  // Only handle oauth_success_message from localStorage if needed for specific cases
   useEffect(() => {
     const oauthMessage = localStorage.getItem('oauth_success_message');
     if (oauthMessage) {
-      setSuccessMessage(oauthMessage);
+      // Try to translate the message if it's an i18n key
+      const translated = i18n?.exists?.(oauthMessage) ? i18n.t(oauthMessage) : oauthMessage;
+      setSuccessMessage(translated);
       localStorage.removeItem('oauth_success_message');
     }
-
-    if (location.state?.message && location.state?.type === 'success') {
-      setSuccessMessage(location.state.message);
-      // Clear state without triggering a route change/render cycle
-      try {
-        window.history.replaceState({}, document.title, location.pathname + location.search);
-      } catch (error) {
-        console.error('Failed to replace state in history', error);
-      }
-    }
-  }, [location.state, location.pathname, location.search]);
+    // Don't handle location.state.message here - App.jsx handles toast messages
+  }, [i18n]);
 
   // Auto-hide success message
   useEffect(() => {

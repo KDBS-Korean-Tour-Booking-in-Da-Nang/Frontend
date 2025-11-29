@@ -133,8 +133,33 @@ const getStatusIcon = (iconColor) => {
 
   const statusColor = getStatusColor(effectiveStatus);
 
+  const handleCardClick = (e) => {
+    // Prevent navigation if clicking on the button itself (to avoid double navigation)
+    if (e.target.closest(`.${styles['view-details-btn']}`)) {
+      return;
+    }
+    handleViewDetails();
+  };
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation(); // Prevent card click from firing
+    handleViewDetails();
+  };
+
   return (
-    <div className={styles['booking-card']}>
+    <div 
+      className={styles['booking-card']}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleViewDetails();
+        }
+      }}
+      aria-label={`View details for booking ${booking.bookingId}`}
+    >
       <div className={styles['card-header']}>
         <div className={styles['booking-id-section']}>
           <DocumentTextIcon className={styles['id-icon']} />
@@ -214,7 +239,7 @@ const getStatusIcon = (iconColor) => {
       <div className={styles['card-footer']}>
         <button 
           className={styles['view-details-btn']}
-          onClick={handleViewDetails}
+          onClick={handleButtonClick}
         >
           <span>{t('bookingHistory.card.viewDetails')}</span>
           <ArrowRightIcon className={styles['btn-icon']} />

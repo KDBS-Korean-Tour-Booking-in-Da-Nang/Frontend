@@ -36,7 +36,6 @@ const NewsManagement = () => {
     setLoadingArticles(true);
     try {
       const data = await articleService.getAllArticles();
-      console.log('Articles data:', data);
       const newArticles = data || [];
       const sortedArticles = [...newArticles].sort((a, b) => {
         const aPending = a.articleStatus !== 'APPROVED';

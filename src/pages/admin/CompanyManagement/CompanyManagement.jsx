@@ -1,435 +1,425 @@
-import { useState } from 'react';
-import { 
+import { useMemo, useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
+import {
   BuildingOfficeIcon,
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ArrowDownTrayIcon,
+  FunnelIcon,
+  MagnifyingGlassIcon,
+  PhoneIcon,
+  MapPinIcon,
   EyeIcon,
   CheckIcon,
-  XMarkIcon,
-  ClockIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const CompanyManagement = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCompany, setEditingCompany] = useState(null);
-  const [companyForm, setCompanyForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    taxCode: '',
-    status: 'pending'
-  });
+  const { getToken } = useAuth();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [companyList, setCompanyList] = useState([
-    {
-      id: 1,
-      name: 'ABC Travel Company',
-      email: 'info@abctravel.com',
-      phone: '0123456789',
-      address: '123 Main Street, District 1, Ho Chi Minh City',
-      taxCode: '123456789',
-      status: 'pending',
-      createdAt: '2024-01-15',
-      registrationDate: '2024-01-10'
-    },
-    {
-      id: 2,
-      name: 'XYZ Tourism Ltd',
-      email: 'contact@xyztourism.com',
-      phone: '0987654321',
-      address: '456 Business Avenue, District 2, Ho Chi Minh City',
-      taxCode: '987654321',
-      status: 'approved',
-      createdAt: '2024-01-10',
-      registrationDate: '2024-01-05'
-    },
-    {
-      id: 3,
-      name: 'Sunset Tours',
-      email: 'hello@sunsettours.com',
-      phone: '0369852147',
-      address: '789 Tourism Street, District 3, Ho Chi Minh City',
-      taxCode: '456789123',
-      status: 'rejected',
-      createdAt: '2024-01-05',
-      registrationDate: '2024-01-01'
+  // Fetch companies (users with role COMPANY/BUSINESS) from API
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+      
+      if (!token) {
+        setError('Vui lòng đăng nhập lại');
+        setLoading(false);
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(API_ENDPOINTS.USERS, { headers });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const users = data.result || data || [];
+      
+      // Filter users with role COMPANY or BUSINESS
+      const companyUsers = users.filter(user => {
+        const role = (user.role || '').toUpperCase();
+        return role === 'COMPANY' || role === 'BUSINESS';
+      });
+
+      // Map backend data to frontend format
+      const mappedCompanies = companyUsers.map(user => {
+        const status = (user.status || '').toUpperCase();
+        let approvalStatus = 'pending';
+        if (status === 'COMPANY_PENDING') {
+          approvalStatus = 'pending';
+        } else if (status === 'UNBANNED' || status === 'ACTIVE') {
+          approvalStatus = 'approved';
+        } else if (status === 'BANNED') {
+          approvalStatus = 'rejected';
+        }
+
+        return {
+          id: `COMP-${user.userId}`,
+          userId: user.userId,
+          name: user.username || 'N/A',
+          email: user.email || '',
+          phone: user.phone || '',
+          address: user.address || '',
+          avatar: getAvatarUrl(user.avatar),
+          status: status,
+          approvalStatus: approvalStatus,
+          createdAt: user.createdAt,
+          role: user.role
+        };
+      });
+
+      setCompanies(mappedCompanies);
+    } catch (err) {
+      console.error('Error fetching companies:', err);
+      setError('Không thể tải danh sách công ty. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
-  const handleAddCompany = () => {
-    setEditingCompany(null);
-    setCompanyForm({ 
-      name: '', 
-      email: '', 
-      phone: '', 
-      address: '', 
-      taxCode: '', 
-      status: 'pending' 
+  useEffect(() => {
+    fetchCompanies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filteredCompanies = useMemo(() => {
+    return companies.filter((company) => {
+      const matchesSearch =
+        company.name.toLowerCase().includes(search.toLowerCase()) ||
+        company.email.toLowerCase().includes(search.toLowerCase()) ||
+        company.id.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === 'ALL' || company.approvalStatus === statusFilter;
+      return matchesSearch && matchesStatus;
     });
-    setIsModalOpen(true);
-  };
+  }, [companies, search, statusFilter]);
 
-  const handleEditCompany = (company) => {
-    setEditingCompany(company);
-    setCompanyForm({
-      name: company.name,
-      email: company.email,
-      phone: company.phone,
-      address: company.address,
-      taxCode: company.taxCode,
-      status: company.status
-    });
-    setIsModalOpen(true);
-  };
+  const stats = useMemo(() => {
+    const total = companies.length;
+    const pending = companies.filter((c) => c.approvalStatus === 'pending').length;
+    const approved = companies.filter((c) => c.approvalStatus === 'approved').length;
+    const rejected = companies.filter((c) => c.approvalStatus === 'rejected').length;
+    return { total, pending, approved, rejected };
+  }, [companies]);
 
-  const handleDeleteCompany = (companyId) => {
-    if (confirm('Are you sure you want to delete this company?')) {
-      setCompanyList(companyList.filter(company => company.id !== companyId));
+  const handleApprove = async (company) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        alert('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn phê duyệt công ty "${company.name}"?`)) {
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      // Update role to COMPANY (if not already)
+      const roleResponse = await fetch(`${BaseURL}/api/staff/update-role/${company.userId}?role=COMPANY`, {
+        method: 'PUT',
+        headers
+      });
+
+      if (!roleResponse.ok) {
+        if (roleResponse.status === 401) {
+          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await roleResponse.json();
+        throw new Error(errorData.message || 'Không thể cập nhật role');
+      }
+
+      // Unban user (set status to UNBANNED)
+      const statusResponse = await fetch(`${BaseURL}/api/staff/ban-user/${company.userId}?ban=false`, {
+        method: 'PUT',
+        headers
+      });
+
+      if (!statusResponse.ok) {
+        if (statusResponse.status === 401) {
+          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await statusResponse.json();
+        throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
+      }
+
+      alert('Phê duyệt công ty thành công!');
+      await fetchCompanies();
+    } catch (err) {
+      console.error('Error approving company:', err);
+      alert(err.message || 'Không thể phê duyệt công ty. Vui lòng thử lại.');
     }
   };
 
-  const handleStatusChange = (companyId, newStatus) => {
-    if (confirm(`Are you sure you want to ${newStatus} this company?`)) {
-      setCompanyList(companyList.map(company => 
-        company.id === companyId 
-          ? { ...company, status: newStatus }
-          : company
-      ));
+  const handleReject = async (company) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        alert('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn từ chối công ty "${company.name}"?`)) {
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      // Ban user (reject)
+      const response = await fetch(`${BaseURL}/api/staff/ban-user/${company.userId}?ban=true`, {
+        method: 'PUT',
+        headers
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Không thể từ chối công ty');
+      }
+
+      alert('Từ chối công ty thành công!');
+      await fetchCompanies();
+    } catch (err) {
+      console.error('Error rejecting company:', err);
+      alert(err.message || 'Không thể từ chối công ty. Vui lòng thử lại.');
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editingCompany) {
-      setCompanyList(companyList.map(company => 
-        company.id === editingCompany.id 
-          ? { ...company, ...companyForm }
-          : company
-      ));
-    } else {
-      const newCompany = {
-        id: Date.now(),
-        ...companyForm,
-        createdAt: new Date().toISOString().split('T')[0],
-        registrationDate: new Date().toISOString().split('T')[0]
-      };
-      setCompanyList([...companyList, newCompany]);
-    }
-    setIsModalOpen(false);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải danh sách công ty...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'approved':
-        return <CheckIcon className="h-4 w-4" />;
-      case 'pending':
-        return <ClockIcon className="h-4 w-4" />;
-      case 'rejected':
-        return <XMarkIcon className="h-4 w-4" />;
-      default:
-        return null;
-    }
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchCompanies}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Company Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage company registrations and approvals</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Company Management</p>
+          <h1 className="text-3xl font-bold text-gray-900">Xét duyệt đăng ký công ty</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Quản lý và xét duyệt các yêu cầu đăng ký tài khoản công ty du lịch.
+          </p>
         </div>
-        <button
-          onClick={handleAddCompany}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
-        >
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add Company
-        </button>
-      </div>
-
-      {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <BuildingOfficeIcon className="h-8 w-8 text-blue-500" />
-            </div>
-            <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Total Companies</p>
-              <p className="text-2xl font-semibold text-gray-900">{companyList.length}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <ClockIcon className="h-8 w-8 text-yellow-500" />
-            </div>
-            <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Pending</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {companyList.filter(company => company.status === 'pending').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <CheckIcon className="h-8 w-8 text-green-500" />
-            </div>
-            <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Approved</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {companyList.filter(company => company.status === 'approved').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <XMarkIcon className="h-8 w-8 text-red-500" />
-            </div>
-            <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Rejected</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {companyList.filter(company => company.status === 'rejected').length}
-              </p>
-            </div>
-          </div>
+        <div className="flex gap-3">
+          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
+            <FunnelIcon className="h-5 w-5" />
+            Bộ lọc nâng cao
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
+            <ArrowDownTrayIcon className="h-5 w-5" />
+            Xuất báo cáo
+          </button>
         </div>
       </div>
 
-      {/* Company table */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard icon={BuildingOfficeIcon} label="Tổng công ty" value={stats.total} trend="Đã đăng ký" />
+        <StatCard icon={ClockIcon} label="Chờ duyệt" value={stats.pending} trend="Cần xử lý" color="text-amber-500" />
+        <StatCard icon={CheckCircleIcon} label="Đã duyệt" value={stats.approved} trend="Hoạt động" color="text-green-600" />
+        <StatCard icon={XCircleIcon} label="Đã từ chối" value={stats.rejected} trend="Không hoạt động" color="text-red-600" />
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-xs">
+            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm theo tên, email hoặc mã công ty..."
+              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="pending">Chờ duyệt</option>
+              <option value="approved">Đã duyệt</option>
+              <option value="rejected">Đã từ chối</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-gray-50/70">
+              <tr>
+                {['Công ty', 'Trạng thái', 'Ngày đăng ký', 'Thao tác'].map((header) => (
+                  <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-50">
+              {filteredCompanies.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Company
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tax Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Registration Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                    {loading ? 'Đang tải...' : 'Không tìm thấy công ty phù hợp với bộ lọc hiện tại.'}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {companyList.map((company) => (
-                  <tr key={company.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-                            <BuildingOfficeIcon className="h-5 w-5" />
-                          </div>
+              ) : (
+                filteredCompanies.map((company) => (
+                <tr key={company.id} className="hover:bg-blue-50/40 transition">
+                  <td className="px-6 py-4">
+                    <div className="flex items-start gap-3">
+                      <img 
+                        src={company.avatar || '/default-avatar.png'} 
+                        alt={company.name} 
+                        className="h-12 w-12 rounded-full object-cover border border-gray-100 mt-1.5"
+                        onError={(e) => {
+                          e.target.src = '/default-avatar.png';
+                        }}
+                      />
+                      <div className="mt-1.5">
+                        <p className="font-semibold text-gray-900 mb-0">{company.name}</p>
+                        <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
+                          {company.email && <span>{company.email}</span>}
+                          {company.phone && (
+                            <span className="inline-flex items-center gap-1">
+                              <PhoneIcon className="h-4 w-4 text-gray-400" />
+                              {company.phone}
+                            </span>
+                          )}
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{company.name}</div>
-                          <div className="text-sm text-gray-500">{company.address}</div>
+                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
+                          {company.address && (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPinIcon className="h-3.5 w-3.5" />
+                              {company.address}
+                            </span>
+                          )}
+                          <span>{company.id}</span>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{company.email}</div>
-                      <div className="text-sm text-gray-500">{company.phone}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {company.taxCode}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(company.status)}`}>
-                        {getStatusIcon(company.status)}
-                        <span className="ml-1 capitalize">{company.status}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(company.registrationDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleEditCompany(company)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Edit"
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <ApprovalStatusBadge status={company.approvalStatus} />
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {company.createdAt ? new Date(company.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <button 
+                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
+                        title="Xem chi tiết"
                       >
-                        <PencilIcon className="h-4 w-4" />
+                        <EyeIcon className="h-4 w-4" />
                       </button>
-                      {company.status === 'pending' && (
+                      {company.approvalStatus === 'pending' && (
                         <>
-                          <button
-                            onClick={() => handleStatusChange(company.id, 'approved')}
-                            className="text-green-600 hover:text-green-900"
-                            title="Approve"
+                          <button 
+                            onClick={() => handleApprove(company)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition" 
+                            title="Phê duyệt"
                           >
                             <CheckIcon className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => handleStatusChange(company.id, 'rejected')}
-                            className="text-red-600 hover:text-red-900"
-                            title="Reject"
+                          <button 
+                            onClick={() => handleReject(company)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
+                            title="Từ chối"
                           >
                             <XMarkIcon className="h-4 w-4" />
                           </button>
                         </>
                       )}
-                      <button
-                        onClick={() => handleDeleteCompany(company.id)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                </tr>
+              )))}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+          <IconComponent className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className="text-xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-
-      {/* Company Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsModalOpen(false)}></div>
-            
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        {editingCompany ? 'Edit Company' : 'Add New Company'}
-                      </h3>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Company Name</label>
-                          <input
-                            type="text"
-                            value={companyForm.name}
-                            onChange={(e) => setCompanyForm({...companyForm, name: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Email</label>
-                          <input
-                            type="email"
-                            value={companyForm.email}
-                            onChange={(e) => setCompanyForm({...companyForm, email: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Phone</label>
-                          <input
-                            type="tel"
-                            value={companyForm.phone}
-                            onChange={(e) => setCompanyForm({...companyForm, phone: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Address</label>
-                          <textarea
-                            value={companyForm.address}
-                            onChange={(e) => setCompanyForm({...companyForm, address: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            rows={3}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Tax Code</label>
-                          <input
-                            type="text"
-                            value={companyForm.taxCode}
-                            onChange={(e) => setCompanyForm({...companyForm, taxCode: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Status</label>
-                          <select
-                            value={companyForm.status}
-                            onChange={(e) => setCompanyForm({...companyForm, status: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    {editingCompany ? 'Update' : 'Add'} Company
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <span className={`text-xs font-semibold ${color}`}>{trend}</span>
     </div>
+  </div>
+);
+
+const ApprovalStatusBadge = ({ status }) => {
+  const statusMap = {
+    pending: { color: 'bg-amber-100 text-amber-700', label: 'Chờ duyệt', icon: ClockIcon },
+    approved: { color: 'bg-green-100 text-green-700', label: 'Đã duyệt', icon: CheckCircleIcon },
+    rejected: { color: 'bg-red-100 text-red-700', label: 'Đã từ chối', icon: XCircleIcon }
+  };
+
+  const statusInfo = statusMap[status] || statusMap.pending;
+  const Icon = statusInfo.icon;
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+      <Icon className="h-3.5 w-3.5" />
+      {statusInfo.label}
+    </span>
   );
 };
 

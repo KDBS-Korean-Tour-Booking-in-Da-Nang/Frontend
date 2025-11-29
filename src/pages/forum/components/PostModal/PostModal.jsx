@@ -213,12 +213,15 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
 
   const trimmedTitle = title.trim();
   const trimmedContent = content.trim();
-  const isSubmitDisabled = isLoading || trimmedContent.length === 0;
+  const hasTitle = trimmedTitle.length > 0;
+  const hasContent = trimmedContent.length > 0;
+  const isSubmitDisabled = isLoading || (!hasTitle && !hasContent);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!trimmedContent) {
+    if (!hasTitle && !hasContent) {
+      showBatch(['Nội dung hoặc tiêu đề không được để trống'], 'error', 5000);
       return;
     }
     
@@ -226,7 +229,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     const errors = [];
     
     // Check if content contains only links (no other text)
-    const hasOnlyLinks = trimmedContent.split(/\s+/).every(part => {
+    const hasOnlyLinks = hasContent && trimmedContent.split(/\s+/).every(part => {
       const trimmed = part.trim();
       return !trimmed || /^https?:\/\/.+/.test(trimmed);
     });
@@ -246,8 +249,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     try {
       const formData = new FormData();
       formData.append('userEmail', user.email);
-      formData.append('title', trimmedTitle);
-      formData.append('content', trimmedContent);
+    formData.append('title', trimmedTitle);
+    formData.append('content', hasContent ? trimmedContent : trimmedTitle);
       
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);

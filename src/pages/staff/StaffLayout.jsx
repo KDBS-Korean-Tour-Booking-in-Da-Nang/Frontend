@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, NavLink, useLocation } from 'react-router-dom';
@@ -15,7 +15,8 @@ import {
   Cog6ToothIcon,
   LifebuoyIcon,
   ArrowRightOnRectangleIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 
 const StaffLayout = ({ children }) => {
@@ -26,8 +27,62 @@ const StaffLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [taskMenuOpen, setTaskMenuOpen] = useState(true);
   const languageRef = useRef(null);
   const userRef = useRef(null);
+
+  const isAdmin = user?.role === 'ADMIN';
+  const taskMenuItems = useMemo(() => {
+    const items = [];
+    if (user?.staffTask === 'FORUM_REPORT' || isAdmin) {
+      items.push({
+        id: 'forum-reports',
+        label: 'Forum Report Management',
+        color: 'bg-blue-500'
+      });
+    }
+    if (user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || isAdmin) {
+      items.push(
+        {
+          id: 'company-management',
+          label: 'Company Management',
+          color: 'bg-amber-500'
+        },
+        {
+          id: 'article-management',
+          label: 'Article Management',
+          color: 'bg-indigo-500'
+        }
+      );
+    }
+    if (user?.staffTask === 'APPROVE_TOUR_BOOKING' || isAdmin) {
+      items.push({
+        id: 'tour-approval',
+        label: 'Tour Approval',
+        color: 'bg-emerald-500'
+      });
+    }
+    return items;
+  }, [user?.staffTask, isAdmin]);
+
+  // Luôn hiển thị Task Management trong sidebar, kể cả khi chưa được gán nhiệm vụ
+  const hasTaskMenu = true;
+
+  const currentTaskSection = location.pathname.startsWith('/staff/tasks')
+    ? new URLSearchParams(location.search).get('section')
+    : null;
+
+  const taskLinkClasses = (sectionId) => {
+    const isActive =
+      location.pathname.startsWith('/staff/tasks') &&
+      (sectionId ? currentTaskSection === sectionId : !currentTaskSection);
+    return [
+      'flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all no-underline',
+      isActive
+        ? 'bg-blue-100 text-blue-600'
+        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-500'
+    ].join(' ');
+  };
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -52,13 +107,14 @@ const StaffLayout = ({ children }) => {
     {
       title: 'MENU',
       items: [
-        { name: 'News Management', to: '/staff/news-management', icon: NewspaperIcon },
+        { type: 'tasks', name: 'Task Management' },
+        { type: 'link', name: 'News Management', to: '/staff/news-management', icon: NewspaperIcon },
       ],
     },
     {
       title: 'LIÊN HỆ',
       items: [
-        { name: 'Liên hệ khách hàng', to: '/staff/contact', icon: ChatBubbleLeftRightIcon },
+        { type: 'link', name: 'Liên hệ khách hàng', to: '/staff/contact', icon: ChatBubbleLeftRightIcon },
       ],
     },
   ];
@@ -99,28 +155,79 @@ const StaffLayout = ({ children }) => {
               <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-semibold mb-3">{section.title}</p>
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    item.to === '/staff'
-                      ? location.pathname === '/staff'
-                      : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
-                  return (
-                    <div key={item.name}>
-                      <NavLink
-                        to={item.to}
-                        end={item.to === '/staff/news-management'}
-                        className={({ isActive: navActive }) =>
-                          [
-                            'flex items-center rounded-xl px-3.5 py-2.5 transition-all duration-200 no-underline',
-                            navActive || isActive ? 'bg-blue-50 text-blue-600 font-semibold shadow-inner' : 'text-gray-700 hover:bg-gray-50'
-                          ].join(' ')
-                        }
-                      >
-                        <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'} transition-colors`} />
-                        <span>{item.name}</span>
-                      </NavLink>
-                    </div>
-                  );
+                  if (item.type === 'tasks' && hasTaskMenu) {
+                    return (
+                      <div key="task-menu">
+                        <button
+                          onClick={() => setTaskMenuOpen((prev) => !prev)}
+                          className={`w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-all no-underline ${
+                            taskMenuOpen
+                              ? 'bg-blue-200 text-blue-700 font-semibold shadow-inner'
+                              : 'text-gray-700 hover:bg-blue-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <ClipboardDocumentListIcon className={`h-5 w-5 ${taskMenuOpen ? 'text-blue-700' : 'text-gray-400'} transition-colors`} />
+                            <span>{item.name}</span>
+                          </div>
+                          <ChevronDownIcon className={`h-4 w-4 ${taskMenuOpen ? 'text-blue-700' : 'text-gray-400'} transition-transform ${taskMenuOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {taskMenuOpen && (
+                          <div className="mt-1 space-y-1 border-l border-gray-100 pl-4">
+                            <NavLink
+                              to="/staff/tasks"
+                              className={taskLinkClasses(null)}
+                              onClick={() => setSidebarOpen(false)}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-blue-400" />
+                              <span>Dashboard overview</span>
+                            </NavLink>
+                            {taskMenuItems.map((task) => (
+                              <NavLink
+                                key={task.id}
+                                to={`/staff/tasks?section=${task.id}`}
+                                className={taskLinkClasses(task.id)}
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <span className={`h-2 w-2 rounded-full ${task.color}`} />
+                                <span>{task.label}</span>
+                              </NavLink>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  if (item.type === 'link') {
+                    const Icon = item.icon;
+                    const isActive =
+                      item.to === '/staff'
+                        ? location.pathname === '/staff'
+                        : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
+                    return (
+                      <div key={item.name}>
+                        <NavLink
+                          to={item.to}
+                          end={item.to === '/staff/news-management'}
+                          className={({ isActive: navActive }) =>
+                            [
+                              'flex items-center rounded-xl px-3.5 py-2.5 transition-all duration-200 no-underline',
+                              navActive || isActive
+                                ? 'bg-blue-200 text-blue-700 font-semibold shadow-inner'
+                                : 'text-gray-700 hover:bg-blue-100'
+                            ].join(' ')
+                          }
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-400'} transition-colors`} />
+                          <span>{item.name}</span>
+                        </NavLink>
+                      </div>
+                    );
+                  }
+
+                  return null;
                 })}
               </div>
             </div>

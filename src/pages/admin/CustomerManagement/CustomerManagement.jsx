@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
 import {
   UsersIcon,
   UserCircleIcon,
@@ -15,88 +17,163 @@ import {
   ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
 
-const avatarBasePath = '/assets/images/user-list';
-
-const baseCustomers = [
-  {
-    id: 'CUS-2301',
-    name: 'Nguyễn Minh Anh',
-    email: 'minhanh@example.com',
-    phone: '+84 912 345 678',
-    country: 'Việt Nam',
-    city: 'Đà Nẵng',
-    tier: 'VIP',
-    status: 'active',
-    totalBookings: 18,
-    lifetimeValue: 52_000_000,
-    lastBooking: '2025-02-12',
-    avatar: `${avatarBasePath}/user-list1.png`
-  },
-  {
-    id: 'CUS-2302',
-    name: 'Trần Hải Đăng',
-    email: 'haidang@example.com',
-    phone: '+82 10-2345-6789',
-    country: 'Hàn Quốc',
-    city: 'Seoul',
-    tier: 'Gold',
-    status: 'active',
-    totalBookings: 11,
-    lifetimeValue: 34_500_000,
-    lastBooking: '2025-01-28',
-    avatar: `${avatarBasePath}/user-list2.png`
-  },
-  {
-    id: 'CUS-2303',
-    name: 'Phạm Thảo Nhi',
-    email: 'thaonhi@example.com',
-    phone: '+84 973 222 111',
-    country: 'Việt Nam',
-    city: 'Hà Nội',
-    tier: 'Silver',
-    status: 'inactive',
-    totalBookings: 6,
-    lifetimeValue: 15_200_000,
-    lastBooking: '2024-11-05',
-    avatar: `${avatarBasePath}/user-list3.png`
-  },
-  {
-    id: 'CUS-2304',
-    name: 'Lee Ji Eun',
-    email: 'jieun@example.kr',
-    phone: '+82 10-8888-2323',
-    country: 'Hàn Quốc',
-    city: 'Busan',
-    tier: 'VIP',
-    status: 'active',
-    totalBookings: 21,
-    lifetimeValue: 61_800_000,
-    lastBooking: '2025-02-02',
-    avatar: `${avatarBasePath}/user-list4.png`
-  },
-  {
-    id: 'CUS-2305',
-    name: 'Ngô Hữu Phước',
-    email: 'huuphuoc@example.com',
-    phone: '+84 939 777 123',
-    country: 'Việt Nam',
-    city: 'Hồ Chí Minh',
-    tier: 'Bronze',
-    status: 'active',
-    totalBookings: 3,
-    lifetimeValue: 7_900_000,
-    lastBooking: '2024-12-18',
-    avatar: `${avatarBasePath}/user-list5.png`
-  }
-];
-
 const CustomerManagement = () => {
+  const { getToken } = useAuth();
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userBookings, setUserBookings] = useState({}); // Map email -> booking data
+
+  // Fetch customers (users with role USER) from API
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+      
+      if (!token) {
+        setError('Vui lòng đăng nhập lại');
+        setLoading(false);
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(API_ENDPOINTS.USERS, { headers });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const users = data.result || data || [];
+      
+      // Filter users with role USER (exclude ADMIN, STAFF, COMPANY)
+      const customerUsers = users.filter(user => {
+        const role = (user.role || '').toUpperCase();
+        return role === 'USER';
+      });
+
+      // Map backend data to frontend format
+      const mappedCustomers = customerUsers.map(user => {
+        const bookingData = userBookings[user.email] || { totalBookings: 0, lifetimeValue: 0, lastBooking: null };
+        
+        // Calculate tier based on lifetime value (if available)
+        let tier = 'Bronze';
+        if (bookingData.lifetimeValue >= 50_000_000) tier = 'VIP';
+        else if (bookingData.lifetimeValue >= 30_000_000) tier = 'Gold';
+        else if (bookingData.lifetimeValue >= 15_000_000) tier = 'Silver';
+
+        return {
+          id: `CUS-${user.userId}`,
+          userId: user.userId,
+          name: user.username || 'N/A',
+          email: user.email || '',
+          phone: user.phone || '',
+          address: user.address || '',
+          country: user.address ? (user.address.includes('Việt Nam') || user.address.includes('Vietnam') ? 'Việt Nam' : 'Nước ngoài') : 'N/A',
+          city: user.address ? user.address.split(',')[0] : 'N/A',
+          tier: tier,
+          status: (user.status || '').toUpperCase() === 'BANNED' ? 'inactive' : 'active',
+          totalBookings: bookingData.totalBookings,
+          lifetimeValue: bookingData.lifetimeValue,
+          lastBooking: bookingData.lastBooking,
+          avatar: getAvatarUrl(user.avatar),
+          createdAt: user.createdAt
+        };
+      });
+
+      setCustomers(mappedCustomers);
+
+      // Fetch booking data for each customer (optional, can be done in background)
+      fetchBookingDataForUsers(customerUsers.map(u => u.email));
+    } catch (err) {
+      console.error('Error fetching customers:', err);
+      setError('Không thể tải danh sách khách hàng. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch booking summary for users to calculate lifetime value and total bookings
+  const fetchBookingDataForUsers = async (emails) => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const headers = createAuthHeaders(token);
+      const bookingsMap = {};
+
+      // Fetch booking summary for each user (limit to avoid too many requests)
+      const emailBatch = emails.slice(0, 50); // Limit to first 50 users
+      
+      await Promise.all(
+        emailBatch.map(async (email) => {
+          try {
+            const response = await fetch(`${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`, { headers });
+            if (response.ok) {
+              const data = await response.json();
+              const summaries = data.result || data || [];
+              
+              const totalBookings = summaries.length;
+              const lifetimeValue = summaries.reduce((sum, booking) => {
+                return sum + (parseFloat(booking.totalAmount) || 0);
+              }, 0);
+              
+              const lastBooking = summaries.length > 0 
+                ? summaries[0].createdAt || summaries[0].departureDate 
+                : null;
+
+              bookingsMap[email] = {
+                totalBookings,
+                lifetimeValue: Math.round(lifetimeValue),
+                lastBooking
+              };
+            }
+          } catch (err) {
+            console.error(`Error fetching bookings for ${email}:`, err);
+          }
+        })
+      );
+
+      setUserBookings(bookingsMap);
+      
+      // Update customers with booking data
+      setCustomers(prev => prev.map(customer => {
+        const bookingData = bookingsMap[customer.email] || { totalBookings: 0, lifetimeValue: 0, lastBooking: null };
+        
+        let tier = 'Bronze';
+        if (bookingData.lifetimeValue >= 50_000_000) tier = 'VIP';
+        else if (bookingData.lifetimeValue >= 30_000_000) tier = 'Gold';
+        else if (bookingData.lifetimeValue >= 15_000_000) tier = 'Silver';
+
+        return {
+          ...customer,
+          tier,
+          totalBookings: bookingData.totalBookings,
+          lifetimeValue: bookingData.lifetimeValue,
+          lastBooking: bookingData.lastBooking
+        };
+      }));
+    } catch (err) {
+      console.error('Error fetching booking data:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredCustomers = useMemo(() => {
-    return baseCustomers.filter((customer) => {
+    return customers.filter((customer) => {
       const matchesSearch =
         customer.name.toLowerCase().includes(search.toLowerCase()) ||
         customer.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -105,18 +182,80 @@ const CustomerManagement = () => {
       const matchesStatus = statusFilter === 'ALL' || customer.status === statusFilter;
       return matchesSearch && matchesTier && matchesStatus;
     });
-  }, [search, tierFilter, statusFilter]);
+  }, [customers, search, tierFilter, statusFilter]);
 
   const stats = useMemo(() => {
-    const total = baseCustomers.length;
-    const active = baseCustomers.filter((c) => c.status === 'active').length;
-    const vip = baseCustomers.filter((c) => c.tier === 'VIP').length;
-    const value = baseCustomers.reduce((sum, c) => sum + c.lifetimeValue, 0);
+    const total = customers.length;
+    const active = customers.filter((c) => c.status === 'active').length;
+    const vip = customers.filter((c) => c.tier === 'VIP').length;
+    const value = customers.reduce((sum, c) => sum + c.lifetimeValue, 0);
     return { total, active, vip, value };
-  }, []);
+  }, [customers]);
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+
+  const handleBanToggle = async (customer) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        alert('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const isCurrentlyBanned = customer.status === 'inactive';
+      const newBanStatus = !isCurrentlyBanned;
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(`${BaseURL}/api/staff/ban-user/${customer.userId}?ban=${newBanStatus}`, {
+        method: 'PUT',
+        headers
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
+      }
+
+      // Refresh customer list
+      await fetchCustomers();
+    } catch (err) {
+      console.error('Error toggling customer status:', err);
+      alert(err.message || 'Không thể cập nhật trạng thái khách hàng. Vui lòng thử lại.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải danh sách khách hàng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchCustomers}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -195,25 +334,43 @@ const CustomerManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-50">
-              {filteredCustomers.map((customer) => (
+              {filteredCustomers.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                    {loading ? 'Đang tải...' : 'Không tìm thấy khách hàng phù hợp với bộ lọc hiện tại.'}
+                  </td>
+                </tr>
+              ) : (
+                filteredCustomers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-blue-50/40 transition">
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <img src={customer.avatar} alt={customer.name} className="h-12 w-12 rounded-full object-cover border border-gray-100" />
-                      <div>
-                        <p className="font-semibold text-gray-900">{customer.name}</p>
+                    <div className="flex items-start gap-3">
+                      <img 
+                        src={customer.avatar || '/default-avatar.png'} 
+                        alt={customer.name} 
+                        className="h-12 w-12 rounded-full object-cover border border-gray-100 mt-3.5"
+                        onError={(e) => {
+                          e.target.src = '/default-avatar.png';
+                        }}
+                      />
+                      <div className="mt-1.5">
+                        <p className="font-semibold text-gray-900 mb-0">{customer.name}</p>
                         <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
-                          <span>{customer.email}</span>
-                          <span className="inline-flex items-center gap-1">
-                            <PhoneIcon className="h-4 w-4 text-gray-400" />
-                            {customer.phone}
-                          </span>
+                          {customer.email && <span>{customer.email}</span>}
+                          {customer.phone && (
+                            <span className="inline-flex items-center gap-1">
+                              <PhoneIcon className="h-4 w-4 text-gray-400" />
+                              {customer.phone}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
-                          <span className="inline-flex items-center gap-1">
-                            <MapPinIcon className="h-3.5 w-3.5" />
-                            {customer.city}, {customer.country}
-                          </span>
+                          {customer.address && (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPinIcon className="h-3.5 w-3.5" />
+                              {customer.address}
+                            </span>
+                          )}
                           <span>{customer.id}</span>
                         </div>
                       </div>
@@ -227,17 +384,21 @@ const CustomerManagement = () => {
                     <div className="text-xs text-gray-500">{customer.totalBookings} bookings</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(customer.lastBooking).toLocaleDateString('vi-VN')}
+                    {customer.lastBooking ? new Date(customer.lastBooking).toLocaleDateString('vi-VN') : 'Chưa có'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" title="Xem chi tiết">
                         <EyeIcon className="h-4 w-4" />
                       </button>
-                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-amber-600 hover:border-amber-200 transition" title="Chỉnh sửa">
+                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-amber-600 hover:border-amber-200 transition" title="Chỉnh sửa (chưa hỗ trợ)">
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" title={customer.status === 'active' ? 'Ban user' : 'Unban user'}>
+                      <button 
+                        onClick={() => handleBanToggle(customer)}
+                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
+                        title={customer.status === 'active' ? 'Ban user' : 'Unban user'}
+                      >
                         {customer.status === 'active' ? (
                           <NoSymbolIcon className="h-4 w-4" />
                         ) : (
@@ -247,16 +408,11 @@ const CustomerManagement = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
 
-        {filteredCustomers.length === 0 && (
-          <div className="p-8 text-center">
-            <p className="text-gray-500 text-sm">Không tìm thấy khách hàng phù hợp với bộ lọc hiện tại.</p>
-          </div>
-        )}
       </div>
     </div>
   );

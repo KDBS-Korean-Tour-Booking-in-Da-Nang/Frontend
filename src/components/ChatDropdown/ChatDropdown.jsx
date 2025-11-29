@@ -6,6 +6,7 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import { useChat } from '../../contexts/ChatContext';
+import { getAvatarUrl } from '../../config/api';
 import styles from './ChatDropdown.module.css';
 
 const ChatDropdown = ({ isOpen, onClose }) => {
@@ -21,12 +22,30 @@ const ChatDropdown = ({ isOpen, onClose }) => {
 
   const dropdownRef = useRef(null);
 
+  const resolveUsername = (user) =>
+    (user?.userName || user?.username || user?.name || '').toLowerCase();
+
+  const resolveAvatar = (user, senderFallback) => {
+    const directAvatar = user?.avatar || user?.userAvatar || user?.avatarUrl;
+    const senderAvatar = senderFallback?.avatar || senderFallback?.userAvatar || senderFallback?.avatarUrl;
+    const username = resolveUsername(user);
+    const match = (state.allUsers || []).find(
+      (u) => resolveUsername(u) === username
+    );
+    const matchedAvatar = match?.avatar || match?.userAvatar || match?.avatarUrl;
+    const rawAvatar = directAvatar || senderAvatar || matchedAvatar;
+    return rawAvatar ? getAvatarUrl(rawAvatar) : '/default-avatar.png';
+  };
+
   useEffect(() => {
     // Load conversations when dropdown opens (only users with conversations will show)
     if (isOpen) {
       actions.loadConversations();
+      if (!state.allUsers || state.allUsers.length === 0) {
+        actions.loadAllUsers?.();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, state.allUsers?.length]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -48,7 +67,11 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   }, [isOpen, onClose]);
 
   const handleUserSelect = (user) => {
-    actions.openChatWithUser(user);
+    const normalizedUser = {
+      ...user,
+      avatar: resolveAvatar(user)
+    };
+    actions.openChatWithUser(normalizedUser);
     onClose();
   };
 
@@ -82,10 +105,16 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     .sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
 
   // Transform conversations to user list format - only show users with conversations
-  const mergedUserList = filteredConversations.map(conv => ({
-    user: conv.user,
-    lastMessage: conv.lastMessage
-  }));
+  const mergedUserList = filteredConversations.map(conv => {
+    const enrichedUser = {
+      ...conv.user,
+      avatar: resolveAvatar(conv.user, conv.lastMessage?.sender)
+    };
+    return {
+      user: enrichedUser,
+      lastMessage: conv.lastMessage
+    };
+  });
 
   const getTabContent = () => {
     return (

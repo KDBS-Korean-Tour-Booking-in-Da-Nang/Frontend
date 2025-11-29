@@ -1239,10 +1239,9 @@ export const ChatProvider = ({ children }) => {
         
         // Load fresh data from API
         const users = await chatApiService.getAllUsers();
-        // Filter out current user from the list and limit to reasonable number
+        // Filter out current user from the list
         const filteredUsers = (users || [])
-          .filter(user => user.username !== state.currentUser?.userName)
-          .slice(0, 50); // Limit to 50 users for performance
+          .filter(user => user.username !== state.currentUser?.userName);
         
         // Save to cache
         try {

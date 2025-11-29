@@ -172,7 +172,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
   };
 
   const handleHistoryClick = (keyword, e) => {
-    console.log('History clicked:', keyword);
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
@@ -204,7 +203,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
   };
 
   const handleRemoveHistoryItem = (keyword, e) => {
-    console.log('Remove clicked:', keyword);
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
@@ -327,7 +325,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
       if (postsRes.ok) {
         const postsData = await postsRes.json();
         const posts = postsData.content || [];
-        console.log('Fetched posts for suggestions:', posts); // Debug log
         
         posts.forEach(p => {
           // Add post titles
@@ -351,8 +348,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
             });
           }
         });
-      } else {
-        console.log('Posts API failed:', postsRes.status, postsRes.statusText); // Debug log
       }
 
       // Process hashtags suggestions
@@ -391,7 +386,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
         dedup.push(r);
       }
 
-      console.log('Final suggestions:', dedup.slice(0, 8)); // Debug log
       setSuggestions(dedup.slice(0, 8));
       setShowSuggest(true);
       setSelectedIndex(-1);
@@ -406,24 +400,17 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    console.log('Clicking suggestion:', s); // Debug log
-    
     // Set flag to prevent re-fetching suggestions
     isUpdatingFromSuggestion.current = true;
     
     // Perform the appropriate action
     if (s.type === 'hashtag') {
       const tag = s.hashtag || s.text.replace(/^#/, '');
-      console.log('Filtering by hashtag:', tag); // Debug log
       onHashtagFilter([tag]);
       // Don't clear search input - let the parent handle the mode switching
     } else {
       // For all other types (user, post, trending), perform search
-      console.log('Searching for:', s.text); // Debug log
-      console.log('Calling onSearch with:', s.text); // Debug log
       onSearch(s.text);
-      console.log('Setting search keyword to:', s.text); // Debug log
-      
       setSearchKeyword(s.text); // Update the search keyword in the input
     }
     
@@ -545,7 +532,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
                         key={index}
                         className={styles['history-item']}
                         onMouseDown={(e) => {
-                          console.log('History item mousedown:', keyword, e);
                           handleHistoryClick(keyword, e);
                         }}
                         title={`Click để tìm kiếm "${keyword}"`}
@@ -554,7 +540,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
                         <button
                           type="button"
                           onMouseDown={(e) => {
-                            console.log('Remove button mousedown:', keyword, e);
                             handleRemoveHistoryItem(keyword, e);
                           }}
                           className={styles['remove-history-btn']}

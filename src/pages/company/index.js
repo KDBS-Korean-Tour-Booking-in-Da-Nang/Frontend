@@ -1,4 +1,4 @@
-export { default as CompanyDashboard } from './CompanyDashboard';
+export { default as CompanyLayout } from './CompanyLayout';
 export { default as Dashboard } from './dashboard/Dashboard';
 export { default as DashboardHome } from './dashboard/Dashboard';
 export { default as CompanyInfo } from './companyInfo/companyInfo';

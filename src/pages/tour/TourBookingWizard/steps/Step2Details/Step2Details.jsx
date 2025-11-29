@@ -56,6 +56,23 @@ const Step2Details = () => {
   const previousValueRef = useRef(''); // Track previous value to detect deletion
   const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
   const departureDatePickerRef = useRef(null); // Ref for departure DatePicker to trigger programmatically
+  const memberDatePickerRefs = useRef({}); // Map of refs for each member DOB picker
+  const triggerMemberDatePicker = useCallback((key) => {
+    const picker = memberDatePickerRefs.current[key];
+    if (picker) {
+      picker.focus?.();
+      picker.click?.();
+    }
+  }, []);
+
+  const setMemberDatePickerRef = useCallback((key, node) => {
+    if (node) {
+      memberDatePickerRefs.current[key] = node;
+    } else {
+      delete memberDatePickerRefs.current[key];
+    }
+  }, []);
+
   const [tourPrices, setTourPrices] = useState({
     adult: null,
     child: null,
@@ -2299,6 +2316,8 @@ const Step2Details = () => {
             globalIndex = localIndex;
           }
           
+          const datePickerKey = `${memberType}-${localIndex}-dob`;
+          
           
           return (
             <div key={`${memberType}-${localIndex}`} className={styles['member-card']}>
@@ -2439,27 +2458,22 @@ const Step2Details = () => {
                      placeholder={getDateFormat()}
                      title={t('booking.step2.placeholders.dateFormat', { format: getDateFormat() })}
                    />
-                   <div className={styles['date-picker-wrapper']}>
+                  <div className={styles['date-picker-wrapper']}>
                      <button
                        type="button"
                        className={styles['date-picker-button']}
                        onClick={(e) => {
                          e.preventDefault();
                          e.stopPropagation();
-                         // Trigger the hidden DatePicker for this member
-                         const wrapper = e.currentTarget.parentElement;
-                         const hiddenDatePicker = wrapper?.querySelector('input') || wrapper?.querySelector('button[type="button"]:not(.date-picker-button)');
-                         if (hiddenDatePicker && hiddenDatePicker !== e.currentTarget) {
-                           hiddenDatePicker.focus();
-                           hiddenDatePicker.click();
-                         }
+                        triggerMemberDatePicker(datePickerKey);
                        }}
                        title="Open date picker"
                      >
                        <Calendar className={styles['calendar-icon']} />
                      </button>
-                     <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
                        <DatePicker
+                        ref={(node) => setMemberDatePickerRef(datePickerKey, node)}
                          value={(() => {
                            if (!member.dob) return null;
                            const normalized = validateDateInput(member.dob);
@@ -2711,21 +2725,18 @@ const Step2Details = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      // Trigger the hidden DatePicker
                       if (departureDatePickerRef.current) {
-                        const input = departureDatePickerRef.current.querySelector('input') || departureDatePickerRef.current.querySelector('button');
-                        if (input) {
-                          input.focus();
-                          input.click();
-                        }
+                        departureDatePickerRef.current.focus?.();
+                        departureDatePickerRef.current.click?.();
                       }
                     }}
                     title="Open date picker"
                   >
                     <Calendar className={styles['calendar-icon']} />
                   </button>
-                  <div ref={departureDatePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
                     <DatePicker
+                      ref={departureDatePickerRef}
                       value={plan.date.year && plan.date.month && plan.date.day 
                         ? new Date(plan.date.year, plan.date.month - 1, plan.date.day)
                         : null

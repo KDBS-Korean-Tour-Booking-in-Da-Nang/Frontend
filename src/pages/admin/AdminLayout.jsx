@@ -60,6 +60,7 @@ const AdminLayout = ({ children }) => {
       items: [
         { name: 'Dashboard', to: '/admin', icon: ChartBarIcon },
         { name: 'Customer Management', to: '/admin/customers', icon: UsersIcon },
+        { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
         { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
         { name: 'News Management', to: '/admin/news', icon: DocumentTextIcon },
         { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },

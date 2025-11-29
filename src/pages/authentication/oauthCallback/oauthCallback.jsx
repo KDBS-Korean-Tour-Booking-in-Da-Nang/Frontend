@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 
 const OAuthCallback = () => {
   const { t } = useTranslation();
-  const { login, updateUser } = useAuth();
+  const { login } = useAuth();
   const { showSuccess } = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -73,80 +72,65 @@ const OAuthCallback = () => {
         authProvider: provider === 'GOOGLE' || provider === 'NAVER' ? provider : 'OAUTH'
       };
 
-      // Login user with token first (to allow authenticated fetch)
+      // Login user with token - user info from URL parameters is sufficient
+      // No need to call additional API endpoints during login flow
       login(baseUser, decodedToken, rememberMe);
-
-      // Try to enrich with latest role/status from backend
-      (async () => {
-        try {
-          const meRes = await fetch('/api/users/me', {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${decodedToken}`
-            }
-          });
-          
-          // Handle 401 if token expired (unlikely in OAuth callback, but handle for safety)
-          if (!meRes.ok && meRes.status === 401) {
-            await checkAndHandle401(meRes);
-            return; // Exit early if 401
-          }
-          
-          if (meRes.ok) {
-            const meData = await meRes.json();
-            if ((meData.code === 1000 || meData.code === 0) && meData.result) {
-              const enrichedUser = {
-                id: meData.result.userId || baseUser.id,
-                email: meData.result.email || baseUser.email,
-                role: meData.result.role || baseUser.role,
-                status: meData.result.status,
-                name: meData.result.username || baseUser.name,
-                avatar: meData.result.avatar || baseUser.avatar,
-                balance: typeof meData.result.balance === 'number' ? meData.result.balance : baseUser.balance,
-                authProvider: baseUser.authProvider
-              };
-              updateUser(enrichedUser);
-            }
-          }
-        } catch {}
-      })();
       
-      // Show success toast
-      showSuccess('toast.auth.login_success');
-      
-      // Navigate based on saved return path and role/status
-      const returnAfterLogin = localStorage.getItem('returnAfterLogin');
-      const currentUserRole = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).role) : baseUser.role;
-      const currentUserStatus = localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).status) : undefined;
-
-      if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING') {
-        window.location.href = '/pending-page';
-        return;
-      }
       // Clear stale onboarding flags for non-pending users
+      const currentUserRole = baseUser.role;
+      const currentUserStatus = undefined; // Status not available from URL params
+      
       if (!((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING')) {
         localStorage.removeItem('registration_intent');
         localStorage.removeItem('company_onboarding_pending');
       }
+      
+      // Navigate immediately and show toast on the new page
+      // Check for pending status from localStorage if available
+      const savedUser = localStorage.getItem('user');
+      let finalStatus = currentUserStatus;
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          finalStatus = parsed.status;
+        } catch {}
+      }
+      
+      if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && finalStatus === 'COMPANY_PENDING') {
+        // Use window.location.href for pending-page to ensure full page reload
+        window.location.href = '/pending-page';
+        return;
+      }
+      
+      const returnAfterLogin = localStorage.getItem('returnAfterLogin');
       if (returnAfterLogin) {
         localStorage.removeItem('returnAfterLogin');
         if (currentUserRole === 'COMPANY') {
-          window.location.href = returnAfterLogin;
+          navigate(returnAfterLogin, { 
+            replace: true,
+            state: { message: 'toast.auth.login_success', type: 'success' }
+          });
           return;
         }
-        window.location.href = '/';
+        navigate('/', { 
+          replace: true,
+          state: { message: 'toast.auth.login_success', type: 'success' }
+        });
         return;
       }
 
-      // Default navigation by role
+      // Default navigation by role - use navigate to avoid page reload
+      let targetPath = '/';
       if (currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') {
-        window.location.href = '/company/dashboard';
+        targetPath = '/company/dashboard';
       } else if (currentUserRole === 'ADMIN' || currentUserRole === 'STAFF') {
-        window.location.href = '/admin';
-      } else {
-        // Regular user goes to homepage
-        window.location.href = '/';
+        targetPath = '/admin';
       }
+      
+      navigate(targetPath, { 
+        replace: true,
+        state: { message: 'toast.auth.login_success', type: 'success' }
+      });
       
     } catch (err) {
       // If there's an error, redirect to login with error

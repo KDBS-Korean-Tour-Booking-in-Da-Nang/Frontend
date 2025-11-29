@@ -1,8 +1,39 @@
 import { useState, useEffect } from 'react';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import {
+  CheckCircle2,
+  CalendarCheck2,
+  UsersRound,
+  Mail,
+  ShieldCheck,
+  AlertTriangle,
+  Hash,
+  ClipboardList,
+  CalendarDays,
+  Users,
+  UserRound,
+  AtSign,
+  Phone
+} from 'lucide-react';
 import { useToast } from '../../../../../contexts/ToastContext';
 import { companyConfirmTourCompletion, getTourCompletionStatus } from '../../../../../services/bookingAPI';
 import styles from './Step3Confirmation.module.css';
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'BOOKING_SUCCESS':
+      return '#10B981';
+    case 'PENDING_PAYMENT':
+      return '#F59E0B';
+    case 'WAITING_FOR_APPROVED':
+      return '#3B82F6';
+    case 'WAITING_FOR_UPDATE':
+      return '#8B5CF6';
+    case 'BOOKING_REJECTED':
+    case 'BOOKING_FAILED':
+      return '#EF4444';
+    default:
+      return '#6B7280';
+  }
+};
 
 const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish, isReadOnly = false }) => {
   const { showSuccess, showError } = useToast();
@@ -197,64 +228,99 @@ useEffect(() => {
     return (companyConfirmed && !userConfirmed) || (!companyConfirmed && userConfirmed);
   };
 
+  const headerTitle = isReadOnly || booking?.bookingStatus === 'BOOKING_SUCCESS'
+    ? 'Booking đã được xác nhận thành công!'
+    : 'Xác nhận booking';
+
+  const headerDescription = isReadOnly
+    ? 'Chế độ chỉ đọc: bạn có thể xem trạng thái hoàn tất và thông tin tour.'
+    : `Xem lại toàn bộ thông tin của booking #${booking?.bookingId} và hoàn tất chuyến đi.`;
+
+  const statusAccent = (() => {
+    if (tourCompleted) return '#12b76a';
+    if (companyConfirmed || userConfirmed) return '#f6c344';
+    return '#1a8eea';
+  })();
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        {isReadOnly || booking?.bookingStatus === 'BOOKING_SUCCESS' ? (
-          <>
-            <div className={styles.successIcon}>
-              <CheckCircleIcon className={styles.icon} />
-            </div>
-            <h2 className={styles.title}>Booking đã được xác nhận thành công!</h2>
-            <p className={styles.description}>
-              Booking #{booking.bookingId} đã được xác nhận và thông báo đã được gửi đến khách hàng.
-            </p>
-            {isReadOnly && (
-              <p className={styles.description} style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontStyle: 'italic' }}>
-                Đây là chế độ xem chỉ đọc. Bạn chỉ có thể xem thông tin booking, không thể chỉnh sửa.
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <h2 className={styles.title}>Xác nhận booking</h2>
-            <p className={styles.description}>
-              Vui lòng xem lại thông tin booking #{booking.bookingId} và bấm "Hoàn thành" để xác nhận booking.
-            </p>
-          </>
-        )}
+        <div className={styles.headerCard}>
+          <div className={styles.headerIcon}>
+            <CheckCircle2 strokeWidth={1.6} />
+          </div>
+          <div className={styles.headerContent}>
+            <p className={styles.headerLabel}>Bước 3 / 3</p>
+            <h2 className={styles.title}>{headerTitle}</h2>
+            <p className={styles.description}>{headerDescription}</p>
+          </div>
+          <div className={styles.headerMeta}>
+            <span className={styles.bookingTag}>#{booking?.bookingId}</span>
+            <span
+              className={styles.statusPill}
+              style={{
+                color: statusAccent,
+                borderColor: `${statusAccent}33`,
+                backgroundColor: `${statusAccent}12`
+              }}
+            >
+              {tourCompleted ? 'COMPLETED' : booking?.bookingStatus || '-'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Booking Summary */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Tóm tắt booking</h3>
+        <h3 className={styles.sectionTitle}>
+          <CalendarCheck2 className={styles.sectionIcon} strokeWidth={1.5} />
+          Tóm tắt booking
+        </h3>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Mã booking:</span>
+            <span className={styles.label}>
+              <Hash className={styles.itemIcon} />
+              Mã booking:
+            </span>
             <span className={styles.value}>#{booking.bookingId}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Tour:</span>
+            <span className={styles.label}>
+              <ClipboardList className={styles.itemIcon} />
+              Tour:
+            </span>
             <span className={styles.value}>{booking.tourName || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Ngày khởi hành:</span>
+            <span className={styles.label}>
+              <CalendarDays className={styles.itemIcon} />
+              Ngày khởi hành:
+            </span>
             <span className={styles.value}>{formatDate(booking.departureDate)}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Ngày kết thúc (dự kiến):</span>
+            <span className={styles.label}>
+              <CalendarDays className={styles.itemIcon} />
+              Ngày kết thúc (dự kiến):
+            </span>
             <span className={styles.value}>{getTourEndDate() || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Tổng số khách:</span>
+            <span className={styles.label}>
+              <Users className={styles.itemIcon} />
+              Tổng số khách:
+            </span>
             <span className={styles.value}>{booking.totalGuests || 0}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Trạng thái:</span>
-            <span className={styles.value} style={{ 
-              color: booking?.bookingStatus === 'BOOKING_SUCCESS' ? '#10b981' : '#f59e0b', 
-              fontWeight: 600 
-            }}>
+            <span className={styles.label}>
+              <ShieldCheck className={styles.itemIcon} />
+              Trạng thái:
+            </span>
+            <span
+              className={`${styles.value} ${styles.statusValue}`}
+              style={{ color: getStatusColor(booking?.bookingStatus) }}
+            >
               {booking?.bookingStatus || '-'}
             </span>
           </div>
@@ -263,18 +329,30 @@ useEffect(() => {
 
       {/* Contact Information */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Thông tin liên hệ</h3>
+        <h3 className={styles.sectionTitle}>
+          <Mail className={styles.sectionIcon} strokeWidth={1.5} />
+          Thông tin liên hệ
+        </h3>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Họ tên:</span>
+            <span className={styles.label}>
+              <UserRound className={styles.itemIcon} />
+              Họ tên:
+            </span>
             <span className={styles.value}>{booking.contactName || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Email:</span>
+            <span className={styles.label}>
+              <AtSign className={styles.itemIcon} />
+              Email:
+            </span>
             <span className={styles.value}>{booking.contactEmail || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.label}>Số điện thoại:</span>
+            <span className={styles.label}>
+              <Phone className={styles.itemIcon} />
+              Số điện thoại:
+            </span>
             <span className={styles.value}>{booking.contactPhone || '-'}</span>
           </div>
         </div>
@@ -282,7 +360,10 @@ useEffect(() => {
 
       {/* Guests Summary */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Danh sách khách đã duyệt</h3>
+        <h3 className={styles.sectionTitle}>
+          <UsersRound className={styles.sectionIcon} strokeWidth={1.5} />
+          Danh sách khách đã duyệt
+        </h3>
         {guests && guests.length > 0 ? (
           <div className={styles.guestsList}>
             {guests.map((guest, index) => (
@@ -299,7 +380,7 @@ useEffect(() => {
                   </div>
                 </div>
                 {guest.insuranceStatus === 'Success' && (
-                  <CheckCircleIcon className={styles.checkIcon} />
+                  <CheckCircle2 className={styles.checkIcon} strokeWidth={2} />
                 )}
               </div>
             ))}
@@ -312,7 +393,10 @@ useEffect(() => {
       {/* Tour Completion Section */}
       {canConfirmCompletion() && (
         <div className={styles.completionSection}>
-          <h3 className={styles.sectionTitle}>Xác nhận tour hoàn thành</h3>
+          <h3 className={styles.sectionTitle}>
+            <ShieldCheck className={styles.sectionIcon} strokeWidth={1.5} />
+            Xác nhận tour hoàn thành
+          </h3>
           
           {/* Completion Status Display */}
           <div className={styles.completionStatusInfo}>
@@ -354,7 +438,7 @@ useEffect(() => {
             </div>
           ) : tourCompleted ? (
             <div className={styles.completionStatus}>
-              <CheckCircleIcon className={styles.completionCheckIcon} />
+              <CheckCircle2 className={styles.completionCheckIcon} strokeWidth={1.8} />
               <p className={styles.completionMessage}>
                 Tour đã được xác nhận hoàn thành bởi cả hai bên. Thanh toán sẽ được chuyển đến tài khoản của công ty.
               </p>
@@ -363,6 +447,7 @@ useEffect(() => {
             <div className={styles.completionActions}>
               {shouldShowAutoConfirmMessage() && (
                 <div className={styles.autoConfirmWarning}>
+                  <AlertTriangle className={styles.autoConfirmIcon} strokeWidth={1.5} />
                   <p className={styles.autoConfirmText}>
                     {companyConfirmed 
                       ? `Bạn đã xác nhận. Đang chờ khách hàng xác nhận. Nếu khách hàng không xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}), hệ thống sẽ tự động xác nhận.`

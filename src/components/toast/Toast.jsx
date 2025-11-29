@@ -3,15 +3,43 @@ import styles from './Toast.module.css';
 
 const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const [progress, setProgress] = useState(0); // Start from 0% (left), progress to 100% (right)
 
   useEffect(() => {
     if (duration > 0) {
+      const startTime = Date.now();
+      let animationFrameId;
+      
+      const updateProgress = () => {
+        const elapsed = Date.now() - startTime;
+        const progressPercent = Math.min(100, (elapsed / duration) * 100);
+        setProgress(progressPercent);
+        
+        if (progressPercent < 100) {
+          animationFrameId = requestAnimationFrame(updateProgress);
+        }
+      };
+      
+      // Start the animation
+      animationFrameId = requestAnimationFrame(updateProgress);
+
       const timer = setTimeout(() => {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
         setIsVisible(false);
         onClose?.();
       }, duration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      };
+    } else {
+      // If duration is 0, keep progress at 0% (no auto-dismiss)
+      setProgress(0);
     }
   }, [duration, onClose]);
 
@@ -27,29 +55,50 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
       case 'success':
         return '✓';
       case 'warning':
-        return '⚠';
+        return '!';
       case 'info':
-        return 'ℹ';
+        return 'i';
       default:
         return '✕';
     }
   };
 
-  const getBackgroundColor = () => {
+  const getColors = () => {
     switch (type) {
       case 'success':
-        return '#10B981';
+        return {
+          background: '#0d7a5a', // lighter dark green
+          iconBg: '#10b981', // vibrant green
+          text: '#d1fae5', // light green/white
+          progress: '#34d399' // light green for progress
+        };
       case 'warning':
-        return '#F59E0B';
+        return {
+          background: '#b45309', // lighter dark orange
+          iconBg: '#f59e0b', // vibrant orange
+          text: '#fef3c7', // light orange/white
+          progress: '#fbbf24' // light orange for progress
+        };
       case 'info':
-        return '#3B82F6';
-      default:
-        return '#EF4444';
+        return {
+          background: '#2563eb', // lighter dark blue
+          iconBg: '#3b82f6', // vibrant blue
+          text: '#dbeafe', // light blue/white
+          progress: '#60a5fa' // light blue for progress
+        };
+      default: // error
+        return {
+          background: '#991b1b', // lighter dark red
+          iconBg: '#ef4444', // vibrant red
+          text: '#fee2e2', // light red/white
+          progress: '#f87171' // light red for progress
+        };
     }
   };
 
+  const colors = getColors();
   // Calculate position based on index to stack toasts vertically
-  const topPosition = 20 + (index * 80); // 80px spacing between toasts
+  const topPosition = 20 + (index * 100); // 100px spacing between toasts
 
   return (
     <div 
@@ -62,37 +111,40 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
       <div 
         className={`${styles['toast']} ${styles[`toast-${type}`]}`}
         style={{
-          border: `3px solid ${getBackgroundColor()}`
+          backgroundColor: colors.background,
+          opacity: 0.85
         }}
       >
         <div className={styles['toast-content']}>
           <div className={styles['toast-icon-container']}>
             <div 
-              className={`${styles['toast-icon']} ${styles[type]}`}
+              className={styles['toast-icon']}
               style={{
-                color: getBackgroundColor()
+                backgroundColor: colors.iconBg,
+                color: '#ffffff'
               }}
             >
               {getIcon()}
             </div>
           </div>
-          <div className={styles['toast-message']}>
+          <div 
+            className={styles['toast-message']}
+            style={{
+              color: colors.text
+            }}
+          >
             {message}
           </div>
-          <button 
-            onClick={handleClose}
-            className={styles['toast-close-button']}
-          >
-            <span className={styles['toast-close-icon']}>×</span>
-          </button>
         </div>
-        <div 
-          className={`${styles['toast-progress-bar']} ${styles['toast-progress-animation']}`}
-          style={{
-            background: `linear-gradient(90deg, ${getBackgroundColor()}, ${getBackgroundColor()}88)`,
-            animationDuration: `${duration}ms`
-          }}
-        />
+        <div className={styles['toast-progress-container']}>
+          <div 
+            className={styles['toast-progress-bar']}
+            style={{
+              background: `linear-gradient(to right, ${colors.progress} 0%, ${colors.progress} 60%, ${colors.progress}88 80%, transparent 100%)`,
+              width: `${progress}%`
+            }}
+          />
+        </div>
       </div>
     </div>
   );

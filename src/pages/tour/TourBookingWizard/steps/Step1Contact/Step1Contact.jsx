@@ -1609,21 +1609,19 @@ const Step1Contact = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Trigger the hidden DatePicker
+                    // Trigger the hidden DatePicker via exposed handlers
                     if (datePickerRef.current) {
-                      const input = datePickerRef.current.querySelector('input') || datePickerRef.current.querySelector('button');
-                      if (input) {
-                        input.focus();
-                        input.click();
-                      }
+                      datePickerRef.current.focus?.();
+                      datePickerRef.current.click?.();
                     }
                   }}
                   title="Open date picker"
                 >
                   <Calendar className={styles['calendar-icon']} />
                 </button>
-                <div ref={datePickerRef} style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
                   <DatePicker
+                    ref={datePickerRef}
                     value={(() => {
                       if (!contact.dob) return null;
                       const normalized = validateDateInput(contact.dob);
@@ -1700,6 +1698,9 @@ const Step1Contact = () => {
                       maxDate.setMonth(maxDate.getMonth() + 1);
                       return maxDate;
                     })()}
+                    onFocus={() => {}}
+                    onBlur={() => {}}
+                    onClick={() => {}}
                   />
                 </div>
               </div>

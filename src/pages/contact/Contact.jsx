@@ -192,7 +192,7 @@ const Contact = () => {
                 <a
                   key={channel.label}
                   href={channel.action}
-                  className="block rounded-[28px] border border-white/60 bg-white/80 p-6 shadow-[0_30px_100px_rgba(158,162,193,0.25)] transition-transform hover:-translate-y-1"
+                  className="block rounded-[28px] border border-white/60 bg-white/80 p-6 shadow-[0_30px_100px_rgba(158,162,193,0.25)] transition-transform hover:-translate-y-1 no-underline"
                 >
                   <div className="flex items-center gap-4">
                     <div className="rounded-[20px] bg-gradient-to-br from-[#ecf5ff] via-[#fff7fb] to-[#f6f9ff] p-4 text-gray-700">
@@ -221,7 +221,7 @@ const Contact = () => {
                       href={social.link}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-[22px] border border-white/70 bg-white/80 px-4 py-2 text-sm text-gray-600 shadow-inner transition-transform hover:-translate-y-0.5"
+                      className="inline-flex items-center gap-2 rounded-[22px] border border-white/70 bg-white/80 px-4 py-2 text-sm text-gray-600 shadow-inner transition-transform hover:-translate-y-0.5 no-underline"
                     >
                       <social.icon className="h-4 w-4" />
                       {social.label}
@@ -268,7 +268,7 @@ const Contact = () => {
                     href="https://maps.app.goo.gl/"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-[24px] border border-gray-200 bg-white/90 px-4 py-2 text-sm font-medium text-gray-700 shadow-inner"
+                    className="inline-flex items-center gap-2 rounded-[24px] border border-gray-200 bg-white/90 px-4 py-2 text-sm font-medium text-gray-700 shadow-inner no-underline"
                   >
                     <MapPin className="h-4 w-4" />
                     {t('contactPage.visit.map', { defaultValue: 'Xem bản đồ' })}

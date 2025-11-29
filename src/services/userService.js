@@ -105,7 +105,6 @@ export const updateUserProfile = async (userData, token) => {
     }
     
     const result = await response.json();
-    console.log('Update user profile response:', result); // Debug log
     return result;
   } catch (error) {
     console.error('Error updating user profile:', error);

@@ -50,8 +50,22 @@ const BookingManagement = () => {
     'BOOKING_SUCCESS'
   ];
 
-  const handleViewBooking = (bookingId) => {
+  const isPendingStatus = (status) => {
+    if (!status) return false;
+    return status.toUpperCase().includes('PENDING');
+  };
+
+  const handleViewBooking = (bookingItem) => {
+    if (!bookingItem) return;
+
+    const bookingId = bookingItem.bookingId || bookingItem;
     if (!bookingId) return;
+
+    if (isPendingStatus(bookingItem.bookingStatus)) {
+      showSuccessRef.current?.('Booking đang ở trạng thái pending, không thể truy cập.');
+      return;
+    }
+
     // Preserve tourId in URL when navigating to booking detail
     const tourId = selectedTourId || searchParams.get('tourId');
     if (tourId) {
@@ -586,7 +600,9 @@ const BookingManagement = () => {
                   <td colSpan="9" className={styles['empty-cell']}>Không có booking nào</td>
                 </tr>
               ) : (
-                bookings.map((b) => (
+                bookings.map((b) => {
+                  const isPendingBooking = isPendingStatus(b.bookingStatus);
+                  return (
                   <tr key={b.id}>
                     <td>
                       <input type="checkbox" style={{ borderRadius: '4px' }} />
@@ -606,14 +622,16 @@ const BookingManagement = () => {
                       <button
                         type="button"
                         title="Xem chi tiết"
-                        onClick={() => handleViewBooking(b.bookingId)}
-                        className={styles['action-btn']}
+                        onClick={() => handleViewBooking(b)}
+                        className={`${styles['action-btn']} ${isPendingBooking ? styles['action-btn-disabled'] : ''}`}
+                        disabled={isPendingBooking}
                       >
                         <EyeIcon className={styles['action-icon']} />
                       </button>
                     </td>
                   </tr>
-                ))
+                );
+              })
               )}
             </tbody>
           </table>

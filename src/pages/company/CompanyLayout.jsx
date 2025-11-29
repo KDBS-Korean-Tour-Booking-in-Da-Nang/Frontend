@@ -11,9 +11,9 @@ import {
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import styles from './CompanyDashboard.module.css';
+import styles from './CompanyLayout.module.css';
 
-const CompanyDashboard = () => {
+const CompanyLayout = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -169,4 +169,4 @@ const CompanyDashboard = () => {
   );
 };
 
-export default CompanyDashboard;
+export default CompanyLayout;

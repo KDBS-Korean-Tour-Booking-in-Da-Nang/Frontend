@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { AuthProvider } from './contexts/AuthContext';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConditionalNavbar } from './components';
@@ -36,7 +36,7 @@ import TourWizard from './pages/company/tours/wizard/TourWizard';
 import BusinessTourDetail from './pages/company/tours/shared/CompanyTourDetail';
 import BookingManagement from './pages/company/bookings/BookingManagement';
 import CompanyBookingDetailWizard from './pages/company/bookings/CompanyBookingDetailWizard';
-import BusinessDashboard from './pages/company/CompanyDashboard';
+import BusinessDashboard from './pages/company/CompanyLayout';
 import Dashboard from './pages/company/dashboard/Dashboard';
 import VoucherManagement from './pages/company/vouchers/VoucherManagement';
 import News from './pages/news/News';
@@ -55,7 +55,9 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { showSuccess } = useToast();
   const [isPageReady, setIsPageReady] = useState(false);
+  const processedToastRef = useRef(new Set());
   
   // Check if current path is staff/admin pages (include root paths)
   const isStaffAdminPage = location.pathname.startsWith('/staff') || 
@@ -138,6 +140,35 @@ function AppContent() {
       setNavigateCallback(null);
     };
   }, [navigate]);
+
+  // Handle toast messages from navigation state
+  useEffect(() => {
+    const state = location.state;
+    if (state?.message && state?.type === 'success') {
+      // Create a unique key for this toast to prevent duplicates
+      const toastKey = `${location.pathname}:${state.message}`;
+      
+      // Only show toast if we haven't processed this exact message for this path
+      if (!processedToastRef.current.has(toastKey)) {
+        processedToastRef.current.add(toastKey);
+        showSuccess(state.message);
+        
+        // Clear the state immediately to prevent showing message again
+        try {
+          window.history.replaceState({}, document.title, location.pathname + location.search);
+        } catch (error) {
+          // Fallback: navigate without state if replaceState fails
+          navigate(location.pathname, { replace: true, state: {} });
+        }
+        
+        // Clean up the key after a delay to allow same message on different paths
+        setTimeout(() => {
+          processedToastRef.current.delete(toastKey);
+        }, 1000);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.state]); // Check both pathname and state
 
   // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING
   // If user has submitted documents, redirect to pending-page

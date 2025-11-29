@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
+import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
 import { 
   UserGroupIcon,
   UserCircleIcon,
@@ -22,133 +25,337 @@ import {
 } from '@heroicons/react/24/outline';
 
 const StaffManagement = () => {
+  const { getToken } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [staffForm, setStaffForm] = useState({
-    name: '',
-    email: '',
-    role: 'staff',
-    status: 'active'
+    username: '',
+    password: '',
+    staffTask: ''
   });
-
-  const [staffList, setStaffList] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@company.com',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2024-01-15',
-      lastLogin: '2024-01-20',
-      assignedTasks: ['forum_report', 'approve_tour']
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@company.com',
-      role: 'staff',
-      status: 'active',
-      createdAt: '2024-01-10',
-      lastLogin: '2024-01-19',
-      assignedTasks: ['company_request', 'approve_article']
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike.johnson@company.com',
-      role: 'staff',
-      status: 'inactive',
-      createdAt: '2024-01-05',
-      lastLogin: '2024-01-15',
-      assignedTasks: ['forum_report']
-    }
-  ]);
+  const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedStaffForTask, setSelectedStaffForTask] = useState(null);
   const [selectedTasks, setSelectedTasks] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch staff list from API
+  const fetchStaffList = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+      
+      if (!token) {
+        setError('Vui lòng đăng nhập lại');
+        setLoading(false);
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(API_ENDPOINTS.USERS, { headers });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const users = data.result || data || [];
+      
+      // Filter users with role STAFF
+      const staffUsers = users.filter(user => {
+        const role = (user.role || '').toUpperCase();
+        return role === 'STAFF';
+      });
+
+      // Debug: Log first staff user to see data structure
+      if (staffUsers.length > 0) {
+        console.log('Sample staff user data:', staffUsers[0]);
+        console.log('CreatedAt value:', staffUsers[0].createdAt);
+        console.log('All fields:', Object.keys(staffUsers[0]));
+      }
+
+      // Map backend data to frontend format
+      const mappedStaff = staffUsers.map(user => {
+        // Format createdAt properly to avoid timezone issues
+        // Backend returns LocalDateTime which is serialized as string
+        let formattedDate = '';
+        let rawDate = null;
+        
+        // Try different possible field names and formats
+        const dateValue = user.createdAt || user.created_at || user.createAt;
+        
+        if (dateValue) {
+          try {
+            // Parse the date - handle both ISO string and other formats
+            const date = new Date(dateValue);
+            
+            // Check if date is valid
+            if (!isNaN(date.getTime())) {
+              rawDate = dateValue;
+              // Get local date components to avoid timezone shift
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              formattedDate = `${year}-${month}-${day}`;
+            } else {
+              console.warn('Invalid date value:', dateValue);
+            }
+          } catch (e) {
+            console.error('Error parsing date:', e, 'Raw value:', dateValue);
+          }
+        } else {
+          console.warn('No createdAt field found for user:', user.userId, 'Available fields:', Object.keys(user));
+        }
+        
+        return {
+          id: user.userId,
+          userId: user.userId,
+          username: user.username,
+          email: user.email || '',
+          name: user.username, // Use username as name for display
+          role: (user.role || '').toLowerCase(),
+          status: (user.status || '').toUpperCase() === 'BANNED' ? 'inactive' : 'active',
+          createdAt: formattedDate,
+          createdAtRaw: rawDate, // Keep raw date for proper formatting
+          staffTask: user.staffTask || null,
+          assignedTasks: user.staffTask ? [mapStaffTaskToTaskId(user.staffTask)] : []
+        };
+      });
+
+      setStaffList(mappedStaff);
+    } catch (err) {
+      console.error('Error fetching staff list:', err);
+      setError('Không thể tải danh sách nhân viên. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Map StaffTask enum to task ID
+  const mapStaffTaskToTaskId = (staffTask) => {
+    const taskMap = {
+      'FORUM_REPORT': 'forum_report',
+      'COMPANY_REQUEST_AND_APPROVE_ARTICLE': 'company_request',
+      'APPROVE_TOUR_BOOKING': 'approve_tour'
+    };
+    return taskMap[staffTask] || null;
+  };
+
+  // Map task ID to StaffTask enum
+  const mapTaskIdToStaffTask = (taskId) => {
+    const taskMap = {
+      'forum_report': 'FORUM_REPORT',
+      'company_request': 'COMPANY_REQUEST_AND_APPROVE_ARTICLE',
+      'approve_tour': 'APPROVE_TOUR_BOOKING'
+    };
+    return taskMap[taskId] || null;
+  };
+
+  useEffect(() => {
+    fetchStaffList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddStaff = () => {
     setEditingStaff(null);
-    setStaffForm({ name: '', email: '', role: 'staff', status: 'active' });
+    setStaffForm({ username: '', password: '', staffTask: '' });
     setIsModalOpen(true);
   };
 
   const handleEditStaff = (staff) => {
-    setEditingStaff(staff);
-    setStaffForm({
-      name: staff.name,
-      email: staff.email,
-      role: staff.role,
-      status: staff.status
-    });
-    setIsModalOpen(true);
+    // Note: Backend doesn't have update endpoint, so we'll disable edit for now
+    // or show a message that edit is not available
+    showError('Chức năng chỉnh sửa nhân viên chưa được hỗ trợ. Backend chưa có endpoint cập nhật thông tin nhân viên.');
   };
 
   const handleDeleteStaff = (staffId) => {
-    if (confirm('Are you sure you want to delete this staff member?')) {
-      setStaffList(staffList.filter(staff => staff.id !== staffId));
+    // Note: Backend doesn't have delete endpoint
+    showError('Chức năng xóa nhân viên chưa được hỗ trợ. Backend chưa có endpoint xóa nhân viên.');
+  };
+
+  const handleStatusToggle = async (staffId) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        showError('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const staff = staffList.find(s => s.userId === staffId);
+      if (!staff) return;
+
+      const isCurrentlyBanned = staff.status === 'inactive';
+      const newBanStatus = !isCurrentlyBanned;
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(`${BaseURL}/api/staff/ban-user/${staffId}?ban=${newBanStatus}`, {
+        method: 'PUT',
+        headers
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
+      }
+
+      // Refresh staff list
+      await fetchStaffList();
+      showSuccess(newBanStatus ? 'Đã tạm dừng nhân viên thành công' : 'Đã kích hoạt nhân viên thành công');
+    } catch (err) {
+      console.error('Error toggling staff status:', err);
+      showError(err.message || 'Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại.');
     }
   };
 
-  const handleStatusToggle = (staffId) => {
-    setStaffList(staffList.map(staff => 
-      staff.id === staffId 
-        ? { ...staff, status: staff.status === 'active' ? 'inactive' : 'active' }
-        : staff
-    ));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingStaff) {
-      setStaffList(staffList.map(staff => 
-        staff.id === editingStaff.id 
-          ? { ...staff, ...staffForm, assignedTasks: staff.assignedTasks || [] }
-          : staff
-      ));
-    } else {
-      const newStaff = {
-        id: Date.now(),
-        ...staffForm,
-        createdAt: new Date().toISOString().split('T')[0],
-        lastLogin: new Date().toISOString().split('T')[0],
-        assignedTasks: []
-      };
-      setStaffList([...staffList, newStaff]);
+    
+    if (!staffForm.username.trim()) {
+      showError('Vui lòng nhập username');
+      return;
     }
-    setIsModalOpen(false);
+
+    if (!editingStaff && !staffForm.password.trim()) {
+      showError('Vui lòng nhập password');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const token = getToken();
+      
+      if (!token) {
+        showError('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      // Prepare request body according to StaffCreateRequest
+      const requestBody = {
+        username: staffForm.username.trim(),
+        password: staffForm.password.trim(),
+        ...(staffForm.staffTask && { staffTask: staffForm.staffTask })
+      };
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(`${BaseURL}/api/staff`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Không thể tạo tài khoản nhân viên');
+      }
+
+      const data = await response.json();
+      
+      // Refresh staff list
+      await fetchStaffList();
+      setIsModalOpen(false);
+      setStaffForm({ username: '', password: '', staffTask: '' });
+      showSuccess('Tạo tài khoản nhân viên thành công!');
+    } catch (err) {
+      console.error('Error creating staff:', err);
+      showError(err.message || 'Không thể tạo tài khoản nhân viên. Vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAssignTask = (staff) => {
-    setSelectedStaffForTask(staff);
-    setSelectedTasks(staff.assignedTasks || []);
-    setIsTaskModalOpen(true);
+    // Note: Backend doesn't have endpoint to update staffTask after creation
+    // StaffTask can only be set during staff creation
+    showError('Nhiệm vụ chỉ có thể được gán khi tạo tài khoản nhân viên. Backend chưa có endpoint cập nhật nhiệm vụ sau khi tạo.');
   };
 
   const handleTaskSubmit = (e) => {
     e.preventDefault();
-    setStaffList(staffList.map(staff => 
-      staff.id === selectedStaffForTask.id 
-        ? { ...staff, assignedTasks: selectedTasks }
-        : staff
-    ));
+    // This functionality is not available as backend doesn't support updating staffTask
+    showError('Chức năng này chưa được hỗ trợ. Backend chưa có endpoint cập nhật nhiệm vụ nhân viên.');
     setIsTaskModalOpen(false);
     setSelectedStaffForTask(null);
     setSelectedTasks([]);
   };
 
   const taskOptions = [
-    { id: 'forum_report', label: 'Forum Report', icon: FlagIcon },
-    { id: 'company_request', label: 'Company Request + Approve Article', icon: BuildingOfficeIcon },
-    { id: 'approve_tour', label: 'Approve Tour', icon: MapPinIcon }
+    { id: 'forum_report', label: 'Forum Report', icon: FlagIcon, value: 'FORUM_REPORT' },
+    { id: 'company_request', label: 'Company Request + Approve Article', icon: BuildingOfficeIcon, value: 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' },
+    { id: 'approve_tour', label: 'Approve Tour', icon: MapPinIcon, value: 'APPROVE_TOUR_BOOKING' }
   ];
+
+  // Filter staff list based on search and filters
+  const filteredStaffList = staffList.filter(staff => {
+    // Search filter
+    const matchesSearch = !searchTerm || 
+      staff.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.userId?.toString().includes(searchTerm);
+    
+    // Role filter
+    const matchesRole = roleFilter === 'ALL' || staff.role === roleFilter.toLowerCase();
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'ALL' || staff.status === statusFilter;
+    
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
   const stats = {
     total: staffList.length,
     active: staffList.filter((s) => s.status === 'active').length,
     inactive: staffList.filter((s) => s.status === 'inactive').length,
-    admin: staffList.filter((s) => s.role === 'admin').length
+    admin: 0 // Only showing STAFF role users, so admin count is 0
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải danh sách nhân viên...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchStaffList}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -193,16 +400,25 @@ const StaffManagement = () => {
             <input
               type="text"
               placeholder="Tìm theo tên, email hoặc mã nhân viên..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <div className="flex flex-wrap gap-3">
-            <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select 
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
               <option value="ALL">Tất cả vai trò</option>
-              <option value="admin">Quản trị viên</option>
               <option value="staff">Nhân viên</option>
             </select>
-            <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
               <option value="ALL">Tất cả trạng thái</option>
               <option value="active">Đang hoạt động</option>
               <option value="inactive">Tạm dừng</option>
@@ -214,7 +430,7 @@ const StaffManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['Nhân viên', 'Vai trò', 'Trạng thái', 'Nhiệm vụ được giao', 'Lần đăng nhập gần nhất', 'Thao tác'].map((header) => (
+                {['Nhân viên', 'Vai trò', 'Trạng thái', 'Nhiệm vụ được giao', 'Ngày tạo', 'Thao tác'].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -222,105 +438,146 @@ const StaffManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-50">
-              {staffList.map((staff) => (
-                <tr key={staff.id} className="hover:bg-blue-50/40 transition">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium border border-gray-100">
-                        {staff.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{staff.name}</p>
-                        <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
-                          <span className="inline-flex items-center gap-1">
-                            <EnvelopeIcon className="h-4 w-4 text-gray-400" />
-                            {staff.email}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
-                          <span>ID: {staff.id}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <RoleBadge role={staff.role} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={staff.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {(staff.assignedTasks || []).map((taskId) => {
-                        const task = taskOptions.find(t => t.id === taskId);
-                        if (!task) return null;
-                        const Icon = task.icon;
-                        return (
-                          <span key={taskId} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
-                            <Icon className="h-3 w-3" />
-                            {task.label}
-                          </span>
-                        );
-                      })}
-                      {(!staff.assignedTasks || staff.assignedTasks.length === 0) && (
-                        <span className="text-xs text-gray-400">Chưa có</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(staff.lastLogin).toLocaleDateString('vi-VN')}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleAssignTask(staff)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition" 
-                        title="Giao nhiệm vụ"
-                      >
-                        <ClipboardDocumentListIcon className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleEditStaff(staff)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
-                        title="Chỉnh sửa"
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleStatusToggle(staff.id)}
-                        className={`p-2 rounded-full border border-gray-200 transition ${
-                          staff.status === 'active' 
-                            ? 'text-gray-500 hover:text-red-600 hover:border-red-200' 
-                            : 'text-gray-500 hover:text-green-600 hover:border-green-200'
-                        }`}
-                        title={staff.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}
-                      >
-                        {staff.status === 'active' ? (
-                          <XMarkIcon className="h-4 w-4" />
-                        ) : (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteStaff(staff.id)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                        title="Xóa"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </div>
+              {filteredStaffList.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                    {loading ? 'Đang tải...' : 'Không tìm thấy nhân viên phù hợp với bộ lọc hiện tại.'}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredStaffList.map((staff) => (
+                  <tr key={staff.userId} className="hover:bg-blue-50/40 transition">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium border border-gray-100">
+                          {staff.username ? staff.username.charAt(0).toUpperCase() : 'S'}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 mb-0">{staff.username || 'N/A'}</p>
+                          <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
+                            {staff.email && (
+                              <span className="inline-flex items-center gap-1">
+                                <EnvelopeIcon className="h-4 w-4 text-gray-400" />
+                                {staff.email}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
+                            <span>ID: {staff.userId}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <RoleBadge role={staff.role} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={staff.status} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(staff.assignedTasks || []).map((taskId) => {
+                          const task = taskOptions.find(t => t.id === taskId);
+                          if (!task) return null;
+                          const Icon = task.icon;
+                          return (
+                            <span key={taskId} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
+                              <Icon className="h-3 w-3" />
+                              {task.label}
+                            </span>
+                          );
+                        })}
+                        {(!staff.assignedTasks || staff.assignedTasks.length === 0) && (
+                          <span className="text-xs text-gray-400">Chưa có</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {staff.createdAtRaw ? (() => {
+                        try {
+                          const date = new Date(staff.createdAtRaw);
+                          // Check if date is valid
+                          if (isNaN(date.getTime())) {
+                            // If invalid, try to parse from createdAt string format
+                            if (staff.createdAt) {
+                              const parts = staff.createdAt.split('-');
+                              if (parts.length === 3) {
+                                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                              }
+                            }
+                            return 'N/A';
+                          }
+                          // Format date in local timezone to avoid timezone shift
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const year = date.getFullYear();
+                          return `${day}/${month}/${year}`;
+                        } catch (e) {
+                          // Fallback to formatted createdAt if available
+                          if (staff.createdAt) {
+                            const parts = staff.createdAt.split('-');
+                            if (parts.length === 3) {
+                              return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                            }
+                          }
+                          return 'N/A';
+                        }
+                      })() : (staff.createdAt ? (() => {
+                        // Fallback: use createdAt if createdAtRaw is not available
+                        const parts = staff.createdAt.split('-');
+                        if (parts.length === 3) {
+                          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        }
+                        return 'N/A';
+                      })() : 'N/A')}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleAssignTask(staff)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition" 
+                          title="Giao nhiệm vụ (chỉ có thể gán khi tạo)"
+                        >
+                          <ClipboardDocumentListIcon className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleEditStaff(staff)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
+                          title="Chỉnh sửa (chưa hỗ trợ)"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleStatusToggle(staff.userId)}
+                          className={`p-2 rounded-full border border-gray-200 transition ${
+                            staff.status === 'active' 
+                              ? 'text-gray-500 hover:text-red-600 hover:border-red-200' 
+                              : 'text-gray-500 hover:text-green-600 hover:border-green-200'
+                          }`}
+                          title={staff.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}
+                        >
+                          {staff.status === 'active' ? (
+                            <XMarkIcon className="h-4 w-4" />
+                          ) : (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteStaff(staff.userId)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
+                          title="Xóa (chưa hỗ trợ)"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        {staffList.length === 0 && (
-          <div className="p-8 text-center">
-            <p className="text-gray-500 text-sm">Không tìm thấy nhân viên phù hợp với bộ lọc hiện tại.</p>
-          </div>
-        )}
       </div>
 
       {/* Staff Modal */}
@@ -335,54 +592,54 @@ const StaffManagement = () => {
                   <div className="sm:flex sm:items-start">
                     <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
                       <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
+                        Thêm nhân viên mới
                       </h3>
                       
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Name</label>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Username <span className="text-red-500">*</span>
+                          </label>
                           <input
                             type="text"
-                            value={staffForm.name}
-                            onChange={(e) => setStaffForm({...staffForm, name: e.target.value})}
+                            value={staffForm.username}
+                            onChange={(e) => setStaffForm({...staffForm, username: e.target.value})}
                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Nhập username"
                             required
                           />
+                          <p className="mt-1 text-xs text-gray-500">Username phải là duy nhất</p>
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Email</label>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Password <span className="text-red-500">*</span>
+                          </label>
                           <input
-                            type="email"
-                            value={staffForm.email}
-                            onChange={(e) => setStaffForm({...staffForm, email: e.target.value})}
+                            type="password"
+                            value={staffForm.password}
+                            onChange={(e) => setStaffForm({...staffForm, password: e.target.value})}
                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Nhập password"
                             required
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Role</label>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nhiệm vụ (tùy chọn)
+                          </label>
                           <select
-                            value={staffForm.role}
-                            onChange={(e) => setStaffForm({...staffForm, role: e.target.value})}
+                            value={staffForm.staffTask}
+                            onChange={(e) => setStaffForm({...staffForm, staffTask: e.target.value})}
                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           >
-                            <option value="staff">Staff</option>
-                            <option value="admin">Admin</option>
+                            <option value="">Không gán nhiệm vụ</option>
+                            <option value="FORUM_REPORT">Forum Report</option>
+                            <option value="COMPANY_REQUEST_AND_APPROVE_ARTICLE">Company Request + Approve Article</option>
+                            <option value="APPROVE_TOUR_BOOKING">Approve Tour Booking</option>
                           </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Status</label>
-                          <select
-                            value={staffForm.status}
-                            onChange={(e) => setStaffForm({...staffForm, status: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                          </select>
+                          <p className="mt-1 text-xs text-gray-500">Nhiệm vụ có thể được gán sau khi tạo tài khoản</p>
                         </div>
                       </div>
                     </div>
@@ -392,9 +649,10 @@ const StaffManagement = () => {
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    disabled={submitting}
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm"
                   >
-                    {editingStaff ? 'Update' : 'Add'} Staff
+                    {submitting ? 'Đang tạo...' : 'Tạo nhân viên'}
                   </button>
                   <button
                     type="button"
