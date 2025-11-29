@@ -9,8 +9,10 @@ const StaffLogin = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { login } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
 
 
@@ -18,28 +20,29 @@ const StaffLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setUsernameError('');
+    setPasswordError('');
+    setError('');
+
     // Collect all validation errors
-    const errors = [];
+    let hasErrors = false;
 
     if (!username.trim()) {
-      errors.push('Username là bắt buộc');
+      setUsernameError('Username là bắt buộc');
+      hasErrors = true;
     }
 
     if (!password.trim()) {
-      errors.push('Mật khẩu là bắt buộc');
+      setPasswordError('Mật khẩu là bắt buộc');
+      hasErrors = true;
     }
 
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (hasErrors) {
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       const response = await fetch('/api/auth/login-username', {
@@ -70,7 +73,7 @@ const StaffLogin = () => {
           errorMessage = `Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.`;
         }
         
-        showError(errorMessage);
+        setError(errorMessage);
         return;
       }
 
@@ -95,23 +98,21 @@ const StaffLogin = () => {
           showSuccess('Đăng nhập thành công!');
           
           // Redirect to staff dashboard
-          navigate('/staff/news-management');
+          navigate('/staff/tasks');
         } else {
-          showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ STAFF mới được phép đăng nhập vào trang quản lý.`);
+          setError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ STAFF mới được phép đăng nhập vào trang quản lý.`);
         }
       } else {
         // Handle API error response
         const errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
-        showError(errorMessage);
+        setError(errorMessage);
       }
     } catch (err) {
-      console.error('Login error:', err);
-      
       // More specific error handling
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        showError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
+        setError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
       } else {
-        showError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+        setError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
       }
     } finally {
       setLoading(false);
@@ -142,7 +143,7 @@ const StaffLogin = () => {
               <label htmlFor="username" className="text-xs uppercase tracking-[0.3em] text-[#5f80c5]">
                 Username
               </label>
-              <div className="mt-2 rounded-3xl bg-[#f2f7ff] border border-[#d7e6ff] px-4 py-3 focus-within:border-[#7ba8ff] focus-within:shadow-[0_0_0_2px_rgba(123,168,255,0.18)] transition-all">
+              <div className={`mt-2 rounded-3xl bg-[#f2f7ff] border ${usernameError ? 'border-[#7ba8ff]' : 'border-[#d7e6ff]'} px-4 py-3 focus-within:border-[#7ba8ff] focus-within:shadow-[0_0_0_2px_rgba(123,168,255,0.18)] transition-all`}>
                 <input
                   id="username"
                   name="username"
@@ -150,18 +151,26 @@ const StaffLogin = () => {
                   autoComplete="username"
                   required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameError('');
+                  }}
                   className="w-full bg-transparent text-sm text-[#0f1a2b] placeholder:text-[#7f97c8] focus:outline-none"
                   placeholder="Tên đăng nhập staff"
                 />
               </div>
+              {usernameError && (
+                <div className="mt-1 text-xs text-[#0b5ed7] px-1">
+                  {usernameError}
+                </div>
+              )}
             </div>
 
             <div>
               <label htmlFor="password" className="text-xs uppercase tracking-[0.3em] text-[#5f80c5]">
                 Mật khẩu
               </label>
-              <div className="mt-2 rounded-3xl bg-[#f2f7ff] border border-[#d7e6ff] px-4 py-3 focus-within:border-[#7ba8ff] focus-within:shadow-[0_0_0_2px_rgba(123,168,255,0.18)] transition-all flex items-center gap-2">
+              <div className={`mt-2 rounded-3xl bg-[#f2f7ff] border ${passwordError ? 'border-[#7ba8ff]' : 'border-[#d7e6ff]'} px-4 py-3 focus-within:border-[#7ba8ff] focus-within:shadow-[0_0_0_2px_rgba(123,168,255,0.18)] transition-all flex items-center gap-2`}>
                 <input
                   id="password"
                   name="password"
@@ -169,11 +178,19 @@ const StaffLogin = () => {
                   autoComplete="current-password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError('');
+                  }}
                   className="flex-1 bg-transparent text-sm text-[#0f1a2b] placeholder:text-[#7f97c8] focus:outline-none"
                   placeholder="••••••••"
                 />
               </div>
+              {passwordError && (
+                <div className="mt-1 text-xs text-[#0b5ed7] px-1">
+                  {passwordError}
+                </div>
+              )}
             </div>
 
             {error && (

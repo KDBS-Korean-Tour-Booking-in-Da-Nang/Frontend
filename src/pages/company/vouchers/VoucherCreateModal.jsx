@@ -18,7 +18,7 @@ const defaultState = {
 };
 
 const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) => {
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const [form, setForm] = useState(defaultState);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,6 +49,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     if (!form.totalQuantity || Number(form.totalQuantity) < 1) {
       e.totalQuantity = 'Số lượng phải lớn hơn 0';
     }
+    // minOrderValue is optional, no validation needed
     if (!form.startDate) {
       e.startDate = 'Vui lòng chọn ngày bắt đầu';
     }
@@ -70,9 +71,15 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     e.preventDefault();
     if (!validate()) return;
     if (!companyId) {
-      showError('Không tìm thấy thông tin công ty');
+      setErrors(prev => ({ ...prev, general: 'Không tìm thấy thông tin công ty' }));
       return;
     }
+    
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.general;
+      return newErrors;
+    });
 
     setIsSubmitting(true);
     try {
@@ -96,12 +103,12 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
       await createVoucher(payload);
       showSuccess('Tạo voucher thành công');
+      setErrors({}); // Clear all errors on success
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error('Error creating voucher:', error);
-      showError(error.message || 'Không thể tạo voucher. Vui lòng thử lại.');
+      setErrors(prev => ({ ...prev, general: error.message || 'Không thể tạo voucher. Vui lòng thử lại.' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -109,6 +116,14 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const toggleTour = (id) => {
@@ -165,7 +180,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
         <form ref={formRef} onSubmit={handleSubmit} className={styles['modal-form']}>
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Mã voucher</label>
+              <label className={styles['form-label']}>
+                Mã voucher
+                {errors.code && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+              </label>
               <input 
                 className={`${styles['form-input']} ${errors.code ? styles['error'] : ''}`}
                 value={form.code} 
@@ -175,7 +193,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
               {errors.code && <p className={styles['error-message']}>{errors.code}</p>}
             </div>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Tên voucher</label>
+              <label className={styles['form-label']}>
+                Tên voucher
+                {errors.name && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+              </label>
               <input 
                 className={`${styles['form-input']} ${errors.name ? styles['error'] : ''}`}
                 value={form.name} 
@@ -188,7 +209,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Loại giảm giá</label>
+              <label className={styles['form-label']}>
+                Loại giảm giá
+                {errors.discountType && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+              </label>
               <div className={styles['radio-group']}>
                 <label className={styles['radio-label']}>
                   <input 
@@ -215,7 +239,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             </div>
             {form.discountType && (
               <div className={styles['form-group']}>
-                <label className={styles['form-label']}>Giá trị giảm</label>
+                <label className={styles['form-label']}>
+                  Giá trị giảm
+                  {errors.discountValue && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+                </label>
                 <input
                   className={`${styles['form-input']} ${errors.discountValue ? styles['error'] : ''}`}
                   type="number"
@@ -261,7 +288,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
           <div className={styles['form-grid-3']}>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Số lượng</label>
+              <label className={styles['form-label']}>
+                Số lượng
+                {errors.totalQuantity && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+              </label>
               <input 
                 className={`${styles['form-input']} ${errors.totalQuantity ? styles['error'] : ''}`}
                 type="number" 
@@ -274,10 +304,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>Đơn tối thiểu (VND)</label>
               <input 
-                className={styles['form-input']} 
+                className={styles['form-input']}
                 type="number" 
                 min={0} 
-                value={form.minOrderValue} 
+                value={form.minOrderValue || ''} 
                 onChange={(e) => handleChange('minOrderValue', e.target.value)} 
               />
             </div>
@@ -297,7 +327,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Ngày bắt đầu</label>
+              <label className={styles['form-label']}>
+                Ngày bắt đầu
+                {errors.startDate && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+              </label>
               <input
                 className={`${styles['form-input']} ${errors.startDate ? styles['error'] : ''}`}
                 type="datetime-local"
@@ -308,7 +341,10 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
               {errors.startDate && <p className={styles['error-message']}>{errors.startDate}</p>}
             </div>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Ngày kết thúc</label>
+              <label className={styles['form-label']}>
+                Ngày kết thúc
+                {errors.endDate && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+              </label>
               <input
                 className={`${styles['form-input']} ${errors.endDate ? styles['error'] : ''}`}
                 type="datetime-local"
@@ -380,7 +416,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <button 
             type="button" 
             onClick={() => formRef.current?.requestSubmit()} 
-            disabled={isSubmitting || !companyId}
+            disabled={isSubmitting || !companyId || Object.keys(errors).length > 0}
             className={`${styles['footer-btn']} ${styles['btn-submit']}`}
           >
             {isSubmitting ? 'Đang tạo...' : 'Tạo'}

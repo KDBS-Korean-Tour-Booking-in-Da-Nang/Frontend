@@ -11,9 +11,10 @@ import styles from './EditBookingModal.module.css';
  */
 const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) => {
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('contact');
+  const [error, setError] = useState('');
   const [modalContainerRef, setModalContainerRef] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingFormData, setPendingFormData] = useState(null);
@@ -171,7 +172,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
     
     const errors = validateForm();
     if (errors.length > 0) {
-      showError(`Vui lòng nhập đầy đủ: ${errors.join(', ')}`);
+      setError(`Vui lòng nhập đầy đủ: ${errors.join(', ')}`);
       return;
     }
 

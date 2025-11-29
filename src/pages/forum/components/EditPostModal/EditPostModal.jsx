@@ -10,7 +10,7 @@ import styles from './EditPostModal.module.css';
 const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showError, showSuccess, showBatch } = useToast();
+  const { showSuccess, showBatch } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [hashtags, setHashtags] = useState([]);
@@ -306,8 +306,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         throw new Error(errorData.message || 'Failed to update post');
       }
     } catch (error) {
-      console.error('Error updating post:', error);
-      showError('toast.forum.post_update_failed');
+      // Error updating post - handled in UI or silently
     } finally {
       setIsLoading(false);
     }

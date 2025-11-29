@@ -155,9 +155,9 @@ const Dashboard = () => {
       changeType: 'positive',
       icon: MapIcon,
       color: 'blue',
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-l-blue-500'
+      bgColor: 'bg-[#e9f2ff]',
+      iconColor: 'text-[#4c9dff]',
+      borderColor: 'border-l-[#4c9dff]'
     },
     {
       name: 'Tổng số Đặt Tour',
@@ -338,9 +338,9 @@ const Dashboard = () => {
         : 0,
       icon: CheckCircleIcon,
       color: '#2979FF',
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-blue-200'
+      bgColor: 'bg-[#e9f2ff]',
+      iconColor: 'text-[#4c9dff]',
+      borderColor: 'border-[#9fc2ff]'
     },
     {
       label: 'Đang chờ',
@@ -380,7 +380,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
       </div>
     );
   }
@@ -506,7 +506,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <GlobeAltIcon className="h-5 w-5 text-blue-600" />
+              <GlobeAltIcon className="h-5 w-5 text-[#4c9dff]" />
               Top Quốc Gia
             </h3>
             <p className="text-sm text-gray-500 mt-1">Phân bố người dùng theo quốc gia</p>

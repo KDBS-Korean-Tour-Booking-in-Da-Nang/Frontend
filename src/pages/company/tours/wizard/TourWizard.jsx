@@ -14,15 +14,75 @@ import { ConfirmLeaveModal } from '../../../../components/modals';
 const TourWizardContent = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showError, showSuccess, showBatch } = useToast();
+  const { showSuccess } = useToast();
   const { tourData } = useTourWizardContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [stepHasErrors, setStepHasErrors] = useState({}); // Track which steps have validation errors
+  const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 1
+  const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 2
+  const [step3ValidationAttempted, setStep3ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 3
+  const [step4ValidationAttempted, setStep4ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 4
   const pendingNavigationRef = useRef(null);
   
   // Use custom hook for step validation
-  const { isStepCompleted, getStepErrors } = useStepValidation(tourData);
+  const { isStepCompleted, getStepErrors, stepValidations } = useStepValidation(tourData);
+
+  // Calculate if Next button should be disabled using useMemo
+  // Button is enabled by default, only disabled after user clicks Next and there are errors
+  const isNextButtonDisabled = useMemo(() => {
+    if (currentStep >= 4) return false;
+    
+    // Only disable if user has attempted to proceed and there are errors
+    if (currentStep === 1) {
+      // Disable only if user clicked Next and validation failed
+      if (step1ValidationAttempted && stepHasErrors[1]) {
+        return true;
+      }
+      return false;
+    }
+    
+    if (currentStep === 2) {
+      // Disable only if user clicked Next and validation failed
+      if (step2ValidationAttempted && stepHasErrors[2]) {
+        return true;
+      }
+      return false;
+    }
+    
+    if (currentStep === 3) {
+      // Disable only if user clicked Next and validation failed
+      if (step3ValidationAttempted && stepHasErrors[3]) {
+        return true;
+      }
+      return false;
+    }
+    
+    return false;
+  }, [currentStep, stepHasErrors, step1ValidationAttempted, step2ValidationAttempted, step3ValidationAttempted]);
+
+  // Reset stepValidationAttempted when step becomes valid (only for current step)
+  useEffect(() => {
+    const stepKey = `step${currentStep}`;
+    if (stepValidations[stepKey]?.isValid) {
+      // Only reset if step is actually valid and user has attempted validation
+      if (currentStep === 1 && step1ValidationAttempted) {
+        setStep1ValidationAttempted(false);
+        setStepHasErrors(prev => ({ ...prev, [1]: false }));
+      } else if (currentStep === 2 && step2ValidationAttempted) {
+        setStep2ValidationAttempted(false);
+        setStepHasErrors(prev => ({ ...prev, [2]: false }));
+      } else if (currentStep === 3 && step3ValidationAttempted) {
+        setStep3ValidationAttempted(false);
+        setStepHasErrors(prev => ({ ...prev, [3]: false }));
+      } else if (currentStep === 4 && step4ValidationAttempted) {
+        setStep4ValidationAttempted(false);
+        setStepHasErrors(prev => ({ ...prev, [4]: false }));
+      }
+    }
+  }, [currentStep, stepValidations, step1ValidationAttempted, step2ValidationAttempted, step3ValidationAttempted, step4ValidationAttempted]);
 
   const steps = [
     { id: 1, title: t('tourWizard.steps.step1.title'), description: t('tourWizard.steps.step1.description') },
@@ -119,24 +179,99 @@ const TourWizardContent = () => {
     setShowLeaveConfirm(false);
   };
 
+  // Listen for validation status updates from step components
+  useEffect(() => {
+    const handleValidationStatus = (event) => {
+      const { step, hasErrors } = event.detail;
+      setStepHasErrors(prev => ({
+        ...prev,
+        [step]: hasErrors
+      }));
+    };
+
+    window.addEventListener('stepValidationStatus', handleValidationStatus);
+    return () => {
+      window.removeEventListener('stepValidationStatus', handleValidationStatus);
+    };
+  }, []);
 
   const nextStep = () => {
     if (currentStep < 4) {
-      // Get validation errors for current step
-      const errors = getStepErrors(currentStep);
+      // Check if current step is valid using stepValidations
+      const stepKey = `step${currentStep}`;
+      const isCurrentStepValid = stepValidations[stepKey]?.isValid;
       
-      if (errors.length > 0) {
-        const messages = errors.map(errorKey => ({ i18nKey: 'toast.required', values: { field: t(errorKey) } }));
-        // Queue this batch; if another click happens, the next batch will wait until this one is done
-        showBatch(messages, 'error', 5000);
+      if (!isCurrentStepValid) {
+        // Mark that user has attempted validation
+        if (currentStep === 1) {
+          setStep1ValidationAttempted(true);
+          // Trigger validation in Step1BasicInfo to show inline error messages
+          window.dispatchEvent(new CustomEvent('validateStep1'));
+        } else if (currentStep === 2) {
+          setStep2ValidationAttempted(true);
+          // Trigger validation in Step2Itinerary to show error messages for missing fields
+          window.dispatchEvent(new CustomEvent('validateStep2'));
+        } else if (currentStep === 3) {
+          setStep3ValidationAttempted(true);
+          // Trigger validation in Step3Pricing to show error messages for missing fields
+          window.dispatchEvent(new CustomEvent('validateStep3'));
+        } else {
+          // For other steps, use the original validation event
+          const errors = getStepErrors(currentStep);
+          window.dispatchEvent(new CustomEvent('validateStep', { detail: { step: currentStep, errors } }));
+        }
+        
+        // Don't move to next step if there are errors
+        // stepHasErrors will be updated by the validation event from step components
+        return;
       } else {
-        setCurrentStep(currentStep + 1);
+        // Special handling when moving from step 1 to step 2
+        if (currentStep === 1) {
+          // Reset Step 2 validation attempted state when entering Step 2
+          setStep2ValidationAttempted(false);
+          setCurrentStep(2);
+        } else if (currentStep === 2) {
+          // Reset Step 3 validation attempted state when entering Step 3
+          setStep3ValidationAttempted(false);
+          setCurrentStep(3);
+        } else if (currentStep === 3) {
+          // Reset Step 4 validation attempted state when entering Step 4
+          setStep4ValidationAttempted(false);
+          setCurrentStep(4);
+        } else {
+          // For other steps, move forward normally
+          setCurrentStep(currentStep + 1);
+        }
+        
+        // Clear errors when moving to next step by dispatching clear event
+        window.dispatchEvent(new CustomEvent('clearStepErrors', { detail: { step: currentStep } }));
+        setStepHasErrors(prev => ({
+          ...prev,
+          [currentStep]: false
+        }));
+        
+        // Reset validation attempted state for current step
+        if (currentStep === 1) {
+          setStep1ValidationAttempted(false);
+        } else if (currentStep === 2) {
+          setStep2ValidationAttempted(false);
+        } else if (currentStep === 3) {
+          setStep3ValidationAttempted(false);
+        }
       }
     }
   };
 
   const prevStep = () => {
     if (currentStep > 1) {
+      // Reset validation attempted state when going back
+      if (currentStep === 2) {
+        setStep2ValidationAttempted(false);
+      } else if (currentStep === 3) {
+        setStep3ValidationAttempted(false);
+      } else if (currentStep === 4) {
+        setStep4ValidationAttempted(false);
+      }
       setCurrentStep(currentStep - 1);
     }
   };
@@ -150,9 +285,12 @@ const TourWizardContent = () => {
     try {
       setIsSubmitting(true);
       
+      // Clear previous errors
+      setSubmitError('');
+      
       // Validate final data
       if (!tourData.tourName || !tourData.thumbnail) {
-        showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
+        setSubmitError(t('toast.required') || 'Vui lòng điền đầy đủ thông tin');
         setIsSubmitting(false);
         return;
       }
@@ -168,7 +306,7 @@ const TourWizardContent = () => {
       
       
       if (!savedUser || !token) {
-        showError('toast.login_required');
+        setSubmitError(t('toast.login_required') || 'Vui lòng đăng nhập');
         setIsSubmitting(false);
         return;
       }
@@ -179,13 +317,13 @@ const TourWizardContent = () => {
       
       
       if (!userEmail) {
-        showError('toast.login_required');
+        setSubmitError(t('toast.login_required') || 'Vui lòng đăng nhập');
         setIsSubmitting(false);
         return;
       }
       
       if (userRole !== 'COMPANY') {
-        showError('toast.company_only');
+        setSubmitError(t('toast.company_only') || 'Chỉ tài khoản công ty mới có thể tạo tour');
         setIsSubmitting(false);
         return;
       }
@@ -218,7 +356,7 @@ const TourWizardContent = () => {
       const deadlineDays = parseDeadline(tourData.tourDeadline, expirationDate);
 
       if (deadlineDays === null || !expirationDate) {
-        showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
+        setSubmitError(t('toast.required') || 'Vui lòng điền đầy đủ thông tin');
         setIsSubmitting(false);
         return;
       }
@@ -232,7 +370,7 @@ const TourWizardContent = () => {
       })();
 
       if (leadDaysForValidation === null || leadDaysForValidation < 0) {
-        showError({ i18nKey: 'toast.required', values: { field: t('tourWizard.step1.title') } });
+        setSubmitError(t('toast.required') || 'Vui lòng điền đầy đủ thông tin');
         setIsSubmitting(false);
         return;
       }
@@ -320,6 +458,7 @@ const TourWizardContent = () => {
       }
       
       if (response.ok) {
+        setSubmitError(''); // Clear error on success
         showSuccess('toast.tour.create_success');
         navigate('/company/tours');
       } else {
@@ -334,19 +473,15 @@ const TourWizardContent = () => {
               errorMessage: errorData.message,
               errorData: errorData
             });
-            showError(errorData.message || 'toast.save_error');
+            setSubmitError(errorData.message || t('toast.save_error') || 'Lưu thất bại');
           } catch (e) {
             // If JSON parsing fails, get text response
             const textResponse = await response.text();
-            console.error('Tour creation error (text):', textResponse);
-            console.error('Response status:', response.status);
-            console.error('Response headers:', Object.fromEntries(response.headers.entries()));
-            showError('toast.save_error');
+            setSubmitError(t('toast.save_error') || 'Lưu thất bại');
           }
         }
     } catch (error) {
-      console.error('Error creating tour:', error);
-      showError('toast.save_error');
+      setSubmitError(t('toast.save_error') || 'Lưu thất bại');
     } finally {
       setIsSubmitting(false);
     }
@@ -416,6 +551,11 @@ const TourWizardContent = () => {
 
       {/* Step Content */}
       <div className={styles['step-content']}>
+        {submitError && (
+          <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+            {submitError}
+          </div>
+        )}
         {renderCurrentStep()}
       </div>
 
@@ -430,20 +570,25 @@ const TourWizardContent = () => {
           {t('tourWizard.navigation.back')}
         </button>
         
-        {currentStep < 4 ? (
-          <button 
-            type="button" 
-            className={styles['btn-primary']} 
-            onClick={nextStep}
-          >
-            {t('tourWizard.navigation.next')}
-          </button>
+         {currentStep < 4 ? (
+           <button 
+             type="button" 
+             className={styles['btn-primary']} 
+             onClick={nextStep}
+             disabled={isNextButtonDisabled}
+             style={{
+               opacity: isNextButtonDisabled ? 0.5 : 1,
+               cursor: isNextButtonDisabled ? 'not-allowed' : 'pointer'
+             }}
+           >
+             {t('tourWizard.navigation.next')}
+           </button>
         ) : (
           <button 
             type="button" 
             className={styles['btn-success']} 
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!submitError}
           >
             {isSubmitting ? t('tourWizard.navigation.creating') : t('tourWizard.navigation.complete')}
           </button>

@@ -135,13 +135,11 @@ export const formatDateForAPI = (displayDate, language = 'vi') => {
   }
   // If format is not recognized, try to parse as is
   else {
-    console.warn('Unrecognized date format:', displayDate);
     return displayDate;
   }
   
   // Validate date components
   if (!year || !month || !day) {
-    console.warn('Invalid date components:', { year, month, day });
     return displayDate;
   }
   

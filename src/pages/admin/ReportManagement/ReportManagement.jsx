@@ -87,13 +87,11 @@ const ReportManagement = () => {
 
   const handleDownloadReport = (reportId) => {
     // Mock download functionality
-    console.log(`Downloading report ${reportId}`);
     alert('Report download started!');
   };
 
   const handleGenerateReport = (reportId) => {
     // Mock report generation
-    console.log(`Generating report ${reportId}`);
     alert('Report generation started! You will be notified when it\'s ready.');
   };
 
@@ -132,7 +130,7 @@ const ReportManagement = () => {
           <h1 className="text-2xl font-bold text-gray-900">Report Management</h1>
           <p className="mt-1 text-sm text-gray-500">Generate and manage system reports</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+        <button className="bg-[#4c9dff] hover:bg-[#3f85d6] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center shadow-[0_12px_30px_rgba(76,157,255,0.35)] transition-all duration-200">
           <ChartBarIcon className="h-4 w-4 mr-2" />
           Generate New Report
         </button>
@@ -163,7 +161,7 @@ const ReportManagement = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <DocumentTextIcon className="h-8 w-8 text-blue-500" />
+              <DocumentTextIcon className="h-8 w-8 text-[#4c9dff]" />
             </div>
             <div className="ml-5">
               <p className="text-sm font-medium text-gray-500">Total Reports</p>
@@ -278,7 +276,7 @@ const ReportManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => handleViewReport(report)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-[#4c9dff] hover:text-[#2563eb]"
                         title="View Details"
                       >
                         <EyeIcon className="h-4 w-4" />
@@ -294,7 +292,7 @@ const ReportManagement = () => {
                       ) : (
                         <button
                           onClick={() => handleGenerateReport(report.id)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-[#4c9dff] hover:text-[#2563eb]"
                           title="Generate"
                         >
                           <ChartBarIcon className="h-4 w-4" />
@@ -387,7 +385,7 @@ const ReportManagement = () => {
                 ) : (
                   <button
                     onClick={() => handleGenerateReport(selectedReport.id)}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     <ChartBarIcon className="h-4 w-4 mr-2" />
                     Generate Report
@@ -395,7 +393,7 @@ const ReportManagement = () => {
                 )}
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
                   Close
                 </button>

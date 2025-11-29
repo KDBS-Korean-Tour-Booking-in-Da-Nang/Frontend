@@ -74,7 +74,7 @@ const TourDetailPage = () => {
   const { t } = useTranslation();
   const [tour, setTour] = useState(null);
   const { user } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const location = useLocation();
   const [openShare, setOpenShare] = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
@@ -226,7 +226,6 @@ const TourDetailPage = () => {
           }
         } catch (error) {
           // If booking fetch fails, continue with company vouchers
-          console.warn("Failed to fetch vouchers from booking:", error);
         }
 
         // Strategy 2: Get vouchers from company (if we have companyId)
@@ -256,7 +255,6 @@ const TourDetailPage = () => {
             }
           } catch (error) {
             // If company vouchers fetch fails, continue with booking vouchers
-            console.warn("Failed to fetch vouchers from company:", error);
           }
         }
 
@@ -484,7 +482,7 @@ const TourDetailPage = () => {
       return;
     }
     if (user && user.role === "COMPANY") {
-      showError("Tài khoản doanh nghiệp không thể đặt tour.");
+      // Company accounts cannot book tours - this is handled by UI state
       return;
     }
     // Clear any previous booking wizard data for this tour before starting a new booking

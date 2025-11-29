@@ -1,24 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../contexts/AuthContext';
 import { Clock, CheckCircle2, Mail, ArrowLeft } from 'lucide-react';
 import styles from './pendingPage.module.css';
 
 const PendingPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    // Lấy email từ localStorage
-    const email = localStorage.getItem('userEmail');
+    // Ưu tiên lấy email từ user context, nếu không có thì lấy từ localStorage
+    const email = user?.email || localStorage.getItem('userEmail');
     if (email) {
       setUserEmail(email);
     } else {
       // Nếu không có email, chuyển về trang đăng ký
       navigate('/register');
     }
-  }, [navigate]);
+  }, [navigate, user]);
 
 
   return (
@@ -51,7 +53,11 @@ const PendingPage = () => {
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t('pending.status')}:</span> 
                 <span className={styles.statusBadge}>
-                  {t('pending.statusPending')}
+                  {user?.status === 'WAITING_FOR_APPROVAL' 
+                    ? t('common.status.WAITING_FOR_APPROVAL') || 'Chờ Duyệt'
+                    : user?.status === 'COMPANY_PENDING'
+                    ? t('common.status.COMPANY_PENDING') || 'Đang chờ'
+                    : t('pending.statusPending')}
                 </span>
               </div>
             </div>

@@ -74,7 +74,7 @@ const BookingDetail = () => {
   const id = searchParams.get('id');
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -162,7 +162,7 @@ const BookingDetail = () => {
       setGuests(Array.isArray(refreshedGuests) ? refreshedGuests : []);
     } catch (error) {
       console.error('Error updating booking:', error);
-      showError(error.message || 'Không thể cập nhật booking');
+      setError(error.message || 'Không thể cập nhật booking');
     } finally {
       setLoading(false);
     }

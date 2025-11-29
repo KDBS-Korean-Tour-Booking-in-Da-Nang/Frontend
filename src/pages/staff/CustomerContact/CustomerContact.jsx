@@ -280,7 +280,7 @@ const CustomerContact = () => {
                    tabIndex={0}
                    className={`p-3 cursor-pointer transition-colors flex-shrink-0 ${
                      isActive 
-                       ? 'bg-blue-50 border-l-4 border-blue-600' 
+                       ? 'bg-[#e9f2ff] border-l-4 border-[#4c9dff]' 
                        : 'hover:bg-gray-50'
                    }`}
                  >
@@ -403,7 +403,7 @@ const CustomerContact = () => {
                        if (msg.isOwn) {
                          // Sender (phải) - nền xanh, chữ trắng
                          const baseClasses = [
-                           "bg-blue-600",
+                           "bg-[#4c9dff]",
                            "px-3 py-1.5 max-w-xs lg:max-w-md shadow-sm",
                            "rounded-2xl", // bo góc chung lớn
                            "rounded-br-lg", // góc dưới-phải nhỏ hơn để ra dáng bubble
@@ -509,7 +509,7 @@ const CustomerContact = () => {
                 <button
                   onClick={handleSendMessage}
                   disabled={!messageInput.trim()}
-                  className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 bg-[#4c9dff] hover:bg-[#3f85d6] text-white rounded-full transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <PaperAirplaneIcon className="h-5 w-5" />
                 </button>

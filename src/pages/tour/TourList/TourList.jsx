@@ -78,7 +78,7 @@ const TourList = () => {
                   bookingCount = Array.isArray(bookings) ? bookings.length : 0;
                 }
               } catch (err) {
-                console.warn(`Failed to fetch bookings for tour ${tour.id}:`, err);
+                // Failed to fetch bookings for tour
               }
 
               // Fetch ratings
@@ -99,7 +99,7 @@ const TourList = () => {
                   }
                 }
               } catch (err) {
-                console.warn(`Failed to fetch ratings for tour ${tour.id}:`, err);
+                // Failed to fetch ratings for tour
               }
 
               // Calculate score: booking count + 5-star ratings count
@@ -113,7 +113,6 @@ const TourList = () => {
                 score,
               };
             } catch (error) {
-              console.warn(`Error processing tour ${tour.id}:`, error);
               return {
                 ...tour,
                 bookingCount: 0,

@@ -60,7 +60,8 @@
   display: flex;
   gap: 16px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 8px 0;
+  margin-top: 8px;
   scrollbar-width: thin;
 }
 

@@ -27,8 +27,8 @@ const CompanyInfo = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { showSuccess } = useToast();
   const [userEmail, setUserEmail] = useState('');
 
   const [files, setFiles] = useState({
@@ -56,7 +56,10 @@ const CompanyInfo = () => {
   useEffect(() => {
     try {
       localStorage.setItem('company_onboarding_pending', 'true');
-    } catch {}
+    } catch (error) {
+      // Silently fail if localStorage is not available
+      console.warn('Failed to set company_onboarding_pending:', error);
+    }
   }, []);
 
   useEffect(() => {
@@ -207,10 +210,19 @@ const CompanyInfo = () => {
 
     // Show all errors if any
     if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
+      // Set file errors based on error messages
+      const newFileErrors = { businessLicense: '', idCardFront: '', idCardBack: '' };
+      errors.forEach((errorMsg) => {
+        if (errorMsg.includes('Giấy phép kinh doanh')) {
+          newFileErrors.businessLicense = errorMsg;
+        } else if (errorMsg.includes('mặt trước')) {
+          newFileErrors.idCardFront = errorMsg;
+        } else if (errorMsg.includes('mặt sau')) {
+          newFileErrors.idCardBack = errorMsg;
+        }
       });
+      setFileErrors(newFileErrors);
+      setError(errors[0]); // Show first error as general error
       setLoading(false);
       return;
     }
@@ -231,23 +243,13 @@ const CompanyInfo = () => {
       
       if (savedUser && token) {
         headers['Authorization'] = `Bearer ${token}`;
-        console.log('Sending request with authentication token');
-      } else {
-        console.log('Sending request without authentication (public endpoint)');
       }
-
-      console.log('Request URL:', '/api/users/update-business-license');
-      console.log('Request method:', 'PUT');
-      console.log('Request headers:', headers);
 
       const response = await fetch('/api/users/update-business-license', {
         method: 'PUT',
         headers: headers,
         body: formData,
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response status text:', response.statusText);
 
       // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
@@ -277,6 +279,19 @@ const CompanyInfo = () => {
           idCardFrontName: files.idCardFront?.name || '',
           idCardBackName: files.idCardBack?.name || ''
         });
+        
+        // Refresh user data to get updated status (WAITING_FOR_APPROVAL)
+        try {
+          const updatedUser = await refreshUser();
+          if (updatedUser) {
+            // User context is already updated by refreshUser
+            // Status should now be WAITING_FOR_APPROVAL
+          }
+        } catch (refreshError) {
+          console.error('Error refreshing user data:', refreshError);
+          // Continue with navigation even if refresh fails
+        }
+        
         // Chuyển đến trang pending ngay lập tức
         navigate('/pending-page', { replace: true });
       } else {
@@ -296,7 +311,6 @@ const CompanyInfo = () => {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             errorMessage = data.message || errorMessage;
-            console.log('Error response data:', data);
             
             // Check for ID card recognition errors
             const lowerMessage = (errorMessage || '').toLowerCase();
@@ -318,15 +332,14 @@ const CompanyInfo = () => {
               // Clear the problematic files
               setFiles(resetIdCards);
               
-              showError('Không thể xử lý ảnh CCCD. Vui lòng kiểm tra và upload lại ảnh CCCD hợp lệ.');
+              setError('Không thể xử lý ảnh CCCD. Vui lòng kiểm tra và upload lại ảnh CCCD hợp lệ.');
             } else {
               // Other errors
-              showError(errorMessage);
+              setError(errorMessage);
             }
           } else {
             // Response is not JSON, try to read as text
             const text = await response.text();
-            console.log('Error response text:', text);
             
             if (text.includes('Unable to find ID card') || text.toLowerCase().includes('id card')) {
               idCardError = 'Không thể nhận diện CCCD trong ảnh. Vui lòng upload lại ảnh CCCD hợp lệ.';
@@ -336,10 +349,10 @@ const CompanyInfo = () => {
                 idCardBack: ''
               });
               setFiles(resetIdCards);
-              showError(idCardError);
+              setError(idCardError);
             } else {
               errorMessage = `HTTP ${response.status}: ${response.statusText || 'Lỗi không xác định'}`;
-              showError(errorMessage);
+              setError(errorMessage);
             }
           }
         } catch (parseError) {
@@ -357,12 +370,11 @@ const CompanyInfo = () => {
           } else {
             errorMessage = `HTTP ${response.status}: ${response.statusText || 'Lỗi không xác định'}`;
           }
-          showError(errorMessage);
+          setError(errorMessage);
         }
       }
     } catch (error) {
-      console.error('Error uploading files:', error);
-      showError('toast.company.info_submit_failed');
+      setError(t('toast.company.info_submit_failed') || 'Gửi thông tin thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

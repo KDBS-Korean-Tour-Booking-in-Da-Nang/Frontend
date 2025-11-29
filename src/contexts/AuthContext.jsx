@@ -299,7 +299,9 @@ export const AuthProvider = ({ children }) => {
           dob: userData.dob || user.dob,
           gender: userData.gender || user.gender,
           address: userData.address || user.address,
-          avatar: userData.avatar || user.avatar
+          avatar: userData.avatar || user.avatar,
+          status: userData.status || user.status,
+          role: userData.role || user.role
         };
         updateUser(updatedUser);
         return updatedUser;

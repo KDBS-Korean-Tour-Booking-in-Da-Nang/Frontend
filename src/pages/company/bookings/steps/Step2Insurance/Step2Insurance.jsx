@@ -20,7 +20,7 @@ const Step2Insurance = ({
   onInsuranceUpdatesPending
 }) => {
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const [loading, setLoading] = useState({});
   const [guestsState, setGuestsState] = useState(guests || []);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -42,7 +42,6 @@ const Step2Insurance = ({
         return guest;
       });
     } catch (err) {
-      console.warn('Unable to load saved insurance state', err);
       return guestList;
     }
   };
@@ -58,7 +57,7 @@ const Step2Insurance = ({
       }, {});
       localStorage.setItem(storageKey, JSON.stringify(map));
     } catch (err) {
-      console.warn('Unable to persist insurance state', err);
+      // Unable to persist insurance state
     }
   };
 
@@ -114,8 +113,7 @@ const Step2Insurance = ({
         onBack();
       }, 1500);
     } catch (error) {
-      console.error('Error rejecting booking:', error);
-      showError(error.message || 'Không thể từ chối booking');
+      // Error rejecting booking - show in UI if needed
     } finally {
       setLoading(prev => ({ ...prev, reject: false }));
     }
@@ -137,7 +135,7 @@ const Step2Insurance = ({
       guestsState.every(g => g.insuranceStatus === 'Success');
     
     if (!allSuccess) {
-      showError('Tất cả khách phải có trạng thái bảo hiểm là SUCCESS để tiếp tục');
+      // Validation error - can be shown in UI
       return;
     }
 
@@ -178,8 +176,7 @@ const Step2Insurance = ({
       showSuccess('Đã ghi nhận các thay đổi bảo hiểm. Vui lòng hoàn thành booking để lưu vào database.');
       onNext();
     } catch (error) {
-      console.error('Error preparing insurance status changes:', error);
-      showError(error.message || 'Không thể ghi nhận thay đổi bảo hiểm');
+      // Error preparing insurance status changes - show in UI if needed
     } finally {
       setLoading(prev => ({ ...prev, continue: false }));
     }

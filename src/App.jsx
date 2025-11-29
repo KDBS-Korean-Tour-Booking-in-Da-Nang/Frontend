@@ -40,7 +40,6 @@ import BusinessDashboard from './pages/company/CompanyLayout';
 import Dashboard from './pages/company/dashboard/Dashboard';
 import VoucherManagement from './pages/company/vouchers/VoucherManagement';
 import News from './pages/news/News';
-import NewsManagement from './pages/staff/news-management/NewsManagement';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import NewsDetail from './pages/news/NewsDetail/NewsDetail';
 import AboutUs from './pages/about/AboutUs';
@@ -170,18 +169,26 @@ function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.state]); // Check both pathname and state
 
-  // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING
-  // If user has submitted documents, redirect to pending-page
-  // If user hasn't submitted, allow access to company-info to upload
+  // Global guard: lock COMPANY/BUSINESS with COMPANY_PENDING or WAITING_FOR_APPROVAL
+  // If user has submitted documents (WAITING_FOR_APPROVAL), redirect to pending-page
+  // If user hasn't submitted (COMPANY_PENDING), allow access to company-info to upload
   useEffect(() => {
     if (loading) return;
     const role = user?.role;
     const status = user?.status;
     const isCompanyRole = role === 'COMPANY' || role === 'BUSINESS';
     const isPending = status === 'COMPANY_PENDING';
+    const isWaitingForApproval = status === 'WAITING_FOR_APPROVAL';
     const onCompanyInfoPage = location.pathname === '/company-info';
     const onPendingPage = location.pathname === '/pending-page';
     
+    // If status is WAITING_FOR_APPROVAL, always redirect to pending-page
+    if (isCompanyRole && isWaitingForApproval && !onPendingPage) {
+      navigate('/pending-page', { replace: true });
+      return;
+    }
+    
+    // If status is COMPANY_PENDING, check if user has submitted documents
     if (isCompanyRole && isPending && !onCompanyInfoPage && !onPendingPage) {
       // Check if user has submitted documents (from localStorage as quick check)
       const email = user?.email || localStorage.getItem('userEmail');

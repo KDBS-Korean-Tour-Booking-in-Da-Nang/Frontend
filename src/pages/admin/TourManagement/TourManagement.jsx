@@ -28,7 +28,7 @@ const TourManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8); // 2 rows x 4 columns
   const navigate = useNavigate();
-  const { showError } = useToast();
+  // Removed showError - errors will be handled in UI
 
   useEffect(() => {
     fetchTours();
@@ -63,11 +63,10 @@ const TourManagement = () => {
         const data = await response.json();
         setAllTours(Array.isArray(data) ? data : []);
       } else {
-        showError('Không thể tải danh sách tours');
+        // Error loading tours - handled silently or in UI
       }
     } catch (error) {
-      console.error('Error fetching tours:', error);
-      showError('Có lỗi xảy ra khi tải danh sách tours');
+      // Error fetching tours - handled silently or in UI
     } finally {
       setLoading(false);
     }

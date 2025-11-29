@@ -23,8 +23,7 @@ import { API_ENDPOINTS, getImageUrl } from '../../../../config/api';
 const TourManagement = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { showError, showSuccess } = useToast();
-  const showErrorRef = useRef(showError);
+  const { showSuccess } = useToast();
   const { t } = useTranslation();
   
   const [tours, setTours] = useState([]);
@@ -37,11 +36,7 @@ const TourManagement = () => {
   const [shareTourId, setShareTourId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8); // 2 rows x 4 columns
-  
-  // Update ref when showError changes
-  useEffect(() => {
-    showErrorRef.current = showError;
-  }, [showError]);
+  const [error, setError] = useState('');
 
   // Check if user has business role
   const isBusinessUser = user && user.role === 'COMPANY';
@@ -55,7 +50,7 @@ const TourManagement = () => {
     const token = storage.getItem('token');
     
     if (!token) {
-      showErrorRef.current('toast.login_required');
+      setError(t('toast.login_required') || 'Vui lòng đăng nhập');
       setLoading(false);
       return;
     }
@@ -83,11 +78,11 @@ const TourManagement = () => {
           : [];
         setAllTours(activeTours);
       } else {
-        showErrorRef.current('toast.tour.load_failed');
+        setError(t('toast.tour.load_failed') || 'Không thể tải danh sách tour');
       }
     } catch (error) {
       console.error('Error fetching tours:', error);
-      showErrorRef.current('toast.tour.load_error');
+      setError(t('toast.tour.load_error') || 'Lỗi khi tải tour');
     } finally {
       setLoading(false);
     }
@@ -141,7 +136,7 @@ const TourManagement = () => {
           // Toggle between PUBLIC and PRIVATE
           // NOT_APPROVED tours cannot be toggled
           if (tour.tourStatus === 'NOT_APPROVED') {
-            showError('toast.tour.status_not_approved');
+            setError(t('toast.tour.status_not_approved') || 'Tour chưa được duyệt');
             return tour;
           }
           
@@ -175,7 +170,7 @@ const TourManagement = () => {
     const token = storage.getItem('token');
 
     if (!token) {
-      showError('toast.login_required');
+      setError(t('toast.login_required') || 'Vui lòng đăng nhập');
       setDeleteModalOpen(false);
       setSelectedTour(null);
       return;
@@ -205,11 +200,11 @@ const TourManagement = () => {
           setCurrentPage(newTotalPages);
         }
       } else {
-        showError('toast.tour.delete_error');
+        setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
       }
     } catch (error) {
       console.error('Error deleting tour:', error);
-      showError('toast.tour.delete_error');
+      setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
     } finally {
       setDeleteModalOpen(false);
       setSelectedTour(null);

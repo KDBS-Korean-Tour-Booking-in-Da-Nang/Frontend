@@ -26,9 +26,11 @@ import {
 
 const StaffManagement = () => {
   const { getToken } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
+  const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [staffForm, setStaffForm] = useState({
     username: '',
     password: '',
@@ -36,7 +38,6 @@ const StaffManagement = () => {
   });
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -79,13 +80,6 @@ const StaffManagement = () => {
         return role === 'STAFF';
       });
 
-      // Debug: Log first staff user to see data structure
-      if (staffUsers.length > 0) {
-        console.log('Sample staff user data:', staffUsers[0]);
-        console.log('CreatedAt value:', staffUsers[0].createdAt);
-        console.log('All fields:', Object.keys(staffUsers[0]));
-      }
-
       // Map backend data to frontend format
       const mappedStaff = staffUsers.map(user => {
         // Format createdAt properly to avoid timezone issues
@@ -109,14 +103,10 @@ const StaffManagement = () => {
               const month = String(date.getMonth() + 1).padStart(2, '0');
               const day = String(date.getDate()).padStart(2, '0');
               formattedDate = `${year}-${month}-${day}`;
-            } else {
-              console.warn('Invalid date value:', dateValue);
             }
           } catch (e) {
-            console.error('Error parsing date:', e, 'Raw value:', dateValue);
+            // Date parsing failed, continue without date
           }
-        } else {
-          console.warn('No createdAt field found for user:', user.userId, 'Available fields:', Object.keys(user));
         }
         
         return {
@@ -177,19 +167,19 @@ const StaffManagement = () => {
   const handleEditStaff = (staff) => {
     // Note: Backend doesn't have update endpoint, so we'll disable edit for now
     // or show a message that edit is not available
-    showError('Chức năng chỉnh sửa nhân viên chưa được hỗ trợ. Backend chưa có endpoint cập nhật thông tin nhân viên.');
+    setError('Chức năng chỉnh sửa nhân viên chưa được hỗ trợ. Backend chưa có endpoint cập nhật thông tin nhân viên.');
   };
 
   const handleDeleteStaff = (staffId) => {
     // Note: Backend doesn't have delete endpoint
-    showError('Chức năng xóa nhân viên chưa được hỗ trợ. Backend chưa có endpoint xóa nhân viên.');
+    setError('Chức năng xóa nhân viên chưa được hỗ trợ. Backend chưa có endpoint xóa nhân viên.');
   };
 
   const handleStatusToggle = async (staffId) => {
     try {
       const token = getToken();
       if (!token) {
-        showError('Vui lòng đăng nhập lại');
+        setError('Vui lòng đăng nhập lại');
         return;
       }
 
@@ -208,7 +198,7 @@ const StaffManagement = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
         const errorData = await response.json();
@@ -217,23 +207,25 @@ const StaffManagement = () => {
 
       // Refresh staff list
       await fetchStaffList();
+      setError(''); // Clear error on success
       showSuccess(newBanStatus ? 'Đã tạm dừng nhân viên thành công' : 'Đã kích hoạt nhân viên thành công');
     } catch (err) {
-      console.error('Error toggling staff status:', err);
-      showError(err.message || 'Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại.');
+      setError(err.message || 'Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại.');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setFormErrors({});
     
     if (!staffForm.username.trim()) {
-      showError('Vui lòng nhập username');
+      setFormErrors(prev => ({ ...prev, username: 'Vui lòng nhập username' }));
       return;
     }
 
     if (!editingStaff && !staffForm.password.trim()) {
-      showError('Vui lòng nhập password');
+      setFormErrors(prev => ({ ...prev, password: 'Vui lòng nhập password' }));
       return;
     }
 
@@ -242,7 +234,7 @@ const StaffManagement = () => {
       const token = getToken();
       
       if (!token) {
-        showError('Vui lòng đăng nhập lại');
+        setError('Vui lòng đăng nhập lại');
         return;
       }
 
@@ -263,7 +255,7 @@ const StaffManagement = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
         const errorData = await response.json();
@@ -276,10 +268,10 @@ const StaffManagement = () => {
       await fetchStaffList();
       setIsModalOpen(false);
       setStaffForm({ username: '', password: '', staffTask: '' });
+      setError(''); // Clear error on success
       showSuccess('Tạo tài khoản nhân viên thành công!');
     } catch (err) {
-      console.error('Error creating staff:', err);
-      showError(err.message || 'Không thể tạo tài khoản nhân viên. Vui lòng thử lại.');
+      setError(err.message || 'Không thể tạo tài khoản nhân viên. Vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -288,13 +280,13 @@ const StaffManagement = () => {
   const handleAssignTask = (staff) => {
     // Note: Backend doesn't have endpoint to update staffTask after creation
     // StaffTask can only be set during staff creation
-    showError('Nhiệm vụ chỉ có thể được gán khi tạo tài khoản nhân viên. Backend chưa có endpoint cập nhật nhiệm vụ sau khi tạo.');
+    setError('Nhiệm vụ chỉ có thể được gán khi tạo tài khoản nhân viên. Backend chưa có endpoint cập nhật nhiệm vụ sau khi tạo.');
   };
 
   const handleTaskSubmit = (e) => {
     e.preventDefault();
     // This functionality is not available as backend doesn't support updating staffTask
-    showError('Chức năng này chưa được hỗ trợ. Backend chưa có endpoint cập nhật nhiệm vụ nhân viên.');
+    setError('Chức năng này chưa được hỗ trợ. Backend chưa có endpoint cập nhật nhiệm vụ nhân viên.');
     setIsTaskModalOpen(false);
     setSelectedStaffForTask(null);
     setSelectedTasks([]);
@@ -334,7 +326,7 @@ const StaffManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
           <p className="mt-4 text-gray-600">Đang tải danh sách nhân viên...</p>
         </div>
       </div>
@@ -348,7 +340,7 @@ const StaffManagement = () => {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={fetchStaffList}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
           >
             Thử lại
           </button>
@@ -359,9 +351,15 @@ const StaffManagement = () => {
 
   return (
     <div className="space-y-6">
+      {error && typeof error === 'string' && error !== null && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+      
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Staff Management</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Staff Management</p>
           <h1 className="text-3xl font-bold text-gray-900">View & manage your team</h1>
           <p className="text-sm text-gray-500 mt-1">
             Quản lý nhân viên và phân quyền truy cập hệ thống.
@@ -372,13 +370,13 @@ const StaffManagement = () => {
             <FunnelIcon className="h-5 w-5" />
             Bộ lọc nâng cao
           </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
             Xuất báo cáo
           </button>
           <button
             onClick={handleAddStaff}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
           >
             <PlusIcon className="h-5 w-5" />
             Thêm nhân viên
@@ -446,10 +444,10 @@ const StaffManagement = () => {
                 </tr>
               ) : (
                 filteredStaffList.map((staff) => (
-                  <tr key={staff.userId} className="hover:bg-blue-50/40 transition">
+                  <tr key={staff.userId} className="hover:bg-[#e9f2ff]/40 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium border border-gray-100">
+                        <div className="h-12 w-12 rounded-full bg-[#4c9dff] flex items-center justify-center text-white text-sm font-medium border border-gray-100">
                           {staff.username ? staff.username.charAt(0).toUpperCase() : 'S'}
                         </div>
                         <div>
@@ -481,7 +479,7 @@ const StaffManagement = () => {
                           if (!task) return null;
                           const Icon = task.icon;
                           return (
-                            <span key={taskId} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
+                            <span key={taskId} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-[#e9f2ff] text-[#2563eb] rounded-full">
                               <Icon className="h-3 w-3" />
                               {task.label}
                             </span>
@@ -542,7 +540,7 @@ const StaffManagement = () => {
                         </button>
                         <button 
                           onClick={() => handleEditStaff(staff)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
                           title="Chỉnh sửa (chưa hỗ trợ)"
                         >
                           <PencilIcon className="h-4 w-4" />
@@ -595,6 +593,12 @@ const StaffManagement = () => {
                         Thêm nhân viên mới
                       </h3>
                       
+                      {error && (
+                        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                          {error}
+                        </div>
+                      )}
+                      
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700">
@@ -603,11 +607,17 @@ const StaffManagement = () => {
                           <input
                             type="text"
                             value={staffForm.username}
-                            onChange={(e) => setStaffForm({...staffForm, username: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            onChange={(e) => {
+                              setStaffForm({...staffForm, username: e.target.value});
+                              setFormErrors(prev => ({ ...prev, username: '' }));
+                            }}
+                            className={`mt-1 block w-full border ${formErrors.username ? 'border-red-300' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]`}
                             placeholder="Nhập username"
                             required
                           />
+                          {formErrors.username && (
+                            <p className="mt-1 text-xs text-red-600">{formErrors.username}</p>
+                          )}
                           <p className="mt-1 text-xs text-gray-500">Username phải là duy nhất</p>
                         </div>
                         
@@ -618,11 +628,17 @@ const StaffManagement = () => {
                           <input
                             type="password"
                             value={staffForm.password}
-                            onChange={(e) => setStaffForm({...staffForm, password: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            onChange={(e) => {
+                              setStaffForm({...staffForm, password: e.target.value});
+                              setFormErrors(prev => ({ ...prev, password: '' }));
+                            }}
+                            className={`mt-1 block w-full border ${formErrors.password ? 'border-red-300' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]`}
                             placeholder="Nhập password"
                             required
                           />
+                          {formErrors.password && (
+                            <p className="mt-1 text-xs text-red-600">{formErrors.password}</p>
+                          )}
                         </div>
                         
                         <div>
@@ -632,7 +648,7 @@ const StaffManagement = () => {
                           <select
                             value={staffForm.staffTask}
                             onChange={(e) => setStaffForm({...staffForm, staffTask: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                           >
                             <option value="">Không gán nhiệm vụ</option>
                             <option value="FORUM_REPORT">Forum Report</option>
@@ -650,14 +666,14 @@ const StaffManagement = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     {submitting ? 'Đang tạo...' : 'Tạo nhân viên'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     Cancel
                   </button>
@@ -692,7 +708,7 @@ const StaffManagement = () => {
                               key={task.id}
                               className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition ${
                                 isSelected
-                                  ? 'border-blue-500 bg-blue-50'
+                                  ? 'border-[#4c9dff] bg-[#e9f2ff]'
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
                             >
@@ -706,10 +722,10 @@ const StaffManagement = () => {
                                     setSelectedTasks(selectedTasks.filter(t => t !== task.id));
                                   }
                                 }}
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="rounded border-gray-300 text-[#4c9dff] focus:ring-[#4c9dff]"
                               />
-                              <Icon className={`h-5 w-5 ${isSelected ? 'text-blue-600' : 'text-gray-400'}`} />
-                              <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
+                              <Icon className={`h-5 w-5 ${isSelected ? 'text-[#4c9dff]' : 'text-gray-400'}`} />
+                              <span className={`text-sm font-medium ${isSelected ? 'text-[#2563eb]' : 'text-gray-700'}`}>
                                 {task.label}
                               </span>
                             </label>
@@ -723,7 +739,7 @@ const StaffManagement = () => {
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     Lưu
                   </button>
@@ -734,7 +750,7 @@ const StaffManagement = () => {
                       setSelectedStaffForTask(null);
                       setSelectedTasks([]);
                     }}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     Hủy
                   </button>
@@ -752,15 +768,15 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
   <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-blue-600" />
+        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
+          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
           <p className="text-xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color}`}>{trend}</span>
+      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
   </div>
 );
@@ -779,7 +795,7 @@ const StatusBadge = ({ status }) => {
 const RoleBadge = ({ role }) => {
   const map = role === 'admin'
     ? { color: 'bg-purple-100 text-purple-700', label: 'Quản trị viên' }
-    : { color: 'bg-blue-100 text-blue-700', label: 'Nhân viên' };
+    : { color: 'bg-[#bfd7ff] text-[#2563eb]', label: 'Nhân viên' };
   return (
     <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
       {map.label}

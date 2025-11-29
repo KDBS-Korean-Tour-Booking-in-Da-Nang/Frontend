@@ -6,7 +6,7 @@ import { useToast } from '../../../../../contexts/ToastContext';
 import styles from './EditTourModal.module.css';
 
 const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const { t } = useTranslation();
   const blobUrlRef = useRef(null);
 
@@ -158,16 +158,12 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         
         if (response.ok) {
           const imageUrl = await response.text();
-          console.log('Uploaded image URL:', imageUrl);
           return imageUrl;
         } else {
           const errorText = await response.text();
-          console.error('Upload failed:', response.status, errorText);
           throw new Error('Upload failed: ' + errorText);
         }
       } catch (error) {
-        console.error('Image upload error:', error);
-        showError('toast.tour.upload_image_failed');
         throw new Error('Không thể upload ảnh. Vui lòng thử lại.');
       }
     },
@@ -225,6 +221,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [formErrors, setFormErrors] = useState({});
+  const [generalError, setGeneralError] = useState('');
   const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState('#4caf50');
   const [currentTarget, setCurrentTarget] = useState(null);
@@ -343,7 +341,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         // Step 4: Media
         tourImgPath: (() => {
           const path = tour.tourImgPath || '';
-          console.log('Original tourImgPath from database:', path);
           return path;
         })()
       });
@@ -409,7 +406,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         if (leadDays !== null && numeric >= leadDays) {
           const adjusted = Math.max(0, leadDays - 1);
           if (adjusted !== numeric) {
-            showError({ i18nKey: 'toast.field_invalid' });
+            setFormErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
           }
           numeric = adjusted;
         }
@@ -437,19 +434,19 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     }
     const leadDays = deriveLeadDaysFromDate(value);
     if (leadDays === null) {
-      showError({ i18nKey: 'toast.field_invalid' });
+      setFormErrors(prev => ({ ...prev, tourExpirationDate: t('toast.field_invalid') || 'Ngày không hợp lệ' }));
       return;
     }
     let nextDeadline = formData.tourDeadline;
     if (nextDeadline !== '') {
-      const deadlineNum = parseInt(nextDeadline, 10);
-      if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
-        const adjusted = Math.max(0, leadDays - 1);
-        if (String(adjusted) !== nextDeadline) {
-          showError({ i18nKey: 'toast.field_invalid' });
+        const deadlineNum = parseInt(nextDeadline, 10);
+        if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
+          const adjusted = Math.max(0, leadDays - 1);
+          if (String(adjusted) !== nextDeadline) {
+            setFormErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
+          }
+          nextDeadline = String(adjusted);
         }
-        nextDeadline = String(adjusted);
-      }
     }
     setFormData(prev => ({
       ...prev,
@@ -472,15 +469,21 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     if (file) {
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        showError('toast.tour.file_size_exceeded');
+        setFormErrors(prev => ({ ...prev, coverImage: t('toast.tour.file_size_exceeded') || 'Kích thước file không được vượt quá 5MB' }));
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        showError('toast.tour.invalid_file_format');
+        setFormErrors(prev => ({ ...prev, coverImage: t('toast.tour.invalid_file_format') || 'Định dạng file không hợp lệ' }));
         return;
       }
+      
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.coverImage;
+        return newErrors;
+      });
 
       // Cleanup old blob URL if exists
       if (blobUrlRef.current) {
@@ -532,9 +535,15 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
   const removeItineraryDay = (dayIndex) => {
     if ((formData.itinerary?.length || 0) <= 1) {
-      showError('toast.tour.itinerary_required');
+      setFormErrors(prev => ({ ...prev, itinerary: t('toast.tour.itinerary_required') || 'Tour phải có ít nhất 1 ngày trong lịch trình' }));
       return;
     }
+    
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.itinerary;
+      return newErrors;
+    });
     setFormData(prev => ({
       ...prev,
       itinerary: prev.itinerary.filter((_, index) => index !== dayIndex)
@@ -544,6 +553,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Clear previous errors
+    setFormErrors({});
+    setGeneralError('');
+    
     // Strict validation: all inputs must be non-empty
     const errors = [];
     if (!isNonEmptyText(formData.tourName)) errors.push('Tên tour');
@@ -582,7 +595,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     }
 
     if (errors.length > 0) {
-      showError(`Vui lòng nhập đầy đủ: ${errors.join(', ')}`);
+      setGeneralError(`Vui lòng nhập đầy đủ: ${errors.join(', ')}`);
       return;
     }
 
@@ -598,7 +611,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const token = storage.getItem('token');
       
       if (!savedUser || !token) {
-        showError('toast.tour.user_info_not_found');
+        setGeneralError(t('toast.tour.user_info_not_found') || 'Không tìm thấy thông tin người dùng');
         return;
       }
       
@@ -606,7 +619,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const userEmail = userData.email;
       
       if (!userEmail) {
-        showError('toast.tour.user_email_not_found');
+        setGeneralError(t('toast.tour.user_email_not_found') || 'Không tìm thấy email người dùng');
         return;
       }
 
@@ -619,14 +632,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const expirationDateValue = formData.tourExpirationDate || '';
 
       if (deadlineValue === null || Number.isNaN(deadlineValue) || !expirationDateValue) {
-        showError({ i18nKey: 'toast.field_invalid' });
+        setFormErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
         setLoading(false);
         return;
       }
 
       const parsedExpiration = new Date(`${expirationDateValue}T00:00:00`);
       if (Number.isNaN(parsedExpiration.getTime())) {
-        showError({ i18nKey: 'toast.field_invalid' });
+        setFormErrors(prev => ({ ...prev, tourExpirationDate: t('toast.field_invalid') || 'Ngày không hợp lệ' }));
         setLoading(false);
         return;
       }
@@ -635,7 +648,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       today.setHours(0, 0, 0, 0);
       const leadDays = Math.round((parsedExpiration.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       if (leadDays < 0) {
-        showError({ i18nKey: 'toast.field_invalid' });
+        setFormErrors(prev => ({ ...prev, tourExpirationDate: t('toast.field_invalid') || 'Ngày không hợp lệ' }));
         setLoading(false);
         return;
       }
@@ -704,11 +717,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
-        showError(errorData.message || 'toast.save_error');
+        setGeneralError(errorData.message || t('toast.save_error') || 'Lưu thất bại');
       }
     } catch (error) {
-      console.error('Error updating tour:', error);
-      showError('toast.save_error');
+      setGeneralError(t('toast.save_error') || 'Lưu thất bại');
     } finally {
       setLoading(false);
     }
@@ -724,6 +736,12 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           <button className={styles['close-btn']} onClick={onClose}>×</button>
         </div>
 
+        {generalError && (
+          <div style={{ padding: '0.75rem', marginBottom: '1rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+            {generalError}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className={styles['edit-form']}>
           {/* Tabs */}
           <div className={styles['tabs-container']}>
@@ -1175,11 +1193,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             alt="Current cover" 
                             className={styles['preview-image']}
                             onError={(e) => {
-                              console.log('Image load error:', formData.tourImgPath);
                               e.target.src = '/default-Tour.jpg';
-                            }}
-                            onLoad={() => {
-                              console.log('Image loaded successfully:', formData.tourImgPath);
                             }}
                           />
                           <div className={styles['image-overlay']}>

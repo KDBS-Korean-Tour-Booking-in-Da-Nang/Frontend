@@ -426,6 +426,7 @@ const { name, value } = e.target;
             <form className={styles['register-form']} onSubmit={handleSubmit}>
               <div className={styles['form-group']}>
                 <label htmlFor="username" className={styles['form-label']}>
+                  <Icon icon="lucide:user" className={styles['form-label-icon']} />
                   {t('auth.register.username')}
                 </label>
                 <input
@@ -449,8 +450,8 @@ const { name, value } = e.target;
 
               <div className={styles['form-group']}>
                 <label htmlFor="email" className={styles['form-label']}>
-                  {t('auth.common.email')}
                   <Icon icon="lucide:mail" className={styles['form-label-icon']} />
+                  {t('auth.common.email')}
                 </label>
                 <input
                   id="email"
@@ -483,8 +484,8 @@ const { name, value } = e.target;
 
               <div className={styles['form-group']}>
                 <label htmlFor="password" className={styles['form-label']}>
-                  {t('auth.register.password')}
                   <Icon icon="lucide:lock" className={styles['form-label-icon']} />
+                  {t('auth.register.password')}
                 </label>
                 <input
                   id="password"
@@ -507,8 +508,8 @@ const { name, value } = e.target;
 
               <div className={styles['form-group']}>
                 <label htmlFor="confirmPassword" className={styles['form-label']}>
-                  {t('auth.register.confirmPassword')}
                   <Icon icon="lucide:shield-check" className={styles['form-label-icon']} />
+                  {t('auth.register.confirmPassword')}
                 </label>
                 <input
                   id="confirmPassword"

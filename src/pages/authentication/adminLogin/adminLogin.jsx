@@ -9,8 +9,10 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { login } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
 
 
@@ -18,28 +20,29 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setUsernameError('');
+    setPasswordError('');
+    setError('');
+
     // Collect all validation errors
-    const errors = [];
+    let hasErrors = false;
 
     if (!username.trim()) {
-      errors.push('Username là bắt buộc');
+      setUsernameError('Username là bắt buộc');
+      hasErrors = true;
     }
 
     if (!password.trim()) {
-      errors.push('Mật khẩu là bắt buộc');
+      setPasswordError('Mật khẩu là bắt buộc');
+      hasErrors = true;
     }
 
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (hasErrors) {
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       const response = await fetch('/api/auth/login-username', {
@@ -70,7 +73,7 @@ const AdminLogin = () => {
           errorMessage = `Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.`;
         }
         
-        showError(errorMessage);
+        setError(errorMessage);
         return;
       }
 
@@ -94,21 +97,19 @@ const AdminLogin = () => {
           // Redirect to admin dashboard
           navigate('/admin');
         } else {
-          showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN mới được phép đăng nhập vào trang quản trị.`);
+          setError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN mới được phép đăng nhập vào trang quản trị.`);
         }
       } else {
         // Handle API error response
         const errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
-        showError(errorMessage);
+        setError(errorMessage);
       }
     } catch (err) {
-      console.error('Login error:', err);
-      
       // More specific error handling
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        showError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
+        setError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
       } else {
-        showError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+        setError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
       }
     } finally {
       setLoading(false);
@@ -137,7 +138,7 @@ const AdminLogin = () => {
               <label htmlFor="username" className="text-xs uppercase tracking-[0.3em] text-[#a86060]">
                 Username
               </label>
-              <div className="mt-2 rounded-3xl bg-[#fff1f1] border border-[#ffd7d7] px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all">
+              <div className={`mt-2 rounded-3xl bg-[#fff1f1] border ${usernameError ? 'border-[#f17575]' : 'border-[#ffd7d7]'} px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all`}>
                 <input
                   id="username"
                   name="username"
@@ -145,18 +146,26 @@ const AdminLogin = () => {
                   autoComplete="username"
                   required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameError('');
+                  }}
                   className="w-full bg-transparent text-sm text-[#3f1f1f] placeholder:text-[#ba8686] focus:outline-none"
                   placeholder="Tên đăng nhập admin"
                 />
               </div>
+              {usernameError && (
+                <div className="mt-1 text-xs text-[#b02a37] px-1">
+                  {usernameError}
+                </div>
+              )}
             </div>
 
             <div>
               <label htmlFor="password" className="text-xs uppercase tracking-[0.3em] text-[#a86060]">
                 Mật khẩu
               </label>
-              <div className="mt-2 rounded-3xl bg-[#fff1f1] border border-[#ffd7d7] px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all flex items-center gap-2">
+              <div className={`mt-2 rounded-3xl bg-[#fff1f1] border ${passwordError ? 'border-[#f17575]' : 'border-[#ffd7d7]'} px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all flex items-center gap-2`}>
                 <input
                   id="password"
                   name="password"
@@ -164,11 +173,19 @@ const AdminLogin = () => {
                   autoComplete="current-password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError('');
+                  }}
                   className="flex-1 bg-transparent text-sm text-[#3f1f1f] placeholder:text-[#ba8686] focus:outline-none"
                   placeholder="••••••••"
                 />
               </div>
+              {passwordError && (
+                <div className="mt-1 text-xs text-[#b02a37] px-1">
+                  {passwordError}
+                </div>
+              )}
             </div>
 
             {error && (

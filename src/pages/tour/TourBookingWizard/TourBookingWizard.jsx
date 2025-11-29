@@ -26,9 +26,8 @@ const BookingWizardContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const { showError, showBatch, showSuccess } = useToast();
+  const { showBatch, showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
-  const showErrorRef = useRef(showError);
     const {
     resetBooking,
     contact,
@@ -54,12 +53,10 @@ const BookingWizardContent = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
+  const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 1
   const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 2
   
-  // Update ref when showError changes
-  useEffect(() => {
-    showErrorRef.current = showError;
-  }, [showError]);
+  // Removed showError ref - using setBookingError instead
   
   // Removed VNPay return handling effect
   
@@ -128,6 +125,13 @@ const BookingWizardContent = () => {
   // Use custom hook for step validation
   const { getStepErrors, isStepCompleted, stepValidations } = useBookingStepValidation({ contact, plan, user });
 
+  // Reset step1ValidationAttempted when step1 becomes valid
+  useEffect(() => {
+    if (currentStep === 1 && stepValidations.step1?.isValid) {
+      setStep1ValidationAttempted(false);
+    }
+  }, [currentStep, stepValidations.step1?.isValid]);
+
   // Authentication and role guard
   useEffect(() => {
     if (!authLoading && !user) {
@@ -140,7 +144,7 @@ const BookingWizardContent = () => {
   // Block COMPANY role from booking
   useEffect(() => {
     if (!authLoading && user && user.role === 'COMPANY') {
-      showErrorRef.current(t('bookingWizard.toast.companyNotAllowedError'));
+      setBookingError(t('bookingWizard.toast.companyNotAllowedError') || 'Tài khoản công ty không thể đặt tour');
     }
   }, [authLoading, user]);
 
@@ -284,6 +288,8 @@ const BookingWizardContent = () => {
       if (!isCurrentStepValid) {
         // For step 1, find the first missing (unfilled) field and show only 1 toast
         if (currentStep === 1) {
+          // Mark that user has attempted validation for Step 1
+          setStep1ValidationAttempted(true);
           // Trigger validation in Step1Contact to show inline error messages
           window.dispatchEvent(new CustomEvent('validateStep1'));
         } else if (currentStep === 2) {
@@ -353,6 +359,8 @@ const BookingWizardContent = () => {
             // Error saving booking data
           }
 
+          // Reset Step 1 validation attempted state when leaving Step 1
+          setStep1ValidationAttempted(false);
           // Reset Step 2 validation attempted state when entering Step 2
           setStep2ValidationAttempted(false);
           setCurrentStep(2);
@@ -387,6 +395,8 @@ const BookingWizardContent = () => {
       // Reset validation attempted state when going back
       if (currentStep === 2) {
         setStep2ValidationAttempted(false);
+      } else if (currentStep === 1) {
+        setStep1ValidationAttempted(false);
       }
       setCurrentStep(currentStep - 1);
     }
@@ -400,15 +410,18 @@ const BookingWizardContent = () => {
       bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
     } catch (error) {
       // Failed to format booking data
-      showError(error?.message || t('bookingWizard.toast.formatDataError'));
+      setBookingError(error?.message || t('bookingWizard.toast.formatDataError') || 'Lỗi định dạng dữ liệu');
       return;
     }
 
     const validation = validateBookingData(bookingData);
     if (!validation.isValid) {
-      showError(t('bookingWizard.toast.validationError', { errors: validation.errors.join(', ') }));
+      setBookingError(t('bookingWizard.toast.validationError', { errors: validation.errors.join(', ') }) || 'Dữ liệu không hợp lệ');
       return;
     }
+    
+    // Clear error if validation passes
+    setBookingError('');
 
     try {
       const finalBookingData = {
@@ -447,9 +460,8 @@ const BookingWizardContent = () => {
       });
     } catch (error) {
       // Create booking failed
-      const message = error?.message || t('bookingWizard.toast.bookingError');
+      const message = error?.message || t('bookingWizard.toast.bookingError') || 'Đặt tour thất bại';
       setBookingError(message);
-      showError(message);
       if (message === 'Unauthenticated') {
         navigate('/login');
       }
@@ -465,7 +477,10 @@ const BookingWizardContent = () => {
   const handleStepClick = (stepId) => {
     // Only allow clicking on completed steps or current step
     if (isStepCompletedByValidation(stepId) || stepId === currentStep) {
-      // Reset Step 2 validation attempted state when leaving Step 2
+      // Reset validation attempted state when leaving a step
+      if (currentStep === 1 && stepId !== 1) {
+        setStep1ValidationAttempted(false);
+      }
       if (currentStep === 2 && stepId !== 2) {
         setStep2ValidationAttempted(false);
       }
@@ -648,9 +663,16 @@ const BookingWizardContent = () => {
               className={styles['btn-primary']} 
               onClick={handleNext}
               disabled={(() => {
-                // For Step 1: always allow clicking so inline errors can be shown
+                // For Step 1: only disable after user has attempted validation and form is still invalid
                 if (currentStep === 1) {
-                  return false;
+                  if (!step1ValidationAttempted) {
+                    // Allow clicking before validation attempt
+                    return false;
+                  }
+                  // After validation attempt, disable if form is still invalid
+                  const currentStepKey = `step${currentStep}`;
+                  const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                  return !isCurrentStepValid;
                 }
                 
                 // For Step 2: only disable after user has attempted validation and form is still invalid
@@ -678,7 +700,7 @@ const BookingWizardContent = () => {
               type="button" 
               className={styles['btn-success']} 
               onClick={handleConfirm}
-              disabled={booking.loading}
+              disabled={booking.loading || !!booking.error}
             >
               {(() => {
                 if (booking.loading) {

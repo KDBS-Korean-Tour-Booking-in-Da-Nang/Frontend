@@ -10,7 +10,7 @@ const neutralButtonClasses = 'inline-flex items-center justify-center gap-2 roun
 
 const ForumReportManagement = () => {
   const { user } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
 
   const [loading, setLoading] = useState(false);
   const [forumReports, setForumReports] = useState([]);
@@ -19,6 +19,7 @@ const ForumReportManagement = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportNote, setReportNote] = useState('');
+  const [error, setError] = useState('');
 
   const loadForumReports = useCallback(async (page = 0) => {
     setLoading(true);
@@ -35,11 +36,11 @@ const ForumReportManagement = () => {
       setReportPage(page);
     } catch (error) {
       console.error('Error loading forum reports:', error);
-      showError('Không thể tải danh sách báo cáo');
+      setError('Không thể tải danh sách báo cáo');
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+  }, []);
 
   useEffect(() => {
     loadForumReports();
@@ -82,7 +83,7 @@ const ForumReportManagement = () => {
       loadForumReports(reportPage);
     } catch (error) {
       console.error('Error updating report status:', error);
-      showError('Không thể cập nhật trạng thái báo cáo');
+      setError('Không thể cập nhật trạng thái báo cáo');
     }
   };
 
@@ -98,6 +99,11 @@ const ForumReportManagement = () => {
 
   return (
     <>
+      {error && (
+        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+          {error}
+        </div>
+      )}
       <div className={`${pastelCardClasses}`}>
         <div className="flex flex-col gap-2 border-b border-[#eef2ff] px-6 py-5 md:flex-row md:items-center md:justify-between">
           <div>

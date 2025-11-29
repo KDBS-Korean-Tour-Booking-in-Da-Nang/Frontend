@@ -134,7 +134,6 @@ const BookingManagement = () => {
             totalAmount: totalResp?.totalAmount || 0
           };
         } catch (err) {
-          console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
           return {
             ...booking,
             id: booking.bookingId,
@@ -297,7 +296,6 @@ const BookingManagement = () => {
         setCurrentTourPage(1); // Reset to first page when tours are loaded
       }
     } catch (e) {
-      console.error(e);
       setTours([]);
     } finally {
       setToursLoading(false);

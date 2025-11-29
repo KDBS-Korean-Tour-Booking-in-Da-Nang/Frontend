@@ -29,7 +29,6 @@ export const setNavigateCallback = (callback) => {
  */
 export const redirectToErrorPage = (status, autoRedirect = false) => {
   if (!navigateCallback) {
-    console.warn('Navigate callback not set. Cannot redirect to error page.');
     return;
   }
 

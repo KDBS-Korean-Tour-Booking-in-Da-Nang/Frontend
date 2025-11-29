@@ -65,6 +65,10 @@
 		},
 		"vehicles": {
 			"tourBus": "관광 버스"
+		},
+		"status": {
+			"WAITING_FOR_APPROVAL": "승인 대기",
+			"COMPANY_PENDING": "대기 중"
 		}
 	},
 	"auth": {

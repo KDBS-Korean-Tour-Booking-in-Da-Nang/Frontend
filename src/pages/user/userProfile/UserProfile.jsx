@@ -29,7 +29,7 @@ const GenderLabelIcon = () => (
 const UserProfile = () => {
   const { t, i18n } = useTranslation();
   const { user, updateUser, getToken, refreshUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
@@ -48,6 +48,8 @@ const UserProfile = () => {
   const isSocialProvider = (user?.authProvider === 'GOOGLE' || user?.authProvider === 'NAVER');
   const [nameError, setNameError] = useState('');
   const [dobError, setDobError] = useState('');
+  const [avatarError, setAvatarError] = useState('');
+  const [updateError, setUpdateError] = useState('');
   const [editingFields, setEditingFields] = useState(new Set());
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -221,7 +223,7 @@ const UserProfile = () => {
       } else if (!message) {
         message = t('profile.password.errors.generic');
       }
-      showError(message);
+      setPasswordErrors({ general: message });
     } finally {
       setIsChangingPassword(false);
     }
@@ -491,14 +493,16 @@ const UserProfile = () => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
     if (file.size > maxSize) {
-      showError(t('profile.errors.avatarSize'));
+      setAvatarError(t('profile.errors.avatarSize') || 'Kích thước ảnh không được vượt quá 5MB');
       return;
     }
     
     if (!allowedTypes.includes(file.type)) {
-      showError(t('profile.errors.avatarFormat'));
+      setAvatarError(t('profile.errors.avatarFormat') || 'Định dạng ảnh không được hỗ trợ');
       return;
     }
+    
+    setAvatarError(''); // Clear error if validation passes
     
     // Save the file for later upload
     setAvatarFile(file);
@@ -526,11 +530,17 @@ const UserProfile = () => {
       currentAvatarUrl: user?.avatar // Provide current avatar so FE can reattach if no new file
     };
 
+    // Clear previous errors
+    setNameError('');
+    setDobError('');
+    setUpdateError('');
+    
     // Real-time guard: name required
     const trimmedName = (userData.name || '').trim();
     if (!trimmedName) {
-      setNameError(t('toast.name_required'));
-      showError(t('toast.name_required'));
+      const errorMsg = t('toast.name_required') || 'Tên là bắt buộc';
+      setNameError(errorMsg);
+      setUpdateError(errorMsg);
       return;
     }
 
@@ -540,7 +550,9 @@ const UserProfile = () => {
       // Must start with a letter; allow letters (including accents), spaces, and digits after the first letter; no special characters
       const nameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
       if (!nameRegex.test(name)) {
-        showError(t('profile.errors.invalidName'));
+        const errorMsg = t('profile.errors.invalidName') || 'Tên không hợp lệ';
+        setNameError(errorMsg);
+        setUpdateError(errorMsg);
         return;
       }
     }
@@ -549,7 +561,9 @@ const UserProfile = () => {
     const normalizedDob = parseDateFromDisplayToISO(userData.dob || '');
     // Only validate DOB if user entered something - allow empty DOB
     if (userData.dob && userData.dob.trim() && !normalizedDob) {
-      showError(t('booking.errors.dobInvalidFormat'));
+      const errorMsg = t('booking.errors.dobInvalidFormat') || 'Định dạng ngày sinh không hợp lệ';
+      setDobError(errorMsg);
+      setUpdateError(errorMsg);
       return;
     }
     // Prepare data for validation: use normalized DOB if available, otherwise empty
@@ -559,10 +573,15 @@ const UserProfile = () => {
     };
     const validation = validateUserProfile(dataForValidation);
     if (!validation.isValid) {
-      // Only show toast error, don't set updateError state
+      // Set field-level errors
+      if (validation.errors.name) setNameError(validation.errors.name);
+      if (validation.errors.dob) setDobError(validation.errors.dob);
+      if (validation.errors.phone) setUpdateError(validation.errors.phone);
+      if (validation.errors.email) setUpdateError(validation.errors.email);
+      // Show first error as general error
       const firstError = Object.values(validation.errors)[0];
-      if (firstError) {
-        showError(firstError);
+      if (firstError && !updateError) {
+        setUpdateError(firstError);
       }
       return;
     }
@@ -632,10 +651,8 @@ const UserProfile = () => {
       setIsEditModalOpen(false);
       
     } catch (error) {
-      console.error('Error updating profile:', error);
-      const errorMessage = error.message || t('profile.errors.updateFailed');
-      // Only show toast error, don't set updateError state
-      showError(errorMessage);
+      const errorMessage = error.message || t('profile.errors.updateFailed') || 'Cập nhật thông tin thất bại';
+      setUpdateError(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -1001,7 +1018,11 @@ const UserProfile = () => {
       >
         {/* Success messages removed - only show toast notifications */}
 
-        {/* Error messages removed - only show toast notifications */}
+        {updateError && (
+          <div className={styles['field-hint']} style={{ color: '#e11d48', marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '0.5rem' }}>
+            {updateError}
+          </div>
+        )}
 
         <form onSubmit={handleEditSubmit} className={styles['edit-form']}>
           <div className={styles['modal-card']}>

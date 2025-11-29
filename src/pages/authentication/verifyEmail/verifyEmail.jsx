@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@iconify/react';
 import { useTranslation } from 'react-i18next';
 import styles from './verifyEmail.module.css';
 
@@ -14,7 +15,7 @@ const VerifyEmail = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const { login } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -51,12 +52,12 @@ const VerifyEmail = () => {
 
     // Validation
     if (!otp.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
+      setError(t('toast.required', { field: t('auth.common.otp') }) || 'OTP là bắt buộc');
       setLoading(false);
       return;
     }
     if (otp.length !== 6) {
-      showError(t('auth.verify.error'));
+      setError(t('auth.verify.error') || 'OTP phải có 6 chữ số');
       setLoading(false);
       return;
     }
@@ -132,11 +133,11 @@ const VerifyEmail = () => {
           }
         }, 2000);
       } else {
-        showError(data.message || 'toast.auth.email_verify_failed');
+        setError(data.message || t('toast.auth.email_verify_failed') || 'Xác thực email thất bại');
         setLoading(false);
       }
     } catch (err) {
-      showError('toast.auth.email_verify_failed');
+      setError(t('toast.auth.email_verify_failed') || 'Xác thực email thất bại');
       setLoading(false);
     }
   };
@@ -147,7 +148,7 @@ const VerifyEmail = () => {
 
     // Validate email exists before sending request
     if (!email || !email.trim()) {
-      showError('Email is required');
+      setError('Email là bắt buộc');
       setResendLoading(false);
       return;
     }
@@ -170,7 +171,7 @@ const VerifyEmail = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-        showError(errorMessage);
+        setError(errorMessage);
         setResendLoading(false);
         return;
       }
@@ -189,15 +190,15 @@ const VerifyEmail = () => {
             return prev - 1;
           });
         }, 1000);
+        setError(''); // Clear any previous errors
         showSuccess('toast.auth.otp_sent_success');
       } else {
         // Show detailed error message from backend
-        const errorMessage = data.message || data.error || 'toast.auth.otp_resend_failed';
-        showError(errorMessage);
+        const errorMessage = data.message || data.error || t('toast.auth.otp_resend_failed') || 'Gửi lại OTP thất bại';
+        setError(errorMessage);
       }
     } catch (err) {
-      console.error('Resend OTP error:', err);
-      showError('toast.auth.otp_resend_failed');
+      setError(t('toast.auth.otp_resend_failed') || 'Gửi lại OTP thất bại');
     } finally {
       setResendLoading(false);
     }
@@ -222,6 +223,7 @@ const VerifyEmail = () => {
           <form className={styles['verify-form']} onSubmit={handleSubmit}>
             <div className={styles['form-group']}>
               <label htmlFor="otp" className={styles['form-label']}>
+                <Icon icon="lucide:key" className={styles['form-label-icon']} />
                 {t('auth.verify.label')}
               </label>
               <input

@@ -18,13 +18,34 @@ const Login = () => {
   const [passwordError, setPasswordError] = useState('');
   const [generalError, setGeneralError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const { login } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
   // Note: Toast messages from navigation state are handled in App.jsx
   // No need to handle them here to avoid duplicate toasts
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      // User is already logged in, redirect based on role
+      const returnAfterLogin = localStorage.getItem('returnAfterLogin');
+      if (returnAfterLogin) {
+        localStorage.removeItem('returnAfterLogin');
+        navigate(returnAfterLogin, { replace: true });
+        return;
+      }
+
+      let targetPath = '/';
+      if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
+        targetPath = '/company/dashboard';
+      } else if (user.role === 'ADMIN' || user.role === 'STAFF') {
+        targetPath = '/admin';
+      }
+      navigate(targetPath, { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   // Check for error from URL parameters (OAuth callback errors)
   useEffect(() => {
@@ -296,14 +317,16 @@ const Login = () => {
           login(user, token, rememberMe);
           
           // Clear any stale onboarding flags for non-pending users
-          if (!(user.role === 'COMPANY' || user.role === 'BUSINESS') || user.status !== 'COMPANY_PENDING') {
+          if (!(user.role === 'COMPANY' || user.role === 'BUSINESS') || 
+              (user.status !== 'COMPANY_PENDING' && user.status !== 'WAITING_FOR_APPROVAL')) {
             localStorage.removeItem('registration_intent');
             localStorage.removeItem('company_onboarding_pending');
           }
           
           // Navigate immediately and show toast on the new page
-          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING to pending-page
-          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && user.status === 'COMPANY_PENDING') {
+          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING or WAITING_FOR_APPROVAL to pending-page
+          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && 
+              (user.status === 'COMPANY_PENDING' || user.status === 'WAITING_FOR_APPROVAL')) {
             // Keep onboarding flags for pending flow
             // Use window.location.href for pending-page to ensure full page reload
             window.location.href = '/pending-page';
@@ -439,8 +462,8 @@ const Login = () => {
             <form className={styles['login-form']} onSubmit={handleSubmit}>
               <div className={styles['form-group']}>
                 <label htmlFor="email" className={styles['form-label']}>
-                  {t('auth.common.email')}
                   <Icon icon="lucide:mail" className={styles['form-label-icon']} />
+                  {t('auth.common.email')}
                 </label>
                 <input
                   id="email"
@@ -473,8 +496,8 @@ const Login = () => {
 
               <div className={styles['form-group']}>
                 <label htmlFor="password" className={styles['form-label']}>
-                  {t('auth.common.password')}
                   <Icon icon="lucide:lock" className={styles['form-label-icon']} />
+                  {t('auth.common.password')}
                 </label>
                 <input
                   id="password"

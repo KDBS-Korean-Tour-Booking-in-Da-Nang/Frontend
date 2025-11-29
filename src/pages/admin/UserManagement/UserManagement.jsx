@@ -120,7 +120,7 @@ const UserManagement = () => {
       case 'admin':
         return 'bg-purple-100 text-purple-800';
       case 'staff':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#bfd7ff] text-[#2563eb]';
       case 'business':
         return 'bg-green-100 text-green-800';
       case 'user':
@@ -140,7 +140,7 @@ const UserManagement = () => {
         </div>
         <button
           onClick={handleAddUser}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+          className="bg-[#4c9dff] hover:bg-[#3f85d6] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center shadow-[0_12px_30px_rgba(76,157,255,0.35)] transition-all duration-200"
         >
           <PlusIcon className="h-4 w-4 mr-2" />
           Add User
@@ -152,7 +152,7 @@ const UserManagement = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <UsersIcon className="h-8 w-8 text-blue-500" />
+              <UsersIcon className="h-8 w-8 text-[#4c9dff]" />
             </div>
             <div className="ml-5">
               <p className="text-sm font-medium text-gray-500">Total Users</p>
@@ -237,7 +237,7 @@ const UserManagement = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+                          <div className="h-10 w-10 rounded-full bg-[#4c9dff] flex items-center justify-center text-white text-sm font-medium">
                             {user.name.split(' ').map(n => n[0]).join('')}
                           </div>
                         </div>
@@ -328,7 +328,7 @@ const UserManagement = () => {
                             type="text"
                             value={userForm.name}
                             onChange={(e) => setUserForm({...userForm, name: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                             required
                           />
                         </div>
@@ -339,7 +339,7 @@ const UserManagement = () => {
                             type="email"
                             value={userForm.email}
                             onChange={(e) => setUserForm({...userForm, email: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                             required
                           />
                         </div>
@@ -349,7 +349,7 @@ const UserManagement = () => {
                           <select
                             value={userForm.role}
                             onChange={(e) => setUserForm({...userForm, role: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                           >
                             <option value="user">User</option>
                             <option value="business">Business</option>
@@ -363,7 +363,7 @@ const UserManagement = () => {
                           <select
                             value={userForm.status}
                             onChange={(e) => setUserForm({...userForm, status: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                           >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -377,14 +377,14 @@ const UserManagement = () => {
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     {editingUser ? 'Update' : 'Add'} User
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     Cancel
                   </button>

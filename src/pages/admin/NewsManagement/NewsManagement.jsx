@@ -11,7 +11,7 @@ const NewsManagement = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
   const [articles, setArticles] = useState([]);
   const [selectedArticles, setSelectedArticles] = useState([]);
@@ -21,6 +21,7 @@ const NewsManagement = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [lastArticleCount, setLastArticleCount] = useState(0);
+  const [error, setError] = useState('');
 
   const softUI = {
     pageBg: 'bg-gradient-to-b from-[#fefefe] via-[#f8f6ff] to-[#f3fbff]',
@@ -53,13 +54,13 @@ const NewsManagement = () => {
       
       setArticles(sortedArticles);
       setLastArticleCount(sortedArticles.length);
+      setError(''); // Clear error on success
     } catch (error) {
-      console.error('Error loading articles:', error);
-      showError(t('newsManagement.messages.crawlError'));
+      setError(t('newsManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
     } finally {
       setLoadingArticles(false);
     }
-  }, [showError, showSuccess, lastArticleCount, t]);
+  }, [showSuccess, lastArticleCount, t]);
 
   useEffect(() => {
     if (user && (user.role === 'ADMIN' || user.role === 'STAFF')) {
@@ -91,8 +92,7 @@ const NewsManagement = () => {
       }
       await loadArticles(false);
     } catch (error) {
-      console.error('Error crawling articles:', error);
-      showError(t('newsManagement.messages.crawlError'));
+      setError(t('newsManagement.messages.crawlError') || 'Không thể crawl bài viết');
     } finally {
       setLoading(false);
     }
@@ -129,9 +129,11 @@ const NewsManagement = () => {
 
   const handleUpdateStatus = async (status) => {
     if (selectedArticles.length === 0) {
-      showError(t('newsManagement.messages.selectArticles'));
+      setError(t('newsManagement.messages.selectArticles') || 'Vui lòng chọn ít nhất một bài viết');
       return;
     }
+    
+    setError(''); // Clear previous error
 
     setLoading(true);
     try {
@@ -144,8 +146,7 @@ const NewsManagement = () => {
       setSelectedArticles([]);
       await loadArticles();
     } catch (error) {
-      console.error('Error updating article status:', error);
-      showError(t('newsManagement.messages.statusUpdateError'));
+      setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái bài viết');
     } finally {
       setLoading(false);
     }
@@ -156,14 +157,20 @@ const NewsManagement = () => {
       const article = await articleService.getArticleById(articleId);
       setSelectedArticle(article);
       setShowArticleModal(true);
+      setError(''); // Clear error on success
     } catch (error) {
-      console.error('Error fetching article:', error);
-      showError(t('newsManagement.messages.crawlError'));
+      setError(t('newsManagement.messages.crawlError') || 'Không thể tải bài viết');
     }
   };
 
   return (
     <div className={`min-h-screen ${softUI.pageBg} px-4 py-10`}>
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+      
       <style dangerouslySetInnerHTML={{
         __html: `
           .article-content img {
@@ -355,7 +362,7 @@ const NewsManagement = () => {
                                   showSuccess(t('newsManagement.messages.statusUpdateSuccess', { action: statusText, count: 1 }));
                                   await loadArticles();
                                 } catch (error) {
-                                  showError(t('newsManagement.messages.statusUpdateError'));
+                                  setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái bài viết');
                                 } finally {
                                   setLoading(false);
                                 }
@@ -512,7 +519,7 @@ const NewsManagement = () => {
                       setShowArticleModal(false);
                     })
                     .catch(() => {
-                      showError(t('newsManagement.messages.statusUpdateError'));
+                      setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái bài viết');
                     });
                 }}
                 className={`${primaryButtonClasses} px-6 py-2`}

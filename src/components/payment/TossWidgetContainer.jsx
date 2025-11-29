@@ -203,7 +203,6 @@ const TossWidgetContainer = ({
   ]);
 
   const handleCancel = () => {
-    console.debug('[Payment] Toss widget cancelled by user', { orderId });
     onCancel?.();
     onClose?.();
   };

@@ -47,8 +47,6 @@ const getAuthHeaders = () => {
  */
 export const createBooking = async (bookingData) => {
   try {
-    console.log('Creating booking with data:', bookingData);
-    
     const response = await fetch(`${API_BASE_URL}/api/booking`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -63,15 +61,12 @@ export const createBooking = async (bookingData) => {
       }
       
       const message = await parseErrorMessage(response);
-      console.error('Booking creation failed:', { status: response.status, message });
       throw new Error(message);
     }
 
     const result = await response.json();
-    console.log('Booking created successfully:', result);
     return result;
   } catch (error) {
-    console.error('Error creating booking:', error);
     throw error;
   }
 };
@@ -121,7 +116,6 @@ export const getBookingById = async (bookingId) => {
 */
 export const getAllBookings = async (companyId) => {
   if (!companyId) {
-    console.warn('getAllBookings called without companyId. Returning empty array.');
     return [];
   }
 
@@ -151,7 +145,6 @@ export const getAllBookings = async (companyId) => {
     }
     return [];
   } catch (error) {
-    console.error('Error fetching bookings:', error);
     throw error;
   }
 };
@@ -219,7 +212,6 @@ export const getBookingTotal = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching booking total:', error);
     throw error;
   }
 };
@@ -250,7 +242,6 @@ export const getBookingDetails = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching booking details:', error);
     throw error;
   }
 };
@@ -330,7 +321,6 @@ export const getBookingsByTourId = async (tourId) => {
     }
     return [];
   } catch (error) {
-    console.error('Error fetching bookings by tour ID:', error);
     throw error;
   }
 };
@@ -362,7 +352,6 @@ export const getGuestsByBookingId = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching guests by booking ID:', error);
     throw error;
   }
 };
@@ -402,7 +391,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error changing booking status:', error);
     throw error;
   }
 };
@@ -436,7 +424,6 @@ export const updateBooking = async (bookingId, bookingData) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error updating booking:', error);
     throw error;
   }
 };
@@ -469,7 +456,6 @@ export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error changing guest insurance status:', error);
     throw error;
   }
 };
@@ -501,7 +487,6 @@ export const companyConfirmTourCompletion = async (bookingId) => {
     // No content response
     return;
   } catch (error) {
-    console.error('Error confirming tour completion:', error);
     throw error;
   }
 };
@@ -560,11 +545,6 @@ export const getTourCompletionStatus = async (bookingId) => {
       const message = await parseErrorMessage(response);
 
       if (response.status === 400) {
-        console.warn('Tour completion status not available yet:', {
-          bookingId,
-          status: response.status,
-          message,
-        });
         return false;
       }
       
@@ -574,7 +554,6 @@ export const getTourCompletionStatus = async (bookingId) => {
     const result = await response.json();
     return result === true || result === 'true';
   } catch (error) {
-    console.error('Error fetching tour completion status:', error);
     throw error;
   }
 };

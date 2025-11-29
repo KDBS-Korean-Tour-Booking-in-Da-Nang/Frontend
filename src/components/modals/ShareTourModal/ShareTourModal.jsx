@@ -10,7 +10,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showError } = useToast();
+  // Removed showError - errors will be handled in UI
 
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState(null);
@@ -48,10 +48,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           });
         }
       } catch (e) {
-        console.error(e);
-        if (isMounted) {
-          showError('toast.forum.post_create_failed');
-        }
+        // Error creating post - handled silently or in UI
       }
     })();
     
@@ -91,7 +88,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
 
   const createPost = async () => {
     if (!user) {
-      showError('auth.loginRequired.title');
+      // User not logged in - handled by LoginRequiredModal
       return;
     }
     try {
@@ -128,7 +125,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           const file = new File([blob], 'thumbnail.jpg', { type: blob.type || 'image/jpeg' });
           formData.append('imageUrls', file);
         } catch (e) {
-          console.warn('Failed to fetch thumbnail, continue without image');
+          // Failed to fetch thumbnail, continue without image
         }
       }
 
@@ -148,8 +145,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
         navigate('/forum');
       }, 100);
     } catch (e) {
-      console.error(e);
-      showError('toast.forum.post_create_failed');
+      // Error creating post - handled silently or in UI
     } finally {
       setLoading(false);
     }

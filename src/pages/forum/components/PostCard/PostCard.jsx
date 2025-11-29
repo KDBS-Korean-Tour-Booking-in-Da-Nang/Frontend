@@ -437,7 +437,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       }
     } catch (error) {
       // Silently fail - use initial data as fallback
-      console.debug('Error fetching reaction summary:', error);
     }
   };
 
@@ -459,7 +458,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       }
     } catch (error) {
       // Silently fail - user can still interact, will update on next check
-      console.debug('Error checking if saved:', error);
     }
   };
 
@@ -473,7 +471,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       }
     } catch (error) {
       // Silently fail - use initial data as fallback
-      console.debug('Error fetching save count:', error);
     }
   };
 
@@ -492,13 +489,11 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       }
     } catch (error) {
       // Silently fail - user can still interact
-      console.debug('Error checking if reported:', error);
     }
   };
 
   const handleSavePost = async () => {
     if (!user) {
-      console.log('No user found');
       return;
     }
     
@@ -624,8 +619,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         throw new Error(`${t('forum.modals.report.error')}: ${response.status} - ${errorText}`);
       }
 
-      const result = await response.json();
-      console.log('Report submitted successfully:', result);
+        const result = await response.json();
       
       // Update reported status
       setHasReported(true);

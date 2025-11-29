@@ -107,8 +107,6 @@ export const updateUserProfile = async (userData, token) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error updating user profile:', error);
-    
     // Handle specific error cases
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
@@ -288,8 +286,6 @@ export const getUserByEmail = async (email, token) => {
     // If result has a 'result' property (ApiResponse wrapper), use it, otherwise use result directly
     return result.result || result;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
     }
@@ -346,8 +342,6 @@ export const changeUserPassword = async (payload, token) => {
 
     return response.json();
   } catch (error) {
-    console.error('Error changing password:', error);
-
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
     }

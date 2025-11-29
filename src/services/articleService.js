@@ -3,6 +3,26 @@ import { checkAndHandleApiError } from '../utils/apiErrorHandler';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 class ArticleService {
+  /**
+   * Get authentication headers with Bearer token
+   * @returns {Object} - Headers object with Authorization
+   */
+  getAuthHeaders() {
+    const token =
+      localStorage.getItem('token') ||
+      sessionStorage.getItem('token') ||
+      localStorage.getItem('accessToken') ||
+      sessionStorage.getItem('accessToken');
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
+  }
   async crawlArticles() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/article/crawl`, {
@@ -23,7 +43,6 @@ class ArticleService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error crawling articles:', error);
       throw error;
     }
   }
@@ -48,7 +67,6 @@ class ArticleService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching articles:', error);
       throw error;
     }
   }
@@ -73,7 +91,6 @@ class ArticleService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching article by ID:', error);
       throw error;
     }
   }
@@ -83,9 +100,7 @@ class ArticleService {
       // Backend expects status as query parameter, not JSON body
       const response = await fetch(`${API_BASE_URL}/api/article/${articleId}/status?status=${status}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -99,7 +114,6 @@ class ArticleService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error updating article status:', error);
       throw error;
     }
   }
@@ -124,7 +138,6 @@ class ArticleService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching articles by status:', error);
       throw error;
     }
   }

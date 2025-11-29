@@ -7,11 +7,11 @@ import styles from './Step4Media.module.css';
 
 const Step4Media = () => {
   const { t } = useTranslation();
-  const { showError } = useToast();
   const { tourData, updateTourData } = useTourWizardContext();
   const [formData, setFormData] = useState({
     thumbnail: null
   });
+  const [error, setError] = useState('');
 
   // Update form data when tourData changes
   useEffect(() => {
@@ -25,16 +25,19 @@ const Step4Media = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        showError({ i18nKey: 'toast.field_invalid' });
+        setError(t('toast.field_invalid') || 'File không hợp lệ. Vui lòng chọn file ảnh.');
         return;
       }
       
       // Validate file size (max 10MB)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        showError({ i18nKey: 'toast.field_invalid' });
+        setError(t('toast.field_invalid') || 'File quá lớn. Kích thước tối đa là 10MB.');
         return;
       }
+      
+      // Clear error if validation passes
+      setError('');
       
       const newFormData = { ...formData, thumbnail: file };
       setFormData(newFormData);

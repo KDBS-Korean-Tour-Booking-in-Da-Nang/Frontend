@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, NavLink, useLocation } from 'react-router-dom';
 import {
-  NewspaperIcon,
   Bars3Icon,
   XMarkIcon,
   BellIcon,
@@ -108,7 +107,6 @@ const StaffLayout = ({ children }) => {
       title: 'MENU',
       items: [
         { type: 'tasks', name: 'Task Management' },
-        { type: 'link', name: 'News Management', to: '/staff/news-management', icon: NewspaperIcon },
       ],
     },
     {
@@ -209,7 +207,6 @@ const StaffLayout = ({ children }) => {
                       <div key={item.name}>
                         <NavLink
                           to={item.to}
-                          end={item.to === '/staff/news-management'}
                           className={({ isActive: navActive }) =>
                             [
                               'flex items-center rounded-xl px-3.5 py-2.5 transition-all duration-200 no-underline',

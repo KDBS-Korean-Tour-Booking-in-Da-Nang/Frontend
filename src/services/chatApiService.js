@@ -57,7 +57,6 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching conversation:', error);
       throw error;
     }
   }
@@ -87,7 +86,6 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching conversation:', error);
       throw error;
     }
   }
@@ -115,7 +113,6 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching all messages from user:', error);
       throw error;
     }
   }
@@ -148,7 +145,6 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error sending message:', error);
       throw error;
     }
   }
@@ -177,7 +173,6 @@ class ChatApiService {
       // Backend returns data in format: { result: [...users] }
       return data.result || data;
     } catch (error) {
-      console.error('Error fetching all users:', error);
       throw error;
     }
   }
@@ -205,7 +200,6 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching current user:', error);
       throw error;
     }
   }

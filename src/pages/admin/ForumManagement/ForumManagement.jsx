@@ -46,7 +46,7 @@ const ForumManagement = () => {
   const [totalItems, setTotalItems] = useState(0);
 
   const navigate = useNavigate();
-  const { showError } = useToast();
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchPosts();
@@ -88,11 +88,11 @@ const ForumManagement = () => {
         const data = await response.json();
         setAllPosts(Array.isArray(data) ? data : []);
       } else {
-        showError('Không thể tải danh sách bài viết');
+        setError('Không thể tải danh sách bài viết');
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
-      showError('Có lỗi xảy ra khi tải danh sách bài viết');
+      setError('Có lỗi xảy ra khi tải danh sách bài viết');
     } finally {
       setLoading(false);
     }
@@ -124,11 +124,11 @@ const ForumManagement = () => {
         const reportsList = data.content || data || [];
         setReports(reportsList);
       } else {
-        showError('Không thể tải danh sách báo cáo');
+        setError('Không thể tải danh sách báo cáo');
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
-      showError('Có lỗi xảy ra khi tải danh sách báo cáo');
+      setError('Có lỗi xảy ra khi tải danh sách báo cáo');
     } finally {
       setReportsLoading(false);
     }
@@ -217,7 +217,7 @@ const ForumManagement = () => {
   const getStatusBadgeColor = (status) => {
     const colors = {
       PENDING: 'bg-yellow-100 text-yellow-800',
-      INVESTIGATING: 'bg-blue-100 text-blue-800',
+      INVESTIGATING: 'bg-[#bfd7ff] text-[#2563eb]',
       RESOLVED: 'bg-green-100 text-green-800',
       DISMISSED: 'bg-gray-100 text-gray-800',
       CLOSED: 'bg-red-100 text-red-800'
@@ -312,7 +312,7 @@ const ForumManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Forum Management</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Forum Management</p>
           <h1 className="text-3xl font-bold text-gray-900">View & moderate community posts</h1>
           <p className="text-sm text-gray-500 mt-1">
             Quản lý các bài viết và bình luận trong forum, xử lý báo cáo vi phạm.
@@ -323,7 +323,7 @@ const ForumManagement = () => {
             <FunnelIcon className="h-5 w-5" />
             Bộ lọc nâng cao
           </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
             Xuất báo cáo
           </button>
@@ -345,7 +345,7 @@ const ForumManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <StatCard icon={NewspaperIcon} label="Tổng bài viết" value={stats.total} trend="+5 tuần này" />
           <StatCard icon={DocumentTextIcon} label="Đang hoạt động" value={stats.active} trend="+3 tuần này" color="text-green-600" />
-          <StatCard icon={ChatBubbleBottomCenterTextIcon} label="Tổng bình luận" value={stats.comments} trend="+12% MoM" color="text-blue-600" />
+          <StatCard icon={ChatBubbleBottomCenterTextIcon} label="Tổng bình luận" value={stats.comments} trend="+12% MoM" color="text-[#4c9dff]" />
           <StatCard icon={ExclamationTriangleIcon} label="Báo cáo" value={stats.reports} trend="Cần xử lý" color="text-amber-500" />
         </div>
       )}
@@ -359,7 +359,7 @@ const ForumManagement = () => {
                 onClick={() => setReportFilter('all')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg ${
                   reportFilter === 'all'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-[#4c9dff] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -369,7 +369,7 @@ const ForumManagement = () => {
                 onClick={() => setReportFilter('POST')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg ${
                   reportFilter === 'POST'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-[#4c9dff] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -379,7 +379,7 @@ const ForumManagement = () => {
                 onClick={() => setReportFilter('COMMENT')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg ${
                   reportFilter === 'COMMENT'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-[#4c9dff] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -390,7 +390,7 @@ const ForumManagement = () => {
 
           {reportsLoading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
             </div>
           ) : filteredReports.length === 0 ? (
             <div className="text-center py-12">
@@ -399,7 +399,7 @@ const ForumManagement = () => {
           ) : (
             <div className="divide-y divide-gray-200">
               {filteredReports.map((report) => (
-                <div key={report.reportId} className="p-6 hover:bg-blue-50/40 transition-colors border-b border-gray-100 last:border-b-0">
+                <div key={report.reportId} className="p-6 hover:bg-[#e9f2ff]/40 transition-colors border-b border-gray-100 last:border-b-0">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -453,7 +453,7 @@ const ForumManagement = () => {
                     <div className="ml-4">
                       <button
                         onClick={() => handleViewReportDetails(report)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
+                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
                         title="Xem chi tiết"
                       >
                         <EyeIcon className="h-4 w-4" />
@@ -514,7 +514,7 @@ const ForumManagement = () => {
           {/* Table */}
           {loading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -538,7 +538,7 @@ const ForumManagement = () => {
                       </tr>
                     ) : (
                       posts.map((post) => (
-                        <tr key={post.forumPostId || post.id} className="hover:bg-blue-50/40 transition">
+                        <tr key={post.forumPostId || post.id} className="hover:bg-[#e9f2ff]/40 transition">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             POST-{post.forumPostId || post.id || 'N/A'}
                           </td>
@@ -592,7 +592,7 @@ const ForumManagement = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => handleView(post)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
                               title="Xem chi tiết"
                             >
                               <EyeIcon className="h-4 w-4" />
@@ -649,7 +649,7 @@ const ForumManagement = () => {
                               onClick={() => handlePageChange(page)}
                               className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                                 currentPage === page
-                                  ? 'z-10 bg-blue-600 border-blue-600 text-white'
+                                  ? 'z-10 bg-[#4c9dff] border-[#4c9dff] text-white'
                                   : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                               }`}
                             >
@@ -687,7 +687,7 @@ const ForumManagement = () => {
 
             <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
               {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+              <div className="bg-gradient-to-r from-[#4c9dff] to-[#3f85d6] px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white bg-opacity-20 rounded-lg">
@@ -772,7 +772,7 @@ const ForumManagement = () => {
 
                   {/* Stats */}
                   {selectedPost.reactions && (
-                    <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                    <div className="flex items-center gap-6 p-4 bg-gradient-to-r from-[#e9f2ff] to-[#e0edff] rounded-lg border border-[#bfd7ff]">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-red-100 rounded-lg">
                           <HeartIcon className="h-5 w-5 text-red-600" />
@@ -783,12 +783,12 @@ const ForumManagement = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <ChatBubbleLeftRightIcon className="h-5 w-5 text-blue-600" />
+                        <div className="p-2 bg-[#bfd7ff] rounded-lg">
+                          <ChatBubbleLeftRightIcon className="h-5 w-5 text-[#4c9dff]" />
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">Bình luận</p>
-                          <p className="text-lg font-bold text-blue-600">{selectedPost.reactions.commentCount || 0}</p>
+                          <p className="text-lg font-bold text-[#4c9dff]">{selectedPost.reactions.commentCount || 0}</p>
                         </div>
                       </div>
                     </div>
@@ -800,13 +800,13 @@ const ForumManagement = () => {
               <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end gap-3">
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-gray-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-gray-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-colors"
                 >
                   Đóng
                 </button>
                 <button
                   onClick={() => handleViewDetails(selectedPost.forumPostId || selectedPost.id)}
-                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-5 py-2.5 bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-5 py-2.5 bg-[#4c9dff] text-sm font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200"
                 >
                   Xem chi tiết
                 </button>
@@ -823,15 +823,15 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
   <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-blue-600" />
+          <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
+          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
           <p className="text-xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color}`}>{trend}</span>
+      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
   </div>
 );

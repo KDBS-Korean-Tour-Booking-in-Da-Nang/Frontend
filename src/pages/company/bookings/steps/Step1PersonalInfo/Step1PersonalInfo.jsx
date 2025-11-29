@@ -31,11 +31,12 @@ import styles from './Step1PersonalInfo.module.css';
 
 const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, isReadOnly = false, onStepCompleted }) => {
   const { t } = useTranslation();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRequestUpdateModal, setShowRequestUpdateModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [error, setError] = useState('');
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -204,7 +205,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       }, 1500);
     } catch (error) {
       console.error('Error rejecting booking:', error);
-      showError(error.message || 'Không thể từ chối booking');
+      setError(error.message || 'Không thể từ chối booking');
     } finally {
       setLoading(false);
     }
@@ -228,7 +229,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       }, 1500);
     } catch (error) {
       console.error('Error requesting update:', error);
-      showError(error.message || 'Không thể gửi yêu cầu cập nhật');
+      setError(error.message || 'Không thể gửi yêu cầu cập nhật');
     } finally {
       setLoading(false);
     }
@@ -236,6 +237,11 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
 
   return (
     <div className={styles.container}>
+      {error && (
+        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+          {error}
+        </div>
+      )}
       <div className={styles.header}>
         <div className={styles.headerCard}>
           <div className={styles.headerIcon}>

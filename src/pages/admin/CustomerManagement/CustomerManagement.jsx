@@ -234,7 +234,7 @@ const CustomerManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
           <p className="mt-4 text-gray-600">Đang tải danh sách khách hàng...</p>
         </div>
       </div>
@@ -248,7 +248,7 @@ const CustomerManagement = () => {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={fetchCustomers}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
           >
             Thử lại
           </button>
@@ -261,7 +261,7 @@ const CustomerManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Customer Management</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Customer Management</p>
           <h1 className="text-3xl font-bold text-gray-900">View & nurture your travelers</h1>
           <p className="text-sm text-gray-500 mt-1">
             Theo dõi khách hàng thân thiết và lịch sử đặt tour để cá nhân hóa ưu đãi.
@@ -272,7 +272,7 @@ const CustomerManagement = () => {
             <FunnelIcon className="h-5 w-5" />
             Bộ lọc nâng cao
           </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
             Xuất báo cáo
           </button>
@@ -342,7 +342,7 @@ const CustomerManagement = () => {
                 </tr>
               ) : (
                 filteredCustomers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-blue-50/40 transition">
+                <tr key={customer.id} className="hover:bg-[#e9f2ff]/40 transition">
                   <td className="px-6 py-4">
                     <div className="flex items-start gap-3">
                       <img 
@@ -434,7 +434,7 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
           <p className="text-xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color}`}>{trend}</span>
+      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
   </div>
 );

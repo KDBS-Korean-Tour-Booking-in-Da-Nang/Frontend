@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { KeyIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@iconify/react';
 import styles from './forgotPassword.module.css';
 
 const ForgotPassword = () => {
@@ -15,20 +16,25 @@ const ForgotPassword = () => {
   const [sent, setSent] = useState(false);
   const [verified, setVerified] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const { showError, showSuccess } = useToast();
+  const [emailError, setEmailError] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [generalError, setGeneralError] = useState('');
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setEmailError('');
+    setGeneralError('');
 
     if (!email.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
+      setEmailError(t('toast.required', { field: t('auth.common.email') }) || 'Email là bắt buộc');
       setLoading(false);
       return;
     }
     if (!email.includes('@')) {
-      showError(t('auth.common.form.email.invalid'));
+      setEmailError(t('auth.common.form.email.invalid') || 'Email không đúng định dạng');
       setLoading(false);
       return;
     }
@@ -80,13 +86,13 @@ const ForgotPassword = () => {
             } catch {}
           }
           
-          showError(data.message || t('auth.forgot.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver.');
+          setGeneralError(data.message || t('auth.forgot.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver.');
         } else {
-          showError(data.message || 'toast.auth.general_error');
+          setGeneralError(data.message || t('toast.auth.general_error') || 'Có lỗi xảy ra');
         }
       }
     } catch (err) {
-      showError('toast.auth.general_error');
+      setGeneralError(t('toast.auth.general_error') || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -111,14 +117,16 @@ const ForgotPassword = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setOtpLoading(true);
+    setOtpError('');
+    setGeneralError('');
 
     if (!otp.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
+      setOtpError(t('toast.required', { field: t('auth.common.otp') }) || 'OTP là bắt buộc');
       setOtpLoading(false);
       return;
     }
     if (otp.length !== 6) {
-      showError(t('auth.verify.error'));
+      setOtpError(t('auth.verify.error') || 'OTP phải có 6 chữ số');
       setOtpLoading(false);
       return;
     }
@@ -144,10 +152,10 @@ const ForgotPassword = () => {
           }
         });
       } else {
-        showError(data.message || 'toast.auth.general_error');
+        setOtpError(data.message || t('toast.auth.general_error') || 'Xác thực OTP thất bại');
       }
     } catch (err) {
-      showError('toast.auth.general_error');
+      setOtpError(t('toast.auth.general_error') || 'Xác thực OTP thất bại');
     } finally {
       setOtpLoading(false);
     }
@@ -198,10 +206,10 @@ const ForgotPassword = () => {
             } catch {}
           }
         }
-        showError(data.message || 'toast.auth.general_error');
+        setGeneralError(data.message || t('toast.auth.general_error') || 'Gửi lại OTP thất bại');
       }
     } catch (err) {
-      showError('toast.auth.general_error');
+      setGeneralError(t('toast.auth.general_error') || 'Gửi lại OTP thất bại');
     } finally {
       setResendLoading(false);
     }
@@ -226,21 +234,30 @@ const ForgotPassword = () => {
               </p>
               </div>
             <form className={styles['forgot-form']} onSubmit={handleVerifyOTP}>
-              <div className={styles['form-group']}>
-                <label htmlFor="otp" className={styles['form-label']}>
-                  {t('auth.common.otp')}
-                </label>
+            <div className={styles['form-group']}>
+              <label htmlFor="otp" className={styles['form-label']}>
+                <Icon icon="lucide:key" className={styles['form-label-icon']} />
+                {t('auth.common.otp')}
+              </label>
                 <input
                   id="otp"
                   name="otp"
                   type="text"
                   required
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className={`${styles['form-input']} ${styles['otp-input']}`}
+                  onChange={(e) => {
+                    setOtp(e.target.value);
+                    setOtpError('');
+                  }}
+                  className={`${styles['form-input']} ${styles['otp-input']} ${otpError ? styles['input-error'] : ''}`}
                   placeholder={t('auth.common.otpPlaceholder')}
                   maxLength="6"
                 />
+                {otpError && (
+                  <div className={styles['field-error']}>
+                    {otpError}
+                  </div>
+                )}
                 <p className={styles['forgot-subtitle']}>{t('auth.verify.helper')}</p>
               </div>
 
@@ -310,6 +327,7 @@ const ForgotPassword = () => {
           <form className={styles['forgot-form']} onSubmit={handleSubmit}>
             <div className={styles['form-group']}>
               <label htmlFor="email" className={styles['form-label']}>
+                <Icon icon="lucide:mail" className={styles['form-label-icon']} />
                 {t('auth.common.email')}
               </label>
               <input
@@ -319,11 +337,25 @@ const ForgotPassword = () => {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={styles['form-input']}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                className={`${styles['form-input']} ${emailError ? styles['input-error'] : ''}`}
                 placeholder="user@example.com"
               />
+              {emailError && (
+                <div className={styles['field-error']}>
+                  {emailError}
+                </div>
+              )}
             </div>
+
+            {generalError && (
+              <div className={styles['field-error']} style={{ marginBottom: '1rem' }}>
+                {generalError}
+              </div>
+            )}
 
             <button
               type="submit"

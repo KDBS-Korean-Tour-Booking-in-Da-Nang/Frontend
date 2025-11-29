@@ -21,7 +21,8 @@ import {
   Cog6ToothIcon,
   LifebuoyIcon,
   ArrowRightOnRectangleIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 const AdminLayout = ({ children }) => {
@@ -62,6 +63,7 @@ const AdminLayout = ({ children }) => {
         { name: 'Customer Management', to: '/admin/customers', icon: UsersIcon },
         { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
         { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
+        { name: 'Forum Report Management', to: '/admin/forum-reports', icon: ExclamationTriangleIcon },
         { name: 'News Management', to: '/admin/news', icon: DocumentTextIcon },
         { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },
         { name: 'Transaction Management', to: '/admin/transactions', icon: CurrencyDollarIcon },

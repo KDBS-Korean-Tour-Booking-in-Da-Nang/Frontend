@@ -1,4 +1,4 @@
-﻿{
+{
   "brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
   "nav": {
     "home": "Trang chủ",
@@ -63,6 +63,10 @@
     },
     "vehicles": {
       "tourBus": "Xe Du Lịch"
+    },
+    "status": {
+      "WAITING_FOR_APPROVAL": "Chờ Duyệt",
+      "COMPANY_PENDING": "Đang chờ"
     }
   },
   "auth": {

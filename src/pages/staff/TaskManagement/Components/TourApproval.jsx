@@ -10,12 +10,13 @@ const neutralButtonClasses = 'inline-flex items-center justify-center gap-2 roun
 
 const TourApproval = () => {
   const { user } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
 
   const [loading, setLoading] = useState(false);
   const [pendingTours, setPendingTours] = useState([]);
   const [selectedTour, setSelectedTour] = useState(null);
   const [showTourModal, setShowTourModal] = useState(false);
+  const [error, setError] = useState('');
 
   const loadPendingTours = useCallback(async () => {
     setLoading(true);
@@ -31,11 +32,11 @@ const TourApproval = () => {
       setPendingTours(pending);
     } catch (error) {
       console.error('Error loading pending tours:', error);
-      showError('Không thể tải danh sách tour chờ duyệt');
+      setError('Không thể tải danh sách tour chờ duyệt');
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+  }, []);
 
   useEffect(() => {
     loadPendingTours();
@@ -56,7 +57,7 @@ const TourApproval = () => {
       loadPendingTours();
     } catch (error) {
       console.error('Error updating tour status:', error);
-      showError('Không thể cập nhật trạng thái tour');
+      setError('Không thể cập nhật trạng thái tour');
     }
   };
 
@@ -72,6 +73,11 @@ const TourApproval = () => {
 
   return (
     <>
+      {error && (
+        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+          {error}
+        </div>
+      )}
       <div className={`${pastelCardClasses}`}>
         <div className="flex flex-col gap-2 border-b border-[#eef2ff] px-6 py-5 md:flex-row md:items-center md:justify-between">
           <div>

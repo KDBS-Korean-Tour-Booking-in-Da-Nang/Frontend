@@ -10,7 +10,7 @@ import styles from './PostModal.module.css';
 const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showError, showSuccess, showBatch } = useToast();
+  const { showSuccess, showBatch } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [hashtags, setHashtags] = useState([]);
@@ -355,8 +355,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         throw new Error(errorData.message || 'Failed to create post');
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      showError('toast.forum.post_create_failed');
+      // Error creating post - handled in UI or silently
     } finally {
       setIsLoading(false);
     }

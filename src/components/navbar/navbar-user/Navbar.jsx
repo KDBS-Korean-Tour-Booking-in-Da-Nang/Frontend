@@ -31,7 +31,6 @@ const Navbar = () => {
     chatState = chatContext.state;
     chatActions = chatContext.actions;
   } catch (error) {
-    console.warn('Chat context not available:', error.message);
     // Provide fallback values
     chatState = { isChatDropdownOpen: false, isChatBoxOpen: false };
     chatActions = { 

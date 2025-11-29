@@ -19,7 +19,7 @@ const CompanyBookingDetailWizard = () => {
   const bookingId = searchParams.get('id');
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   
   // Get tourId from URL params or location state
   const tourId = searchParams.get('tourId') || location.state?.tourId;
@@ -350,11 +350,11 @@ const CompanyBookingDetailWizard = () => {
       }, 1500);
     } catch (error) {
       console.error('Error confirming booking:', error);
-      showError(error.message || 'Không thể xác nhận booking');
+      setError(error.message || 'Không thể xác nhận booking');
     } finally {
       setConfirmingBooking(false);
     }
-  }, [booking, bookingId, navigateBack, pendingInsuranceUpdates, showSuccess, showError]);
+  }, [booking, bookingId, navigateBack, pendingInsuranceUpdates, showSuccess]);
 
   const renderCurrentStep = () => {
     if (!booking || !guests) return null;
@@ -406,12 +406,19 @@ const CompanyBookingDetailWizard = () => {
 
   if (loading) {
     return (
-      <div className={styles.wizardContainer}>
-        <div className={styles.loading}>
-          <div className={styles.spinner}></div>
-          <p>Đang tải thông tin booking...</p>
+      <>
+        {error && (
+          <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
+        <div className={styles.wizardContainer}>
+          <div className={styles.loading}>
+            <div className={styles.spinner}></div>
+            <p>Đang tải thông tin booking...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 

@@ -20,9 +20,8 @@ const pastelCardClasses = 'rounded-[28px] bg-white/95 border border-[#eceff7] sh
 
 const TaskManagement = () => {
   const { user } = useAuth();
-  const { showError } = useToast();
-
   const [activeSection, setActiveSection] = useState(null);
+  const [error, setError] = useState('');
   const [searchParams] = useSearchParams();
 
   // Data for summary cards only
@@ -253,6 +252,11 @@ const TaskManagement = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc] px-4 py-10 sm:px-6 lg:px-10">
+      {error && (
+        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem', maxWidth: '1200px', margin: '0 auto 1rem' }}>
+          {error}
+        </div>
+      )}
       <div className="mx-auto max-w-7xl space-y-8">
         {!activeSection && (
           <div className={`${pastelCardClasses} p-8`}>

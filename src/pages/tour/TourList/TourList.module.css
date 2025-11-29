@@ -199,8 +199,8 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -208,15 +208,18 @@
   font-weight: 500;
   color: #374151;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  min-width: 160px;
+  justify-content: center;
+  backdrop-filter: blur(6px);
 }
 
 .action-btn:hover {
-  background: #f9fafb;
-  color: #111827;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  border-color: #d1d5db;
+  background: rgba(243, 244, 255, 0.95);
+  color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 35px rgba(79, 70, 229, 0.2);
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
 .action-icon {
@@ -229,7 +232,7 @@
 }
 
 .action-btn:hover .action-icon {
-  color: #111827;
+  color: #1d4ed8;
 }
 
 .action-text {
@@ -862,7 +865,7 @@
 
   .action-btn {
     flex: 1;
-    min-width: 140px;
+    min-width: 160px;
     justify-content: center;
   }
 

@@ -65,9 +65,10 @@ const BookingCheckPaymentPage = () => {
   const navState = location?.state || {};
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { showError, showSuccess, showInfo } = useToast();
+  const { showSuccess, showInfo } = useToast();
   const { t } = useTranslation();
 
+  const [error, setError] = useState('');
   const [booking, setBooking] = useState(null);
   const [guests, setGuests] = useState([]);
   const [totalAmount, setTotalAmount] = useState(null);
@@ -171,10 +172,10 @@ const BookingCheckPaymentPage = () => {
                 ? t('payment.checkPayment.toast.sessionExpired')
                 : t('payment.checkPayment.toast.cannotLoadBooking'),
           });
-          showError(
+          setError(
             msg && msg.toLowerCase().includes('unauthenticated')
-              ? t('payment.checkPayment.toast.loginToViewBooking')
-              : t('payment.checkPayment.toast.cannotLoadBookingSupport')
+              ? t('payment.checkPayment.toast.loginToViewBooking') || 'Vui lòng đăng nhập để xem booking'
+              : t('payment.checkPayment.toast.cannotLoadBookingSupport') || 'Không thể tải thông tin booking'
           );
           if (msg.toLowerCase().includes('unauthenticated')) {
             navigate('/login');
@@ -270,7 +271,7 @@ const BookingCheckPaymentPage = () => {
             type: 'error',
             text: 'Phiên đăng nhập đã hết hạn hoặc thiếu quyền. Vui lòng đăng nhập lại.',
           });
-          showError(t('payment.checkPayment.toast.loginToViewBooking'));
+          setError(t('payment.checkPayment.toast.loginToViewBooking') || 'Vui lòng đăng nhập để xem booking');
           navigate('/login');
           return;
         }
@@ -278,7 +279,7 @@ const BookingCheckPaymentPage = () => {
           type: 'error',
           text: t('payment.checkPayment.toast.cannotLoadBooking'),
         });
-        showError(t('payment.checkPayment.toast.cannotLoadBookingSupport'));
+        setError(t('payment.checkPayment.toast.cannotLoadBookingSupport') || 'Không thể tải thông tin booking');
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -291,7 +292,7 @@ const BookingCheckPaymentPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [bookingId, showError, user?.email, navigate, navState?.booking]); // Removed booking and originalTotal to avoid infinite loop
+  }, [bookingId, user?.email, navigate, navState?.booking]); // Removed booking and originalTotal to avoid infinite loop
 
   // Load lại guests riêng nếu chưa có (fallback) - chỉ chạy sau khi booking đã load
   useEffect(() => {
@@ -560,14 +561,14 @@ const BookingCheckPaymentPage = () => {
 
     // Validate bookingId
     if (!bookingId) {
-      showError(t('payment.checkPayment.toast.missingBookingIdError'));
+      setError(t('payment.checkPayment.toast.missingBookingIdError') || 'Thiếu booking ID');
       return;
     }
 
     // Validate email
     const emailValidation = validateEmail(userEmail);
     if (!emailValidation.isValid) {
-      showError(emailValidation.error || t('payment.checkPayment.toast.invalidEmail'));
+      setError(emailValidation.error || t('payment.checkPayment.toast.invalidEmail') || 'Email không hợp lệ');
       return;
     }
 
@@ -607,7 +608,7 @@ const BookingCheckPaymentPage = () => {
         type: 'error',
         text: message,
       });
-      showError(message);
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -617,7 +618,7 @@ const BookingCheckPaymentPage = () => {
   const handleApplyVoucher = async (codeOverride) => {
     const codeToApply = (codeOverride ?? voucherCode)?.trim();
     if (!bookingId || !codeToApply) {
-      showError(t('payment.checkPayment.toast.voucherCodeRequired'));
+      setError(t('payment.checkPayment.toast.voucherCodeRequired') || 'Vui lòng nhập mã voucher');
       return;
     }
 
@@ -642,7 +643,7 @@ const BookingCheckPaymentPage = () => {
         if (originalTotal != null) {
           setTotalAmount(originalTotal);
         }
-        showError(t('payment.checkPayment.toast.voucherInvalid'));
+        setError(t('payment.checkPayment.toast.voucherInvalid') || 'Mã voucher không hợp lệ');
         return;
       }
 
@@ -675,7 +676,7 @@ const BookingCheckPaymentPage = () => {
       if (originalTotal != null) {
         setTotalAmount(originalTotal);
       }
-      showError(err?.message || t('payment.checkPayment.toast.voucherApplyError'));
+      setError(err?.message || t('payment.checkPayment.toast.voucherApplyError') || 'Không thể áp dụng voucher');
     }
   };
 
@@ -695,7 +696,7 @@ const BookingCheckPaymentPage = () => {
   // Xử lý xác nhận quay lại wizard để điền lại thông tin
   const handleBackToWizardConfirm = () => {
     if (!booking?.tourId) {
-      showError(t('payment.checkPayment.toast.backToWizardMissingTour'));
+      setError(t('payment.checkPayment.toast.backToWizardMissingTour') || 'Thiếu thông tin tour');
       setShowBackToWizardModal(false);
       return;
     }
@@ -722,7 +723,7 @@ const BookingCheckPaymentPage = () => {
       showInfo(t('payment.checkPayment.toast.backToWizardSuccess'));
     } catch (error) {
       // Error navigating back to wizard
-      showError(t('payment.checkPayment.toast.backToWizardError'));
+      setError(t('payment.checkPayment.toast.backToWizardError') || 'Không thể quay lại wizard');
       setShowBackToWizardModal(false);
     }
   };

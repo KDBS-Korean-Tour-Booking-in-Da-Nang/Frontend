@@ -12,8 +12,8 @@ const MAX_LEAD_DAYS = 365;
 const Step1BasicInfo = () => {
   const { t } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
-  const { showError } = useToast();
   const datePickerRef = useRef(null); // Ref to interact with hidden DatePicker
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     tourName: '',
     departurePoint: t('common.departurePoints.daNang'), // Default departure point (i18n)
@@ -104,6 +104,61 @@ const calculateLeadDays = (isoDate) => {
     });
   }, [tourData]);
 
+  // Listen for validation trigger from parent (TourWizard) - similar to Step1Contact in TourBookingWizard
+  useEffect(() => {
+    const handleValidateAll = () => {
+      // Validate all required fields and show errors
+      const errors = {};
+      const requiredFields = [
+        { key: 'tourName', errorKey: 'tourWizard.step1.fields.tourName' },
+        { key: 'duration', errorKey: 'tourWizard.step1.fields.duration' },
+        { key: 'nights', errorKey: 'tourWizard.step1.fields.nights' },
+        { key: 'tourType', errorKey: 'tourWizard.step1.fields.tourType' },
+        { key: 'maxCapacity', errorKey: 'tourWizard.step1.fields.maxCapacity' },
+        { key: 'tourDeadline', errorKey: 'tourWizard.step1.fields.tourDeadline', checkEmpty: true },
+        { key: 'tourExpirationDate', errorKey: 'tourWizard.step1.fields.tourExpirationDate' }
+      ];
+      
+      requiredFields.forEach(({ key, errorKey, checkEmpty }) => {
+        const value = formData[key];
+        if (checkEmpty) {
+          if (value === '' || value === undefined || value === null) {
+            errors[key] = t('toast.required', { field: t(errorKey) }) || `${t(errorKey)} là bắt buộc`;
+          }
+        } else {
+          if (!value) {
+            errors[key] = t('toast.required', { field: t(errorKey) }) || `${t(errorKey)} là bắt buộc`;
+          }
+        }
+      });
+      
+      setFieldErrors(errors);
+      // Notify parent about validation status
+      window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+        detail: { step: 1, hasErrors: Object.keys(errors).length > 0 } 
+      }));
+    };
+
+    const handleClearErrors = () => {
+      setFieldErrors({});
+      // Notify parent that errors are cleared
+      window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+        detail: { step: 1, hasErrors: false } 
+      }));
+    };
+
+    window.addEventListener('validateStep1', handleValidateAll);
+    window.addEventListener('clearStepErrors', (event) => {
+      if (event.detail?.step === 1) {
+        handleClearErrors();
+      }
+    });
+    return () => {
+      window.removeEventListener('validateStep1', handleValidateAll);
+      window.removeEventListener('clearStepErrors', handleClearErrors);
+    };
+  }, [formData, t]);
+
   // When duration changes, suggest nights and clamp within allowed range
   useEffect(() => {
     const { min, max, suggest } = getAllowedNightsRange(formData.duration);
@@ -119,7 +174,7 @@ const calculateLeadDays = (isoDate) => {
     if (!isNaN(nightsNum)) {
       const clamped = Math.max(min, Math.min(max, nightsNum));
       if (clamped !== nightsNum) {
-        showError({ i18nKey: 'toast.field_invalid' });
+        setFieldErrors(prev => ({ ...prev, nights: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
         setFormData((prev) => {
           const next = { ...prev, nights: clamped };
           updateTourData(next);
@@ -143,6 +198,21 @@ const calculateLeadDays = (isoDate) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Clear error for this field when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        // Notify parent about validation status change (use setTimeout to avoid render warning)
+        const hasErrors = Object.keys(newErrors).length > 0;
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+            detail: { step: 1, hasErrors } 
+          }));
+        }, 0);
+        return newErrors;
+      });
+    }
     let nextValue = value;
 
     // Normalize numeric fields
@@ -164,15 +234,55 @@ const calculateLeadDays = (isoDate) => {
           if (formData.nights === '') {
             // Khi người dùng nhập 1 ngày và ô nights đang rỗng → tự gán 0 (hoặc 1 nếu muốn)
             newNights = (days === 1) ? DEFAULT_NIGHTS_FOR_ONE_DAY : suggest;
+            // Clear error for nights when it's auto-filled from duration
+            setFieldErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.nights;
+              const hasErrors = Object.keys(newErrors).length > 0;
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                  detail: { step: 1, hasErrors } 
+                }));
+              }, 0);
+              return newErrors;
+            });
           } else if (!isNaN(currentNights)) {
             // Check if current nights value is within allowed range
             const allowedChoices = [Math.max(0, days - 1), days, days + 1];
             if (allowedChoices.includes(currentNights)) {
               newNights = currentNights; // Keep the current value if it's valid
+              // Clear error for nights if it's valid
+              if (fieldErrors.nights) {
+                setFieldErrors(prev => {
+                  const newErrors = { ...prev };
+                  delete newErrors.nights;
+                  const hasErrors = Object.keys(newErrors).length > 0;
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 1, hasErrors } 
+                    }));
+                  }, 0);
+                  return newErrors;
+                });
+              }
             } else {
               const clamped = Math.max(min, Math.min(max, currentNights));
               // Không hiển thị toast khi thay đổi số ngày; chỉ âm thầm điều chỉnh
               newNights = clamped;
+              // Clear error for nights when it's auto-adjusted and valid
+              if (fieldErrors.nights) {
+                setFieldErrors(prev => {
+                  const newErrors = { ...prev };
+                  delete newErrors.nights;
+                  const hasErrors = Object.keys(newErrors).length > 0;
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 1, hasErrors } 
+                    }));
+                  }, 0);
+                  return newErrors;
+                });
+              }
             }
           }
           // Tính tourIntDuration = Max(days, nights)
@@ -210,7 +320,13 @@ const calculateLeadDays = (isoDate) => {
           }
           // Show error only if the value was changed due to being invalid
           if (clamped !== num) {
-            showError({ i18nKey: 'toast.field_invalid' });
+            setFieldErrors(prev => ({ ...prev, nights: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
+          } else {
+            setFieldErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.nights;
+              return newErrors;
+            });
           }
           nextValue = String(clamped);
           
@@ -229,7 +345,13 @@ const calculateLeadDays = (isoDate) => {
         } else if (name === 'maxCapacity') {
           const clamped = Math.max(1, Math.min(9999, num));
           if (clamped !== num) {
-            showError('toast.max_capacity_range');
+            setFieldErrors(prev => ({ ...prev, maxCapacity: t('toast.max_capacity_range') || 'Số lượng chỗ phải từ 1 đến 9999' }));
+          } else {
+            setFieldErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.maxCapacity;
+              return newErrors;
+            });
           }
           nextValue = clamped;
         } else if (name === 'tourDeadline') {
@@ -239,7 +361,13 @@ const calculateLeadDays = (isoDate) => {
             const leadDays = calculateLeadDays(formData.tourExpirationDate);
             if (leadDays !== null && adjustedValue >= leadDays) {
               adjustedValue = Math.max(0, leadDays - 1);
-              showError({ i18nKey: 'toast.field_invalid' });
+              setFieldErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
+            } else {
+              setFieldErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.tourDeadline;
+                return newErrors;
+              });
             }
           }
           nextValue = String(adjustedValue);
@@ -272,16 +400,28 @@ const calculateLeadDays = (isoDate) => {
     }
     const leadDays = calculateLeadDays(value);
     if (leadDays === null || leadDays < 0) {
-      showError({ i18nKey: 'toast.field_invalid' });
+      setFieldErrors(prev => ({ ...prev, tourExpirationDate: t('toast.field_invalid') || 'Ngày không hợp lệ' }));
       return;
     }
+    
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.tourExpirationDate;
+      return newErrors;
+    });
     let nextDeadline = formData.tourDeadline;
     if (nextDeadline !== '') {
       const deadlineNum = parseInt(nextDeadline, 10);
       if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
         const adjusted = Math.max(0, leadDays - 1);
         if (String(adjusted) !== nextDeadline) {
-          showError({ i18nKey: 'toast.field_invalid' });
+          setFieldErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
+        } else {
+          setFieldErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.tourDeadline;
+            return newErrors;
+          });
         }
         nextDeadline = String(adjusted);
       }
@@ -307,6 +447,7 @@ const calculateLeadDays = (isoDate) => {
         <div className={styles['form-group']}>
           <label htmlFor="tourName" className={styles['form-label']}>
             {t('tourWizard.step1.fields.tourName')}
+            {fieldErrors.tourName && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <input
             type="text"
@@ -317,11 +458,15 @@ const calculateLeadDays = (isoDate) => {
             className={styles['form-input']}
             placeholder={t('tourWizard.step1.placeholders.tourName')}
           />
+          {fieldErrors.tourName && (
+            <span className={styles['error-message']}>{fieldErrors.tourName}</span>
+          )}
         </div>
 
         <div className={styles['form-group']}>
           <label htmlFor="tourType" className={styles['form-label']}>
             {t('tourWizard.step1.fields.tourType')}
+            {fieldErrors.tourType && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <select
             id="tourType"
@@ -337,6 +482,9 @@ const calculateLeadDays = (isoDate) => {
               </option>
             ))}
           </select>
+          {fieldErrors.tourType && (
+            <span className={styles['error-message']}>{fieldErrors.tourType}</span>
+          )}
         </div>
 
         <div className={styles['form-group']}>
@@ -377,6 +525,7 @@ const calculateLeadDays = (isoDate) => {
         <div className={styles['form-group']}>
           <label htmlFor="duration" className={styles['form-label']}>
             {t('tourWizard.step1.fields.duration')}
+            {fieldErrors.duration && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <input
             type="number"
@@ -390,11 +539,15 @@ const calculateLeadDays = (isoDate) => {
             placeholder={t('tourWizard.step1.placeholders.duration')}
             min="0"
           />
+          {fieldErrors.duration && (
+            <span className={styles['error-message']}>{fieldErrors.duration}</span>
+          )}
         </div>
 
         <div className={styles['form-group']}>
           <label htmlFor="nights" className={styles['form-label']}>
             {t('tourWizard.step1.fields.nights')}
+            {fieldErrors.nights && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <input
             type="text"
@@ -409,7 +562,10 @@ const calculateLeadDays = (isoDate) => {
             inputMode="numeric"
             pattern="[0-9]*"
           />
-          {formData.duration !== '' && (
+          {fieldErrors.nights && (
+            <span className={styles['error-message']}>{fieldErrors.nights}</span>
+          )}
+          {!fieldErrors.nights && formData.duration !== '' && (
             <small className={styles['form-help']}>
               {t('tourWizard.step1.hints.nightsSuggestion', { suggest: getAllowedNightsRange(formData.duration).suggest, days: formData.duration })}
               {' '}
@@ -421,6 +577,7 @@ const calculateLeadDays = (isoDate) => {
         <div className={styles['form-group']}>
           <label htmlFor="maxCapacity" className={styles['form-label']}>
             {t('tourWizard.step1.fields.maxCapacity')}
+            {fieldErrors.maxCapacity && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <input
             type="number"
@@ -434,11 +591,15 @@ const calculateLeadDays = (isoDate) => {
             placeholder={t('tourWizard.step1.placeholders.maxCapacity')}
             min="1"
           />
+          {fieldErrors.maxCapacity && (
+            <span className={styles['error-message']}>{fieldErrors.maxCapacity}</span>
+          )}
         </div>
 
         <div className={styles['form-group']}>
           <label htmlFor="tourDeadline" className={styles['form-label']}>
             {t('tourWizard.step1.fields.tourDeadline')}
+            {fieldErrors.tourDeadline && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <input
             type="number"
@@ -446,19 +607,25 @@ const calculateLeadDays = (isoDate) => {
             name="tourDeadline"
             value={formData.tourDeadline}
             onChange={handleChange}
-            className={styles['form-input']}
             placeholder={t('tourWizard.step1.placeholders.tourDeadline')}
             onKeyDown={preventInvalidNumberKeys}
             onWheel={(e) => e.currentTarget.blur()}
             min="0"
             max={MAX_LEAD_DAYS}
+            className={styles['form-input']}
           />
-          <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
+          {fieldErrors.tourDeadline && (
+            <span className={styles['error-message']}>{fieldErrors.tourDeadline}</span>
+          )}
+          {!fieldErrors.tourDeadline && (
+            <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
+          )}
         </div>
 
         <div className={styles['form-group']}>
           <label htmlFor="tourExpirationDate" className={styles['form-label']}>
             {t('tourWizard.step1.fields.tourExpirationDate')}
+            {fieldErrors.tourExpirationDate && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
           <div className={styles['date-input-container']}>
             <input
@@ -511,9 +678,14 @@ const calculateLeadDays = (isoDate) => {
               </div>
             </div>
           </div>
-          <small className={styles['form-help']}>
-            {t('tourWizard.step1.help.tourExpirationDate')}
-          </small>
+          {fieldErrors.tourExpirationDate && (
+            <span className={styles['error-message']}>{fieldErrors.tourExpirationDate}</span>
+          )}
+          {!fieldErrors.tourExpirationDate && (
+            <small className={styles['form-help']}>
+              {t('tourWizard.step1.help.tourExpirationDate')}
+            </small>
+          )}
         </div>
       </div>
 

@@ -11,7 +11,7 @@ export const useStepValidation = (tourData) => {
     step1: {
       isValid: !!(
         tourData.tourName &&
-        tourData.departurePoint &&
+        // departurePoint and vehicle are default fields, not required for validation
         tourData.duration &&
         tourData.nights &&
         tourData.tourType &&
@@ -21,7 +21,7 @@ export const useStepValidation = (tourData) => {
       ),
       missingFields: [
         !tourData.tourName && 'tourWizard.step1.fields.tourName',
-        !tourData.departurePoint && 'tourWizard.step1.fields.departurePoint',
+        // departurePoint and vehicle are default fields, not required for validation
         !tourData.duration && 'tourWizard.step1.fields.duration',
         !tourData.nights && 'tourWizard.step1.fields.nights',
         !tourData.tourType && 'tourWizard.step1.fields.tourType',
@@ -31,16 +31,30 @@ export const useStepValidation = (tourData) => {
       ].filter(Boolean)
     },
     step2: {
-      isValid: !!(tourData.itinerary && tourData.itinerary.length > 0 && tourData.tourSchedule),
+      isValid: !!(
+        tourData.itinerary && 
+        tourData.itinerary.length > 0 && 
+        tourData.tourSchedule && 
+        String(tourData.tourSchedule).trim()
+      ),
       missingFields: [
         (!tourData.itinerary || tourData.itinerary.length === 0) && 'tourWizard.step2.title',
-        !tourData.tourSchedule && 'tourWizard.step2.fields.tourSchedule'
+        (!tourData.tourSchedule || !String(tourData.tourSchedule).trim()) && 'tourWizard.step2.fields.tourSchedule'
       ].filter(Boolean)
     },
     step3: {
-      isValid: !!(tourData.adultPrice),
+      isValid: !!(
+        tourData.adultPrice && 
+        String(tourData.adultPrice).trim() &&
+        tourData.childrenPrice && 
+        String(tourData.childrenPrice).trim() &&
+        tourData.babyPrice && 
+        String(tourData.babyPrice).trim()
+      ),
       missingFields: [
-        !tourData.adultPrice && 'tourWizard.step3.pricing.adultPrice'
+        (!tourData.adultPrice || !String(tourData.adultPrice).trim()) && 'tourWizard.step3.pricing.adultPrice',
+        (!tourData.childrenPrice || !String(tourData.childrenPrice).trim()) && 'tourWizard.step3.pricing.childrenPrice',
+        (!tourData.babyPrice || !String(tourData.babyPrice).trim()) && 'tourWizard.step3.pricing.babyPrice'
       ].filter(Boolean)
     },
     step4: {

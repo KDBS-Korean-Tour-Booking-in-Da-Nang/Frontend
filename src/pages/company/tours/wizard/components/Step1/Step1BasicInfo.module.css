@@ -67,6 +67,18 @@
   transform: translateY(-1px);
 }
 
+.form-input.error,
+.form-select.error {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.form-input.error:focus,
+.form-select.error:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+}
+
 .form-help {
   font-size: 0.9rem;
   color: #6c757d;
@@ -222,11 +234,13 @@
   box-shadow: none;
 }
 
-.error-message {
+.error-message,
+.field-error {
   color: #e74c3c;
-  font-size: 0.9rem;
-  margin-top: 6px;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
   font-weight: 500;
+  display: block;
 }
 
 .required-field {

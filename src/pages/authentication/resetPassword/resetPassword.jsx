@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@iconify/react';
 import styles from './resetPassword.module.css';
 
 const ResetPassword = () => {
@@ -224,6 +225,7 @@ const ResetPassword = () => {
           <form className={styles['reset-form']} onSubmit={handleSubmit}>
             <div className={styles['form-group']}>
               <label htmlFor="newPassword" className={styles['form-label']}>
+                <Icon icon="lucide:lock" className={styles['form-label-icon']} />
                 {t('auth.reset.newPassword')}
               </label>
               <input
@@ -248,6 +250,7 @@ const ResetPassword = () => {
 
             <div className={styles['form-group']}>
               <label htmlFor="confirmPassword" className={styles['form-label']}>
+                <Icon icon="lucide:shield-check" className={styles['form-label-icon']} />
                 {t('auth.reset.confirmNewPassword')}
               </label>
               <input

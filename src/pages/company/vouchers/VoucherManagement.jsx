@@ -19,7 +19,7 @@ const formatCurrency = (value) => {
 
 const VoucherManagement = () => {
   const { user } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const [vouchers, setVouchers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -28,6 +28,7 @@ const VoucherManagement = () => {
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState(null);
   const [hasAttemptedCompanyId, setHasAttemptedCompanyId] = useState(false);
+  const [error, setError] = useState('');
 
   // Get token for authentication
   const getToken = () => {
@@ -102,7 +103,6 @@ const VoucherManagement = () => {
 
     const token = getToken();
     if (!token) {
-      showError('Vui lòng đăng nhập để xem vouchers');
       setLoading(false);
       return;
     }
@@ -133,12 +133,12 @@ const VoucherManagement = () => {
       setCurrentPage(1); // Reset to first page when data changes
     } catch (error) {
       console.error('Error fetching vouchers:', error);
-      showError(error.message || 'Không thể tải danh sách voucher');
+      setError(error.message || 'Không thể tải danh sách voucher');
       setVouchers([]);
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+  }, []);
 
   // Get companyId from user or vouchers
   // Priority: user.companyId > user.id (for COMPANY role) > fetch from vouchers
@@ -153,7 +153,6 @@ const VoucherManagement = () => {
     const isCompanyUser = user.role === 'COMPANY' || user.role === 'BUSINESS';
     
     if (!isCompanyUser) {
-      console.warn('User does not have COMPANY role:', user.role);
       setLoading(false);
       setHasAttemptedCompanyId(true);
       return;
@@ -161,7 +160,6 @@ const VoucherManagement = () => {
 
     // Priority 1: Use user.companyId if explicitly provided
     if (user.companyId) {
-      console.log('✅ Using user.companyId:', user.companyId);
       setCompanyId(user.companyId);
       setHasAttemptedCompanyId(true);
       return;
@@ -171,7 +169,6 @@ const VoucherManagement = () => {
     if (user.id) {
       const userIdAsCompanyId = typeof user.id === 'number' ? user.id : parseInt(user.id);
       if (!isNaN(userIdAsCompanyId)) {
-        console.log('✅ Using user.id as companyId for COMPANY user:', userIdAsCompanyId);
         setCompanyId(userIdAsCompanyId);
         setHasAttemptedCompanyId(true);
         return;
@@ -181,10 +178,8 @@ const VoucherManagement = () => {
     // Priority 3: Fallback - Fetch all vouchers and find companyId from vouchers
     // VoucherResponse HAS companyId field, so we can get it from vouchers
     // This is useful when user.id is not available or user hasn't created any vouchers yet
-    console.log('⚠️ Cannot get companyId from user object, trying fallback: fetch from vouchers...');
     const token = getToken();
     if (!token) {
-      console.error('❌ No token available for fallback');
       setLoading(false);
       setHasAttemptedCompanyId(true);
       return;
@@ -193,7 +188,6 @@ const VoucherManagement = () => {
     getAllVouchers()
       .then((allVouchers) => {
         if (!Array.isArray(allVouchers) || allVouchers.length === 0) {
-          console.warn('⚠️ No vouchers found - user may need to create their first voucher');
           // Still allow creating voucher - companyId will be set when creating first voucher
           setLoading(false);
           setHasAttemptedCompanyId(true);
@@ -207,13 +201,11 @@ const VoucherManagement = () => {
           if (!isNaN(userId)) {
             const matchingVoucher = allVouchers.find(v => v.companyId === userId);
             if (matchingVoucher) {
-              console.log('✅ Found companyId from vouchers (confirms user.id = companyId):', matchingVoucher.companyId);
               setCompanyId(matchingVoucher.companyId);
               setHasAttemptedCompanyId(true);
               return;
             } else {
               // user.id exists but no matching voucher - use user.id anyway (user may not have created vouchers yet)
-              console.log('⚠️ No voucher found matching user.id, but using user.id as companyId:', userId);
               setCompanyId(userId);
               setHasAttemptedCompanyId(true);
               return;
@@ -225,24 +217,20 @@ const VoucherManagement = () => {
         // Only use this if user.id is completely unavailable
         const firstVoucher = allVouchers[0];
         if (firstVoucher && firstVoucher.companyId) {
-          console.log('⚠️ Using companyId from first voucher (last resort fallback):', firstVoucher.companyId);
           setCompanyId(firstVoucher.companyId);
           setHasAttemptedCompanyId(true);
           return;
         }
 
         // If we get here, something is really wrong
-        console.error('❌ Cannot determine companyId from vouchers either');
         setLoading(false);
         setHasAttemptedCompanyId(true);
       })
       .catch((error) => {
-        console.error('❌ Error fetching vouchers for fallback:', error);
         // If user.id exists, use it anyway (user may not have vouchers yet)
         if (user.id) {
           const userId = typeof user.id === 'number' ? user.id : parseInt(user.id);
           if (!isNaN(userId)) {
-            console.log('⚠️ Fallback failed, but using user.id as companyId:', userId);
             setCompanyId(userId);
             setHasAttemptedCompanyId(true);
             return;
@@ -263,15 +251,8 @@ const VoucherManagement = () => {
     }
   }, [companyId, fetchVouchers, hasAttemptedCompanyId]);
 
-  // Debug: Log user info for troubleshooting
   useEffect(() => {
     if (user) {
-      console.log('User info:', {
-        id: user.id,
-        role: user.role,
-        companyId: user.companyId,
-        email: user.email
-      });
     }
   }, [user]);
 
@@ -305,6 +286,11 @@ const VoucherManagement = () => {
 
   return (
     <div className={styles['voucher-management']}>
+      {error && (
+        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+          {error}
+        </div>
+      )}
       <div className={styles['management-header']}>
         <h2 className={styles['header-title']}>Quản lý Voucher</h2>
         {loading ? (

@@ -11,8 +11,9 @@ const TossPaymentPage = () => {
   const bookingId = searchParams.get('id');
   const location = useLocation();
   const navigate = useNavigate();
-  const { showError, showInfo } = useToast();
+  const { showInfo } = useToast();
   const { t } = useTranslation();
+  const [error, setError] = useState('');
 
   const orderResponse = location?.state?.orderResponse || null;
   const backUrl = location?.state?.backUrl || `/booking/payment?id=${bookingId}`;
@@ -32,10 +33,10 @@ const TossPaymentPage = () => {
 
   useEffect(() => {
     if (!canRender) {
-      showError(t('payment.tossPayment.toast.missingData'));
+      setError(t('payment.tossPayment.toast.missingData') || 'Thiếu dữ liệu thanh toán');
       navigate(backUrl, { replace: true });
     }
-  }, [canRender, navigate, backUrl, showError]);
+  }, [canRender, navigate, backUrl]);
 
   const handleClose = () => {
     navigate(backUrl || '/', { replace: true });
@@ -43,8 +44,8 @@ const TossPaymentPage = () => {
 
   const handleError = (error) => {
     const message =
-      error?.message || t('payment.tossPayment.toast.error');
-    showError(message);
+      error?.message || t('payment.tossPayment.toast.error') || 'Có lỗi xảy ra';
+    setError(message);
   };
 
   const handleReady = () => {
@@ -57,6 +58,11 @@ const TossPaymentPage = () => {
 
   return (
     <div className={styles.shell}>
+      {error && (
+        <div style={{ position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)', padding: '0.75rem 1.5rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem', zIndex: 1000, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+          {error}
+        </div>
+      )}
       <div className={styles.cardWrapper}>
         <button
           type="button"

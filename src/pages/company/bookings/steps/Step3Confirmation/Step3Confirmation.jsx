@@ -36,7 +36,7 @@ const getStatusColor = (status) => {
 };
 
 const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish, isReadOnly = false }) => {
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [tourCompleted, setTourCompleted] = useState(false);
   const [companyConfirmed, setCompanyConfirmed] = useState(booking?.companyConfirmedCompletion || false);
   const [userConfirmed, setUserConfirmed] = useState(booking?.userConfirmedCompletion || false);
@@ -106,7 +106,7 @@ useEffect(() => {
         setTourCompleted(isCompleted);
       }
     } catch (error) {
-      console.warn('Error checking tour completion status:', error);
+      // Error checking tour completion status
     } finally {
       if (isMounted) {
         setCheckingStatus(false);
@@ -171,8 +171,7 @@ useEffect(() => {
         showSuccess('Đã xác nhận tour hoàn thành! Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay. Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày ' + getAutoConfirmedDate() + ').');
       }
     } catch (error) {
-      console.error('Error confirming tour completion:', error);
-      showError(error.message || 'Không thể xác nhận tour hoàn thành');
+      // Error confirming tour completion - show in UI if needed
     } finally {
       setLoading(false);
     }

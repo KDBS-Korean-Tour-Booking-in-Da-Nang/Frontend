@@ -140,7 +140,7 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
           <div 
             className={styles['toast-progress-bar']}
             style={{
-              background: `linear-gradient(to right, ${colors.progress} 0%, ${colors.progress} 60%, ${colors.progress}88 80%, transparent 100%)`,
+              background: `linear-gradient(to right, transparent 0%, ${colors.progress}88 20%, ${colors.progress} 40%, ${colors.progress} 100%)`,
               width: `${progress}%`
             }}
           />

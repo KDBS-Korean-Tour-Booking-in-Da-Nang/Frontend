@@ -103,7 +103,7 @@ const TransactionManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Transaction Management</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Transaction Management</p>
           <h1 className="text-3xl font-bold text-gray-900">View & track all transactions</h1>
           <p className="text-sm text-gray-500 mt-1">
             Theo dõi và quản lý tất cả các giao dịch thanh toán trong hệ thống.
@@ -124,7 +124,7 @@ const TransactionManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard icon={CurrencyDollarIcon} label="Tổng giao dịch" value={stats.total} trend="+8% MoM" />
         <StatCard icon={ArrowTrendingUpIcon} label="Đã hoàn thành" value={stats.completed} trend="+5% MoM" color="text-green-600" />
-        <StatCard icon={CurrencyFormatter} label="Tổng doanh thu" value={formatCurrency(stats.totalRevenue)} trend="+12% MoM" color="text-blue-600" />
+        <StatCard icon={CurrencyFormatter} label="Tổng doanh thu" value={formatCurrency(stats.totalRevenue)} trend="+12% MoM" color="text-[#4c9dff]" />
         <StatCard icon={ArrowTrendingDownIcon} label="Đang chờ" value={stats.pending} trend="Cần xử lý" color="text-amber-500" />
       </div>
 
@@ -167,7 +167,7 @@ const TransactionManagement = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-50">
               {filteredTransactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-blue-50/40 transition">
+                <tr key={transaction.id} className="hover:bg-[#e9f2ff]/40 transition">
                   <td className="px-6 py-4">
                     <div>
                       <p className="font-semibold text-gray-900">{transaction.id}</p>
@@ -197,7 +197,7 @@ const TransactionManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" title="Xem chi tiết">
+                    <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" title="Xem chi tiết">
                       <EyeIcon className="h-4 w-4" />
                     </button>
                   </td>
@@ -221,11 +221,11 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
   <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
           {IconComponent === CurrencyFormatter ? (
-            <span className="text-xl font-semibold text-blue-500">₫</span>
+            <span className="text-xl font-semibold text-[#4c9dff]">₫</span>
           ) : (
-            <IconComponent className="h-6 w-6 text-blue-600" />
+            <IconComponent className="h-6 w-6 text-[#4c9dff]" />
           )}
         </div>
         <div>
@@ -233,7 +233,7 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
           <p className="text-xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color}`}>{trend}</span>
+      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
   </div>
 );
