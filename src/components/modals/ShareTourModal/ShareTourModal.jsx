@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { X, Share2, Hash } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, createAuthFormHeaders, getTourImageUrl, FrontendURL } from '../../../config/api';
@@ -156,9 +157,14 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   return (
     <div className={styles['overlay']} onClick={onClose}>
       <div className={styles['modal']} onClick={(e) => e.stopPropagation()}> 
+        <button className={styles['close']} onClick={onClose} aria-label="Close">
+          <X size={20} strokeWidth={2} />
+        </button>
         <div className={styles['header']}>
+          <div className={styles['header-icon']}>
+            <Share2 size={24} strokeWidth={1.5} />
+          </div>
           <h3>{t('forum.shareTour.title') || 'Chia sẻ tour lên diễn đàn'}</h3>
-          <button className={styles['close']} onClick={onClose}>×</button>
         </div>
         <div className={styles['body']}>
           {preview ? (
@@ -195,34 +201,37 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           />
           {/* Hashtag input (below content) */}
           <div className={styles['hashtag-input-container']}>
-            <input
-              type="text"
-              placeholder={t('forum.createPost.hashtagsPlaceholder') || 'Thêm hashtag, nhấn Enter để thêm'}
-              value={hashtagInput}
-              onChange={(e) => setHashtagInput(e.target.value)}
-              onKeyDown={(e) => {
-                const keys = ['Enter', ' ', 'Spacebar', ','];
-                if (keys.includes(e.key)) {
-                  e.preventDefault();
+            <div className={styles['hashtag-input-wrapper']}>
+              <Hash size={18} strokeWidth={1.5} className={styles['hashtag-icon']} />
+              <input
+                type="text"
+                placeholder={t('forum.createPost.hashtagsPlaceholder') || 'Thêm hashtag, nhấn Enter để thêm'}
+                value={hashtagInput}
+                onChange={(e) => setHashtagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  const keys = ['Enter', ' ', 'Spacebar', ','];
+                  if (keys.includes(e.key)) {
+                    e.preventDefault();
+                    const raw = hashtagInput;
+                    const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                    if (cleaned && !hashtags.includes(cleaned)) {
+                      setHashtags([...hashtags, cleaned]);
+                    }
+                    setHashtagInput('');
+                    setShowTagSuggest(false);
+                  }
+                }}
+                onBlur={() => { if (!choosingTagRef.current) {
                   const raw = hashtagInput;
                   const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
-                  if (cleaned && !hashtags.includes(cleaned)) {
-                    setHashtags([...hashtags, cleaned]);
-                  }
+                  if (cleaned && !hashtags.includes(cleaned)) setHashtags([...hashtags, cleaned]);
                   setHashtagInput('');
                   setShowTagSuggest(false);
-                }
-              }}
-              onBlur={() => { if (!choosingTagRef.current) {
-                const raw = hashtagInput;
-                const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
-                if (cleaned && !hashtags.includes(cleaned)) setHashtags([...hashtags, cleaned]);
-                setHashtagInput('');
-                setShowTagSuggest(false);
-              } else choosingTagRef.current = false; }}
-              className={styles['hashtag-input']}
-              onFocus={() => tagSuggestions.length > 0 && setShowTagSuggest(true)}
-            />
+                } else choosingTagRef.current = false; }}
+                className={styles['hashtag-input']}
+                onFocus={() => tagSuggestions.length > 0 && setShowTagSuggest(true)}
+              />
+            </div>
             {showTagSuggest && tagSuggestions.length > 0 && (
               <div className={styles['tag-suggest']}>
                 {tagSuggestions.map((t, idx) => (

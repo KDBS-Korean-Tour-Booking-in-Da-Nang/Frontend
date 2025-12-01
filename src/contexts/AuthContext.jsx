@@ -77,10 +77,11 @@ export const AuthProvider = ({ children }) => {
       rememberRef.current = remembered;
 
       // Read from both storages to allow cross-tab sharing
-      const sessionUser = sessionStorage.getItem('user');
-      const sessionToken = sessionStorage.getItem('token');
-      const localUser = localStorage.getItem('user');
-      const localToken = localStorage.getItem('token');
+      // Check for role-specific storage first (ADMIN, STAFF), then fallback to legacy keys
+      const sessionUser = sessionStorage.getItem('user_ADMIN') || sessionStorage.getItem('user_STAFF') || sessionStorage.getItem('user');
+      const sessionToken = sessionStorage.getItem('token_ADMIN') || sessionStorage.getItem('token_STAFF') || sessionStorage.getItem('token');
+      const localUser = localStorage.getItem('user_ADMIN') || localStorage.getItem('user_STAFF') || localStorage.getItem('user');
+      const localToken = localStorage.getItem('token_ADMIN') || localStorage.getItem('token_STAFF') || localStorage.getItem('token');
       // Prefer session-based values if present, else fall back to localStorage
       const savedUser = sessionUser || localUser;
       const token = sessionToken || localToken;
@@ -114,8 +115,12 @@ export const AuthProvider = ({ children }) => {
             // If we loaded from localStorage (no session values yet), mirror to session for current tab session semantics
             if (!sessionUser || !sessionToken) {
               try {
-                sessionStorage.setItem('user', JSON.stringify(parsed));
-                sessionStorage.setItem('token', token);
+                const role = parsed.role;
+                const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
+                const userKey = isAdminOrStaff ? `user_${role}` : 'user';
+                const tokenKey = isAdminOrStaff ? `token_${role}` : 'token';
+                sessionStorage.setItem(userKey, JSON.stringify(parsed));
+                sessionStorage.setItem(tokenKey, token);
               } catch {}
             }
           } catch (e) {
@@ -138,6 +143,34 @@ export const AuthProvider = ({ children }) => {
 
       // Listen for auth changes across tabs
       const onStorage = (e) => {
+        // Handle role-specific logout (ADMIN or STAFF)
+        if (e.key && (e.key === 'forceLogout_ADMIN' || e.key === 'forceLogout_STAFF') && e.newValue && mounted) {
+          const logoutRole = e.key.replace('forceLogout_', '');
+          const currentUserRole = savedUser ? (() => {
+            try {
+              const parsed = JSON.parse(savedUser);
+              return parsed.role;
+            } catch {
+              return null;
+            }
+          })() : null;
+          
+          // Only clear if the logout is for the current user's role
+          if (currentUserRole === logoutRole) {
+            setUser(null);
+            clearInactivityTimer();
+            try {
+              const userKey = `user_${logoutRole}`;
+              const tokenKey = `token_${logoutRole}`;
+              sessionStorage.removeItem(userKey);
+              sessionStorage.removeItem(tokenKey);
+              localStorage.removeItem(userKey);
+              localStorage.removeItem(tokenKey);
+            } catch {}
+          }
+          // If different role, do nothing - let that role continue
+        }
+        // Handle general logout (backward compatibility for USER/COMPANY)
         if (e.key === 'forceLogout' && e.newValue && mounted) {
           // Another tab triggered logout
           setUser(null);
@@ -151,10 +184,11 @@ export const AuthProvider = ({ children }) => {
           // Another tab completed login or updated credentials
           const nowRemembered = localStorage.getItem('rememberMe') === 'true';
           rememberRef.current = nowRemembered;
-          const sUser = sessionStorage.getItem('user');
-          const sToken = sessionStorage.getItem('token');
-          const lUser = localStorage.getItem('user');
-          const lToken = localStorage.getItem('token');
+          // Check for role-specific storage first, then legacy
+          const sUser = sessionStorage.getItem('user_ADMIN') || sessionStorage.getItem('user_STAFF') || sessionStorage.getItem('user');
+          const sToken = sessionStorage.getItem('token_ADMIN') || sessionStorage.getItem('token_STAFF') || sessionStorage.getItem('token');
+          const lUser = localStorage.getItem('user_ADMIN') || localStorage.getItem('user_STAFF') || localStorage.getItem('user');
+          const lToken = localStorage.getItem('token_ADMIN') || localStorage.getItem('token_STAFF') || localStorage.getItem('token');
           const nextUserStr = sUser || lUser;
           const nextToken = sToken || lToken;
           if (nextUserStr && nextToken) {
@@ -164,8 +198,12 @@ export const AuthProvider = ({ children }) => {
               // Ensure current tab session mirrors state for non-remember sessions
               if (!nowRemembered) {
                 try {
-                  sessionStorage.setItem('user', JSON.stringify(parsed));
-                  sessionStorage.setItem('token', nextToken);
+                  const role = parsed.role;
+                  const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
+                  const userKey = isAdminOrStaff ? `user_${role}` : 'user';
+                  const tokenKey = isAdminOrStaff ? `token_${role}` : 'token';
+                  sessionStorage.setItem(userKey, JSON.stringify(parsed));
+                  sessionStorage.setItem(tokenKey, nextToken);
                 } catch {}
                 startInactivityTimer();
               }
@@ -197,33 +235,52 @@ export const AuthProvider = ({ children }) => {
     const storage = getStorageByRemember(remember);
     setUser(userData);
 
+    // For ADMIN and STAFF, store data with role prefix to avoid conflicts
+    const role = userData?.role;
+    const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
+    const userKey = isAdminOrStaff ? `user_${role}` : 'user';
+    const tokenKey = isAdminOrStaff ? `token_${role}` : 'token';
+
     // Persist selections and data
     localStorage.setItem('rememberMe', remember ? 'true' : 'false');
-    storage.setItem('user', JSON.stringify(userData));
-    if (token) {
-      storage.setItem('token', token);
-      localStorage.setItem('accessToken', token); // For chat API
-    }
+    
     if (remember) {
+      // Remember me: store in localStorage
+      localStorage.setItem(userKey, JSON.stringify(userData));
+    if (token) {
+        localStorage.setItem(tokenKey, token);
+        localStorage.setItem('accessToken', token); // For chat API (shared)
+    }
       const expiryAt = Date.now() + REMEMBER_ME_EXPIRY_MS;
       localStorage.setItem('tokenExpiry', String(expiryAt));
     } else {
+      // Non-remember: store in sessionStorage, but also keep a copy in localStorage for cross-tab
+      sessionStorage.setItem(userKey, JSON.stringify(userData));
+      if (token) {
+        sessionStorage.setItem(tokenKey, token);
+        localStorage.setItem('accessToken', token); // For chat API (shared)
+      }
       localStorage.removeItem('tokenExpiry');
-      // Ensure no stale persistent credentials remain
-      try {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } catch {}
+      // Also keep a copy in localStorage so new tabs can hydrate immediately
+      localStorage.setItem(userKey, JSON.stringify(userData));
+      if (token) localStorage.setItem(tokenKey, token);
       startInactivityTimer();
     }
 
-    // Mirror state to sessionStorage for current tab; also persist to localStorage to allow other tabs to load
+    // Mirror state for cross-tab sharing and backward compatibility
     try {
+      // Also keep legacy keys for backward compatibility (USER, COMPANY)
+      if (!isAdminOrStaff) {
+        if (remember) {
+          localStorage.setItem('user', JSON.stringify(userData));
+          if (token) localStorage.setItem('token', token);
+        } else {
       sessionStorage.setItem('user', JSON.stringify(userData));
       if (token) sessionStorage.setItem('token', token);
-      // Also always keep a copy in localStorage so new tabs can hydrate immediately
       localStorage.setItem('user', JSON.stringify(userData));
       if (token) localStorage.setItem('token', token);
+        }
+      }
       // Broadcast login to other tabs
       localStorage.setItem('authLogin', String(Date.now()));
       setTimeout(() => localStorage.removeItem('authLogin'), 0);
@@ -233,13 +290,44 @@ export const AuthProvider = ({ children }) => {
     // No automatic redirects here to avoid page reloads
   };
 
-  const logout = () => {
+  const logout = (roleToLogout = null) => {
+    // Get current role before clearing user state
+    const currentRole = user?.role;
+    const role = roleToLogout || currentRole;
+    
+    // Clear user state
     setUser(null);
-    // Clear from both storages to ensure full logout
+    
+    if (role === 'ADMIN' || role === 'STAFF') {
+      // For ADMIN and STAFF, clear only role-specific storage
+      const userKey = `user_${role}`;
+      const tokenKey = `token_${role}`;
+      
+      try {
+        // Clear role-specific storage
+        localStorage.removeItem(userKey);
+        localStorage.removeItem(tokenKey);
+        sessionStorage.removeItem(userKey);
+        sessionStorage.removeItem(tokenKey);
+        
+        // Clear shared settings (these are role-agnostic, but safe to clear)
+        localStorage.removeItem('tokenExpiry');
+        localStorage.removeItem('rememberMe');
+        // Note: We don't clear 'accessToken' as it might be used by other roles
+        
+        clearInactivityTimer();
+        // Notify other tabs of this role's logout
+        try {
+          localStorage.setItem(`forceLogout_${role}`, String(Date.now()));
+          setTimeout(() => localStorage.removeItem(`forceLogout_${role}`), 0);
+        } catch {}
+      } catch {}
+    } else {
+      // For USER and COMPANY, or no role specified, clear legacy storage (backward compatibility)
     try {
       localStorage.removeItem('user');
       localStorage.removeItem('token');
-      localStorage.removeItem('accessToken'); // Clear chat token
+        localStorage.removeItem('accessToken');
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('rememberMe');
     } catch {}
@@ -251,20 +339,31 @@ export const AuthProvider = ({ children }) => {
     // Notify other tabs
     try {
       localStorage.setItem('forceLogout', String(Date.now()));
-      // Cleanup the flag shortly after
       setTimeout(() => localStorage.removeItem('forceLogout'), 0);
     } catch {}
+    }
   };
 
   const updateUser = (userData) => {
     setUser(userData);
     const remembered = rememberRef.current;
     const storage = getStorageByRemember(remembered);
-    storage.setItem('user', JSON.stringify(userData));
+    
+    // For ADMIN and STAFF, store data with role prefix
+    const role = userData?.role;
+    const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
+    const userKey = isAdminOrStaff ? `user_${role}` : 'user';
+    
+    storage.setItem(userKey, JSON.stringify(userData));
     // Mirror to both session and local storage so updates survive app restarts/new tabs
     try {
+      sessionStorage.setItem(userKey, JSON.stringify(userData));
+      localStorage.setItem(userKey, JSON.stringify(userData));
+      // Also keep legacy keys for backward compatibility (USER, COMPANY)
+      if (!isAdminOrStaff) {
       sessionStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('user', JSON.stringify(userData));
+      }
       // Notify other tabs about profile update
       localStorage.setItem('authLogin', String(Date.now()));
       setTimeout(() => localStorage.removeItem('authLogin'), 0);
@@ -273,9 +372,22 @@ export const AuthProvider = ({ children }) => {
 
   const getToken = () => {
     // Prefer sessionStorage if exists (non-remembered session), else fallback to localStorage
-    const sessionToken = sessionStorage.getItem('token');
+    // Check for role-specific storage first (ADMIN, STAFF), then legacy keys
+    // Also check current user role to get the right token
+    if (user?.role === 'ADMIN') {
+      const sessionToken = sessionStorage.getItem('token_ADMIN');
+      if (sessionToken) return sessionToken;
+      return localStorage.getItem('token_ADMIN');
+    } else if (user?.role === 'STAFF') {
+      const sessionToken = sessionStorage.getItem('token_STAFF');
+      if (sessionToken) return sessionToken;
+      return localStorage.getItem('token_STAFF');
+    } else {
+      // For USER/COMPANY or when user is null, check all possible keys
+      const sessionToken = sessionStorage.getItem('token_ADMIN') || sessionStorage.getItem('token_STAFF') || sessionStorage.getItem('token');
     if (sessionToken) return sessionToken;
-    return localStorage.getItem('token');
+      return localStorage.getItem('token_ADMIN') || localStorage.getItem('token_STAFF') || localStorage.getItem('token');
+    }
   };
 
   const refreshUser = async () => {

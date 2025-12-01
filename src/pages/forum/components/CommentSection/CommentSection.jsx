@@ -137,7 +137,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         userEmail: user.email,
         forumPostId: post.forumPostId,
         content: commentText.trim(),
-        imgPath: null
+        // BE yêu cầu @NotBlank cho imgPath, dùng giá trị placeholder khi không có ảnh
+        imgPath: 'NO_IMAGE',
       };
 
       const response = await fetch(API_ENDPOINTS.COMMENTS, {

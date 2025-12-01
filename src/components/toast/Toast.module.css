@@ -51,6 +51,34 @@
   word-wrap: break-word;
 }
 
+.toast-close-button {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.toast-close-button:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.toast-close-button:active {
+  transform: scale(0.95);
+}
+
+.toast-close-icon {
+  width: 16px;
+  height: 16px;
+}
+
 .toast-progress-container {
   position: absolute;
   bottom: 4px;

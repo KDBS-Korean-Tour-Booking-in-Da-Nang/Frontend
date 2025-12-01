@@ -118,7 +118,7 @@ const StaffLayout = ({ children }) => {
   ];
 
   const handleLogout = () => {
-    logout();
+    logout('STAFF'); // Only logout staff role
     navigate('/staff/login');
   };
 

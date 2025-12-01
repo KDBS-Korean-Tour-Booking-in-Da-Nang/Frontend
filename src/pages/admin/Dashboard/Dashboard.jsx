@@ -15,14 +15,16 @@ import {
   GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
-import { API_ENDPOINTS } from '../../../config/api';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import { useAuth } from '../../../contexts/AuthContext';
 import worldMapData from '../../../assets/data/world-110m.json';
 
 // World map geo data imported locally to avoid CORS issues
 const geoData = worldMapData;
 
 const Dashboard = () => {
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalTours: 0,
@@ -41,19 +43,14 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const remembered = localStorage.getItem('rememberMe') === 'true';
-        const storage = remembered ? localStorage : sessionStorage;
-        const token = storage.getItem('token');
+        const token = getToken();
 
         if (!token) {
           setLoading(false);
           return;
         }
 
-        const headers = {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        };
+        const headers = createAuthHeaders(token);
 
         // Fetch all tours
         const toursRes = await fetch(API_ENDPOINTS.TOURS, { headers });

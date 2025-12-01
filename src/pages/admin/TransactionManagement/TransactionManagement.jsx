@@ -1,4 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import Pagination from '../Pagination';
+import TransactionDetailModal from './TransactionDetailModal';
 import {
   CurrencyDollarIcon,
   ArrowTrendingUpIcon,
@@ -11,93 +16,161 @@ import {
   CalendarIcon
 } from '@heroicons/react/24/outline';
 
-const baseTransactions = [
-  {
-    id: 'TXN-2025-001',
-    customerName: 'Nguyễn Minh Anh',
-    customerEmail: 'minhanh@example.com',
-    tourName: 'Tour Đà Nẵng 3N2Đ',
-    amount: 5_200_000,
-    status: 'completed',
-    paymentMethod: 'Credit Card',
-    transactionDate: '2025-02-15',
-    bookingId: 'BK-2025-001'
-  },
-  {
-    id: 'TXN-2025-002',
-    customerName: 'Trần Hải Đăng',
-    customerEmail: 'haidang@example.com',
-    tourName: 'Tour Hà Nội 2N1Đ',
-    amount: 3_500_000,
-    status: 'completed',
-    paymentMethod: 'Bank Transfer',
-    transactionDate: '2025-02-14',
-    bookingId: 'BK-2025-002'
-  },
-  {
-    id: 'TXN-2025-003',
-    customerName: 'Phạm Thảo Nhi',
-    customerEmail: 'thaonhi@example.com',
-    tourName: 'Tour Hồ Chí Minh 4N3Đ',
-    amount: 7_800_000,
-    status: 'pending',
-    paymentMethod: 'Credit Card',
-    transactionDate: '2025-02-13',
-    bookingId: 'BK-2025-003'
-  },
-  {
-    id: 'TXN-2025-004',
-    customerName: 'Lee Ji Eun',
-    customerEmail: 'jieun@example.kr',
-    tourName: 'Tour Phú Quốc 5N4Đ',
-    amount: 12_500_000,
-    status: 'completed',
-    paymentMethod: 'Credit Card',
-    transactionDate: '2025-02-12',
-    bookingId: 'BK-2025-004'
-  },
-  {
-    id: 'TXN-2025-005',
-    customerName: 'Ngô Hữu Phước',
-    customerEmail: 'huuphuoc@example.com',
-    tourName: 'Tour Nha Trang 3N2Đ',
-    amount: 4_200_000,
-    status: 'refunded',
-    paymentMethod: 'Bank Transfer',
-    transactionDate: '2025-02-11',
-    bookingId: 'BK-2025-005'
-  }
-];
-
 const TransactionManagement = () => {
+  const { getToken } = useAuth();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Fetch transactions from API
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = getToken();
+      
+      if (!token) {
+        setError('Vui lòng đăng nhập lại');
+        setLoading(false);
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+      const response = await fetch(API_ENDPOINTS.TRANSACTIONS, { headers });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const transactionsList = Array.isArray(data) ? data : [];
+      
+      // Debug: Log first transaction to check orderInfo
+      if (transactionsList.length > 0) {
+        console.log('Sample transaction from API:', transactionsList[0]);
+      }
+      
+      // Map TransactionResponse to frontend format
+      const mappedTransactions = transactionsList.map((txn) => {
+        // Map status: SUCCESS -> completed, PENDING -> pending, FAILED -> failed
+        let status = 'pending';
+        if (txn.status === 'SUCCESS') {
+          status = 'completed';
+        } else if (txn.status === 'FAILED') {
+          status = 'failed';
+        } else if (txn.status === 'PENDING') {
+          status = 'pending';
+        }
+
+        return {
+          id: txn.transactionId || txn.orderId,
+          transactionId: txn.transactionId,
+          orderId: txn.orderId,
+          orderInfo: txn.orderInfo || null, // Keep null instead of 'N/A' to check in modal
+          customerName: txn.username || 'N/A',
+          customerEmail: txn.email || 'N/A',
+          amount: txn.amount ? Number(txn.amount) : 0,
+          status: status,
+          paymentMethod: txn.paymentMethod === 'TOSS' ? 'Toss Payment' : (txn.paymentMethod || 'N/A'),
+          transactionDate: txn.createdTime || txn.created_time,
+          bookingId: txn.orderId, // orderId is typically the booking ID
+          avatar: txn.avatar
+        };
+      });
+
+      setTransactions(mappedTransactions);
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+      setError('Không thể tải danh sách giao dịch. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredTransactions = useMemo(() => {
-    return baseTransactions.filter((transaction) => {
+    return transactions.filter((transaction) => {
       const matchesSearch =
-        transaction.customerName.toLowerCase().includes(search.toLowerCase()) ||
-        transaction.customerEmail.toLowerCase().includes(search.toLowerCase()) ||
-        transaction.id.toLowerCase().includes(search.toLowerCase()) ||
-        transaction.tourName.toLowerCase().includes(search.toLowerCase());
+        (transaction.customerName || '').toLowerCase().includes(search.toLowerCase()) ||
+        (transaction.customerEmail || '').toLowerCase().includes(search.toLowerCase()) ||
+        (transaction.id || '').toLowerCase().includes(search.toLowerCase()) ||
+        (transaction.transactionId || '').toLowerCase().includes(search.toLowerCase()) ||
+        (transaction.orderId || '').toLowerCase().includes(search.toLowerCase()) ||
+        (transaction.orderInfo || '').toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'ALL' || transaction.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
+  }, [transactions, search, statusFilter]);
+
+  // Pagination
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredTransactions.slice(startIndex, endIndex);
+  }, [filteredTransactions, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
   }, [search, statusFilter]);
 
   const stats = useMemo(() => {
-    const total = baseTransactions.length;
-    const completed = baseTransactions.filter((t) => t.status === 'completed').length;
-    const totalRevenue = baseTransactions
+    const total = transactions.length;
+    const completed = transactions.filter((t) => t.status === 'completed').length;
+    const totalRevenue = transactions
       .filter((t) => t.status === 'completed')
-      .reduce((sum, t) => sum + t.amount, 0);
-    const pending = baseTransactions.filter((t) => t.status === 'pending').length;
+      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const pending = transactions.filter((t) => t.status === 'pending').length;
     return { total, completed, totalRevenue, pending };
-  }, []);
+  }, [transactions]);
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải danh sách giao dịch...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchTransactions}
+            className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -136,7 +209,7 @@ const TransactionManagement = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo tên, email, mã giao dịch hoặc tour..."
+              placeholder="Tìm theo tên, email, order id hoặc order info..."
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -149,7 +222,7 @@ const TransactionManagement = () => {
               <option value="ALL">Tất cả trạng thái</option>
               <option value="completed">Đã hoàn thành</option>
               <option value="pending">Đang chờ</option>
-              <option value="refunded">Đã hoàn tiền</option>
+              <option value="failed">Thất bại</option>
             </select>
           </div>
         </div>
@@ -158,7 +231,10 @@ const TransactionManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['Giao dịch', 'Khách hàng', 'Tour', 'Số tiền', 'Phương thức', 'Ngày giao dịch', 'Thao tác'].map((header) => (
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-blue-50/50 w-16">
+                  STT
+                </th>
+                {['Khách hàng', 'Trạng thái', 'Số tiền', 'Phương thức', 'Ngày giao dịch', 'Thao tác'].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -166,13 +242,19 @@ const TransactionManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-50">
-              {filteredTransactions.map((transaction) => (
+              {filteredTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                    Không tìm thấy giao dịch phù hợp với bộ lọc hiện tại.
+                  </td>
+                </tr>
+              ) : (
+                paginatedTransactions.map((transaction, index) => (
                 <tr key={transaction.id} className="hover:bg-[#e9f2ff]/40 transition">
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-semibold text-gray-900">{transaction.id}</p>
-                      <p className="text-xs text-gray-400 mt-1">Booking: {transaction.bookingId}</p>
-                    </div>
+                  <td className="px-4 py-4 text-center bg-blue-50/30">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
+                      {currentPage * itemsPerPage + index + 1}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <div>
@@ -181,11 +263,10 @@ const TransactionManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-gray-900">{transaction.tourName}</p>
+                    <StatusBadge status={transaction.status} />
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-semibold text-gray-900">{formatCurrency(transaction.amount)}</div>
-                    <StatusBadge status={transaction.status} />
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {transaction.paymentMethod}
@@ -193,26 +274,50 @@ const TransactionManagement = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1 text-sm text-gray-600">
                       <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      {new Date(transaction.transactionDate).toLocaleDateString('vi-VN')}
+                      {transaction.transactionDate 
+                        ? new Date(transaction.transactionDate).toLocaleDateString('vi-VN')
+                        : 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" title="Xem chi tiết">
+                    <button 
+                      onClick={() => {
+                        setSelectedTransaction(transaction);
+                        setIsDetailModalOpen(true);
+                      }}
+                      className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
+                      title="Xem chi tiết"
+                    >
                       <EyeIcon className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
 
-        {filteredTransactions.length === 0 && (
-          <div className="p-8 text-center">
-            <p className="text-gray-500 text-sm">Không tìm thấy giao dịch phù hợp với bộ lọc hiện tại.</p>
-          </div>
+        {/* Pagination */}
+        {filteredTransactions.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredTransactions.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         )}
       </div>
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+      />
     </div>
   );
 };
@@ -242,7 +347,7 @@ const StatusBadge = ({ status }) => {
   const map = {
     completed: { color: 'bg-green-100 text-green-700', label: 'Đã hoàn thành' },
     pending: { color: 'bg-amber-100 text-amber-700', label: 'Đang chờ' },
-    refunded: { color: 'bg-gray-100 text-gray-700', label: 'Đã hoàn tiền' }
+    failed: { color: 'bg-red-100 text-red-700', label: 'Thất bại' }
   };
   const statusMap = map[status] || { color: 'bg-gray-100 text-gray-500', label: status };
   return (

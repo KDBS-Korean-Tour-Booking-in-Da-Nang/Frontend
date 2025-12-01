@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { getApiPath } from '../../../config/api';
 import { KeyRound, UserRound } from 'lucide-react';
 
 const AdminLogin = () => {
@@ -45,7 +46,7 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login-username', {
+      const response = await fetch(getApiPath('/api/auth/login-username'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

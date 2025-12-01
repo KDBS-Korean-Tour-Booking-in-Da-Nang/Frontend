@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { formatPrice } from '../../../../../utils/priceRules';
+import { getApiPath } from '../../../../../config/api';
 import { DatePicker } from 'react-rainbow-components';
 import {
   Calendar,
@@ -986,12 +987,10 @@ const Step2Details = () => {
       setLoading(true);
       
       // Fetch tour data directly (public endpoint)
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-      
       // Get token for authentication
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
+      const response = await fetch(getApiPath(`/api/tour/${tourId}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

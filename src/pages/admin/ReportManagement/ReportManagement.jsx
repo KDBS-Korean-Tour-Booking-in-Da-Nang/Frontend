@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import Pagination from '../Pagination';
 import { 
   DocumentTextIcon,
   ChartBarIcon,
@@ -13,6 +14,8 @@ import {
 const ReportManagement = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   const reports = [
     {
@@ -121,6 +124,15 @@ const ReportManagement = () => {
     const reportType = reportTypes.find(rt => rt.id === type);
     return reportType ? reportType.color : 'gray';
   };
+
+  // Pagination
+  const paginatedReports = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return reports.slice(startIndex, endIndex);
+  }, [reports, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(reports.length / itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -242,7 +254,7 @@ const ReportManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {reports.map((report) => (
+                {paginatedReports.map((report) => (
                   <tr key={report.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -305,6 +317,16 @@ const ReportManagement = () => {
             </table>
           </div>
         </div>
+        {/* Pagination */}
+        {reports.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={reports.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* Report Details Modal */}

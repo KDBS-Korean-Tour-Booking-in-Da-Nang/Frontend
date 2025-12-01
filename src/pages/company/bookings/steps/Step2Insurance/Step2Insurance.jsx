@@ -393,34 +393,13 @@ const Step2Insurance = ({
         onClose={() => !loading.continue && setShowConfirmModal(false)}
         onConfirm={handleConfirmContinue}
         title="Xác nhận duyệt bảo hiểm"
-        message={`Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối? Những thay đổi này sẽ được lưu vào database khi bạn bấm "Hoàn thành" ở bước 3.`}
+        message="Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối?"
         confirmText={t('common.confirm') || 'Xác nhận'}
         cancelText={t('common.cancel') || 'Hủy'}
         icon="✓"
         danger={false}
         disableBackdropClose={loading.continue}
-      >
-        <div style={{ marginTop: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
-          <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: '#374151', marginBottom: '0.5rem' }}>
-            Các thay đổi trạng thái bảo hiểm sẽ được lưu vào database:
-          </p>
-          <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#374151', maxHeight: '200px', overflowY: 'auto' }}>
-            {guestsState.map((guest, index) => {
-              const originalGuest = guests.find(g => g.bookingGuestId === guest.bookingGuestId);
-              const hasChanged = originalGuest && originalGuest.insuranceStatus !== guest.insuranceStatus;
-              if (!hasChanged && originalGuest) return null;
-              return (
-                <li key={guest.bookingGuestId || index} style={{ marginBottom: '0.25rem' }}>
-                  <strong>{guest.fullName || `Khách ${index + 1}`}</strong>: {originalGuest ? `${originalGuest.insuranceStatus || 'Pending'} → ${guest.insuranceStatus || 'Pending'}` : guest.insuranceStatus || 'Pending'}
-                </li>
-              );
-            })}
-          </ul>
-          <p style={{ margin: '0.75rem 0 0', fontSize: '0.875rem', lineHeight: '1.6', color: '#374151' }}>
-            Sau khi xác nhận, bạn sẽ chuyển sang bước cuối cùng để xác nhận booking.
-          </p>
-        </div>
-      </DeleteConfirmModal>
+      />
 
       {/* Reject Reason Modal */}
       {!isReadOnly && (

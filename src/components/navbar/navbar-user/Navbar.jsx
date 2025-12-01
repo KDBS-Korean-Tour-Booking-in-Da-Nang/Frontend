@@ -20,9 +20,16 @@ import { useNotifications } from '../../../contexts/NotificationContext';
 
 const Navbar = () => {
   const { user, logout, getToken } = useAuth();
-  const { unreadCount, fetchList } = useNotifications();
+  const { unreadCount, fetchList, fetchUnreadCount } = useNotifications();
   const fetchListRef = useRef(fetchList);
   useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
+
+  // Fetch unread count on mount and when user changes
+  useEffect(() => {
+    if (user?.email && fetchUnreadCount) {
+      fetchUnreadCount();
+    }
+  }, [user?.email, fetchUnreadCount]);
   
   // Add error boundary for chat context
   let chatState, chatActions;

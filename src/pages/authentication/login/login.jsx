@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
 import { validateEmail } from '../../../utils/emailValidator';
+import { getApiPath } from '../../../config/api';
 import gsap from 'gsap';
 import styles from './login.module.css';
 
@@ -285,7 +286,7 @@ const Login = () => {
     try {
       // Password is already cleaned (no spaces) from handlePasswordChange, but trim for safety
       const trimmedPassword = password.trim();
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(getApiPath('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -405,7 +406,7 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      const response = await fetch('/api/auth/google/login');
+      const response = await fetch(getApiPath('/api/auth/google/login'));
       const data = await response.json();
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
@@ -424,7 +425,7 @@ const Login = () => {
 
   const handleNaverLogin = async () => {
     try {
-      const response = await fetch('/api/auth/naver/login');
+      const response = await fetch(getApiPath('/api/auth/naver/login'));
       const data = await response.json();
       
       if ((data.code === 1000 || data.code === 0) && data.result) {

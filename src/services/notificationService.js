@@ -30,13 +30,22 @@ const parseJson = async (res) => {
     err.body = text;
     throw err;
   }
+  // Handle 204 No Content response
+  if (res.status === 204) {
+    return null;
+  }
   return res.json();
 };
 
 export const NotificationAPI = {
-  async getNotifications({ isRead, page = 0, size = 20, sort = 'createdAt,desc' } = {}, userEmail) {
+  /**
+   * Get notifications with pagination
+   * @param {Object} params - { page, size, sort }
+   * @param {string} userEmail - User email for authentication
+   * @returns {Promise<{notifications: {content: Array, totalElements: number, ...}, unreadCount: number}>}
+   */
+  async getNotifications({ page = 0, size = 10, sort = 'createdAt,desc' } = {}, userEmail) {
     const params = new URLSearchParams();
-    if (typeof isRead === 'boolean') params.set('isRead', String(isRead));
     params.set('page', String(page));
     params.set('size', String(size));
     params.set('sort', sort);
@@ -45,30 +54,29 @@ export const NotificationAPI = {
     return parseJson(res);
   },
 
+  /**
+   * Mark a notification as read
+   * @param {number} notificationId - Notification ID
+   * @param {string} userEmail - User email for authentication
+   * @returns {Promise<void>}
+   */
   async markAsRead(notificationId, userEmail) {
     const url = `${API_BASE_URL}/api/notifications/${notificationId}/read`;
     const res = await fetch(url, {
-      method: 'PUT',
+      method: 'PATCH',
       headers: withUserEmail(getAuthHeaders(), userEmail)
     });
     return parseJson(res);
   },
 
-  async markAllAsRead(userEmail) {
-    const url = `${API_BASE_URL}/api/notifications/read-all`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: withUserEmail(getAuthHeaders(), userEmail)
-    });
-    return parseJson(res);
-  },
-
-  async deleteNotification(notificationId, userEmail) {
-    const url = `${API_BASE_URL}/api/notifications/${notificationId}`;
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: withUserEmail(getAuthHeaders(), userEmail)
-    });
+  /**
+   * Get unread notification count
+   * @param {string} userEmail - User email for authentication
+   * @returns {Promise<number>}
+   */
+  async getUnreadCount(userEmail) {
+    const url = `${API_BASE_URL}/api/notifications/unread-count`;
+    const res = await fetch(url, { headers: withUserEmail(getAuthHeaders(), userEmail) });
     return parseJson(res);
   }
 };

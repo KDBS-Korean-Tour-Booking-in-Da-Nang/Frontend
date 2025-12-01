@@ -20,11 +20,13 @@ import {
   ChatBubbleBottomCenterTextIcon,
   FlagIcon
 } from '@heroicons/react/24/outline';
-import { API_ENDPOINTS, getImageUrl, getAvatarUrl, FrontendURL } from '../../../config/api';
+import { API_ENDPOINTS, getImageUrl, getAvatarUrl, FrontendURL, createAuthHeaders } from '../../../config/api';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 
 const ForumManagement = () => {
+  const { getToken } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [reports, setReports] = useState([]);
@@ -67,15 +69,10 @@ const ForumManagement = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const remembered = localStorage.getItem('rememberMe') === 'true';
-      const storage = remembered ? localStorage : sessionStorage;
-      const token = storage.getItem('token');
+      const token = getToken();
 
       const response = await fetch(API_ENDPOINTS.POSTS, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+        headers: createAuthHeaders(token)
       });
 
       // Handle 401 if token expired
@@ -101,16 +98,11 @@ const ForumManagement = () => {
   const fetchReports = async () => {
     try {
       setReportsLoading(true);
-      const remembered = localStorage.getItem('rememberMe') === 'true';
-      const storage = remembered ? localStorage : sessionStorage;
-      const token = storage.getItem('token');
+      const token = getToken();
 
       const params = new URLSearchParams({ page: '0', size: '100' });
       const response = await fetch(`${API_ENDPOINTS.REPORTS_ADMIN_ALL}?${params}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+        headers: createAuthHeaders(token)
       });
 
       // Handle 401 if token expired
@@ -262,15 +254,10 @@ const ForumManagement = () => {
     if (tourPreviews[tourId]) return; // Already fetched
     
     try {
-      const remembered = localStorage.getItem('rememberMe') === 'true';
-      const storage = remembered ? localStorage : sessionStorage;
-      const token = storage.getItem('token');
+      const token = getToken();
       
       const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId), {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
+        headers: createAuthHeaders(token)
       });
       
       if (response.ok) {

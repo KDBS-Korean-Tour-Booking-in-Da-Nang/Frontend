@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import {
   ClipboardDocumentListIcon,
   ExclamationTriangleIcon,
@@ -11,15 +12,15 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import articleService from '../../../services/articleService';
-import ForumReportManagement from './Components/ForumReportManagement';
-import CompanyManagement from './Components/CompanyManagement';
-import TourApproval from './Components/TourApproval';
-import ArticleManagement from './Components/ArticleManagement';
+import ForumReportManagement from './Components/ForumReportManagement/ForumReportManagement';
+import CompanyManagement from './Components/CompanyManagement/CompanyManagement';
+import TourApproval from './Components/TourApproval/TourApproval';
+import ArticleManagement from './Components/ArticleManagement/ArticleManagement';
 
 const pastelCardClasses = 'rounded-[28px] bg-white/95 border border-[#eceff7] shadow-[0_15px_45px_rgba(15,23,42,0.08)]';
 
 const TaskManagement = () => {
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
   const [error, setError] = useState('');
   const [searchParams] = useSearchParams();
@@ -38,13 +39,17 @@ const TaskManagement = () => {
   // Load summary data for dashboard
   const loadSummaryData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const token = getToken();
       const headers = createAuthHeaders(token);
 
       // Load forum reports count
       if (canHandleForumReports) {
         try {
           const response = await fetch(`${API_ENDPOINTS.REPORTS_ADMIN_ALL}?page=0&size=1`, { headers });
+          if (response.status === 401) {
+            await checkAndHandle401(response);
+            return;
+          }
           if (response.ok) {
             const data = await response.json();
             setForumReportsCount(data.totalElements || 0);
@@ -58,6 +63,10 @@ const TaskManagement = () => {
       if (canHandleCompanyRequests) {
         try {
           const response = await fetch(API_ENDPOINTS.USERS, { headers });
+          if (response.status === 401) {
+            await checkAndHandle401(response);
+            return;
+          }
           if (response.ok) {
             const data = await response.json();
             const users = Array.isArray(data) ? data : (data.result || []);
@@ -76,6 +85,10 @@ const TaskManagement = () => {
       if (canHandleTours) {
         try {
           const response = await fetch(API_ENDPOINTS.TOURS, { headers });
+          if (response.status === 401) {
+            await checkAndHandle401(response);
+            return;
+          }
           if (response.ok) {
             const tours = await response.json();
             const pending = tours.filter(t => t.tourStatus === 'NOT_APPROVED');

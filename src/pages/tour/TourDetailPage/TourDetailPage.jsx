@@ -10,13 +10,8 @@ import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 import { useTourRated } from "../../../hooks/useTourRated";
 import useWeatherFromTour from "../../../hooks/useWeatherFromTour";
 import DeleteConfirmModal from "../../../components/modals/DeleteConfirmModal/DeleteConfirmModal";
-import { getBookingsByTourId } from "../../../services/bookingAPI";
-import {
-  getAllVouchers,
-  getAvailableVouchersForBooking,
-  getVouchersByCompanyId,
-} from "../../../services/voucherAPI";
-import { getCompanyNames } from "../../../utils/companyUtils";
+import { API_ENDPOINTS, createAuthHeaders } from "../../../config/api";
+import { checkAndHandle401 } from "../../../utils/apiErrorHandler";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -96,7 +91,6 @@ const TourDetailPage = () => {
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherError, setVoucherError] = useState("");
   const [voucherEmptyReason, setVoucherEmptyReason] = useState("");
-  const [_companyNamesMap, setCompanyNamesMap] = useState(new Map());
   // close open menu on outside click
   useEffect(() => {
     if (!openMenuId) return;
@@ -197,138 +191,92 @@ const TourDetailPage = () => {
 
       try {
         const tourId = Number(tour.id);
-        let vouchersFromBooking = [];
-        let companyId = null;
+        if (Number.isNaN(tourId)) {
+          return;
+        }
 
-        // Strategy 1: Try to get vouchers from booking (if exists)
-        try {
-          const bookingsPayload = await getBookingsByTourId(tourId);
-          const bookingsList = Array.isArray(bookingsPayload?.bookings)
-            ? bookingsPayload.bookings
-            : Array.isArray(bookingsPayload)
-            ? bookingsPayload
-            : [];
-          const sampleBooking = bookingsList.find(
-            (booking) => booking && (booking.bookingId || booking.id)
+        // Lấy token giống logic getToken trong AuthContext nhưng không gọi hook
+        const sessionToken =
+          sessionStorage.getItem("token_ADMIN") ||
+          sessionStorage.getItem("token_STAFF") ||
+          sessionStorage.getItem("token");
+        const localToken =
+          localStorage.getItem("token_ADMIN") ||
+          localStorage.getItem("token_STAFF") ||
+          localStorage.getItem("token");
+        const token = sessionToken || localToken || null;
+        const headers = createAuthHeaders(token || undefined);
+
+        const response = await fetch(
+          API_ENDPOINTS.VOUCHERS_BY_TOUR(tourId),
+          {
+            method: "GET",
+            headers,
+          }
+        );
+
+        // Handle 401 explicitly so không bị auto logout bất ngờ ở chỗ khác
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          if (!isSubscribed) return;
+          setVoucherSuggestions([]);
+          setVoucherEmptyReason("");
+          setVoucherError(
+            t("tourPage.detail.vouchers.sessionExpired") ||
+              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
           );
-
-          if (sampleBooking) {
-            const bookingId = sampleBooking.bookingId || sampleBooking.id;
-            vouchersFromBooking = await getAvailableVouchersForBooking(
-              bookingId
-            );
-
-            // Try to get companyId from voucher response
-            if (Array.isArray(vouchersFromBooking) && vouchersFromBooking.length > 0) {
-              const firstVoucher = vouchersFromBooking[0];
-              companyId = firstVoucher.companyId || firstVoucher.meta?.companyId || null;
-            }
-          }
-        } catch (error) {
-          // If booking fetch fails, continue with company vouchers
+          return;
         }
 
-        // Strategy 2: Get vouchers from company (if we have companyId)
-        // If we don't have companyId from booking, try to get it from tour object
-        // Note: TourResponse doesn't include companyId currently, so this is a fallback
-        if (!companyId && tour?.companyId) {
-          companyId = tour.companyId;
-        }
-
-        let vouchersFromCompany = [];
-        if (companyId) {
+        if (!response.ok) {
+          let errorData = {};
+          const contentType = response.headers.get("content-type");
           try {
-            const companyVouchers = await getVouchersByCompanyId(companyId);
-            if (Array.isArray(companyVouchers) && companyVouchers.length > 0) {
-              // Filter vouchers that apply to this tour:
-              // 1. Voucher has no tourIds (null or empty array) -> applies to all tours of that company
-              // 2. Voucher has tourIds and current tour is in the list
-              vouchersFromCompany = companyVouchers.filter((voucher) => {
-                const tourIds = voucher.tourIds || [];
-                // If tourIds is null or empty array, voucher applies to all tours of the company
-                if (!tourIds || tourIds.length === 0) {
-                  return true;
-                }
-                // Check if current tour is in the tourIds list
-                return tourIds.includes(tourId);
-              });
-            }
-          } catch (error) {
-            // If company vouchers fetch fails, continue with booking vouchers
-          }
-        }
-
-        // Merge vouchers from booking and company, remove duplicates
-        const voucherMap = new Map();
-        
-        // Add vouchers from booking first (they're already validated by backend)
-        if (Array.isArray(vouchersFromBooking)) {
-          vouchersFromBooking.forEach((voucher) => {
-            const voucherId = voucher.voucherId || voucher.id || voucher.voucherCode;
-            if (voucherId) {
-              voucherMap.set(voucherId, { ...voucher, source: "booking" });
-            }
-          });
-        }
-
-        // Add vouchers from company (avoid duplicates)
-        if (Array.isArray(vouchersFromCompany)) {
-          vouchersFromCompany.forEach((voucher) => {
-            const voucherId = voucher.voucherId || voucher.id || voucher.code;
-            if (voucherId && !voucherMap.has(voucherId)) {
-              // Transform company voucher to match booking voucher format
-              voucherMap.set(voucherId, {
-                voucherId: voucher.voucherId || voucher.id,
-                voucherCode: voucher.code || voucher.voucherCode,
-                discountType: voucher.discountType,
-                discountValue: voucher.discountValue,
-                companyId: voucher.companyId,
-                startDate: voucher.startDate,
-                endDate: voucher.endDate,
-                meta: voucher, // Store full metadata
-                source: "company"
-              });
-            }
-          });
-        }
-
-        // Convert map to array
-        let allVouchers = Array.from(voucherMap.values());
-
-        // Enrich with metadata from getAllVouchers for better display
-        try {
-          const metadata = await getAllVouchers();
-          if (Array.isArray(metadata) && metadata.length > 0) {
-            allVouchers = allVouchers.map((voucher) => {
-              const meta =
-                metadata.find(
-                  (item) =>
-                    item?.voucherId === voucher?.voucherId ||
-                    item?.code === voucher?.voucherCode
-                ) || voucher.meta || null;
-              return { ...voucher, meta };
-            });
-          }
-        } catch {
-          // Optional metadata - ignore errors
-        }
-
-        if (isSubscribed) {
-          setVoucherSuggestions(allVouchers);
-          if (!allVouchers.length) {
-            if (!companyId) {
-              setVoucherEmptyReason(t("tourPage.detail.vouchers.noBooking"));
+            if (contentType && contentType.includes("application/json")) {
+              errorData = await response.json();
             } else {
-              setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
+              const text = await response.text();
+              errorData = { message: text };
             }
+          } catch {
+            // ignore parse error
           }
-          
-          // Fetch company names for all unique companyIds
-          const uniqueCompanyIds = [...new Set(allVouchers.map(v => v.companyId || v.meta?.companyId).filter(Boolean))];
-          if (uniqueCompanyIds.length > 0) {
-            const namesMap = await getCompanyNames(uniqueCompanyIds);
-            setCompanyNamesMap(namesMap);
-          }
+
+          if (!isSubscribed) return;
+          setVoucherSuggestions([]);
+          setVoucherEmptyReason("");
+          setVoucherError(
+            errorData.message ||
+              errorData.error ||
+              t("tourPage.detail.vouchers.errorGeneric")
+          );
+          return;
+        }
+
+        const data = await response.json().catch(() => []);
+        let vouchers = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.vouchers)
+          ? data.vouchers
+          : [];
+
+        // Lọc bỏ voucher đã hết hạn dựa trên endDate
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        vouchers = vouchers.filter((voucher) => {
+          const rawEndDate =
+            voucher?.endDate || voucher?.meta?.endDate || voucher?.expiryDate;
+          if (!rawEndDate) return true; // nếu BE không gửi endDate thì coi như luôn hiển thị
+          const end = new Date(rawEndDate);
+          if (Number.isNaN(end.getTime())) return true;
+          end.setHours(23, 59, 59, 999); // còn hiệu lực đến hết ngày endDate
+          return end >= today;
+            });
+
+        if (!isSubscribed) return;
+        setVoucherSuggestions(vouchers);
+        if (!vouchers.length) {
+              setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
         }
       } catch (error) {
         if (!isSubscribed) return;
@@ -570,18 +518,12 @@ const TourDetailPage = () => {
                   <span>{tour.duration}</span>
                 </div>
                 <div className={styles["meta-item"]}>
-                  <MapPin className={styles["meta-icon"]} />
-                  <span>
-                    {tour.category === "domestic"
-                      ? "Trong nước"
-                      : tour.category === "international"
-                      ? "Nước ngoài"
-                      : "Trong ngày"}
-                  </span>
-                </div>
-                <div className={styles["meta-item"]}>
                   <Star className={styles["meta-icon"]} />
-                  <span>4.8/5 (127 đánh giá)</span>
+                  <span>
+                    {ratingStats.total > 0 
+                      ? `${formatAvg(ratingStats.avg)}/5 (${ratingStats.total} đánh giá)`
+                      : "Chưa có đánh giá"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1063,8 +1005,7 @@ const TourDetailPage = () => {
 
                         <div className={styles["voucher-footer"]}>
                           <span className={styles["voucher-help-text"]}>
-                            Previewed from a sample booking so you know what to
-                            expect.
+                            Các ưu đãi hiện có dành cho tour này.
                           </span>
                           {voucherSuggestions.length > 3 && (
                             <button
@@ -1235,30 +1176,7 @@ const TourDetailPage = () => {
               )}
             </div>
           </div>
-          {/* Row 3: Tour Gallery - full width */}
-          <div className={styles["tour-gallery"]}>
-            <h2>{t("tourPage.detail.gallery.title")}</h2>
-            <div className={styles["gallery-grid"]}>
-              {[tour.image || "/default-Tour.jpg", ...(tour.gallery || [])]
-                .filter(Boolean)
-                .slice(0, 4)
-                .map((img, idx) => (
-                  <div className={styles["gallery-item"]} key={idx}>
-                    <img
-                      src={img}
-                      alt={`Gallery ${idx + 1}`}
-                      onError={(e) => {
-                        e.target.src = "/default-Tour.jpg";
-                      }}
-                    />
-                    <div className={styles["gallery-overlay"]}>
-                      <Search className={styles["gallery-icon"]} />
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-          {/* Row 4: Ratings & Reviews - full width */}
+          {/* Row 3: Ratings & Reviews - full width */}
           <div className={styles["tour-reviews"]} style={{ marginTop: "32px" }}>
             <h2>
               {t("tourPage.detail.reviews.title") || "Đánh giá & Nhận xét"}

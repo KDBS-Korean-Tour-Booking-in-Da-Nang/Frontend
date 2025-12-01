@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../contexts/ToastContext';
 import { TourWizardProvider, useTourWizardContext } from '../../../../contexts/TourWizardContext';
 import { useStepValidation } from '../../../../hooks/useStepValidation';
+import { getApiPath } from '../../../../config/api';
 import Step1BasicInfo from './components/Step1/Step1BasicInfo';
 import Step2Itinerary from './components/Step2/Step2Itinerary';
 import Step3Pricing from './components/Step3/Step3Pricing';
@@ -442,7 +443,7 @@ const TourWizardContent = () => {
 
 
       // Call backend API to create tour with Bearer token authentication
-      const response = await fetch('/api/tour/create', {
+      const response = await fetch(getApiPath('/api/tour/create'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

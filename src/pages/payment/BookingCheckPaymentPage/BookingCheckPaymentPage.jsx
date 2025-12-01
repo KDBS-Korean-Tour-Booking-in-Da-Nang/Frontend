@@ -7,6 +7,7 @@ import { getAvailableVouchersForBooking } from '../../../services/voucherAPI';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { validateEmail } from '../../../utils/emailValidator';
+import { API_ENDPOINTS } from '../../../config/api';
 import {
   ArrowLeft,
   CreditCard,
@@ -25,7 +26,6 @@ import {
 } from 'lucide-react';
 import styles from './BookingCheckPaymentPage.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 /**
  * Format số tiền thành định dạng VND (ví dụ: 100000 -> "100.000 ₫")
@@ -102,7 +102,7 @@ const BookingCheckPaymentPage = () => {
     const computeFromBookingSnapshot = async (b) => {
       try {
         if (!b?.tourId) return;
-        const tourResp = await fetch(`${API_BASE_URL}/api/tour/${b.tourId}`);
+        const tourResp = await fetch(API_ENDPOINTS.TOUR_BY_ID(b.tourId));
         if (!tourResp.ok) return;
         const tour = await tourResp.json();
         const adults = Number(b.adultsCount || 0);
@@ -195,7 +195,7 @@ const BookingCheckPaymentPage = () => {
           try {
             const b = bookingRes.value;
             if (b?.tourId) {
-              const tourResp = await fetch(`${API_BASE_URL}/api/tour/${b.tourId}`);
+              const tourResp = await fetch(API_ENDPOINTS.TOUR_BY_ID(b.tourId));
               if (tourResp.ok) {
                 const tour = await tourResp.json();
                 const adults = Number(b.adultsCount || 0);

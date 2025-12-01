@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import Pagination from '../Pagination';
 import { 
   UsersIcon,
   PlusIcon,
@@ -20,6 +21,8 @@ const UserManagement = () => {
     status: 'active'
   });
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
   const [userList, setUserList] = useState([
     {
       id: 1,
@@ -114,6 +117,15 @@ const UserManagement = () => {
     }
     setIsModalOpen(false);
   };
+
+  // Pagination
+  const paginatedUsers = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return userList.slice(startIndex, endIndex);
+  }, [userList, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(userList.length / itemsPerPage);
 
   const getRoleColor = (role) => {
     switch (role) {
@@ -232,7 +244,7 @@ const UserManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {userList.map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -304,6 +316,16 @@ const UserManagement = () => {
             </table>
           </div>
         </div>
+        {/* Pagination */}
+        {userList.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={userList.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* User Modal */}

@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import Pagination from '../Pagination';
 import {
   BuildingOfficeIcon,
   ClockIcon,
@@ -32,6 +34,8 @@ const CompanyManagement = () => {
     idCardBackUrl: null,
     loading: false
   });
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   // Fetch companies (users with role COMPANY/BUSINESS) from API
   const fetchCompanies = async () => {
@@ -52,6 +56,7 @@ const CompanyManagement = () => {
       
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -125,6 +130,20 @@ const CompanyManagement = () => {
     });
   }, [companies, search, statusFilter]);
 
+  // Pagination
+  const paginatedCompanies = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCompanies.slice(startIndex, endIndex);
+  }, [filteredCompanies, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [search, statusFilter]);
+
   const stats = useMemo(() => {
     // Filter out not_updated companies for stats
     const filteredCompanies = companies.filter((c) => c.approvalStatus !== 'not_updated');
@@ -157,7 +176,7 @@ const CompanyManagement = () => {
 
       if (!roleResponse.ok) {
         if (roleResponse.status === 401) {
-          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          await checkAndHandle401(roleResponse);
           return;
         }
         const errorData = await roleResponse.json();
@@ -172,7 +191,7 @@ const CompanyManagement = () => {
 
       if (!statusResponse.ok) {
         if (statusResponse.status === 401) {
-          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          await checkAndHandle401(statusResponse);
           return;
         }
         const errorData = await statusResponse.json();
@@ -210,7 +229,7 @@ const CompanyManagement = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          await checkAndHandle401(response);
           return;
         }
         const errorData = await response.json();
@@ -401,7 +420,7 @@ const CompanyManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filteredCompanies.map((company) => (
+                paginatedCompanies.map((company) => (
                 <tr key={company.id} className="hover:bg-[#e9f2ff]/40 transition">
                   <td className="px-6 py-4">
                     <div className="flex items-start gap-3">
@@ -480,6 +499,16 @@ const CompanyManagement = () => {
           </table>
         </div>
 
+        {/* Pagination */}
+        {filteredCompanies.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredCompanies.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* Modal for viewing company files */}

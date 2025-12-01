@@ -78,7 +78,7 @@ const AdminLayout = ({ children }) => {
   ];
 
   const handleLogout = () => {
-    logout();
+    logout('ADMIN'); // Only logout admin role
     navigate('/admin/login');
   };
 

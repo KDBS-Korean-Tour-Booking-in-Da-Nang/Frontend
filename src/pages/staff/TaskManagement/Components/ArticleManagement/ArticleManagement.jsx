@@ -1,30 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RefreshCcw, FileText, AlertTriangle, Check, X, Eye } from 'lucide-react';
-import { useToast } from '../../../../contexts/ToastContext';
-import articleService from '../../../../services/articleService';
-import { extractTextFromHtml, getArticleSummary, extractFirstImageUrl, htmlToJsx } from '../../../../utils/htmlConverter';
+import { useToast } from '../../../../../contexts/ToastContext';
+import articleService from '../../../../../services/articleService';
+import { extractTextFromHtml, getArticleSummary, extractFirstImageUrl, htmlToJsx } from '../../../../../utils/htmlConverter';
+import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 
 const ArticleManagement = () => {
-  const { user, logout, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { showSuccess } = useToast();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [loading, setLoading] = useState(false);
   const [articles, setArticles] = useState([]);
   const [selectedArticles, setSelectedArticles] = useState([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [lastArticleCount, setLastArticleCount] = useState(0);
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [error, setError] = useState('');
+
+  // Check if user has permission to manage articles
+  const canManageArticles = user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
   const softUI = {
     pageBg: 'bg-gradient-to-b from-[#fefefe] via-[#f8f6ff] to-[#f3fbff]',
@@ -59,9 +60,10 @@ const ArticleManagement = () => {
       
       setArticles(sortedArticles);
       setLastArticleCount(sortedArticles.length);
+      setError(''); // Clear error on success
     } catch (error) {
       console.error('Error loading articles:', error);
-      setError(t('newsManagement.messages.crawlError') || 'Không thể tải tin tức');
+      setError(t('newsManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
     } finally {
       setLoadingArticles(false);
     }
@@ -69,53 +71,21 @@ const ArticleManagement = () => {
 
   // Load articles on component mount
   useEffect(() => {
-    if (user && (user.role === 'ADMIN' || user.role === 'STAFF')) {
+    if (user && canManageArticles) {
       loadArticles();
     }
-  }, [user, loadArticles]);
+  }, [user, canManageArticles, loadArticles]);
 
   // Auto-refresh articles every 5 minutes to check for new auto-crawled articles
   useEffect(() => {
-    if (user && (user.role === 'ADMIN' || user.role === 'STAFF')) {
+    if (user && canManageArticles) {
       const interval = setInterval(() => {
         loadArticles(true); // Show notification for new articles
       }, 5 * 60 * 1000); // 5 minutes
 
       return () => clearInterval(interval);
     }
-  }, [user, loadArticles]);
-
-  // Handle logout navigation
-  useEffect(() => {
-    if (isLoggingOut && !user) {
-      // User has been cleared, safe to navigate
-      navigate('/');
-      setIsLoggingOut(false);
-    }
-  }, [isLoggingOut, user, navigate]);
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showUserDropdown && !event.target.closest('.user-dropdown')) {
-        setShowUserDropdown(false);
-      }
-      if (showLanguageDropdown && !event.target.closest('.language-dropdown')) {
-        setShowLanguageDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showUserDropdown, showLanguageDropdown]);
-
-  // Language change handler
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    setShowLanguageDropdown(false);
-  };
+  }, [user, canManageArticles, loadArticles]);
 
   // Handle article detail modal
   const handleViewArticle = async (articleId) => {
@@ -123,9 +93,10 @@ const ArticleManagement = () => {
       const article = await articleService.getArticleById(articleId);
       setSelectedArticle(article);
       setShowArticleModal(true);
+      setError(''); // Clear error on success
     } catch (error) {
       console.error('Error fetching article:', error);
-      setError(t('newsManagement.messages.crawlError') || 'Không thể tải tin tức');
+      setError(t('newsManagement.messages.crawlError') || 'Không thể tải bài viết');
     }
   };
 
@@ -134,54 +105,24 @@ const ArticleManagement = () => {
     return null;
   }
 
-  // Show loading state while logging out or when user is null during logout process
-  if (isLoggingOut || (!user && !isLoggingOut)) {
+  // Check if user has permission to manage articles
+  if (user && !canManageArticles) {
     return (
       <div className={`min-h-screen ${softUI.pageBg} flex items-center justify-center px-4`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-[#d8d2c6] border-t-[#4c9dff] mx-auto mb-4"></div>
-          <p className="text-[#7a7f8a] text-sm tracking-wide">{t('newsManagement.logout.loggingOut')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if user has staff role only (backend uses uppercase)
-  if (user && user.role !== 'STAFF') {
-    return (
-      <div className={`min-h-screen ${softUI.pageBg} flex items-center justify-center px-4`}>
-        {error && (
-          <div style={{ position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem', zIndex: 1000 }}>
-            {error}
-          </div>
-        )}
         <div className="max-w-md w-full rounded-[32px] bg-white/90 border border-[#efeae1] shadow-[0_25px_65px_rgba(195,187,175,0.35)] p-10 text-center">
           <div className="w-16 h-16 rounded-[20px] bg-[#eff6ff] flex items-center justify-center text-[#4c9dff] mx-auto mb-6">
             <AlertTriangle className="h-7 w-7" />
           </div>
-          <h2 className="text-2xl font-semibold text-[#2d3748] mb-3">{t('newsManagement.accessDenied.title')}</h2>
+          <h2 className="text-2xl font-semibold text-[#2d3748] mb-3">Không có quyền truy cập</h2>
           <p className="text-[#6b7280] text-sm leading-relaxed mb-6">
-            Only staff members can access this page. Please login with a staff account.
+            Bạn không có quyền quản lý bài viết. Vui lòng liên hệ admin để được phân quyền.
           </p>
-          <div className="mb-6 p-4 rounded-[20px] bg-[#f7f4ef] text-xs text-left text-[#83868f] border border-[#ece7de]">
-            <p className="font-semibold tracking-wide uppercase text-[#9a9ea9] mb-1">Debug Info</p>
-            <p>User: {user ? JSON.stringify(user) : 'null'}</p>
-            <p>Role: {user?.role || 'undefined'}</p>
-          </div>
-          <div className="space-y-3">
-            <button
-              onClick={() => navigate('/')}
-              className={`w-full ${secondaryButtonClasses}`}
-            >
-              {t('newsManagement.accessDenied.goHome')}
-            </button>
-            <button
-              onClick={() => navigate('/staff/login')}
-              className={`w-full ${primaryButtonClasses}`}
-            >
-              Staff Login
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/staff/tasks')}
+            className={`w-full ${primaryButtonClasses}`}
+          >
+            Quay lại Task Management
+          </button>
         </div>
       </div>
     );
@@ -189,22 +130,17 @@ const ArticleManagement = () => {
 
   const handleCrawlNews = async () => {
     setLoading(true);
-    
     try {
       const result = await articleService.crawlArticles();
-      
-      // Check if any new articles were crawled
       if (result && result.length > 0) {
         showSuccess(t('newsManagement.messages.crawlSuccess', { count: result.length }));
       } else {
         showSuccess(t('newsManagement.messages.noNewArticles'));
       }
-      
-      // Reload articles after crawling (don't show auto-crawl notification)
       await loadArticles(false);
     } catch (error) {
       console.error('Error crawling articles:', error);
-      setError(t('newsManagement.messages.crawlError') || 'Không thể tải tin tức');
+      setError(t('newsManagement.messages.crawlError') || 'Không thể crawl bài viết');
     } finally {
       setLoading(false);
     }
@@ -245,22 +181,21 @@ const ArticleManagement = () => {
       setError(t('newsManagement.messages.selectArticles') || 'Vui lòng chọn ít nhất một bài viết');
       return;
     }
+    
+    setError(''); // Clear previous error
 
     setLoading(true);
     try {
       const promises = selectedArticles.map(articleId => 
         articleService.updateArticleStatus(articleId, status)
       );
-      
       await Promise.all(promises);
-      
       const statusText = status === 'APPROVED' ? t('newsManagement.messages.approved') : t('newsManagement.messages.unapproved');
       showSuccess(t('newsManagement.messages.statusUpdateSuccess', { action: statusText, count: selectedArticles.length }));
       setSelectedArticles([]);
       await loadArticles();
     } catch (error) {
-      console.error('Error updating article status:', error);
-      setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái');
+      setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái bài viết');
     } finally {
       setLoading(false);
     }
@@ -269,7 +204,7 @@ const ArticleManagement = () => {
   return (
     <div className={`min-h-screen ${softUI.pageBg} px-4 py-10`}>
       {error && (
-        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem', maxWidth: '1200px', margin: '0 auto 1rem' }}>
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
         </div>
       )}
@@ -296,7 +231,7 @@ const ArticleManagement = () => {
             {t('newsManagement.subtitle')}
           </p>
           <h1 className="text-4xl md:text-5xl font-semibold text-[#2f2f2f]">
-            Article Management
+            {t('newsManagement.title')}
           </h1>
           <p className="text-[#8c8f97] text-base md:text-lg max-w-2xl">
             {t('newsManagement.welcome.description')}
@@ -543,15 +478,6 @@ const ArticleManagement = () => {
             <p className="text-[#7a7f8a] text-sm">{t('newsManagement.noArticles.message')}</p>
           </div>
         )}
-
-        <div className="text-center">
-          <button
-            onClick={() => navigate('/news')}
-            className={`${secondaryButtonClasses} inline-flex items-center justify-center gap-2 px-8`}
-          >
-            ← {t('newsManagement.buttons.backToNews')}
-          </button>
-        </div>
       </div>
 
       {showArticleModal && selectedArticle && (

@@ -586,6 +586,12 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .tours-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .tour-management {
     padding: 16px;
@@ -605,12 +611,17 @@
     font-size: 24px;
   }
 
+  .header-subtitle {
+    font-size: 13px;
+  }
+
   .add-tour-btn {
     width: 100%;
     justify-content: center;
   }
 
   .tours-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
 
@@ -618,8 +629,28 @@
     height: 180px;
   }
 
+  .tour-info {
+    padding: 14px;
+  }
+
   .action-buttons {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .edit-btn,
+  .delete-btn,
+  .share-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .pagination {
+    padding: 16px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
   }
 }
 
@@ -637,12 +668,22 @@
     font-size: 20px;
   }
 
+  .header-subtitle {
+    font-size: 12px;
+  }
+
+  .tours-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
   .tour-image-container {
-    height: 160px;
+    height: 200px;
   }
 
   .tour-info {
     padding: 12px;
+    gap: 10px;
   }
 
   .tour-name {
@@ -653,12 +694,90 @@
     font-size: 16px;
   }
 
+  .detail-item {
+    font-size: 12px;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .edit-btn,
+  .delete-btn,
+  .share-btn {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 12px;
+    justify-content: center;
+  }
+
   .pagination {
-    padding: 16px;
+    padding: 16px 12px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
   }
 
   .pagination-controls {
+    width: 100%;
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  .pagination-button {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tour-management {
+    padding: 8px;
+  }
+
+  .management-header {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .header-title h1 {
+    font-size: 18px;
+  }
+
+  .add-tour-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .tour-image-container {
+    height: 180px;
+  }
+
+  .tour-info {
+    padding: 10px;
+  }
+
+  .tour-name {
+    font-size: 13px;
+  }
+
+  .price-value {
+    font-size: 15px;
+  }
+
+  .detail-item {
+    font-size: 11px;
+  }
+
+  .detail-icon {
+    width: 14px;
+    height: 14px;
   }
 }

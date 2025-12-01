@@ -5,6 +5,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
 import { validateEmail } from '../../../utils/emailValidator';
+import { getApiPath } from '../../../config/api';
 import gsap from 'gsap';
 import styles from './register.module.css';
 
@@ -313,7 +314,7 @@ const { name, value } = e.target;
       const backendRole = (formData.role === 'business') ? 'COMPANY' : 'USER';
       // Password is already cleaned (no spaces) from handleChange, but trim for safety
       const trimmedPassword = formData.password.trim();
-      const response = await fetch('/api/users/register', {
+      const response = await fetch(getApiPath('/api/users/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

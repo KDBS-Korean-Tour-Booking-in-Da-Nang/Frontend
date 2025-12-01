@@ -1,122 +1,136 @@
+/* Minimal Soft Korean - LoginRequiredModal */
 .login-required-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
 }
 
 .login-required-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
   max-width: 400px;
   width: 90%;
   max-height: 90vh;
   overflow: hidden;
-  animation: slideIn 0.3s ease-out;
+  animation: slideUp 0.3s ease-out;
 }
 
-.login-required-modal-header {
+.login-required-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #e4e6eb;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.login-required-modal-close:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.login-required-modal-body {
+  padding: 40px 32px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.login-required-modal-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: #eff6ff;
+  color: #1a8eea;
 }
 
 .login-required-modal-title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1c1e21;
-}
-
-.login-required-modal-close {
-  background: none;
-  border: none;
   font-size: 20px;
-  color: #65676b;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-}
-
-.login-required-modal-close:hover {
-  background-color: #f0f2f5;
-  color: #1c1e21;
-}
-
-.login-required-modal-body {
-  padding: 24px;
-  text-align: center;
-}
-
-.login-required-modal-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.01em;
 }
 
 .login-required-modal-message {
   margin: 0;
-  font-size: 16px;
-  color: #65676b;
-  line-height: 1.5;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
 }
 
 .login-required-modal-footer {
   display: flex;
   gap: 12px;
-  padding: 16px 24px 24px;
+  padding: 20px 32px 32px;
   justify-content: flex-end;
+  border-top: 1px solid #f0f0f0;
+  background: #ffffff;
+  border-radius: 0 0 28px 28px;
 }
 
 .login-required-modal-cancel,
 .login-required-modal-login {
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 12px 24px;
+  border-radius: 20px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   border: none;
-  min-width: 80px;
+  letter-spacing: -0.01em;
 }
 
 .login-required-modal-cancel {
-  background-color: #f0f2f5;
-  color: #65676b;
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
 }
 
 .login-required-modal-cancel:hover {
-  background-color: #e4e6eb;
-  color: #1c1e21;
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .login-required-modal-login {
-  background-color: #1877f2;
-  color: white;
+  background: #1a8eea;
+  color: #ffffff;
 }
 
 .login-required-modal-login:hover {
-  background-color: #166fe5;
+  background: #1478c3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.25);
 }
 
 .login-required-modal-login:active {
-  background-color: #1461d1;
+  background: #1268a8;
 }
 
 /* Animations */
@@ -129,10 +143,10 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -147,37 +161,26 @@
     max-width: 380px;
     margin: 16px;
   }
-  
-  .login-required-modal-header {
-    padding: 18px 22px 14px;
-  }
-  
-  .login-required-modal-title {
-    font-size: 17px;
-  }
-  
+
   .login-required-modal-body {
-    padding: 22px;
+    padding: 36px 28px 28px;
   }
-  
-  .login-required-modal-icon {
-    font-size: 44px;
-    margin-bottom: 14px;
+
+  .login-required-modal-icon-wrapper {
+    width: 64px;
+    height: 64px;
   }
-  
+
+  .login-required-modal-title {
+    font-size: 18px;
+  }
+
   .login-required-modal-message {
-    font-size: 15px;
-  }
-  
-  .login-required-modal-footer {
-    padding: 14px 22px 22px;
-    gap: 10px;
-  }
-  
-  .login-required-modal-cancel,
-  .login-required-modal-login {
-    padding: 11px 18px;
     font-size: 13px;
+  }
+
+  .login-required-modal-footer {
+    padding: 18px 28px 28px;
   }
 }
 
@@ -187,44 +190,42 @@
     margin: 12px;
     max-width: none;
   }
-  
-  .login-required-modal-header {
-    padding: 16px 18px 12px;
-  }
-  
-  .login-required-modal-title {
-    font-size: 16px;
-  }
-  
+
   .login-required-modal-close {
+    top: 16px;
+    right: 16px;
     width: 28px;
     height: 28px;
-    font-size: 18px;
   }
-  
+
   .login-required-modal-body {
-    padding: 18px;
+    padding: 32px 24px 24px;
+    gap: 16px;
   }
-  
-  .login-required-modal-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
+
+  .login-required-modal-icon-wrapper {
+    width: 56px;
+    height: 56px;
   }
-  
+
+  .login-required-modal-title {
+    font-size: 17px;
+  }
+
   .login-required-modal-message {
-    font-size: 14px;
+    font-size: 13px;
   }
-  
+
   .login-required-modal-footer {
-    padding: 12px 18px 18px;
     flex-direction: column;
+    padding: 16px 24px 24px;
     gap: 8px;
   }
-  
+
   .login-required-modal-cancel,
   .login-required-modal-login {
     width: 100%;
-    padding: 12px 18px;
+    padding: 12px 20px;
     font-size: 14px;
   }
 }
@@ -234,41 +235,16 @@
     width: 98%;
     margin: 8px;
   }
-  
-  .login-required-modal-header {
-    padding: 14px 16px 10px;
+
+  .login-required-modal-body {
+    padding: 28px 20px 20px;
   }
-  
+
   .login-required-modal-title {
-    font-size: 15px;
-  }
-  
-  .login-required-modal-close {
-    width: 26px;
-    height: 26px;
     font-size: 16px;
   }
-  
-  .login-required-modal-body {
-    padding: 16px;
-  }
-  
-  .login-required-modal-icon {
-    font-size: 36px;
-    margin-bottom: 10px;
-  }
-  
+
   .login-required-modal-message {
-    font-size: 13px;
-  }
-  
-  .login-required-modal-footer {
-    padding: 10px 16px 16px;
-  }
-  
-  .login-required-modal-cancel,
-  .login-required-modal-login {
-    padding: 10px 16px;
-    font-size: 13px;
+    font-size: 12px;
   }
 }

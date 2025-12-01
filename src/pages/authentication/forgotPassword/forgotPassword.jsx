@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { KeyIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
+import { getApiPath } from '../../../config/api';
 import styles from './forgotPassword.module.css';
 
 const ForgotPassword = () => {
@@ -40,7 +41,7 @@ const ForgotPassword = () => {
     }
 
     try {
-      const response = await fetch('/api/auth/forgot-password/request', {
+      const response = await fetch(getApiPath('/api/auth/forgot-password/request'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +133,7 @@ const ForgotPassword = () => {
     }
 
     try {
-      const response = await fetch(`/api/auth/forgot-password/verify-otp?email=${encodeURIComponent(email)}&otpCode=${encodeURIComponent(otp)}`, {
+      const response = await fetch(getApiPath(`/api/auth/forgot-password/verify-otp?email=${encodeURIComponent(email)}&otpCode=${encodeURIComponent(otp)}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +166,7 @@ const ForgotPassword = () => {
     setResendLoading(true);
 
     try {
-      const response = await fetch('/api/auth/forgot-password/request', {
+      const response = await fetch(getApiPath('/api/auth/forgot-password/request'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

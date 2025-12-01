@@ -3,6 +3,13 @@ import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
+import { getApiPath } from '../../../../../../config/api';
+import {
+  FileText,
+  Clock,
+  List,
+  Calendar
+} from 'lucide-react';
 import styles from './Step2Itinerary.module.css';
 
 // Note: Day titles are fully customized by Company; no default prefix is injected
@@ -84,7 +91,7 @@ const Step2Itinerary = () => {
       }
       
       try {
-        const response = await fetch('/api/tour/content-image', {
+        const response = await fetch(getApiPath('/api/tour/content-image'), {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -472,6 +479,7 @@ const Step2Itinerary = () => {
       {/* Tour Description */}
       <div className={styles['tour-description-section']}>
         <h3>
+          <FileText className={styles['section-icon']} size={20} />
           {t('tourWizard.step2.tourDescription.title')}
           {fieldErrors.tourDescription && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
         </h3>
@@ -529,6 +537,7 @@ const Step2Itinerary = () => {
       {/* Tour Schedule Summary */}
       <div className={styles['tour-schedule-section']}>
         <h3>
+          <Clock className={styles['section-icon']} size={20} />
           {t('tourWizard.step2.fields.tourSchedule')}
           {fieldErrors.tourSchedule && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
         </h3>
@@ -892,7 +901,10 @@ const Step2Itinerary = () => {
 
             <div className={styles['day-content']}>
               <div className={styles['form-group']}>
-                <label className={styles['form-label']}>{t('tourWizard.step2.activities.label')}</label>
+                <label className={styles['form-label']}>
+                  <List className={styles['label-icon']} size={18} />
+                  {t('tourWizard.step2.activities.label')}
+                </label>
                 <Editor
                   apiKey={import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key'}
                   value={day.activities}

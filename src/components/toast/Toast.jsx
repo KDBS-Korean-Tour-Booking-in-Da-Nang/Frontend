@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { X } from 'lucide-react';
 import styles from './Toast.module.css';
 
 const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [progress, setProgress] = useState(0); // Start from 0% (left), progress to 100% (right)
+  const timerRef = useRef(null);
+  const animationFrameIdRef = useRef(null);
 
   useEffect(() => {
     if (duration > 0) {
       const startTime = Date.now();
-      let animationFrameId;
       
       const updateProgress = () => {
         const elapsed = Date.now() - startTime;
@@ -16,25 +18,27 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
         setProgress(progressPercent);
         
         if (progressPercent < 100) {
-          animationFrameId = requestAnimationFrame(updateProgress);
+          animationFrameIdRef.current = requestAnimationFrame(updateProgress);
         }
       };
       
       // Start the animation
-      animationFrameId = requestAnimationFrame(updateProgress);
+      animationFrameIdRef.current = requestAnimationFrame(updateProgress);
 
-      const timer = setTimeout(() => {
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
+      timerRef.current = setTimeout(() => {
+        if (animationFrameIdRef.current) {
+          cancelAnimationFrame(animationFrameIdRef.current);
         }
         setIsVisible(false);
         onClose?.();
       }, duration);
 
       return () => {
-        clearTimeout(timer);
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+        if (animationFrameIdRef.current) {
+          cancelAnimationFrame(animationFrameIdRef.current);
         }
       };
     } else {
@@ -44,6 +48,15 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
   }, [duration, onClose]);
 
   const handleClose = () => {
+    // Clear timeout and animation frame when user manually closes
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (animationFrameIdRef.current) {
+      cancelAnimationFrame(animationFrameIdRef.current);
+      animationFrameIdRef.current = null;
+    }
     setIsVisible(false);
     onClose?.();
   };
@@ -135,6 +148,16 @@ const Toast = ({ message, type = 'error', duration = 5000, onClose, index = 0 })
           >
             {message}
           </div>
+          <button
+            onClick={handleClose}
+            className={styles['toast-close-button']}
+            aria-label="Đóng"
+            style={{
+              color: colors.text
+            }}
+          >
+            <X className={styles['toast-close-icon']} strokeWidth={1.5} />
+          </button>
         </div>
         <div className={styles['toast-progress-container']}>
           <div 

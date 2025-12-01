@@ -127,31 +127,6 @@ const TourManagement = () => {
     navigate(`/tour/detail?id=${tourId}`, { state: { fromManagement: true } });
   };
 
-  const handleToggleStatus = (tourId, e) => {
-    e.stopPropagation(); // Prevent card click
-    
-    setTours(prevTours => 
-      prevTours.map(tour => {
-        if (tour.id === tourId) {
-          // Toggle between PUBLIC and PRIVATE
-          // NOT_APPROVED tours cannot be toggled
-          if (tour.tourStatus === 'NOT_APPROVED') {
-            setError(t('toast.tour.status_not_approved') || 'Tour chưa được duyệt');
-            return tour;
-          }
-          
-          const newStatus = tour.tourStatus === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
-          showSuccess(`toast.tour.status_changed_${newStatus.toLowerCase()}`);
-          
-          return {
-            ...tour,
-            tourStatus: newStatus
-          };
-        }
-        return tour;
-      })
-    );
-  };
 
   const handleDeleteTour = (tourId) => {
     const tour = tours.find(t => t.id === tourId);
@@ -225,6 +200,14 @@ const TourManagement = () => {
     // Extract number from duration string like "5 ngày 4 đêm"
     const match = duration.match(/(\d+)/);
     return match ? t('tourManagement.card.durationDays', { days: match[1] }) : duration;
+  };
+
+  const getStatusLabel = (status) => {
+    if (!status) return t('tourManagement.statusBadge.UNKNOWN');
+    const statusUpper = status.toUpperCase();
+    const translationKey = `tourManagement.statusBadge.${statusUpper}`;
+    // Fallback to status if translation doesn't exist
+    return t(translationKey, { defaultValue: status });
   };
 
   const localizeDeparturePoint = (value) => {
@@ -346,32 +329,7 @@ const TourManagement = () => {
                   
                   {/* Status Badge */}
                   <div className={`${styles['status-badge']} ${styles[tour.tourStatus?.toLowerCase() || 'active']}`}>
-                    {t(`tourManagement.statusBadge.${tour.tourStatus || 'UNKNOWN'}`)}
-                  </div>
-                  
-                  {/* Status Toggle Switch */}
-                  <div className={styles['status-toggle-wrapper']}>
-                    <label 
-                      className={styles['toggle-switch']} 
-                      onClick={(e) => {
-                        if (tour.tourStatus !== 'NOT_APPROVED') {
-                          handleToggleStatus(tour.id, e);
-                        }
-                      }}
-                      style={{ cursor: tour.tourStatus === 'NOT_APPROVED' ? 'not-allowed' : 'pointer' }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={tour.tourStatus === 'PUBLIC'}
-                        onChange={() => {}} // Handled by onClick on label
-                        disabled={tour.tourStatus === 'NOT_APPROVED'}
-                        onClick={(e) => e.stopPropagation()}
-                        readOnly
-                      />
-                      <span 
-                        className={`${styles['toggle-slider']} ${tour.tourStatus === 'NOT_APPROVED' ? styles['disabled'] : ''}`}
-                      ></span>
-                    </label>
+                    {getStatusLabel(tour.tourStatus)}
                   </div>
                 </div>
 

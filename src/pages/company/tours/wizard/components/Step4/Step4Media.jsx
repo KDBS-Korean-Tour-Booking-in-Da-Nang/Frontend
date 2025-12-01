@@ -3,6 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import TourCardStep4 from './TourCardStep4';
+import {
+  DocumentTextIcon,
+  ClockIcon,
+  CurrencyDollarIcon,
+  PhotoIcon,
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
 import styles from './Step4Media.module.css';
 
 const Step4Media = () => {
@@ -100,20 +107,66 @@ const Step4Media = () => {
               tourDuration: `${tourData.duration || '2'} ${t('tourWizard.step1.summary.days')} ${tourData.nights || '1'} ${t('tourWizard.step1.summary.nights')}`,
               adultPrice: Number(tourData.adultPrice) || 14990000,
               thumbnail: formData.thumbnail,
-              tourStatus: 'ACTIVE'
+              tourStatus: 'ACTIVE',
+              tourDeparturePoint: tourData.tourDeparturePoint || null,
+              amount: tourData.amount || null
             }}
             showActions={false}
           />
           
           <div className={styles['preview-info']}>
-            <h5>{t('tourWizard.step4.preview.infoTitle')}</h5>
-            <ul>
-              <li><strong>{t('tourWizard.step4.preview.fields.tourName')}</strong> {tourData.tourName || t('tourWizard.step4.preview.values.notSet')}</li>
-              <li><strong>{t('tourWizard.step4.preview.fields.duration')}</strong> {(tourData.duration || '0') + ' ' + t('tourWizard.step1.summary.days')} {(tourData.nights || '0') + ' ' + t('tourWizard.step1.summary.nights')}</li>
-              <li><strong>{t('tourWizard.step4.preview.fields.adultPrice')}</strong> {tourData.adultPrice ? `${new Intl.NumberFormat('vi-VN').format(tourData.adultPrice)} VNĐ` : t('tourWizard.step4.preview.values.noPrice')}</li>
-              <li><strong>{t('tourWizard.step4.preview.fields.image')}</strong> {formData.thumbnail ? t('tourWizard.step4.preview.values.uploaded') : t('tourWizard.step4.preview.values.notUploaded')}</li>
-              <li><strong>{t('tourWizard.step4.preview.fields.status')}</strong> {t('tourWizard.step4.preview.values.willShow')}</li>
-            </ul>
+            <h5 className={styles['preview-info-title']}>{t('tourWizard.step4.preview.infoTitle')}</h5>
+            <div className={styles['preview-info-list']}>
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <DocumentTextIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.tourName')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>{tourData.tourName || t('tourWizard.step4.preview.values.notSet')}</span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <ClockIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.duration')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {(tourData.duration || '0')} {t('tourWizard.step1.summary.days')} {(tourData.nights || '0')} {t('tourWizard.step1.summary.nights')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <CurrencyDollarIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.adultPrice')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {tourData.adultPrice 
+                    ? `${new Intl.NumberFormat('vi-VN').format(tourData.adultPrice)} VNĐ` 
+                    : t('tourWizard.step4.preview.values.noPrice')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <PhotoIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.image')}</span>
+                </div>
+                <span className={`${styles['preview-info-value']} ${formData.thumbnail ? styles['preview-status-success'] : styles['preview-status-pending']}`}>
+                  {formData.thumbnail 
+                    ? t('tourWizard.step4.preview.values.uploaded')
+                    : t('tourWizard.step4.preview.values.notUploaded')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <CheckCircleIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.status')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>{t('tourWizard.step4.preview.values.willShow')}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

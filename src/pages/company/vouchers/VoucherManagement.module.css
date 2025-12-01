@@ -376,6 +376,12 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .voucher-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .voucher-management {
     padding: 20px 12px;
@@ -386,19 +392,153 @@
     align-items: flex-start;
     gap: 16px;
     margin-bottom: 24px;
+    padding-bottom: 20px;
   }
 
   .header-title {
     font-size: 20px;
   }
 
+  .create-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .voucher-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .voucher-card {
+    padding: 16px;
+  }
+
+  .voucher-name {
+    font-size: 15px;
+  }
+
+  .voucher-info,
+  .voucher-status {
+    font-size: 12px;
+  }
+
   .pagination {
     flex-direction: column;
     gap: 16px;
+    padding: 20px 16px;
   }
 
   .pagination-info {
     margin-bottom: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .pagination-nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .voucher-management {
+    padding: 16px 8px;
+  }
+
+  .management-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+  }
+
+  .header-title {
+    font-size: 18px;
+  }
+
+  .create-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .voucher-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .voucher-card {
+    padding: 14px;
+  }
+
+  .voucher-code-section {
+    margin-bottom: 10px;
+  }
+
+  .voucher-name {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .voucher-info,
+  .voucher-status,
+  .voucher-tours {
+    font-size: 12px;
+  }
+
+  .voucher-dates {
+    font-size: 11px;
+  }
+
+  .pagination {
+    padding: 16px 12px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+  }
+
+  .pagination-btn,
+  .pagination-page {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .voucher-management {
+    padding: 12px 6px;
+  }
+
+  .management-header {
+    padding-bottom: 12px;
+  }
+
+  .header-title {
+    font-size: 16px;
+  }
+
+  .voucher-card {
+    padding: 12px;
+  }
+
+  .voucher-name {
+    font-size: 13px;
+  }
+
+  .voucher-info,
+  .voucher-status,
+  .voucher-tours {
+    font-size: 11px;
+  }
+
+  .tours-list {
+    max-height: 60px;
+  }
+
+  .tour-item {
+    padding: 3px 6px;
+    font-size: 11px;
   }
 }
 

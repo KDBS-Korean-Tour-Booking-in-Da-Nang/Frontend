@@ -1,4 +1,4 @@
-﻿/* Minimal Soft Korean Style - Booking Management */
+/* Minimal Soft Korean Style - Booking Management */
 
 .booking-management {
   min-height: 100vh;
@@ -637,6 +637,11 @@
   .booking-management {
     padding: 24px 16px;
   }
+
+  .tour-card {
+    width: 200px;
+    min-width: 200px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -645,7 +650,12 @@
   }
 
   .management-header {
-    padding: 24px;
+    padding: 24px 20px;
+  }
+
+  .header-title {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .header-title h1 {
@@ -654,31 +664,25 @@
 
   .tour-selector-container,
   .filters-container {
-    padding: 20px 24px;
+    padding: 20px 16px;
   }
 
-  .table-wrapper {
-    overflow-x: auto;
+  .tour-selector-title {
+    font-size: 16px;
   }
 
-  .bookings-table {
-    min-width: 800px;
+  .tour-cards-container {
+    gap: 12px;
+    padding: 4px 0;
   }
 
-  .pagination {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .pagination-info {
-    margin-right: 0;
-  }
-}
-
-@media (max-width: 480px) {
   .tour-card {
     width: 180px;
     min-width: 180px;
+  }
+
+  .tour-card-image {
+    height: 140px;
   }
 
   .tour-card-content {
@@ -688,5 +692,208 @@
 
   .tour-card-name {
     font-size: 13px;
+  }
+
+  .tour-pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .tour-pagination-info {
+    width: 100%;
+  }
+
+  .tour-pagination-nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .filters-wrapper {
+    gap: 12px;
+  }
+
+  .search-box {
+    min-width: 100%;
+  }
+
+  .filters-group {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .selectWrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -12px;
+    padding: 0 12px;
+  }
+
+  .bookings-table {
+    min-width: 800px;
+  }
+
+  .bookings-table th,
+  .bookings-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 16px;
+  }
+
+  .pagination-info {
+    margin-right: 0;
+    text-align: center;
+    width: 100%;
+  }
+
+  .pagination-nav {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-management {
+    padding: 16px 8px;
+  }
+
+  .management-header {
+    padding: 20px 16px;
+  }
+
+  .header-title h1 {
+    font-size: 20px;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+  }
+
+  .tour-selector-container,
+  .filters-container {
+    padding: 16px 12px;
+  }
+
+  .tour-selector-title {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+
+  .tour-card {
+    width: 160px;
+    min-width: 160px;
+  }
+
+  .tour-card-image {
+    height: 120px;
+  }
+
+  .tour-card-content {
+    height: 90px;
+    padding: 10px;
+  }
+
+  .tour-card-name {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+  }
+
+  .tour-card-id {
+    font-size: 11px;
+    margin-top: 6px;
+  }
+
+  .tour-pagination-btn,
+  .tour-pagination-page {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 32px;
+    height: 32px;
+  }
+
+  .search-input {
+    padding: 10px 14px 10px 44px;
+    font-size: 13px;
+  }
+
+  .bookings-table th {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .bookings-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .customer-cell {
+    gap: 2px;
+  }
+
+  .customer-name {
+    font-size: 13px;
+  }
+
+  .customer-email,
+  .customer-phone {
+    font-size: 11px;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .action-btn {
+    padding: 6px;
+  }
+
+  .action-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pagination-btn,
+  .pagination-page {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 32px;
+    height: 32px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .tour-card {
+    width: 140px;
+    min-width: 140px;
+  }
+
+  .tour-card-image {
+    height: 100px;
+  }
+
+  .tour-card-content {
+    height: 80px;
+    padding: 8px;
+  }
+
+  .tour-card-name {
+    font-size: 11px;
   }
 }

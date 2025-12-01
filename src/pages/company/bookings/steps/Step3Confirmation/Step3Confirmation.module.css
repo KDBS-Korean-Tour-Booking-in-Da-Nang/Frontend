@@ -384,32 +384,252 @@
   font-size: 0.9rem;
 }
 
+@media (max-width: 1024px) {
+  .container {
+    padding: 1.5rem 0;
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
+  .container {
+    padding: 1.25rem 0;
+  }
+
   .headerCard {
     flex-direction: column;
     align-items: flex-start;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .headerIcon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .title {
+    font-size: 1.5rem;
   }
 
   .headerMeta {
     flex-direction: row;
     align-items: center;
     gap: 0.75rem;
+    margin-top: 0.5rem;
+    width: 100%;
   }
 
   .section {
     padding: 1.25rem 1.5rem;
   }
 
+  .summaryGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
   .guestCard {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .guestInfo {
+    width: 100%;
+  }
+
+  .completionSection {
+    padding: 1.5rem 1.75rem;
+  }
+
+  .completionActions {
+    gap: 0.875rem;
+  }
+
+  .confirmButton {
+    width: 100%;
+    align-self: stretch;
   }
 }
 
 @media (max-width: 640px) {
+  .container {
+    padding: 1rem 0;
+  }
+
+  .headerCard {
+    padding: 1.25rem 1.5rem;
+    border-radius: 24px;
+  }
+
+  .headerIcon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .description {
+    font-size: 0.875rem;
+  }
+
+  .section {
+    padding: 1.25rem 1.5rem;
+    border-radius: 24px;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
   .summaryGrid {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .summaryItem {
+    gap: 0.25rem;
+  }
+
+  .label {
+    font-size: 0.75rem;
+  }
+
+  .value {
+    font-size: 0.95rem;
+  }
+
+  .guestCard {
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+  }
+
+  .guestNumber {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .guestName {
+    font-size: 0.95rem;
+  }
+
+  .guestMeta {
+    font-size: 0.85rem;
+  }
+
+  .completionSection {
+    padding: 1.25rem 1.5rem;
+    border-radius: 24px;
+  }
+
+  .completionStatusInfo {
+    padding: 1rem 1.25rem;
+  }
+
+  .statusRow {
+    padding: 0.6rem 0;
+  }
+
+  .statusLabel {
+    font-size: 0.8rem;
+  }
+
+  .statusValue {
+    font-size: 0.85rem;
+  }
+
+  .completionStatus {
+    padding: 0.875rem 1rem;
+  }
+
+  .completionCheckIcon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .completionMessage {
+    font-size: 0.9rem;
+  }
+
+  .confirmButton {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem 0;
+  }
+
+  .headerCard {
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+  }
+
+  .headerIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .section {
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+  }
+
+  .sectionTitle {
+    font-size: 0.95rem;
+  }
+
+  .guestCard {
+    padding: 0.875rem 1rem;
+  }
+
+  .guestNumber {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+
+  .guestName {
+    font-size: 0.9rem;
+  }
+
+  .guestMeta {
+    font-size: 0.8rem;
+  }
+
+  .completionSection {
+    padding: 1rem 1.25rem;
+  }
+
+  .completionStatusInfo {
+    padding: 0.875rem 1rem;
+  }
+
+  .statusLabel {
+    font-size: 0.75rem;
+  }
+
+  .statusValue {
+    font-size: 0.8rem;
+  }
+
+  .confirmButton {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
   }
 }
 

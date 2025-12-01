@@ -3,6 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
+import { getApiPath } from '../../../../../../config/api';
+import {
+  DollarSign,
+  User,
+  Baby,
+  Users
+} from 'lucide-react';
 import styles from './Step3Pricing.module.css';
 
 const Step3Pricing = () => {
@@ -50,7 +57,7 @@ const Step3Pricing = () => {
       }
       
       try {
-        const response = await fetch('/api/tour/content-image', {
+        const response = await fetch(getApiPath('/api/tour/content-image'), {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -179,6 +186,7 @@ const Step3Pricing = () => {
         <div className={styles['form-grid']}>
           <div className={styles['form-group']}>
             <label htmlFor="adultPrice" className={styles['form-label']}>
+              <DollarSign className={styles['label-icon']} size={18} />
               {t('tourWizard.step3.pricing.adultPrice')}
               {fieldErrors.adultPrice && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
             </label>
@@ -221,6 +229,7 @@ const Step3Pricing = () => {
 
           <div className={styles['form-group']}>
             <label htmlFor="childrenPrice" className={styles['form-label']}>
+              <User className={styles['label-icon']} size={18} />
               {t('tourWizard.step3.pricing.childrenPrice')}
               {fieldErrors.childrenPrice && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
             </label>
@@ -263,6 +272,7 @@ const Step3Pricing = () => {
 
           <div className={styles['form-group']}>
             <label htmlFor="babyPrice" className={styles['form-label']}>
+              <Baby className={styles['label-icon']} size={18} />
               {t('tourWizard.step3.pricing.babyPrice')}
               {fieldErrors.babyPrice && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
             </label>

@@ -1,79 +1,63 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
+import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { API_ENDPOINTS, createAuthHeaders, getTourImageUrl } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import TourDetailModal from './TourDetailModal';
+import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X } from 'lucide-react';
+import {
   MagnifyingGlassIcon,
-  EyeIcon,
-  XMarkIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MapPinIcon,
-  CurrencyDollarIcon,
-  ClockIcon,
-  CalendarIcon,
-  InformationCircleIcon
+  FunnelIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
-import { API_ENDPOINTS, getTourImageUrl } from '../../../config/api';
-import { useToast } from '../../../contexts/ToastContext';
-import styles from './TourManagement.module.css';
 
 const TourManagement = () => {
+  const { getToken } = useAuth();
   const [tours, setTours] = useState([]);
-  const [allTours, setAllTours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTour, setSelectedTour] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8); // 2 rows x 4 columns
-  const navigate = useNavigate();
-  // Removed showError - errors will be handled in UI
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [selectedTour, setSelectedTour] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
+  // Fetch tours from API
   useEffect(() => {
-    fetchTours();
-  }, []);
+    const fetchTours = async () => {
+      try {
+        setLoading(true);
+        const token = getToken();
+        const response = await fetch(API_ENDPOINTS.TOURS, {
+          headers: createAuthHeaders(token)
+        });
 
-  useEffect(() => {
-    filterAndPaginateTours();
-  }, [searchQuery, statusFilter, sortBy, currentPage, allTours]);
-
-  const fetchTours = async () => {
-    try {
-      setLoading(true);
-      const remembered = localStorage.getItem('rememberMe') === 'true';
-      const storage = remembered ? localStorage : sessionStorage;
-      const token = storage.getItem('token');
-
-      const response = await fetch(API_ENDPOINTS.TOURS, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
         }
-      });
 
-      // Handle 401 if token expired
-      if (!response.ok && response.status === 401) {
-        const { checkAndHandle401 } = await import('../../../utils/apiErrorHandler');
-        await checkAndHandle401(response);
-        return;
+        if (response.ok) {
+          const data = await response.json();
+          setTours(Array.isArray(data) ? data : []);
+        } else {
+          console.error('Failed to fetch tours:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching tours:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAllTours(Array.isArray(data) ? data : []);
-      } else {
-        // Error loading tours - handled silently or in UI
-      }
-    } catch (error) {
-      // Error fetching tours - handled silently or in UI
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const filterAndPaginateTours = () => {
-    let filtered = [...allTours];
+    fetchTours();
+  }, [getToken]);
+
+  // Filter and sort tours
+  const filteredAndSortedTours = useMemo(() => {
+    let filtered = [...tours];
 
     // Search filter
     if (searchQuery.trim()) {
@@ -85,6 +69,9 @@ const TourManagement = () => {
         return title.includes(query) || desc.includes(query) || departure.includes(query);
       });
     }
+
+    // Status filter (if needed in future)
+    // Currently keeping all tours
 
     // Sort
     filtered.sort((a, b) => {
@@ -104,34 +91,122 @@ const TourManagement = () => {
       return 0;
     });
 
-    // Paginate
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginated = filtered.slice(startIndex, endIndex);
+    return filtered;
+  }, [tours, searchQuery, statusFilter, sortBy]);
 
-    setTours(paginated);
-    setTotalPages(totalPages);
-    setTotalItems(filtered.length);
-  };
+  // Paginate
+  const paginatedTours = useMemo(() => {
+    const total = Math.ceil(filteredAndSortedTours.length / pageSize);
+    setTotalPages(total);
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredAndSortedTours.slice(startIndex, endIndex);
+  }, [filteredAndSortedTours, currentPage, pageSize]);
 
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  // Handle view details
+  const handleViewDetails = async (tourId) => {
+    try {
+      setLoadingDetail(true);
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(tourId), {
+        headers: createAuthHeaders(token)
+      });
 
-  const handleView = (tour) => {
-    setSelectedTour(tour);
-    setIsModalOpen(true);
-  };
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
 
-  const handleViewDetails = () => {
-    if (selectedTour) {
-      navigate(`/tour/detail?id=${selectedTour.tourId || selectedTour.id}`);
+      if (response.ok) {
+        const tourDetail = await response.json();
+        setSelectedTour(tourDetail);
+        setIsDetailModalOpen(true);
+      } else {
+        const errorText = await response.text();
+        alert(`Lỗi khi tải chi tiết tour: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error fetching tour details:', error);
+      alert('Đã xảy ra lỗi khi tải chi tiết tour');
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+  // Handle approve tour
+  const handleApproveTour = async (tourId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn phê duyệt tour này?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_ENDPOINTS.TOURS}/change-status/${tourId}?status=PUBLIC`, {
+        method: 'PUT',
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Refresh tours list
+        const refreshResponse = await fetch(API_ENDPOINTS.TOURS, {
+          headers: createAuthHeaders(token)
+        });
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          setTours(Array.isArray(data) ? data : []);
+        }
+        alert('Phê duyệt tour thành công!');
+      } else {
+        const errorText = await response.text();
+        alert(`Lỗi khi phê duyệt tour: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error approving tour:', error);
+      alert('Đã xảy ra lỗi khi phê duyệt tour');
+    }
+  };
+
+  // Handle reject tour
+  const handleRejectTour = async (tourId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn từ chối tour này?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      // Set status to DISABLED when rejecting (NOT_APPROVED means pending, DISABLED means rejected)
+      const response = await fetch(`${API_ENDPOINTS.TOURS}/change-status/${tourId}?status=DISABLED`, {
+        method: 'PUT',
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Refresh tours list
+        const refreshResponse = await fetch(API_ENDPOINTS.TOURS, {
+          headers: createAuthHeaders(token)
+        });
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          setTours(Array.isArray(data) ? data : []);
+        }
+        alert('Từ chối tour thành công!');
+      } else {
+        const errorText = await response.text();
+        alert(`Lỗi khi từ chối tour: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error rejecting tour:', error);
+      alert('Đã xảy ra lỗi khi từ chối tour');
     }
   };
 
@@ -153,303 +228,290 @@ const TourManagement = () => {
     }
   };
 
-  // Helper to get tour image URL without default fallback
-  const getTourImageUrlWithoutDefault = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    const BaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-    return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Đang tải danh sách tour...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.tourManagement}>
+    <div className="space-y-6">
       {/* Header */}
-      <div className={styles.header}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className={styles.title}>Tour Management</h1>
-          <p className={styles.subtitle}>Quản lý tất cả các tour trong hệ thống</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Tour Management</p>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý Tour</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Xem và quản lý tất cả các tour trong hệ thống.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
+            <FunnelIcon className="h-5 w-5" />
+            Bộ lọc nâng cao
+          </button>
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
+            <ArrowDownTrayIcon className="h-5 w-5" />
+            Xuất báo cáo
+          </button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className={styles.filtersContainer}>
-        <div className={styles.searchWrapper}>
-          <div className={styles.searchIcon}>
-            <MagnifyingGlassIcon className={styles.icon} />
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Tổng số tour</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{tours.length}</p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
+              <Package className="w-6 h-6 text-[#4c9dff]" strokeWidth={1.5} />
+            </div>
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Tìm kiếm tour..."
-            className={styles.searchInput}
-          />
         </div>
-
-        <div className={styles.filtersWrapper}>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={styles.filterSelect}
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="active">Hoạt động</option>
-            <option value="inactive">Tạm khóa</option>
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={styles.filterSelect}
-          >
-            <option value="newest">Mới nhất</option>
-            <option value="oldest">Cũ nhất</option>
-            <option value="name-asc">Tên A-Z</option>
-            <option value="name-desc">Tên Z-A</option>
-          </select>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Tour hiển thị</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{filteredAndSortedTours.length}</p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6 text-green-600" strokeWidth={1.5} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Trang hiện tại</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
+                {currentPage + 1} / {totalPages || 1}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center">
+              <FileText className="w-6 h-6 text-purple-600" strokeWidth={1.5} />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tours Grid */}
-      {loading ? (
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Đang tải...</p>
-        </div>
-      ) : tours.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>Không có tour nào</p>
-        </div>
-      ) : (
-        <>
-          <div className={styles.toursGrid}>
-            {tours.map((tour, index) => (
-              <div key={tour.tourId || tour.id} className={styles.tourCard}>
-                <div className={styles.cardImageContainer}>
-                  <img
-                    src={getTourImageUrlWithoutDefault(tour.tourImgPath || tour.thumbnailUrl) || '/default-Tour.jpg'}
-                    alt={tour.title || tour.tourName}
-                    className={styles.cardImage}
-                    onError={(e) => {
-                      if (e.target.src !== '/default-Tour.jpg') {
-                        e.target.src = '/default-Tour.jpg';
-                      }
-                    }}
-                  />
-                </div>
-                <div className={styles.cardContent}>
-                  <h3 className={styles.cardTitle}>
-                    {tour.title || tour.tourName || 'N/A'}
-                  </h3>
-                  {tour.shortDescription && (
-                    <p className={styles.cardDescription}>
-                      {tour.shortDescription.substring(0, 60)}...
-                    </p>
-                  )}
-                  <div className={styles.cardDetails}>
-                    <div className={styles.detailItem}>
-                      <MapPinIcon className={styles.detailIcon} />
-                      <span className={styles.detailText}>
-                        {tour.departurePoint || 'N/A'}
-                      </span>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <CurrencyDollarIcon className={styles.detailIcon} />
-                      <span className={styles.detailPrice}>
-                        {formatPrice(tour.price || tour.adultPrice)}
-                      </span>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <ClockIcon className={styles.detailIcon} />
-                      <span className={styles.detailText}>
-                        {tour.duration || tour.tourDuration || 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.cardFooter}>
-                    <div className={styles.cardDate}>
-                      <CalendarIcon className={styles.dateIcon} />
-                      <span>{formatDate(tour.createdAt)}</span>
-                    </div>
-                    <button
-                      onClick={() => handleView(tour)}
-                      className={styles.viewButton}
-                      title="Xem chi tiết"
-                    >
-                      <EyeIcon className={styles.viewIcon} />
-                      <span>Xem</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-xs">
+            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(0);
+              }}
+              placeholder="Tìm kiếm tour theo tên, mô tả, điểm khởi hành..."
+              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(0);
+              }}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+              <option value="name-asc">Tên A-Z</option>
+              <option value="name-desc">Tên Z-A</option>
+            </select>
+          </div>
+        </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className={styles.pagination}>
-              <div className={styles.paginationInfo}>
-                <span>
-                  Trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> ({totalItems} tour)
-                </span>
-              </div>
-              <div className={styles.paginationControls}>
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={styles.paginationButton}
-                >
-                  <ChevronLeftIcon className={styles.paginationIcon} />
-                </button>
-                {[...Array(totalPages)].map((_, idx) => {
-                  const page = idx + 1;
-                  if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`${styles.paginationButton} ${currentPage === page ? styles.active : ''}`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <span key={page} className={styles.paginationDots}>...</span>;
-                  }
-                  return null;
-                })}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={styles.paginationButton}
-                >
-                  <ChevronRightIcon className={styles.paginationIcon} />
-                </button>
-              </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-gray-50/70">
+              <tr>
+                {['STT', 'Tên tour', 'Trạng thái', 'Giá', 'Thời gian', 'Ngày tạo', 'Thao tác'].map((header) => (
+                  <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-50">
+              {paginatedTours.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                    {loading ? 'Đang tải...' : 'Không tìm thấy tour phù hợp với bộ lọc hiện tại.'}
+                  </td>
+                </tr>
+              ) : (
+                paginatedTours.map((tour, index) => (
+                  <tr key={tour.tourId || tour.id} className="hover:bg-[#e9f2ff]/40 transition">
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {currentPage * pageSize + index + 1}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {tour.tourImgPath || tour.thumbnailUrl ? (
+                          <img
+                            src={getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl)}
+                            alt={tour.title || tour.tourName}
+                            className="w-12 h-12 rounded-lg object-cover"
+                            onError={(e) => {
+                              e.target.src = '/default-Tour.jpg';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">📦</span>
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {tour.title || tour.tourName || 'N/A'}
+                          </p>
+                          {tour.shortDescription && (
+                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">
+                              {tour.shortDescription}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <TourStatusBadge status={tour.tourStatus || tour.status} />
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      {formatPrice(tour.price || tour.adultPrice)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {tour.duration || tour.tourDuration || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {formatDate(tour.createdAt)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleViewDetails(tour.tourId || tour.id)}
+                          disabled={loadingDetail}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Xem chi tiết"
+                        >
+                          <Eye className="h-4 w-4" strokeWidth={1.5} />
+                        </button>
+                        <button
+                          onClick={() => handleApproveTour(tour.tourId || tour.id)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                          title="Phê duyệt tour"
+                        >
+                          <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                        </button>
+                        <button
+                          onClick={() => handleRejectTour(tour.tourId || tour.id)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                          title="Từ chối tour"
+                        >
+                          <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {filteredAndSortedTours.length >= 10 && totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div className="text-sm text-gray-600">
+              Trang {currentPage + 1} / {totalPages} ({filteredAndSortedTours.length} tour)
             </div>
-          )}
-        </>
-      )}
-
-      {/* Modal */}
-      {isModalOpen && selectedTour && (
-        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div className={styles.modalHeaderLeft}>
-                <div className={styles.modalIcon}>
-                  <InformationCircleIcon className={styles.icon} />
-                </div>
-                <h3 className={styles.modalTitle}>Chi tiết Tour</h3>
-              </div>
+            <div className="flex gap-2">
               <button
-                onClick={() => setIsModalOpen(false)}
-                className={styles.modalCloseButton}
+                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                disabled={currentPage === 0}
+                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                <XMarkIcon className={styles.icon} />
-              </button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div className={styles.modalImageContainer}>
-                <img
-                  src={getTourImageUrlWithoutDefault(selectedTour.tourImgPath || selectedTour.thumbnailUrl) || '/default-Tour.jpg'}
-                  alt={selectedTour.title || selectedTour.tourName}
-                  className={styles.modalImage}
-                  onError={(e) => {
-                    if (e.target.src !== '/default-Tour.jpg') {
-                      e.target.src = '/default-Tour.jpg';
-                    }
-                  }}
-                />
-              </div>
-
-              <div className={styles.modalInfo}>
-                <h4 className={styles.modalTourName}>
-                  {selectedTour.title || selectedTour.tourName || 'N/A'}
-                </h4>
-                {selectedTour.shortDescription && (
-                  <p className={styles.modalDescription}>{selectedTour.shortDescription}</p>
-                )}
-              </div>
-
-              <div className={styles.modalDetailsGrid}>
-                {selectedTour.departurePoint && (
-                  <div className={styles.modalDetailCard}>
-                    <div className={styles.detailCardIcon}>
-                      <MapPinIcon className={styles.icon} />
-                    </div>
-                    <div>
-                      <p className={styles.detailCardLabel}>Điểm khởi hành</p>
-                      <p className={styles.detailCardValue}>{selectedTour.departurePoint}</p>
-                    </div>
-                  </div>
-                )}
-                {(selectedTour.price || selectedTour.adultPrice) && (
-                  <div className={styles.modalDetailCard}>
-                    <div className={styles.detailCardIcon}>
-                      <CurrencyDollarIcon className={styles.icon} />
-                    </div>
-                    <div>
-                      <p className={styles.detailCardLabel}>Giá tour</p>
-                      <p className={styles.detailCardPrice}>
-                        {formatPrice(selectedTour.price || selectedTour.adultPrice)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {selectedTour.duration && (
-                  <div className={styles.modalDetailCard}>
-                    <div className={styles.detailCardIcon}>
-                      <ClockIcon className={styles.icon} />
-                    </div>
-                    <div>
-                      <p className={styles.detailCardLabel}>Thời gian</p>
-                      <p className={styles.detailCardValue}>{selectedTour.duration}</p>
-                    </div>
-                  </div>
-                )}
-                {selectedTour.createdAt && (
-                  <div className={styles.modalDetailCard}>
-                    <div className={styles.detailCardIcon}>
-                      <CalendarIcon className={styles.icon} />
-                    </div>
-                    <div>
-                      <p className={styles.detailCardLabel}>Ngày tạo</p>
-                      <p className={styles.detailCardValue}>{formatDate(selectedTour.createdAt)}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className={styles.modalButtonCancel}
-              >
-                Đóng
+                Trước
               </button>
               <button
-                onClick={handleViewDetails}
-                className={styles.modalButtonPrimary}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={currentPage >= totalPages - 1}
+                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                Xem chi tiết
+                Sau
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Tour Detail Modal */}
+      <TourDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedTour(null);
+        }}
+        tour={selectedTour}
+      />
     </div>
+  );
+};
+
+// Tour Status Badge Component
+const TourStatusBadge = ({ status }) => {
+  if (!status) {
+    return (
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
+        N/A
+      </span>
+    );
+  }
+
+  const statusUpper = status.toUpperCase();
+  const statusMap = {
+    'PUBLIC': { 
+      color: 'bg-green-100 text-green-700', 
+      label: 'Đã duyệt', 
+      icon: Check 
+    },
+    'NOT_APPROVED': { 
+      color: 'bg-amber-100 text-amber-700', 
+      label: 'Chờ duyệt', 
+      icon: Clock 
+    },
+    'DISABLED': { 
+      color: 'bg-red-100 text-red-700', 
+      label: 'Đã vô hiệu', 
+      icon: X 
+    }
+  };
+  
+  const map = statusMap[statusUpper] || { 
+    color: 'bg-gray-100 text-gray-500', 
+    label: status, 
+    icon: FileText 
+  };
+  
+  const IconComponent = map.icon;
+  
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+      <IconComponent className="w-3.5 h-3.5" strokeWidth={1.5} />
+      {map.label}
+    </span>
   );
 };
 

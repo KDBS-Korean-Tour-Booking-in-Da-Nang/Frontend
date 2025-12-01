@@ -5,6 +5,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
 import { useTranslation } from 'react-i18next';
+import { getApiPath } from '../../../config/api';
 import styles from './verifyEmail.module.css';
 
 const VerifyEmail = () => {
@@ -63,7 +64,7 @@ const VerifyEmail = () => {
     }
 
     try {
-      const response = await fetch('/api/users/verify-email', {
+      const response = await fetch(getApiPath('/api/users/verify-email'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ const VerifyEmail = () => {
             const email = sessionStorage.getItem('post_reg_email');
             const password = sessionStorage.getItem('post_reg_password');
             if (email && password) {
-              const resp = await fetch('/api/auth/login', {
+              const resp = await fetch(getApiPath('/api/auth/login'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -156,7 +157,7 @@ const VerifyEmail = () => {
     try {
       // Backend requires otpCode field with @NotBlank validation, but we don't have one for resend
       // Send a dummy 6-character code that meets validation - backend will ignore it for regenerate
-      const response = await fetch('/api/users/regenerate-otp', {
+      const response = await fetch(getApiPath('/api/users/regenerate-otp'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

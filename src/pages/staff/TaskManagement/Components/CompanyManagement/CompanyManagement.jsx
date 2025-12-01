@@ -1,7 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useAuth } from '../../../../contexts/AuthContext';
-import { useToast } from '../../../../contexts/ToastContext';
-import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../../config/api';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../../../../contexts/ToastContext';
+import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../../../config/api';
+import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
+import Pagination from '../../../../admin/Pagination';
 import {
   BuildingOfficeIcon,
   ClockIcon,
@@ -15,12 +18,17 @@ import {
   EyeIcon,
   CheckIcon,
   XMarkIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 const CompanyManagement = () => {
-  const { getToken } = useAuth();
+  const { user, getToken } = useAuth();
+  const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
+
+  // Check if user has permission to manage companies
+  const canManageCompanies = user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [companies, setCompanies] = useState([]);
@@ -35,6 +43,8 @@ const CompanyManagement = () => {
     loading: false
   });
   const [processing, setProcessing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   // Fetch companies (users with role COMPANY/BUSINESS) from API
   const fetchCompanies = async () => {
@@ -55,6 +65,7 @@ const CompanyManagement = () => {
       
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -109,9 +120,11 @@ const CompanyManagement = () => {
   };
 
   useEffect(() => {
-    fetchCompanies();
+    if (canManageCompanies) {
+      fetchCompanies();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canManageCompanies]);
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((company) => {
@@ -127,6 +140,20 @@ const CompanyManagement = () => {
       return matchesSearch && matchesStatus;
     });
   }, [companies, search, statusFilter]);
+
+  // Pagination
+  const paginatedCompanies = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCompanies.slice(startIndex, endIndex);
+  }, [filteredCompanies, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [search, statusFilter]);
 
   const stats = useMemo(() => {
     // Filter out not_updated companies for stats
@@ -161,6 +188,7 @@ const CompanyManagement = () => {
 
       if (!roleResponse.ok) {
         if (roleResponse.status === 401) {
+          await checkAndHandle401(roleResponse);
           showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -176,6 +204,7 @@ const CompanyManagement = () => {
 
       if (!statusResponse.ok) {
         if (statusResponse.status === 401) {
+          await checkAndHandle401(statusResponse);
           showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -217,6 +246,7 @@ const CompanyManagement = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           showError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -253,6 +283,10 @@ const CompanyManagement = () => {
         headers
       });
 
+      if (statusResponse.status === 401) {
+        await checkAndHandle401(statusResponse);
+        return;
+      }
       if (!statusResponse.ok) {
         throw new Error('Không thể tải thông tin file');
       }
@@ -309,6 +343,29 @@ const CompanyManagement = () => {
     }
   };
 
+  // Check if user has permission
+  if (user && !canManageCompanies) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc]">
+        <div className="max-w-md w-full rounded-[32px] bg-white/90 border border-gray-200 shadow-lg p-10 text-center">
+          <div className="w-16 h-16 rounded-[20px] bg-amber-100 flex items-center justify-center text-amber-600 mx-auto mb-6">
+            <ExclamationTriangleIcon className="h-7 w-7" />
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-3">Không có quyền truy cập</h2>
+          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+            Bạn không có quyền quản lý công ty. Vui lòng liên hệ admin để được phân quyền.
+          </p>
+          <button
+            onClick={() => navigate('/staff/tasks')}
+            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white bg-[#4c9dff] hover:bg-[#3f85d6] transition-all shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
+          >
+            Quay lại Task Management
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -340,7 +397,7 @@ const CompanyManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Company Management</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Company Management</p>
           <h1 className="text-3xl font-bold text-gray-900">Xét duyệt đăng ký công ty</h1>
           <p className="text-sm text-gray-500 mt-1">
             Quản lý và xét duyệt các yêu cầu đăng ký tài khoản công ty du lịch.
@@ -410,7 +467,7 @@ const CompanyManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filteredCompanies.map((company) => (
+                paginatedCompanies.map((company) => (
                 <tr key={company.id} className="hover:bg-[#e9f2ff]/40 transition">
                   <td className="px-6 py-4">
                     <div className="flex items-start gap-3">
@@ -491,6 +548,16 @@ const CompanyManagement = () => {
           </table>
         </div>
 
+        {/* Pagination */}
+        {filteredCompanies.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredCompanies.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* Modal for viewing company files */}

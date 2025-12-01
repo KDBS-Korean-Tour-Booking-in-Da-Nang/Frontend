@@ -3,7 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
 import { DatePicker } from 'react-rainbow-components';
-import { Calendar } from 'lucide-react';
+import {
+  Calendar,
+  FileText,
+  Layers,
+  MapPin,
+  Bus,
+  Clock,
+  Moon,
+  Users,
+  CalendarDays,
+  ClipboardList
+} from 'lucide-react';
 import styles from './Step1BasicInfo.module.css';
 
 const DEFAULT_NIGHTS_FOR_ONE_DAY = 0; // đổi thành 1 nếu muốn mặc định là 1 đêm
@@ -446,6 +457,7 @@ const calculateLeadDays = (isoDate) => {
       <div className={styles['form-grid']}>
         <div className={styles['form-group']}>
           <label htmlFor="tourName" className={styles['form-label']}>
+            <FileText className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.tourName')}
             {fieldErrors.tourName && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -465,6 +477,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="tourType" className={styles['form-label']}>
+            <Layers className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.tourType')}
             {fieldErrors.tourType && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -489,6 +502,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="departurePoint" className={styles['form-label']}>
+            <MapPin className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.departurePoint')}
           </label>
           <select
@@ -506,6 +520,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="vehicle" className={styles['form-label']}>
+            <Bus className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.vehicle')}
           </label>
           <select
@@ -524,6 +539,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="duration" className={styles['form-label']}>
+            <Clock className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.duration')}
             {fieldErrors.duration && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -546,6 +562,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="nights" className={styles['form-label']}>
+            <Moon className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.nights')}
             {fieldErrors.nights && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -576,6 +593,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="maxCapacity" className={styles['form-label']}>
+            <Users className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.maxCapacity')}
             {fieldErrors.maxCapacity && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -598,6 +616,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="tourDeadline" className={styles['form-label']}>
+            <CalendarDays className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.tourDeadline')}
             {fieldErrors.tourDeadline && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -624,6 +643,7 @@ const calculateLeadDays = (isoDate) => {
 
         <div className={styles['form-group']}>
           <label htmlFor="tourExpirationDate" className={styles['form-label']}>
+            <Calendar className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.tourExpirationDate')}
             {fieldErrors.tourExpirationDate && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
           </label>
@@ -690,16 +710,43 @@ const calculateLeadDays = (isoDate) => {
       </div>
 
       <div className={styles['step-summary']}>
-        <h3>{t('tourWizard.step1.summary.title')}</h3>
+        <h3>
+          <ClipboardList className={styles['summary-title-icon']} size={20} />
+          {t('tourWizard.step1.summary.title')}
+        </h3>
         <div className={styles['summary-content']}>
-          <p><strong>{t('tourWizard.step1.summary.tourName')}</strong> {formData.tourName || t('tourWizard.step1.summary.notEntered')}</p>
-          <p><strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}</p>
-          <p><strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {localizeDeparturePoint(formData.departurePoint) || t('tourWizard.step1.summary.notEntered')}</p>
-          <p><strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}</p>
-          <p><strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}</p>
-          <p><strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.tours')}</p>
-          <p><strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}</p>
-          <p><strong>{t('tourWizard.step1.summary.tourExpirationDate')}</strong> {formData.tourExpirationDate || t('tourWizard.step1.summary.notEntered')}</p>
+          <p>
+            <FileText className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.tourName')}</strong> {formData.tourName || t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <Layers className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}
+          </p>
+          <p>
+            <MapPin className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {localizeDeparturePoint(formData.departurePoint) || t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <Bus className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}
+          </p>
+          <p>
+            <Clock className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}
+          </p>
+          <p>
+            <Users className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.tours')}
+          </p>
+          <p>
+            <CalendarDays className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <Calendar className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.tourExpirationDate')}</strong> {formData.tourExpirationDate || t('tourWizard.step1.summary.notEntered')}
+          </p>
         </div>
       </div>
     </div>

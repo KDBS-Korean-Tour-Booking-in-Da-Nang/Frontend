@@ -1,9 +1,26 @@
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+import { getApiPath } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
-const jsonHeaders = {
-  'Content-Type': 'application/json',
+/**
+ * Get authentication headers with Bearer token
+ * @returns {Object} - Headers object with Authorization
+ */
+const getAuthHeaders = () => {
+  // Try multiple common token keys
+  const token =
+    localStorage.getItem('token') ||
+    sessionStorage.getItem('token') ||
+    localStorage.getItem('accessToken') ||
+    sessionStorage.getItem('accessToken');
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 /**
@@ -27,9 +44,11 @@ export const createTossBookingPayment = async (payload) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/payment`, {
+    // Use getApiPath for consistent URL handling in dev/prod
+    const url = getApiPath('/api/booking/payment');
+    const response = await fetch(url, {
       method: 'POST',
-      headers: jsonHeaders,
+      headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 

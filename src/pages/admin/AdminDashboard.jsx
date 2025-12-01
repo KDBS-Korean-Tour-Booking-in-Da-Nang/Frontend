@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AdminLayout from './AdminLayout';
@@ -8,12 +8,14 @@ import CompanyManagement from './CompanyManagement/CompanyManagement';
 import UserManagement from './UserManagement/UserManagement';
 import CustomerManagement from './CustomerManagement/CustomerManagement';
 import ReportManagement from './ReportManagement/ReportManagement';
-import TourManagement from './TourManagement/TourManagement';
 import ForumManagement from './ForumManagement/ForumManagement';
 import CustomerContact from './CustomerContact/CustomerContact';
 import NewsManagement from './NewsManagement/NewsManagement';
 import TransactionManagement from './TransactionManagement/TransactionManagement';
-import ForumReportManagement from './ForumReportManagement/ForumReportManagement';
+
+// Lazy load components to avoid top-level import issues with useAuth
+const ForumReportManagement = lazy(() => import('./ForumReportManagement/ForumReportManagement'));
+const TourManagement = lazy(() => import('./TourManagement/TourManagement'));
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
@@ -65,13 +67,21 @@ const AdminDashboard = () => {
         <Route path="/company" element={<CompanyManagement />} />
         <Route path="/user" element={<UserManagement />} />
         <Route path="/report" element={<ReportManagement />} />
-        <Route path="/tour" element={<TourManagement />} />
+        <Route path="/tour" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Đang tải...</p></div></div>}>
+            <TourManagement />
+          </Suspense>
+        } />
         <Route path="/forum" element={<ForumManagement />} />
         <Route path="/customers" element={<CustomerManagement />} />
         <Route path="/contact" element={<CustomerContact />} />
         <Route path="/news" element={<NewsManagement />} />
         <Route path="/transactions" element={<TransactionManagement />} />
-        <Route path="/forum-reports" element={<ForumReportManagement />} />
+        <Route path="/forum-reports" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Đang tải...</p></div></div>}>
+            <ForumReportManagement />
+          </Suspense>
+        } />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>

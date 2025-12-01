@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useToursAPI } from '../../../../../hooks/useToursAPI';
+import { getTourImageUrl } from '../../../../../config/api';
 import {
   Clock4,
   MapPin,
@@ -84,8 +85,9 @@ const TourPreview = ({ createdAt = null }) => {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/uploads/tours/thumbnails/${imagePath}`;
+    // Use getTourImageUrl from config with empty string as default instead of default image
+    const url = getTourImageUrl(`/uploads/tours/thumbnails/${imagePath}`, '');
+    return url || '';
   };
 
   const formatCreatedAt = (value) => {

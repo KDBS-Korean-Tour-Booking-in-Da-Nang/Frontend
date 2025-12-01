@@ -1,9 +1,19 @@
 // API Configuration
-// Thay đổi BaseURL này khi deploy để trỏ đến server thực tế
-export const BaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+// Normalize base URLs - remove trailing slashes to avoid double slashes
+const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+export const BaseURL = rawBase.replace(/\/+$/, ''); // Remove trailing slash(es)
 
-// Frontend URL for link detection
-export const FrontendURL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+// Frontend URL for link detection - align with vite.config.js port (3000)
+const rawFrontendUrl = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000';
+export const FrontendURL = rawFrontendUrl.replace(/\/+$/, ''); // Remove trailing slash(es)
+
+// Helper function to safely join URLs (base + path)
+// Prevents double slashes and handles edge cases
+const joinUrl = (base, path) => {
+  const normalizedBase = base.replace(/\/+$/, ''); // Remove trailing slashes from base
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`; // Ensure path starts with /
+  return `${normalizedBase}${normalizedPath}`;
+};
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -38,7 +48,10 @@ export const API_ENDPOINTS = {
   REPORTS: `${BaseURL}/api/reports`,
   REPORTS_CREATE: `${BaseURL}/api/reports/create`,
   REPORTS_CHECK: `${BaseURL}/api/reports/check`,
+  REPORTS_GET_BY_ID: (reportId) => `${BaseURL}/api/reports/${reportId}`,
   REPORTS_ADMIN_ALL: `${BaseURL}/api/reports/admin/all`,
+  REPORTS_ADMIN_STATS: `${BaseURL}/api/reports/admin/stats`,
+  REPORTS_UPDATE_STATUS: (reportId) => `${BaseURL}/api/reports/${reportId}/status`,
   
   // Hashtags
   HASHTAGS: `${BaseURL}/api/hashtags`,
@@ -53,6 +66,7 @@ export const API_ENDPOINTS = {
   
   // Tours
   TOURS: `${BaseURL}/api/tour`,
+  TOURS_PUBLIC: `${BaseURL}/api/tour/public`,
   TOUR_BY_ID: (id) => `${BaseURL}/api/tour/${id}`,
   TOUR_DELETE_BY_ID: (id, userEmail) => `${BaseURL}/api/tour/${id}?userEmail=${encodeURIComponent(userEmail)}`,
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
@@ -81,27 +95,34 @@ export const API_ENDPOINTS = {
   // Vouchers
   VOUCHERS: `${BaseURL}/api/vouchers`,
   VOUCHERS_BY_COMPANY: (companyId) => `${BaseURL}/api/vouchers/company/${companyId}`,
+  // BE mapping: @RequestMapping("/api/vouchers") + @GetMapping("/{tourId}")
+  VOUCHERS_BY_TOUR: (tourId) => `${BaseURL}/api/vouchers/${tourId}`,
+  
+  // Transactions
+  TRANSACTIONS: `${BaseURL}/api/transactions`,
+  TRANSACTIONS_BY_USER_ID: (userId) => `${BaseURL}/api/transactions/${userId}`,
+  TRANSACTIONS_CHANGE_STATUS: `${BaseURL}/api/transactions/change-status`,
 };
 
 // Helper function để xử lý avatar URLs
 export const getAvatarUrl = (avatar) => {
   if (!avatar) return '/default-avatar.png';
-  if (avatar.startsWith('http')) return avatar;
-  return `${BaseURL}${avatar.startsWith('/') ? '' : '/'}${avatar}`;
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
+  return joinUrl(BaseURL, avatar);
 };
 
 // Helper function để xử lý image URLs
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '';
-  if (imagePath.startsWith('http')) return imagePath;
-  return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+  return joinUrl(BaseURL, imagePath);
 };
 
 // Helper function để xử lý tour image URLs với fallback về default tour image
 export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') => {
   if (!imagePath) return defaultImage;
-  if (imagePath.startsWith('http')) return imagePath;
-  return `${BaseURL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+  return joinUrl(BaseURL, imagePath);
 };
 
 // Helper function để tạo headers với auth token
@@ -137,4 +158,26 @@ export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
   }
   
   return headers;
+};
+
+// Helper function để lấy API path thông minh cho cả development và production
+// - Development: Dùng relative path để Vite proxy xử lý
+// - Production: Dùng full URL từ BaseURL
+export const getApiPath = (path) => {
+  // Đảm bảo path bắt đầu với /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // Nếu đang ở production mode, dùng full URL
+  if (import.meta.env.PROD) {
+    // Fail-fast: Kiểm tra BaseURL trong production
+    if (!BaseURL || BaseURL === 'http://localhost:8080') {
+      console.warn('[getApiPath] BaseURL is not configured for production. Please set VITE_API_BASE_URL environment variable.');
+    }
+    // Trong production, luôn dùng BaseURL (đã được set trong env)
+    return joinUrl(BaseURL, normalizedPath);
+  } else {
+    // Trong development, dùng relative path để Vite proxy xử lý
+    // Vite proxy trong vite.config.js sẽ forward /api/* đến backend
+    return normalizedPath;
+  }
 };

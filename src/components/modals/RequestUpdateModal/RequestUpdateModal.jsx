@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
+import { Edit3, X, AlertCircle } from 'lucide-react';
 import styles from './RequestUpdateModal.module.css';
 
 /**
@@ -89,6 +90,10 @@ const RequestUpdateModal = ({
     }
   };
 
+  // Determine icon based on title (reject vs update)
+  const isReject = title?.toLowerCase().includes('từ chối') || title?.toLowerCase().includes('reject');
+  const IconComponent = isReject ? AlertCircle : Edit3;
+
   const modalNode = (
     <div 
       className={styles['modal-overlay']} 
@@ -104,46 +109,45 @@ const RequestUpdateModal = ({
         aria-labelledby="request-update-title"
       >
         <div className={styles['modal-panel']}>
-          <div className={styles['modal-header']}>
-            <h2 id="request-update-title">
-              {title || 'Yêu cầu cập nhật booking'}
-            </h2>
-            <button
-              type="button"
-              className={styles['modal-close']}
-              aria-label="Đóng"
-              onClick={onClose}
-              disabled={submitting}
-            >
-              ×
-            </button>
-          </div>
+          <button
+            type="button"
+            className={styles['modal-close']}
+            aria-label="Đóng"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
 
           <div className={styles['modal-content']}>
-            <div className={styles['message-card']}>
-              {bookingId && (
-                <p className={styles['booking-id']}>
-                  Booking ID: <strong>#{bookingId}</strong>
-                </p>
-              )}
-              <p className={styles['instruction-text']}>
-                {message || 'Vui lòng nhập lý do yêu cầu cập nhật booking:'}
-              </p>
-              <textarea
-                ref={textareaRef}
-                value={updateMessage}
-                onChange={(e) => setUpdateMessage(e.target.value)}
-                placeholder="Ví dụ: Vui lòng cập nhật thông tin khách hàng, ngày khởi hành, hoặc số lượng khách..."
-                className={styles['message-textarea']}
-                rows={6}
-                disabled={submitting}
-              />
-              {!updateMessage.trim() && (
-                <p className={styles['hint-text']}>
-                  Vui lòng nhập thông tin yêu cầu cập nhật
-                </p>
-              )}
+            <div className={styles['icon-wrapper']} data-reject={isReject}>
+              <IconComponent size={36} strokeWidth={1.5} />
             </div>
+            <h2 id="request-update-title" className={styles['modal-title']}>
+              {title || 'Yêu cầu cập nhật booking'}
+            </h2>
+            {bookingId && (
+              <p className={styles['booking-id']}>
+                Booking ID: <strong>#{bookingId}</strong>
+              </p>
+            )}
+            <p className={styles['instruction-text']}>
+              {message || 'Vui lòng nhập lý do yêu cầu cập nhật booking:'}
+            </p>
+            <textarea
+              ref={textareaRef}
+              value={updateMessage}
+              onChange={(e) => setUpdateMessage(e.target.value)}
+              placeholder="Ví dụ: Vui lòng cập nhật thông tin khách hàng, ngày khởi hành, hoặc số lượng khách..."
+              className={styles['message-textarea']}
+              rows={6}
+              disabled={submitting}
+            />
+            {!updateMessage.trim() && (
+              <p className={styles['hint-text']}>
+                Vui lòng nhập thông tin yêu cầu cập nhật
+              </p>
+            )}
           </div>
 
           <div className={styles['modal-actions']}>

@@ -60,11 +60,19 @@ const TourList = () => {
         return;
       }
 
+      // Tours from /public endpoint are already PUBLIC, but filter for safety
+      const publicTours = tours.filter(tour => tour.tourStatus === 'PUBLIC');
+      
+      if (publicTours.length === 0) {
+        setTop3Tours([]);
+        return;
+      }
+
       setTop3Loading(true);
       try {
         const token = getToken && getToken();
         const toursWithScores = await Promise.all(
-          tours.map(async (tour) => {
+          publicTours.map(async (tour) => {
             try {
               // Fetch bookings count
               let bookingCount = 0;
@@ -149,7 +157,9 @@ const TourList = () => {
 
   useEffect(() => {
     if (!isSearchMode) {
-      setFilteredTours(tours || []);
+      // Tours from /public endpoint are already PUBLIC, but filter for safety
+      const publicTours = (tours || []).filter(tour => tour.tourStatus === 'PUBLIC');
+      setFilteredTours(publicTours);
       setCurrentPage(1); // Reset về trang 1 khi tours thay đổi
     }
   }, [tours, isSearchMode]);
@@ -165,7 +175,9 @@ const TourList = () => {
       setIsSearchMode(false);
       setPage(0);
       setTotalPages(0);
-      setFilteredTours(tours || []);
+      // Filter only PUBLIC tours when clearing search
+      const publicTours = (tours || []).filter(tour => tour.tourStatus === 'PUBLIC');
+      setFilteredTours(publicTours);
       setCurrentPage(1); // Reset về trang 1 khi clear search
       return;
     }

@@ -1,5 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  ClockIcon,
+  MapPinIcon,
+  UserGroupIcon
+} from '@heroicons/react/24/outline';
 import styles from './TourCardStep4.module.css';
 
 const TourCardStep4 = ({ tour, onClick, showActions = false }) => {
@@ -19,14 +24,25 @@ const TourCardStep4 = ({ tour, onClick, showActions = false }) => {
     return thumbnail;
   };
 
+  const formatDuration = (duration) => {
+    if (!duration) return '';
+    return duration;
+  };
+
+  const localizeDeparturePoint = (value) => {
+    if (!value) return t('common.departurePoints.daNang');
+    return value;
+  };
+
   return (
     <div className={styles['tour-card']} onClick={showActions ? onClick : undefined}>
       {/* Tour Image */}
-      <div className={styles['tour-card-image']}>
+      <div className={styles['tour-image-container']}>
         {tour.thumbnail ? (
           <img 
             src={getImageSrc(tour.thumbnail)} 
             alt={tour.tourName}
+            className={styles['tour-image']}
             onError={(e) => {
               if (!(tour.thumbnail instanceof File)) {
                 e.target.src = '/default-Tour.jpg';
@@ -34,26 +50,13 @@ const TourCardStep4 = ({ tour, onClick, showActions = false }) => {
             }}
           />
         ) : (
-          <div className={styles['tour-card-placeholder']}>
-            <span className={styles['placeholder-icon']}>🏞️</span>
-            <div className={styles['placeholder-overlay']}>
-              <div className={styles['welcome-text']}>
-                <span className={styles['welcome-w']}>W</span>
-                <span className={styles['welcome-e']}>E</span>
-                <span className={styles['welcome-l']}>L</span>
-                <span className={styles['welcome-c']}>C</span>
-                <span className={styles['welcome-o']}>O</span>
-                <span className={styles['welcome-m']}>M</span>
-                <span className={styles['welcome-e2']}>E</span>
-              </div>
-              <div className={styles['sub-text']}>{t('tourCard.welcome.explore')}</div>
-              <div className={styles['sub-text-2']}>{t('tourCard.welcome.dream')}</div>
-            </div>
+          <div className={styles['tour-image-placeholder']}>
+            <div className={styles['placeholder-icon']}>🏞️</div>
           </div>
         )}
         
         {/* Status Badge */}
-        <div className={styles['featured-badge']}>
+        <div className={`${styles['status-badge']} ${styles[tour.tourStatus?.toLowerCase() || 'active']}`}>
           {tour.tourStatus === 'ACTIVE' ? t('tourManagement.statusBadge.ACTIVE') :
            tour.tourStatus === 'INACTIVE' ? t('tourManagement.statusBadge.INACTIVE') :
            tour.tourStatus === 'NOT_APPROVED' ? t('tourManagement.statusBadge.NOT_APPROVED') :
@@ -62,58 +65,32 @@ const TourCardStep4 = ({ tour, onClick, showActions = false }) => {
       </div>
 
       {/* Tour Info */}
-      <div className={styles['tour-card-content']}>
-        <h3 className={styles['tour-card-title']}>{tour.tourName}</h3>
+      <div className={styles['tour-info']}>
+        <h3 className={styles['tour-name']}>{tour.tourName}</h3>
         
-        <div className={styles['tour-card-info']}>
-          <div className={styles['tour-duration']}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12,6 12,12 16,14"/>
-            </svg>
-            {tour.tourDuration}
-          </div>
-          
-          <div className={styles['tour-price']}>
-            <div className={styles['price-amount']}>{formatPrice(tour.adultPrice)}₫</div>
-          </div>
+        <div className={styles['tour-price']}>
+          <span className={styles['price-label']}>{t('tourManagement.card.priceLabel') || 'Giá'}</span>
+          <span className={styles['price-value']}>{formatPrice(tour.adultPrice)}₫</span>
         </div>
 
-        <div className={styles['tour-description']}>
-          {(tour.tourDeparturePoint || t('common.departurePoints.daNang'))} • {(tour.amount || '30')} {t('tourWizard.step1.summary.guests')}
-        </div>
-
-        {/* Controls: show only in management mode; hide in preview */}
-        {showActions ? (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button style={{
-              flex: 1,
-              padding: '8px 12px',
-              border: 'none',
-              borderRadius: '6px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500'
-            }}>
-              ✏️ Chỉnh sửa
-            </button>
-            <button style={{
-              flex: 1,
-              padding: '8px 12px',
-              border: 'none',
-              borderRadius: '6px',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500'
-            }}>
-              🗑️ Xóa
-            </button>
+        <div className={styles['tour-details']}>
+          <div className={styles['detail-item']}>
+            <ClockIcon className={styles['detail-icon']} />
+            <span className={styles['detail-value']}>{formatDuration(tour.tourDuration) || 'N/A'}</span>
           </div>
-        ) : null}
+          {tour.amount && (
+            <div className={styles['detail-item']}>
+              <UserGroupIcon className={styles['detail-icon']} />
+              <span className={styles['detail-value']}>{tour.amount} {t('tourManagement.card.capacityUnit') || 'người'}</span>
+            </div>
+          )}
+          {tour.tourDeparturePoint && (
+            <div className={styles['detail-item']}>
+              <MapPinIcon className={styles['detail-icon']} />
+              <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

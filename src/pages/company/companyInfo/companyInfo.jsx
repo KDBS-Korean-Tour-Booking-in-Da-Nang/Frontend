@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import LoginRequiredModal from '../../../components/modals/LoginRequiredModal/LoginRequiredModal';
 import { useToast } from '../../../contexts/ToastContext';
+import { getApiPath } from '../../../config/api';
 import { 
   Upload, 
   FileText, 
@@ -83,7 +84,7 @@ const CompanyInfo = () => {
           const headers = {};
           const token = sessionStorage.getItem('token') || localStorage.getItem('token');
           if (token) headers['Authorization'] = `Bearer ${token}`;
-          const res = await fetch(`/api/users/business-upload-status?email=${encodeURIComponent(email)}`, { headers });
+          const res = await fetch(getApiPath(`/api/users/business-upload-status?email=${encodeURIComponent(email)}`), { headers });
           const data = await res.json();
           if ((data.code === 1000 || data.code === 0) && data.result) {
             // Chỉ coi là đã upload khi vai trò hiện tại là business hoặc backend có dữ liệu
@@ -245,7 +246,7 @@ const CompanyInfo = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch('/api/users/update-business-license', {
+      const response = await fetch(getApiPath('/api/users/update-business-license'), {
         method: 'PUT',
         headers: headers,
         body: formData,

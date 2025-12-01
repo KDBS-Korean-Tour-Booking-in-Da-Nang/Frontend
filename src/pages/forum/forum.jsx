@@ -355,8 +355,26 @@ const Forum = () => {
 
 
   const handlePostDeleted = useCallback((postId) => {
+    // Xóa post khỏi danh sách hiện tại
     setPosts(prev => prev.filter(post => post.forumPostId !== postId));
-  }, []);
+
+    // Nếu đang ở chế độ xem single post và đó là post vừa xóa → quay lại list
+    setSinglePost(current => (current && current.forumPostId === postId ? null : current));
+    setSelectedPostId(currentId => (currentId === postId ? null : currentId));
+
+    // Cập nhật cache trang đầu tiên để tránh tải lại post đã xóa
+    const cacheKey = `${buildPostsUrl(0)}_0`;
+    const cachedPage = postsCache.current.get(cacheKey);
+    if (cachedPage) {
+      const updatedContent = (cachedPage.content || []).filter(
+        (post) => post?.forumPostId !== postId
+      );
+      postsCache.current.set(cacheKey, {
+        ...cachedPage,
+        content: updatedContent,
+      });
+    }
+  }, [buildPostsUrl]);
 
   // Utility: Reset to default state
   const resetToDefaultState = useCallback(() => {

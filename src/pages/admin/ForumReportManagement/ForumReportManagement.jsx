@@ -1,4 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import ReportDetailModal from './ReportDetailModal';
 import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
@@ -11,48 +15,244 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ForumReportManagement = () => {
+  const { getToken, user } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
-  // Mock data - sẽ được thay thế bằng API call sau
-  const [reports] = useState([]);
-  const [loading] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, pending: 0, resolved: 0, dismissed: 0, investigating: 0, closed: 0 });
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize] = useState(10);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  // Mock data structure - sẽ được thay thế bằng API call
+  // Fetch reports from API
+  const fetchReports = useCallback(async (page = currentPage) => {
+    try {
+      setLoading(true);
+      const token = getToken();
+      const url = `${API_ENDPOINTS.REPORTS_ADMIN_ALL}?page=${page}&size=${pageSize}`;
+      
+      const response = await fetch(url, {
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        // Map ReportSummaryResponse to component format
+        const mappedReports = (data.content || []).map(report => ({
+          reportId: report.reportId,
+          targetType: report.targetType,
+          targetId: report.targetId,
+          reporterName: report.reporterUsername || 'N/A',
+          reporterEmail: '', // Not in summary response
+          reason: report.reasons || 'Không có lý do',
+          status: report.status,
+          createdAt: report.reportedAt,
+          reportCount: report.reportCount || 0
+        }));
+        
+        setReports(mappedReports);
+        setTotalPages(data.totalPages || 0);
+      } else {
+        console.error('Failed to fetch reports:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, pageSize, getToken]);
+
+  useEffect(() => {
+    fetchReports(currentPage);
+  }, [currentPage, fetchReports, refreshTrigger]);
+
+  // Fetch stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = getToken();
+        const response = await fetch(API_ENDPOINTS.REPORTS_ADMIN_STATS, {
+          headers: createAuthHeaders(token)
+        });
+
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          setStats({
+            total: data.total || 0,
+            pending: data.pending || 0,
+            resolved: data.resolved || 0,
+            dismissed: data.dismissed || 0,
+            investigating: data.investigating || 0,
+            closed: data.closed || 0
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, [getToken, reports]); // Re-fetch stats when reports change
+
+  // Filter reports based on search and filters
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
+      const searchLower = search.toLowerCase();
       const matchesSearch =
-        report.reportId?.toLowerCase().includes(search.toLowerCase()) ||
-        report.reporterName?.toLowerCase().includes(search.toLowerCase()) ||
-        report.postTitle?.toLowerCase().includes(search.toLowerCase()) ||
-        report.reason?.toLowerCase().includes(search.toLowerCase());
+        report.reportId?.toString().includes(searchLower) ||
+        report.reporterName?.toLowerCase().includes(searchLower) ||
+        report.postTitle?.toLowerCase().includes(searchLower) ||
+        report.reason?.toLowerCase().includes(searchLower);
       const matchesStatus = statusFilter === 'ALL' || report.status === statusFilter;
-      const matchesType = typeFilter === 'ALL' || report.type === typeFilter;
+      // Filter by reason type (first reason in the string)
+      const matchesType = typeFilter === 'ALL' || 
+        (report.reason && report.reason.toUpperCase().includes(typeFilter));
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [reports, search, statusFilter, typeFilter]);
 
-  const stats = useMemo(() => {
-    const total = reports.length;
-    const pending = reports.filter((r) => r.status === 'PENDING').length;
-    const approved = reports.filter((r) => r.status === 'APPROVED').length;
-    const rejected = reports.filter((r) => r.status === 'REJECTED').length;
-    return { total, pending, approved, rejected };
-  }, [reports]);
-
   const handleApprove = async (reportId) => {
-    // TODO: Implement API call to approve report
-    console.log('Approve report:', reportId);
+    if (!user?.email) {
+      alert('Vui lòng đăng nhập để thực hiện thao tác này');
+      return;
+    }
+
+    if (!window.confirm('Bạn có chắc chắn muốn duyệt báo cáo này?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const email = user.email;
+      
+      const response = await fetch(`${API_ENDPOINTS.REPORTS_UPDATE_STATUS(reportId)}?adminEmail=${encodeURIComponent(email)}`, {
+        method: 'PUT',
+        headers: createAuthHeaders(token),
+        body: JSON.stringify({
+          status: 'RESOLVED',
+          adminNote: 'Báo cáo đã được duyệt và xử lý'
+        })
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Refresh reports and stats
+        setRefreshTrigger(prev => prev + 1);
+        alert('Duyệt báo cáo thành công!');
+      } else {
+        const errorText = await response.text();
+        alert(`Lỗi khi duyệt báo cáo: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error approving report:', error);
+      alert('Đã xảy ra lỗi khi duyệt báo cáo');
+    }
   };
 
   const handleReject = async (reportId) => {
-    // TODO: Implement API call to reject report
-    console.log('Reject report:', reportId);
+    if (!user?.email) {
+      alert('Vui lòng đăng nhập để thực hiện thao tác này');
+      return;
+    }
+
+    if (!window.confirm('Bạn có chắc chắn muốn từ chối báo cáo này?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const email = user.email;
+      
+      const response = await fetch(`${API_ENDPOINTS.REPORTS_UPDATE_STATUS(reportId)}?adminEmail=${encodeURIComponent(email)}`, {
+        method: 'PUT',
+        headers: createAuthHeaders(token),
+        body: JSON.stringify({
+          status: 'DISMISSED',
+          adminNote: 'Báo cáo đã bị từ chối'
+        })
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Refresh reports and stats
+        setRefreshTrigger(prev => prev + 1);
+        alert('Từ chối báo cáo thành công!');
+      } else {
+        const errorText = await response.text();
+        alert(`Lỗi khi từ chối báo cáo: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error rejecting report:', error);
+      alert('Đã xảy ra lỗi khi từ chối báo cáo');
+    }
   };
 
-  const handleViewDetails = (reportId) => {
-    // TODO: Implement view details modal/page
-    console.log('View details:', reportId);
+  const handleViewDetails = async (reportId) => {
+    try {
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.REPORTS_GET_BY_ID(reportId), {
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const fullReport = await response.json();
+        // Map ReportResponse to component format
+        const mappedReport = {
+          reportId: fullReport.reportId,
+          targetType: fullReport.targetType,
+          targetId: fullReport.targetId,
+          reporterName: fullReport.reporterUsername || 'N/A',
+          reporterEmail: fullReport.reporterEmail || '',
+          reason: Array.isArray(fullReport.reasons) 
+            ? fullReport.reasons.join(', ') 
+            : (fullReport.reasons || 'Không có lý do'),
+          status: fullReport.status,
+          createdAt: fullReport.reportedAt,
+          resolvedAt: fullReport.resolvedAt,
+          adminNote: fullReport.adminNote,
+          resolvedByUsername: fullReport.resolvedByUsername,
+          description: fullReport.description,
+          targetTitle: fullReport.targetTitle,
+          targetAuthor: fullReport.targetAuthor
+        };
+        setSelectedReport(mappedReport);
+        setIsDetailModalOpen(true);
+      } else {
+        const errorText = await response.text();
+        alert(`Lỗi khi tải chi tiết báo cáo: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error fetching report details:', error);
+      alert('Đã xảy ra lỗi khi tải chi tiết báo cáo');
+    }
   };
 
   if (loading) {
@@ -89,10 +289,10 @@ const ForumReportManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={ExclamationTriangleIcon} label="Tổng báo cáo" value={stats.total} trend="+5 tuần này" />
+        <StatCard icon={ExclamationTriangleIcon} label="Tổng báo cáo" value={stats.total} trend="" />
         <StatCard icon={ClockIcon} label="Chờ duyệt" value={stats.pending} trend="Cần xử lý" color="text-amber-500" />
-        <StatCard icon={CheckCircleIcon} label="Đã duyệt" value={stats.approved} trend="+2 hôm nay" color="text-green-600" />
-        <StatCard icon={XCircleIcon} label="Đã từ chối" value={stats.rejected} trend="+1 hôm nay" color="text-red-600" />
+        <StatCard icon={CheckCircleIcon} label="Đã xử lý" value={stats.resolved} trend="" color="text-green-600" />
+        <StatCard icon={XCircleIcon} label="Đã từ chối" value={stats.dismissed} trend="" color="text-red-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -115,8 +315,10 @@ const ForumReportManagement = () => {
             >
               <option value="ALL">Tất cả trạng thái</option>
               <option value="PENDING">Chờ duyệt</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Đã từ chối</option>
+              <option value="INVESTIGATING">Đang điều tra</option>
+              <option value="RESOLVED">Đã xử lý</option>
+              <option value="DISMISSED">Bỏ qua</option>
+              <option value="CLOSED">Đóng</option>
             </select>
             <select
               value={typeFilter}
@@ -137,7 +339,7 @@ const ForumReportManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['Báo cáo', 'Người báo cáo', 'Loại vi phạm', 'Trạng thái', 'Ngày báo cáo', 'Thao tác'].map((header) => (
+                {['STT', 'Báo cáo', 'Người báo cáo', 'Loại vi phạm', 'Trạng thái', 'Ngày báo cáo', 'Thao tác'].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -147,34 +349,36 @@ const ForumReportManagement = () => {
             <tbody className="bg-white divide-y divide-gray-50">
               {filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                     {loading ? 'Đang tải...' : 'Không tìm thấy báo cáo phù hợp với bộ lọc hiện tại.'}
                   </td>
                 </tr>
               ) : (
-                filteredReports.map((report) => (
+                filteredReports.map((report, index) => (
                   <tr key={report.reportId} className="hover:bg-[#e9f2ff]/40 transition">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        <p className="font-semibold text-gray-900">{report.postTitle || 'N/A'}</p>
-                        <p className="text-xs text-gray-500 line-clamp-2">{report.reason || 'Không có lý do'}</p>
-                        <span className="text-xs text-gray-400 mt-1">ID: {report.reportId || 'N/A'}</span>
-                      </div>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {currentPage * pageSize + index + 1}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
+                      <span className={`inline-flex items-center text-sm px-3 py-1.5 rounded font-semibold ${
+                        report.targetType === 'POST' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {report.targetType === 'POST' ? 'Bài viết' : 'Bình luận'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
                         <p className="text-sm font-medium text-gray-900">{report.reporterName || 'N/A'}</p>
-                        <p className="text-xs text-gray-500">{report.reporterEmail || ''}</p>
-                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <TypeBadge type={report.type} />
+                      <TypeBadge reasons={report.reason} />
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={report.status} />
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {report.createdAt ? new Date(report.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                      {report.createdAt ? new Date(report.createdAt).toLocaleString('vi-VN') : 'N/A'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -185,7 +389,7 @@ const ForumReportManagement = () => {
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        {report.status === 'PENDING' && (
+                        {(report.status === 'PENDING' || report.status === 'INVESTIGATING') && (
                           <>
                             <button 
                               onClick={() => handleApprove(report.reportId)}
@@ -211,7 +415,44 @@ const ForumReportManagement = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div className="text-sm text-gray-600">
+              Trang {currentPage + 1} / {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                disabled={currentPage === 0}
+                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                disabled={currentPage >= totalPages - 1}
+                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Sau
+              </button>
       </div>
+          </div>
+        )}
+      </div>
+
+      {/* Report Detail Modal */}
+      <ReportDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedReport(null);
+        }}
+        report={selectedReport}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 };
@@ -236,8 +477,10 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 const StatusBadge = ({ status }) => {
   const statusMap = {
     'PENDING': { color: 'bg-amber-100 text-amber-700', label: 'Chờ duyệt' },
-    'APPROVED': { color: 'bg-green-100 text-green-700', label: 'Đã duyệt' },
-    'REJECTED': { color: 'bg-red-100 text-red-700', label: 'Đã từ chối' }
+    'INVESTIGATING': { color: 'bg-blue-100 text-blue-700', label: 'Đang điều tra' },
+    'RESOLVED': { color: 'bg-green-100 text-green-700', label: 'Đã xử lý' },
+    'DISMISSED': { color: 'bg-red-100 text-red-700', label: 'Bỏ qua' },
+    'CLOSED': { color: 'bg-gray-100 text-gray-700', label: 'Đóng' }
   };
   
   const map = statusMap[status] || { color: 'bg-gray-100 text-gray-500', label: status || 'N/A' };
@@ -249,16 +492,38 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const TypeBadge = ({ type }) => {
+const TypeBadge = ({ reasons }) => {
+  if (!reasons) {
+    return (
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
+        N/A
+      </span>
+    );
+  }
+
+  // Reasons is a string (joined from Set), try to find the first matching type
+  const reasonsUpper = reasons.toUpperCase();
   const typeMap = {
     'SPAM': { color: 'bg-purple-100 text-purple-700', label: 'Spam' },
     'INAPPROPRIATE': { color: 'bg-orange-100 text-orange-700', label: 'Không phù hợp' },
     'HARASSMENT': { color: 'bg-red-100 text-red-700', label: 'Quấy rối' },
     'COPYRIGHT': { color: 'bg-blue-100 text-blue-700', label: 'Bản quyền' },
+    'VIOLENCE': { color: 'bg-red-100 text-red-700', label: 'Bạo lực' },
+    'HATE_SPEECH': { color: 'bg-red-100 text-red-700', label: 'Ngôn từ thù địch' },
+    'FALSE_INFO': { color: 'bg-yellow-100 text-yellow-700', label: 'Thông tin sai' },
     'OTHER': { color: 'bg-gray-100 text-gray-700', label: 'Khác' }
   };
   
-  const map = typeMap[type] || { color: 'bg-gray-100 text-gray-500', label: type || 'N/A' };
+  // Find first matching type
+  let matchedType = 'OTHER';
+  for (const [type] of Object.entries(typeMap)) {
+    if (reasonsUpper.includes(type)) {
+      matchedType = type;
+      break;
+    }
+  }
+  
+  const map = typeMap[matchedType] || { color: 'bg-gray-100 text-gray-500', label: 'Khác' };
   
   return (
     <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>

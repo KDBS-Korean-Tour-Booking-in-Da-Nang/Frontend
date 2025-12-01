@@ -596,7 +596,7 @@ const BookingWizardContent = () => {
                 className={styles['btn-primary']}
                 onClick={() => navigate(`/tour/detail?id=${tourId}`)}
               >
-                {t('bookingWizard.navigation.backToTour') || 'Quay lại trang tour'}
+                {t('bookingWizard.navigation.backtoTour')}
               </button>
             </div>
           </div>

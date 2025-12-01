@@ -1177,7 +1177,8 @@
     "navigation": {
       "back": "Quay lại",
       "next": "Tiếp tục",
-      "confirm": "Xác nhận đặt tour"
+      "confirm": "Xác nhận đặt tour",
+      "backtoTour": "Quay lại trang tour"
     },
     "auth": {
       "checking": "Đang kiểm tra xác thực...",
@@ -1236,7 +1237,9 @@
     "statusBadge": {
       "ACTIVE": "HOẠT ĐỘNG",
       "INACTIVE": "TẠM DỪNG",
+      "PUBLIC": "ĐÃ DUYỆT",
       "NOT_APPROVED": "CHỜ DUYỆT",
+      "DISABLED": "ĐÃ VÔ HIỆU",
       "DRAFT": "BẢN NHÁP",
       "UNKNOWN": "KHÔNG XÁC ĐỊNH"
     },

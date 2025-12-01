@@ -962,18 +962,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         {renderImages()}
       </div>
 
-      <div className={styles['post-stats']}>
-        <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{likeCount} {t('forum.post.like')}</span>
-        </div>
-        <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{dislikeCount} {t('forum.post.dislike')}</span>
-        </div>
-        <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{commentCount} {t('forum.post.comments')}</span>
-        </div>
-      </div>
-
       <div className={styles['post-actions']}>
         {user ? (
           <>
@@ -982,14 +970,18 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               onClick={handleLike}
             >
               <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>{t('forum.post.like')}</span>
+              <span className={styles['action-text']}>
+                {t('forum.post.like')} ({likeCount})
+              </span>
             </button>
             <button 
               className={`${styles['action-btn']} ${styles['dislike-btn']} ${isDisliked ? styles['active'] : ''}`}
               onClick={handleDislike}
             >
               <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+              <span className={styles['action-text']}>
+                {t('forum.post.dislike')} ({dislikeCount})
+              </span>
             </button>
             
             <button 
@@ -997,7 +989,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               onClick={() => setShowCommentInput(!showCommentInput)}
             >
               <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>{t('forum.post.comment')}</span>
+              <span className={styles['action-text']}>
+                {t('forum.post.comment')} ({commentCount})
+              </span>
             </button>
           </>
         ) : (
@@ -1008,7 +1002,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               onClick={() => setShowLoginRequiredModal(true)}
             >
               <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>{t('forum.post.like')}</span>
+              <span className={styles['action-text']}>
+                {t('forum.post.like')} ({likeCount})
+              </span>
             </div>
             <div 
               className={`${styles['action-btn-disabled']} ${styles['dislike-btn-disabled']}`} 
@@ -1016,7 +1012,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               onClick={() => setShowLoginRequiredModal(true)}
             >
               <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+              <span className={styles['action-text']}>
+                {t('forum.post.dislike')} ({dislikeCount})
+              </span>
             </div>
             <div 
               className={`${styles['action-btn-disabled']} ${styles['comment-btn-disabled']}`} 
@@ -1024,7 +1022,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               onClick={() => setShowLoginRequiredModal(true)}
             >
               <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>{t('forum.post.comment')}</span>
+              <span className={styles['action-text']}>
+                {t('forum.post.comment')} ({commentCount})
+              </span>
             </div>
           </div>
         )}

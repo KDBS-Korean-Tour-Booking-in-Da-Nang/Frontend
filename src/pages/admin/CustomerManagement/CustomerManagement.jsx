@@ -1,6 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import BanReasonModal from './BanReasonModal';
+import CustomerDetailModal from './CustomerDetailModal';
+import Pagination from '../Pagination';
 import {
   UsersIcon,
   UserCircleIcon,
@@ -12,7 +16,6 @@ import {
   EnvelopeIcon,
   MapPinIcon,
   EyeIcon,
-  PencilIcon,
   NoSymbolIcon,
   ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
@@ -20,12 +23,17 @@ import {
 const CustomerManagement = () => {
   const { getToken } = useAuth();
   const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userBookings, setUserBookings] = useState({}); // Map email -> booking data
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [selectedCustomerForBan, setSelectedCustomerForBan] = useState(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedCustomerForDetail, setSelectedCustomerForDetail] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   // Fetch customers (users with role USER) from API
   const fetchCustomers = async () => {
@@ -46,6 +54,7 @@ const CustomerManagement = () => {
       
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -86,7 +95,14 @@ const CustomerManagement = () => {
           lifetimeValue: bookingData.lifetimeValue,
           lastBooking: bookingData.lastBooking,
           avatar: getAvatarUrl(user.avatar),
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
+          // Additional fields for detail modal
+          dob: user.dob,
+          cccd: user.cccd,
+          gender: user.gender,
+          balance: user.balance,
+          banReason: user.banReason,
+          role: user.role
         };
       });
 
@@ -118,6 +134,10 @@ const CustomerManagement = () => {
         emailBatch.map(async (email) => {
           try {
             const response = await fetch(`${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`, { headers });
+            if (response.status === 401) {
+              await checkAndHandle401(response);
+              return;
+            }
             if (response.ok) {
               const data = await response.json();
               const summaries = data.result || data || [];
@@ -160,6 +180,7 @@ const CustomerManagement = () => {
           totalBookings: bookingData.totalBookings,
           lifetimeValue: bookingData.lifetimeValue,
           lastBooking: bookingData.lastBooking
+          // Keep existing additional fields (dob, cccd, gender, balance, banReason, role)
         };
       }));
     } catch (err) {
@@ -178,11 +199,24 @@ const CustomerManagement = () => {
         customer.name.toLowerCase().includes(search.toLowerCase()) ||
         customer.email.toLowerCase().includes(search.toLowerCase()) ||
         customer.id.toLowerCase().includes(search.toLowerCase());
-      const matchesTier = tierFilter === 'ALL' || customer.tier === tierFilter;
       const matchesStatus = statusFilter === 'ALL' || customer.status === statusFilter;
-      return matchesSearch && matchesTier && matchesStatus;
+      return matchesSearch && matchesStatus;
     });
-  }, [customers, search, tierFilter, statusFilter]);
+  }, [customers, search, statusFilter]);
+
+  // Pagination
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCustomers.slice(startIndex, endIndex);
+  }, [filteredCustomers, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [search, statusFilter]);
 
   const stats = useMemo(() => {
     const total = customers.length;
@@ -195,7 +229,29 @@ const CustomerManagement = () => {
   const formatCurrency = (value) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
 
-  const handleBanToggle = async (customer) => {
+  const handleBanClick = (customer) => {
+    // If unbanning, do it directly without modal
+    if (customer.status === 'inactive') {
+      handleBanToggle(customer, false, null);
+      return;
+    }
+    
+    // If banning, open modal to select reason
+    setSelectedCustomerForBan(customer);
+    setBanModalOpen(true);
+  };
+
+  const handleBanConfirm = async (banReason) => {
+    if (!selectedCustomerForBan) return;
+    await handleBanToggle(selectedCustomerForBan, true, banReason);
+  };
+
+  const handleViewDetail = (customer) => {
+    setSelectedCustomerForDetail(customer);
+    setDetailModalOpen(true);
+  };
+
+  const handleBanToggle = async (customer, ban, banReason = null) => {
     try {
       const token = getToken();
       if (!token) {
@@ -203,27 +259,39 @@ const CustomerManagement = () => {
         return;
       }
 
-      const isCurrentlyBanned = customer.status === 'inactive';
-      const newBanStatus = !isCurrentlyBanned;
-
       const headers = createAuthHeaders(token);
 
-      const response = await fetch(`${BaseURL}/api/staff/ban-user/${customer.userId}?ban=${newBanStatus}`, {
+      // Prepare request body according to backend logic:
+      // - If ban = true: send banReason (backend will use "No reason provided" if null)
+      // - If ban = false: send banReason = null (backend will clear it)
+      const requestBody = {
+        ban: ban,
+        banReason: ban ? (banReason || null) : null // When unban, always send null
+      };
+
+      const response = await fetch(`${BaseURL}/api/staff/ban-user/${customer.userId}`, {
         method: 'PUT',
-        headers
+        headers,
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          await checkAndHandle401(response);
           return;
         }
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
       }
 
       // Refresh customer list
       await fetchCustomers();
+      
+      // Close modal if open
+      if (banModalOpen) {
+        setBanModalOpen(false);
+        setSelectedCustomerForBan(null);
+      }
     } catch (err) {
       console.error('Error toggling customer status:', err);
       alert(err.message || 'Không thể cập nhật trạng thái khách hàng. Vui lòng thử lại.');
@@ -300,17 +368,6 @@ const CustomerManagement = () => {
           </div>
           <div className="flex flex-wrap gap-3">
             <select
-              value={tierFilter}
-              onChange={(e) => setTierFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="ALL">Tất cả tier</option>
-              <option value="VIP">VIP</option>
-              <option value="Gold">Gold</option>
-              <option value="Silver">Silver</option>
-              <option value="Bronze">Bronze</option>
-            </select>
-            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -341,7 +398,7 @@ const CustomerManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((customer) => (
+                paginatedCustomers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-[#e9f2ff]/40 transition">
                   <td className="px-6 py-4">
                     <div className="flex items-start gap-3">
@@ -388,14 +445,15 @@ const CustomerManagement = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" title="Xem chi tiết">
+                      <button 
+                        onClick={() => handleViewDetail(customer)}
+                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
+                        title="Xem chi tiết"
+                      >
                         <EyeIcon className="h-4 w-4" />
                       </button>
-                      <button className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-amber-600 hover:border-amber-200 transition" title="Chỉnh sửa (chưa hỗ trợ)">
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
                       <button 
-                        onClick={() => handleBanToggle(customer)}
+                        onClick={() => handleBanClick(customer)}
                         className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
                         title={customer.status === 'active' ? 'Ban user' : 'Unban user'}
                       >
@@ -413,7 +471,38 @@ const CustomerManagement = () => {
           </table>
         </div>
 
+        {/* Pagination */}
+        {filteredCustomers.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredCustomers.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
+
+      {/* Ban Reason Modal */}
+      <BanReasonModal
+        isOpen={banModalOpen}
+        onClose={() => {
+          setBanModalOpen(false);
+          setSelectedCustomerForBan(null);
+        }}
+        customer={selectedCustomerForBan}
+        onConfirm={handleBanConfirm}
+      />
+
+      {/* Customer Detail Modal */}
+      <CustomerDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedCustomerForDetail(null);
+        }}
+        customer={selectedCustomerForDetail}
+      />
     </div>
   );
 };

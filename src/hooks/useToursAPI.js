@@ -58,7 +58,8 @@ export const useToursAPI = () => {
       // Get token for authentication
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       
-      const response = await fetch(API_ENDPOINTS.TOURS, {
+      // Use /public endpoint to get only PUBLIC tours
+      const response = await fetch(API_ENDPOINTS.TOURS_PUBLIC, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` })
@@ -76,6 +77,7 @@ export const useToursAPI = () => {
       const data = await response.json();
       
       // Transform backend data to match frontend format
+      // Backend already returns only PUBLIC tours, so no need to filter
       const transformedTours = data.map(transformTour);
       
       setTours(transformedTours);
@@ -183,10 +185,14 @@ export const useToursAPI = () => {
 
       const pageData = await response.json();
       const items = Array.isArray(pageData.content) ? pageData.content.map(transformTour) : [];
+      
+      // Filter only PUBLIC tours from search results
+      const publicItems = items.filter(tour => tour.tourStatus === 'PUBLIC');
+      
       return {
-        items,
+        items: publicItems,
         totalPages: pageData.totalPages ?? 0,
-        totalElements: pageData.totalElements ?? items.length,
+        totalElements: publicItems.length,
         pageNumber: pageData.number ?? page,
         pageSize: pageData.size ?? size
       };

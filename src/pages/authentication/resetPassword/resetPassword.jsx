@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
+import { getApiPath } from '../../../config/api';
 import styles from './resetPassword.module.css';
 
 const ResetPassword = () => {
@@ -135,7 +136,7 @@ const ResetPassword = () => {
       // Password is already cleaned (no spaces) from handleChange, but trim for safety
       const trimmedPassword = formData.newPassword.trim();
       // Use the verified OTP from the previous step
-      const response = await fetch('/api/auth/forgot-password/reset', {
+      const response = await fetch(getApiPath('/api/auth/forgot-password/reset'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

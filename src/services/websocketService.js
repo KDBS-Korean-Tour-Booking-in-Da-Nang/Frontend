@@ -24,11 +24,22 @@ class WebSocketService {
     return new Promise((resolve, reject) => {
       try {
         const getWebSocketUrl = () => {
-          if (import.meta.env.PROD) {
-            return `${window.location.origin}/ws`;
-          } else {
-            return 'http://localhost:8080/ws';
+          // Nếu có VITE_WS_URL được set, dùng nó (có thể là ws://, wss://, http://, hoặc https://)
+          if (import.meta.env.VITE_WS_URL) {
+            return import.meta.env.VITE_WS_URL;
           }
+          
+          // Production: dùng current domain, tự động detect protocol
+          if (import.meta.env.PROD) {
+            // Đảm bảo dùng wss:// nếu frontend chạy trên HTTPS
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            return `${protocol}//${window.location.host}/ws`;
+          } 
+          
+          // Development: fallback về localhost
+          // Có thể dùng ws:// trực tiếp hoặc http:// để qua Vite proxy
+          // Logic convert ở createNativeWebSocket() sẽ xử lý cả hai
+          return 'http://localhost:8080/ws';
         };
 
         const wsUrl = getWebSocketUrl();
@@ -36,8 +47,21 @@ class WebSocketService {
 
         // Prefer native WebSocket to avoid CORS on SockJS XHR /info
         const createNativeWebSocket = () => {
-          const wsProtocol = wsUrl.startsWith('https') ? 'wss' : 'ws';
-          const nativeUrl = wsUrl.replace(/^https?:\/\//, `${wsProtocol}://`).replace('/ws', '/ws/websocket');
+          let nativeUrl;
+          
+          // Normalize URL: convert http/https to ws/wss, or use ws/wss directly
+          if (wsUrl.startsWith('http://')) {
+            nativeUrl = wsUrl.replace(/^http:\/\//, 'ws://').replace('/ws', '/ws/websocket');
+          } else if (wsUrl.startsWith('https://')) {
+            nativeUrl = wsUrl.replace(/^https:\/\//, 'wss://').replace('/ws', '/ws/websocket');
+          } else if (wsUrl.startsWith('ws://') || wsUrl.startsWith('wss://')) {
+            // Already ws:// or wss://, just replace /ws with /ws/websocket
+            nativeUrl = wsUrl.replace('/ws', '/ws/websocket');
+          } else {
+            // Fallback: assume ws protocol
+            nativeUrl = `ws://${wsUrl.replace(/^\/+/, '')}`.replace('/ws', '/ws/websocket');
+          }
+          
           return new WebSocket(nativeUrl);
         };
 

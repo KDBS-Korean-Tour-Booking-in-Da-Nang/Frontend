@@ -5,14 +5,21 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 class ArticleService {
   /**
    * Get authentication headers with Bearer token
+   * Checks role-specific keys (token_ADMIN, token_STAFF) first, then legacy keys
    * @returns {Object} - Headers object with Authorization
    */
   getAuthHeaders() {
-    const token =
-      localStorage.getItem('token') ||
-      sessionStorage.getItem('token') ||
-      localStorage.getItem('accessToken') ||
-      sessionStorage.getItem('accessToken');
+    // Check for role-specific storage first (ADMIN, STAFF), then fallback to legacy keys
+    const sessionToken = sessionStorage.getItem('token_ADMIN') || 
+                         sessionStorage.getItem('token_STAFF') || 
+                         sessionStorage.getItem('token');
+    const localToken = localStorage.getItem('token_ADMIN') || 
+                      localStorage.getItem('token_STAFF') || 
+                      localStorage.getItem('token') ||
+                      localStorage.getItem('accessToken');
+    
+    const token = sessionToken || localToken;
+    
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -73,11 +80,35 @@ class ArticleService {
 
   async getArticleById(articleId) {
     try {
+      // Get user email from storage (check role-specific keys first)
+      let userEmail = '';
+      try {
+        const sessionUser = sessionStorage.getItem('user_ADMIN') || 
+                           sessionStorage.getItem('user_STAFF') || 
+                           sessionStorage.getItem('user');
+        const localUser = localStorage.getItem('user_ADMIN') || 
+                         localStorage.getItem('user_STAFF') || 
+                         localStorage.getItem('user');
+        const savedUser = sessionUser || localUser;
+        if (savedUser) {
+          const user = JSON.parse(savedUser);
+          userEmail = user?.email || '';
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (userEmail) {
+        headers['User-Email'] = userEmail;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/article/${articleId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {

@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import AssignTaskModal from './AssignTaskModal';
+import AddStaffModal from './AddStaffModal';
+import Pagination from '../Pagination';
 import { 
   UserGroupIcon,
   UserCircleIcon,
@@ -43,8 +47,9 @@ const StaffManagement = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedStaffForTask, setSelectedStaffForTask] = useState(null);
-  const [selectedTasks, setSelectedTasks] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   // Fetch staff list from API
   const fetchStaffList = async () => {
@@ -65,6 +70,7 @@ const StaffManagement = () => {
       
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -198,6 +204,7 @@ const StaffManagement = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -214,20 +221,9 @@ const StaffManagement = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmitStaff = async (formData) => {
     setError('');
     setFormErrors({});
-    
-    if (!staffForm.username.trim()) {
-      setFormErrors(prev => ({ ...prev, username: 'Vui lòng nhập username' }));
-      return;
-    }
-
-    if (!editingStaff && !staffForm.password.trim()) {
-      setFormErrors(prev => ({ ...prev, password: 'Vui lòng nhập password' }));
-      return;
-    }
 
     try {
       setSubmitting(true);
@@ -240,9 +236,9 @@ const StaffManagement = () => {
 
       // Prepare request body according to StaffCreateRequest
       const requestBody = {
-        username: staffForm.username.trim(),
-        password: staffForm.password.trim(),
-        ...(staffForm.staffTask && { staffTask: staffForm.staffTask })
+        username: formData.username.trim(),
+        password: formData.password.trim(),
+        ...(formData.staffTask && { staffTask: formData.staffTask })
       };
 
       const headers = createAuthHeaders(token);
@@ -255,6 +251,7 @@ const StaffManagement = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
+          await checkAndHandle401(response);
           setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
@@ -272,24 +269,61 @@ const StaffManagement = () => {
       showSuccess('Tạo tài khoản nhân viên thành công!');
     } catch (err) {
       setError(err.message || 'Không thể tạo tài khoản nhân viên. Vui lòng thử lại.');
+      throw err; // Re-throw to let modal handle it
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleAssignTask = (staff) => {
-    // Note: Backend doesn't have endpoint to update staffTask after creation
-    // StaffTask can only be set during staff creation
-    setError('Nhiệm vụ chỉ có thể được gán khi tạo tài khoản nhân viên. Backend chưa có endpoint cập nhật nhiệm vụ sau khi tạo.');
+    setSelectedStaffForTask(staff);
+    setIsTaskModalOpen(true);
   };
 
-  const handleTaskSubmit = (e) => {
-    e.preventDefault();
-    // This functionality is not available as backend doesn't support updating staffTask
-    setError('Chức năng này chưa được hỗ trợ. Backend chưa có endpoint cập nhật nhiệm vụ nhân viên.');
-    setIsTaskModalOpen(false);
-    setSelectedStaffForTask(null);
-    setSelectedTasks([]);
+  const handleTaskConfirm = async (selectedTask) => {
+    if (!selectedStaffForTask) return;
+
+    try {
+      const token = getToken();
+      if (!token) {
+        setError('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      // Prepare request body according to StaffTaskUpdateRequest
+      // Backend expects: { username: string, staffTask: StaffTask | null }
+      const requestBody = {
+        username: selectedStaffForTask.username,
+        staffTask: selectedTask || null // null means no task assigned
+      };
+
+      const response = await fetch(`${BaseURL}/api/staff/staffTask`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          return;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Không thể cập nhật nhiệm vụ');
+      }
+
+      // Refresh staff list
+      await fetchStaffList();
+      setError(''); // Clear error on success
+      showSuccess('Cập nhật nhiệm vụ thành công!');
+    } catch (err) {
+      console.error('Error updating staff task:', err);
+      setError(err.message || 'Không thể cập nhật nhiệm vụ nhân viên. Vui lòng thử lại.');
+      throw err; // Re-throw to let modal handle it
+    }
   };
 
   const taskOptions = [
@@ -299,7 +333,8 @@ const StaffManagement = () => {
   ];
 
   // Filter staff list based on search and filters
-  const filteredStaffList = staffList.filter(staff => {
+  const filteredStaffList = useMemo(() => {
+    return staffList.filter(staff => {
     // Search filter
     const matchesSearch = !searchTerm || 
       staff.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -314,6 +349,21 @@ const StaffManagement = () => {
     
     return matchesSearch && matchesRole && matchesStatus;
   });
+  }, [staffList, searchTerm, roleFilter, statusFilter]);
+
+  // Pagination
+  const paginatedStaffList = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredStaffList.slice(startIndex, endIndex);
+  }, [filteredStaffList, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredStaffList.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm, roleFilter, statusFilter]);
 
   const stats = {
     total: staffList.length,
@@ -443,7 +493,7 @@ const StaffManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filteredStaffList.map((staff) => (
+                paginatedStaffList.map((staff) => (
                   <tr key={staff.userId} className="hover:bg-[#e9f2ff]/40 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -534,7 +584,7 @@ const StaffManagement = () => {
                         <button 
                           onClick={() => handleAssignTask(staff)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition" 
-                          title="Giao nhiệm vụ (chỉ có thể gán khi tạo)"
+                          title="Giao nhiệm vụ"
                         >
                           <ClipboardDocumentListIcon className="h-4 w-4" />
                         </button>
@@ -576,190 +626,43 @@ const StaffManagement = () => {
           </table>
         </div>
 
+        {/* Pagination */}
+        {filteredStaffList.length >= 10 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredStaffList.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
 
       {/* Staff Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsModalOpen(false)}></div>
-            
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Thêm nhân viên mới
-                      </h3>
-                      
-                      {error && (
-                        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                          {error}
-                        </div>
-                      )}
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Username <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={staffForm.username}
-                            onChange={(e) => {
-                              setStaffForm({...staffForm, username: e.target.value});
-                              setFormErrors(prev => ({ ...prev, username: '' }));
-                            }}
-                            className={`mt-1 block w-full border ${formErrors.username ? 'border-red-300' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]`}
-                            placeholder="Nhập username"
-                            required
-                          />
-                          {formErrors.username && (
-                            <p className="mt-1 text-xs text-red-600">{formErrors.username}</p>
-                          )}
-                          <p className="mt-1 text-xs text-gray-500">Username phải là duy nhất</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Password <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="password"
-                            value={staffForm.password}
-                            onChange={(e) => {
-                              setStaffForm({...staffForm, password: e.target.value});
-                              setFormErrors(prev => ({ ...prev, password: '' }));
-                            }}
-                            className={`mt-1 block w-full border ${formErrors.password ? 'border-red-300' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]`}
-                            placeholder="Nhập password"
-                            required
-                          />
-                          {formErrors.password && (
-                            <p className="mt-1 text-xs text-red-600">{formErrors.password}</p>
-                          )}
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Nhiệm vụ (tùy chọn)
-                          </label>
-                          <select
-                            value={staffForm.staffTask}
-                            onChange={(e) => setStaffForm({...staffForm, staffTask: e.target.value})}
-                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
-                          >
-                            <option value="">Không gán nhiệm vụ</option>
-                            <option value="FORUM_REPORT">Forum Report</option>
-                            <option value="COMPANY_REQUEST_AND_APPROVE_ARTICLE">Company Request + Approve Article</option>
-                            <option value="APPROVE_TOUR_BOOKING">Approve Tour Booking</option>
-                          </select>
-                          <p className="mt-1 text-xs text-gray-500">Nhiệm vụ có thể được gán sau khi tạo tài khoản</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    {submitting ? 'Đang tạo...' : 'Tạo nhân viên'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddStaffModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setStaffForm({ username: '', password: '', staffTask: '' });
+          setError('');
+          setFormErrors({});
+        }}
+        onSubmit={handleSubmitStaff}
+        submitting={submitting}
+        error={error}
+        formErrors={formErrors}
+      />
 
       {/* Task Assignment Modal */}
-      {isTaskModalOpen && selectedStaffForTask && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsTaskModalOpen(false)}></div>
-            
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleTaskSubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                      <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Giao nhiệm vụ cho {selectedStaffForTask.name}
-                      </h3>
-                      
-                      <div className="space-y-3">
-                        {taskOptions.map((task) => {
-                          const Icon = task.icon;
-                          const isSelected = selectedTasks.includes(task.id);
-                          return (
-                            <label
-                              key={task.id}
-                              className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition ${
-                                isSelected
-                                  ? 'border-[#4c9dff] bg-[#e9f2ff]'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedTasks([...selectedTasks, task.id]);
-                                  } else {
-                                    setSelectedTasks(selectedTasks.filter(t => t !== task.id));
-                                  }
-                                }}
-                                className="rounded border-gray-300 text-[#4c9dff] focus:ring-[#4c9dff]"
-                              />
-                              <Icon className={`h-5 w-5 ${isSelected ? 'text-[#4c9dff]' : 'text-gray-400'}`} />
-                              <span className={`text-sm font-medium ${isSelected ? 'text-[#2563eb]' : 'text-gray-700'}`}>
-                                {task.label}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Lưu
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
+      <AssignTaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => {
                       setIsTaskModalOpen(false);
                       setSelectedStaffForTask(null);
-                      setSelectedTasks([]);
-                    }}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+        }}
+        staff={selectedStaffForTask}
+        onConfirm={handleTaskConfirm}
+      />
     </div>
   );
 };

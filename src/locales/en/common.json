@@ -1163,7 +1163,7 @@
 			"step2": { "title": "Tour Details", "description": "Select date and group information" },
 			"step3": { "title": "Confirm", "description": "Review and confirm booking" }
 		},
-		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking" },
+		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking", "backtoTour": "Back to tour" },
 		"auth": {
 			"checking": "Checking authentication...",
 			"loginRequiredTitle": "Login Required",
@@ -1221,7 +1221,9 @@
 		"statusBadge": {
 			"ACTIVE": "ACTIVE",
 			"INACTIVE": "INACTIVE",
+			"PUBLIC": "APPROVED",
 			"NOT_APPROVED": "PENDING",
+			"DISABLED": "DISABLED",
 			"DRAFT": "DRAFT",
 			"UNKNOWN": "UNKNOWN"
 		},

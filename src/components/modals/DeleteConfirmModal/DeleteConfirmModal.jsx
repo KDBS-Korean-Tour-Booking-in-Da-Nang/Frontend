@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
+import { AlertTriangle, X } from 'lucide-react';
 import styles from './DeleteConfirmModal.module.css';
 
 /**
@@ -94,22 +95,24 @@ const DeleteConfirmModal = ({
     <div className={`${styles['modal-overlay']} ${styles['kdbs-modal']}`} onClick={(e) => { if (e.target === e.currentTarget) handleBackdrop(); }} onKeyDown={handleKey} tabIndex={-1}>
       <div className={styles['delete-confirm-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
         <div className={styles['modal-panel']}>
-          <div className={styles['modal-header']}>
-            <div className={styles['warning-icon']} aria-hidden>{icon}</div>
-            <h2 id="confirm-title">{title || t('common.deleteConfirm.title')}</h2>
-            <button
-              type="button"
-              className={styles['modal-close']}
-              aria-label="Đóng"
-              onClick={onClose}
-              disabled={submitting}
-            >
-              ×
-            </button>
-          </div>
-
+          <button
+            type="button"
+            className={styles['modal-close']}
+            aria-label="Đóng"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          
           <div className={styles['modal-content']}>
-            <div className={styles['message-card']}>
+            <div className={styles['icon-wrapper']}>
+              <AlertTriangle size={36} strokeWidth={1.5} />
+            </div>
+            <h2 id="confirm-title" className={styles['modal-title']}>
+              {title || t('common.deleteConfirm.title')}
+            </h2>
+            <div className={styles['message-wrapper']}>
               <p className={styles['confirm-message']}>
                 {message || t('common.deleteConfirm.message', { item: itemName || t('common.item') })}
               </p>
