@@ -11,12 +11,13 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 const News = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' | 'oldest'
 
   // Prevent background scroll when mobile categories panel is open
   useEffect(() => {
@@ -28,15 +29,40 @@ const News = () => {
     };
   }, [showCategories]);
 
+  const sortArticlesByOrder = (list, order) => {
+    const sorted = [...(list || [])];
+    sorted.sort((a, b) => {
+      const aTime = new Date(a.articleCreatedDate).getTime() || 0;
+      const bTime = new Date(b.articleCreatedDate).getTime() || 0;
+      return order === 'oldest' ? aTime - bTime : bTime - aTime;
+    });
+    return sorted;
+  };
+
   useEffect(() => {
     loadApprovedArticles();
-  }, []);
+  }, [sortOrder]);
+
+  const getLocalizedArticleField = (article, baseField) => {
+    if (!article) return '';
+    const lang = (i18n.language || 'vi').toLowerCase();
+
+    const vi = article[baseField];
+    const en = article[`${baseField}EN`] ?? article[`${baseField}En`];
+    const kr = article[`${baseField}KR`] ?? article[`${baseField}Ko`] ?? article[`${baseField}KO`];
+
+    if (lang.startsWith('en') && en) return en;
+    if ((lang.startsWith('ko') || lang.startsWith('kr')) && kr) return kr;
+
+    return vi || en || kr || '';
+  };
 
   const loadApprovedArticles = async () => {
     setLoading(true);
     try {
       const data = await articleService.getArticlesByStatus('APPROVED');
-      setArticles(data || []);
+      const sorted = sortArticlesByOrder(data || [], sortOrder);
+      setArticles(sorted);
     } catch (error) {
       console.error('Error loading approved articles:', error);
       // Fallback to mock data if API fails
@@ -123,7 +149,7 @@ const News = () => {
             </div>
           </div>
 
-          {/* Mobile/Tablet Categories Toggle */}
+          {/* Mobile/Tablet Filter & Sort Toggle */}
           <div className="w-full lg:hidden -mt-4 mb-6 px-2 sm:px-4 flex justify-end">
             <button
               onClick={() => setShowCategories(true)}
@@ -131,7 +157,7 @@ const News = () => {
               aria-haspopup="dialog"
               aria-expanded={showCategories ? 'true' : 'false'}
             >
-              {t('news.sidebar.title')}
+              {t('news.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
           </div>
@@ -149,9 +175,12 @@ const News = () => {
             ) : articles.length > 0 ? (
               <div className="space-y-6">
                 {articles.map((article, index) => {
-                  // Backend uses different field names
-                  const thumbnail = article.articleThumbnail || extractFirstImageUrl(article.articleContent || '');
-                  const summary = article.articleDescription || getArticleSummary(article.articleContent || '', 150);
+                  const localizedContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
+                  const localizedDescription = getLocalizedArticleField(article, 'articleDescription') || article.articleDescription || '';
+                  const localizedTitle = getLocalizedArticleField(article, 'articleTitle') || article.articleTitle || '';
+
+                  const thumbnail = article.articleThumbnail || extractFirstImageUrl(localizedContent || '');
+                  const summary = localizedDescription || getArticleSummary(localizedContent || '', 150);
                   
                   return (
                     <div
@@ -173,7 +202,7 @@ const News = () => {
                           {thumbnail ? (
                             <img
                               src={thumbnail}
-                              alt={article.articleTitle}
+                              alt={localizedTitle}
                               className={`${styles.articleImage} w-full h-full sm:h-full object-cover`}
                             />
                           ) : (
@@ -199,7 +228,7 @@ const News = () => {
                             </div>
                             
                             <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2 sm:mb-3 line-clamp-2 leading-tight break-words">
-                              {article.articleTitle}
+                              {localizedTitle}
                             </h3>
                             
                             <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 leading-relaxed break-words">
@@ -265,143 +294,71 @@ const News = () => {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Filter & Sort */}
             <div className="hidden lg:block lg:col-span-1 lg:pl-0 justify-self-end">
             <div className={`${styles.card} p-8 lg:sticky lg:top-24 w-[320px] space-y-6`}>
-              <h3 className="text-lg font-semibold text-gray-900">{t('news.sidebar.title')}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('news.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
+              </h3>
               
               <div className="space-y-5">
-                {/* Tour Categories */}
                 <div className={styles.sidebarBlock}>
-                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.domestic.title')}</h4>
-                  <ul className={styles.sidebarList}>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.north')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.central')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.south')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.teambuilding')}</a></li>
-                  </ul>
-                </div>
-
-                <div className={styles.sidebarBlock}>
-                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.international.title')}</h4>
-                  <ul className={styles.sidebarList}>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.japan')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.singapore')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.thailand')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.taiwan')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.korea')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.china')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.laos')}</a></li>
-                  </ul>
-                </div>
-
-                <div className={styles.sidebarBlock}>
-                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.dayTours.title')}</h4>
-                  <ul className={styles.sidebarList}>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hue')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.baNa')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hoiAn')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.mySon')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.sonTra')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangCompany')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.chamIsland')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangExplore')}</a></li>
-                  </ul>
-                </div>
-
-                <div className={styles.sidebarBlock}>
-                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.daNangTours.title')}</h4>
-                  <ul className={styles.sidebarList}>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.1day')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.2days')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.3days')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.4days')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.5days')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.6days')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.7days')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.8days')}</a></li>
-                  </ul>
-                </div>
-
-                <div className={styles.sidebarBlock}>
-                  <h4 className={styles.sidebarHeading}>{t('news.sidebar.events.title')}</h4>
-                  <ul className={styles.sidebarList}>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.tet')}</a></li>
-                    <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.festival')}</a></li>
-                  </ul>
+                  <h4 className={styles.sidebarHeading}>
+                    {t('news.sidebar.sortBy', { defaultValue: 'Sort by' })}
+                  </h4>
+                  <div>
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      className="w-full mt-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60"
+                    >
+                      <option value="newest">
+                        {t('news.sidebar.sortNewest', { defaultValue: 'Newest first' })}
+                      </option>
+                      <option value="oldest">
+                        {t('news.sidebar.sortOldest', { defaultValue: 'Oldest first' })}
+                      </option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           </div>
 
-          {/* Mobile/Tablet Categories Panel */}
+          {/* Mobile/Tablet Filter & Sort Panel */}
           {showCategories && createPortal(
             <div className="lg:hidden fixed inset-0 z-[10000]" role="dialog" aria-modal="true">
               <div className="absolute inset-0 bg-black/40" onClick={() => setShowCategories(false)}></div>
               <div className="absolute left-0 right-0 top-20 mx-4 sm:mx-6 rounded-2xl overflow-hidden shadow-xl">
                 <div className={`${styles.mobileSheet} p-5`}>
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-base font-semibold text-gray-900">{t('news.sidebar.title')}</h3>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {t('news.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
+                    </h3>
                     <button onClick={() => setShowCategories(false)} className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                       <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                   </div>
                   <div className="space-y-4">
-                    {/* Tour Categories (reuse markup) */}
                     <div className={styles.sidebarBlock}>
-                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.domestic.title')}</h4>
-                      <ul className={styles.sidebarList}>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.north')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.central')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.south')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.domestic.teambuilding')}</a></li>
-                      </ul>
-                    </div>
-                    <div className={styles.sidebarBlock}>
-                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.international.title')}</h4>
-                      <ul className={styles.sidebarList}>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.japan')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.singapore')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.thailand')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.taiwan')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.korea')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.china')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.international.laos')}</a></li>
-                      </ul>
-                    </div>
-                    <div className={styles.sidebarBlock}>
-                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.dayTours.title')}</h4>
-                      <ul className={styles.sidebarList}>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hue')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.baNa')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.hoiAn')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.mySon')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.sonTra')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangCompany')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.chamIsland')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.dayTours.daNangExplore')}</a></li>
-                      </ul>
-                    </div>
-                    <div className={styles.sidebarBlock}>
-                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.daNangTours.title')}</h4>
-                      <ul className={styles.sidebarList}>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.1day')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.2days')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.3days')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.4days')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.5days')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.6days')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.7days')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.daNangTours.8days')}</a></li>
-                      </ul>
-                    </div>
-                    <div className={styles.sidebarBlock}>
-                      <h4 className={styles.sidebarHeading}>{t('news.sidebar.events.title')}</h4>
-                      <ul className={styles.sidebarList}>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.tet')}</a></li>
-                        <li><a href="#" className={styles.sidebarLink}>{t('news.sidebar.events.festival')}</a></li>
-                      </ul>
+                      <h4 className={styles.sidebarHeading}>
+                        {t('news.sidebar.sortBy', { defaultValue: 'Sort by' })}
+                      </h4>
+                      <div>
+                        <select
+                          value={sortOrder}
+                          onChange={(e) => setSortOrder(e.target.value)}
+                          className="w-full mt-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60"
+                        >
+                          <option value="newest">
+                            {t('news.sidebar.sortNewest', { defaultValue: 'Newest first' })}
+                          </option>
+                          <option value="oldest">
+                            {t('news.sidebar.sortOldest', { defaultValue: 'Oldest first' })}
+                          </option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>

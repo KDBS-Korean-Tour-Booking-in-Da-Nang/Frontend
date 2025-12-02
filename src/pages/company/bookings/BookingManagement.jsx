@@ -1,17 +1,18 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './BookingManagement.module.css';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
-import { getAllBookings, getBookingsByTourId, getBookingTotal } from '../../../services/bookingAPI';
+import { getAllBookings, getBookingsByTourId, getBookingTotal, companyConfirmTourCompletion } from '../../../services/bookingAPI';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   EyeIcon,
+  PencilSquareIcon,
   CheckCircleIcon,
   XCircleIcon
 } from '@heroicons/react/24/outline';
@@ -40,6 +41,9 @@ const BookingManagement = () => {
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [viewingBooking, setViewingBooking] = useState(null);
+  const [approvingBookingId, setApprovingBookingId] = useState(null);
 
   const statuses = [
     'PENDING_PAYMENT',
@@ -47,7 +51,10 @@ const BookingManagement = () => {
     'BOOKING_REJECTED',
     'WAITING_FOR_UPDATE',
     'BOOKING_FAILED',
-    'BOOKING_SUCCESS'
+    'BOOKING_SUCCESS',
+    'BOOKING_SUCCESS_PENDING',
+    'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED',
+    'BOOKING_UNDER_COMPLAINT'
   ];
 
   const isPendingStatus = (status) => {
@@ -55,14 +62,14 @@ const BookingManagement = () => {
     return status.toUpperCase().includes('PENDING');
   };
 
-  const handleViewBooking = (bookingItem) => {
+  const handleEditBooking = (bookingItem) => {
     if (!bookingItem) return;
 
     const bookingId = bookingItem.bookingId || bookingItem;
     if (!bookingId) return;
 
     if (isPendingStatus(bookingItem.bookingStatus)) {
-      showSuccessRef.current?.('Booking đang ở trạng thái pending, không thể truy cập.');
+      showSuccessRef.current?.(t('bookingManagement.actions.bookingPending'));
       return;
     }
 
@@ -73,6 +80,33 @@ const BookingManagement = () => {
     } else {
       navigate(`/company/bookings/detail?id=${bookingId}`);
     }
+  };
+
+  const handleViewBooking = (bookingItem) => {
+    if (!bookingItem) return;
+    setViewingBooking(bookingItem);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleApproveBooking = async (bookingItem) => {
+    if (!bookingItem?.bookingId || bookingItem.bookingStatus !== 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED') {
+      return;
+    }
+    try {
+      setApprovingBookingId(bookingItem.bookingId);
+      await companyConfirmTourCompletion(bookingItem.bookingId);
+      showSuccessRef.current?.(t('companyBookingWizard.success.bookingPending'));
+      await refreshBookings();
+    } catch (error) {
+      console.error('Error approving booking completion:', error);
+    } finally {
+      setApprovingBookingId(null);
+    }
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setViewingBooking(null);
   };
 
   useEffect(() => {
@@ -265,6 +299,14 @@ const BookingManagement = () => {
     }
   }, [companyId, selectedTourId, fetchAllBookings, fetchBookingsByTour]);
 
+  const refreshBookings = useCallback(async () => {
+    if (selectedTourId) {
+      await fetchBookingsByTour(selectedTourId);
+    } else {
+      await fetchAllBookings();
+    }
+  }, [selectedTourId, fetchAllBookings, fetchBookingsByTour]);
+
   // Load company tours first
   const fetchCompanyTours = useCallback(async () => {
     try {
@@ -381,8 +423,17 @@ const BookingManagement = () => {
     switch (status) {
       case 'BOOKING_SUCCESS':
         return '#10B981';
+      case 'BOOKING_SUCCESS_PENDING':
+        // Đã duyệt nhưng chờ tour diễn ra: teal
+        return '#14B8A6';
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+        return '#2563EB';
+      case 'BOOKING_UNDER_COMPLAINT':
+        // Đang khiếu nại: vàng tươi
+        return '#EAB308';
       case 'PENDING_PAYMENT':
-        return '#F59E0B';
+        // Thanh toán chờ: cam đậm
+        return '#F97316';
       case 'WAITING_FOR_APPROVED':
         return '#3B82F6';
       case 'WAITING_FOR_UPDATE':
@@ -395,8 +446,85 @@ const BookingManagement = () => {
     }
   };
 
-  const formatStatusDisplay = (status) => {
-    return status.replaceAll('_', ' ');
+  const formatStatusDisplay = (status = '') => {
+    if (!status) return '';
+    // Use translation keys from bookingManagement.status
+    const translationKey = `bookingManagement.status.${status}`;
+    const translated = t(translationKey);
+    // If translation exists (not the same as key), return it; otherwise format the status
+    return translated !== translationKey ? translated : status.replaceAll('_', ' ');
+  };
+
+  const getBookingTourId = (booking) => {
+    if (!booking) return null;
+    const candidates = [
+      booking?.tourId,
+      booking?.tourID,
+      booking?.tour?.tourId,
+      booking?.tour?.tourID,
+      booking?.tour?.id
+    ];
+
+    for (const candidate of candidates) {
+      if (candidate !== undefined && candidate !== null) {
+        return candidate.toString();
+      }
+    }
+    return null;
+  };
+
+  const findTourForBooking = (booking) => {
+    const bookingTourId = getBookingTourId(booking);
+    if (!bookingTourId) return null;
+    return (
+      tours.find((tour) => {
+        const tourCandidates = [tour?.id, tour?.tourId, tour?.tourID];
+        return tourCandidates.some(
+          (tourId) => tourId !== undefined && tourId !== null && tourId.toString() === bookingTourId
+        );
+      }) ?? null
+    );
+  };
+
+  const getTourDurationDays = (booking) => {
+    if (!booking) return null;
+    const tour = findTourForBooking(booking);
+
+    const durationCandidates = [
+      booking?.tourIntDuration,
+      booking?.tour_int_duration,
+      booking?.tourDurationInt,
+      booking?.tourDuration,
+      booking?.duration,
+      booking?.durationDays,
+      booking?.tour?.tourIntDuration,
+      booking?.tour?.tourDuration,
+      tour?.tourIntDuration,
+      tour?.tour_int_duration,
+      tour?.tourDurationInt,
+      tour?.tourDuration
+    ];
+
+    for (const duration of durationCandidates) {
+      const parsed = Number(duration);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    return null;
+  };
+
+  const calculateTourEndDate = (booking) => {
+    if (!booking?.departureDate) return null;
+    const departure = new Date(booking.departureDate);
+    if (Number.isNaN(departure.getTime())) return null;
+
+    const duration = getTourDurationDays(booking);
+    if (!duration) return null;
+
+    const endDate = new Date(departure);
+    endDate.setDate(endDate.getDate() + duration);
+    return endDate;
   };
 
   // status badge helper not needed; computed inline
@@ -412,23 +540,28 @@ const BookingManagement = () => {
     return getImageUrl(normalized);
   };
 
+  const modalDurationDays = viewingBooking ? getTourDurationDays(viewingBooking) : null;
+  const modalEndDate = viewingBooking ? calculateTourEndDate(viewingBooking) : null;
+
+  const canApproveFromList = (status) => status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
+
   return (
     <div className={styles['booking-management']}>
       {/* Header */}
       <div className={styles['management-header']}>
         <div className={styles['header-title']}>
-          <h1>Quản lý Tour Booking</h1>
+          <h1>{t('bookingManagement.header.title')}</h1>
         </div>
-        <p className={styles['header-subtitle']}>Quản lý tất cả các booking theo tour</p>
+        <p className={styles['header-subtitle']}>{t('bookingManagement.header.subtitle')}</p>
       </div>
 
         {/* Tour Cards Selector */}
         <div className={styles['tour-selector-container']}>
-        <h2 className={styles['tour-selector-title']}>Chọn tour để xem booking</h2>
+        <h2 className={styles['tour-selector-title']}>{t('bookingManagement.tourSelector.title')}</h2>
         {toursLoading ? (
-          <div className={styles['empty-state']}>Đang tải danh sách tour...</div>
+          <div className={styles['empty-state']}>{t('bookingManagement.tourSelector.loading')}</div>
         ) : tours.length === 0 ? (
-          <div className={styles['empty-state']}>Chưa có tour nào.</div>
+          <div className={styles['empty-state']}>{t('bookingManagement.tourSelector.empty')}</div>
         ) : (
           <>
             {/* Tour Cards - Single Row */}
@@ -459,7 +592,7 @@ const BookingManagement = () => {
                     {/* Fixed content height so cards align */}
                     <div className={styles['tour-card-content']}>
                       <div className={styles['tour-card-name']} title={tour.tourName || ''}>{tour.tourName}</div>
-                      <div className={styles['tour-card-id']}>Mã tour: {tour.id}</div>
+                      <div className={styles['tour-card-id']}>{t('bookingManagement.tourSelector.tourCode')} {tour.id}</div>
                     </div>
                   </button>
                 );
@@ -470,8 +603,8 @@ const BookingManagement = () => {
             {totalTourPages > 1 && (
               <div className={styles['tour-pagination']}>
                 <div className={styles['tour-pagination-info']}>
-                  Hiển thị trang <strong>{currentTourPage}</strong> / <strong>{totalTourPages}</strong> của{' '}
-                  <strong>{tours.length}</strong> tour
+                  {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentTourPage}</strong> / <strong>{totalTourPages}</strong> {t('bookingManagement.tourSelector.pagination.of')}{' '}
+                  <strong>{tours.length}</strong> {t('bookingManagement.tourSelector.pagination.tours')}
                 </div>
                 <nav className={styles['tour-pagination-nav']} aria-label="Pagination">
                   <button
@@ -525,7 +658,7 @@ const BookingManagement = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Tìm kiếm tên khách, mã booking..."
+              placeholder={t('bookingManagement.search.placeholder')}
               className={styles['search-input']}
             />
           </div>
@@ -540,7 +673,7 @@ const BookingManagement = () => {
                   onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
                   className={styles['select-native']}
                 >
-                  <option value="all">Tất cả trạng thái</option>
+                  <option value="all">{t('bookingManagement.filters.allStatuses')}</option>
                   {statuses.map((status) => (
                     <option key={status} value={status}>{formatStatusDisplay(status)}</option>
                   ))}
@@ -559,10 +692,10 @@ const BookingManagement = () => {
                   onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
                   className={styles['select-native']}
                 >
-                  <option value="newest">Sắp xếp theo: Mới nhất</option>
-                  <option value="oldest">Sắp xếp theo: Cũ nhất</option>
-                  <option value="amount-desc">Số tiền cao → thấp</option>
-                  <option value="amount-asc">Số tiền thấp → cao</option>
+                  <option value="newest">{t('bookingManagement.filters.sortBy')} {t('bookingManagement.sort.newest')}</option>
+                  <option value="oldest">{t('bookingManagement.filters.sortBy')} {t('bookingManagement.sort.oldest')}</option>
+                  <option value="amount-desc">{t('bookingManagement.sort.amountDesc')}</option>
+                  <option value="amount-asc">{t('bookingManagement.sort.amountAsc')}</option>
                 </select>
               </div>
               <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
@@ -582,24 +715,25 @@ const BookingManagement = () => {
                 <th style={{ width: '48px' }}>
                   <input type="checkbox" style={{ borderRadius: '4px' }} />
                 </th>
-                <th>ID</th>
-                <th>Tour</th>
-                <th>Khách hàng</th>
-                <th>Ngày khởi hành</th>
-                <th>Số tiền</th>
-                <th>Trạng thái</th>
-                <th>Ngày tạo</th>
-                <th>Thao tác</th>
+                <th>{t('bookingManagement.table.bookingId')}</th>
+                <th>{t('bookingManagement.table.tour')}</th>
+                <th>{t('bookingManagement.table.customer')}</th>
+                <th>{t('bookingManagement.table.departureDate')}</th>
+                <th>{t('bookingManagement.table.amount')}</th>
+                <th>{t('bookingManagement.table.status')}</th>
+                <th>{t('bookingManagement.table.createdAt')}</th>
+                <th>{t('common.actions', { defaultValue: 'Thao tác' })}</th>
               </tr>
             </thead>
             <tbody>
               {bookings.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className={styles['empty-cell']}>Không có booking nào</td>
+                  <td colSpan="9" className={styles['empty-cell']}>{t('bookingManagement.empty.noBookings')}</td>
                 </tr>
               ) : (
                 bookings.map((b) => {
                   const isPendingBooking = isPendingStatus(b.bookingStatus);
+                  const isUnderComplaint = b.bookingStatus === 'BOOKING_UNDER_COMPLAINT';
                   return (
                   <tr key={b.id}>
                     <td>
@@ -617,15 +751,38 @@ const BookingManagement = () => {
                     </td>
                     <td>{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
                     <td>
-                      <button
-                        type="button"
-                        title="Xem chi tiết"
-                        onClick={() => handleViewBooking(b)}
-                        className={`${styles['action-btn']} ${isPendingBooking ? styles['action-btn-disabled'] : ''}`}
-                        disabled={isPendingBooking}
-                      >
-                        <EyeIcon className={styles['action-icon']} />
-                      </button>
+                      <div className={styles['action-group']}>
+                        <button
+                          type="button"
+                          title={t('bookingManagement.actions.viewQuick')}
+                          onClick={() => handleViewBooking(b)}
+                          className={styles['action-btn']}
+                        >
+                          <EyeIcon className={styles['action-icon']} />
+                        </button>
+                        {!isUnderComplaint && (
+                          <button
+                            type="button"
+                            title={t('bookingManagement.actions.editBooking')}
+                            onClick={() => handleEditBooking(b)}
+                            className={`${styles['action-btn']} ${isPendingBooking ? styles['action-btn-disabled'] : ''}`}
+                            disabled={isPendingBooking}
+                          >
+                            <PencilSquareIcon className={styles['action-icon']} />
+                          </button>
+                        )}
+                        {!isUnderComplaint && canApproveFromList(b.bookingStatus) && (
+                          <button
+                            type="button"
+                            title={t('bookingManagement.actions.confirmTourCompletion')}
+                            onClick={() => handleApproveBooking(b)}
+                            className={`${styles['action-btn']} ${approvingBookingId === b.bookingId ? styles['action-btn-disabled'] : ''}`}
+                            disabled={approvingBookingId === b.bookingId}
+                          >
+                            <CheckCircleIcon className={styles['action-icon']} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -638,8 +795,8 @@ const BookingManagement = () => {
         {/* Pagination */}
         <div className={styles['pagination']}>
           <div className={styles['pagination-info']}>
-            Hiển thị trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> của{' '}
-            <strong>{totalItems}</strong> booking
+            {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> {t('bookingManagement.tourSelector.pagination.of')}{' '}
+            <strong>{totalItems}</strong> {t('bookingManagement.loading', { defaultValue: 'booking' })}
           </div>
           <nav className={styles['pagination-nav']} aria-label="Pagination">
             <button
@@ -676,6 +833,61 @@ const BookingManagement = () => {
           </nav>
         </div>
       </div>
+      {isDetailModalOpen && viewingBooking && (
+        <div className={styles['modal-backdrop']} onClick={handleCloseDetailModal}>
+          <div className={styles['modal']} onClick={(e) => e.stopPropagation()}>
+            <div className={styles['modal-header']}>
+              <div>
+                <h3>{t('bookingManagement.modal.title')}{viewingBooking.bookingId}</h3>
+                <p>{t('bookingManagement.modal.tour')} {viewingBooking.tourName || '-'}</p>
+              </div>
+              <button type="button" className={styles['modal-close']} onClick={handleCloseDetailModal}>
+                <XCircleIcon className={styles['modal-close-icon']} />
+              </button>
+            </div>
+            <div className={styles['modal-body']}>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.customer')}</span>
+                <span className={styles['modal-value']}>{viewingBooking.contactName || '-'}</span>
+              </div>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.status')}</span>
+                <span className={styles['modal-value']}>{formatStatusDisplay(viewingBooking.bookingStatus || '')}</span>
+              </div>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.departureDate')}</span>
+                <span className={styles['modal-value']}>
+                  {viewingBooking.departureDate ? new Date(viewingBooking.departureDate).toLocaleDateString('vi-VN') : '-'}
+                </span>
+              </div>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.tourDuration')}</span>
+                <span className={styles['modal-value']}>
+                  {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
+                </span>
+              </div>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.expectedEndDate')}</span>
+                <span className={styles['modal-value']}>
+                  {modalEndDate ? modalEndDate.toLocaleDateString('vi-VN') : '-'}
+                </span>
+              </div>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
+                <span className={styles['modal-value']}>
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.totalAmount || 0)}
+                </span>
+              </div>
+              <div className={styles['modal-row']}>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.createdAt')}</span>
+                <span className={styles['modal-value']}>
+                  {viewingBooking.createdAt ? new Date(viewingBooking.createdAt).toLocaleString('vi-VN') : '-'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

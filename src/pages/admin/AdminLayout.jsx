@@ -24,6 +24,7 @@ import {
   CurrencyDollarIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import { ShieldAlert } from 'lucide-react';
 
 const AdminLayout = ({ children }) => {
   const { t, i18n } = useTranslation();
@@ -64,6 +65,7 @@ const AdminLayout = ({ children }) => {
         { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
         { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
         { name: 'Forum Report Management', to: '/admin/forum-reports', icon: ExclamationTriangleIcon },
+        { name: 'Complaint Management', to: '/admin/complaints', icon: ShieldAlert },
         { name: 'News Management', to: '/admin/news', icon: DocumentTextIcon },
         { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },
         { name: 'Transaction Management', to: '/admin/transactions', icon: CurrencyDollarIcon },

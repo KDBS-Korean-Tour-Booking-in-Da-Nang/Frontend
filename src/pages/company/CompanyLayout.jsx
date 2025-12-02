@@ -45,7 +45,7 @@ const CompanyLayout = () => {
     {
       path: '/company/vouchers',
       icon: UserIcon,
-      label: 'Quản lý Voucher',
+      label: t('companyDashboard.sidebar.voucherManagement'),
       exact: true
     },
     ...(user?.status === 'COMPANY_PENDING'

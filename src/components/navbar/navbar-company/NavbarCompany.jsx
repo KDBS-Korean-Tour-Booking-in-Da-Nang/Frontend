@@ -16,7 +16,6 @@ import NotificationDropdown from '../../NotificationDropdown';
 import ChatBox from '../../ChatBox';
 import ChatDropdown from '../../ChatDropdown';
 import WebSocketStatus from '../../WebSocketStatus';
-import AIChatBoxContainer from '../../AIChatBox/AIChatBoxContainer';
 import { useNotifications } from '../../../contexts/NotificationContext';
  
 
@@ -467,13 +466,9 @@ const NavbarCompany = () => {
           onClose={chatActions.closeChatBox} 
         />
       )}
-
-      {/* AI Chat Box */}
-      {!isLockedToCompanyInfo && <AIChatBoxContainer />}
       
     </>
   );
 };
 
 export default NavbarCompany;
-

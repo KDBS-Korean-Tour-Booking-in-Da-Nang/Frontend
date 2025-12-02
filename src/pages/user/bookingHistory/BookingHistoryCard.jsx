@@ -20,15 +20,24 @@ const STATUS_KEYS = {
   WAITING_FOR_UPDATE: 'waitingForUpdate',
   BOOKING_REJECTED: 'bookingRejected',
   BOOKING_FAILED: 'bookingFailed',
+  BOOKING_SUCCESS_PENDING: 'bookingSuccessPending',
+  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: 'bookingSuccessWaitForConfirmed',
+  BOOKING_UNDER_COMPLAINT: 'bookingUnderComplaint',
   BOOKING_SUCCESS: 'bookingSuccess'
 };
 
 const statusColorMap = {
-  [STATUS_KEYS.PENDING_PAYMENT]: '#F59E0B',
+  // Thanh toán chờ: cam đậm
+  [STATUS_KEYS.PENDING_PAYMENT]: '#F97316',
   [STATUS_KEYS.WAITING_FOR_APPROVED]: '#3B82F6',
   [STATUS_KEYS.WAITING_FOR_UPDATE]: '#8B5CF6',
   [STATUS_KEYS.BOOKING_REJECTED]: '#EF4444',
   [STATUS_KEYS.BOOKING_FAILED]: '#DC2626',
+  // Đã duyệt nhưng chờ tour diễn ra: teal
+  [STATUS_KEYS.BOOKING_SUCCESS_PENDING]: '#14B8A6',
+  [STATUS_KEYS.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED]: '#2563EB',
+  // Đang khiếu nại: vàng tươi
+  [STATUS_KEYS.BOOKING_UNDER_COMPLAINT]: '#EAB308',
   [STATUS_KEYS.BOOKING_SUCCESS]: '#10B981'
 };
 
@@ -122,8 +131,11 @@ const getStatusIcon = (iconColor) => {
       return <CheckCircleIcon className={styles['status-icon']} style={{ color: iconColor }} />;
       case STATUS_KEYS.BOOKING_REJECTED:
       case STATUS_KEYS.BOOKING_FAILED:
+      case STATUS_KEYS.BOOKING_UNDER_COMPLAINT:
       return <XCircleIcon className={styles['status-icon']} style={{ color: iconColor }} />;
       case STATUS_KEYS.WAITING_FOR_APPROVED:
+      case STATUS_KEYS.BOOKING_SUCCESS_PENDING:
+      case STATUS_KEYS.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED:
       case STATUS_KEYS.WAITING_FOR_UPDATE:
       return <ClockIcon className={styles['status-icon']} style={{ color: iconColor }} />;
       default:

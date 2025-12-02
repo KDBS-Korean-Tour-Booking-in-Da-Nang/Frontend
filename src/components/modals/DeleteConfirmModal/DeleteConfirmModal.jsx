@@ -42,7 +42,17 @@ const DeleteConfirmModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      const t = setTimeout(() => confirmBtnRef.current?.focus(), 0);
+      const t = setTimeout(() => {
+        // Chỉ auto-focus nút xác nhận nếu hiện tại chưa có element nào khác đang được focus
+        // (tránh trường hợp người dùng đã click vào input/textarea trong children, bị giật focus lại)
+        if (typeof document !== 'undefined') {
+          const activeElement = document.activeElement;
+          if (activeElement && activeElement !== document.body) {
+            return;
+          }
+        }
+        confirmBtnRef.current?.focus();
+      }, 0);
       return () => clearTimeout(t);
     }
   }, [isOpen]);

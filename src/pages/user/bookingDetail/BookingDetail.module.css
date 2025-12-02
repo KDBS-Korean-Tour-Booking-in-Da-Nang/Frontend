@@ -198,8 +198,18 @@
 /* Action Section */
 .action-section {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
   justify-content: center;
   padding: 20px 0;
+  align-items: center;
+}
+
+.completion-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .action-btn {
@@ -242,6 +252,94 @@
 .edit-action-btn:hover {
   background: linear-gradient(135deg, #1478c3 0%, #2563eb 100%);
   box-shadow: 0 6px 20px rgba(26, 142, 234, 0.35);
+}
+
+.info-banner {
+  width: 100%;
+  max-width: 720px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 20px;
+  padding: 16px 20px;
+  color: #1e1b4b;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+.completion-note {
+  font-size: 13px;
+  color: #4c1d95;
+  margin-top: 8px;
+}
+
+.confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+}
+
+.confirm-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+}
+
+.confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.complaint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);
+}
+
+.complaint-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.35);
+}
+
+.complaint-body {
+  margin-top: 8px;
+}
+
+.complaint-textarea {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 96px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.complaint-textarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 /* Loading State */

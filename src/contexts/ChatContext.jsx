@@ -480,10 +480,32 @@ export const ChatProvider = ({ children }) => {
     return [];
   };
   
+  const getCachedMinimizedChats = () => {
+    try {
+      const cachedMinimizedChats = localStorage.getItem('minimizedChats');
+      if (cachedMinimizedChats) {
+        const parsedChats = JSON.parse(cachedMinimizedChats) || [];
+        if (parsedChats.length > 0) {
+          // Restore minimized chats immediately from localStorage
+          return parsedChats.map(c => ({
+            userId: c.userId,
+            user: c.user, // already minimal
+            messages: [], // Messages will be loaded when bubble is clicked
+            timestamp: c.timestamp || Date.now()
+          }));
+        }
+      }
+    } catch (error) {
+      // Ignore cache errors
+    }
+    return [];
+  };
+  
   const initialStateWithCache = {
     ...initialState,
     allUsers: getCachedUsers(), // Load from cache immediately
-    conversations: getCachedConversations() // Load conversations from cache immediately
+    conversations: getCachedConversations(), // Load conversations from cache immediately
+    minimizedChats: getCachedMinimizedChats() // Load minimized chats from cache immediately
   };
   
   const [state, dispatch] = useReducer(chatReducer, initialStateWithCache);
@@ -715,10 +737,74 @@ export const ChatProvider = ({ children }) => {
     }
   }, [authUser?.userId, authUser?.username, authUser?.userName, authUser?.name, getToken]); // Re-initialize when user changes
 
+  // Restore minimized chats when currentUser is set (backup restore in case initialState didn't work)
+  // Note: minimizedChats should already be restored in initialState, but this is a safety net
+  const hasRestoredMinimizedChatsRef = useRef(false);
+  useEffect(() => {
+    if (state.currentUser && !hasRestoredMinimizedChatsRef.current) {
+      // Only restore if current state is empty (initialState should have already restored)
+      if (!state.minimizedChats || state.minimizedChats.length === 0) {
+        try {
+          const savedMinimizedChats = localStorage.getItem('minimizedChats');
+          if (savedMinimizedChats) {
+            const parsedChats = JSON.parse(savedMinimizedChats) || [];
+            if (parsedChats.length > 0) {
+              // Restore from localStorage if initialState didn't work
+              const minimizedChats = parsedChats.map(c => ({
+                userId: c.userId,
+                user: c.user, // already minimal
+                messages: [], // Messages will be loaded when bubble is clicked
+                timestamp: c.timestamp || Date.now()
+              }));
+              dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: minimizedChats });
+              hasRestoredMinimizedChatsRef.current = true;
+            }
+          }
+        } catch (error) {
+          console.error('Error restoring minimized chats on mount:', error);
+        }
+      } else {
+        // Already restored in initialState, mark as restored
+        hasRestoredMinimizedChatsRef.current = true;
+      }
+    }
+    // Reset flag when user logs out
+    if (!state.currentUser) {
+      hasRestoredMinimizedChatsRef.current = false;
+    }
+  }, [state.currentUser]);
+
+  // Track previous state to detect actual logout (not just initial load)
+  const previousAuthUserRef = useRef(authUser);
+  const previousTokenRef = useRef(null);
+  const isInitialMountRef = useRef(true);
+  
   // Listen for auth changes (only handle logout, initialization is handled above)
   useEffect(() => {
-    if (!authUser) {
-      // User logged out - cleanup
+    const token = getToken() || sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
+    
+    // Skip on initial mount to avoid false logout detection
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      previousAuthUserRef.current = authUser;
+      previousTokenRef.current = token;
+      return;
+    }
+    
+    // Check if user actually logged out:
+    // 1. Had user/token before
+    // 2. Now has no token (real logout, not just loading)
+    const hadTokenBefore = previousTokenRef.current !== null;
+    const hasTokenNow = token !== null;
+    const isRealLogout = hadTokenBefore && !hasTokenNow;
+    
+    // Also check if we had authUser before and now don't (additional check)
+    const hadUserBefore = previousAuthUserRef.current !== null;
+    const hasUserNow = authUser !== null;
+    const userLoggedOut = hadUserBefore && !hasUserNow && !hasTokenNow;
+    
+    if (isRealLogout || userLoggedOut) {
+      // User actually logged out - cleanup
       websocketService.disconnect();
       dispatch({ type: ActionTypes.SET_DISCONNECTED });
       dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
@@ -736,7 +822,11 @@ export const ChatProvider = ({ children }) => {
         localStorage.removeItem('minimizedChats');
       } catch {}
     }
-  }, [authUser]);
+    
+    // Update refs for next comparison
+    previousAuthUserRef.current = authUser;
+    previousTokenRef.current = token;
+  }, [authUser, getToken]);
 
   // WebSocket event handlers - Only for connection status
   useEffect(() => {
@@ -796,6 +886,11 @@ export const ChatProvider = ({ children }) => {
               timestamp: Date.now()
             };
             dispatch({ type: ActionTypes.ADD_MINIMIZED_CHAT, payload: minimizedChat });
+            
+            // Update localStorage to persist minimized chats
+            const updatedMinimizedChats = [...(state.minimizedChats || []), minimizedChat]
+              .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
+            localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
           }
         }
         
@@ -977,6 +1072,16 @@ export const ChatProvider = ({ children }) => {
       if (state.activeChatUser) {
         const userId = state.activeChatUser.userName || state.activeChatUser.username;
         dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
+        
+        // Update localStorage - remove only this chat from minimizedChats
+        const updatedMinimizedChats = (state.minimizedChats || []).filter(chat => chat.userId !== userId);
+        if (updatedMinimizedChats.length > 0) {
+          localStorage.setItem('minimizedChats', JSON.stringify(
+            updatedMinimizedChats.map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }))
+          ));
+        } else {
+          localStorage.removeItem('minimizedChats');
+        }
       }
       
       dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
@@ -984,9 +1089,8 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
       dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
       
-      // Clear saved chat state from localStorage
+      // Clear saved chat state from localStorage (but keep minimizedChats)
       localStorage.removeItem('chatBoxState');
-      localStorage.removeItem('minimizedChats');
     },
 
     minimizeChatBox: () => {
@@ -1300,17 +1404,28 @@ export const ChatProvider = ({ children }) => {
       try {
         const savedMinimizedChats = localStorage.getItem('minimizedChats');
         if (savedMinimizedChats) {
-          const minimizedChats = (JSON.parse(savedMinimizedChats) || []).map(c => ({
-            userId: c.userId,
-            user: c.user, // already minimal
-            messages: [],
-            timestamp: c.timestamp || Date.now()
-          }));
-          dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: minimizedChats });
+          const parsedChats = JSON.parse(savedMinimizedChats) || [];
+          // Only restore if we have valid chats
+          if (parsedChats.length > 0) {
+            const minimizedChats = parsedChats.map(c => ({
+              userId: c.userId,
+              user: c.user, // already minimal
+              messages: [], // Messages will be loaded when bubble is clicked
+              timestamp: c.timestamp || Date.now()
+            }));
+            // Always restore if current state is empty or different
+            const currentUserIds = (state.minimizedChats || []).map(c => c.userId).sort().join(',');
+            const restoredUserIds = minimizedChats.map(c => c.userId).sort().join(',');
+            // Restore if empty or different
+            if (!state.minimizedChats || state.minimizedChats.length === 0 || currentUserIds !== restoredUserIds) {
+              dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: minimizedChats });
+            }
+          }
         }
       } catch (error) {
         console.error('Error restoring minimized chats:', error);
-        localStorage.removeItem('minimizedChats');
+        // Don't remove localStorage on error, just log it
+        // localStorage.removeItem('minimizedChats');
       }
     },
 

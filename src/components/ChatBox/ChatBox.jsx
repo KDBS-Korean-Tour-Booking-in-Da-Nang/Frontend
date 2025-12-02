@@ -249,20 +249,36 @@ const ChatBox = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
+  // Effect to restore minimized chats on page refresh/load
+  // This runs independently to ensure bubble chats are always restored
+  useEffect(() => {
+    // Only restore if currentUser is available
+    if (!state.currentUser) return;
+    
+    // Restore minimized chats - this should always run when currentUser is available
+    // This ensures bubble chats are restored even after page refresh
+    actions.restoreMinimizedChats();
+  }, [state.currentUser]); // Depend on currentUser
+
   // Effect to restore chat state on page refresh/load
   useEffect(() => {
     // Only restore if currentUser is available and hasn't been restored yet
     if (!state.currentUser || hasRestoredRef.current) return;
-    
-    // Restore minimized chats first
-    actions.restoreMinimizedChats();
     
     // Check if chat should be restored from localStorage
     const savedChatState = localStorage.getItem('chatBoxState');
     
     if (savedChatState) {
       try {
-        const { isOpen, activeChatUser } = JSON.parse(savedChatState);
+        const { isOpen, activeChatUser, isMinimized } = JSON.parse(savedChatState);
+        
+        // If chat was minimized, don't restore it as open
+        // The bubble chat should already be restored by the previous useEffect
+        if (isMinimized) {
+          // Mark as restored to prevent multiple restores
+          hasRestoredRef.current = true;
+          return;
+        }
         
         if (isOpen && activeChatUser) {
           // Mark as restored to prevent multiple restores
@@ -579,12 +595,16 @@ const ChatBox = ({ isOpen, onClose }) => {
            state.activeChatUser.username === minimizedChat.userId);
         const bubbleAvatar = resolveUserAvatar(minimizedChat.user);
         
+        // Tính toán vị trí bottom: bubble đầu tiên ở 100px (tránh Coze), các bubble tiếp theo cách nhau 80px
+        // Coze bubble thường ở ~76px (56px height + 20px bottom), nên để 100px là an toàn
+        const bubbleBottom = 100 + (index * 80);
+        
         return (
           <div 
             key={`${minimizedChat.userId}-${minimizedChat.timestamp}`}
             className={`${styles.chatBubble} ${isCurrentActiveChat && isOpen ? styles.hidden : ''}`}
             style={{
-              bottom: `${20 + (index * 80)}px`, // Stack bubbles vertically
+              bottom: `${bubbleBottom}px`, // Stack bubbles vertically, bắt đầu từ 100px để tránh Coze
               zIndex: 999 - index
             }}
             onClick={() => actions.restoreChatFromBubble(minimizedChat.userId)}

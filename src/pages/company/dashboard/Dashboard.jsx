@@ -181,7 +181,7 @@ const Dashboard = () => {
       trend: 'up'
     },
     {
-      label: 'Active Tours',
+      label: t('companyDashboard.stats.activeTours'),
       value: stats.activeTours,
       icon: EyeIcon,
       color: '#8b5cf6',
@@ -260,7 +260,12 @@ const Dashboard = () => {
       height: 350
     },
     colors: ['#1a8eea', '#10b981', '#f59e0b', '#ef4444'],
-    labels: ['Pending', 'Completed', 'Active', 'Cancelled'],
+    labels: [
+      t('companyDashboard.dashboard.chartLabels.pending'),
+      t('companyDashboard.dashboard.chartLabels.completed'),
+      t('companyDashboard.dashboard.chartLabels.active'),
+      t('companyDashboard.dashboard.chartLabels.cancelled')
+    ],
     legend: {
       position: 'bottom',
       fontSize: '14px',
@@ -280,7 +285,7 @@ const Dashboard = () => {
             show: true,
             total: {
               show: true,
-              label: 'Total Bookings',
+              label: t('companyDashboard.dashboard.chartLabels.totalBookings'),
               fontSize: '16px',
               fontWeight: 600,
               color: '#1e293b',
@@ -305,7 +310,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className={styles.dashboardRoot}>
-        <div className={styles.loading}>Loading...</div>
+        <div className={styles.loading}>{t('companyDashboard.dashboard.loading')}</div>
       </div>
     );
   }
@@ -372,8 +377,8 @@ const Dashboard = () => {
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <div>
-              <h3 className={styles.chartTitle}>Revenue Overview</h3>
-              <p className={styles.chartSubtitle}>Monthly revenue trends</p>
+              <h3 className={styles.chartTitle}>{t('companyDashboard.dashboard.revenueOverview')}</h3>
+              <p className={styles.chartSubtitle}>{t('companyDashboard.dashboard.revenueTrends')}</p>
             </div>
           </div>
           <div className={styles.chartContainer}>
@@ -390,8 +395,8 @@ const Dashboard = () => {
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <div>
-              <h3 className={styles.chartTitle}>Booking Status</h3>
-              <p className={styles.chartSubtitle}>Distribution of bookings</p>
+              <h3 className={styles.chartTitle}>{t('companyDashboard.dashboard.bookingStatus')}</h3>
+              <p className={styles.chartSubtitle}>{t('companyDashboard.dashboard.bookingDistribution')}</p>
             </div>
           </div>
           <div className={styles.chartContainer}>
@@ -410,19 +415,19 @@ const Dashboard = () => {
         <div className={styles.infoCard}>
           <div className={styles.infoCardHeader}>
             <UserGroupIcon className={styles.infoIcon} />
-            <h3 className={styles.infoTitle}>Quick Stats</h3>
+            <h3 className={styles.infoTitle}>{t('companyDashboard.dashboard.quickStats')}</h3>
           </div>
           <div className={styles.infoContent}>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Pending Bookings</span>
+              <span className={styles.infoLabel}>{t('companyDashboard.dashboard.pendingBookings')}</span>
               <span className={styles.infoValue}>{stats.pendingBookings}</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Completed</span>
+              <span className={styles.infoLabel}>{t('companyDashboard.dashboard.completed')}</span>
               <span className={styles.infoValue}>{stats.completedBookings}</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Cancelled</span>
+              <span className={styles.infoLabel}>{t('companyDashboard.dashboard.cancelled')}</span>
               <span className={styles.infoValue}>{stats.cancelledBookings}</span>
             </div>
           </div>
@@ -431,19 +436,19 @@ const Dashboard = () => {
         <div className={styles.infoCard}>
           <div className={styles.infoCardHeader}>
             <MapIcon className={styles.infoIcon} />
-            <h3 className={styles.infoTitle}>Tour Status</h3>
+            <h3 className={styles.infoTitle}>{t('companyDashboard.dashboard.tourStatus')}</h3>
           </div>
           <div className={styles.infoContent}>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Active Tours</span>
+              <span className={styles.infoLabel}>{t('companyDashboard.dashboard.activeTours')}</span>
               <span className={styles.infoValue}>{stats.activeTours}</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Total Tours</span>
+              <span className={styles.infoLabel}>{t('companyDashboard.dashboard.totalTours')}</span>
               <span className={styles.infoValue}>{stats.totalTours}</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Inactive</span>
+              <span className={styles.infoLabel}>{t('companyDashboard.dashboard.inactive')}</span>
               <span className={styles.infoValue}>{stats.totalTours - stats.activeTours}</span>
             </div>
           </div>

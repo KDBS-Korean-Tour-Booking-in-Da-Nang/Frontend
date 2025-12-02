@@ -24,6 +24,9 @@ const STATUS_KEYS = {
   WAITING_FOR_UPDATE: 'waitingForUpdate',
   BOOKING_REJECTED: 'bookingRejected',
   BOOKING_FAILED: 'bookingFailed',
+  BOOKING_SUCCESS_PENDING: 'bookingSuccessPending',
+  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: 'bookingSuccessWaitForConfirmed',
+  BOOKING_UNDER_COMPLAINT: 'bookingUnderComplaint',
   BOOKING_SUCCESS: 'bookingSuccess'
 };
 
@@ -189,7 +192,7 @@ const BookingHistory = () => {
         const status = normalizeStatus(booking.status ?? booking.bookingStatus);
         const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
         if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
-          return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
+          return status === STATUS_KEYS.BOOKING_SUCCESS || trx === 'success';
         }
         return status === statusFilter;
       });
@@ -320,6 +323,9 @@ const BookingHistory = () => {
               <option value={STATUS_KEYS.WAITING_FOR_APPROVED}>{t('bookingHistory.status.waitingForApproved')}</option>
               <option value={STATUS_KEYS.WAITING_FOR_UPDATE}>{t('bookingHistory.status.waitingForUpdate')}</option>
               <option value={STATUS_KEYS.BOOKING_SUCCESS}>{t('bookingHistory.status.bookingSuccess')}</option>
+              <option value={STATUS_KEYS.BOOKING_SUCCESS_PENDING}>{t('bookingHistory.status.bookingSuccessPending')}</option>
+              <option value={STATUS_KEYS.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED}>{t('bookingHistory.status.bookingSuccessWaitForConfirmed')}</option>
+              <option value={STATUS_KEYS.BOOKING_UNDER_COMPLAINT}>{t('bookingHistory.status.bookingUnderComplaint')}</option>
               <option value={STATUS_KEYS.BOOKING_FAILED}>{t('bookingHistory.status.bookingFailed')}</option>
               <option value={STATUS_KEYS.BOOKING_REJECTED}>{t('bookingHistory.status.bookingRejected')}</option>
             </select>

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 };
 
 const VoucherManagement = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { showSuccess } = useToast();
   const [vouchers, setVouchers] = useState([]);
@@ -268,7 +270,7 @@ const VoucherManagement = () => {
     if (companyId) {
       fetchVouchers(companyId);
     }
-    showSuccess('Tạo voucher thành công');
+    showSuccess(t('voucherCreate.success.created'));
   };
 
   const handlePageChange = (page) => {
@@ -292,23 +294,23 @@ const VoucherManagement = () => {
         </div>
       )}
       <div className={styles['management-header']}>
-        <h2 className={styles['header-title']}>Quản lý Voucher</h2>
+        <h2 className={styles['header-title']}>{t('voucherManagement.title')}</h2>
         {loading ? (
-          <div className={styles['loading-text']}>Đang tải...</div>
+          <div className={styles['loading-text']}>{t('voucherManagement.loading')}</div>
         ) : (
           <button
             onClick={() => setIsCreateOpen(true)}
             disabled={!companyId}
             className={styles['create-btn']}
           >
-            Tạo voucher
+            {t('voucherManagement.create')}
           </button>
         )}
       </div>
 
       {loading && (
         <div className={styles['loading-container']}>
-          <div className={styles['loading-message']}>Đang tải dữ liệu...</div>
+          <div className={styles['loading-message']}>{t('voucherManagement.loadingData')}</div>
         </div>
       )}
 
@@ -316,12 +318,12 @@ const VoucherManagement = () => {
         <div className={styles['content-wrapper']}>
           {!companyId && (
             <div className={styles['warning-box']}>
-              <p className={styles['warning-title']}>Không tìm thấy thông tin công ty.</p>
+              <p className={styles['warning-title']}>{t('voucherManagement.warning.title')}</p>
               <p className={styles['warning-text']}>
-                Vui lòng đảm bảo bạn đã đăng nhập với tài khoản có vai trò COMPANY và thông tin user đã được cập nhật đúng.
+                {t('voucherManagement.warning.message')}
                 {user && (
                   <span className={styles['warning-info']}>
-                    Thông tin hiện tại: Role = {user.role}, User ID = {user.id || 'N/A'}
+                    {t('voucherManagement.warning.currentInfo')} {user.role}, {t('voucherManagement.warning.userId')} {user.id || 'N/A'}
                   </span>
                 )}
               </p>
@@ -330,7 +332,7 @@ const VoucherManagement = () => {
 
           {vouchers.length === 0 ? (
             <div className={styles['empty-state']}>
-              <p className={styles['empty-message']}>Chưa có voucher nào. Hãy tạo voucher đầu tiên!</p>
+              <p className={styles['empty-message']}>{t('voucherManagement.empty.message')}</p>
             </div>
           ) : (
             <>
@@ -340,28 +342,28 @@ const VoucherManagement = () => {
                   <div key={v.id || v.voucherId} className={styles['voucher-card']}>
                     <div>
                       <div className={styles['voucher-code-section']}>
-                        <span className={styles['voucher-code-label']}>Mã</span>
+                        <span className={styles['voucher-code-label']}>{t('voucherManagement.card.code')}</span>
                         <span className={styles['voucher-code']}>{v.code}</span>
                       </div>
                       <h3 className={styles['voucher-name']}>{v.name}</h3>
-                      <div className={styles['voucher-info']}>Loại: {v.discountType === 'PERCENT' ? 'Giảm theo %' : v.discountType === 'FIXED' ? 'Giảm theo tiền' : 'Giảm theo tiền'}</div>
-                      <div className={styles['voucher-info']}>Giá trị: {renderDiscount(v)}</div>
-                      <div className={styles['voucher-info']}>Số lượng: {v.totalQuantity} {v.remainingQuantity !== undefined ? `(Còn lại: ${v.remainingQuantity})` : ''}</div>
+                      <div className={styles['voucher-info']}>{t('voucherManagement.card.type')} {v.discountType === 'PERCENT' ? t('voucherManagement.discountTypes.percent') : v.discountType === 'FIXED' ? t('voucherManagement.discountTypes.fixed') : t('voucherManagement.discountTypes.fixed')}</div>
+                      <div className={styles['voucher-info']}>{t('voucherManagement.card.value')} {renderDiscount(v)}</div>
+                      <div className={styles['voucher-info']}>{t('voucherManagement.card.quantity')} {v.totalQuantity} {v.remainingQuantity !== undefined ? `(${t('voucherManagement.card.remaining')} ${v.remainingQuantity})` : ''}</div>
                       <div className={styles['voucher-status']}>
-                        Trạng thái:{' '}
+                        {t('voucherManagement.card.status')}{' '}
                         <span className={
                           v.status === 'ACTIVE' ? styles['status-active'] :
                           v.status === 'EXPIRED' ? styles['status-expired'] :
                           styles['status-inactive']
                         }>
-                          {v.status}
+                          {t(`voucherManagement.status.${v.status}`)}
                         </span>
                       </div>
                       
                       {/* Display tours applied to this voucher */}
                       {v.tourIds && v.tourIds.length > 0 ? (
                         <div className={styles['voucher-tours']}>
-                          <span className={styles['tours-label']}>Áp dụng cho tour:</span>
+                          <span className={styles['tours-label']}>{t('voucherManagement.card.appliedTo')}</span>
                           <div className={styles['tours-list']}>
                             {v.tourIds.map((tourId, idx) => {
                               const tourName = allToursMap.get(tourId) || `Tour #${tourId}`;
@@ -375,13 +377,13 @@ const VoucherManagement = () => {
                         </div>
                       ) : (
                         <div className={styles['tours-global']}>
-                          Áp dụng cho tất cả tour
+                          {t('voucherManagement.card.allTours')}
                         </div>
                       )}
                     </div>
                     <div className={styles['voucher-dates']}>
-                      <div>Bắt đầu: {v.startDate ? new Date(v.startDate).toLocaleString('vi-VN') : '-'}</div>
-                      <div>Hết hạn: {v.endDate ? new Date(v.endDate).toLocaleString('vi-VN') : '-'}</div>
+                      <div>{t('voucherManagement.card.startDate')} {v.startDate ? new Date(v.startDate).toLocaleString('vi-VN') : '-'}</div>
+                      <div>{t('voucherManagement.card.endDate')} {v.endDate ? new Date(v.endDate).toLocaleString('vi-VN') : '-'}</div>
                     </div>
                   </div>
                 ))}
@@ -393,8 +395,8 @@ const VoucherManagement = () => {
           {totalPages > 1 && !loading && vouchers.length > 0 && (
             <div className={styles['pagination']}>
               <div className={styles['pagination-info']}>
-                Hiển thị trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> của{' '}
-                <strong>{vouchers.length}</strong> voucher
+                {t('voucherManagement.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> {t('voucherManagement.pagination.of')}{' '}
+                <strong>{vouchers.length}</strong> {t('voucherManagement.pagination.vouchers')}
               </div>
               <nav className={styles['pagination-nav']} aria-label="Pagination">
                 <button

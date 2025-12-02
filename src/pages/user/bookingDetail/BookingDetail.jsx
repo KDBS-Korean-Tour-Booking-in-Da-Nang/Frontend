@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getBookingById, getGuestsByBookingId, updateBooking } from '../../../services/bookingAPI';
+import { getBookingById, getGuestsByBookingId, updateBooking, userConfirmTourCompletion, createBookingComplaint } from '../../../services/bookingAPI';
 import { DeleteConfirmModal } from '../../../components/modals';
 import { useToast } from '../../../contexts/ToastContext';
 import { formatDateForAPI } from '../../../utils/bookingFormatter';
 import EditBookingModal from './EditBookingModal';
+import ComplaintModal from './ComplaintModal';
 import {
   ArrowLeftIcon,
   CreditCardIcon,
@@ -42,12 +43,15 @@ const normalizeStatus = (status) => {
 
   // Map các status từ backend
   const statusMap = {
-    'PENDING_PAYMENT': 'PENDING_PAYMENT',
-    'WAITING_FOR_APPROVED': 'WAITING_FOR_APPROVED',
-    'WAITING_FOR_UPDATE': 'WAITING_FOR_UPDATE',
-    'BOOKING_REJECTED': 'BOOKING_REJECTED',
-    'BOOKING_FAILED': 'BOOKING_FAILED',
-    'BOOKING_SUCCESS': 'BOOKING_SUCCESS',
+    PENDING_PAYMENT: 'PENDING_PAYMENT',
+    WAITING_FOR_APPROVED: 'WAITING_FOR_APPROVED',
+    WAITING_FOR_UPDATE: 'WAITING_FOR_UPDATE',
+    BOOKING_REJECTED: 'BOOKING_REJECTED',
+    BOOKING_FAILED: 'BOOKING_FAILED',
+    BOOKING_SUCCESS_PENDING: 'BOOKING_SUCCESS_PENDING',
+    BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED',
+    BOOKING_UNDER_COMPLAINT: 'BOOKING_UNDER_COMPLAINT',
+    BOOKING_SUCCESS: 'BOOKING_SUCCESS',
     // Legacy mappings
     'PURCHASED': 'BOOKING_SUCCESS',
     'CONFIRMED': 'WAITING_FOR_APPROVED',
@@ -61,11 +65,17 @@ const normalizeStatus = (status) => {
 };
 
 const STATUS_COLOR_MAP = {
-  PENDING_PAYMENT: '#F59E0B',
+  // Thanh toán chờ: cam đậm
+  PENDING_PAYMENT: '#F97316',
   WAITING_FOR_APPROVED: '#3B82F6',
   WAITING_FOR_UPDATE: '#8B5CF6',
   BOOKING_REJECTED: '#EF4444',
   BOOKING_FAILED: '#DC2626',
+  // Đã duyệt nhưng chờ tour diễn ra: teal
+  BOOKING_SUCCESS_PENDING: '#14B8A6',
+  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB',
+  // Đang khiếu nại: vàng tươi
+  BOOKING_UNDER_COMPLAINT: '#EAB308',
   BOOKING_SUCCESS: '#10B981'
 };
 
@@ -80,6 +90,10 @@ const BookingDetail = () => {
   const [error, setError] = useState(null);
   const [guests, setGuests] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [confirmingCompletion, setConfirmingCompletion] = useState(false);
+  const [showCompletionConfirmModal, setShowCompletionConfirmModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [complaintMessage, setComplaintMessage] = useState('');
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -110,6 +124,9 @@ const BookingDetail = () => {
   const status = useMemo(() => normalizeStatus(booking?.bookingStatus || booking?.status), [booking]);
   const isPendingPayment = status === 'PENDING_PAYMENT';
   const isWaitingForUpdate = status === 'WAITING_FOR_UPDATE';
+  const isSuccessPending = status === 'BOOKING_SUCCESS_PENDING';
+  const isWaitingForConfirmation = status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
+  const isUnderComplaint = status === 'BOOKING_UNDER_COMPLAINT';
 
   const handleEditBooking = () => {
     setShowEditModal(true);
@@ -176,12 +193,95 @@ const BookingDetail = () => {
         return <CheckCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       case 'BOOKING_REJECTED':
         return <XCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
+      case 'BOOKING_UNDER_COMPLAINT':
+        return <XCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       case 'WAITING_FOR_APPROVED':
       case 'WAITING_FOR_UPDATE':
+      case 'BOOKING_SUCCESS_PENDING':
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
         return <ClockIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       default:
         return <ClockIcon className={styles['status-icon']} style={{ color: statusColor }} />;
     }
+  };
+
+  const statusLabelKey = (() => {
+    switch (status) {
+      case 'BOOKING_SUCCESS':
+      case 'PURCHASED':
+      case 'SUCCESS':
+        return 'bookingHistory.status.bookingSuccess';
+      case 'BOOKING_REJECTED':
+      case 'CANCELLED':
+        return 'bookingHistory.status.bookingRejected';
+      case 'WAITING_FOR_APPROVED':
+      case 'CONFIRMED':
+        return 'bookingHistory.status.waitingForApproved';
+      case 'WAITING_FOR_UPDATE':
+        return 'bookingHistory.status.waitingForUpdate';
+      case 'BOOKING_FAILED':
+      case 'FAILED':
+        return 'bookingHistory.status.bookingFailed';
+      case 'BOOKING_SUCCESS_PENDING':
+        return 'bookingHistory.status.bookingSuccessPending';
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+        return 'bookingHistory.status.bookingSuccessWaitForConfirmed';
+      case 'BOOKING_UNDER_COMPLAINT':
+        return 'bookingHistory.status.bookingUnderComplaint';
+      default:
+        return 'bookingHistory.status.pendingPayment';
+    }
+  })();
+
+  const handleUserConfirmCompletion = async () => {
+    if (!booking?.bookingId) return;
+    try {
+      setConfirmingCompletion(true);
+      await userConfirmTourCompletion(booking.bookingId);
+      showSuccess('Đã xác nhận tour hoàn thành. Chúng tôi sẽ thông báo cho công ty.');
+      const refreshedBooking = await getBookingById(booking.bookingId);
+      setBooking(refreshedBooking);
+    } catch (err) {
+      setError(err.message || 'Không thể xác nhận tour hoàn thành');
+    } finally {
+      setConfirmingCompletion(false);
+      setShowCompletionConfirmModal(false);
+    }
+  };
+
+  const handleSubmitComplaint = async (messageFromModal) => {
+    if (!booking?.bookingId) return;
+    const trimmed = (messageFromModal ?? complaintMessage).trim();
+    if (!trimmed) {
+      setError('Vui lòng nhập nội dung khiếu nại');
+      return;
+    }
+    try {
+      setLoading(true);
+      await createBookingComplaint(booking.bookingId, trimmed);
+      showSuccess('Đã gửi khiếu nại. Chúng tôi sẽ xem xét sớm nhất.');
+      setComplaintMessage('');
+      setShowComplaintModal(false);
+      const refreshedBooking = await getBookingById(booking.bookingId);
+      setBooking(refreshedBooking);
+    } catch (err) {
+      setError(err.message || 'Không thể gửi khiếu nại');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderCompletionInfo = () => {
+    if (!booking) return null;
+    return (
+      <div className={styles['completion-note']}>
+        <p>
+          {booking.autoConfirmedDate
+            ? `Nếu một trong hai bên chưa xác nhận, hệ thống sẽ tự động xác nhận sau ngày ${new Date(booking.autoConfirmedDate).toLocaleDateString('vi-VN')}.`
+            : 'Nếu một trong hai bên chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày kể từ khi tour kết thúc.'}
+        </p>
+      </div>
+    );
   };
 
   if (loading) {
@@ -240,19 +340,7 @@ const BookingDetail = () => {
             }}
           >
             {getStatusIcon()}
-            <span>
-              {status === 'BOOKING_SUCCESS' || status === 'PURCHASED' 
-                ? t('bookingHistory.status.bookingSuccess') 
-                : status === 'BOOKING_REJECTED' || status === 'CANCELLED' 
-                ? t('bookingHistory.status.bookingRejected') 
-                : status === 'WAITING_FOR_APPROVED'
-                ? t('bookingHistory.status.waitingForApproved')
-                : status === 'WAITING_FOR_UPDATE'
-                ? t('bookingHistory.status.waitingForUpdate')
-                : status === 'BOOKING_FAILED'
-                ? t('bookingHistory.status.bookingFailed')
-                : t('bookingHistory.status.pendingPayment')}
-            </span>
+            <span>{t(statusLabelKey)}</span>
           </div>
         </div>
 
@@ -320,33 +408,80 @@ const BookingDetail = () => {
       </div>
 
       {/* Action Buttons */}
-      {isPendingPayment && booking?.bookingId && (
-        <div className={styles['action-section']}>
-          <button 
-            className={styles['action-btn']}
-            onClick={() => navigate(`/booking/payment?id=${booking.bookingId}`, {
-              state: {
-                booking: booking,
-                fromBookingDetail: true
-              }
-            })}
-          >
-            <CreditCardIcon className={styles['action-icon']} />
-            <span>{t('payment.checkPayment.actions.pay')}</span>
-          </button>
-        </div>
-      )}
+      {booking?.bookingId && (
+        <>
+          {isPendingPayment && (
+            <div className={styles['action-section']}>
+              <button 
+                className={styles['action-btn']}
+                onClick={() => navigate(`/booking/payment?id=${booking.bookingId}`, {
+                  state: {
+                    booking: booking,
+                    fromBookingDetail: true
+                  }
+                })}
+              >
+                <CreditCardIcon className={styles['action-icon']} />
+                <span>{t('payment.checkPayment.actions.pay')}</span>
+              </button>
+            </div>
+          )}
 
-      {isWaitingForUpdate && booking?.bookingId && (
-        <div className={styles['action-section']}>
-          <button 
-            className={`${styles['action-btn']} ${styles['edit-action-btn']}`}
-            onClick={handleEditBooking}
-          >
-            <PencilIcon className={styles['action-icon']} />
-            <span>Chỉnh sửa booking</span>
-          </button>
-        </div>
+          {isWaitingForUpdate && (
+            <div className={styles['action-section']}>
+              <button 
+                className={`${styles['action-btn']} ${styles['edit-action-btn']}`}
+                onClick={handleEditBooking}
+              >
+                <PencilIcon className={styles['action-icon']} />
+                <span>Chỉnh sửa booking</span>
+              </button>
+            </div>
+          )}
+
+          {isSuccessPending && (
+            <div className={styles['action-section']}>
+              <div className={styles['info-banner']}>
+                <p>Booking đã được công ty duyệt. Vui lòng chờ tour diễn ra để xác nhận hoàn tất.</p>
+                <p>Ngày kết thúc dự kiến: {booking.tourEndDate ? new Date(booking.tourEndDate).toLocaleDateString('vi-VN') : '-'}</p>
+              </div>
+            </div>
+          )}
+
+          {isWaitingForConfirmation && (
+            <div className={styles['action-section']}>
+              <div className={styles['info-banner']}>
+                <p>Tour đã kết thúc. Vui lòng xác nhận bạn đã hoàn thành chuyến đi hoặc gửi khiếu nại nếu có vấn đề.</p>
+                {renderCompletionInfo()}
+              </div>
+              <div className={styles['completion-actions']}>
+                <button 
+                  className={styles['confirm-btn']}
+                  onClick={() => setShowCompletionConfirmModal(true)}
+                  disabled={confirmingCompletion}
+                >
+                  <CheckCircleIcon className={styles['action-icon']} />
+                  <span>Hoàn thành</span>
+                </button>
+                <button 
+                  type="button"
+                  className={styles['complaint-btn']}
+                  onClick={() => setShowComplaintModal(true)}
+                >
+                  <XCircleIcon className={styles['action-icon']} />
+                  <span>Khiếu nại</span>
+                </button>
+              </div>
+            </div>
+          )}
+          {isUnderComplaint && (
+            <div className={styles['action-section']}>
+              <div className={styles['info-banner']}>
+                <p>Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý.</p>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Edit Booking Modal */}
@@ -357,6 +492,34 @@ const BookingDetail = () => {
           onConfirm={handleConfirmEdit}
           booking={booking}
           guests={guests}
+        />
+      )}
+
+      {/* Modal xác nhận hoàn thành tour */}
+      {showCompletionConfirmModal && (
+        <DeleteConfirmModal
+          isOpen={showCompletionConfirmModal}
+          onClose={() => !confirmingCompletion && setShowCompletionConfirmModal(false)}
+          onConfirm={handleUserConfirmCompletion}
+          title="Xác nhận hoàn thành tour"
+          message="Bạn xác nhận đã hoàn thành đầy đủ lịch trình tour này?"
+          confirmText={confirmingCompletion ? 'Đang xác nhận...' : 'Xác nhận hoàn thành'}
+          cancelText="Hủy"
+          icon="✓"
+          danger={false}
+          disableBackdropClose={confirmingCompletion}
+        >
+          {renderCompletionInfo()}
+        </DeleteConfirmModal>
+      )}
+
+      {/* Modal khiếu nại tour */}
+      {showComplaintModal && (
+        <ComplaintModal
+          isOpen={showComplaintModal}
+          onClose={() => setShowComplaintModal(false)}
+          onConfirm={handleSubmitComplaint}
+          bookingId={booking?.bookingId}
         />
       )}
     </div>

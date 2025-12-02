@@ -83,11 +83,20 @@ const TourPreview = ({ createdAt = null }) => {
 
   // formatPrice function removed as it's not used in this component
 
+  // tour.image is already a full URL from useToursAPI (processed by getTourImageUrl)
+  // So we can use it directly without additional processing
   const getImageUrl = (imagePath) => {
     if (!imagePath) return '';
-    // Use getTourImageUrl from config with empty string as default instead of default image
-    const url = getTourImageUrl(`/uploads/tours/thumbnails/${imagePath}`, '');
-    return url || '';
+    // If it's already a full URL (from useToursAPI), return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // If it starts with /uploads, it's already a path, use getTourImageUrl
+    if (imagePath.startsWith('/uploads')) {
+      return getTourImageUrl(imagePath, '');
+    }
+    // Otherwise, assume it's a relative path and prepend the uploads path
+    return getTourImageUrl(`/uploads/tours/thumbnails/${imagePath}`, '');
   };
 
   const formatCreatedAt = (value) => {

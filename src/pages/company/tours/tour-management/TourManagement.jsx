@@ -272,7 +272,7 @@ const TourManagement = () => {
         <div className={styles['header-content']}>
           <div className={styles['header-title']}>
             <h1>{t('tourManagement.header.title')}</h1>
-            <p className={styles['header-subtitle']}>Quản lý tất cả các tour của bạn</p>
+            <p className={styles['header-subtitle']}>{t('tourManagement.header.subtitle', { defaultValue: 'Quản lý tất cả các tour của bạn' })}</p>
           </div>
           <button 
             onClick={handleCreateTour}
@@ -398,7 +398,7 @@ const TourManagement = () => {
               <div className={styles['pagination']}>
                 <div className={styles['pagination-info']}>
                   <span>
-                    Trang <strong>{currentPage}</strong> / <strong>{totalPages}</strong> ({allTours.length} tour)
+                    {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> ({allTours.length} {t('bookingManagement.tourSelector.pagination.tours')})
                   </span>
                 </div>
                 <div className={styles['pagination-controls']}>

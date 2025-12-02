@@ -1,7 +1,7 @@
 .chatBox {
   position: fixed;
   bottom: 20px;
-  right: 80px; /* Di chuyển sang trái để tạo không gian bên phải */
+  right: 95px; /* Di chuyển sang trái để tạo không gian bên phải cho Coze */
   width: 380px;
   height: 500px;
   background: white;
@@ -756,8 +756,8 @@
 /* Chat Bubble - Minimized */
 .chatBubble {
   position: fixed;
-  bottom: 20px;
-  right: 10px; /* Nằm sát bên phải trong khoảng 0-70px */
+  bottom: 100px; /* Đưa lên cao hơn để tránh bị che bởi Coze bubble (56px + 20px + margin) */
+  right: 25px; /* Di chuyển sang trái để tránh overlap với Coze bubble */
   width: 60px;
   height: 60px;
   background: #1a8eea;

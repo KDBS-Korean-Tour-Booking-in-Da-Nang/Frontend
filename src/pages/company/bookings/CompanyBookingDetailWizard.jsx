@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getBookingById, getGuestsByBookingId, getTourCompletionStatus, changeBookingStatus, changeBookingGuestInsuranceStatus } from '../../../services/bookingAPI';
 import { useToast } from '../../../contexts/ToastContext';
 import { DeleteConfirmModal } from '../../../components/modals';
@@ -8,18 +9,19 @@ import Step2Insurance from './steps/Step2Insurance/Step2Insurance';
 import Step3Confirmation from './steps/Step3Confirmation/Step3Confirmation';
 import styles from './CompanyBookingDetailWizard.module.css';
 
-const STEPS = [
-  { id: 1, title: 'Thông tin cá nhân', description: 'Xem và duyệt thông tin booking' },
-  { id: 2, title: 'Thông tin bảo hiểm', description: 'Quản lý trạng thái bảo hiểm' },
-  { id: 3, title: 'Xác nhận', description: 'Xác nhận booking thành công' }
-];
-
 const CompanyBookingDetailWizard = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get('id');
   const navigate = useNavigate();
   const location = useLocation();
   const { showSuccess } = useToast();
+  
+  const STEPS = [
+    { id: 1, title: t('companyBookingWizard.steps.step1.title'), description: t('companyBookingWizard.steps.step1.description') },
+    { id: 2, title: t('companyBookingWizard.steps.step2.title'), description: t('companyBookingWizard.steps.step2.description') },
+    { id: 3, title: t('companyBookingWizard.steps.step3.title'), description: t('companyBookingWizard.steps.step3.description') }
+  ];
   
   // Get tourId from URL params or location state
   const tourId = searchParams.get('tourId') || location.state?.tourId;
@@ -328,21 +330,20 @@ const CompanyBookingDetailWizard = () => {
         );
       }
       
-      // Change booking status to BOOKING_SUCCESS - this is the final confirmation
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_SUCCESS');
+      // Change booking status to BOOKING_SUCCESS_PENDING - company waits for tour completion
+      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_SUCCESS_PENDING');
       
       // Update booking state
       setBooking(updatedBooking);
       setPendingInsuranceUpdates([]);
       
-      // Mark all steps as completed and set read-only mode
+      // Mark all steps as completed in local progress tracking
       setCompletedSteps(new Set([1, 2, 3]));
-      setIsReadOnly(true);
       
       // Clear progress since booking is completed
       clearWizardProgress(bookingId);
       
-      showSuccess('Đã xác nhận booking thành công! Booking và bảo hiểm đã được lưu vào database.');
+      showSuccess('Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất.');
       
       // Navigate back after a short delay to show success message
       setTimeout(() => {
@@ -415,7 +416,7 @@ const CompanyBookingDetailWizard = () => {
         <div className={styles.wizardContainer}>
           <div className={styles.loading}>
             <div className={styles.spinner}></div>
-            <p>Đang tải thông tin booking...</p>
+            <p>{t('companyBookingWizard.loading.booking')}</p>
           </div>
         </div>
       </>
@@ -453,10 +454,10 @@ const CompanyBookingDetailWizard = () => {
     return (
       <div className={styles['booking-wizard']}>
         <div className={styles.error}>
-          <h3>Lỗi</h3>
+          <h3>{t('companyBookingWizard.error.title')}</h3>
           <p>{error}</p>
           <button onClick={navigateBack} className={styles.btn}>
-            Quay lại
+            {t('companyBookingWizard.error.back')}
           </button>
         </div>
       </div>
@@ -467,9 +468,9 @@ const CompanyBookingDetailWizard = () => {
     return (
       <div className={styles['booking-wizard']}>
         <div className={styles.error}>
-          <h3>Không tìm thấy booking</h3>
+          <h3>{t('companyBookingWizard.error.notFound')}</h3>
           <button onClick={navigateBack} className={styles.btn}>
-            Quay lại
+            {t('companyBookingWizard.error.back')}
           </button>
         </div>
       </div>
@@ -487,7 +488,7 @@ const CompanyBookingDetailWizard = () => {
     <div className={styles['booking-wizard']}>
       {/* Header */}
       <div className={styles['wizard-header']}>
-        <h1 className={styles['wizard-title']}>Quản lý Booking #{booking.bookingId}</h1>
+        <h1 className={styles['wizard-title']}>{t('companyBookingWizard.header.title')}{booking.bookingId}</h1>
       </div>
 
       {/* Read-only indicator */}
@@ -504,7 +505,7 @@ const CompanyBookingDetailWizard = () => {
         }}>
           <span style={{ fontSize: '1.25rem' }}>👁️</span>
           <span style={{ fontSize: '0.875rem', color: '#92400e', fontWeight: 500 }}>
-            Chế độ xem chỉ đọc - Booking đã hoàn thành (BOOKING_SUCCESS)
+            {t('companyBookingWizard.readOnly.title')}
           </span>
         </div>
       )}
@@ -545,15 +546,15 @@ const CompanyBookingDetailWizard = () => {
                 disabled={!canClick}
                 title={
                   lockedToStep1Only
-                    ? 'Booking đã bị từ chối - chỉ xem được bước 1'
+                    ? t('companyBookingWizard.stepTooltips.rejected')
                     : isReadOnly && step.id !== 3
-                      ? 'Booking đã hoàn thành - Chỉ hiển thị bước 3'
+                      ? t('companyBookingWizard.stepTooltips.readOnlyOther')
                       : isReadOnly && step.id === 3
-                        ? 'Booking đã hoàn thành (chỉ xem)'
+                        ? t('companyBookingWizard.stepTooltips.readOnlyStep3')
                         : isCompleted && !isReadOnly 
-                          ? 'Bước đã hoàn thành (không thể quay lại)' 
+                          ? t('companyBookingWizard.stepTooltips.completed')
                           : !canClick && !isReadOnly
-                            ? 'Bước này chưa thể truy cập'
+                            ? t('companyBookingWizard.stepTooltips.notAccessible')
                             : ''
                 }
               >
@@ -591,7 +592,7 @@ const CompanyBookingDetailWizard = () => {
               }}
               disabled={currentStep === 1 || lockedToStep1Only}
             >
-              Trước
+              {t('companyBookingWizard.navigation.back')}
             </button>
             {currentStep < 3 ? (
               <button 
@@ -600,7 +601,7 @@ const CompanyBookingDetailWizard = () => {
                 onClick={handleNext}
                 disabled={currentStep >= 3}
               >
-                Tiếp
+                {t('companyBookingWizard.navigation.next')}
               </button>
             ) : (
               <button 
@@ -609,7 +610,7 @@ const CompanyBookingDetailWizard = () => {
                 onClick={handleFinish}
                 disabled={confirmingBooking}
               >
-                {confirmingBooking ? 'Đang xử lý...' : 'Hoàn thành'}
+                {confirmingBooking ? t('companyBookingWizard.navigation.processing') : t('companyBookingWizard.navigation.finish')}
               </button>
             )}
           </>
@@ -619,7 +620,7 @@ const CompanyBookingDetailWizard = () => {
             className={styles['btn-success']} 
             onClick={navigateBack}
           >
-            Đóng
+            {t('companyBookingWizard.navigation.close')}
           </button>
         )}
       </div>
@@ -630,17 +631,17 @@ const CompanyBookingDetailWizard = () => {
           isOpen={showConfirmModal}
           onClose={() => !confirmingBooking && setShowConfirmModal(false)}
           onConfirm={handleConfirmBooking}
-          title="Xác nhận booking"
-          message={`Bạn có chắc chắn muốn xác nhận booking #${booking?.bookingId}?`}
-          confirmText="Xác nhận"
-          cancelText="Hủy"
+          title={t('companyBookingWizard.confirmModal.title')}
+          message={`${t('companyBookingWizard.confirmModal.message')}${booking?.bookingId}?`}
+          confirmText={t('companyBookingWizard.confirmModal.confirm')}
+          cancelText={t('companyBookingWizard.confirmModal.cancel')}
           icon="✓"
           danger={false}
           disableBackdropClose={confirmingBooking}
         >
           <div style={{ marginTop: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
             <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: '#374151' }}>
-              Booking sẽ được lưu vào database với trạng thái <strong>BOOKING_SUCCESS</strong> và thông báo sẽ được gửi đến khách hàng.
+              {t('companyBookingWizard.confirmModal.description')}
             </p>
           </div>
         </DeleteConfirmModal>

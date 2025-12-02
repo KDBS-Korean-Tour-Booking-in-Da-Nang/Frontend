@@ -247,6 +247,109 @@ export const getBookingDetails = async (bookingId) => {
 };
 
 /**
+ * Create a complaint for a booking
+ * @param {number} bookingId - The booking ID
+ * @param {string} message - Complaint message from user
+ * @returns {Promise<void>}
+ */
+export const createBookingComplaint = async (bookingId, message) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/complaint`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      const errorMessage = await parseErrorMessage(response);
+
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all complaints for a booking (admin/staff view)
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Array>} - Array of complaints
+ */
+export const getComplaintsByBookingId = async (bookingId) => {
+  if (!bookingId) return [];
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/complaints`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      // Handle auth/global errors (may redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return [];
+      }
+
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return Array.isArray(result) ? result : [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Resolve a booking complaint (admin/staff)
+ * @param {number} complaintId - The complaint ID
+ * @param {'NO_FAULT'|'COMPANY_FAULT'|'USER_FAULT'} resolutionType
+ * @param {string} note - Optional resolution note
+ * @returns {Promise<void>}
+ */
+export const resolveBookingComplaint = async (complaintId, resolutionType, note = '') => {
+  if (!complaintId || !resolutionType) {
+    throw new Error('Missing complaintId or resolutionType');
+  }
+  try {
+    const body = {
+      resolutionType,
+      note: note || null,
+    };
+
+    const response = await fetch(`${API_BASE_URL}/api/booking/complaint/${complaintId}/resolve`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return;
+      }
+
+      throw new Error(message);
+    }
+
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * Cancel a booking by ID
  * @param {number} bookingId - The booking ID
  * @returns {Promise<Object>} - The updated booking response
@@ -553,6 +656,70 @@ export const getTourCompletionStatus = async (bookingId) => {
 
     const result = await response.json();
     return result === true || result === 'true';
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all complaints (admin/staff view)
+ * @returns {Promise<Array>} - Array of all complaints
+ */
+export const getAllComplaints = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/complaints/all`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      // Handle auth/global errors (may redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return [];
+      }
+
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return Array.isArray(result) ? result : [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get complaint by complaint ID (admin/staff view)
+ * @param {number} complaintId - The complaint ID
+ * @returns {Promise<Object>} - The complaint data
+ */
+export const getComplaintById = async (complaintId) => {
+  if (!complaintId) {
+    throw new Error('Complaint ID is required');
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${complaintId}/complaints`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      // Handle auth/global errors (may redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return null;
+      }
+
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
   } catch (error) {
     throw error;
   }

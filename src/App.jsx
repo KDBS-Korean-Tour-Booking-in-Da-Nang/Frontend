@@ -8,6 +8,7 @@ import { ChatProvider } from './contexts/ChatContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConditionalNavbar } from './components';
 import Footer from './components/Footer/Footer';
+import CozeChat from './components/CozeChat';
 import { useAuth } from './contexts/AuthContext';
 import { setNavigateCallback } from './utils/apiErrorHandler';
 import Homepage from './pages/home/homepage/homepage';
@@ -206,6 +207,20 @@ function AppContent() {
     }
   }, [user, loading, location.pathname, navigate]);
 
+  // Kiểm tra xem có nên hiển thị CozeChat hay không
+  // Chỉ hiển thị cho USER, COMPANY và GUEST (không đăng nhập)
+  // Không hiển thị cho ADMIN và STAFF
+  const shouldShowCozeChat = () => {
+    if (loading) return false; // Đang load thì chưa hiển thị
+    
+    // Nếu không có user (GUEST - không đăng nhập) thì hiển thị
+    if (!user) return true;
+    
+    const role = user?.role;
+    // Chỉ hiển thị cho USER và COMPANY
+    return role === 'USER' || role === 'COMPANY';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {!isStaffAdminPage && <ConditionalNavbar />}
@@ -266,6 +281,7 @@ function AppContent() {
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
+      {shouldShowCozeChat() && <CozeChat />}
     </div>
   );
 }

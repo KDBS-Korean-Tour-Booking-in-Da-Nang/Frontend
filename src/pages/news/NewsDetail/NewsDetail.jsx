@@ -10,7 +10,7 @@ const NewsDetail = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,6 +21,20 @@ const NewsDetail = () => {
       loadArticle(id);
     }
   }, [id]);
+
+  const getLocalizedArticleField = (article, baseField) => {
+    if (!article) return '';
+    const lang = (i18n.language || 'vi').toLowerCase();
+
+    const vi = article[baseField];
+    const en = article[`${baseField}EN`] ?? article[`${baseField}En`];
+    const kr = article[`${baseField}KR`] ?? article[`${baseField}Ko`] ?? article[`${baseField}KO`];
+
+    if (lang.startsWith('en') && en) return en;
+    if ((lang.startsWith('ko') || lang.startsWith('kr')) && kr) return kr;
+
+    return vi || en || kr || '';
+  };
 
   const loadArticle = async (articleId) => {
     if (!articleId || articleId === 'undefined') {
@@ -113,7 +127,7 @@ const NewsDetail = () => {
   }
 
   // Convert HTML content to displayable text with styling for introtext and fulltext
-  const articleContent = article.articleContent || '';
+  const articleContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
   
   // Create styled content with different styles for introtext and fulltext
   const getStyledContent = (htmlContent) => {
@@ -159,7 +173,7 @@ const NewsDetail = () => {
             <div className="p-8 border-b border-gray-200 space-y-4">
               <p className={styles.heroEyebrow}>{t('newsDetail.pill', { defaultValue: 'Feature' })}</p>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
-                {article.articleTitle}
+                {getLocalizedArticleField(article, 'articleTitle') || article.articleTitle}
               </h1>
               <div className={styles.articleMeta}>
                 <div className={`${styles.articleMetaPill} flex items-center`}>

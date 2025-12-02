@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../../../contexts/ToastContext';
 import { createVoucher } from '../../../services/voucherAPI';
@@ -18,6 +19,7 @@ const defaultState = {
 };
 
 const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) => {
+  const { t } = useTranslation();
   const { showSuccess } = useToast();
   const [form, setForm] = useState(defaultState);
   const [errors, setErrors] = useState({});
@@ -34,33 +36,33 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
   const validate = () => {
     const e = {};
-    if (!form.code || !form.code.trim()) e.code = 'Vui lòng nhập mã voucher';
-    if (!form.name || !form.name.trim()) e.name = 'Vui lòng nhập tên voucher';
-    if (!form.discountType) e.discountType = 'Vui lòng chọn loại giảm giá';
+    if (!form.code || !form.code.trim()) e.code = t('voucherCreate.errors.codeRequired');
+    if (!form.name || !form.name.trim()) e.name = t('voucherCreate.errors.nameRequired');
+    if (!form.discountType) e.discountType = t('voucherCreate.errors.discountTypeRequired');
     if (form.discountType && !form.discountValue) {
-      e.discountValue = 'Vui lòng nhập giá trị giảm';
+      e.discountValue = t('voucherCreate.errors.discountValueRequired');
     } else if (form.discountType === 'PERCENT') {
       const v = Number(form.discountValue);
-      if (isNaN(v) || v < 1 || v > 100) e.discountValue = 'Phần trăm từ 1 đến 100';
+      if (isNaN(v) || v < 1 || v > 100) e.discountValue = t('voucherCreate.errors.discountPercentRange');
     } else if (form.discountType === 'AMOUNT') {
       const v = Number(form.discountValue);
-      if (isNaN(v) || v < 1) e.discountValue = 'Giá trị giảm phải từ 1 trở lên (ví dụ: 100000 cho 100k)';
+      if (isNaN(v) || v < 1) e.discountValue = t('voucherCreate.errors.discountAmountMin');
     }
     if (!form.totalQuantity || Number(form.totalQuantity) < 1) {
-      e.totalQuantity = 'Số lượng phải lớn hơn 0';
+      e.totalQuantity = t('voucherCreate.errors.totalQuantityRequired');
     }
     // minOrderValue is optional, no validation needed
     if (!form.startDate) {
-      e.startDate = 'Vui lòng chọn ngày bắt đầu';
+      e.startDate = t('voucherCreate.errors.startDateRequired');
     }
     if (!form.endDate) {
-      e.endDate = 'Vui lòng chọn ngày kết thúc';
+      e.endDate = t('voucherCreate.errors.endDateRequired');
     }
     if (form.startDate && form.endDate) {
       const start = new Date(form.startDate);
       const end = new Date(form.endDate);
       if (end <= start) {
-        e.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
+        e.endDate = t('voucherCreate.errors.endDateAfterStart');
       }
     }
     setErrors(e);
@@ -71,7 +73,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     e.preventDefault();
     if (!validate()) return;
     if (!companyId) {
-      setErrors(prev => ({ ...prev, general: 'Không tìm thấy thông tin công ty' }));
+      setErrors(prev => ({ ...prev, general: t('voucherCreate.errors.companyNotFound') }));
       return;
     }
     
@@ -102,13 +104,13 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
       };
 
       await createVoucher(payload);
-      showSuccess('Tạo voucher thành công');
+      showSuccess(t('voucherCreate.success.created'));
       setErrors({}); // Clear all errors on success
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      setErrors(prev => ({ ...prev, general: error.message || 'Không thể tạo voucher. Vui lòng thử lại.' }));
+      setErrors(prev => ({ ...prev, general: error.message || t('voucherCreate.errors.createFailed') }));
     } finally {
       setIsSubmitting(false);
     }
@@ -168,12 +170,12 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Đóng"
+            aria-label={t('voucherCreate.close')}
             className={styles['modal-close-btn']}
           >
             <XMarkIcon className={styles['close-icon']} />
           </button>
-          <h3 className={styles['modal-title']}>Tạo voucher</h3>
+          <h3 className={styles['modal-title']}>{t('voucherCreate.title')}</h3>
         </div>
 
         {/* Body: scrollable form */}
@@ -181,27 +183,27 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
-                Mã voucher
+                {t('voucherCreate.fields.code')}
                 {errors.code && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
               <input 
                 className={`${styles['form-input']} ${errors.code ? styles['error'] : ''}`}
                 value={form.code} 
                 onChange={(e) => handleChange('code', e.target.value)}
-                placeholder="Ví dụ: VOUCHER001"
+                placeholder={t('voucherCreate.placeholders.code')}
               />
               {errors.code && <p className={styles['error-message']}>{errors.code}</p>}
             </div>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
-                Tên voucher
+                {t('voucherCreate.fields.name')}
                 {errors.name && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
               <input 
                 className={`${styles['form-input']} ${errors.name ? styles['error'] : ''}`}
                 value={form.name} 
                 onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="Ví dụ: Giảm 10% cho tour mùa hè"
+                placeholder={t('voucherCreate.placeholders.name')}
               />
               {errors.name && <p className={styles['error-message']}>{errors.name}</p>}
             </div>
@@ -210,7 +212,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
-                Loại giảm giá
+                {t('voucherCreate.fields.discountType')}
                 {errors.discountType && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
               <div className={styles['radio-group']}>
@@ -222,7 +224,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                     checked={form.discountType === 'AMOUNT'} 
                     onChange={() => handleChange('discountType', 'AMOUNT')} 
                   />
-                  <span>Giảm theo tiền</span>
+                  <span>{t('voucherManagement.discountTypes.fixed')}</span>
                 </label>
                 <label className={styles['radio-label']}>
                   <input 
@@ -232,7 +234,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                     checked={form.discountType === 'PERCENT'} 
                     onChange={() => handleChange('discountType', 'PERCENT')} 
                   />
-                  <span>Giảm theo %</span>
+                  <span>{t('voucherManagement.discountTypes.percent')}</span>
                 </label>
               </div>
               {errors.discountType && <p className={styles['error-message']}>{errors.discountType}</p>}
@@ -240,7 +242,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             {form.discountType && (
               <div className={styles['form-group']}>
                 <label className={styles['form-label']}>
-                  Giá trị giảm
+                  {t('voucherCreate.fields.discountValue')}
                   {errors.discountValue && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
                 </label>
                 <input
@@ -249,7 +251,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                   min={form.discountType === 'PERCENT' ? 1 : 1}
                   max={form.discountType === 'PERCENT' ? 100 : undefined}
                   step={form.discountType === 'PERCENT' ? 1 : 'any'}
-                  placeholder={form.discountType === 'PERCENT' ? 'Nhập % (1 - 100)' : 'Nhập số tiền VND (ví dụ: 100000 cho 100k)'}
+                  placeholder={form.discountType === 'PERCENT' ? t('voucherCreate.placeholders.discountPercent') : t('voucherCreate.placeholders.discountAmount')}
                   value={form.discountValue}
                   onKeyDown={(e) => {
                     if (form.discountType === 'PERCENT') {
@@ -289,7 +291,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <div className={styles['form-grid-3']}>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
-                Số lượng
+                {t('voucherCreate.fields.totalQuantity')}
                 {errors.totalQuantity && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
               <input 
@@ -302,7 +304,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
               {errors.totalQuantity && <p className={styles['error-message']}>{errors.totalQuantity}</p>}
             </div>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Đơn tối thiểu (VND)</label>
+              <label className={styles['form-label']}>{t('voucherCreate.fields.minOrderValue')}</label>
               <input 
                 className={styles['form-input']}
                 type="number" 
@@ -312,15 +314,15 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
               />
             </div>
             <div className={styles['form-group']}>
-              <label className={styles['form-label']}>Trạng thái</label>
+              <label className={styles['form-label']}>{t('voucherCreate.fields.status')}</label>
               <select 
                 className={styles['form-select']} 
                 value={form.status} 
                 onChange={(e) => handleChange('status', e.target.value)}
               >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-                <option value="EXPIRED">EXPIRED</option>
+                <option value="ACTIVE">{t('voucherManagement.status.ACTIVE')}</option>
+                <option value="INACTIVE">{t('voucherManagement.status.INACTIVE')}</option>
+                <option value="EXPIRED">{t('voucherManagement.status.EXPIRED')}</option>
               </select>
             </div>
           </div>
@@ -328,7 +330,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
           <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
-                Ngày bắt đầu
+                {t('voucherCreate.fields.startDate')}
                 {errors.startDate && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
               <input
@@ -342,7 +344,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             </div>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
-                Ngày kết thúc
+                {t('voucherCreate.fields.endDate')}
                 {errors.endDate && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
               <input
@@ -358,14 +360,14 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
           {/* Multi-select tours as dropdown */}
           <div className={styles['tour-dropdown-wrapper']} ref={dropdownRef}>
-            <label className={styles['form-label']}>Áp dụng cho tour</label>
+            <label className={styles['form-label']}>{t('voucherCreate.fields.applyToTours')}</label>
             <button
               type="button"
               onClick={() => setTourDropdownOpen((o) => !o)}
               className={styles['tour-dropdown-btn']}
             >
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {form.tourIds.length === 0 ? 'Chọn tour áp dụng' : `${form.tourIds.length} tour đã chọn`}
+                {form.tourIds.length === 0 ? t('voucherCreate.tourDropdown.select') : `${form.tourIds.length} ${t('voucherCreate.tourDropdown.selected')}`}
               </span>
               <svg 
                 className={`${styles['dropdown-arrow']} ${tourDropdownOpen ? styles['open'] : ''}`} 
@@ -381,7 +383,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                 style={{ maxHeight: `${panelMaxH}px` }}
               >
                 {tours?.length === 0 ? (
-                  <div className={styles['tour-dropdown-empty']}>Không có tour</div>
+                  <div className={styles['tour-dropdown-empty']}>{t('voucherCreate.tourDropdown.empty')}</div>
                 ) : (
                   tours?.map((t, i) => (
                     <label 
@@ -411,7 +413,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             disabled={isSubmitting}
             className={`${styles['footer-btn']} ${styles['btn-cancel']}`}
           >
-            Hủy
+            {t('voucherCreate.actions.cancel')}
           </button>
           <button 
             type="button" 
@@ -419,7 +421,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             disabled={isSubmitting || !companyId || Object.keys(errors).length > 0}
             className={`${styles['footer-btn']} ${styles['btn-submit']}`}
           >
-            {isSubmitting ? 'Đang tạo...' : 'Tạo'}
+            {isSubmitting ? t('voucherCreate.actions.creating') : t('voucherCreate.actions.create')}
           </button>
         </div>
       </div>

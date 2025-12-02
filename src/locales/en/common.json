@@ -1497,6 +1497,9 @@
 			"pendingPayment": "Pending Payment",
 			"waitingForApproved": "Waiting for Approval",
 			"waitingForUpdate": "Waiting for Update",
+			"bookingSuccessPending": "Approved (Awaiting Tour)",
+			"bookingSuccessWaitForConfirmed": "Awaiting Completion Confirmation",
+      "bookingUnderComplaint": "Under Complaint",
 			"bookingSuccess": "Booking Successful",
 			"bookingFailed": "Booking Failed",
 			"bookingRejected": "Booking Rejected"
@@ -2259,6 +2262,7 @@
       "dashboard": "Dashboard",
       "tourManagement": "Tour Management",
       "bookingManagement": "Booking Management",
+      "voucherManagement": "Voucher Management",
 			"businessInfo": "Business Info",
 			"companyInfo": "Company Info"
     },
@@ -2272,7 +2276,30 @@
       "totalTours": "Total Tours",
       "totalBookings": "Total Bookings",
       "totalRevenue": "Total Revenue",
-      "totalViews": "Total Views"
+      "totalViews": "Total Views",
+      "activeTours": "Active Tours"
+    },
+    "dashboard": {
+      "loading": "Loading...",
+      "revenueOverview": "Revenue Overview",
+      "revenueTrends": "Monthly revenue trends",
+      "bookingStatus": "Booking Status",
+      "bookingDistribution": "Distribution of bookings",
+      "quickStats": "Quick Stats",
+      "tourStatus": "Tour Status",
+      "pendingBookings": "Pending Bookings",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "activeTours": "Active Tours",
+      "totalTours": "Total Tours",
+      "inactive": "Inactive",
+      "chartLabels": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "active": "Active",
+        "cancelled": "Cancelled",
+        "totalBookings": "Total Bookings"
+      }
     },
     "analytics": {
       "sales": "Sales",
@@ -2323,6 +2350,298 @@
       "weekly": "Weekly",
       "daily": "Daily",
       "yLabel": "Total revenue acquisition"
+    }
+  },
+  "bookingManagement": {
+    "header": {
+      "title": "Tour Booking Management",
+      "subtitle": "View and manage all bookings by tour"
+    },
+    "stats": {
+      "totalBookings": "Total Bookings",
+      "successfulBookings": "Successful",
+      "pendingPayment": "Pending Payment",
+      "waitingApproval": "Waiting Approval"
+    },
+    "search": {
+      "placeholder": "Search by tour, customer name or booking code..."
+    },
+    "filters": {
+      "status": "Status:",
+      "allStatuses": "All Statuses",
+      "sortBy": "Sort by:"
+    },
+    "sort": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "tourAsc": "Tour Name (A-Z)",
+      "tourDesc": "Tour Name (Z-A)",
+      "amountDesc": "Amount (High to Low)",
+      "amountAsc": "Amount (Low to High)"
+    },
+    "table": {
+      "bookingId": "Booking ID",
+      "tour": "Tour",
+      "customer": "Customer",
+      "departureDate": "Departure Date",
+      "guests": "Guests",
+      "amount": "Amount",
+      "status": "Status",
+      "createdAt": "Created At"
+    },
+    "status": {
+      "PENDING_PAYMENT": "Pending Payment",
+      "WAITING_FOR_APPROVAL": "Waiting for Approval",
+      "WAITING_FOR_APPROVED": "Waiting for Approval",
+      "BOOKING_REJECTED": "Rejected",
+      "WAITING_FOR_UPDATE": "Waiting for Update",
+      "BOOKING_FAILED": "Failed",
+      "BOOKING_SUCCESS": "Success",
+      "BOOKING_SUCCESS_PENDING": "Success (Pending)",
+      "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Success (Wait for Confirmed)",
+      "BOOKING_UNDER_COMPLAINT": "Under Complaint"
+    },
+    "guests": {
+      "adults": "Adults",
+      "children": "Children",
+      "babies": "Babies"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of"
+    },
+    "empty": {
+      "noBookings": "No bookings found"
+    },
+    "errors": {
+      "loadFailed": "Unable to load booking list"
+    },
+    "loading": "Loading bookings...",
+    "tourSelector": {
+      "title": "Select tour to view bookings",
+      "loading": "Loading tour list...",
+      "empty": "No tours yet.",
+      "tourCode": "Tour code:",
+      "pagination": {
+        "showing": "Showing page",
+        "of": "of",
+        "tours": "tours"
+      }
+    },
+    "actions": {
+      "viewQuick": "Quick view",
+      "editBooking": "Edit booking",
+      "confirmTourCompletion": "Confirm tour completion",
+      "bookingPending": "Booking is in pending status, cannot access."
+    },
+    "modal": {
+      "title": "Booking #",
+      "tour": "Tour:",
+      "customer": "Customer",
+      "status": "Status",
+      "departureDate": "Departure Date",
+      "tourDuration": "Tour Duration",
+      "expectedEndDate": "Expected End Date",
+      "totalAmount": "Total Amount",
+      "createdAt": "Created At",
+      "unknown": "Unknown",
+      "days": "days"
+    }
+  },
+  "companyBookingWizard": {
+    "steps": {
+      "step1": {
+        "title": "Personal Information",
+        "description": "View and approve booking information"
+      },
+      "step2": {
+        "title": "Insurance Information",
+        "description": "Manage insurance status"
+      },
+      "step3": {
+        "title": "Confirmation",
+        "description": "Confirm booking success"
+      }
+    },
+    "header": {
+      "title": "Manage Booking #"
+    },
+    "readOnly": {
+      "title": "Read-only mode - Booking completed (BOOKING_SUCCESS)"
+    },
+    "navigation": {
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "processing": "Processing...",
+      "close": "Close"
+    },
+    "confirmModal": {
+      "title": "Confirm booking",
+      "message": "Are you sure you want to confirm booking #",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "description": "Booking will be moved to BOOKING_SUCCESS_PENDING status. When the tour ends, the system will require both company and customer to confirm completion."
+    },
+    "loading": {
+      "booking": "Loading booking information..."
+    },
+    "error": {
+      "title": "Error",
+      "notFound": "Booking not found",
+      "back": "Back"
+    },
+    "stepTooltips": {
+      "rejected": "Booking has been rejected - only step 1 is viewable",
+      "readOnlyOther": "Booking completed - Only step 3 is displayed",
+      "readOnlyStep3": "Booking completed (read-only)",
+      "completed": "Step completed (cannot go back)",
+      "notAccessible": "This step is not yet accessible"
+    },
+    "success": {
+      "bookingPending": "Booking has been moved to BOOKING_SUCCESS_PENDING status. The system will automatically wait for tour completion before requesting completion confirmation."
+    }
+  },
+  "voucherManagement": {
+    "title": "Voucher Management",
+    "loading": "Loading...",
+    "create": "Create voucher",
+    "loadingData": "Loading data...",
+    "warning": {
+      "title": "Company information not found.",
+      "message": "Please ensure you are logged in with a COMPANY role account and user information has been updated correctly.",
+      "currentInfo": "Current info: Role =",
+      "userId": "User ID ="
+    },
+    "empty": {
+      "message": "No vouchers yet. Create your first voucher!"
+    },
+    "card": {
+      "code": "Code",
+      "type": "Type:",
+      "value": "Value:",
+      "quantity": "Quantity:",
+      "remaining": "Remaining:",
+      "status": "Status:",
+      "appliedTo": "Applied to tour:",
+      "allTours": "Apply to all tours",
+      "startDate": "Start:",
+      "endDate": "Expires:"
+    },
+    "pagination": {
+      "showing": "Showing page",
+      "of": "of",
+      "vouchers": "vouchers"
+    },
+    "discountTypes": {
+      "percent": "Discount by %",
+      "fixed": "Discount by amount"
+    },
+    "status": {
+      "ACTIVE": "ACTIVE",
+      "INACTIVE": "INACTIVE",
+      "EXPIRED": "EXPIRED"
+    }
+  },
+  "voucherCreate": {
+    "title": "Create voucher",
+    "close": "Close",
+    "fields": {
+      "code": "Voucher code",
+      "name": "Voucher name",
+      "discountType": "Discount type",
+      "discountValue": "Discount value",
+      "totalQuantity": "Quantity",
+      "minOrderValue": "Minimum order (VND)",
+      "status": "Status",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "applyToTours": "Apply to tours"
+    },
+    "placeholders": {
+      "code": "Example: VOUCHER001",
+      "name": "Example: 10% discount for summer tour",
+      "discountPercent": "Enter % (1 - 100)",
+      "discountAmount": "Enter amount in VND (e.g., 100000 for 100k)"
+    },
+    "tourDropdown": {
+      "select": "Select tours to apply",
+      "selected": "tours selected",
+      "empty": "No tours"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "errors": {
+      "codeRequired": "Please enter voucher code",
+      "nameRequired": "Please enter voucher name",
+      "discountTypeRequired": "Please select discount type",
+      "discountValueRequired": "Please enter discount value",
+      "discountPercentRange": "Percentage must be between 1 and 100",
+      "discountAmountMin": "Discount value must be at least 1 (e.g., 100000 for 100k)",
+      "totalQuantityRequired": "Quantity must be greater than 0",
+      "startDateRequired": "Please select start date",
+      "endDateRequired": "Please select end date",
+      "endDateAfterStart": "End date must be after start date",
+      "companyNotFound": "Company information not found",
+      "createFailed": "Unable to create voucher. Please try again."
+    },
+    "success": {
+      "created": "Voucher created successfully"
+    }
+  },
+  "companyInfo": {
+    "title": "Business Account",
+    "description": "Your account has been confirmed as a business. You can access business features.",
+    "goToManagement": "Go to Management Page",
+    "goToHome": "Go to Home",
+    "pleaseLogin": "Please register/login with a Company account to continue.",
+    "registerCompany": "Register Company Account",
+    "login": "Login",
+    "upload": {
+      "title": "Booking Code",
+      "businessLicense": "Business License (PDF) *",
+      "idCardFront": "ID Card Front",
+      "idCardBack": "ID Card Back",
+      "selected": "Selected:",
+      "viewPending": "View Pending Page",
+      "tourName": "Tour Name",
+      "time": "Time",
+      "adultPrice": "Adult Price",
+      "image": "Image",
+      "status": "Status",
+      "userName": "User Name",
+      "noName": "No name",
+      "noPrice": "No price",
+      "uploaded": "Uploaded",
+      "notAvailable": "Not available",
+      "willShowInList": "Will show in tour list"
+    },
+    "errors": {
+      "businessLicenseRequired": "Please upload business license",
+      "idCardFrontRequired": "Please upload ID card front",
+      "idCardBackRequired": "Please upload ID card back",
+      "businessLicenseFormat": "Business license file must be PDF format",
+      "idCardFrontFormat": "ID card front file must be JPG, JPEG or PNG format",
+      "idCardBackFormat": "ID card back file must be JPG, JPEG or PNG format",
+      "businessLicenseSize": "Business license file must not exceed 25MB",
+      "idCardFrontSize": "ID card front file must not exceed 25MB",
+      "idCardBackSize": "ID card back file must not exceed 25MB",
+      "idCardRecognition": "Cannot recognize ID card in image. Please ensure:\n1) ID card image is clear, not blurry\n2) Not obscured or cropped\n3) Real photo (not screenshot)\n4) Sufficient lighting, no glare\n5) ID card must be intact, not torn",
+      "idCardProcessing": "Cannot process ID card image. Please check and upload a valid ID card image.",
+      "idCardRecognitionGeneric": "Cannot recognize ID card in image. Please upload a valid ID card image.",
+      "unknown": "Unknown error",
+      "serverError": "Server processing error. Please check ID card image and try again.",
+      "idCardIssue": "There is an issue with the ID card image. Please upload a valid ID card image.",
+      "submitFailed": "Failed to submit information. Please try again."
+    },
+    "loading": "Loading...",
+    "status": {
+      "pending": "Pending approval"
     }
   },
   "notifications": {

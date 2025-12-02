@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../config/api';
+import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL, getApiPath } from '../../../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentSection from '../CommentSection/CommentSection';
@@ -56,6 +56,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const userInfoRef = useRef(null);
   const imageContainerRef = useRef(null);
   const [imagesInViewport, setImagesInViewport] = useState(isFirstPost);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedText, setTranslatedText] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
+  const [translateError, setTranslateError] = useState('');
   
   // Cache for resolved image URLs to avoid repeated processing
   const imageUrlCache = useRef(new Map());
@@ -669,6 +673,45 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     });
   };
 
+  const handleTranslateClick = async () => {
+    if (!post?.content || isTranslating) return;
+
+    // Nếu đã có bản dịch rồi thì chỉ toggle hiển thị
+    if (translatedText) {
+      setShowTranslated(prev => !prev);
+      return;
+    }
+
+    try {
+      setIsTranslating(true);
+      setTranslateError('');
+
+      const response = await fetch(
+        getApiPath('/api/gemini/translate'),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: post.content }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Translate failed with status ${response.status}`);
+      }
+
+      const text = await response.text();
+      setTranslatedText(text || '');
+      setShowTranslated(true);
+    } catch (error) {
+      console.error('Error translating post content:', error);
+      setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const renderImages = () => {
     // Show tour preview (with skeleton if loading) or normal images
     // If tour ID exists, show tour preview area (either loading skeleton or actual preview)
@@ -943,6 +986,32 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                .join('\n')
            )}
          </p>
+        {showTranslated && translatedText && (
+          <div className={styles['post-translate-text']}>
+            {translatedText}
+          </div>
+        )}
+        {post.content && (
+          <div className={styles['post-translate-row']}>
+            <button
+              type="button"
+              className={styles['post-translate-link']}
+              onClick={handleTranslateClick}
+              disabled={isTranslating}
+            >
+              {isTranslating
+                ? 'Đang dịch...'
+                : showTranslated && translatedText
+                  ? 'Ẩn bản dịch'
+                  : 'Dịch nội dung'}
+            </button>
+          </div>
+        )}
+        {translateError && (
+          <div className={styles['post-translate-error']}>
+            {translateError}
+          </div>
+        )}
         
         {post.hashtags && post.hashtags.length > 0 && (
           <div className={styles['post-hashtags']}>

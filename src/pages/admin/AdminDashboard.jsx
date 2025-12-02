@@ -9,6 +9,7 @@ import UserManagement from './UserManagement/UserManagement';
 import CustomerManagement from './CustomerManagement/CustomerManagement';
 import ReportManagement from './ReportManagement/ReportManagement';
 import ForumManagement from './ForumManagement/ForumManagement';
+import ComplaintManagement from './ComplaintManagement/ComplaintManagement';
 import CustomerContact from './CustomerContact/CustomerContact';
 import NewsManagement from './NewsManagement/NewsManagement';
 import TransactionManagement from './TransactionManagement/TransactionManagement';
@@ -77,6 +78,7 @@ const AdminDashboard = () => {
         <Route path="/contact" element={<CustomerContact />} />
         <Route path="/news" element={<NewsManagement />} />
         <Route path="/transactions" element={<TransactionManagement />} />
+        <Route path="/complaints" element={<ComplaintManagement />} />
         <Route path="/forum-reports" element={
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p className="mt-4 text-gray-600">Đang tải...</p></div></div>}>
             <ForumReportManagement />

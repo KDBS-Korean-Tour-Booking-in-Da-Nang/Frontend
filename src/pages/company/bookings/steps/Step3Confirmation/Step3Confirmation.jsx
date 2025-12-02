@@ -21,6 +21,10 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'BOOKING_SUCCESS':
       return '#10B981';
+    case 'BOOKING_SUCCESS_PENDING':
+      return '#F97316';
+    case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+      return '#2563EB';
     case 'PENDING_PAYMENT':
       return '#F59E0B';
     case 'WAITING_FOR_APPROVED':
@@ -37,11 +41,19 @@ const getStatusColor = (status) => {
 
 const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish, isReadOnly = false }) => {
   const { showSuccess } = useToast();
+  const STATUS_SUCCESS = 'BOOKING_SUCCESS';
+  const STATUS_SUCCESS_PENDING = 'BOOKING_SUCCESS_PENDING';
+  const STATUS_SUCCESS_WAIT = 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
   const [tourCompleted, setTourCompleted] = useState(false);
   const [companyConfirmed, setCompanyConfirmed] = useState(booking?.companyConfirmedCompletion || false);
   const [userConfirmed, setUserConfirmed] = useState(booking?.userConfirmedCompletion || false);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+
+  const isStatusPendingCompletion = booking?.bookingStatus === STATUS_SUCCESS_PENDING;
+  const isStatusWaitingConfirm = booking?.bookingStatus === STATUS_SUCCESS_WAIT;
+  const isStatusCompleted = booking?.bookingStatus === STATUS_SUCCESS;
+  const shouldRenderCompletionSection = isStatusPendingCompletion || isStatusWaitingConfirm || isStatusCompleted;
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -78,17 +90,20 @@ const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish,
     if (booking) {
       setCompanyConfirmed(booking.companyConfirmedCompletion || false);
       setUserConfirmed(booking.userConfirmedCompletion || false);
-      // Check if tour is completed (both confirmed)
-      const isCompleted = (booking.companyConfirmedCompletion && booking.userConfirmedCompletion) || false;
+      // Check if tour is completed (both confirmed or backend already finalized)
+      const isCompleted =
+        booking.bookingStatus === STATUS_SUCCESS ||
+        (booking.companyConfirmedCompletion && booking.userConfirmedCompletion) ||
+        false;
       setTourCompleted(isCompleted);
     }
-  }, [booking]);
+  }, [booking, STATUS_SUCCESS]);
 
   // Check tour completion status on mount and refresh periodically
 useEffect(() => {
   if (!booking?.bookingId) return;
 
-  if (booking.bookingStatus !== 'BOOKING_SUCCESS') {
+  if (!isStatusWaitingConfirm && !isStatusCompleted) {
     setTourCompleted(false);
     setCheckingStatus(false);
     return;
@@ -121,11 +136,11 @@ useEffect(() => {
     isMounted = false;
     clearInterval(interval);
   };
-}, [booking?.bookingId, booking?.bookingStatus]);
+}, [booking?.bookingId, booking?.bookingStatus, isStatusCompleted, isStatusWaitingConfirm]);
 
   // Handle company confirm tour completion
   const handleConfirmCompletion = async () => {
-    if (!booking?.bookingId) return;
+    if (!booking?.bookingId || !isStatusWaitingConfirm) return;
     
     if (!window.confirm('Bạn có chắc chắn muốn xác nhận tour đã hoàn thành?')) {
       return;
@@ -200,8 +215,8 @@ useEffect(() => {
 
   // Check if tour has ended (can be confirmed)
   const canConfirmCompletion = () => {
-    // Only allow if booking status is SUCCESS
-    if (!booking?.bookingId || booking?.bookingStatus !== 'BOOKING_SUCCESS') {
+    // Only allow if booking status is waiting for confirmation
+    if (!booking?.bookingId || !isStatusWaitingConfirm) {
       return false;
     }
     
@@ -222,12 +237,12 @@ useEffect(() => {
 
   // Check if should show auto-confirm message (one party confirmed, waiting for other)
   const shouldShowAutoConfirmMessage = () => {
-    if (!canConfirmCompletion() || tourCompleted) return false;
+    if (!isStatusWaitingConfirm || !canConfirmCompletion() || tourCompleted) return false;
     // Show if one party confirmed but not both
     return (companyConfirmed && !userConfirmed) || (!companyConfirmed && userConfirmed);
   };
 
-  const headerTitle = isReadOnly || booking?.bookingStatus === 'BOOKING_SUCCESS'
+  const headerTitle = isReadOnly || isStatusCompleted
     ? 'Booking đã được xác nhận thành công!'
     : 'Xác nhận booking';
 
@@ -236,7 +251,9 @@ useEffect(() => {
     : `Xem lại toàn bộ thông tin của booking #${booking?.bookingId} và hoàn tất chuyến đi.`;
 
   const statusAccent = (() => {
-    if (tourCompleted) return '#12b76a';
+    if (tourCompleted || isStatusCompleted) return '#12b76a';
+    if (isStatusWaitingConfirm) return '#f97316';
+    if (isStatusPendingCompletion) return '#f59e0b';
     if (companyConfirmed || userConfirmed) return '#f6c344';
     return '#1a8eea';
   })();
@@ -390,7 +407,7 @@ useEffect(() => {
       </div>
 
       {/* Tour Completion Section */}
-      {canConfirmCompletion() && (
+      {shouldRenderCompletionSection && (
         <div className={styles.completionSection}>
           <h3 className={styles.sectionTitle}>
             <ShieldCheck className={styles.sectionIcon} strokeWidth={1.5} />
@@ -431,81 +448,98 @@ useEffect(() => {
             )}
           </div>
 
-          {checkingStatus ? (
-            <div className={styles.loading}>
-              <p>Đang kiểm tra trạng thái tour...</p>
+          {isStatusWaitingConfirm ? (
+            checkingStatus ? (
+              <div className={styles.loading}>
+                <p>Đang kiểm tra trạng thái tour...</p>
+              </div>
+            ) : tourCompleted ? (
+              <div className={styles.completionStatus}>
+                <CheckCircle2 className={styles.completionCheckIcon} strokeWidth={1.8} />
+                <p className={styles.completionMessage}>
+                  Tour đã được xác nhận hoàn thành bởi cả hai bên. Thanh toán sẽ được chuyển đến tài khoản của công ty.
+                </p>
+              </div>
+            ) : (
+              <div className={styles.completionActions}>
+                {shouldShowAutoConfirmMessage() && (
+                  <div className={styles.autoConfirmWarning}>
+                    <AlertTriangle className={styles.autoConfirmIcon} strokeWidth={1.5} />
+                    <p className={styles.autoConfirmText}>
+                      {companyConfirmed 
+                        ? `Bạn đã xác nhận. Đang chờ khách hàng xác nhận. Nếu khách hàng không xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}), hệ thống sẽ tự động xác nhận.`
+                        : `Khách hàng đã xác nhận. Bạn có thể xác nhận ngay hoặc hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}).`}
+                    </p>
+                  </div>
+                )}
+                
+                {!companyConfirmed && (
+                  <>
+                    <p className={styles.completionInfo}>
+                      Tour đã kết thúc vào ngày <strong>{getTourEndDate()}</strong>. 
+                      Bạn có thể xác nhận tour đã hoàn thành để tiến hành thanh toán.
+                    </p>
+                    <button
+                      onClick={handleConfirmCompletion}
+                      disabled={loading || companyConfirmed}
+                      className={styles.confirmButton}
+                    >
+                      {loading ? 'Đang xử lý...' : 'Xác nhận tour hoàn thành'}
+                    </button>
+                    <p className={styles.completionNote}>
+                      * Sau khi bạn xác nhận:
+                      <ul style={{ margin: '0.5rem 0 0 1.5rem', padding: 0 }}>
+                        <li>Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay lập tức.</li>
+                        <li>Nếu khách hàng chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {getAutoConfirmedDate()}).</li>
+                      </ul>
+                    </p>
+                  </>
+                )}
+                
+                {companyConfirmed && !tourCompleted && (
+                  <div className={styles.waitingMessage}>
+                    <p className={styles.completionInfo}>
+                      Bạn đã xác nhận tour hoàn thành. Đang chờ khách hàng xác nhận.
+                    </p>
+                    <p className={styles.completionNote}>
+                      Nếu khách hàng xác nhận, thanh toán sẽ được chuyển ngay. 
+                      Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {getAutoConfirmedDate()}).
+                    </p>
+                  </div>
+                )}
+              </div>
+            )
+          ) : isStatusPendingCompletion ? (
+            <div className={styles.waitingMessage}>
+              <p className={styles.completionInfo}>
+                Booking đã hoàn tất các bước phê duyệt và đang chờ tour diễn ra/hoàn tất (trạng thái BOOKING_SUCCESS_PENDING).
+              </p>
+              <p className={styles.completionNote}>
+                Sau khi tour kết thúc, hệ thống sẽ tự động chuyển sang trạng thái BOOKING_SUCCESS_WAIT_FOR_CONFIRMED để công ty và khách hàng xác nhận hoàn tất.
+              </p>
             </div>
-          ) : tourCompleted ? (
+          ) : (
             <div className={styles.completionStatus}>
               <CheckCircle2 className={styles.completionCheckIcon} strokeWidth={1.8} />
               <p className={styles.completionMessage}>
                 Tour đã được xác nhận hoàn thành bởi cả hai bên. Thanh toán sẽ được chuyển đến tài khoản của công ty.
               </p>
             </div>
-          ) : (
-            <div className={styles.completionActions}>
-              {shouldShowAutoConfirmMessage() && (
-                <div className={styles.autoConfirmWarning}>
-                  <AlertTriangle className={styles.autoConfirmIcon} strokeWidth={1.5} />
-                  <p className={styles.autoConfirmText}>
-                    {companyConfirmed 
-                      ? `Bạn đã xác nhận. Đang chờ khách hàng xác nhận. Nếu khách hàng không xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}), hệ thống sẽ tự động xác nhận.`
-                      : `Khách hàng đã xác nhận. Bạn có thể xác nhận ngay hoặc hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}).`}
-                  </p>
-                </div>
-              )}
-              
-              {!companyConfirmed && (
-                <>
-                  <p className={styles.completionInfo}>
-                    Tour đã kết thúc vào ngày <strong>{getTourEndDate()}</strong>. 
-                    Bạn có thể xác nhận tour đã hoàn thành để tiến hành thanh toán.
-                  </p>
-                  <button
-                    onClick={handleConfirmCompletion}
-                    disabled={loading || companyConfirmed}
-                    className={styles.confirmButton}
-                  >
-                    {loading ? 'Đang xử lý...' : 'Xác nhận tour hoàn thành'}
-                  </button>
-                  <p className={styles.completionNote}>
-                    * Sau khi bạn xác nhận:
-                    <ul style={{ margin: '0.5rem 0 0 1.5rem', padding: 0 }}>
-                      <li>Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay lập tức.</li>
-                      <li>Nếu khách hàng chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {getAutoConfirmedDate()}).</li>
-                    </ul>
-                  </p>
-                </>
-              )}
-              
-              {companyConfirmed && !tourCompleted && (
-                <div className={styles.waitingMessage}>
-                  <p className={styles.completionInfo}>
-                    Bạn đã xác nhận tour hoàn thành. Đang chờ khách hàng xác nhận.
-                  </p>
-                  <p className={styles.completionNote}>
-                    Nếu khách hàng xác nhận, thanh toán sẽ được chuyển ngay. 
-                    Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {getAutoConfirmedDate()}).
-                  </p>
-                </div>
-              )}
-            </div>
           )}
         </div>
       )}
 
       {/* Note about tour completion */}
-      {!canConfirmCompletion() && booking?.bookingStatus === 'BOOKING_SUCCESS' && (
+      {isStatusPendingCompletion && (
         <div className={styles.note}>
           <h4 className={styles.noteTitle}>Lưu ý:</h4>
           <p className={styles.noteText}>
-            Sau khi tour kết thúc (ngày khởi hành + thời lượng tour), hệ thống sẽ tự động gửi thông báo xác nhận tour kết thúc.
-            Cả company và khách hàng đều có thể tick xác nhận tour kết thúc.
+            Booking đang trong trạng thái BOOKING_SUCCESS_PENDING. Sau khi tour kết thúc (ngày khởi hành + thời lượng tour), hệ thống sẽ chuyển sang BOOKING_SUCCESS_WAIT_FOR_CONFIRMED để cả công ty và khách hàng xác nhận tour đã hoàn tất.
           </p>
           <ul className={styles.noteList}>
-            <li>Cả 2 cùng tick: Tiền từ hệ thống sẽ chuyển về lại cho company</li>
-            <li>Người dùng tick, company không tick: Sau 3 ngày tour sẽ auto được ghi nhận là đã kết thúc</li>
-            <li>Company tick, người dùng không tick: Sau 3 ngày tour sẽ auto được ghi nhận là đã kết thúc</li>
+            <li>Cả 2 cùng tick: tiền sẽ chuyển ngay về công ty.</li>
+            <li>Chỉ khách hàng tick: Sau 3 ngày hệ thống tự động xác nhận.</li>
+            <li>Chỉ công ty tick: Sau 3 ngày hệ thống tự động xác nhận.</li>
           </ul>
           {booking?.tourEndDate && (
             <p className={styles.noteText} style={{ marginTop: '1rem' }}>
