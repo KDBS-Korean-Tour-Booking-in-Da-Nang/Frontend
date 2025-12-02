@@ -13,7 +13,7 @@ import ForumManagement from './ForumManagement/ForumManagement';
 import ComplaintManagement from './ComplaintManagement/ComplaintManagement';
 import ResolveTicketManagement from './ResolveTicketManagement/ResolveTicketManagement';
 import CustomerContact from './CustomerContact/CustomerContact';
-import NewsManagement from './NewsManagement/NewsManagement';
+import ArticleManagement from './ArticleManagement/ArticleManagement';
 import TransactionManagement from './TransactionManagement/TransactionManagement';
 
 // Lazy load components to avoid top-level import issues with useAuth
@@ -79,7 +79,7 @@ const AdminDashboard = () => {
         <Route path="/forum" element={<ForumManagement />} />
         <Route path="/customers" element={<CustomerManagement />} />
         <Route path="/contact" element={<CustomerContact />} />
-        <Route path="/news" element={<NewsManagement />} />
+        <Route path="/article" element={<ArticleManagement />} />
         <Route path="/transactions" element={<TransactionManagement />} />
         <Route path="/complaints" element={<ComplaintManagement />} />
         <Route path="/resolve-tickets" element={<ResolveTicketManagement />} />

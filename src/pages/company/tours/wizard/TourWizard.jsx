@@ -32,37 +32,62 @@ const TourWizardContent = () => {
   const { isStepCompleted, getStepErrors, stepValidations } = useStepValidation(tourData);
 
   // Calculate if Next button should be disabled using useMemo
-  // Button is enabled by default, only disabled after user clicks Next and there are errors
+  // Button is enabled by default, only disabled when there are validation errors
   const isNextButtonDisabled = useMemo(() => {
     if (currentStep >= 4) return false;
     
-    // Only disable if user has attempted to proceed and there are errors
+    // Disable if there are validation errors (from blur or from clicking Next)
     if (currentStep === 1) {
-      // Disable only if user clicked Next and validation failed
-      if (step1ValidationAttempted && stepHasErrors[1]) {
+      if (stepHasErrors[1]) {
         return true;
       }
       return false;
     }
     
     if (currentStep === 2) {
-      // Disable only if user clicked Next and validation failed
-      if (step2ValidationAttempted && stepHasErrors[2]) {
+      if (stepHasErrors[2]) {
         return true;
       }
       return false;
     }
     
     if (currentStep === 3) {
-      // Disable only if user clicked Next and validation failed
-      if (step3ValidationAttempted && stepHasErrors[3]) {
+      if (stepHasErrors[3]) {
+        return true;
+      }
+      // Also check stepValidations to ensure prices meet minimum requirement
+      const stepKey = `step${currentStep}`;
+      const isCurrentStepValid = stepValidations[stepKey]?.isValid;
+      if (!isCurrentStepValid) {
         return true;
       }
       return false;
     }
     
     return false;
-  }, [currentStep, stepHasErrors, step1ValidationAttempted, step2ValidationAttempted, step3ValidationAttempted]);
+  }, [currentStep, stepValidations, stepHasErrors]);
+
+  // Reset validation attempted state and errors when entering a new step
+  // This ensures button Next is enabled when entering a new step
+  useEffect(() => {
+    // Reset validation attempted state and errors for the current step when entering it
+    // This only runs when currentStep changes, ensuring button is enabled on step entry
+    if (currentStep === 1) {
+      setStep1ValidationAttempted(false);
+      setStepHasErrors(prev => ({ ...prev, [1]: false }));
+    } else if (currentStep === 2) {
+      setStep2ValidationAttempted(false);
+      setStepHasErrors(prev => ({ ...prev, [2]: false }));
+    } else if (currentStep === 3) {
+      setStep3ValidationAttempted(false);
+      setStepHasErrors(prev => ({ ...prev, [3]: false }));
+    } else if (currentStep === 4) {
+      setStep4ValidationAttempted(false);
+      setStepHasErrors(prev => ({ ...prev, [4]: false }));
+    }
+    // Clear errors for the current step
+    window.dispatchEvent(new CustomEvent('clearStepErrors', { detail: { step: currentStep } }));
+  }, [currentStep]);
 
   // Reset stepValidationAttempted when step becomes valid (only for current step)
   useEffect(() => {
@@ -513,96 +538,98 @@ const TourWizardContent = () => {
   };
 
   return (
-    <div className={styles['tour-wizard']}>
-      {/* Progress Bar */}
-      <div className={styles['progress-container']}>
-        <div className={styles['progress-bar']}>
-          <div 
-            className={styles['progress-fill']} 
-            style={{ width: `${(currentStep / 4) * 100}%` }}
-          />
-        </div>
-        <div className={styles['progress-steps']}>
-        {steps.map((step) => (
-          <div 
-            key={step.id} 
-            className={`${styles['progress-step']} ${
-              currentStep === step.id ? styles['active'] : 
-              isStepCompleted(step.id) ? styles['completed'] : ''
-            }`}
-            onClick={() => handleStepClick(step.id)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleStepClick(step.id);
-              }
-            }}
-            role="button"
-            tabIndex={0}
-          >
-            <div className={styles['step-number']}>{step.id}</div>
-            <div className={styles['step-info']}>
-              <div className={styles['step-title']}>{step.title}</div>
-              <div className={styles['step-description']}>{step.description}</div>
+    <>
+      <div className={styles['tour-wizard']}>
+        {/* Progress Bar */}
+        <div className={styles['progress-container']}>
+          <div className={styles['progress-bar']}>
+            <div 
+              className={styles['progress-fill']} 
+              style={{ width: `${(currentStep / 4) * 100}%` }}
+            />
+          </div>
+          <div className={styles['progress-steps']}>
+          {steps.map((step) => (
+            <div 
+              key={step.id} 
+              className={`${styles['progress-step']} ${
+                currentStep === step.id ? styles['active'] : 
+                isStepCompleted(step.id) ? styles['completed'] : ''
+              }`}
+              onClick={() => handleStepClick(step.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleStepClick(step.id);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+            >
+              <div className={styles['step-number']}>{step.id}</div>
+              <div className={styles['step-info']}>
+                <div className={styles['step-title']}>{step.title}</div>
+                <div className={styles['step-description']}>{step.description}</div>
+              </div>
             </div>
+          ))}
           </div>
-        ))}
         </div>
-      </div>
 
-      {/* Step Content */}
-      <div className={styles['step-content']}>
-        {submitError && (
-          <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
-            {submitError}
-          </div>
-        )}
-        {renderCurrentStep()}
-      </div>
+        {/* Step Content */}
+        <div className={styles['step-content']}>
+          {submitError && (
+            <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
+              {submitError}
+            </div>
+          )}
+          {renderCurrentStep()}
+        </div>
 
-      {/* Navigation Buttons */}
-      <div className={styles['step-navigation']}>
-        <button 
-          type="button" 
-          className={styles['btn-secondary']} 
-          onClick={prevStep}
-          disabled={currentStep === 1}
-        >
-          {t('tourWizard.navigation.back')}
-        </button>
-        
-         {currentStep < 4 ? (
-           <button 
-             type="button" 
-             className={styles['btn-primary']} 
-             onClick={nextStep}
-             disabled={isNextButtonDisabled}
-             style={{
-               opacity: isNextButtonDisabled ? 0.5 : 1,
-               cursor: isNextButtonDisabled ? 'not-allowed' : 'pointer'
-             }}
-           >
-             {t('tourWizard.navigation.next')}
-           </button>
-        ) : (
+        {/* Navigation Buttons */}
+        <div className={styles['step-navigation']}>
           <button 
             type="button" 
-            className={styles['btn-success']} 
-            onClick={handleSubmit}
-            disabled={isSubmitting || !!submitError}
+            className={styles['btn-secondary']} 
+            onClick={prevStep}
+            disabled={currentStep === 1}
           >
-            {isSubmitting ? t('tourWizard.navigation.creating') : t('tourWizard.navigation.complete')}
+            {t('tourWizard.navigation.back')}
           </button>
-        )}
+          
+           {currentStep < 4 ? (
+             <button 
+               type="button" 
+               className={styles['btn-primary']} 
+               onClick={nextStep}
+               disabled={isNextButtonDisabled}
+               style={{
+                 opacity: isNextButtonDisabled ? 0.5 : 1,
+                 cursor: isNextButtonDisabled ? 'not-allowed' : 'pointer'
+               }}
+             >
+               {t('tourWizard.navigation.next')}
+             </button>
+          ) : (
+            <button 
+              type="button" 
+              className={styles['btn-success']} 
+              onClick={handleSubmit}
+              disabled={isSubmitting || !!submitError}
+            >
+              {isSubmitting ? t('tourWizard.navigation.creating') : t('tourWizard.navigation.complete')}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Confirm Leave Modal */}
+      {/* Confirm Leave Modal - Rendered outside wizard container */}
       <ConfirmLeaveModal 
         open={showLeaveConfirm}
         onCancel={handleCancelLeave}
         onConfirm={handleConfirmLeave}
       />
-    </div>
+    </>
   );
 };
 

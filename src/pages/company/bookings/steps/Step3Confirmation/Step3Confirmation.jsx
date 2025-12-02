@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
   CalendarCheck2,
@@ -15,7 +17,8 @@ import {
   Phone
 } from 'lucide-react';
 import { useToast } from '../../../../../contexts/ToastContext';
-import { companyConfirmTourCompletion, getTourCompletionStatus } from '../../../../../services/bookingAPI';
+import { companyConfirmTourCompletion, getTourCompletionStatus, changeBookingStatus, changeBookingGuestInsuranceStatus } from '../../../../../services/bookingAPI';
+import { DeleteConfirmModal } from '../../../../../components/modals';
 import styles from './Step3Confirmation.module.css';
 const getStatusColor = (status) => {
   switch (status) {
@@ -39,8 +42,22 @@ const getStatusColor = (status) => {
   }
 };
 
-const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish, isReadOnly = false }) => {
+const Step3Confirmation = ({ 
+  booking, 
+  guests, 
+  onBookingUpdate, 
+  onBack, 
+  onFinish, 
+  isReadOnly = false,
+  pendingInsuranceUpdates = [],
+  bookingId,
+  tourId,
+  onMarkStepsCompleted,
+  onClearInsuranceUpdates
+}) => {
+  const { t } = useTranslation();
   const { showSuccess } = useToast();
+  const navigate = useNavigate();
   const STATUS_SUCCESS = 'BOOKING_SUCCESS';
   const STATUS_SUCCESS_PENDING = 'BOOKING_SUCCESS_PENDING';
   const STATUS_SUCCESS_WAIT = 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
@@ -49,6 +66,8 @@ const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish,
   const [userConfirmed, setUserConfirmed] = useState(booking?.userConfirmedCompletion || false);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [confirmingBooking, setConfirmingBooking] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const isStatusPendingCompletion = booking?.bookingStatus === STATUS_SUCCESS_PENDING;
   const isStatusWaitingConfirm = booking?.bookingStatus === STATUS_SUCCESS_WAIT;
@@ -75,11 +94,11 @@ const Step3Confirmation = ({ booking, guests, onBookingUpdate, onBack, onFinish,
   const getGuestTypeLabel = (type) => {
     switch (type) {
       case 'ADULT':
-        return 'Người lớn';
+        return t('booking.step2.guestTypes.adult');
       case 'CHILD':
-        return 'Trẻ em';
+        return t('booking.step2.guestTypes.child');
       case 'BABY':
-        return 'Em bé';
+        return t('booking.step2.guestTypes.baby');
       default:
         return type;
     }
@@ -138,6 +157,76 @@ useEffect(() => {
   };
 }, [booking?.bookingId, booking?.bookingStatus, isStatusCompleted, isStatusWaitingConfirm]);
 
+  // Handle finish button - show confirmation modal
+  const handleFinish = () => {
+    // Check if booking is already confirmed
+    if (booking?.bookingStatus === 'BOOKING_SUCCESS') {
+      // Already confirmed, just navigate to booking management
+      navigateToBookingManagement();
+      return;
+    }
+
+    // Show confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  // Navigate to booking management page
+  const navigateToBookingManagement = () => {
+    if (tourId) {
+      navigate(`/company/bookings?tourId=${tourId}`);
+    } else {
+      navigate('/company/bookings');
+    }
+  };
+
+  // Handle booking confirmation - called from modal
+  const handleConfirmBooking = async () => {
+    if (!booking?.bookingId) return;
+
+    try {
+      setConfirmingBooking(true);
+      setShowConfirmModal(false);
+
+      if (pendingInsuranceUpdates.length > 0) {
+        await Promise.all(
+          pendingInsuranceUpdates.map(change =>
+            changeBookingGuestInsuranceStatus(change.guestId, change.status)
+          )
+        );
+      }
+      
+      // Change booking status to BOOKING_SUCCESS_PENDING - company waits for tour completion
+      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_SUCCESS_PENDING');
+      
+      // Update booking state
+      if (onBookingUpdate) {
+        onBookingUpdate(updatedBooking);
+      }
+      
+      // Clear insurance updates
+      if (onClearInsuranceUpdates) {
+        onClearInsuranceUpdates();
+      }
+      
+      // Mark all steps as completed in local progress tracking
+      if (onMarkStepsCompleted) {
+        onMarkStepsCompleted(new Set([1, 2, 3]));
+      }
+      
+      showSuccess('Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất.');
+      
+      // Navigate to booking management after a short delay to show success message
+      setTimeout(() => {
+        navigateToBookingManagement();
+      }, 1500);
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      showSuccess(error.message || 'Không thể xác nhận booking');
+    } finally {
+      setConfirmingBooking(false);
+    }
+  };
+
   // Handle company confirm tour completion
   const handleConfirmCompletion = async () => {
     if (!booking?.bookingId || !isStatusWaitingConfirm) return;
@@ -181,9 +270,13 @@ useEffect(() => {
       }
       
       if (isCompleted) {
-        showSuccess('Tour đã được xác nhận hoàn thành bởi cả hai bên! Thanh toán sẽ được chuyển đến công ty.');
+        showSuccess(t('companyBookingWizard.confirmation.toasts.completedByBoth'));
       } else {
-        showSuccess('Đã xác nhận tour hoàn thành! Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay. Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày ' + getAutoConfirmedDate() + ').');
+        showSuccess(
+          t('companyBookingWizard.confirmation.toasts.companyConfirmed', {
+            date: getAutoConfirmedDate()
+          })
+        );
       }
     } catch (error) {
       // Error confirming tour completion - show in UI if needed
@@ -243,12 +336,12 @@ useEffect(() => {
   };
 
   const headerTitle = isReadOnly || isStatusCompleted
-    ? 'Booking đã được xác nhận thành công!'
-    : 'Xác nhận booking';
+    ? t('companyBookingWizard.confirmation.header.successTitle')
+    : t('companyBookingWizard.confirmation.header.title');
 
   const headerDescription = isReadOnly
-    ? 'Chế độ chỉ đọc: bạn có thể xem trạng thái hoàn tất và thông tin tour.'
-    : `Xem lại toàn bộ thông tin của booking #${booking?.bookingId} và hoàn tất chuyến đi.`;
+    ? t('companyBookingWizard.confirmation.header.readOnlyDescription')
+    : t('companyBookingWizard.confirmation.header.description', { bookingId: booking?.bookingId });
 
   const statusAccent = (() => {
     if (tourCompleted || isStatusCompleted) return '#12b76a';
@@ -259,6 +352,7 @@ useEffect(() => {
   })();
 
   return (
+    <>
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.headerCard}>
@@ -266,7 +360,7 @@ useEffect(() => {
             <CheckCircle2 strokeWidth={1.6} />
           </div>
           <div className={styles.headerContent}>
-            <p className={styles.headerLabel}>Bước 3 / 3</p>
+            <p className={styles.headerLabel}>{t('companyBookingWizard.confirmation.header.stepBadge')}</p>
             <h2 className={styles.title}>{headerTitle}</h2>
             <p className={styles.description}>{headerDescription}</p>
           </div>
@@ -280,7 +374,7 @@ useEffect(() => {
                 backgroundColor: `${statusAccent}12`
               }}
             >
-              {tourCompleted ? 'COMPLETED' : booking?.bookingStatus || '-'}
+              {tourCompleted ? t('companyBookingWizard.confirmation.status.completed') : booking?.bookingStatus || '-'}
             </span>
           </div>
         </div>
@@ -290,48 +384,48 @@ useEffect(() => {
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
           <CalendarCheck2 className={styles.sectionIcon} strokeWidth={1.5} />
-          Tóm tắt booking
+          {t('companyBookingWizard.confirmation.sections.bookingSummary')}
         </h3>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <Hash className={styles.itemIcon} />
-              Mã booking:
+              {t('companyBookingWizard.confirmation.fields.bookingCode')}
             </span>
             <span className={styles.value}>#{booking.bookingId}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <ClipboardList className={styles.itemIcon} />
-              Tour:
+              {t('companyBookingWizard.confirmation.fields.tour')}
             </span>
             <span className={styles.value}>{booking.tourName || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <CalendarDays className={styles.itemIcon} />
-              Ngày khởi hành:
+              {t('companyBookingWizard.confirmation.fields.departureDate')}
             </span>
             <span className={styles.value}>{formatDate(booking.departureDate)}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <CalendarDays className={styles.itemIcon} />
-              Ngày kết thúc (dự kiến):
+              {t('companyBookingWizard.confirmation.fields.expectedEndDate')}
             </span>
             <span className={styles.value}>{getTourEndDate() || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <Users className={styles.itemIcon} />
-              Tổng số khách:
+              {t('companyBookingWizard.confirmation.fields.totalGuests')}
             </span>
             <span className={styles.value}>{booking.totalGuests || 0}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <ShieldCheck className={styles.itemIcon} />
-              Trạng thái:
+              {t('companyBookingWizard.confirmation.fields.status')}
             </span>
             <span
               className={`${styles.value} ${styles.statusValue}`}
@@ -347,27 +441,27 @@ useEffect(() => {
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
           <Mail className={styles.sectionIcon} strokeWidth={1.5} />
-          Thông tin liên hệ
+          {t('companyBookingWizard.confirmation.sections.contactInfo')}
         </h3>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <UserRound className={styles.itemIcon} />
-              Họ tên:
+              {t('booking.step1.fields.fullName')}:
             </span>
             <span className={styles.value}>{booking.contactName || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <AtSign className={styles.itemIcon} />
-              Email:
+              {t('booking.step1.fields.email')}:
             </span>
             <span className={styles.value}>{booking.contactEmail || '-'}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.label}>
               <Phone className={styles.itemIcon} />
-              Số điện thoại:
+              {t('booking.step1.fields.phone')}:
             </span>
             <span className={styles.value}>{booking.contactPhone || '-'}</span>
           </div>
@@ -378,7 +472,7 @@ useEffect(() => {
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
           <UsersRound className={styles.sectionIcon} strokeWidth={1.5} />
-          Danh sách khách đã duyệt
+          {t('companyBookingWizard.confirmation.sections.guestsApproved')}
         </h3>
         {guests && guests.length > 0 ? (
           <div className={styles.guestsList}>
@@ -391,7 +485,7 @@ useEffect(() => {
                     <div className={styles.guestMeta}>
                       <span>{getGuestTypeLabel(guest.bookingGuestType)}</span>
                       <span className={styles.separator}>•</span>
-                      <span>Bảo hiểm: {guest.insuranceStatus === 'Success' ? 'SUCCESS' : guest.insuranceStatus || 'PENDING'}</span>
+                      <span>{t('companyBookingWizard.confirmation.guest.insuranceLabel')}: {guest.insuranceStatus === 'Success' ? t('companyBookingWizard.confirmation.guest.insuranceSuccess') : guest.insuranceStatus || t('companyBookingWizard.confirmation.guest.insurancePending')}</span>
                     </div>
                   </div>
                 </div>
@@ -402,7 +496,7 @@ useEffect(() => {
             ))}
           </div>
         ) : (
-          <p className={styles.emptyMessage}>Chưa có thông tin khách</p>
+          <p className={styles.emptyMessage}>{t('companyBookingWizard.confirmation.sections.guestsEmpty')}</p>
         )}
       </div>
 
@@ -411,38 +505,38 @@ useEffect(() => {
         <div className={styles.completionSection}>
           <h3 className={styles.sectionTitle}>
             <ShieldCheck className={styles.sectionIcon} strokeWidth={1.5} />
-            Xác nhận tour hoàn thành
+            {t('companyBookingWizard.confirmation.sections.completionTitle')}
           </h3>
           
           {/* Completion Status Display */}
           <div className={styles.completionStatusInfo}>
             <div className={styles.statusRow}>
-              <span className={styles.statusLabel}>Trạng thái công ty:</span>
+              <span className={styles.statusLabel}>{t('companyBookingWizard.confirmation.completion.companyStatus')}</span>
               <span className={styles.statusValue}>
                 {companyConfirmed ? (
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>✓ Đã xác nhận</span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>{t('companyBookingWizard.confirmation.completion.confirmed')}</span>
                 ) : (
-                  <span style={{ color: '#6b7280' }}>Chưa xác nhận</span>
+                  <span style={{ color: '#6b7280' }}>{t('companyBookingWizard.confirmation.completion.notConfirmed')}</span>
                 )}
               </span>
             </div>
             <div className={styles.statusRow}>
-              <span className={styles.statusLabel}>Trạng thái khách hàng:</span>
+              <span className={styles.statusLabel}>{t('companyBookingWizard.confirmation.completion.userStatus')}</span>
               <span className={styles.statusValue}>
                 {userConfirmed ? (
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>✓ Đã xác nhận</span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>{t('companyBookingWizard.confirmation.completion.confirmed')}</span>
                 ) : (
-                  <span style={{ color: '#6b7280' }}>Chưa xác nhận</span>
+                  <span style={{ color: '#6b7280' }}>{t('companyBookingWizard.confirmation.completion.notConfirmed')}</span>
                 )}
               </span>
             </div>
             <div className={styles.statusRow}>
-              <span className={styles.statusLabel}>Ngày kết thúc tour:</span>
+              <span className={styles.statusLabel}>{t('companyBookingWizard.confirmation.completion.tourEndDate')}</span>
               <span className={styles.statusValue}>{getTourEndDate() || '-'}</span>
             </div>
             {booking?.autoConfirmedDate && (
               <div className={styles.statusRow}>
-                <span className={styles.statusLabel}>Ngày tự động xác nhận:</span>
+                <span className={styles.statusLabel}>{t('companyBookingWizard.confirmation.completion.autoConfirmDate')}</span>
                 <span className={styles.statusValue}>{getAutoConfirmedDate()}</span>
               </div>
             )}
@@ -451,13 +545,13 @@ useEffect(() => {
           {isStatusWaitingConfirm ? (
             checkingStatus ? (
               <div className={styles.loading}>
-                <p>Đang kiểm tra trạng thái tour...</p>
+                <p>{t('companyBookingWizard.confirmation.completion.checkingStatus')}</p>
               </div>
             ) : tourCompleted ? (
               <div className={styles.completionStatus}>
                 <CheckCircle2 className={styles.completionCheckIcon} strokeWidth={1.8} />
                 <p className={styles.completionMessage}>
-                  Tour đã được xác nhận hoàn thành bởi cả hai bên. Thanh toán sẽ được chuyển đến tài khoản của công ty.
+                  {t('companyBookingWizard.confirmation.completion.completedMessage')}
                 </p>
               </div>
             ) : (
@@ -467,8 +561,8 @@ useEffect(() => {
                     <AlertTriangle className={styles.autoConfirmIcon} strokeWidth={1.5} />
                     <p className={styles.autoConfirmText}>
                       {companyConfirmed 
-                        ? `Bạn đã xác nhận. Đang chờ khách hàng xác nhận. Nếu khách hàng không xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}), hệ thống sẽ tự động xác nhận.`
-                        : `Khách hàng đã xác nhận. Bạn có thể xác nhận ngay hoặc hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày ${getAutoConfirmedDate()}).`}
+                        ? t('companyBookingWizard.confirmation.completion.autoConfirmCompany', { date: getAutoConfirmedDate() })
+                        : t('companyBookingWizard.confirmation.completion.autoConfirmUser', { date: getAutoConfirmedDate() })}
                     </p>
                   </div>
                 )}
@@ -476,22 +570,23 @@ useEffect(() => {
                 {!companyConfirmed && (
                   <>
                     <p className={styles.completionInfo}>
-                      Tour đã kết thúc vào ngày <strong>{getTourEndDate()}</strong>. 
-                      Bạn có thể xác nhận tour đã hoàn thành để tiến hành thanh toán.
+                      {t('companyBookingWizard.confirmation.completion.readyToConfirm', {
+                        date: getTourEndDate()
+                      })}
                     </p>
                     <button
                       onClick={handleConfirmCompletion}
                       disabled={loading || companyConfirmed}
                       className={styles.confirmButton}
                     >
-                      {loading ? 'Đang xử lý...' : 'Xác nhận tour hoàn thành'}
+                      {loading
+                        ? t('companyBookingWizard.confirmation.completion.confirmProcessing')
+                        : t('companyBookingWizard.confirmation.completion.confirmButton')}
                     </button>
                     <p className={styles.completionNote}>
-                      * Sau khi bạn xác nhận:
-                      <ul style={{ margin: '0.5rem 0 0 1.5rem', padding: 0 }}>
-                        <li>Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay lập tức.</li>
-                        <li>Nếu khách hàng chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {getAutoConfirmedDate()}).</li>
-                      </ul>
+                      {t('companyBookingWizard.confirmation.completion.confirmNote', {
+                        date: getAutoConfirmedDate()
+                      })}
                     </p>
                   </>
                 )}
@@ -499,11 +594,12 @@ useEffect(() => {
                 {companyConfirmed && !tourCompleted && (
                   <div className={styles.waitingMessage}>
                     <p className={styles.completionInfo}>
-                      Bạn đã xác nhận tour hoàn thành. Đang chờ khách hàng xác nhận.
+                      {t('companyBookingWizard.confirmation.completion.waitingUser')}
                     </p>
                     <p className={styles.completionNote}>
-                      Nếu khách hàng xác nhận, thanh toán sẽ được chuyển ngay. 
-                      Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {getAutoConfirmedDate()}).
+                      {t('companyBookingWizard.confirmation.completion.waitingUserNote', {
+                        date: getAutoConfirmedDate()
+                      })}
                     </p>
                   </div>
                 )}
@@ -549,8 +645,47 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Note: Navigation is handled by wizard parent */}
+      {/* Finish Button - Only show if not read-only and booking can be confirmed */}
+      {!isReadOnly && 
+       booking?.bookingStatus !== 'BOOKING_SUCCESS' && 
+       booking?.bookingStatus !== 'BOOKING_SUCCESS_PENDING' &&
+       booking?.bookingStatus !== 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED' &&
+       (booking?.bookingStatus === 'WAITING_FOR_APPROVED' || booking?.bookingStatus === 'WAITING_FOR_UPDATE') && (
+        <div className={styles.finishButtonContainer}>
+          <button
+            type="button"
+            onClick={handleFinish}
+            disabled={confirmingBooking}
+            className={styles.finishButton}
+          >
+            {confirmingBooking ? t('companyBookingWizard.navigation.processing') : t('companyBookingWizard.navigation.finish')}
+          </button>
+        </div>
+      )}
     </div>
+
+    {/* Booking Confirmation Modal - Rendered outside container to avoid being clipped */}
+    {!isReadOnly && (
+      <DeleteConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => !confirmingBooking && setShowConfirmModal(false)}
+        onConfirm={handleConfirmBooking}
+        title={t('companyBookingWizard.confirmModal.title')}
+        message={`${t('companyBookingWizard.confirmModal.message')}${booking?.bookingId}?`}
+        confirmText={t('companyBookingWizard.confirmModal.confirm')}
+        cancelText={t('companyBookingWizard.confirmModal.cancel')}
+        icon="✓"
+        danger={false}
+        disableBackdropClose={confirmingBooking}
+      >
+        <div style={{ marginTop: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
+          <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: '#374151' }}>
+            {t('companyBookingWizard.confirmModal.description')}
+          </p>
+        </div>
+      </DeleteConfirmModal>
+    )}
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -24,6 +25,7 @@ import ResolveTicket from './Components/ResolveTicket/ResolveTicket';
 const pastelCardClasses = 'rounded-[28px] bg-white/95 border border-[#eceff7] shadow-[0_15px_45px_rgba(15,23,42,0.08)]';
 
 const TaskManagement = () => {
+  const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
   const [error, setError] = useState('');
@@ -45,6 +47,10 @@ const TaskManagement = () => {
   const loadSummaryData = useCallback(async () => {
     try {
       const token = getToken();
+      if (!token) {
+        // No token available, skip loading
+        return;
+      }
       const headers = createAuthHeaders(token);
 
       // Load forum reports count
@@ -52,7 +58,8 @@ const TaskManagement = () => {
         try {
           const response = await fetch(`${API_ENDPOINTS.REPORTS_ADMIN_ALL}?page=0&size=1`, { headers });
           if (response.status === 401) {
-            await checkAndHandle401(response);
+            // Don't call checkAndHandle401 here to avoid logout loop
+            // Just skip this data load
             return;
           }
           if (response.ok) {
@@ -65,11 +72,15 @@ const TaskManagement = () => {
 
         // Load booking complaints count
         try {
-          const complaints = await getAllComplaints();
+          // Don't auto redirect on 401 when called from background summary load
+          const complaints = await getAllComplaints(false);
           const pending = Array.isArray(complaints) ? complaints.filter(c => !c.resolutionType) : [];
           setBookingComplaintsCount(pending.length);
         } catch (error) {
-          console.error('Error loading booking complaints count:', error);
+          // Don't log error if it's a 401 - it will be handled by the service
+          if (error?.status !== 401) {
+            console.error('Error loading booking complaints count:', error);
+          }
         }
       }
 
@@ -78,7 +89,8 @@ const TaskManagement = () => {
         try {
           const response = await fetch(API_ENDPOINTS.USERS, { headers });
           if (response.status === 401) {
-            await checkAndHandle401(response);
+            // Don't call checkAndHandle401 here to avoid logout loop
+            // Just skip this data load
             return;
           }
           if (response.ok) {
@@ -100,7 +112,8 @@ const TaskManagement = () => {
         try {
           const response = await fetch(API_ENDPOINTS.TOURS, { headers });
           if (response.status === 401) {
-            await checkAndHandle401(response);
+            // Don't call checkAndHandle401 here to avoid logout loop
+            // Just skip this data load
             return;
           }
           if (response.ok) {
@@ -116,19 +129,26 @@ const TaskManagement = () => {
       // Load pending articles count
       if (canHandleArticles) {
         try {
-          const articles = await articleService.getAllArticles();
+          // Don't auto redirect on 401 when called from background summary load
+          const articles = await articleService.getAllArticles(false);
           const pending = articles.filter(a =>
             a.articleStatus && a.articleStatus !== 'APPROVED'
           );
           setPendingArticlesCount(pending.length);
         } catch (error) {
-          console.error('Error loading pending articles count:', error);
+          // Don't log error if it's a 401 - it will be handled by the service
+          if (error?.status !== 401) {
+            console.error('Error loading pending articles count:', error);
+          }
         }
       }
     } catch (error) {
-      console.error('Error loading summary data:', error);
+      // Don't log error if it's a 401 - it will be handled by the service
+      if (error?.status !== 401) {
+        console.error('Error loading summary data:', error);
+      }
     }
-  }, [canHandleForumReports, canHandleCompanyRequests, canHandleTours, canHandleArticles]);
+  }, [canHandleForumReports, canHandleCompanyRequests, canHandleTours, canHandleArticles, getToken]);
 
   useEffect(() => {
     loadSummaryData();
@@ -139,19 +159,19 @@ const TaskManagement = () => {
     if (canHandleForumReports) {
       sections.push({
         id: 'forum-section',
-        title: 'Forum & Complaint Task',
-        description: 'Xử lý báo cáo từ diễn đàn và khiếu nại đặt tour',
+        title: t('staff.taskManagement.sidebar.sections.forumComplaint.title'),
+        description: t('staff.taskManagement.sidebar.sections.forumComplaint.description'),
         icon: ExclamationTriangleIcon,
         items: [
           {
             id: 'forum-reports',
-            label: 'Forum Report Management',
-            helper: 'Theo dõi và cập nhật báo cáo mới'
+            label: t('staff.taskManagement.sidebar.sections.forumComplaint.items.forumReports.label'),
+            helper: t('staff.taskManagement.sidebar.sections.forumComplaint.items.forumReports.helper')
           },
           {
             id: 'booking-complaint',
-            label: 'Booking Complaint',
-            helper: 'Xử lý khiếu nại từ khách hàng về đặt tour'
+            label: t('staff.taskManagement.sidebar.sections.forumComplaint.items.bookingComplaint.label'),
+            helper: t('staff.taskManagement.sidebar.sections.forumComplaint.items.bookingComplaint.helper')
           }
         ]
       });
@@ -162,26 +182,26 @@ const TaskManagement = () => {
       if (canHandleCompanyRequests) {
         items.push({
           id: 'company-management',
-          label: 'Company Management',
-          helper: 'Phê duyệt doanh nghiệp đăng ký'
+          label: t('staff.taskManagement.sidebar.sections.companyArticle.items.companyManagement.label'),
+          helper: t('staff.taskManagement.sidebar.sections.companyArticle.items.companyManagement.helper')
         });
         items.push({
           id: 'resolve-ticket',
-          label: 'Resolve Ticket',
-          helper: 'Xử lý và giải quyết ticket hỗ trợ'
+          label: t('staff.taskManagement.sidebar.sections.companyArticle.items.resolveTicket.label'),
+          helper: t('staff.taskManagement.sidebar.sections.companyArticle.items.resolveTicket.helper')
         });
       }
       if (canHandleArticles) {
         items.push({
           id: 'article-management',
-          label: 'Article Management',
-          helper: 'Duyệt bài viết và tin tức'
+          label: t('staff.taskManagement.sidebar.sections.companyArticle.items.articleManagement.label'),
+          helper: t('staff.taskManagement.sidebar.sections.companyArticle.items.articleManagement.helper')
         });
       }
       sections.push({
         id: 'company-article-section',
-        title: 'Company & Article',
-        description: 'Quản lý doanh nghiệp, ticket và bài viết',
+        title: t('staff.taskManagement.sidebar.sections.companyArticle.title'),
+        description: t('staff.taskManagement.sidebar.sections.companyArticle.description'),
         icon: BuildingOfficeIcon,
         items
       });
@@ -190,14 +210,14 @@ const TaskManagement = () => {
     if (canHandleTours) {
       sections.push({
         id: 'tour-section',
-        title: 'Tour Task',
-        description: 'Kiểm duyệt tour mới',
+        title: t('staff.taskManagement.sidebar.sections.tour.title'),
+        description: t('staff.taskManagement.sidebar.sections.tour.description'),
         icon: MapPinIcon,
         items: [
           {
             id: 'tour-approval',
-            label: 'Tour Approval',
-            helper: 'Xem và phê duyệt tour chờ duyệt'
+            label: t('staff.taskManagement.sidebar.sections.tour.items.tourApproval.label'),
+            helper: t('staff.taskManagement.sidebar.sections.tour.items.tourApproval.helper')
           }
         ]
       });
@@ -225,17 +245,17 @@ const TaskManagement = () => {
     if (canHandleForumReports) {
       cards.push({
         id: 'forum-card',
-        label: 'Forum Reports',
+        label: t('staff.taskManagement.summaryCards.forumReports.label'),
         value: forumReportsCount,
-        sublabel: 'Báo cáo cần xử lý',
+        sublabel: t('staff.taskManagement.summaryCards.forumReports.sublabel'),
         icon: ExclamationTriangleIcon,
         accent: 'bg-[#fff8ee]',
       });
       cards.push({
         id: 'complaint-card',
-        label: 'Booking Complaints',
+        label: t('staff.taskManagement.summaryCards.bookingComplaints.label'),
         value: bookingComplaintsCount,
-        sublabel: 'Khiếu nại chờ xử lý',
+        sublabel: t('staff.taskManagement.summaryCards.bookingComplaints.sublabel'),
         icon: ExclamationTriangleIcon,
         accent: 'bg-[#fff0f0]',
       });
@@ -243,9 +263,9 @@ const TaskManagement = () => {
     if (canHandleCompanyRequests) {
       cards.push({
         id: 'company-card',
-        label: 'Company Requests',
+        label: t('staff.taskManagement.summaryCards.companyRequests.label'),
         value: companyRequestsCount,
-        sublabel: 'Đang chờ duyệt',
+        sublabel: t('staff.taskManagement.summaryCards.companyRequests.sublabel'),
         icon: BuildingOfficeIcon,
         accent: 'bg-[#f3f7ff]',
       });
@@ -253,9 +273,9 @@ const TaskManagement = () => {
     if (canHandleTours) {
       cards.push({
         id: 'tour-card',
-        label: 'Pending Tours',
+        label: t('staff.taskManagement.summaryCards.pendingTours.label'),
         value: pendingToursCount,
-        sublabel: 'Tour chờ phê duyệt',
+        sublabel: t('staff.taskManagement.summaryCards.pendingTours.sublabel'),
         icon: MapPinIcon,
         accent: 'bg-[#f0fcff]',
       });
@@ -263,9 +283,9 @@ const TaskManagement = () => {
     if (canHandleArticles) {
       cards.push({
         id: 'article-card',
-        label: 'Pending Articles',
+        label: t('staff.taskManagement.summaryCards.pendingArticles.label'),
         value: pendingArticlesCount,
-        sublabel: 'Bài viết chưa duyệt',
+        sublabel: t('staff.taskManagement.summaryCards.pendingArticles.sublabel'),
         icon: DocumentTextIcon,
         accent: 'bg-[#f5f0ff]',
       });
@@ -309,14 +329,14 @@ const TaskManagement = () => {
       <div className="mx-auto max-w-7xl space-y-8">
         {!activeSection && (
           <div className={`${pastelCardClasses} p-8`}>
-            <p className="text-xs uppercase tracking-[0.5em] text-[#b1b5c9]">Staff Dashboard</p>
+            <p className="text-xs uppercase tracking-[0.5em] text-[#b1b5c9]">{t('staff.taskManagement.dashboard.title')}</p>
             <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h1 className="text-3xl font-semibold text-[#111827]">Task Management</h1>
-                <p className="mt-2 text-sm text-[#6b7280]">Theo dõi và xử lý nhiệm vụ được phân công từ admin.</p>
+                <h1 className="text-3xl font-semibold text-[#111827]">{t('staff.taskManagement.dashboard.taskManagement')}</h1>
+                <p className="mt-2 text-sm text-[#6b7280]">{t('staff.taskManagement.dashboard.subtitle')}</p>
               </div>
               <div className="rounded-[24px] border border-[#eef2ff] bg-[#f9faff] px-5 py-3 text-sm text-[#4c4f69]">
-                <span className="font-medium text-[#1f2937]">Vai trò:</span> {user?.staffTask || user?.role}
+                <span className="font-medium text-[#1f2937]">{t('staff.taskManagement.dashboard.role')}</span> {user?.staffTask || user?.role}
               </div>
             </div>
           </div>
@@ -325,9 +345,9 @@ const TaskManagement = () => {
         {!hasAnyTaskPermission && (
           <div className={`${pastelCardClasses} flex flex-col items-center justify-center space-y-4 py-24 text-center`}>
             <ClipboardDocumentListIcon className="h-16 w-16 text-[#dbe1f5]" />
-            <h2 className="text-xl font-semibold text-[#111827]">Hiện tại bạn chưa có nhiệm vụ</h2>
+            <h2 className="text-xl font-semibold text-[#111827]">{t('staff.taskManagement.dashboard.noTasks.title')}</h2>
             <p className="max-w-md text-sm text-[#6b7280]">
-              Khi admin phân công nhiệm vụ, các mục quản lý sẽ xuất hiện trong menu Task Management để bạn xử lý.
+              {t('staff.taskManagement.dashboard.noTasks.description')}
             </p>
           </div>
         )}
@@ -355,11 +375,11 @@ const TaskManagement = () => {
               renderActiveSection()
             ) : (
               <div className={`${pastelCardClasses} p-10 text-center`}>
-                <h3 className="text-xl font-semibold text-[#111827] mb-2">Chọn nhiệm vụ cần xử lý</h3>
+                <h3 className="text-xl font-semibold text-[#111827] mb-2">{t('staff.taskManagement.dashboard.selectTask.title')}</h3>
                 <p className="text-sm text-[#6b7280] max-w-2xl mx-auto">
-                  Bảng thống kê cho bạn cái nhìn tổng quan. Để bắt đầu xử lý nhiệm vụ cụ thể, hãy mở menu
-                  <span className="font-semibold text-[#1d4ed8]"> Task Management </span>
-                  ở sidebar và chọn đúng mục nhiệm vụ được phân công.
+                  {t('staff.taskManagement.dashboard.selectTask.description')}{' '}
+                  <span className="font-semibold text-[#1d4ed8]"> {t('staff.taskManagement.dashboard.selectTask.taskManagement')} </span>
+                  {t('staff.taskManagement.dashboard.selectTask.instruction')}
                 </p>
               </div>
             )}

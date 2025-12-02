@@ -116,20 +116,36 @@ const Step3Pricing = () => {
       
       // Validate all required fields and show errors
       const errors = {};
+      const MIN_PRICE = 10000; // Minimum price: 10,000 VND
       
-      // Check adultPrice - must be non-empty
+      // Check adultPrice - must be non-empty and >= 10000
       if (!currentAdultPrice || String(currentAdultPrice).trim() === '') {
         errors.adultPrice = t('toast.required', { field: t('tourWizard.step3.pricing.adultPrice') }) || 'Giá người lớn là bắt buộc';
+      } else {
+        const adultPriceNum = parseInt(String(currentAdultPrice).replace(/[^0-9]/g, ''), 10);
+        if (isNaN(adultPriceNum) || adultPriceNum < MIN_PRICE) {
+          errors.adultPrice = t('toast.min_price', { min: MIN_PRICE.toLocaleString('vi-VN') }) || `Giá tối thiểu là ${MIN_PRICE.toLocaleString('vi-VN')} VND`;
+        }
       }
       
-      // Check childrenPrice - must be non-empty
+      // Check childrenPrice - must be non-empty and >= 10000
       if (!currentChildrenPrice || String(currentChildrenPrice).trim() === '') {
         errors.childrenPrice = t('toast.required', { field: t('tourWizard.step3.pricing.childrenPrice') }) || 'Giá trẻ em là bắt buộc';
+      } else {
+        const childrenPriceNum = parseInt(String(currentChildrenPrice).replace(/[^0-9]/g, ''), 10);
+        if (isNaN(childrenPriceNum) || childrenPriceNum < MIN_PRICE) {
+          errors.childrenPrice = t('toast.min_price', { min: MIN_PRICE.toLocaleString('vi-VN') }) || `Giá tối thiểu là ${MIN_PRICE.toLocaleString('vi-VN')} VND`;
+        }
       }
       
-      // Check babyPrice - must be non-empty
+      // Check babyPrice - must be non-empty and >= 10000
       if (!currentBabyPrice || String(currentBabyPrice).trim() === '') {
         errors.babyPrice = t('toast.required', { field: t('tourWizard.step3.pricing.babyPrice') }) || 'Giá em bé là bắt buộc';
+      } else {
+        const babyPriceNum = parseInt(String(currentBabyPrice).replace(/[^0-9]/g, ''), 10);
+        if (isNaN(babyPriceNum) || babyPriceNum < MIN_PRICE) {
+          errors.babyPrice = t('toast.min_price', { min: MIN_PRICE.toLocaleString('vi-VN') }) || `Giá tối thiểu là ${MIN_PRICE.toLocaleString('vi-VN')} VND`;
+        }
       }
       
       setFieldErrors(errors);
@@ -137,6 +153,19 @@ const Step3Pricing = () => {
       window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
         detail: { step: 3, hasErrors: Object.keys(errors).length > 0 } 
       }));
+      
+      // Scroll to first error field if there are errors
+      if (Object.keys(errors).length > 0) {
+        setTimeout(() => {
+          const firstErrorKey = Object.keys(errors)[0];
+          const errorElement = document.getElementById(firstErrorKey) || 
+                               document.querySelector(`[name="${firstErrorKey}"]`);
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorElement.focus();
+          }
+        }, 100);
+      }
     };
 
     const handleClearErrors = () => {
@@ -215,9 +244,26 @@ const Step3Pricing = () => {
                   });
                 }
               }}
+              onBlur={(e) => {
+                // Validate minimum price on blur
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                if (value && value !== '') {
+                  const priceNum = parseInt(value, 10);
+                  const MIN_PRICE = 10000;
+                  if (!isNaN(priceNum) && priceNum < MIN_PRICE) {
+                    setFieldErrors(prev => ({
+                      ...prev,
+                      adultPrice: t('toast.min_price', { min: MIN_PRICE.toLocaleString('vi-VN') }) || `Giá tối thiểu là ${MIN_PRICE.toLocaleString('vi-VN')} VND`
+                    }));
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 3, hasErrors: true } 
+                    }));
+                  }
+                }
+              }}
               className={`${styles['form-input']} ${fieldErrors.adultPrice ? styles['error'] : ''}`}
               placeholder={t('tourWizard.step3.pricing.placeholders.adultPrice')}
-              min="0"
+              min="10000"
             />
             <small className={styles['form-help']}>{t('tourWizard.step3.pricing.unit')}</small>
             {fieldErrors.adultPrice && (
@@ -258,9 +304,26 @@ const Step3Pricing = () => {
                   });
                 }
               }}
+              onBlur={(e) => {
+                // Validate minimum price on blur
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                if (value && value !== '') {
+                  const priceNum = parseInt(value, 10);
+                  const MIN_PRICE = 10000;
+                  if (!isNaN(priceNum) && priceNum < MIN_PRICE) {
+                    setFieldErrors(prev => ({
+                      ...prev,
+                      childrenPrice: t('toast.min_price', { min: MIN_PRICE.toLocaleString('vi-VN') }) || `Giá tối thiểu là ${MIN_PRICE.toLocaleString('vi-VN')} VND`
+                    }));
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 3, hasErrors: true } 
+                    }));
+                  }
+                }
+              }}
               className={`${styles['form-input']} ${fieldErrors.childrenPrice ? styles['error'] : ''}`}
               placeholder={t('tourWizard.step3.pricing.placeholders.childrenPrice')}
-              min="0"
+              min="10000"
             />
             <small className={styles['form-help']}>{t('tourWizard.step3.pricing.unitChildren')}</small>
             {fieldErrors.childrenPrice && (
@@ -301,9 +364,26 @@ const Step3Pricing = () => {
                   });
                 }
               }}
+              onBlur={(e) => {
+                // Validate minimum price on blur
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                if (value && value !== '') {
+                  const priceNum = parseInt(value, 10);
+                  const MIN_PRICE = 10000;
+                  if (!isNaN(priceNum) && priceNum < MIN_PRICE) {
+                    setFieldErrors(prev => ({
+                      ...prev,
+                      babyPrice: t('toast.min_price', { min: MIN_PRICE.toLocaleString('vi-VN') }) || `Giá tối thiểu là ${MIN_PRICE.toLocaleString('vi-VN')} VND`
+                    }));
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 3, hasErrors: true } 
+                    }));
+                  }
+                }
+              }}
               className={`${styles['form-input']} ${fieldErrors.babyPrice ? styles['error'] : ''}`}
               placeholder={t('tourWizard.step3.pricing.placeholders.babyPrice')}
-              min="0"
+              min="10000"
             />
             <small className={styles['form-help']}>{t('tourWizard.step3.pricing.unitBaby')}</small>
             {fieldErrors.babyPrice && (

@@ -68,7 +68,7 @@ const AdminLayout = ({ children }) => {
         { name: t('admin.adminLayout.menuItems.forumReportManagement'), to: '/admin/forum-reports', icon: ExclamationTriangleIcon },
         { name: t('admin.adminLayout.menuItems.complaintManagement'), to: '/admin/complaints', icon: ShieldAlert },
         { name: t('admin.adminLayout.menuItems.resolveTicketManagement'), to: '/admin/resolve-tickets', icon: TicketIcon },
-        { name: t('admin.adminLayout.menuItems.newsManagement'), to: '/admin/news', icon: DocumentTextIcon },
+        { name: t('admin.adminLayout.menuItems.articleManagement'), to: '/admin/article', icon: DocumentTextIcon },
         { name: t('admin.adminLayout.menuItems.tourManagement'), to: '/admin/tour', icon: MapPinIcon },
         { name: t('admin.adminLayout.menuItems.transactionManagement'), to: '/admin/transactions', icon: CurrencyDollarIcon },
       ],

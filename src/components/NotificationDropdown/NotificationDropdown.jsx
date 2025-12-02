@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   Check,
@@ -11,10 +12,13 @@ import {
 } from 'lucide-react';
 import styles from './NotificationDropdown.module.css';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { getAvatarUrl } from '../../config/api';
 
 const NotificationDropdown = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { 
     notifications, 
     unreadCount, 
@@ -153,18 +157,182 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     if (type.includes('BOOKING')) {
       if (type.includes('CONFIRMED')) return 'green';
       if (type.includes('REJECTED') || type.includes('UPDATE_REQUEST')) return 'yellow';
-        return 'blue';
+      return 'blue';
     }
     if (type.includes('TOUR_APPROVED')) return 'green';
     if (type.includes('RATING')) return 'blue';
     
-        return 'gray';
+    return 'gray';
   };
 
-  if (!isOpen) return null;
+  // Map NotificationType to localized title/message
+  // Order matches backend enum: Forum notifications first, then Tour & Booking notifications
+  const getLocalizedTitle = (notification) => {
+    const type = String(notification?.notificationType || '').toUpperCase();
+    switch (type) {
+      // Forum notifications
+      case 'LIKE_POST':
+        return t('notifications.types.LIKE_POST.title');
+      case 'LIKE_COMMENT':
+        return t('notifications.types.LIKE_COMMENT.title');
+      case 'COMMENT_POST':
+        return t('notifications.types.COMMENT_POST.title');
+      case 'REPLY_COMMENT':
+        return t('notifications.types.REPLY_COMMENT.title');
+      
+      // Tour & Booking notifications
+      case 'NEW_BOOKING':
+        return t('notifications.types.NEW_BOOKING.title');
+      case 'BOOKING_CONFIRMED':
+        return t('notifications.types.BOOKING_CONFIRMED.title');
+      case 'BOOKING_UPDATE_REQUEST':
+        return t('notifications.types.BOOKING_UPDATE_REQUEST.title');
+      case 'TOUR_APPROVED':
+        return t('notifications.types.TOUR_APPROVED.title');
+      case 'NEW_RATING':
+        return t('notifications.types.NEW_RATING.title');
+      case 'BOOKING_REJECTED':
+        return t('notifications.types.BOOKING_REJECTED.title');
+      case 'BOOKING_UPDATED_BY_USER':
+        return t('notifications.types.BOOKING_UPDATED_BY_USER.title');
+      
+      default:
+        return null;
+    }
+  };
+
+  const getLocalizedMessage = (notification) => {
+    const type = String(notification?.notificationType || '').toUpperCase();
+    switch (type) {
+      // Forum notifications
+      case 'LIKE_POST':
+        return t('notifications.types.LIKE_POST.message');
+      case 'LIKE_COMMENT':
+        return t('notifications.types.LIKE_COMMENT.message');
+      case 'COMMENT_POST':
+        return t('notifications.types.COMMENT_POST.message');
+      case 'REPLY_COMMENT':
+        return t('notifications.types.REPLY_COMMENT.message');
+      
+      // Tour & Booking notifications
+      case 'NEW_BOOKING':
+        return t('notifications.types.NEW_BOOKING.message');
+      case 'BOOKING_CONFIRMED':
+        return t('notifications.types.BOOKING_CONFIRMED.message');
+      case 'BOOKING_UPDATE_REQUEST':
+        return t('notifications.types.BOOKING_UPDATE_REQUEST.message');
+      case 'TOUR_APPROVED':
+        return t('notifications.types.TOUR_APPROVED.message');
+      case 'NEW_RATING':
+        return t('notifications.types.NEW_RATING.message');
+      case 'BOOKING_REJECTED':
+        return t('notifications.types.BOOKING_REJECTED.message');
+      case 'BOOKING_UPDATED_BY_USER':
+        return t('notifications.types.BOOKING_UPDATED_BY_USER.message');
+      
+      default:
+        return null;
+    }
+  };
+
+  // Handle notification click and redirect based on notification type
+  const handleNotificationClick = (notification) => {
+    if (!notification) return;
+
+    const type = String(notification.notificationType || '').toUpperCase();
+    const targetId = notification.targetId;
+    const userRole = user?.role;
+
+    // Mark as read when clicked
+    if (!notification.isRead && notification.notificationId) {
+      markAsRead(notification.notificationId);
+    }
+
+    // Close dropdown
+    onClose();
+
+    // Handle redirect based on notification type
+    switch (type) {
+      // Company notifications - redirect to management pages
+      case 'NEW_BOOKING':
+      case 'BOOKING_UPDATED_BY_USER':
+        // Company receives these notifications
+        if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        break;
+
+      case 'TOUR_APPROVED':
+        // Company receives this notification
+        if (userRole === 'COMPANY') {
+          navigate('/company/tours');
+        }
+        break;
+
+      case 'NEW_RATING':
+        // Company receives this notification
+        // Could redirect to tour detail or rating management
+        // For now, redirect to tours management
+        if (userRole === 'COMPANY') {
+          navigate('/company/tours');
+        }
+        break;
+
+      // User notifications - redirect to booking detail
+      case 'BOOKING_CONFIRMED':
+      case 'BOOKING_REJECTED':
+      case 'BOOKING_UPDATE_REQUEST':
+        // User receives these notifications
+        if (userRole === 'USER' && targetId) {
+          navigate(`/user/booking?id=${targetId}`);
+        }
+        break;
+
+      // Forum notifications - could redirect to forum post/comment
+      // For now, just close dropdown (can be extended later)
+      case 'LIKE_POST':
+      case 'LIKE_COMMENT':
+      case 'COMMENT_POST':
+      case 'REPLY_COMMENT':
+        // Could navigate to forum post/comment detail
+        // For now, just close dropdown
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  // Use state to control mounting/unmounting with animation
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      // Use requestAnimationFrame to ensure initial state is applied before showing
+      // Double RAF ensures the browser has rendered the hidden state first
+      // This prevents the "jump" by giving the browser time to apply initial styles
+      const rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
+      });
+      return () => cancelAnimationFrame(rafId);
+    } else {
+      setIsAnimating(false);
+      // Delay unmounting to allow close animation to complete
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 250); // Match CSS transition duration
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!shouldRender) return null;
 
   return (
-    <div className={`${styles.notificationDropdown} ${isOpen ? styles.show : styles.hide} ${isExpanded ? styles.expanded : ''}`} ref={dropdownRef}>
+    <div className={`${styles.notificationDropdown} ${isAnimating ? styles.show : styles.hide} ${isExpanded ? styles.expanded : ''}`} ref={dropdownRef}>
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerTitle}>
@@ -224,11 +392,23 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             const Icon = getNotificationIcon(n.notificationType);
             const color = getNotificationColor(n.notificationType);
             const timeText = formatDate(n.createdAt);
+            const localizedTitle = getLocalizedTitle(n);
+            const localizedMessage = getLocalizedMessage(n);
 
             return (
               <div 
                 key={n.notificationId}
                 className={`${styles.notificationItem} ${!n.isRead ? styles.unread : ''}`}
+                onClick={() => handleNotificationClick(n)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleNotificationClick(n);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
               >
                 {/* Icon */}
                 <div className={`${styles.notificationIcon} ${styles[color]}`}>
@@ -239,13 +419,15 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                 <div className={styles.notificationContent}>
                   <div className={styles.notificationHeader}>
                     <h4 className={styles.notificationTitle}>
-                      {n.title || t('notifications.noTitle', 'Không có tiêu đề')}
+                      {localizedTitle || n.title || t('notifications.noTitle', 'Không có tiêu đề')}
                     </h4>
                     <span className={styles.notificationTime}>{timeText}</span>
                   </div>
                   
-                  {n.message && (
-                    <p className={styles.notificationMessage}>{n.message}</p>
+                  {(localizedMessage || n.message) && (
+                    <p className={styles.notificationMessage}>
+                      {localizedMessage || n.message}
+                    </p>
                   )}
                   
                   {n.actor && (n.actor.avatar || n.actor.username) && (
@@ -268,7 +450,10 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Actions */}
-                <div className={styles.notificationActions}>
+                <div 
+                  className={styles.notificationActions}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {!n.isRead && (
                     <div className={styles.unreadDot} />
                   )}

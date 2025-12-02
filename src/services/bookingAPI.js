@@ -718,7 +718,7 @@ export const getTourCompletionStatus = async (bookingId) => {
  * Get all complaints (admin/staff view)
  * @returns {Promise<Array>} - Array of all complaints
  */
-export const getAllComplaints = async () => {
+export const getAllComplaints = async (autoRedirect = false) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/booking/complaints/all`, {
       method: 'GET',
@@ -728,8 +728,8 @@ export const getAllComplaints = async () => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
 
-      // Handle auth/global errors (may redirect)
-      const wasHandled = await checkAndHandleApiError(response, true);
+      // Only auto redirect if explicitly requested (user actions, not background polling)
+      const wasHandled = await checkAndHandleApiError(response, autoRedirect);
       if (wasHandled) {
         return [];
       }

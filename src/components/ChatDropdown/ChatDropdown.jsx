@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   UserIcon,
   XMarkIcon,
@@ -10,6 +11,7 @@ import { getAvatarUrl } from '../../config/api';
 import styles from './ChatDropdown.module.css';
 
 const ChatDropdown = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { state, actions } = useChat();
   const { user: authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,16 +80,27 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
-    
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-      return `${diffInMinutes} phút`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)} giờ`;
-    } else {
-      return date.toLocaleDateString('vi-VN');
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+
+    if (diffInMinutes < 1) {
+      return t('chatDropdown.time.justNow', 'Vừa xong');
     }
+    if (diffInMinutes < 60) {
+      return t('chatDropdown.time.minutesAgo', {
+        count: diffInMinutes,
+        defaultValue: '{{count}} phút'
+      });
+    }
+    if (diffInHours < 24) {
+      return t('chatDropdown.time.hoursAgo', {
+        count: diffInHours,
+        defaultValue: '{{count}} giờ'
+      });
+    }
+
+    return date.toLocaleDateString('vi-VN');
   };
 
   const filteredConversations = (state.conversations || [])
@@ -123,7 +136,9 @@ const ChatDropdown = ({ isOpen, onClose }) => {
           <div className={styles.emptyState}>
             <UserIcon className={styles.emptyIcon} />
             <p className={styles.emptyText}>
-              {searchTerm ? 'Không tìm thấy người dùng' : 'Danh sách người dùng chưa có'}
+              {searchTerm
+                ? t('chatDropdown.empty.search', 'Không tìm thấy người dùng')
+                : t('chatDropdown.empty.noUsers', 'Danh sách người dùng chưa có')}
             </p>
           </div>
         ) : (
@@ -165,13 +180,14 @@ const ChatDropdown = ({ isOpen, onClose }) => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerTitle}>
-          <h3 className={styles.title}>Đoạn chat</h3>
+          <h3 className={styles.title}>{t('chatDropdown.title', 'Đoạn chat')}</h3>
         </div>
         <div className={styles.headerActions}>
           <button 
             className={styles.closeBtn}
             onClick={onClose}
-            title="Đóng"
+            title={t('common.close')}
+            aria-label={t('common.close')}
           >
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -183,7 +199,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
         <MagnifyingGlassIcon className={styles.searchIcon} />
         <input
           type="text"
-          placeholder="Tìm kiếm trên Messenger"
+          placeholder={t('chatDropdown.searchPlaceholder', 'Tìm kiếm trên Messenger')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}

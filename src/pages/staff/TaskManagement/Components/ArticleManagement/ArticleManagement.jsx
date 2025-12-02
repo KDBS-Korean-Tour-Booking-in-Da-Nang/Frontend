@@ -37,10 +37,11 @@ const ArticleManagement = () => {
   const secondaryButtonClasses = 'rounded-[28px] px-6 py-3 font-semibold text-[#4c9dff] bg-white/80 border border-[#4c9dff]/40 hover:bg-[#e9f2ff] focus:ring-4 focus:ring-[#bfd7ff] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed';
   const iconButtonClasses = 'p-2 rounded-full border border-transparent hover:border-[#dcd6ca] hover:bg-white/70 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed';
 
-  const loadArticles = useCallback(async (showNewArticlesNotification = false) => {
+  const loadArticles = useCallback(async (showNewArticlesNotification = false, isBackgroundPoll = false) => {
     setLoadingArticles(true);
     try {
-      const data = await articleService.getAllArticles();
+      // Don't auto redirect on 401 when called from background polling
+      const data = await articleService.getAllArticles(!isBackgroundPoll);
       const newArticles = data || [];
       // Sort: UNAPPROVED (pending) first, then newest by created date
       const sortedArticles = [...newArticles].sort((a, b) => {
@@ -55,15 +56,21 @@ const ArticleManagement = () => {
       // Check for new articles from auto-crawling (only if count increased)
       if (showNewArticlesNotification && lastArticleCount > 0 && newArticles.length > lastArticleCount) {
         const newCount = newArticles.length - lastArticleCount;
-        showSuccess(t('newsManagement.messages.autoCrawlSuccess', { count: newCount }));
+        showSuccess(t('articleManagement.messages.autoCrawlSuccess', { count: newCount }));
       }
       
       setArticles(sortedArticles);
       setLastArticleCount(sortedArticles.length);
       setError(''); // Clear error on success
     } catch (error) {
+      // Don't show error or logout if it's a 401 from background polling
+      if (isBackgroundPoll && error?.status === 401) {
+        // Silently fail - token might be expired, but don't logout from background polling
+        console.warn('Background article refresh failed: token expired');
+        return;
+      }
       console.error('Error loading articles:', error);
-      setError(t('newsManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
+      setError(t('articleManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
     } finally {
       setLoadingArticles(false);
     }
@@ -80,7 +87,7 @@ const ArticleManagement = () => {
   useEffect(() => {
     if (user && canManageArticles) {
       const interval = setInterval(() => {
-        loadArticles(true); // Show notification for new articles
+        loadArticles(true, true); // Show notification for new articles, but mark as background poll
       }, 5 * 60 * 1000); // 5 minutes
 
       return () => clearInterval(interval);
@@ -96,7 +103,7 @@ const ArticleManagement = () => {
       setError(''); // Clear error on success
     } catch (error) {
       console.error('Error fetching article:', error);
-      setError(t('newsManagement.messages.crawlError') || 'Không thể tải bài viết');
+      setError(t('articleManagement.messages.crawlError') || 'Không thể tải bài viết');
     }
   };
 
@@ -133,14 +140,14 @@ const ArticleManagement = () => {
     try {
       const result = await articleService.crawlArticles();
       if (result && result.length > 0) {
-        showSuccess(t('newsManagement.messages.crawlSuccess', { count: result.length }));
+        showSuccess(t('articleManagement.messages.crawlSuccess', { count: result.length }));
       } else {
-        showSuccess(t('newsManagement.messages.noNewArticles'));
+        showSuccess(t('articleManagement.messages.noNewArticles'));
       }
       await loadArticles(false);
     } catch (error) {
       console.error('Error crawling articles:', error);
-      setError(t('newsManagement.messages.crawlError') || 'Không thể crawl bài viết');
+      setError(t('articleManagement.messages.crawlError') || 'Không thể crawl bài viết');
     } finally {
       setLoading(false);
     }
@@ -178,7 +185,7 @@ const ArticleManagement = () => {
 
   const handleUpdateStatus = async (status) => {
     if (selectedArticles.length === 0) {
-      setError(t('newsManagement.messages.selectArticles') || 'Vui lòng chọn ít nhất một bài viết');
+      setError(t('articleManagement.messages.selectArticles') || 'Vui lòng chọn ít nhất một bài viết');
       return;
     }
     
@@ -190,12 +197,12 @@ const ArticleManagement = () => {
         articleService.updateArticleStatus(articleId, status)
       );
       await Promise.all(promises);
-      const statusText = status === 'APPROVED' ? t('newsManagement.messages.approved') : t('newsManagement.messages.unapproved');
-      showSuccess(t('newsManagement.messages.statusUpdateSuccess', { action: statusText, count: selectedArticles.length }));
+      const statusText = status === 'APPROVED' ? t('articleManagement.messages.approved') : t('articleManagement.messages.unapproved');
+      showSuccess(t('articleManagement.messages.statusUpdateSuccess', { action: statusText, count: selectedArticles.length }));
       setSelectedArticles([]);
       await loadArticles();
     } catch (error) {
-      setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái bài viết');
+      setError(t('articleManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái bài viết');
     } finally {
       setLoading(false);
     }
@@ -228,13 +235,13 @@ const ArticleManagement = () => {
       <div className={softUI.container}>
         <div className="space-y-3 text-center md:text-left">
           <p className="uppercase text-[0.7rem] tracking-[0.5em] text-[#b7b3ab]">
-            {t('newsManagement.subtitle')}
+            {t('articleManagement.subtitle')}
           </p>
           <h1 className="text-4xl md:text-5xl font-semibold text-[#2f2f2f]">
-            {t('newsManagement.title')}
+            {t('articleManagement.title')}
           </h1>
           <p className="text-[#8c8f97] text-base md:text-lg max-w-2xl">
-            {t('newsManagement.welcome.description')}
+            {t('articleManagement.welcome.description')}
           </p>
         </div>
 
@@ -243,15 +250,15 @@ const ArticleManagement = () => {
             <div className="space-y-3">
               <span className={`${softUI.tag} inline-flex items-center gap-2`}>
                 <span className="w-2 h-2 rounded-full bg-[#4c9dff]" />
-                {t('newsManagement.welcome.title', { name: user.name || user.email })}
+                {t('articleManagement.welcome.title', { name: user.name || user.email })}
               </span>
               <p className="text-[#71737b] text-sm md:text-base">
-                {t('newsManagement.welcome.autoCrawl')}
+                {t('articleManagement.welcome.autoCrawl')}
               </p>
             </div>
             <div className="flex items-center gap-3">
               <div className="px-5 py-2 rounded-full bg-[#edf0f5] text-sm font-medium text-[#4c5562]">
-                {user.role === 'ADMIN' ? t('newsManagement.roles.admin') : t('newsManagement.roles.staff')}
+                {user.role === 'ADMIN' ? t('articleManagement.roles.admin') : t('articleManagement.roles.staff')}
               </div>
             </div>
           </div>
@@ -264,7 +271,7 @@ const ArticleManagement = () => {
             className={`${primaryButtonClasses} flex items-center justify-center gap-3`}
           >
             <RefreshCcw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? t('newsManagement.buttons.crawling') : t('newsManagement.buttons.crawlNews')}
+            {loading ? t('articleManagement.buttons.crawling') : t('articleManagement.buttons.crawlNews')}
           </button>
           
           <button
@@ -273,7 +280,7 @@ const ArticleManagement = () => {
             className={`${secondaryButtonClasses} flex items-center justify-center gap-3`}
           >
             <RefreshCcw className={`h-5 w-5 ${loadingArticles ? 'animate-spin' : ''}`} />
-            {loadingArticles ? t('newsManagement.buttons.loading') : t('newsManagement.buttons.reloadList')}
+            {loadingArticles ? t('articleManagement.buttons.loading') : t('articleManagement.buttons.reloadList')}
           </button>
         </div>
 
@@ -282,7 +289,7 @@ const ArticleManagement = () => {
           <div className={`${softUI.card} p-8 space-y-6`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <p className="text-sm uppercase tracking-[0.3em] text-[#b7b3ab]">
-                {t('newsManagement.articles.title', { count: articles.length })}
+                {t('articleManagement.articles.title', { count: articles.length })}
               </p>
               <div className="flex items-center gap-2 text-sm text-[#6f7680]">
                 <input
@@ -291,14 +298,14 @@ const ArticleManagement = () => {
                   onChange={handleSelectAll}
                   className="rounded-full border-[#d8d2c6] text-[#4c9dff] focus:ring-[#4c9dff]"
                 />
-                <span>{t('newsManagement.articles.selectAll')}</span>
+                <span>{t('articleManagement.articles.selectAll')}</span>
               </div>
             </div>
 
             {selectedArticles.length > 0 && (
               <div className="p-4 rounded-[20px] bg-white/70 border border-[#dcd6ca] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <span className="text-xs font-medium text-[#4b5563]">
-                  {t('newsManagement.articles.selectedCount', { count: selectedArticles.length })}
+                  {t('articleManagement.articles.selectedCount', { count: selectedArticles.length })}
                 </span>
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -307,7 +314,7 @@ const ArticleManagement = () => {
                     className={`${primaryButtonClasses} flex items-center gap-2 px-4 py-2 text-sm`}
                   >
                     <Check className="h-4 w-4" />
-                    {t('newsManagement.buttons.approve')}
+                    {t('articleManagement.buttons.approve')}
                   </button>
                   <button
                     onClick={() => handleUpdateStatus('UNAPPROVED')}
@@ -316,7 +323,7 @@ const ArticleManagement = () => {
                   >
                     <div className="flex items-center gap-2">
                       <X className="h-4 w-4" />
-                      {t('newsManagement.buttons.unapprove')}
+                      {t('articleManagement.buttons.unapprove')}
                     </div>
                   </button>
                 </div>
@@ -372,7 +379,7 @@ const ArticleManagement = () => {
                                   ? 'bg-[#e7f6ec] text-[#1f7a4c]'
                                   : 'bg-[#fff4da] text-[#a9792f]'
                               }`}>
-                                {article.articleStatus === 'APPROVED' ? t('newsManagement.status.approved') : t('newsManagement.status.pending')}
+                                {article.articleStatus === 'APPROVED' ? t('articleManagement.status.approved') : t('articleManagement.status.pending')}
                               </span>
                               <span className="text-[#8a8e98]">
                                 {new Date(article.articleCreatedDate).toLocaleDateString('vi-VN')}
@@ -385,7 +392,7 @@ const ArticleManagement = () => {
                               onClick={() => article.articleId && handleViewArticle(article.articleId)}
                               disabled={!article.articleId}
                               className={`${iconButtonClasses} text-[#3e4a62]`}
-                              title={t('newsManagement.buttons.viewDetails')}
+                              title={t('articleManagement.buttons.viewDetails')}
                             >
                               <Eye className="h-4 w-4" />
                             </button>
@@ -396,11 +403,11 @@ const ArticleManagement = () => {
                                 setLoading(true);
                                 try {
                                   await articleService.updateArticleStatus(article.articleId, newStatus);
-                                  const statusText = newStatus === 'APPROVED' ? t('newsManagement.messages.approved') : t('newsManagement.messages.unapproved');
-                                  showSuccess(t('newsManagement.messages.statusUpdateSuccess', { action: statusText, count: 1 }));
+                                  const statusText = newStatus === 'APPROVED' ? t('articleManagement.messages.approved') : t('articleManagement.messages.unapproved');
+                                  showSuccess(t('articleManagement.messages.statusUpdateSuccess', { action: statusText, count: 1 }));
                                   await loadArticles();
                                 } catch (error) {
-                                  setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái');
+                                  setError(t('articleManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái');
                                 } finally {
                                   setLoading(false);
                                 }
@@ -411,7 +418,7 @@ const ArticleManagement = () => {
                                   ? 'text-[#ff5671]' 
                                   : 'text-[#3bb273]'
                               }`}
-                              title={article.articleStatus === 'APPROVED' ? t('newsManagement.buttons.unapprove') : t('newsManagement.buttons.approve')}
+                              title={article.articleStatus === 'APPROVED' ? t('articleManagement.buttons.unapprove') : t('articleManagement.buttons.approve')}
                             >
                               {article.articleStatus === 'APPROVED' ? (
                                 <X className="h-4 w-4" />
@@ -431,7 +438,7 @@ const ArticleManagement = () => {
             {totalPages > 1 && (
               <div className="pt-4 border-t border-[#ece7de] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="text-sm text-[#7a7f8a]">
-                  {t('newsManagement.pagination.showing', { start: startIndex + 1, end: Math.min(endIndex, articles.length), total: articles.length })}
+                  {t('articleManagement.pagination.showing', { start: startIndex + 1, end: Math.min(endIndex, articles.length), total: articles.length })}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -439,7 +446,7 @@ const ArticleManagement = () => {
                     disabled={currentPage === 1}
                     className="px-4 py-2 rounded-full border border-[#e0dacf] text-sm text-[#7a7f8a] bg-white/70 hover:bg-white disabled:opacity-40"
                   >
-                    {t('newsManagement.pagination.previous')}
+                    {t('articleManagement.pagination.previous')}
                   </button>
                   
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -461,7 +468,7 @@ const ArticleManagement = () => {
                     disabled={currentPage === totalPages}
                     className="px-4 py-2 rounded-full border border-[#e0dacf] text-sm text-[#7a7f8a] bg-white/70 hover:bg-white disabled:opacity-40"
                   >
-                    {t('newsManagement.pagination.next')}
+                    {t('articleManagement.pagination.next')}
                   </button>
                 </div>
               </div>
@@ -475,7 +482,7 @@ const ArticleManagement = () => {
             <div className="w-16 h-16 mx-auto rounded-[22px] bg-[#f2f4f8] flex items-center justify-center text-[#9ba4b5] mb-4">
               <FileText className="h-7 w-7" />
             </div>
-            <p className="text-[#7a7f8a] text-sm">{t('newsManagement.noArticles.message')}</p>
+            <p className="text-[#7a7f8a] text-sm">{t('articleManagement.noArticles.message')}</p>
           </div>
         )}
       </div>
@@ -484,7 +491,7 @@ const ArticleManagement = () => {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white/95 rounded-[32px] border border-[#efeae1] shadow-[0_35px_80px_rgba(69,73,87,0.25)] max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-[#f0ece3]">
-              <h3 className="text-xl font-semibold text-[#1f2933]">{t('newsManagement.modal.title')}</h3>
+              <h3 className="text-xl font-semibold text-[#1f2933]">{t('articleManagement.modal.title')}</h3>
               <button
                 onClick={() => setShowArticleModal(false)}
                 className={`${iconButtonClasses} text-[#7a7f8a]`}
@@ -511,7 +518,7 @@ const ArticleManagement = () => {
                       ? 'bg-[#e7f6ec] text-[#1f7a4c]'
                       : 'bg-[#fff4da] text-[#a9792f]'
                   }`}>
-                    {selectedArticle.articleStatus === 'APPROVED' ? t('newsManagement.status.approved') : t('newsManagement.status.pending')}
+                    {selectedArticle.articleStatus === 'APPROVED' ? t('articleManagement.status.approved') : t('articleManagement.status.pending')}
                   </span>
                 </div>
               </div>
@@ -527,7 +534,7 @@ const ArticleManagement = () => {
 
               {selectedArticle.articleLink && (
                 <div className="mt-6 p-5 rounded-[22px] bg-[#f7f4ef] border border-[#ebe5db]">
-                  <p className="text-sm text-[#8a8e98] mb-2">{t('newsManagement.modal.source')}</p>
+                  <p className="text-sm text-[#8a8e98] mb-2">{t('articleManagement.modal.source')}</p>
                   <a
                     href={selectedArticle.articleLink}
                     target="_blank"
@@ -545,25 +552,25 @@ const ArticleManagement = () => {
                 onClick={() => setShowArticleModal(false)}
                 className={`${secondaryButtonClasses} px-6 py-2`}
               >
-                {t('newsManagement.modal.close')}
+                {t('articleManagement.modal.close')}
               </button>
               <button
                 onClick={() => {
                   const newStatus = selectedArticle.articleStatus === 'APPROVED' ? 'UNAPPROVED' : 'APPROVED';
                   articleService.updateArticleStatus(selectedArticle.articleId, newStatus)
                     .then(() => {
-                      const statusText = newStatus === 'APPROVED' ? t('newsManagement.messages.approved') : t('newsManagement.messages.unapproved');
-                      showSuccess(t('newsManagement.messages.statusUpdateSuccess', { action: statusText, count: 1 }));
+                      const statusText = newStatus === 'APPROVED' ? t('articleManagement.messages.approved') : t('articleManagement.messages.unapproved');
+                      showSuccess(t('articleManagement.messages.statusUpdateSuccess', { action: statusText, count: 1 }));
                       loadArticles();
                       setShowArticleModal(false);
                     })
                     .catch(() => {
-                      setError(t('newsManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái');
+                      setError(t('articleManagement.messages.statusUpdateError') || 'Không thể cập nhật trạng thái');
                     });
                 }}
                 className={`${primaryButtonClasses} px-6 py-2`}
               >
-                {selectedArticle.articleStatus === 'APPROVED' ? t('newsManagement.buttons.unapprove') : t('newsManagement.buttons.approve')}
+                {selectedArticle.articleStatus === 'APPROVED' ? t('articleManagement.buttons.unapprove') : t('articleManagement.buttons.approve')}
               </button>
             </div>
           </div>

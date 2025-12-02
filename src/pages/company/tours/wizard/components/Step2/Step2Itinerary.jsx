@@ -169,31 +169,19 @@ const Step2Itinerary = () => {
   useEffect(() => {
     const handleValidateAll = () => {
       // Use latest values from both formData and tourData to ensure we have the most current values
-      const currentItinerary = formData.itinerary && formData.itinerary.length > 0 
-        ? formData.itinerary 
-        : (tourData.itinerary && tourData.itinerary.length > 0 ? tourData.itinerary : []);
-      
       const currentTourSchedule = formData.tourSchedule || tourData.tourSchedule || '';
       const currentTourDescription = formData.tourDescription || tourData.tourDescription || '';
       
-      // Validate all required fields and show errors
+      // Validate required fields and show errors
       const errors = {};
-      
-      // Check itinerary - must have at least one day with content (activities not empty)
-      const hasValidItinerary = currentItinerary && 
-        currentItinerary.length > 0 && 
-        currentItinerary.some(day => day.activities && String(day.activities).trim().length > 0);
-      
-      if (!hasValidItinerary) {
-        errors.itinerary = t('toast.required', { field: t('tourWizard.step2.title') }) || 'Lịch trình là bắt buộc';
-      }
       
       // Check tourDescription - must be non-empty after trimming
       if (!currentTourDescription || !String(currentTourDescription).trim()) {
         errors.tourDescription = t('toast.required', { field: t('tourWizard.step2.tourDescription.title') }) || 'Mô tả tour là bắt buộc';
       }
       
-      // Check tourSchedule - must be non-empty after trimming
+      // Check tourSchedule (Schedule Summary) - must be non-empty after trimming
+      // Detailed Itinerary is optional, no validation needed
       if (!currentTourSchedule || !String(currentTourSchedule).trim()) {
         errors.tourSchedule = t('toast.required', { field: t('tourWizard.step2.fields.tourSchedule') }) || 'Tóm tắt lịch trình là bắt buộc';
       }
@@ -206,6 +194,30 @@ const Step2Itinerary = () => {
       window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
         detail: { step: 2, hasErrors: Object.keys(errors).length > 0 } 
       }));
+      
+      // Scroll to first error field if there are errors
+      if (Object.keys(errors).length > 0) {
+        setTimeout(() => {
+          const firstErrorKey = Object.keys(errors)[0];
+          let errorElement = null;
+          
+          // Try to find the element by ID or name
+          if (firstErrorKey === 'tourDescription') {
+            errorElement = document.getElementById('tourDescription') || 
+                          document.querySelector('[name="tourDescription"]');
+          } else if (firstErrorKey === 'tourSchedule') {
+            errorElement = document.getElementById('tourSchedule') || 
+                          document.querySelector('[name="tourSchedule"]');
+          }
+          
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (errorElement.focus && typeof errorElement.focus === 'function') {
+              errorElement.focus();
+            }
+          }
+        }, 100);
+      }
     };
 
     const handleClearErrors = () => {
@@ -416,19 +428,6 @@ const Step2Itinerary = () => {
     const newFormData = { ...formData, itinerary: reindexed };
     setFormData(newFormData);
     updateTourData(newFormData);
-    // Clear itinerary error when user adds content
-    if (fieldErrors.itinerary) {
-      setFieldErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.itinerary;
-        // Notify parent about validation status change
-        const hasErrors = Object.keys(newErrors).length > 0;
-        window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-          detail: { step: 2, hasErrors } 
-        }));
-        return newErrors;
-      });
-    }
     showInfo('Đã thêm một ngày lịch trình.');
   };
 
@@ -487,6 +486,8 @@ const Step2Itinerary = () => {
           {t('tourWizard.step2.tourDescription.description')}
         </p>
         <textarea
+          id="tourDescription"
+          name="tourDescription"
           className={`${styles['form-textarea']} ${fieldErrors.tourDescription ? styles['error'] : ''}`}
           rows={10}
           value={formData.tourDescription || ''}
@@ -500,19 +501,6 @@ const Step2Itinerary = () => {
               setFieldErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors.tourDescription;
-                // Notify parent about validation status change
-                const hasErrors = Object.keys(newErrors).length > 0;
-                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                  detail: { step: 2, hasErrors } 
-                }));
-                return newErrors;
-              });
-            }
-            // Clear itinerary error if user adds content
-            if (fieldErrors.itinerary && newFormData.itinerary && newFormData.itinerary.length > 0) {
-              setFieldErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors.itinerary;
                 // Notify parent about validation status change
                 const hasErrors = Object.keys(newErrors).length > 0;
                 window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
@@ -546,6 +534,8 @@ const Step2Itinerary = () => {
         </p>
         <input
           type="text"
+          id="tourSchedule"
+          name="tourSchedule"
           value={formData.tourSchedule || ''}
           placeholder={t('tourWizard.step2.tourSchedule.placeholder')}
           onChange={(e) => {
@@ -576,13 +566,8 @@ const Step2Itinerary = () => {
       </div>
 
       {/* Itinerary Days */}
-      <div className={styles['itinerary-section']}>
+      <div className={styles['itinerary-section']} data-itinerary-section>
         {/* Main Header hidden as requested */}
-        {fieldErrors.itinerary && (
-          <div className={styles['error-message']} style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
-            {fieldErrors.itinerary}
-          </div>
-        )}
 
         {/* Custom Color Picker Modal */}
         {showCustomColorPicker && (

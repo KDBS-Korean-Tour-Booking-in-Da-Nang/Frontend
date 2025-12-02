@@ -50,11 +50,11 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   const getGuestTypeLabel = (type) => {
     switch (type) {
       case 'ADULT':
-        return 'Người lớn';
+        return t('booking.step2.guestTypes.adult');
       case 'CHILD':
-        return 'Trẻ em';
+        return t('booking.step2.guestTypes.child');
       case 'BABY':
-        return 'Em bé';
+        return t('booking.step2.guestTypes.baby');
       default:
         return type;
     }
@@ -63,11 +63,11 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   const getGenderLabel = (gender) => {
     switch (gender) {
       case 'MALE':
-        return 'Nam';
+        return t('booking.step1.gender.male');
       case 'FEMALE':
-        return 'Nữ';
+        return t('booking.step1.gender.female');
       case 'OTHER':
-        return 'Khác';
+        return t('booking.step1.gender.other');
       default:
         return gender || '-';
     }
@@ -88,25 +88,25 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   const bookingDetails = [
     {
       key: 'booking-id',
-      label: 'Mã booking',
+      label: t('companyBookingWizard.step1.booking.code'),
       value: booking?.bookingId ? `#${booking.bookingId}` : '-',
       icon: Hash
     },
     {
       key: 'tour',
-      label: 'Tour',
+      label: t('companyBookingWizard.step1.booking.tour'),
       value: booking?.tourName || '-',
       icon: Map
     },
     {
       key: 'departure',
-      label: 'Ngày khởi hành',
+      label: t('companyBookingWizard.step1.booking.departureDate'),
       value: formatDate(booking?.departureDate),
       icon: CalendarDays
     },
     {
       key: 'guests',
-      label: 'Tổng số khách',
+      label: t('companyBookingWizard.step1.booking.totalGuests'),
       value: booking?.totalGuests || 0,
       icon: Users
     }
@@ -115,25 +115,25 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   const contactDetails = [
     {
       key: 'contact-name',
-      label: 'Họ tên',
+      label: t('booking.step1.fields.fullName'),
       value: booking?.contactName || '-',
       icon: UserRound
     },
     {
       key: 'contact-email',
-      label: 'Email',
+      label: t('booking.step1.fields.email'),
       value: booking?.contactEmail || '-',
       icon: AtSign
     },
     {
       key: 'contact-phone',
-      label: 'Số điện thoại',
+      label: t('booking.step1.fields.phone'),
       value: booking?.contactPhone || '-',
       icon: Phone
     },
     {
       key: 'contact-address',
-      label: 'Địa chỉ',
+      label: t('booking.step1.fields.address'),
       value: booking?.contactAddress || '-',
       icon: Home
     }
@@ -142,7 +142,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   if (booking?.pickupPoint) {
     contactDetails.push({
       key: 'pickup-point',
-      label: 'Điểm đón',
+      label: t('booking.step1.fields.pickupPoint'),
       value: booking.pickupPoint,
       icon: MapPin
     });
@@ -151,20 +151,20 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   if (booking?.note) {
     contactDetails.push({
       key: 'note',
-      label: 'Ghi chú',
+      label: t('booking.step1.fields.note'),
       value: booking.note,
       icon: NotebookPen
     });
   }
 
   const guestColumns = [
-    { key: 'index', label: 'STT', icon: Hash },
-    { key: 'name', label: 'Họ tên', icon: UserRound },
-    { key: 'birth', label: 'Ngày sinh', icon: CalendarDays },
-    { key: 'gender', label: 'Giới tính', icon: UserCircle2 },
-    { key: 'type', label: 'Loại khách', icon: UserSquare2 },
-    { key: 'id', label: 'CMND/CCCD', icon: IdCard },
-    { key: 'nation', label: 'Quốc tịch', icon: Globe }
+    { key: 'index', label: t('companyBookingWizard.step1.guests.columns.index'), icon: Hash },
+    { key: 'name', label: t('companyBookingWizard.step1.guests.columns.fullName'), icon: UserRound },
+    { key: 'birth', label: t('companyBookingWizard.step1.guests.columns.birthDate'), icon: CalendarDays },
+    { key: 'gender', label: t('companyBookingWizard.step1.guests.columns.gender'), icon: UserCircle2 },
+    { key: 'type', label: t('companyBookingWizard.step1.guests.columns.guestType'), icon: UserSquare2 },
+    { key: 'id', label: t('companyBookingWizard.step1.guests.columns.idNumber'), icon: IdCard },
+    { key: 'nation', label: t('companyBookingWizard.step1.guests.columns.nationality'), icon: Globe }
   ];
 
   const handleApprove = () => {
@@ -182,7 +182,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       onStepCompleted(1, 2); // Mark step 1 completed, save progress with step 2
     }
     
-    showSuccess('Đã duyệt thông tin booking. Vui lòng tiếp tục các bước sau.');
+    showSuccess(t('companyBookingWizard.step1.toasts.approved'));
     onNext();
   };
 
@@ -198,7 +198,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED', message.trim());
       onBookingUpdate(updatedBooking);
       setShowRejectModal(false);
-      showSuccess('Đã từ chối booking');
+      showSuccess(t('companyBookingWizard.step1.toasts.rejected'));
       // Navigate back to booking list after rejection
       setTimeout(() => {
         onBack();
@@ -222,7 +222,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       const updatedBooking = await changeBookingStatus(booking.bookingId, 'WAITING_FOR_UPDATE', message);
       onBookingUpdate(updatedBooking);
       setShowRequestUpdateModal(false);
-      showSuccess('Đã gửi yêu cầu cập nhật booking');
+      showSuccess(t('companyBookingWizard.step1.toasts.requestedUpdate'));
       // Navigate back to booking management after request update
       setTimeout(() => {
         onBack();
@@ -248,11 +248,10 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
             <ClipboardList size={28} strokeWidth={1.6} />
           </div>
           <div className={styles.headerContent}>
-            <h2 className={styles.title}>Thông tin cá nhân</h2>
-          <p className={styles.description}>
-              Xem và duyệt chi tiết booking trước khi chuyển sang bước bảo hiểm. Phong cách tối giản, tập trung
-              vào dữ liệu quan trọng.
-          </p>
+            <h2 className={styles.title}>{t('companyBookingWizard.step1.header.title')}</h2>
+            <p className={styles.description}>
+              {t('companyBookingWizard.step1.header.description')}
+            </p>
         </div>
           <div className={styles.headerMeta}>
             <span className={styles.bookingTag}>#{booking.bookingId}</span>
@@ -273,10 +272,10 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       <div className={styles.infoSections}>
         {/* Booking Information */}
         <div className={`${styles.section} ${styles.infoSection}`}>
-          <h3 className={styles.sectionTitle}>
-            <FileText className={styles.sectionIcon} strokeWidth={1.5} />
-            Thông tin booking
-          </h3>
+            <h3 className={styles.sectionTitle}>
+              <FileText className={styles.sectionIcon} strokeWidth={1.5} />
+              {t('companyBookingWizard.step1.sections.bookingInfo')}
+            </h3>
           <div className={styles.infoGrid}>
             {bookingDetails.map(({ key, label, value, icon: Icon }) => (
               <div key={key} className={styles.infoItem}>
@@ -294,7 +293,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
         <div className={`${styles.section} ${styles.infoSection}`}>
           <h3 className={styles.sectionTitle}>
             <Mail className={styles.sectionIcon} strokeWidth={1.5} />
-            Thông tin liên hệ
+            {t('companyBookingWizard.step1.sections.contactInfo')}
           </h3>
         <div className={styles.infoGrid}>
             {contactDetails.map(({ key, label, value, icon: Icon }) => (
@@ -314,7 +313,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
           <UsersRound className={styles.sectionIcon} strokeWidth={1.5} />
-          Danh sách khách
+          {t('companyBookingWizard.step1.sections.guests')}
         </h3>
         {guests && guests.length > 0 ? (
           <div className={styles.guestsTable}>
@@ -347,7 +346,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
             </table>
           </div>
         ) : (
-          <p className={styles.emptyMessage}>Chưa có thông tin khách</p>
+          <p className={styles.emptyMessage}>{t('companyBookingWizard.step1.guests.empty')}</p>
         )}
           </div>
 
@@ -361,7 +360,9 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
               disabled={loading || booking.bookingStatus === 'WAITING_FOR_UPDATE'}
             >
               <AlertTriangle size={18} />
-              {loading ? 'Đang xử lý...' : 'Yêu cầu cập nhật'}
+              {loading
+                ? t('companyBookingWizard.step1.actions.processing')
+                : t('companyBookingWizard.step1.actions.requestUpdate')}
             </button>
             <button
               onClick={handleReject}
@@ -369,7 +370,9 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
               disabled={loading || booking.bookingStatus === 'BOOKING_REJECTED'}
             >
               <XCircle size={18} />
-              {loading ? 'Đang xử lý...' : 'Từ chối'}
+              {loading
+                ? t('companyBookingWizard.step1.actions.processing')
+                : t('companyBookingWizard.step1.actions.reject')}
             </button>
             <button
               onClick={handleApprove}
@@ -381,7 +384,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
               }
             >
               <CheckCircle2 size={18} />
-              Duyệt và tiếp tục
+              {t('companyBookingWizard.step1.actions.approveAndContinue')}
             </button>
           </div>
         </div>
@@ -393,18 +396,17 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmApprove}
-          title="Xác nhận duyệt booking"
-          message={`Bạn có chắc chắn muốn duyệt booking #${booking?.bookingId}?`}
-          confirmText="Xác nhận"
-          cancelText="Hủy"
+          title={t('companyBookingWizard.step1.confirmModal.title')}
+          message={t('companyBookingWizard.step1.confirmModal.message', { bookingId: booking?.bookingId })}
+          confirmText={t('common.confirm')}
+          cancelText={t('common.cancel')}
           icon="✓"
           danger={false}
           disableBackdropClose={false}
         >
           <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', background: '#f4f8ff', borderRadius: '1rem' }}>
             <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.6', color: '#1e293b' }}>
-              Sau khi xác nhận, bạn sẽ chuyển sang bước duyệt bảo hiểm. Tất cả thay đổi chỉ được ghi vào hệ thống
-              ở bước hoàn tất cuối cùng.
+              {t('companyBookingWizard.step1.confirmModal.description')}
             </p>
           </div>
         </DeleteConfirmModal>
@@ -417,8 +419,8 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
           onClose={() => setShowRequestUpdateModal(false)}
           onConfirm={handleConfirmRequestUpdate}
           bookingId={booking?.bookingId}
-          title="Yêu cầu cập nhật booking"
-          message="Vui lòng nhập lý do yêu cầu cập nhật booking:"
+          title={t('companyBookingWizard.step1.requestUpdateModal.title')}
+          message={t('companyBookingWizard.step1.requestUpdateModal.message')}
         />
       )}
 
@@ -429,8 +431,8 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
           onClose={() => setShowRejectModal(false)}
           onConfirm={handleConfirmReject}
           bookingId={booking?.bookingId}
-          title="Lý do từ chối booking"
-          message="Vui lòng nhập lý do từ chối booking này:"
+          title={t('companyBookingWizard.step1.rejectModal.title')}
+          message={t('companyBookingWizard.step1.rejectModal.message')}
         />
       )}
     </div>

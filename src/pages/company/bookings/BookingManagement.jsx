@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './BookingManagement.module.css';
@@ -44,6 +45,8 @@ const BookingManagement = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [viewingBooking, setViewingBooking] = useState(null);
   const [approvingBookingId, setApprovingBookingId] = useState(null);
+  const modalContainerRef = useRef(null);
+  const bodyOverflowRef = useRef('');
 
   const statuses = [
     'PENDING_PAYMENT',
@@ -350,6 +353,26 @@ const BookingManagement = () => {
     filterAndPaginateBookings();
   }, [searchQuery, statusFilter, sortBy, currentPage, allBookings]);
 
+  // Resolve portal container once on mount
+  useEffect(() => {
+    if (!modalContainerRef.current) {
+      const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+      modalContainerRef.current = root || (typeof document !== 'undefined' ? document.body : null);
+    }
+  }, []);
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    if (!modalContainerRef.current || typeof document === 'undefined') return;
+    if (isDetailModalOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = bodyOverflowRef.current || '';
+      };
+    }
+  }, [isDetailModalOpen]);
+
   const filterAndPaginateBookings = () => {
     let filtered = [...allBookings];
 
@@ -540,9 +563,6 @@ const BookingManagement = () => {
     return getImageUrl(normalized);
   };
 
-  const modalDurationDays = viewingBooking ? getTourDurationDays(viewingBooking) : null;
-  const modalEndDate = viewingBooking ? calculateTourEndDate(viewingBooking) : null;
-
   const canApproveFromList = (status) => status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
 
   // Check if booking status allows editing/approval actions
@@ -559,8 +579,68 @@ const BookingManagement = () => {
     return !disabledStatuses.includes(statusUpper);
   };
 
+  const modalDurationDays = viewingBooking ? getTourDurationDays(viewingBooking) : null;
+  const modalEndDate = viewingBooking ? calculateTourEndDate(viewingBooking) : null;
+
+  const modalNode = isDetailModalOpen && viewingBooking ? (
+    <div className={styles['modal-backdrop']} onClick={handleCloseDetailModal}>
+      <div className={styles['modal']} onClick={(e) => e.stopPropagation()}>
+        <div className={styles['modal-header']}>
+          <div>
+            <h3>{t('bookingManagement.modal.title')}{viewingBooking.bookingId}</h3>
+            <p>{t('bookingManagement.modal.tour')} {viewingBooking.tourName || '-'}</p>
+          </div>
+          <button type="button" className={styles['modal-close']} onClick={handleCloseDetailModal}>
+            <XCircleIcon className={styles['modal-close-icon']} />
+          </button>
+        </div>
+        <div className={styles['modal-body']}>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.customer')}</span>
+            <span className={styles['modal-value']}>{viewingBooking.contactName || '-'}</span>
+          </div>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.status')}</span>
+            <span className={styles['modal-value']}>{formatStatusDisplay(viewingBooking.bookingStatus || '')}</span>
+          </div>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.departureDate')}</span>
+            <span className={styles['modal-value']}>
+              {viewingBooking.departureDate ? new Date(viewingBooking.departureDate).toLocaleDateString('vi-VN') : '-'}
+            </span>
+          </div>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.tourDuration')}</span>
+            <span className={styles['modal-value']}>
+              {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
+            </span>
+          </div>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.expectedEndDate')}</span>
+            <span className={styles['modal-value']}>
+              {modalEndDate ? modalEndDate.toLocaleDateString('vi-VN') : '-'}
+            </span>
+          </div>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
+            <span className={styles['modal-value']}>
+              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.totalAmount || 0)}
+            </span>
+          </div>
+          <div className={styles['modal-row']}>
+            <span className={styles['modal-label']}>{t('bookingManagement.modal.createdAt')}</span>
+            <span className={styles['modal-value']}>
+              {viewingBooking.createdAt ? new Date(viewingBooking.createdAt).toLocaleString('vi-VN') : '-'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
-    <div className={styles['booking-management']}>
+    <>
+      <div className={styles['booking-management']}>
       {/* Header */}
       <div className={styles['management-header']}>
         <div className={styles['header-title']}>
@@ -749,6 +829,9 @@ const BookingManagement = () => {
                   const isPendingBooking = isPendingStatus(b.bookingStatus);
                   const isUnderComplaint = b.bookingStatus === 'BOOKING_UNDER_COMPLAINT';
                   const canEdit = canEditBooking(b.bookingStatus);
+                  const isCompanyConfirmed = b.companyConfirmedCompletion === true;
+                  const canShowApproveButton = !isUnderComplaint && canApproveFromList(b.bookingStatus);
+                  const isApproving = approvingBookingId === b.bookingId;
                   return (
                   <tr key={b.id}>
                     <td>
@@ -786,13 +869,13 @@ const BookingManagement = () => {
                             <PencilSquareIcon className={styles['action-icon']} />
                           </button>
                         )}
-                        {!isUnderComplaint && canApproveFromList(b.bookingStatus) && canEdit && (
+                        {canShowApproveButton && (
                           <button
                             type="button"
                             title={t('bookingManagement.actions.confirmTourCompletion')}
                             onClick={() => handleApproveBooking(b)}
-                            className={`${styles['action-btn']} ${approvingBookingId === b.bookingId ? styles['action-btn-disabled'] : ''}`}
-                            disabled={approvingBookingId === b.bookingId}
+                            className={`${styles['action-btn']} ${(isApproving || isCompanyConfirmed) ? styles['action-btn-disabled'] : ''}`}
+                            disabled={isApproving || isCompanyConfirmed}
                           >
                             <CheckCircleIcon className={styles['action-icon']} />
                           </button>
@@ -848,62 +931,10 @@ const BookingManagement = () => {
           </nav>
         </div>
       </div>
-      {isDetailModalOpen && viewingBooking && (
-        <div className={styles['modal-backdrop']} onClick={handleCloseDetailModal}>
-          <div className={styles['modal']} onClick={(e) => e.stopPropagation()}>
-            <div className={styles['modal-header']}>
-              <div>
-                <h3>{t('bookingManagement.modal.title')}{viewingBooking.bookingId}</h3>
-                <p>{t('bookingManagement.modal.tour')} {viewingBooking.tourName || '-'}</p>
-              </div>
-              <button type="button" className={styles['modal-close']} onClick={handleCloseDetailModal}>
-                <XCircleIcon className={styles['modal-close-icon']} />
-              </button>
-            </div>
-            <div className={styles['modal-body']}>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.customer')}</span>
-                <span className={styles['modal-value']}>{viewingBooking.contactName || '-'}</span>
-              </div>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.status')}</span>
-                <span className={styles['modal-value']}>{formatStatusDisplay(viewingBooking.bookingStatus || '')}</span>
-              </div>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.departureDate')}</span>
-                <span className={styles['modal-value']}>
-                  {viewingBooking.departureDate ? new Date(viewingBooking.departureDate).toLocaleDateString('vi-VN') : '-'}
-                </span>
-              </div>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.tourDuration')}</span>
-                <span className={styles['modal-value']}>
-                  {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
-                </span>
-              </div>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.expectedEndDate')}</span>
-                <span className={styles['modal-value']}>
-                  {modalEndDate ? modalEndDate.toLocaleDateString('vi-VN') : '-'}
-                </span>
-              </div>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
-                <span className={styles['modal-value']}>
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.totalAmount || 0)}
-                </span>
-              </div>
-              <div className={styles['modal-row']}>
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.createdAt')}</span>
-                <span className={styles['modal-value']}>
-                  {viewingBooking.createdAt ? new Date(viewingBooking.createdAt).toLocaleString('vi-VN') : '-'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+      {/* Booking Detail Modal - Rendered outside booking management container */}
+      {modalContainerRef.current && modalNode ? createPortal(modalNode, modalContainerRef.current) : modalNode}
+    </>
   );
 };
 

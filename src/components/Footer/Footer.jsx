@@ -172,11 +172,11 @@ const Footer = () => {
               <ul className={styles.linkList}>
                 <li className={styles.linkItem}>
                   <a 
-                    href="/news" 
+                    href="/article" 
                     className={styles.link}
                     onClick={(e) => {
                       e.preventDefault();
-                      navigate('/news');
+                      navigate('/article');
                     }}
                   >
                     <ExternalLink className={styles.linkIcon} />

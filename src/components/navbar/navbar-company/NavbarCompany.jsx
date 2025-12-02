@@ -185,9 +185,9 @@ const NavbarCompany = () => {
       // For tour, also check if we're on tour detail page
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
     }
-    if (path === '/news') {
-      // For news, also check if we're on news detail page
-      return location.pathname === '/news' || location.pathname.startsWith('/news/');
+    if (path === '/article') {
+      // For article, also check if we're on article detail page
+      return location.pathname === '/article' || location.pathname.startsWith('/article/');
     }
     if (path === '/about') {
       return location.pathname === '/about';
@@ -249,7 +249,7 @@ const NavbarCompany = () => {
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.home')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.forum')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.tourBooking')}</a>
-                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.news')}</a>
+                <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.article')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.about')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.contact')}</a>
               </>
@@ -258,7 +258,7 @@ const NavbarCompany = () => {
                 <Link to="/" className={styles['nav-link']}>{t('nav.home')}</Link>
                 <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
                 <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
-                <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
+                <Link to="/article" className={styles['nav-link']}>{t('nav.article')}</Link>
                 <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
                 <Link to="/contact" className={styles['nav-link']}>{t('nav.contact')}</Link>
               </>
@@ -473,11 +473,11 @@ const NavbarCompany = () => {
               </Link>
 
               <Link
-                to="/news"
+                to="/article"
                 className={styles['mobile-nav-link']}
                 onClick={() => setIsMenuOpen(false)}
               >
-                {t('nav.news')}
+                {t('nav.article')}
               </Link>
 
               <Link

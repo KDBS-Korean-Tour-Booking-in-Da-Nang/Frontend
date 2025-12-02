@@ -1,11 +1,11 @@
-{
+﻿{
   "brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
   "nav": {
     "home": "Trang chủ",
     "forum": "Diễn đàn",
     "tours": "Tours",
     "tourBooking": "Đặt Tour",
-    "news": "Tin tức",
+    "article": "Tin tức",
     "about": "Về chúng tôi",
     "selfTravel": "Tự túc",
     "contact": "Liên hệ",
@@ -456,7 +456,7 @@
         "forumReportManagement": "Quản lý báo cáo diễn đàn",
         "complaintManagement": "Quản lý khiếu nại",
         "resolveTicketManagement": "Quản lý giải quyết ticket",
-        "newsManagement": "Quản lý tin tức",
+        "articleManagement": "Quản lý bài viết",
         "tourManagement": "Quản lý tour",
         "transactionManagement": "Quản lý giao dịch"
       },
@@ -1310,7 +1310,91 @@
         "amount": "Số lượng",
         "amountPeople": "{{amount}} người",
         "company": "Công ty"
+      },
+      "actions": {
+        "approve": "Phê duyệt",
+        "reject": "Từ chối",
+        "confirmApprove": "Bạn có chắc chắn muốn phê duyệt tour này?",
+        "confirmReject": "Bạn có chắc chắn muốn từ chối tour này?"
       }
+    },
+    "tourApproval": {
+      "title": "Quản lý Tour",
+      "subtitle": "Xem và quản lý tất cả các tour trong hệ thống.",
+      "permissionDenied": {
+        "title": "Không có quyền truy cập",
+        "message": "Bạn không có quyền phê duyệt tour. Vui lòng liên hệ admin để được phân quyền.",
+        "backButton": "Quay lại Task Management"
+      },
+      "loading": "Đang tải danh sách tour...",
+      "error": {
+        "loadTours": "Không thể tải danh sách tour",
+        "loadDetail": "Đã xảy ra lỗi khi tải chi tiết tour",
+        "approve": "Lỗi khi phê duyệt tour: {{error}}",
+        "reject": "Lỗi khi từ chối tour: {{error}}",
+        "approveGeneric": "Đã xảy ra lỗi khi phê duyệt tour",
+        "rejectGeneric": "Đã xảy ra lỗi khi từ chối tour"
+      },
+      "stats": {
+        "totalTours": "Tổng số tour",
+        "displayedTours": "Tour hiển thị",
+        "currentPage": "Trang hiện tại"
+      },
+      "filters": {
+        "advancedFilter": "Bộ lọc nâng cao",
+        "exportReport": "Xuất báo cáo",
+        "searchPlaceholder": "Tìm kiếm tour theo tên, mô tả, điểm khởi hành...",
+        "statusFilter": {
+          "all": "Tất cả trạng thái",
+          "notApproved": "Chờ duyệt",
+          "public": "Đã duyệt",
+          "disabled": "Đã vô hiệu"
+        },
+        "sortBy": {
+          "newest": "Mới nhất",
+          "oldest": "Cũ nhất",
+          "nameAsc": "Tên A-Z",
+          "nameDesc": "Tên Z-A"
+        }
+      },
+      "table": {
+        "headers": {
+          "stt": "STT",
+          "tourName": "Tên tour",
+          "status": "Trạng thái",
+          "price": "Giá",
+          "duration": "Thời gian",
+          "createdAt": "Ngày tạo",
+          "actions": "Thao tác"
+        },
+        "noResults": "Không tìm thấy tour phù hợp với bộ lọc hiện tại.",
+        "loading": "Đang tải..."
+      },
+      "status": {
+        "approved": "Đã duyệt",
+        "pending": "Chờ duyệt",
+        "disabled": "Đã vô hiệu",
+        "na": "N/A"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "approve": "Phê duyệt tour",
+        "reject": "Từ chối tour"
+      },
+      "pagination": {
+        "page": "Trang {{current}} / {{total}} ({{count}} tour)",
+        "previous": "Trước",
+        "next": "Sau"
+      },
+      "confirm": {
+        "approve": "Bạn có chắc chắn muốn phê duyệt tour này?",
+        "reject": "Bạn có chắc chắn muốn từ chối tour này?"
+      },
+      "success": {
+        "approve": "Phê duyệt tour thành công!",
+        "reject": "Từ chối tour thành công!"
+      },
+      "durationTemplate": "{{days}} ngày {{nights}} đêm"
     },
     "transactionManagement": {
       "title": "View & track all transactions",
@@ -1546,6 +1630,19 @@
     "missingInfo": "Không nhận được thông tin xác thực đầy đủ",
     "failed": "Xác thực OAuth thất bại: {{message}}"
   },
+  "chatDropdown": {
+    "title": "Đoạn chat",
+    "searchPlaceholder": "Tìm kiếm trên Messenger",
+    "empty": {
+      "search": "Không tìm thấy người dùng",
+      "noUsers": "Danh sách người dùng chưa có"
+    },
+    "time": {
+      "justNow": "Vừa xong",
+      "minutesAgo": "{{count}} phút",
+      "hoursAgo": "{{count}} giờ"
+    }
+  },
   "staffLogin": {
     "title": "Đăng nhập Staff/Admin",
     "subtitle": "Truy cập hệ thống quản lý",
@@ -1562,6 +1659,360 @@
       "admin": "Admin:",
       "staff": "Staff:",
       "password": "Mật khẩu: (bất kỳ)"
+    }
+  },
+  "staff": {
+    "layout": {
+      "sidebar": {
+        "brand": "KDBS Staff",
+        "sections": {
+          "menu": "MENU",
+          "contact": "LIÊN HỆ"
+        },
+        "taskManagement": "Task Management",
+        "menuItems": {
+          "forumReportManagement": "Forum Report Management",
+          "bookingComplaint": "Booking Complaint",
+          "companyManagement": "Company Management",
+          "resolveTicket": "Resolve Ticket",
+          "tourApproval": "Tour Approval",
+          "articleManagement": "Article Management"
+        },
+        "contactCustomer": "Liên hệ khách hàng"
+      },
+      "header": {
+        "searchPlaceholder": "Tìm kiếm...",
+        "userDropdown": {
+          "profile": "Hồ sơ",
+          "accountSettings": "Cài đặt tài khoản",
+          "support": "Hỗ trợ",
+          "signOut": "Đăng xuất",
+          "staffUser": "Nhân viên",
+          "staffUserFallback": "Nhân viên"
+        }
+      }
+    },
+    "companyManagement": {
+      "title": "Xét duyệt đăng ký công ty",
+      "subtitle": "Quản lý và xét duyệt các yêu cầu đăng ký tài khoản công ty du lịch.",
+      "permissionDenied": {
+        "title": "Không có quyền truy cập",
+        "message": "Bạn không có quyền quản lý công ty. Vui lòng liên hệ admin để được phân quyền.",
+        "backButton": "Quay lại Task Management"
+      },
+      "loading": "Đang tải danh sách công ty...",
+      "error": {
+        "loadCompanies": "Không thể tải danh sách công ty. Vui lòng thử lại.",
+        "sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+        "loginRequired": "Vui lòng đăng nhập lại",
+        "loadFiles": "Không thể tải thông tin file. Vui lòng thử lại.",
+        "updateRole": "Không thể cập nhật role",
+        "updateStatus": "Không thể cập nhật trạng thái",
+        "approve": "Không thể phê duyệt công ty. Vui lòng thử lại.",
+        "reject": "Không thể từ chối công ty. Vui lòng thử lại."
+      },
+      "retry": "Thử lại",
+      "stats": {
+        "totalCompanies": "Tổng công ty",
+        "totalCompaniesDesc": "Đã đăng ký",
+        "pending": "Chờ duyệt",
+        "pendingDesc": "Cần xử lý",
+        "approved": "Đã duyệt",
+        "approvedDesc": "Hoạt động",
+        "rejected": "Đã từ chối",
+        "rejectedDesc": "Không hoạt động"
+      },
+      "filters": {
+        "advancedFilter": "Bộ lọc nâng cao",
+        "exportReport": "Xuất báo cáo",
+        "searchPlaceholder": "Tìm theo tên, email hoặc mã công ty...",
+        "statusFilter": {
+          "all": "Tất cả trạng thái",
+          "pending": "Chờ duyệt",
+          "approved": "Đã duyệt",
+          "rejected": "Đã từ chối"
+        }
+      },
+      "table": {
+        "headers": {
+          "company": "Công ty",
+          "status": "Trạng thái",
+          "registrationDate": "Ngày đăng ký",
+          "actions": "Thao tác"
+        },
+        "loading": "Đang tải...",
+        "noResults": "Không tìm thấy công ty phù hợp với bộ lọc hiện tại."
+      },
+      "status": {
+        "pending": "Chờ duyệt",
+        "notUpdated": "Chưa cập nhật",
+        "approved": "Đã duyệt",
+        "rejected": "Đã từ chối",
+        "na": "N/A"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "approve": "Phê duyệt",
+        "reject": "Từ chối"
+      },
+      "confirm": {
+        "approve": "Bạn có chắc chắn muốn phê duyệt công ty \"{{name}}\"?",
+        "reject": "Bạn có chắc chắn muốn từ chối công ty \"{{name}}\"?"
+      },
+      "success": {
+        "approve": "Phê duyệt công ty thành công!",
+        "reject": "Từ chối công ty thành công!"
+      },
+      "modal": {
+        "title": "Chi tiết công ty",
+        "close": "Đóng",
+        "closeLabel": "Đóng",
+        "loadingFiles": "Đang tải thông tin file...",
+        "noFiles": {
+          "title": "Không tìm thấy thông tin file upload",
+          "description": "Công ty này có thể chưa upload files hoặc có vấn đề với dữ liệu."
+        },
+        "businessLicense": {
+          "title": "Giấy phép kinh doanh",
+          "desc": "File PDF",
+          "openInNewTab": "Mở trong tab mới",
+          "noFile": "Không có file"
+        },
+        "idCard": {
+          "front": {
+            "title": "CCCD mặt trước",
+            "desc": "Ảnh chụp",
+            "alt": "CCCD mặt trước"
+          },
+          "back": {
+            "title": "CCCD mặt sau",
+            "desc": "Ảnh chụp",
+            "alt": "CCCD mặt sau"
+          },
+          "noImage": "Không có ảnh",
+          "imageLoadError": "Không thể tải ảnh"
+        }
+      }
+    },
+    "taskManagement": {
+      "dashboard": {
+        "title": "Staff Dashboard",
+        "taskManagement": "Task Management",
+        "subtitle": "Theo dõi và xử lý nhiệm vụ được phân công từ admin.",
+        "role": "Vai trò:",
+        "noTasks": {
+          "title": "Hiện tại bạn chưa có nhiệm vụ",
+          "description": "Khi admin phân công nhiệm vụ, các mục quản lý sẽ xuất hiện trong menu Task Management để bạn xử lý."
+        },
+        "selectTask": {
+          "title": "Chọn nhiệm vụ cần xử lý",
+          "description": "Bảng thống kê cho bạn cái nhìn tổng quan. Để bắt đầu xử lý nhiệm vụ cụ thể, hãy mở menu",
+          "taskManagement": "Task Management",
+          "instruction": "ở sidebar và chọn đúng mục nhiệm vụ được phân công."
+        }
+      },
+      "summaryCards": {
+        "forumReports": {
+          "label": "Forum Reports",
+          "sublabel": "Báo cáo cần xử lý"
+        },
+        "bookingComplaints": {
+          "label": "Booking Complaints",
+          "sublabel": "Khiếu nại chờ xử lý"
+        },
+        "companyRequests": {
+          "label": "Company Requests",
+          "sublabel": "Đang chờ duyệt"
+        },
+        "pendingTours": {
+          "label": "Pending Tours",
+          "sublabel": "Tour chờ phê duyệt"
+        },
+        "pendingArticles": {
+          "label": "Pending Articles",
+          "sublabel": "Bài viết chưa duyệt"
+        }
+      },
+      "sidebar": {
+        "dashboardOverview": "Dashboard overview",
+        "sections": {
+          "forumComplaint": {
+            "title": "Forum & Complaint Task",
+            "description": "Xử lý báo cáo từ diễn đàn và khiếu nại đặt tour",
+            "items": {
+              "forumReports": {
+                "label": "Forum Report Management",
+                "helper": "Theo dõi và cập nhật báo cáo mới"
+              },
+              "bookingComplaint": {
+                "label": "Booking Complaint",
+                "helper": "Xử lý khiếu nại từ khách hàng về đặt tour"
+              }
+            }
+          },
+          "companyArticle": {
+            "title": "Company & Article",
+            "description": "Quản lý doanh nghiệp, ticket và bài viết",
+            "items": {
+              "companyManagement": {
+                "label": "Company Management",
+                "helper": "Phê duyệt doanh nghiệp đăng ký"
+              },
+              "resolveTicket": {
+                "label": "Resolve Ticket",
+                "helper": "Xử lý và giải quyết ticket hỗ trợ"
+              },
+              "articleManagement": {
+                "label": "Article Management",
+                "helper": "Duyệt bài viết và tin tức"
+              }
+            }
+          },
+          "tour": {
+            "title": "Tour Task",
+            "description": "Kiểm duyệt tour mới",
+            "items": {
+              "tourApproval": {
+                "label": "Tour Approval",
+                "helper": "Xem và phê duyệt tour chờ duyệt"
+              }
+            }
+          }
+        }
+      },
+      "forumReportManagement": {
+        "title": "Forum Report Management",
+        "subtitle": "Quản lý báo cáo từ forum",
+        "description": "Xem xét và duyệt các báo cáo từ người dùng về nội dung vi phạm trên forum.",
+        "permissionDenied": {
+          "title": "Không có quyền truy cập",
+          "message": "Bạn không có quyền quản lý báo cáo forum. Vui lòng liên hệ admin để được phân quyền.",
+          "backButton": "Quay lại Task Management"
+        },
+        "loading": "Đang tải danh sách báo cáo...",
+        "error": {
+          "loadDetail": "Lỗi khi tải chi tiết báo cáo: {{error}}",
+          "loadDetailGeneric": "Đã xảy ra lỗi khi tải chi tiết báo cáo",
+          "approve": "Lỗi khi duyệt báo cáo: {{error}}",
+          "approveGeneric": "Đã xảy ra lỗi khi duyệt báo cáo",
+          "reject": "Lỗi khi từ chối báo cáo: {{error}}",
+          "rejectGeneric": "Đã xảy ra lỗi khi từ chối báo cáo",
+          "loginRequired": "Vui lòng đăng nhập để thực hiện thao tác này"
+        },
+        "stats": {
+          "total": "Tổng báo cáo",
+          "pending": "Chờ duyệt",
+          "pendingDesc": "Cần xử lý",
+          "resolved": "Đã xử lý",
+          "dismissed": "Đã từ chối"
+        },
+        "filters": {
+          "advancedFilter": "Bộ lọc nâng cao",
+          "exportReport": "Xuất báo cáo",
+          "searchPlaceholder": "Tìm theo mã báo cáo, người báo cáo, tiêu đề bài viết...",
+          "statusFilter": {
+            "all": "Tất cả trạng thái",
+            "pending": "Chờ duyệt",
+            "investigating": "Đang điều tra",
+            "resolved": "Đã xử lý",
+            "dismissed": "Bỏ qua",
+            "closed": "Đóng"
+          },
+          "typeFilter": {
+            "all": "Tất cả loại",
+            "spam": "Spam",
+            "inappropriate": "Nội dung không phù hợp",
+            "harassment": "Quấy rối",
+            "copyright": "Vi phạm bản quyền",
+            "other": "Khác"
+          }
+        },
+        "table": {
+          "headers": {
+            "stt": "STT",
+            "report": "Báo cáo",
+            "reporter": "Người báo cáo",
+            "violationType": "Loại vi phạm",
+            "status": "Trạng thái",
+            "reportDate": "Ngày báo cáo",
+            "actions": "Thao tác"
+          },
+          "loading": "Đang tải...",
+          "noResults": "Không tìm thấy báo cáo phù hợp với bộ lọc hiện tại."
+        },
+        "reportTypes": {
+          "post": "Bài viết",
+          "comment": "Bình luận"
+        },
+        "status": {
+          "pending": "Chờ duyệt",
+          "investigating": "Đang điều tra",
+          "resolved": "Đã xử lý",
+          "dismissed": "Bỏ qua",
+          "closed": "Đóng",
+          "na": "N/A"
+        },
+        "violationTypes": {
+          "spam": "Spam",
+          "inappropriate": "Không phù hợp",
+          "harassment": "Quấy rối",
+          "copyright": "Bản quyền",
+          "violence": "Bạo lực",
+          "hateSpeech": "Ngôn từ thù địch",
+          "falseInfo": "Thông tin sai",
+          "other": "Khác",
+          "na": "N/A"
+        },
+        "actions": {
+          "viewDetails": "Xem chi tiết",
+          "approve": "Duyệt báo cáo",
+          "reject": "Từ chối báo cáo"
+        },
+        "pagination": {
+          "page": "Trang {{current}} / {{total}}",
+          "previous": "Trước",
+          "next": "Sau"
+        },
+        "confirm": {
+          "approve": "Bạn có chắc chắn muốn duyệt báo cáo này?",
+          "reject": "Bạn có chắc chắn muốn từ chối báo cáo này?"
+        },
+        "success": {
+          "approve": "Duyệt báo cáo thành công!",
+          "reject": "Từ chối báo cáo thành công!"
+        },
+        "adminNote": {
+          "approve": "Báo cáo đã được duyệt và xử lý",
+          "reject": "Báo cáo đã bị từ chối"
+        },
+        "noReason": "Không có lý do",
+        "modal": {
+          "title": "Chi tiết báo cáo",
+          "close": "Đóng",
+          "reportId": "ID: #{{id}}",
+          "fields": {
+            "status": "Trạng thái",
+            "contentType": "Loại nội dung",
+            "targetId": "ID: {{id}}",
+            "reporter": "Người báo cáo",
+            "violationType": "Loại vi phạm",
+            "reportDate": "Ngày báo cáo",
+            "resolvedDate": "Ngày xử lý",
+            "contentInfo": "Thông tin nội dung",
+            "title": "Tiêu đề",
+            "author": "Tác giả",
+            "reason": "Lý do báo cáo",
+            "description": "Mô tả chi tiết",
+            "adminNote": "Ghi chú admin",
+            "resolvedBy": "Xử lý bởi"
+          },
+          "actions": {
+            "close": "Đóng",
+            "reject": "Từ chối",
+            "approve": "Duyệt"
+          }
+        }
+      }
     }
   },
   "forum": {
@@ -1852,6 +2303,7 @@
     "max_capacity_range": "Số chỗ tối đa phải từ 1 đến 9999.",
     "company_only": "Chỉ tài khoản Company mới có thể thực hiện thao tác này.",
     "field_invalid": "Giá trị không hợp lệ",
+    "min_price": "Giá tối thiểu là {{min}} VND",
     "tour": {
       "upload_image_failed": "Không thể upload ảnh. Vui lòng thử lại.",
       "file_size_exceeded": "Kích thước file không được vượt quá 5MB",
@@ -2218,6 +2670,7 @@
     "createNew": "Tạo tour mới",
     "header": {
       "title": "Danh Sách Tour",
+      "subtitle": "Quản lý tất cả các tour của bạn",
       "addNew": "Thêm Tour Mới"
     },
     "loading": {
@@ -2433,12 +2886,15 @@
         "submit": "Gửi đánh giá",
         "cannotRate": "Bạn chưa đủ điều kiện để đánh giá tour này.",
         "empty": "Chưa có đánh giá nào.",
+        "noReviews": "Chưa có đánh giá",
+        "ratingFormat": "{{avg}}/5 ({{total}} đánh giá)",
         "edit": "Sửa",
         "delete": "Xóa",
         "editPrompt": "Sửa nhận xét của bạn:",
         "editStarPrompt": "Sửa số sao (1-5):",
         "deleteConfirm": "Xóa đánh giá này?"
       },
+      "durationTemplate": "{{days}} ngày {{nights}} đêm",
       "booking": {
         "price": "Giá tour",
         "includedNote": "Giá đã bao gồm thuế và phí dịch vụ",
@@ -2643,6 +3099,108 @@
       "cancelled": "Đã hủy"
     }
   },
+  "bookingDetail": {
+    "sections": {
+      "tourInfo": "Thông tin tour",
+      "contactInfo": "Thông tin liên hệ",
+      "email": "Email"
+    },
+    "actions": {
+      "editBooking": "Chỉnh sửa booking",
+      "complete": "Hoàn thành",
+      "complaint": "Khiếu nại"
+    },
+    "info": {
+      "successPending": "Booking đã được công ty duyệt. Vui lòng chờ tour diễn ra để xác nhận hoàn tất.",
+      "expectedEndDatePrefix": "Ngày kết thúc dự kiến:",
+      "waitingForConfirmation": "Tour đã kết thúc. Vui lòng xác nhận bạn đã hoàn thành chuyến đi hoặc gửi khiếu nại nếu có vấn đề.",
+      "underComplaint": "Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý."
+    },
+    "completion": {
+      "toastSuccess": "Đã xác nhận tour hoàn thành. Chúng tôi sẽ thông báo cho công ty.",
+      "toastError": "Không thể xác nhận tour hoàn thành",
+      "autoConfirmWithDate": "Nếu một trong hai bên chưa xác nhận, hệ thống sẽ tự động xác nhận sau ngày {{date}}.",
+      "autoConfirmDefault": "Nếu một trong hai bên chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày kể từ khi tour kết thúc."
+    },
+    "complaint": {
+      "toastSuccess": "Đã gửi khiếu nại. Chúng tôi sẽ xem xét sớm nhất.",
+      "toastError": "Không thể gửi khiếu nại",
+      "emptyError": "Vui lòng nhập nội dung khiếu nại"
+    },
+    "edit": {
+      "toastSuccess": "Đã cập nhật booking thành công",
+      "toastError": "Không thể cập nhật booking"
+    },
+    "modal": {
+      "completionTitle": "Xác nhận hoàn thành tour",
+      "completionMessage": "Bạn xác nhận đã hoàn thành đầy đủ lịch trình tour này?",
+      "confirm": "Xác nhận hoàn thành",
+      "confirmProcessing": "Đang xác nhận..."
+    },
+    "error": {
+      "loadFailed": "Không thể tải thông tin booking"
+    }
+  },
+  "complaintModal": {
+    "title": "Gửi khiếu nại tour",
+    "bookingIdLabel": "Booking ID:",
+    "instruction": "Vui lòng mô tả ngắn gọn vấn đề bạn gặp phải trong tour này. Đội ngũ hỗ trợ sẽ xem xét và phản hồi sớm nhất.",
+    "placeholder": "Ví dụ: Hướng dẫn viên đến trễ, chất lượng dịch vụ chưa đúng cam kết...",
+    "actions": {
+      "close": "Đóng",
+      "submit": "Gửi khiếu nại"
+    }
+  },
+  "editBookingModal": {
+    "title": "Chỉnh sửa booking",
+    "tabs": {
+      "contact": "Thông tin liên hệ",
+      "guests": "Danh sách khách ({{count}})",
+      "review": "Xem lại"
+    },
+    "contactSection": {
+      "title": "Thông tin liên hệ"
+    },
+    "guestsSection": {
+      "title": "Danh sách khách ({{count}})",
+      "empty": "Chưa có thông tin khách",
+      "guestTitle": "Khách {{index}} - {{type}}",
+      "guestSummary": "Khách {{index}} ({{type}}):"
+    },
+    "guests": {
+      "labelBirthDate": "Ngày sinh"
+    },
+    "fields": {
+      "nationality": "Quốc tịch",
+      "idNumber": "CMND/CCCD/Passport",
+      "idNumberShort": "CMND/CCCD"
+    },
+    "placeholders": {
+      "nationality": "Vietnamese"
+    },
+    "reviewSection": {
+      "title": "Xem lại thông tin",
+      "contactInfoTitle": "Thông tin liên hệ",
+      "guestsTitle": "Danh sách khách ({{count}})"
+    },
+    "gender": {
+      "male": "Nam",
+      "female": "Nữ",
+      "other": "Khác"
+    },
+    "guestTypes": {
+      "adult": "Người lớn",
+      "child": "Trẻ em",
+      "baby": "Em bé"
+    },
+    "actions": {
+      "submit": "Xác nhận cập nhật"
+    },
+    "confirmModal": {
+      "title": "Xác nhận cập nhật booking",
+      "message": "Bạn chắc chắn cập nhật đúng thông tin chứ?"
+    }
+  },
   "tourCard": {
     "welcome": {
       "explore": "Khám phá",
@@ -2692,6 +3250,11 @@
         "pickupPoint": "Điểm đón",
         "note": "Ghi chú"
       },
+      "gender": {
+        "male": "Nam",
+        "female": "Nữ",
+        "other": "Khác"
+      },
       "placeholders": {
         "fullName": "Nhập họ và tên đầy đủ",
         "phone": "0123456789 hoặc +84123456789",
@@ -2707,6 +3270,11 @@
     },
     "step2": {
       "loading": "Đang tải thông tin giá tour...",
+      "guestTypes": {
+        "adult": "Người lớn",
+        "child": "Trẻ em",
+        "baby": "Em bé"
+      },
       "sections": {
         "dateTitle": "Ngày khởi hành",
         "paxTitle": "Tổng số khách",
@@ -3256,8 +3824,8 @@
       "error": "Lỗi"
     }
   },
-  "news": {
-    "title": "Tin tức",
+  "article": {
+    "title": "Bài viết",
     "hero": {
       "title": "Những thông tin du lịch hấp dẫn về các địa danh điểm đến hấp dẫn",
       "subtitle": "Cung cấp thông tin hữu ích cho du khách về các điểm đến, hoạt động du lịch và trải nghiệm đặc sắc"
@@ -3268,7 +3836,7 @@
     "noArticles": "Chưa có bài báo nào",
     "noArticlesDesc": "Hãy quay lại sau để xem các bài báo mới nhất!",
     "noImage": "Không có hình ảnh",
-    "category": "Tin tức",
+    "category": "Bài viết",
     "readMore": "Chi tiết",
     "sidebar": {
       "title": "DANH MỤC TOUR",
@@ -3318,25 +3886,25 @@
       }
     }
   },
-  "newsDetail": {
+  "articleDetail": {
     "backToNews": "Quay lại",
-    "news": "Tin tức",
+    "article": "Bài viết",
     "loading": "Đang tải bài báo...",
     "errorTitle": "Lỗi tải bài báo",
     "errorMessage": "Không thể tải bài báo. Vui lòng thử lại sau.",
     "retry": "Thử lại",
-    "backToNewsPage": "Về trang tin tức",
+    "backToNewsPage": "Về trang bài viết",
     "notFoundTitle": "Không tìm thấy bài báo",
     "notFoundMessage": "Bài báo bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
-    "category": "Tin tức",
+    "category": "Bài viết",
     "publishedAt": "Đăng lúc",
     "backToTop": "↑ Lên đầu trang",
-    "viewMoreNews": "← Xem thêm tin tức",
+    "viewMoreNews": "← Xem thêm bài viết",
     "contentUpdating": "Nội dung bài báo đang được cập nhật..."
   },
-  "newsManagement": {
-    "title": "Quản lý Tin tức",
-    "subtitle": "Cào và quản lý các bài viết tin tức từ các nguồn khác nhau",
+  "articleManagement": {
+    "title": "Quản lý Bài viết",
+    "subtitle": "Cào và quản lý các bài viết từ các nguồn khác nhau",
     "accessDenied": {
       "title": "Truy cập bị từ chối",
       "message": "Bạn cần quyền quản trị viên hoặc nhân viên để truy cập trang này.",
@@ -3349,8 +3917,8 @@
     "messages": {
       "autoCrawlSuccess": "Đã tự động cào thành công {{count}} bài viết mới!",
       "crawlSuccess": "Đã cào thành công {{count}} bài viết mới!",
-      "crawlError": "Có lỗi xảy ra khi cào tin tức",
-      "crawlErrorDesc": "Có lỗi xảy ra khi cào tin tức. Vui lòng thử lại sau.",
+      "crawlError": "Có lỗi xảy ra khi cào bài viết",
+      "crawlErrorDesc": "Có lỗi xảy ra khi cào bài viết. Vui lòng thử lại sau.",
       "noNewArticles": "Không có bài viết mới!",
       "noNewArticlesDesc": "Không có bài viết mới. Tất cả bài viết đã được cập nhật hoặc đã tồn tại trong hệ thống.",
       "selectArticles": "Vui lòng chọn ít nhất một bài báo",
@@ -3361,15 +3929,15 @@
       "logoutSuccess": "Đã đăng xuất thành công!"
     },
     "buttons": {
-      "crawlNews": "Cào tin tức mới",
-      "crawling": "Đang cào tin tức...",
+      "crawlNews": "Cào bài viết mới",
+      "crawling": "Đang cào bài viết...",
       "loading": "Đang tải...",
       "reloadList": "Tải lại danh sách",
       "approve": "Phê duyệt",
       "unapprove": "Hủy phê duyệt",
       "viewDetails": "Xem chi tiết",
       "logout": "Đăng xuất",
-      "backToNews": "Xem trang tin tức"
+      "backToNews": "Xem trang bài viết"
     },
     "status": {
       "approved": "Đã phê duyệt",
@@ -3381,14 +3949,14 @@
     },
     "sidebar": {
       "title": "Quản lý",
-      "subtitle": "Tin tức & Bài báo",
-      "news": "Tin tức",
+      "subtitle": "Bài viết & Bài báo",
+      "article": "Tin tức",
       "statistics": "Thống kê",
       "settings": "Cài đặt"
     },
     "welcome": {
       "title": "Chào mừng, {{name}}!",
-      "description": "Quản lý và cập nhật tin tức cho trang web",
+      "description": "Quản lý và cập nhật bài viết cho trang web",
       "autoCrawl": "Hệ thống tự động cào bài viết mới lúc 00:00 hàng ngày"
     },
     "articles": {
@@ -3402,14 +3970,14 @@
       "next": "Sau"
     },
     "noArticles": {
-      "message": "Chưa có bài báo nào. Hãy cào tin tức để bắt đầu!"
+      "message": "Chưa có bài báo nào. Hãy cào bài viết để bắt đầu!"
     },
     "instructions": {
       "title": "Hướng dẫn sử dụng",
-      "crawlButton": "Nhấn nút \"Cào tin tức mới\" để tự động thu thập bài viết từ Danangxanh",
+      "crawlButton": "Nhấn nút \"Cào bài viết mới\" để tự động thu thập bài viết từ Danangxanh",
       "autoCrawl": "Hệ thống sẽ tự động cào bài viết mới lúc 00:00 mỗi ngày",
       "noDuplicates": "Bài viết trùng lặp sẽ không được thêm vào hệ thống",
-      "approvedDisplay": "Các bài viết được phê duyệt sẽ hiển thị trên trang tin tức công khai",
+      "approvedDisplay": "Các bài viết được phê duyệt sẽ hiển thị trên trang bài viết công khai",
       "accessControl": "Chỉ admin và staff mới có thể thực hiện chức năng này"
     },
     "modal": {
@@ -3664,6 +4232,178 @@
     },
     "success": {
       "bookingPending": "Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất."
+    },
+    "insurance": {
+      "guestFallback": "khách",
+      "toasts": {
+        "statusUpdated": "Đã cập nhật trạng thái bảo hiểm cho {{guestName}}. Thay đổi sẽ được lưu khi bạn hoàn thành booking.",
+        "rejected": "Đã từ chối booking",
+        "saved": "Đã ghi nhận các thay đổi bảo hiểm. Vui lòng hoàn thành booking để lưu vào hệ thống."
+      },
+      "header": {
+        "title": "Thông tin bảo hiểm",
+        "description": "Duy trì tone pastel, tập trung vào trạng thái bảo hiểm của từng khách. Đảm bảo tất cả đều SUCCESS trước khi tiếp tục.",
+        "stepBadge": "Bước 2 / 3"
+      },
+      "summary": {
+        "totalGuests": "Tổng khách",
+        "success": "SUCCESS",
+        "failed": "FAILED",
+        "pending": "PENDING"
+      },
+      "table": {
+        "title": "Danh sách khách và bảo hiểm",
+        "columns": {
+          "index": "STT",
+          "fullName": "Họ tên",
+          "birthDate": "Ngày sinh",
+          "idNumber": "CMND/CCCD",
+          "insuranceStatus": "Trạng thái bảo hiểm",
+          "actions": "Thao tác"
+        },
+        "empty": "Chưa có thông tin khách"
+      },
+      "actions": {
+        "approveTooltip": "Duyệt bảo hiểm",
+        "rejectTooltip": "Từ chối bảo hiểm",
+        "approveAll": "Duyệt tất cả",
+        "rejectProcessing": "Đang xử lý...",
+        "rejectBooking": "Từ chối booking",
+        "alreadySaved": "Đã ghi nhận",
+        "continueProcessing": "Đang xử lý...",
+        "continue": "Xác nhận và tiếp tục"
+      },
+      "warning": {
+        "allSuccessRequired": "Tất cả khách phải có trạng thái bảo hiểm SUCCESS để tiếp tục."
+      },
+      "confirmModal": {
+        "title": "Xác nhận duyệt bảo hiểm",
+        "message": "Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối?"
+      },
+      "rejectModal": {
+        "title": "Lý do từ chối booking",
+        "message": "Vui lòng nhập lý do từ chối booking ở bước bảo hiểm:"
+      }
+    },
+    "step1": {
+      "header": {
+        "title": "Thông tin cá nhân",
+        "description": "Xem và duyệt chi tiết booking trước khi chuyển sang bước bảo hiểm. Phong cách tối giản, tập trung vào dữ liệu quan trọng."
+      },
+      "booking": {
+        "code": "Mã booking",
+        "tour": "Tour",
+        "departureDate": "Ngày khởi hành",
+        "totalGuests": "Tổng số khách"
+      },
+      "sections": {
+        "bookingInfo": "Thông tin booking",
+        "contactInfo": "Thông tin liên hệ",
+        "guests": "Danh sách khách"
+      },
+      "guest": {
+        "insuranceLabel": "Bảo hiểm",
+        "insuranceSuccess": "SUCCESS",
+        "insurancePending": "PENDING"
+      },
+      "guests": {
+        "columns": {
+          "index": "STT",
+          "fullName": "Họ tên",
+          "birthDate": "Ngày sinh",
+          "gender": "Giới tính",
+          "guestType": "Loại khách",
+          "idNumber": "CMND/CCCD",
+          "nationality": "Quốc tịch"
+        },
+        "empty": "Chưa có thông tin khách"
+      },
+      "actions": {
+        "processing": "Đang xử lý...",
+        "requestUpdate": "Yêu cầu cập nhật",
+        "reject": "Từ chối",
+        "approveAndContinue": "Duyệt và tiếp tục"
+      },
+      "toasts": {
+        "approved": "Đã duyệt thông tin booking. Vui lòng tiếp tục các bước sau.",
+        "rejected": "Đã từ chối booking",
+        "requestedUpdate": "Đã gửi yêu cầu cập nhật booking"
+      },
+      "confirmModal": {
+        "title": "Xác nhận duyệt booking",
+        "message": "Bạn có chắc chắn muốn duyệt booking #{{bookingId}}?",
+        "description": "Sau khi xác nhận, bạn sẽ chuyển sang bước duyệt bảo hiểm. Tất cả thay đổi chỉ được ghi vào hệ thống ở bước hoàn tất cuối cùng."
+      },
+      "requestUpdateModal": {
+        "title": "Yêu cầu cập nhật booking",
+        "message": "Vui lòng nhập lý do yêu cầu cập nhật booking:"
+      },
+      "rejectModal": {
+        "title": "Lý do từ chối booking",
+        "message": "Vui lòng nhập lý do từ chối booking này:"
+      }
+    },
+    "requestUpdateModal": {
+      "defaultTitle": "Yêu cầu cập nhật booking",
+      "defaultMessage": "Vui lòng nhập lý do yêu cầu cập nhật booking:",
+      "placeholder": "Ví dụ: Vui lòng cập nhật thông tin khách hàng, ngày khởi hành, hoặc số lượng khách...",
+      "hint": "Vui lòng nhập thông tin yêu cầu cập nhật",
+      "bookingId": "Booking ID"
+    },
+    "confirmation": {
+      "toasts": {
+        "completedByBoth": "Tour đã được xác nhận hoàn thành bởi cả hai bên! Thanh toán sẽ được chuyển đến công ty.",
+        "companyConfirmed": "Đã xác nhận tour hoàn thành! Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay. Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {{date}})."
+      },
+      "header": {
+        "successTitle": "Booking đã được xác nhận thành công!",
+        "title": "Xác nhận booking",
+        "readOnlyDescription": "Chế độ chỉ đọc: bạn có thể xem trạng thái hoàn tất và thông tin tour.",
+        "description": "Xem lại toàn bộ thông tin của booking #{{bookingId}} và hoàn tất chuyến đi.",
+        "stepBadge": "Bước 3 / 3"
+      },
+      "status": {
+        "completed": "COMPLETED"
+      },
+      "sections": {
+        "bookingSummary": "Tóm tắt booking",
+        "contactInfo": "Thông tin liên hệ",
+        "guestsApproved": "Danh sách khách đã duyệt",
+        "guestsEmpty": "Chưa có thông tin khách",
+        "completionTitle": "Xác nhận tour hoàn thành"
+      },
+      "guest": {
+        "insuranceLabel": "Bảo hiểm",
+        "insuranceSuccess": "SUCCESS",
+        "insurancePending": "PENDING"
+      },
+      "fields": {
+        "bookingCode": "Mã booking:",
+        "tour": "Tour:",
+        "departureDate": "Ngày khởi hành:",
+        "expectedEndDate": "Ngày kết thúc (dự kiến):",
+        "totalGuests": "Tổng số khách:",
+        "status": "Trạng thái:"
+      },
+      "confirmation": {},
+      "completion": {
+        "companyStatus": "Trạng thái công ty:",
+        "userStatus": "Trạng thái khách hàng:",
+        "confirmed": "✓ Đã xác nhận",
+        "notConfirmed": "Chưa xác nhận",
+        "tourEndDate": "Ngày kết thúc tour:",
+        "autoConfirmDate": "Ngày tự động xác nhận:",
+        "checkingStatus": "Đang kiểm tra trạng thái tour...",
+        "completedMessage": "Tour đã được xác nhận hoàn thành bởi cả hai bên. Thanh toán sẽ được chuyển đến tài khoản của công ty.",
+        "autoConfirmCompany": "Bạn đã xác nhận. Đang chờ khách hàng xác nhận. Nếu khách hàng không xác nhận sau 3 ngày (sau ngày {{date}}), hệ thống sẽ tự động xác nhận.",
+        "autoConfirmUser": "Khách hàng đã xác nhận. Bạn có thể xác nhận ngay hoặc hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {{date}}).",
+        "readyToConfirm": "Tour đã kết thúc vào ngày {{date}}. Bạn có thể xác nhận tour đã hoàn thành để tiến hành thanh toán.",
+        "confirmProcessing": "Đang xử lý...",
+        "confirmButton": "Xác nhận tour hoàn thành",
+        "confirmNote": "* Sau khi bạn xác nhận:\n- Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay lập tức.\n- Nếu khách hàng chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {{date}}).",
+        "waitingUser": "Bạn đã xác nhận tour hoàn thành. Đang chờ khách hàng xác nhận.",
+        "waitingUserNote": "Nếu khách hàng xác nhận, thanh toán sẽ được chuyển ngay. Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {{date}})."
+      }
     }
   },
   "voucherManagement": {
@@ -3810,24 +4550,65 @@
     "title": "Thông Báo",
     "markAllRead": "Đánh dấu tất cả đã đọc",
     "close": "Đóng",
-    "empty": "Chưa có thông báo nào",
+    "empty": "Không có thông báo",
     "delete": "Xóa",
     "viewAll": "Xem Tất Cả Thông Báo",
-    "newBooking": {
-      "title": "Đặt Tour Mới",
-      "message": "Bạn có đặt tour mới từ John Doe"
-    },
-    "paymentReceived": {
-      "title": "Nhận Thanh Toán",
-      "message": "Đã nhận thanh toán $150 cho đặt tour"
-    },
-    "tourUpdate": {
-      "title": "Cần Cập Nhật Tour",
-      "message": "Vui lòng cập nhật thông tin tour của bạn"
-    },
-    "systemUpdate": {
-      "title": "Cập Nhật Hệ Thống",
-      "message": "Tính năng mới có sẵn trong bảng điều khiển"
+    "loading": "Đang tải...",
+    "error": "Có lỗi xảy ra",
+    "retry": "Thử lại",
+    "noTitle": "Không có tiêu đề",
+    "more": "Thêm",
+    "justNow": "Vừa xong",
+    "minutesAgo": "{{count}} phút trước",
+    "hoursAgo": "{{count}} giờ trước",
+    "daysAgo": "{{count}} ngày trước",
+    "markRead": "Đánh dấu đã đọc",
+    "markUnread": "Đánh dấu chưa đọc",
+    "types": {
+      "NEW_BOOKING": {
+        "title": "Có booking mới",
+        "message": "Bạn vừa nhận được một booking mới."
+      },
+      "BOOKING_CONFIRMED": {
+        "title": "Booking đã được xác nhận",
+        "message": "Booking của bạn đã được công ty xác nhận."
+      },
+      "BOOKING_REJECTED": {
+        "title": "Booking bị từ chối",
+        "message": "Booking của bạn đã bị từ chối. Vui lòng liên hệ công ty để biết thêm chi tiết."
+      },
+      "BOOKING_UPDATE_REQUEST": {
+        "title": "Yêu cầu cập nhật booking",
+        "message": "Công ty yêu cầu bạn cập nhật lại thông tin booking."
+      },
+      "BOOKING_UPDATED_BY_USER": {
+        "title": "Khách hàng đã cập nhật booking",
+        "message": "Khách hàng đã cập nhật lại thông tin booking theo yêu cầu."
+      },
+      "TOUR_APPROVED": {
+        "title": "Tour đã được phê duyệt",
+        "message": "Tour của bạn đã được admin phê duyệt."
+      },
+      "NEW_RATING": {
+        "title": "Có đánh giá mới",
+        "message": "Bạn vừa nhận được một đánh giá mới cho tour."
+      },
+      "LIKE_POST": {
+        "title": "Bài viết được thích",
+        "message": "Ai đó đã bày tỏ cảm xúc với bài viết của bạn."
+      },
+      "LIKE_COMMENT": {
+        "title": "Bình luận được thích",
+        "message": "Ai đó đã bày tỏ cảm xúc với bình luận của bạn."
+      },
+      "COMMENT_POST": {
+        "title": "Có bình luận mới",
+        "message": "Ai đó đã bình luận vào bài viết của bạn."
+      },
+      "REPLY_COMMENT": {
+        "title": "Có phản hồi mới",
+        "message": "Ai đó đã trả lời bình luận của bạn."
+      }
     }
   },
   "chat": {
@@ -3840,6 +4621,33 @@
     "emoji": "Thêm emoji",
     "send": "Gửi tin nhắn",
     "placeholder": "Nhập tin nhắn của bạn..."
+  },
+  "userChat": {
+    "time": {
+      "justNow": "Vừa xong",
+      "minutesAgo": "{{minutes}} phút trước",
+      "hoursAgo": "{{hours}} giờ trước",
+      "daysAgo": "{{days}} ngày trước"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "connecting": "Đang kết nối...",
+      "disconnected": "Mất kết nối"
+    },
+    "actions": {
+      "minimize": "Thu nhỏ",
+      "close": "Đóng"
+    },
+    "loading": {
+      "olderMessages": "Đang tải tin nhắn cũ..."
+    },
+    "empty": {
+      "startConversation": "Bắt đầu cuộc trò chuyện với {{userName}}",
+      "selectUser": "Chọn một người dùng để bắt đầu chat"
+    },
+    "message": {
+      "sent": "Đã gửi"
+    }
   },
   "about": {
     "hero": {

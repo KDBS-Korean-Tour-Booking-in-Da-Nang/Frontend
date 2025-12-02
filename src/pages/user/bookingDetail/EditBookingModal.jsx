@@ -225,19 +225,19 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
   const getGenderLabel = (gender) => {
     switch (gender) {
-      case 'MALE': return 'Nam';
-      case 'FEMALE': return 'Nữ';
-      case 'OTHER': return 'Khác';
-      default: return gender || 'Nam';
+      case 'MALE': return t('editBookingModal.gender.male');
+      case 'FEMALE': return t('editBookingModal.gender.female');
+      case 'OTHER': return t('editBookingModal.gender.other');
+      default: return gender || t('editBookingModal.gender.male');
     }
   };
 
   const getGuestTypeLabel = (type) => {
     switch (type) {
-      case 'ADULT': return 'Người lớn';
-      case 'CHILD': return 'Trẻ em';
-      case 'BABY': return 'Em bé';
-      default: return type || 'Người lớn';
+      case 'ADULT': return t('editBookingModal.guestTypes.adult');
+      case 'CHILD': return t('editBookingModal.guestTypes.child');
+      case 'BABY': return t('editBookingModal.guestTypes.baby');
+      default: return type || t('editBookingModal.guestTypes.adult');
     }
   };
 
@@ -255,13 +255,13 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
         <div className={styles['edit-booking-modal']} onClick={(e) => e.stopPropagation()}>
           <div className={styles['modal-panel']}>
             <div className={styles['modal-header']}>
-              <h2>Chỉnh sửa booking</h2>
+              <h2>{t('editBookingModal.title')}</h2>
               <button
                 type="button"
                 className={styles['modal-close']}
                 onClick={onClose}
                 disabled={loading}
-                aria-label="Đóng"
+                aria-label={t('common.close')}
               >
                 ×
               </button>
@@ -275,21 +275,21 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                 className={`${styles['tab']} ${activeTab === 'contact' ? styles['active'] : ''}`}
                 onClick={() => setActiveTab('contact')}
               >
-                Thông tin liên hệ
+                {t('editBookingModal.tabs.contact')}
               </button>
               <button
                 type="button"
                 className={`${styles['tab']} ${activeTab === 'guests' ? styles['active'] : ''}`}
                 onClick={() => setActiveTab('guests')}
               >
-                Danh sách khách ({formData.guests.length})
+                {t('editBookingModal.tabs.guests', { count: formData.guests.length })}
               </button>
               <button
                 type="button"
                 className={`${styles['tab']} ${activeTab === 'review' ? styles['active'] : ''}`}
                 onClick={() => setActiveTab('review')}
               >
-                Xem lại
+                {t('editBookingModal.tabs.review')}
               </button>
             </div>
 
@@ -297,12 +297,12 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
             <div className={styles['tab-content']}>
               {activeTab === 'contact' && (
                 <div className={styles['form-section']}>
-                  <h3>Thông tin liên hệ</h3>
+                  <h3>{t('editBookingModal.contactSection.title')}</h3>
                   
                   <div className={styles['form-row']}>
                     <div className={styles['form-group']}>
                       <label htmlFor="contactName">
-                        Họ tên <span className={styles['required']}>*</span>
+                        {t('booking.step1.fields.fullName')} <span className={styles['required']}>*</span>
                       </label>
                       <input
                         type="text"
@@ -316,7 +316,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
                     <div className={styles['form-group']}>
                       <label htmlFor="departureDate">
-                        Ngày khởi hành <span className={styles['required']}>*</span>
+                        {t('payment.departureDate')} <span className={styles['required']}>*</span>
                       </label>
                       <input
                         type="date"
@@ -333,7 +333,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                   <div className={styles['form-row']}>
                     <div className={styles['form-group']}>
                       <label htmlFor="contactPhone">
-                        Số điện thoại <span className={styles['required']}>*</span>
+                        {t('booking.step1.fields.phone')} <span className={styles['required']}>*</span>
                       </label>
                       <input
                         type="tel"
@@ -347,7 +347,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
                     <div className={styles['form-group']}>
                       <label htmlFor="contactEmail">
-                        Email <span className={styles['required']}>*</span>
+                        {t('booking.step1.fields.email')} <span className={styles['required']}>*</span>
                       </label>
                       <input
                         type="email"
@@ -362,7 +362,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
                   <div className={styles['form-group']}>
                     <label htmlFor="contactAddress">
-                      Địa chỉ <span className={styles['required']}>*</span>
+                      {t('booking.step1.fields.address')} <span className={styles['required']}>*</span>
                     </label>
                     <input
                       type="text"
@@ -375,7 +375,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                   </div>
 
                   <div className={styles['form-group']}>
-                    <label htmlFor="pickupPoint">Điểm đón</label>
+                    <label htmlFor="pickupPoint">{t('booking.step1.fields.pickupPoint')}</label>
                     <input
                       type="text"
                       id="pickupPoint"
@@ -386,7 +386,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                   </div>
 
                   <div className={styles['form-group']}>
-                    <label htmlFor="note">Ghi chú</label>
+                    <label htmlFor="note">{t('booking.step1.fields.note')}</label>
                     <textarea
                       id="note"
                       name="note"
@@ -400,24 +400,27 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
               {activeTab === 'guests' && (
                 <div className={styles['form-section']}>
-                  <h3>Danh sách khách ({formData.guests.length})</h3>
+                  <h3>{t('editBookingModal.guestsSection.title', { count: formData.guests.length })}</h3>
                   
                   {formData.guests.length === 0 ? (
-                    <p className={styles['empty-message']}>Chưa có thông tin khách</p>
+                    <p className={styles['empty-message']}>{t('editBookingModal.guestsSection.empty')}</p>
                   ) : (
                     <div className={styles['guests-list']}>
                       {formData.guests.map((guest, index) => (
                         <div key={index} className={styles['guest-card']}>
                           <div className={styles['guest-header']}>
                             <h4>
-                              Khách {index + 1} - {getGuestTypeLabel(guest.bookingGuestType)}
+                              {t('editBookingModal.guestsSection.guestTitle', {
+                                index: index + 1,
+                                type: getGuestTypeLabel(guest.bookingGuestType)
+                              })}
                             </h4>
                           </div>
 
                           <div className={styles['form-row']}>
                             <div className={styles['form-group']}>
                               <label>
-                                Họ tên <span className={styles['required']}>*</span>
+                                {t('booking.step1.fields.fullName')} <span className={styles['required']}>*</span>
                               </label>
                               <input
                                 type="text"
@@ -429,7 +432,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
                             <div className={styles['form-group']}>
                               <label>
-                                Ngày sinh <span className={styles['required']}>*</span>
+                                {t('editBookingModal.guests.labelBirthDate')} <span className={styles['required']}>*</span>
                               </label>
                               <input
                                 type="date"
@@ -443,7 +446,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
                           <div className={styles['form-row']}>
                             <div className={styles['form-group']}>
-                              <label>Giới tính</label>
+                              <label>{t('booking.step1.fields.gender')}</label>
                               <select
                                 value={guest.gender}
                                 onChange={(e) => handleGuestChange(index, 'gender', e.target.value)}
@@ -455,18 +458,18 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                             </div>
 
                             <div className={styles['form-group']}>
-                              <label>Quốc tịch</label>
+                              <label>{t('editBookingModal.fields.nationality')}</label>
                               <input
                                 type="text"
                                 value={guest.nationality}
                                 onChange={(e) => handleGuestChange(index, 'nationality', e.target.value)}
-                                placeholder="Vietnamese"
+                                placeholder={t('editBookingModal.placeholders.nationality')}
                               />
                             </div>
                           </div>
 
                           <div className={styles['form-group']}>
-                            <label>CMND/CCCD/Passport</label>
+                            <label>{t('editBookingModal.fields.idNumber')}</label>
                             <input
                               type="text"
                               value={guest.idNumber}
@@ -482,32 +485,32 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
 
               {activeTab === 'review' && (
                 <div className={styles['form-section']}>
-                  <h3>Xem lại thông tin</h3>
+                  <h3>{t('editBookingModal.reviewSection.title')}</h3>
                   
                   <div className={styles['review-section']}>
-                    <h4>Thông tin liên hệ</h4>
+                    <h4>{t('editBookingModal.reviewSection.contactInfoTitle')}</h4>
                     <div className={styles['review-item']}>
-                      <span className={styles['label']}>Họ tên:</span>
+                      <span className={styles['label']}>{t('booking.step1.fields.fullName')}:</span>
                       <span className={styles['value']}>{formData.contactName || '-'}</span>
                     </div>
                     <div className={styles['review-item']}>
-                      <span className={styles['label']}>Số điện thoại:</span>
+                      <span className={styles['label']}>{t('booking.step1.fields.phone')}:</span>
                       <span className={styles['value']}>{formData.contactPhone || '-'}</span>
                     </div>
                     <div className={styles['review-item']}>
-                      <span className={styles['label']}>Email:</span>
+                      <span className={styles['label']}>{t('booking.step1.fields.email')}:</span>
                       <span className={styles['value']}>{formData.contactEmail || '-'}</span>
                     </div>
                     <div className={styles['review-item']}>
-                      <span className={styles['label']}>Địa chỉ:</span>
+                      <span className={styles['label']}>{t('booking.step1.fields.address')}:</span>
                       <span className={styles['value']}>{formData.contactAddress || '-'}</span>
                     </div>
                     <div className={styles['review-item']}>
-                      <span className={styles['label']}>Điểm đón:</span>
+                      <span className={styles['label']}>{t('booking.step1.fields.pickupPoint')}:</span>
                       <span className={styles['value']}>{formData.pickupPoint || '-'}</span>
                     </div>
                     <div className={styles['review-item']}>
-                      <span className={styles['label']}>Ngày khởi hành:</span>
+                      <span className={styles['label']}>{t('payment.departureDate')}:</span>
                       <span className={styles['value']}>
                         {formData.departureDate 
                           ? new Date(formData.departureDate).toLocaleDateString('vi-VN')
@@ -517,16 +520,21 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                   </div>
 
                   <div className={styles['review-section']}>
-                    <h4>Danh sách khách ({formData.guests.length})</h4>
+                    <h4>{t('editBookingModal.reviewSection.guestsTitle', { count: formData.guests.length })}</h4>
                     {formData.guests.map((guest, index) => (
                       <div key={index} className={styles['guest-review']}>
-                        <strong>Khách {index + 1} ({getGuestTypeLabel(guest.bookingGuestType)}):</strong>
+                        <strong>
+                          {t('editBookingModal.reviewSection.guestSummary', {
+                            index: index + 1,
+                            type: getGuestTypeLabel(guest.bookingGuestType)
+                          })}
+                        </strong>
                         <div className={styles['review-item']}>
-                          <span className={styles['label']}>Họ tên:</span>
+                          <span className={styles['label']}>{t('booking.step1.fields.fullName')}:</span>
                           <span className={styles['value']}>{guest.fullName || '-'}</span>
                         </div>
                         <div className={styles['review-item']}>
-                          <span className={styles['label']}>Ngày sinh:</span>
+                          <span className={styles['label']}>{t('editBookingModal.guests.labelBirthDate')}:</span>
                           <span className={styles['value']}>
                             {guest.birthDate 
                               ? new Date(guest.birthDate).toLocaleDateString('vi-VN')
@@ -534,12 +542,12 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                           </span>
                         </div>
                         <div className={styles['review-item']}>
-                          <span className={styles['label']}>Giới tính:</span>
+                          <span className={styles['label']}>{t('booking.step1.fields.gender')}:</span>
                           <span className={styles['value']}>{getGenderLabel(guest.gender)}</span>
                         </div>
                         {guest.idNumber && (
                           <div className={styles['review-item']}>
-                            <span className={styles['label']}>CMND/CCCD:</span>
+                            <span className={styles['label']}>{t('editBookingModal.fields.idNumberShort')}:</span>
                             <span className={styles['value']}>{guest.idNumber}</span>
                           </div>
                         )}
@@ -564,7 +572,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
                 className={styles['btn-primary']}
                 disabled={loading}
               >
-                Xác nhận cập nhật
+                {t('editBookingModal.actions.submit')}
               </button>
             </div>
           </form>
@@ -581,10 +589,10 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
             setPendingFormData(null);
           }}
           onConfirm={handleConfirmUpdate}
-          title="Xác nhận cập nhật booking"
-          message="Bạn chắc chắn cập nhật đúng thông tin chứ?"
-          confirmText="Xác nhận"
-          cancelText="Hủy"
+          title={t('editBookingModal.confirmModal.title')}
+          message={t('editBookingModal.confirmModal.message')}
+          confirmText={t('common.confirm')}
+          cancelText={t('common.cancel')}
           icon="✓"
           danger={false}
           disableBackdropClose={false}

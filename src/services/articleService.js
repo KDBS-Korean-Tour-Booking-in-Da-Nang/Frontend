@@ -54,7 +54,7 @@ class ArticleService {
     }
   }
 
-  async getAllArticles() {
+  async getAllArticles(autoRedirect = false) {
     try {
       const response = await fetch(`${API_BASE_URL}/api/article`, {
         method: 'GET',
@@ -64,10 +64,10 @@ class ArticleService {
       });
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
-        const wasHandled = await checkAndHandleApiError(response, true);
+        // Only auto redirect if explicitly requested (user actions, not background polling)
+        const wasHandled = await checkAndHandleApiError(response, autoRedirect);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return []; // Return empty array instead of undefined to prevent errors
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }

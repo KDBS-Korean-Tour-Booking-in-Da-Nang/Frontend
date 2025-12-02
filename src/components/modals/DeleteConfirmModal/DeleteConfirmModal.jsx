@@ -108,7 +108,7 @@ const DeleteConfirmModal = ({
           <button
             type="button"
             className={styles['modal-close']}
-            aria-label="Đóng"
+            aria-label={t('common.close')}
             onClick={onClose}
             disabled={submitting}
           >

@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getBookingById, getGuestsByBookingId, getTourCompletionStatus, changeBookingStatus, changeBookingGuestInsuranceStatus } from '../../../services/bookingAPI';
-import { useToast } from '../../../contexts/ToastContext';
-import { DeleteConfirmModal } from '../../../components/modals';
+import { getBookingById, getGuestsByBookingId } from '../../../services/bookingAPI';
+import { ConfirmLeaveModal } from '../../../components/modals';
 import Step1PersonalInfo from './steps/Step1PersonalInfo/Step1PersonalInfo';
 import Step2Insurance from './steps/Step2Insurance/Step2Insurance';
 import Step3Confirmation from './steps/Step3Confirmation/Step3Confirmation';
@@ -15,7 +14,6 @@ const CompanyBookingDetailWizard = () => {
   const bookingId = searchParams.get('id');
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess } = useToast();
   
   const STEPS = [
     { id: 1, title: t('companyBookingWizard.steps.step1.title'), description: t('companyBookingWizard.steps.step1.description') },
@@ -31,12 +29,24 @@ const CompanyBookingDetailWizard = () => {
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [confirmingBooking, setConfirmingBooking] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [completedSteps, setCompletedSteps] = useState(new Set()); // Track completed steps
   const [isReadOnly, setIsReadOnly] = useState(false); // Read-only mode for completed bookings
   const [lockedToStep1Only, setLockedToStep1Only] = useState(false); // Reject mode
   const [pendingInsuranceUpdates, setPendingInsuranceUpdates] = useState([]);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const pendingNavigationRef = useRef(null);
+  
+  // Check if there are unsaved changes (completed steps but not finished)
+  const hasUnsavedChanges = useMemo(() => {
+    // Only show leave modal if:
+    // 1. Not in read-only mode
+    // 2. Has completed steps (user has done some work)
+    // 3. Booking is not already in BOOKING_SUCCESS_PENDING (already finished)
+    return !isReadOnly && 
+           !lockedToStep1Only && 
+           completedSteps.size > 0 && 
+           booking?.bookingStatus !== 'BOOKING_SUCCESS_PENDING';
+  }, [isReadOnly, lockedToStep1Only, completedSteps.size, booking?.bookingStatus]);
 
   // Load wizard progress from localStorage
   const loadWizardProgress = (bookingId) => {
@@ -149,7 +159,7 @@ const CompanyBookingDetailWizard = () => {
         setCurrentStep(initialStep);
       } catch (err) {
         console.error('Error fetching booking:', err);
-        setError(err.message || 'Không thể tải thông tin booking');
+        setError(err.message || t('companyBookingWizard.error.loadFailed'));
         if (err.message === 'Unauthenticated') {
           navigate('/login');
         }
@@ -246,30 +256,6 @@ const CompanyBookingDetailWizard = () => {
     return completedSteps.has(step);
   };
 
-  const isStepAccessible = (step) => {
-    if (lockedToStep1Only) {
-      return step === 1;
-    }
-
-    if (isReadOnly) {
-      return step === 3;
-    }
-    
-    // Step 1 is always accessible
-    if (step === 1) return true;
-    
-    // Step 2 is accessible if step 1 is completed or we're at/after step 2
-    if (step === 2) {
-      return completedSteps.has(1) || currentStep >= 2;
-    }
-    
-    // Step 3 is accessible if step 2 is completed or we're at step 3
-    if (step === 3) {
-      return completedSteps.has(2) || currentStep >= 3;
-    }
-    
-    return false;
-  };
 
   // Check if step can be clicked (for navigation)
   const canClickStep = (stepId) => {
@@ -301,61 +287,102 @@ const CompanyBookingDetailWizard = () => {
     }
   }, [navigate, tourId]);
 
-  // Handle finish button - show confirmation modal
-  const handleFinish = useCallback(() => {
-    // Check if booking is already confirmed
-    if (booking?.bookingStatus === 'BOOKING_SUCCESS') {
-      // Already confirmed, just navigate back
-      navigateBack();
-      return;
-    }
-
-    // Show confirmation modal
-    setShowConfirmModal(true);
-  }, [booking, navigateBack]);
-
-  // Handle booking confirmation - called from modal
-  const handleConfirmBooking = useCallback(async () => {
-    if (!booking?.bookingId) return;
-
-    try {
-      setConfirmingBooking(true);
-      setShowConfirmModal(false);
-
-      if (pendingInsuranceUpdates.length > 0) {
-        await Promise.all(
-          pendingInsuranceUpdates.map(change =>
-            changeBookingGuestInsuranceStatus(change.guestId, change.status)
-          )
-        );
-      }
-      
-      // Change booking status to BOOKING_SUCCESS_PENDING - company waits for tour completion
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_SUCCESS_PENDING');
-      
-      // Update booking state
-      setBooking(updatedBooking);
-      setPendingInsuranceUpdates([]);
-      
-      // Mark all steps as completed in local progress tracking
-      setCompletedSteps(new Set([1, 2, 3]));
-      
-      // Clear progress since booking is completed
+  // Handle confirm leave - clear progress and navigate
+  const handleConfirmLeave = useCallback(() => {
+    // Clear wizard progress
+    if (bookingId) {
       clearWizardProgress(bookingId);
-      
-      showSuccess('Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất.');
-      
-      // Navigate back after a short delay to show success message
-      setTimeout(() => {
-        navigateBack();
-      }, 1500);
-    } catch (error) {
-      console.error('Error confirming booking:', error);
-      setError(error.message || 'Không thể xác nhận booking');
-    } finally {
-      setConfirmingBooking(false);
     }
-  }, [booking, bookingId, navigateBack, pendingInsuranceUpdates, showSuccess]);
+    
+    // Clear completed steps and pending updates
+    setCompletedSteps(new Set());
+    setPendingInsuranceUpdates([]);
+    
+    // Close modal
+    setShowLeaveModal(false);
+    
+    // Navigate to pending navigation or back
+    if (pendingNavigationRef.current) {
+      const { path, type } = pendingNavigationRef.current;
+      if (type === 'back') {
+        navigate(-1);
+      } else if (type === 'path') {
+        navigate(path);
+      } else {
+        navigateBack();
+      }
+      pendingNavigationRef.current = null;
+    } else {
+      navigateBack();
+    }
+  }, [bookingId, navigate, navigateBack]);
+
+  // Handle cancel leave - stay in wizard
+  const handleCancelLeave = useCallback(() => {
+    setShowLeaveModal(false);
+    pendingNavigationRef.current = null;
+  }, []);
+
+  // Warn on browser/tab close when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    
+    const handler = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+    
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
+
+  // Intercept browser back button when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    
+    const onPopState = () => {
+      // Prevent default back navigation
+      window.history.pushState(null, '');
+      setShowLeaveModal(true);
+      pendingNavigationRef.current = { type: 'back' };
+    };
+    
+    // Push a state to allow intercepting back button
+    window.history.pushState(null, '');
+    window.addEventListener('popstate', onPopState);
+    
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, [hasUnsavedChanges]);
+
+  // Intercept link clicks when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    
+    const onClick = (ev) => {
+      const anchor = ev.target.closest('a');
+      if (!anchor) return;
+      
+      const url = new URL(anchor.href, window.location.origin);
+      const isSameOrigin = url.origin === window.location.origin;
+      const isWizardPath = url.pathname.includes('/company/bookings/detail');
+      
+      // Allow navigation within wizard (step changes)
+      if (isWizardPath) return;
+      
+      // Intercept navigation to other pages
+      if (isSameOrigin && url.pathname !== window.location.pathname) {
+        ev.preventDefault();
+        setShowLeaveModal(true);
+        pendingNavigationRef.current = { type: 'path', path: url.pathname + url.search + url.hash };
+      }
+    };
+    
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, [hasUnsavedChanges]);
 
   const renderCurrentStep = () => {
     if (!booking || !guests) return null;
@@ -398,6 +425,14 @@ const CompanyBookingDetailWizard = () => {
             onBack={handleBack}
             onFinish={navigateBack}
             isReadOnly={isReadOnly}
+            pendingInsuranceUpdates={pendingInsuranceUpdates}
+            bookingId={bookingId}
+            tourId={tourId}
+            onMarkStepsCompleted={(completed) => {
+              setCompletedSteps(completed);
+              clearWizardProgress(bookingId);
+            }}
+            onClearInsuranceUpdates={() => setPendingInsuranceUpdates([])}
           />
         );
       default:
@@ -477,12 +512,7 @@ const CompanyBookingDetailWizard = () => {
     );
   }
 
-  const canShowNavigationButtons = !isReadOnly && !lockedToStep1Only && (
-    (currentStep === 1 && completedSteps.has(1)) ||
-    (currentStep === 2 && completedSteps.has(2))
-  );
-
-  const showWizardNavigation = (!isReadOnly && !lockedToStep1Only && currentStep <= 3) || (currentStep === 3 && !isReadOnly && !lockedToStep1Only);
+  const showWizardNavigation = (!isReadOnly && !lockedToStep1Only && currentStep < 3);
 
   return (
     <div className={styles['booking-wizard']}>
@@ -578,7 +608,7 @@ const CompanyBookingDetailWizard = () => {
 
       {/* Navigation Buttons */}
       <div className={styles['step-navigation']}>
-        {showWizardNavigation ? (
+        {showWizardNavigation && currentStep < 3 ? (
           <>
             <button 
               type="button" 
@@ -594,62 +624,37 @@ const CompanyBookingDetailWizard = () => {
             >
               {t('companyBookingWizard.navigation.back')}
             </button>
-            {currentStep < 3 ? (
-              <button 
-                type="button" 
-                className={styles['btn-primary']} 
-                onClick={handleNext}
-                disabled={
-                  currentStep >= 3 || 
-                  (currentStep === 1 && !completedSteps.has(1)) ||
-                  (currentStep === 2 && !completedSteps.has(2))
-                }
-              >
-                {t('companyBookingWizard.navigation.next')}
-              </button>
-            ) : (
-              <button 
-                type="button" 
-                className={styles['btn-success']} 
-                onClick={handleFinish}
-                disabled={confirmingBooking}
-              >
-                {confirmingBooking ? t('companyBookingWizard.navigation.processing') : t('companyBookingWizard.navigation.finish')}
-              </button>
-            )}
+            <button 
+              type="button" 
+              className={styles['btn-primary']} 
+              onClick={handleNext}
+              disabled={
+                currentStep >= 3 || 
+                (currentStep === 1 && !completedSteps.has(1)) ||
+                (currentStep === 2 && !completedSteps.has(2))
+              }
+            >
+              {t('companyBookingWizard.navigation.next')}
+            </button>
           </>
-        ) : (
+        ) : currentStep === 3 && !isReadOnly && !lockedToStep1Only ? (
           <button 
             type="button" 
-            className={styles['btn-success']} 
-            onClick={navigateBack}
+            className={styles['btn-secondary']} 
+            onClick={handleBack}
+            disabled={false}
           >
-            {t('companyBookingWizard.navigation.close')}
+            {t('companyBookingWizard.navigation.back')}
           </button>
-        )}
+          ) : null}
       </div>
 
-      {/* Booking Confirmation Modal */}
-      {showConfirmModal && (
-        <DeleteConfirmModal
-          isOpen={showConfirmModal}
-          onClose={() => !confirmingBooking && setShowConfirmModal(false)}
-          onConfirm={handleConfirmBooking}
-          title={t('companyBookingWizard.confirmModal.title')}
-          message={`${t('companyBookingWizard.confirmModal.message')}${booking?.bookingId}?`}
-          confirmText={t('companyBookingWizard.confirmModal.confirm')}
-          cancelText={t('companyBookingWizard.confirmModal.cancel')}
-          icon="✓"
-          danger={false}
-          disableBackdropClose={confirmingBooking}
-        >
-          <div style={{ marginTop: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: '#374151' }}>
-              {t('companyBookingWizard.confirmModal.description')}
-            </p>
-          </div>
-        </DeleteConfirmModal>
-      )}
+      {/* Confirm Leave Modal - Rendered outside wizard container */}
+      <ConfirmLeaveModal
+        open={showLeaveModal}
+        onCancel={handleCancelLeave}
+        onConfirm={handleConfirmLeave}
+      />
     </div>
   );
 };

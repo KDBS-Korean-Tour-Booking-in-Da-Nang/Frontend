@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MessageCircle, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import styles from './ComplaintModal.module.css';
 
 /**
@@ -12,6 +13,7 @@ import styles from './ComplaintModal.module.css';
  * - bookingId?: number|string
  */
 const ComplaintModal = ({ isOpen, onClose, onConfirm, bookingId }) => {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const modalContainerRef = useRef(null);
@@ -141,21 +143,13 @@ const ComplaintModal = ({ isOpen, onClose, onConfirm, bookingId }) => {
         <div className={styles['modal-panel']}>
 
           <button
-
             type="button"
-
             className={styles['modal-close']}
-
-            aria-label="Đóng"
-
+            aria-label={t('common.close')}
             onClick={onClose}
-
             disabled={submitting}
-
           >
-
             <X size={20} strokeWidth={2} />
-
           </button>
 
 
@@ -169,27 +163,17 @@ const ComplaintModal = ({ isOpen, onClose, onConfirm, bookingId }) => {
             </div>
 
             <h2 id="complaint-modal-title" className={styles['modal-title']}>
-
-              Gửi khiếu nại tour
-
+              {t('complaintModal.title')}
             </h2>
 
             {bookingId && (
-
               <p className={styles['booking-id']}>
-
-                Booking ID: <strong>#{bookingId}</strong>
-
+                {t('complaintModal.bookingIdLabel')} <strong>#{bookingId}</strong>
               </p>
-
             )}
 
             <p className={styles['instruction-text']}>
-
-              Vui lòng mô tả ngắn gọn vấn đề bạn gặp phải trong tour này. Đội ngũ hỗ trợ sẽ xem xét và phản hồi sớm
-
-              nhất.
-
+              {t('complaintModal.instruction')}
             </p>
 
             <textarea
@@ -197,17 +181,11 @@ const ComplaintModal = ({ isOpen, onClose, onConfirm, bookingId }) => {
               ref={textareaRef}
 
               className={styles['message-textarea']}
-
               rows={5}
-
               value={message}
-
               onChange={(e) => setMessage(e.target.value)}
-
-              placeholder="Ví dụ: Hướng dẫn viên đến trễ, chất lượng dịch vụ chưa đúng cam kết..."
-
+              placeholder={t('complaintModal.placeholder')}
               disabled={submitting}
-
             />
 
           </div>
@@ -217,35 +195,21 @@ const ComplaintModal = ({ isOpen, onClose, onConfirm, bookingId }) => {
           <div className={styles['modal-actions']}>
 
             <button
-
               type="button"
-
               onClick={onClose}
-
               className={styles['btn-cancel']}
-
               disabled={submitting}
-
             >
-
-              Đóng
-
+              {t('complaintModal.actions.close')}
             </button>
 
             <button
-
               type="button"
-
               onClick={doConfirm}
-
               className={styles['btn-primary']}
-
               disabled={submitting || !message.trim()}
-
             >
-
-              {submitting ? 'Đang gửi...' : 'Gửi khiếu nại'}
-
+              {submitting ? t('common.processing') : t('complaintModal.actions.submit')}
             </button>
 
           </div>

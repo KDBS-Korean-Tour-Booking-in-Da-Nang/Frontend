@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { X, Share2, Hash } from 'lucide-react';
@@ -22,6 +23,8 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   const [showTagSuggest, setShowTagSuggest] = useState(false);
   const suggestTimerRef = useRef(null);
   const choosingTagRef = useRef(false);
+  const modalContainerRef = useRef(null);
+  const bodyOverflowRef = useRef('');
 
   useEffect(() => {
     if (!isOpen || !tourId) {
@@ -86,6 +89,26 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
     }, 250);
     return () => suggestTimerRef.current && clearTimeout(suggestTimerRef.current);
   }, [hashtagInput, hashtags]);
+
+  // Resolve portal container once on mount
+  useEffect(() => {
+    if (!modalContainerRef.current) {
+      const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+      modalContainerRef.current = root || (typeof document !== 'undefined' ? document.body : null);
+    }
+  }, []);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!modalContainerRef.current || typeof document === 'undefined') return;
+    if (isOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = bodyOverflowRef.current || '';
+      };
+    }
+  }, [isOpen]);
 
   const createPost = async () => {
     if (!user) {
@@ -154,7 +177,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalNode = (
     <div className={styles['overlay']} onClick={onClose}>
       <div className={styles['modal']} onClick={(e) => e.stopPropagation()}> 
         <button className={styles['close']} onClick={onClose} aria-label="Close">
@@ -278,6 +301,9 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       </div>
     </div>
   );
+
+  if (!modalContainerRef.current) return modalNode;
+  return createPortal(modalNode, modalContainerRef.current);
 };
 
 export default ShareTourModal;

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../../../contexts/ToastContext';
@@ -16,6 +17,7 @@ import {
 import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X } from 'lucide-react';
 
 const TourApproval = () => {
+  const { t, i18n } = useTranslation();
   const { user, getToken } = useAuth();
   const navigate = useNavigate();
   const { showSuccess } = useToast();
@@ -71,11 +73,11 @@ const TourApproval = () => {
         } else {
           const errorText = await response.text();
           console.error('Failed to fetch tours:', response.statusText, errorText);
-          setError('Không thể tải danh sách tour');
+          setError(t('admin.tourApproval.error.loadTours'));
         }
       } catch (error) {
         console.error('Error fetching tours:', error);
-        setError('Không thể tải danh sách tour');
+        setError(t('admin.tourApproval.error.loadTours'));
       } finally {
         setLoading(false);
       }
@@ -157,11 +159,11 @@ const TourApproval = () => {
         setIsDetailModalOpen(true);
       } else {
         const errorText = await response.text();
-        setError(`Lỗi khi tải chi tiết tour: ${errorText}`);
+        setError(t('admin.tourApproval.error.loadDetail'));
       }
     } catch (error) {
       console.error('Error fetching tour details:', error);
-      setError('Đã xảy ra lỗi khi tải chi tiết tour');
+      setError(t('admin.tourApproval.error.loadDetail'));
     } finally {
       setLoadingDetail(false);
     }
@@ -169,7 +171,7 @@ const TourApproval = () => {
 
   // Handle approve tour
   const handleApproveTour = async (tourId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn phê duyệt tour này?')) {
+    if (!window.confirm(t('admin.tourApproval.confirm.approve'))) {
       return;
     }
 
@@ -205,21 +207,21 @@ const TourApproval = () => {
           }
           setTours(toursList);
         }
-        showSuccess('Phê duyệt tour thành công!');
+        showSuccess(t('admin.tourApproval.success.approve'));
         setIsDetailModalOpen(false);
       } else {
         const errorText = await response.text();
-        setError(`Lỗi khi phê duyệt tour: ${errorText}`);
+        setError(t('admin.tourApproval.error.approve', { error: errorText }));
       }
     } catch (error) {
       console.error('Error approving tour:', error);
-      setError('Đã xảy ra lỗi khi phê duyệt tour');
+      setError(t('admin.tourApproval.error.approveGeneric'));
     }
   };
 
   // Handle reject tour
   const handleRejectTour = async (tourId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối tour này?')) {
+    if (!window.confirm(t('admin.tourApproval.confirm.reject'))) {
       return;
     }
 
@@ -256,34 +258,64 @@ const TourApproval = () => {
           }
           setTours(toursList);
         }
-        showSuccess('Từ chối tour thành công!');
+        showSuccess(t('admin.tourApproval.success.reject'));
         setIsDetailModalOpen(false);
       } else {
         const errorText = await response.text();
-        setError(`Lỗi khi từ chối tour: ${errorText}`);
+        setError(t('admin.tourApproval.error.reject', { error: errorText }));
       }
     } catch (error) {
       console.error('Error rejecting tour:', error);
-      setError('Đã xảy ra lỗi khi từ chối tour');
+      setError(t('admin.tourApproval.error.rejectGeneric'));
     }
   };
 
   const formatPrice = (price) => {
-    if (!price) return 'N/A';
-    return new Intl.NumberFormat('vi-VN', {
+    if (!price) return t('admin.tourApproval.status.na');
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'VND'
     }).format(price);
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return t('admin.tourApproval.status.na');
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('vi-VN');
+      const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+      return date.toLocaleDateString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
     } catch {
       return dateString;
     }
+  };
+
+  const formatDuration = (duration) => {
+    if (!duration) return t('admin.tourApproval.status.na');
+    const raw = String(duration);
+    
+    // Try to parse "X ngày Y đêm" or "X days Y nights" or "X일 Y박" format
+    const viMatch = raw.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
+    const enMatch = raw.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
+    const koMatch = raw.match(/(\d+)\s*일\s*(\d+)\s*박/i);
+    const genericMatch = raw.match(/(\d+)\D+(\d+)/);
+    
+    const match = viMatch || enMatch || koMatch || genericMatch;
+    
+    if (match) {
+      const days = parseInt(match[1], 10);
+      const nights = parseInt(match[2], 10);
+      if (Number.isFinite(days) && Number.isFinite(nights)) {
+        return t('admin.tourApproval.durationTemplate', { days, nights });
+      }
+    }
+    
+    // If can't parse, return as is
+    return raw;
   };
 
   // Check if user has permission
@@ -294,15 +326,15 @@ const TourApproval = () => {
           <div className="w-16 h-16 rounded-[20px] bg-emerald-100 flex items-center justify-center text-emerald-600 mx-auto mb-6">
             <ExclamationTriangleIcon className="h-7 w-7" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">Không có quyền truy cập</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-3">{t('admin.tourApproval.permissionDenied.title')}</h2>
           <p className="text-gray-600 text-sm leading-relaxed mb-6">
-            Bạn không có quyền phê duyệt tour. Vui lòng liên hệ admin để được phân quyền.
+            {t('admin.tourApproval.permissionDenied.message')}
           </p>
           <button
             onClick={() => navigate('/staff/tasks')}
             className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white bg-[#4c9dff] hover:bg-[#3f85d6] transition-all shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
           >
-            Quay lại Task Management
+            {t('admin.tourApproval.permissionDenied.backButton')}
           </button>
         </div>
       </div>
@@ -314,7 +346,7 @@ const TourApproval = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách tour...</p>
+          <p className="mt-4 text-gray-600">{t('admin.tourApproval.loading')}</p>
         </div>
       </div>
     );
@@ -331,20 +363,20 @@ const TourApproval = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Tour Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý Tour</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.tourApproval.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.tourApproval.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Xem và quản lý tất cả các tour trong hệ thống.
+            {t('admin.tourApproval.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.tourApproval.filters.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.tourApproval.filters.exportReport')}
           </button>
         </div>
       </div>
@@ -354,7 +386,7 @@ const TourApproval = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Tổng số tour</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourApproval.stats.totalTours')}</p>
               <p className="text-xl font-bold text-gray-900 mt-1">{tours.length}</p>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
@@ -365,7 +397,7 @@ const TourApproval = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Tour hiển thị</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourApproval.stats.displayedTours')}</p>
               <p className="text-xl font-bold text-gray-900 mt-1">{filteredAndSortedTours.length}</p>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
@@ -376,7 +408,7 @@ const TourApproval = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Trang hiện tại</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourApproval.stats.currentPage')}</p>
               <p className="text-xl font-bold text-gray-900 mt-1">
                 {currentPage + 1} / {totalPages || 1}
               </p>
@@ -400,7 +432,7 @@ const TourApproval = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(0);
               }}
-              placeholder="Tìm kiếm tour theo tên, mô tả, điểm khởi hành..."
+              placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -413,10 +445,10 @@ const TourApproval = () => {
               }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="NOT_APPROVED">Chờ duyệt</option>
-              <option value="PUBLIC">Đã duyệt</option>
-              <option value="DISABLED">Đã vô hiệu</option>
+              <option value="all">{t('admin.tourApproval.filters.statusFilter.all')}</option>
+              <option value="NOT_APPROVED">{t('admin.tourApproval.filters.statusFilter.notApproved')}</option>
+              <option value="PUBLIC">{t('admin.tourApproval.filters.statusFilter.public')}</option>
+              <option value="DISABLED">{t('admin.tourApproval.filters.statusFilter.disabled')}</option>
             </select>
             <select
               value={sortBy}
@@ -426,10 +458,10 @@ const TourApproval = () => {
               }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="newest">Mới nhất</option>
-              <option value="oldest">Cũ nhất</option>
-              <option value="name-asc">Tên A-Z</option>
-              <option value="name-desc">Tên Z-A</option>
+              <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
+              <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
+              <option value="name-asc">{t('admin.tourApproval.filters.sortBy.nameAsc')}</option>
+              <option value="name-desc">{t('admin.tourApproval.filters.sortBy.nameDesc')}</option>
             </select>
           </div>
         </div>
@@ -438,7 +470,15 @@ const TourApproval = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['STT', 'Tên tour', 'Trạng thái', 'Giá', 'Thời gian', 'Ngày tạo', 'Thao tác'].map((header) => (
+                {[
+                  t('admin.tourApproval.table.headers.stt'),
+                  t('admin.tourApproval.table.headers.tourName'),
+                  t('admin.tourApproval.table.headers.status'),
+                  t('admin.tourApproval.table.headers.price'),
+                  t('admin.tourApproval.table.headers.duration'),
+                  t('admin.tourApproval.table.headers.createdAt'),
+                  t('admin.tourApproval.table.headers.actions')
+                ].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -449,7 +489,7 @@ const TourApproval = () => {
               {paginatedTours.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? 'Đang tải...' : 'Không tìm thấy tour phù hợp với bộ lọc hiện tại.'}
+                    {loading ? t('admin.tourApproval.table.loading') : t('admin.tourApproval.table.noResults')}
                   </td>
                 </tr>
               ) : (
@@ -493,7 +533,7 @@ const TourApproval = () => {
                       {formatPrice(tour.price || tour.adultPrice)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {tour.duration || tour.tourDuration || 'N/A'}
+                      {formatDuration(tour.duration || tour.tourDuration)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {formatDate(tour.createdAt)}
@@ -504,21 +544,21 @@ const TourApproval = () => {
                           onClick={() => handleViewDetails(tour.tourId || tour.id)}
                           disabled={loadingDetail}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Xem chi tiết"
+                          title={t('admin.tourApproval.actions.viewDetails')}
                         >
                           <Eye className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => handleApproveTour(tour.tourId || tour.id)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
-                          title="Phê duyệt tour"
+                          title={t('admin.tourApproval.actions.approve')}
                         >
                           <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                         <button
                           onClick={() => handleRejectTour(tour.tourId || tour.id)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
-                          title="Từ chối tour"
+                          title={t('admin.tourApproval.actions.reject')}
                         >
                           <XCircle className="h-4 w-4" strokeWidth={1.5} />
                         </button>
@@ -535,7 +575,7 @@ const TourApproval = () => {
         {filteredAndSortedTours.length >= 10 && totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <div className="text-sm text-gray-600">
-              Trang {currentPage + 1} / {totalPages} ({filteredAndSortedTours.length} tour)
+              {t('admin.tourApproval.pagination.page', { current: currentPage + 1, total: totalPages, count: filteredAndSortedTours.length })}
             </div>
             <div className="flex gap-2">
               <button
@@ -543,14 +583,14 @@ const TourApproval = () => {
                 disabled={currentPage === 0}
                 className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                Trước
+                {t('admin.tourApproval.pagination.previous')}
               </button>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                 disabled={currentPage >= totalPages - 1}
                 className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                Sau
+                {t('admin.tourApproval.pagination.next')}
               </button>
             </div>
           </div>
@@ -574,10 +614,12 @@ const TourApproval = () => {
 
 // Tour Status Badge Component
 const TourStatusBadge = ({ status }) => {
+  const { t } = useTranslation();
+  
   if (!status) {
     return (
       <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
-        N/A
+        {t('admin.tourApproval.status.na')}
       </span>
     );
   }
@@ -586,24 +628,24 @@ const TourStatusBadge = ({ status }) => {
   const statusMap = {
     'PUBLIC': { 
       color: 'bg-green-100 text-green-700', 
-      label: 'Đã duyệt', 
+      label: t('admin.tourApproval.status.approved'), 
       icon: Check 
     },
     'NOT_APPROVED': { 
       color: 'bg-amber-100 text-amber-700', 
-      label: 'Chờ duyệt', 
+      label: t('admin.tourApproval.status.pending'), 
       icon: Clock 
     },
     'DISABLED': { 
       color: 'bg-red-100 text-red-700', 
-      label: 'Đã vô hiệu', 
+      label: t('admin.tourApproval.status.disabled'), 
       icon: X 
     }
   };
   
   const map = statusMap[statusUpper] || { 
     color: 'bg-gray-100 text-gray-500', 
-    label: status, 
+    label: status || t('admin.tourApproval.status.na'), 
     icon: FileText 
   };
   

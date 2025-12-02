@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
 import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
@@ -9,6 +10,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const { showSuccess } = useToast();
   const { t } = useTranslation();
   const blobUrlRef = useRef(null);
+  const modalContainerRef = useRef(null);
+  const bodyOverflowRef = useRef('');
 
   const htmlToText = (html) => {
     if (!html) return '';
@@ -347,6 +350,26 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     }
   }, [tour, isOpen]);
 
+  // Resolve portal container once on mount
+  useEffect(() => {
+    if (!modalContainerRef.current) {
+      const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+      modalContainerRef.current = root || (typeof document !== 'undefined' ? document.body : null);
+    }
+  }, []);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!modalContainerRef.current || typeof document === 'undefined') return;
+    if (isOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = bodyOverflowRef.current || '';
+      };
+    }
+  }, [isOpen]);
+
   // Update color gradient when hue changes
   useEffect(() => {
     if (showCustomColorPicker) {
@@ -405,11 +428,28 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         const leadDays = deriveLeadDaysFromDate(formData.tourExpirationDate);
         if (leadDays !== null && numeric >= leadDays) {
           const adjusted = Math.max(0, leadDays - 1);
-          if (adjusted !== numeric) {
-            setFormErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
-          }
           numeric = adjusted;
+          // Clear error when value is auto-adjusted correctly
+          setFormErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.tourDeadline;
+            return newErrors;
+          });
+        } else {
+          // Clear error when value is valid
+          setFormErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.tourDeadline;
+            return newErrors;
+          });
         }
+      } else {
+        // Clear error when no expiration date is set
+        setFormErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.tourDeadline;
+          return newErrors;
+        });
       }
       setFormData(prev => ({
         ...prev,
@@ -442,10 +482,20 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         const deadlineNum = parseInt(nextDeadline, 10);
         if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
           const adjusted = Math.max(0, leadDays - 1);
-          if (String(adjusted) !== nextDeadline) {
-            setFormErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
-          }
           nextDeadline = String(adjusted);
+          // Clear error when value is auto-adjusted correctly
+          setFormErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.tourDeadline;
+            return newErrors;
+          });
+        } else {
+          // Clear error when value is valid
+          setFormErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.tourDeadline;
+            return newErrors;
+          });
         }
     }
     setFormData(prev => ({
@@ -728,7 +778,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalNode = (
     <div className={styles['modal-overlay']} onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <div className={styles['edit-tour-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className={styles['modal-header']}>
@@ -869,6 +919,20 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
                 <div className={styles['form-row']}>
                   <div className={styles['form-group']}>
+                    <label htmlFor="tourExpirationDate">{t('tourWizard.step1.fields.tourExpirationDate')}</label>
+                    <input
+                      type="date"
+                      id="tourExpirationDate"
+                      name="tourExpirationDate"
+                      value={formData.tourExpirationDate}
+                      onChange={(e) => handleExpirationDateChange(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.tourExpirationDate')}</small>
+                  </div>
+
+                  <div className={styles['form-group']}>
                     <label htmlFor="tourDeadline">{t('tourWizard.step1.fields.tourDeadline')}</label>
                     <input
                       type="number"
@@ -883,20 +947,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       required
                     />
                     <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
-                  </div>
-
-                  <div className={styles['form-group']}>
-                    <label htmlFor="tourExpirationDate">{t('tourWizard.step1.fields.tourExpirationDate')}</label>
-                    <input
-                      type="date"
-                      id="tourExpirationDate"
-                      name="tourExpirationDate"
-                      value={formData.tourExpirationDate}
-                      onChange={(e) => handleExpirationDateChange(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      required
-                    />
-                    <small className={styles['form-help']}>{t('tourWizard.step1.help.tourExpirationDate')}</small>
                   </div>
                 </div>
 
@@ -1395,6 +1445,9 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       </div>
     </div>
   );
+
+  if (!modalContainerRef.current) return modalNode;
+  return createPortal(modalNode, modalContainerRef.current);
 };
 
 export default EditTourModal;

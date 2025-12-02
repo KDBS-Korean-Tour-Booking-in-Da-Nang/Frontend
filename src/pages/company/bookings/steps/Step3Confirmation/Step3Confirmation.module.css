@@ -384,6 +384,42 @@
   font-size: 0.9rem;
 }
 
+.finishButtonContainer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  padding: 1.5rem 0;
+}
+
+.finishButton {
+  padding: 1rem 2.5rem;
+  border-radius: 30px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #10b981, #059669);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.finishButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.finishButton:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.finishButton:not(:disabled):active {
+  transform: translateY(0);
+}
+
 @media (max-width: 1024px) {
   .container {
     padding: 1.5rem 0;

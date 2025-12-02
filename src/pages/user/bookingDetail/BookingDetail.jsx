@@ -111,7 +111,7 @@ const BookingDetail = () => {
           navigate('/login', { state: { redirectTo: `/user/booking?id=${id}` } });
           return;
         }
-        setError(e.message || 'Failed to load booking');
+        setError(e.message || t('bookingDetail.error.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -168,7 +168,7 @@ const BookingDetail = () => {
 
       const updatedBooking = await updateBooking(booking.bookingId, bookingData);
       setBooking(updatedBooking);
-      showSuccess('Đã cập nhật booking thành công');
+      showSuccess(t('bookingDetail.edit.toastSuccess'));
       
       // Refresh booking data
       const [refreshedBooking, refreshedGuests] = await Promise.all([
@@ -179,7 +179,7 @@ const BookingDetail = () => {
       setGuests(Array.isArray(refreshedGuests) ? refreshedGuests : []);
     } catch (error) {
       console.error('Error updating booking:', error);
-      setError(error.message || 'Không thể cập nhật booking');
+      setError(error.message || t('bookingDetail.edit.toastError'));
     } finally {
       setLoading(false);
     }
@@ -238,11 +238,11 @@ const BookingDetail = () => {
     try {
       setConfirmingCompletion(true);
       await userConfirmTourCompletion(booking.bookingId);
-      showSuccess('Đã xác nhận tour hoàn thành. Chúng tôi sẽ thông báo cho công ty.');
+      showSuccess(t('bookingDetail.completion.toastSuccess'));
       const refreshedBooking = await getBookingById(booking.bookingId);
       setBooking(refreshedBooking);
     } catch (err) {
-      setError(err.message || 'Không thể xác nhận tour hoàn thành');
+      setError(err.message || t('bookingDetail.completion.toastError'));
     } finally {
       setConfirmingCompletion(false);
       setShowCompletionConfirmModal(false);
@@ -253,19 +253,19 @@ const BookingDetail = () => {
     if (!booking?.bookingId) return;
     const trimmed = (messageFromModal ?? complaintMessage).trim();
     if (!trimmed) {
-      setError('Vui lòng nhập nội dung khiếu nại');
+      setError(t('bookingDetail.complaint.emptyError'));
       return;
     }
     try {
       setLoading(true);
       await createBookingComplaint(booking.bookingId, trimmed);
-      showSuccess('Đã gửi khiếu nại. Chúng tôi sẽ xem xét sớm nhất.');
+      showSuccess(t('bookingDetail.complaint.toastSuccess'));
       setComplaintMessage('');
       setShowComplaintModal(false);
       const refreshedBooking = await getBookingById(booking.bookingId);
       setBooking(refreshedBooking);
     } catch (err) {
-      setError(err.message || 'Không thể gửi khiếu nại');
+      setError(err.message || t('bookingDetail.complaint.toastError'));
     } finally {
       setLoading(false);
     }
@@ -277,8 +277,10 @@ const BookingDetail = () => {
       <div className={styles['completion-note']}>
         <p>
           {booking.autoConfirmedDate
-            ? `Nếu một trong hai bên chưa xác nhận, hệ thống sẽ tự động xác nhận sau ngày ${new Date(booking.autoConfirmedDate).toLocaleDateString('vi-VN')}.`
-            : 'Nếu một trong hai bên chưa xác nhận, hệ thống sẽ tự động xác nhận sau 3 ngày kể từ khi tour kết thúc.'}
+            ? t('bookingDetail.completion.autoConfirmWithDate', {
+                date: new Date(booking.autoConfirmedDate).toLocaleDateString('vi-VN')
+              })
+            : t('bookingDetail.completion.autoConfirmDefault')}
         </p>
       </div>
     );
@@ -348,7 +350,7 @@ const BookingDetail = () => {
         <div className={styles['info-section']}>
           <div className={styles['section-header']}>
             <MapPinIcon className={styles['section-icon']} />
-            <h2 className={styles['section-title']}>Thông tin tour</h2>
+            <h2 className={styles['section-title']}>{t('bookingDetail.sections.tourInfo')}</h2>
           </div>
           <div className={styles['info-grid']}>
             <div className={styles['info-item']}>
@@ -380,7 +382,7 @@ const BookingDetail = () => {
         <div className={styles['info-section']}>
           <div className={styles['section-header']}>
             <UserIcon className={styles['section-icon']} />
-            <h2 className={styles['section-title']}>Thông tin liên hệ</h2>
+            <h2 className={styles['section-title']}>{t('bookingDetail.sections.contactInfo')}</h2>
           </div>
           <div className={styles['info-grid']}>
             <div className={styles['info-item']}>
@@ -389,7 +391,7 @@ const BookingDetail = () => {
               </div>
               <div className={styles['info-value']}>{booking.contactName}</div>
             </div>
-            <div className={styles['info-item']}>
+              <div className={styles['info-item']}>
               <div className={styles['info-label']}>
                 <PhoneIcon className={styles['item-icon']} />
                 <span>{t('bookingHistory.card.contactPhone')}</span>
@@ -399,7 +401,7 @@ const BookingDetail = () => {
             <div className={styles['info-item']}>
               <div className={styles['info-label']}>
                 <EnvelopeIcon className={styles['item-icon']} />
-                <span>Email</span>
+                <span>{t('bookingDetail.sections.email')}</span>
               </div>
               <div className={styles['info-value']}>{booking.contactEmail}</div>
             </div>
@@ -434,7 +436,7 @@ const BookingDetail = () => {
                 onClick={handleEditBooking}
               >
                 <PencilIcon className={styles['action-icon']} />
-                <span>Chỉnh sửa booking</span>
+                <span>{t('bookingDetail.actions.editBooking')}</span>
               </button>
             </div>
           )}
@@ -442,8 +444,11 @@ const BookingDetail = () => {
           {isSuccessPending && (
             <div className={styles['action-section']}>
               <div className={styles['info-banner']}>
-                <p>Booking đã được công ty duyệt. Vui lòng chờ tour diễn ra để xác nhận hoàn tất.</p>
-                <p>Ngày kết thúc dự kiến: {booking.tourEndDate ? new Date(booking.tourEndDate).toLocaleDateString('vi-VN') : '-'}</p>
+                <p>{t('bookingDetail.info.successPending')}</p>
+                <p>
+                  {t('bookingDetail.info.expectedEndDatePrefix')}{' '}
+                  {booking.tourEndDate ? new Date(booking.tourEndDate).toLocaleDateString('vi-VN') : '-'}
+                </p>
               </div>
             </div>
           )}
@@ -451,7 +456,7 @@ const BookingDetail = () => {
           {isWaitingForConfirmation && (
             <div className={styles['action-section']}>
               <div className={styles['info-banner']}>
-                <p>Tour đã kết thúc. Vui lòng xác nhận bạn đã hoàn thành chuyến đi hoặc gửi khiếu nại nếu có vấn đề.</p>
+                <p>{t('bookingDetail.info.waitingForConfirmation')}</p>
                 {renderCompletionInfo()}
               </div>
               <div className={styles['completion-actions']}>
@@ -461,7 +466,7 @@ const BookingDetail = () => {
                   disabled={confirmingCompletion}
                 >
                   <CheckCircleIcon className={styles['action-icon']} />
-                  <span>Hoàn thành</span>
+                  <span>{t('bookingDetail.actions.complete')}</span>
                 </button>
                 <button 
                   type="button"
@@ -469,7 +474,7 @@ const BookingDetail = () => {
                   onClick={() => setShowComplaintModal(true)}
                 >
                   <XCircleIcon className={styles['action-icon']} />
-                  <span>Khiếu nại</span>
+                  <span>{t('bookingDetail.actions.complaint')}</span>
                 </button>
               </div>
             </div>
@@ -477,7 +482,7 @@ const BookingDetail = () => {
           {isUnderComplaint && (
             <div className={styles['action-section']}>
               <div className={styles['info-banner']}>
-                <p>Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý.</p>
+                <p>{t('bookingDetail.info.underComplaint')}</p>
               </div>
             </div>
           )}
@@ -501,10 +506,14 @@ const BookingDetail = () => {
           isOpen={showCompletionConfirmModal}
           onClose={() => !confirmingCompletion && setShowCompletionConfirmModal(false)}
           onConfirm={handleUserConfirmCompletion}
-          title="Xác nhận hoàn thành tour"
-          message="Bạn xác nhận đã hoàn thành đầy đủ lịch trình tour này?"
-          confirmText={confirmingCompletion ? 'Đang xác nhận...' : 'Xác nhận hoàn thành'}
-          cancelText="Hủy"
+          title={t('bookingDetail.modal.completionTitle')}
+          message={t('bookingDetail.modal.completionMessage')}
+          confirmText={
+            confirmingCompletion
+              ? t('bookingDetail.modal.confirmProcessing')
+              : t('bookingDetail.modal.confirm')
+          }
+          cancelText={t('common.cancel')}
           icon="✓"
           danger={false}
           disableBackdropClose={confirmingCompletion}

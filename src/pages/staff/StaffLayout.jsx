@@ -37,12 +37,12 @@ const StaffLayout = ({ children }) => {
       items.push(
         {
           id: 'forum-reports',
-          label: 'Forum Report Management',
+          label: t('staff.layout.sidebar.menuItems.forumReportManagement'),
           color: 'bg-blue-500'
         },
         {
           id: 'booking-complaint',
-          label: 'Booking Complaint',
+          label: t('staff.layout.sidebar.menuItems.bookingComplaint'),
           color: 'bg-red-500'
         }
       );
@@ -51,12 +51,12 @@ const StaffLayout = ({ children }) => {
       items.push(
         {
           id: 'company-management',
-          label: 'Company Management',
+          label: t('staff.layout.sidebar.menuItems.companyManagement'),
           color: 'bg-amber-500'
         },
         {
           id: 'resolve-ticket',
-          label: 'Resolve Ticket',
+          label: t('staff.layout.sidebar.menuItems.resolveTicket'),
           color: 'bg-purple-500'
         }
       );
@@ -65,18 +65,18 @@ const StaffLayout = ({ children }) => {
       items.push(
         {
           id: 'tour-approval',
-          label: 'Tour Approval',
+          label: t('staff.layout.sidebar.menuItems.tourApproval'),
           color: 'bg-emerald-500'
         },
         {
           id: 'article-management',
-          label: 'Article Management',
+          label: t('staff.layout.sidebar.menuItems.articleManagement'),
           color: 'bg-indigo-500'
         }
       );
     }
     return items;
-  }, [user?.staffTask, isAdmin]);
+  }, [user?.staffTask, isAdmin, t]);
 
   // Luôn hiển thị Task Management trong sidebar, kể cả khi chưa được gán nhiệm vụ
   const hasTaskMenu = true;
@@ -118,15 +118,15 @@ const StaffLayout = ({ children }) => {
 
   const menuSections = [
     {
-      title: 'MENU',
+      title: t('staff.layout.sidebar.sections.menu'),
       items: [
-        { type: 'tasks', name: 'Task Management' },
+        { type: 'tasks', name: t('staff.layout.sidebar.taskManagement') },
       ],
     },
     {
-      title: 'LIÊN HỆ',
+      title: t('staff.layout.sidebar.sections.contact'),
       items: [
-        { type: 'link', name: 'Liên hệ khách hàng', to: '/staff/contact', icon: ChatBubbleLeftRightIcon },
+        { type: 'link', name: t('staff.layout.sidebar.contactCustomer'), to: '/staff/contact', icon: ChatBubbleLeftRightIcon },
       ],
     },
   ];
@@ -150,7 +150,7 @@ const StaffLayout = ({ children }) => {
             <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
               <span className="text-blue-600 font-semibold">KS</span>
             </div>
-            <span className="text-sm font-semibold text-gray-900">KDBS Staff</span>
+            <span className="text-sm font-semibold text-gray-900">{t('staff.layout.sidebar.brand')}</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -192,7 +192,7 @@ const StaffLayout = ({ children }) => {
                               onClick={() => setSidebarOpen(false)}
                             >
                               <span className="h-2 w-2 rounded-full bg-blue-400" />
-                              <span>Dashboard overview</span>
+                              <span>{t('staff.taskManagement.sidebar.dashboardOverview')}</span>
                             </NavLink>
                             {taskMenuItems.map((task) => (
                               <NavLink
@@ -270,7 +270,7 @@ const StaffLayout = ({ children }) => {
                   <input
                     id="search-field"
                     className="block w-full h-full pl-8 pr-3 py-2 border-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent"
-                    placeholder="Search for..."
+                    placeholder={t('staff.layout.header.searchPlaceholder')}
                     type="search"
                     name="search"
                   />
@@ -303,7 +303,7 @@ const StaffLayout = ({ children }) => {
                   onClick={() => setShowUserDropdown((s) => !s)}
                   className="flex items-center space-x-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
                 >
-                  <span className="text-sm font-medium text-gray-700">{user?.name || 'Staff'}</span>
+                  <span className="text-sm font-medium text-gray-700">{user?.name || t('staff.layout.header.userDropdown.staffUser')}</span>
                   <div className="h-8 w-8 rounded-full bg-gray-200 ring-1 ring-gray-300 flex items-center justify-center">
                     <UserCircleIcon className="h-5 w-5 text-gray-600" />
                   </div>
@@ -318,7 +318,7 @@ const StaffLayout = ({ children }) => {
                           <UserCircleIcon className="h-6 w-6 text-gray-600" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Staff User'}</div>
+                          <div className="text-sm font-semibold text-gray-900 truncate">{user?.name || t('staff.layout.header.userDropdown.staffUserFallback')}</div>
                           <div className="text-xs text-gray-500 truncate">{user?.email || 'staff@example.com'}</div>
                         </div>
                       </div>
@@ -330,21 +330,21 @@ const StaffLayout = ({ children }) => {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <UserCircleIcon className="h-5 w-5 text-gray-500" />
-                        <span>Profile</span>
+                        <span>{t('staff.layout.header.userDropdown.profile')}</span>
                       </button>
                       <button
                         onClick={() => { setShowUserDropdown(false); navigate('/settings'); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <Cog6ToothIcon className="h-5 w-5 text-gray-500" />
-                        <span>Account settings</span>
+                        <span>{t('staff.layout.header.userDropdown.accountSettings')}</span>
                       </button>
                       <button
                         onClick={() => { setShowUserDropdown(false); navigate('/support'); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <LifebuoyIcon className="h-5 w-5 text-gray-500" />
-                        <span>Support</span>
+                        <span>{t('staff.layout.header.userDropdown.support')}</span>
                       </button>
                       <div className="my-2 border-t border-gray-100" />
                       <button
@@ -352,7 +352,7 @@ const StaffLayout = ({ children }) => {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                       >
                         <ArrowRightOnRectangleIcon className="h-5 w-5 text-red-500" />
-                        <span>Sign out</span>
+                        <span>{t('staff.layout.header.userDropdown.signOut')}</span>
                       </button>
                     </div>
                   </div>

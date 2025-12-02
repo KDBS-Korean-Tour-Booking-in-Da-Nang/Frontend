@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useToast } from '../../../contexts/ToastContext';
@@ -140,6 +141,8 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
   const firstItemRef = useRef(null);
   const [panelMaxH, setPanelMaxH] = useState(0);
   const dropdownRef = useRef(null);
+  const modalContainerRef = useRef(null);
+  const bodyOverflowRef = useRef('');
 
   useLayoutEffect(() => {
     if (tourDropdownOpen && firstItemRef.current) {
@@ -159,9 +162,29 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [tourDropdownOpen]);
 
+  // Resolve portal container once on mount
+  useEffect(() => {
+    if (!modalContainerRef.current) {
+      const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+      modalContainerRef.current = root || (typeof document !== 'undefined' ? document.body : null);
+    }
+  }, []);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!modalContainerRef.current || typeof document === 'undefined') return;
+    if (isOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = bodyOverflowRef.current || '';
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
+  const modalNode = (
     <div className={styles['modal-overlay']}>
       <div className={styles['modal-backdrop']} onClick={onClose} />
       <div className={styles['modal-container']}>
@@ -427,6 +450,9 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
       </div>
     </div>
   );
+
+  if (!modalContainerRef.current) return modalNode;
+  return createPortal(modalNode, modalContainerRef.current);
 };
 
 export default VoucherCreateModal;

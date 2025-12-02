@@ -13,33 +13,7 @@ import { useChat } from '../../contexts/ChatContext';
 import { getAvatarUrl } from '../../config/api';
 import styles from './ChatBox.module.css';
 
-// Utility functions for time handling
-const formatTime = (timestamp) => {
-  if (!timestamp) return 'Vừa xong';
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString('vi-VN', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-};
-
-const formatRelativeTime = (timestamp) => {
-  if (!timestamp) return 'Vừa xong';
-  const now = new Date();
-  const messageTime = new Date(timestamp);
-  const diffInMinutes = Math.floor((now - messageTime) / (1000 * 60));
-  
-  if (diffInMinutes < 1) return 'Vừa xong';
-  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours} giờ trước`;
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays} ngày trước`;
-  
-  return messageTime.toLocaleDateString('vi-VN');
-};
+// Utility functions for time handling - will be moved inside component to use translation
 
 const formatDateHeader = (timestamp) => {
   if (!timestamp) return '';
@@ -109,6 +83,34 @@ const ChatBox = ({ isOpen, onClose }) => {
   const anchorRef = useRef({ id: null, top: 0 }); // Anchor element for scroll position
   const loadingOlderRef = useRef(false); // Prevent double-trigger
   const hasRestoredRef = useRef(false); // Track if chat has been restored
+
+  // Utility functions for time handling with translation
+  const formatTime = (timestamp) => {
+    if (!timestamp) return t('userChat.time.justNow');
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const formatRelativeTime = (timestamp) => {
+    if (!timestamp) return t('userChat.time.justNow');
+    const now = new Date();
+    const messageTime = new Date(timestamp);
+    const diffInMinutes = Math.floor((now - messageTime) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return t('userChat.time.justNow');
+    if (diffInMinutes < 60) return t('userChat.time.minutesAgo', { minutes: diffInMinutes });
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return t('userChat.time.hoursAgo', { hours: diffInHours });
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return t('userChat.time.daysAgo', { days: diffInDays });
+    
+    return messageTime.toLocaleDateString('vi-VN');
+  };
 
   // Helper to get active chat key
   const getActiveChatKey = () =>
@@ -441,7 +443,7 @@ const ChatBox = ({ isOpen, onClose }) => {
                 {state.activeChatUser ? (state.activeChatUser.userName || state.activeChatUser.username) : ''}
               </h3>
               <span className={styles.chatStatus}>
-                {state.isConnected ? 'Đang hoạt động' : state.isConnecting ? 'Đang kết nối...' : 'Mất kết nối'}
+                {state.isConnected ? t('userChat.status.active') : state.isConnecting ? t('userChat.status.connecting') : t('userChat.status.disconnected')}
               </span>
             </div>
           </div>
@@ -450,7 +452,7 @@ const ChatBox = ({ isOpen, onClose }) => {
             <button 
               className={styles.actionBtn}
               onClick={handleMinimize}
-              title="Thu nhỏ"
+              title={t('userChat.actions.minimize')}
             >
               <MinusIcon className="w-4 h-4" />
             </button>
@@ -479,7 +481,7 @@ const ChatBox = ({ isOpen, onClose }) => {
                   <div className={styles.typingDot}></div>
                   <div className={styles.typingDot}></div>
                 </div>
-                <span>Đang tải tin nhắn cũ...</span>
+                <span>{t('userChat.loading.olderMessages')}</span>
               </div>
             )}
             
@@ -488,8 +490,8 @@ const ChatBox = ({ isOpen, onClose }) => {
                 <ChatBubbleLeftRightIcon className={styles.emptyIcon} />
                 <p className={styles.emptyText}>
                   {state.activeChatUser 
-                    ? `Bắt đầu cuộc trò chuyện với ${state.activeChatUser.userName || state.activeChatUser.username}`
-                    : 'Chọn một người dùng để bắt đầu chat'
+                    ? t('userChat.empty.startConversation', { userName: state.activeChatUser.userName || state.activeChatUser.username })
+                    : t('userChat.empty.selectUser')
                   }
                 </p>
               </div>
@@ -528,11 +530,11 @@ const ChatBox = ({ isOpen, onClose }) => {
                         <p className={styles.messageText}>{message.content}</p>
                       </div>
                       
-                      {/* Show "Đã gửi" status outside the bubble for last sent message */}
+                      {/* Show sent status outside the bubble for last sent message */}
                       {isLastFromSender && message.isOwn && (
                         <div className={styles.sentStatusContainer}>
                           <span className={styles.sentStatus}>
-                            Đã gửi {formatRelativeTime(message.timestamp)}
+                            {t('userChat.message.sent')} {formatRelativeTime(message.timestamp)}
                           </span>
                         </div>
                       )}
@@ -632,7 +634,7 @@ const ChatBox = ({ isOpen, onClose }) => {
               e.stopPropagation();
               actions.closeMinimizedChat(minimizedChat.userId);
             }}
-            title="Đóng"
+            title={t('userChat.actions.close')}
             onMouseDown={(e) => e.stopPropagation()}
           >
             <XMarkIcon className="w-3 h-3" />

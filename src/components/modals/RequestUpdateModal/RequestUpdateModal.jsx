@@ -112,7 +112,7 @@ const RequestUpdateModal = ({
           <button
             type="button"
             className={styles['modal-close']}
-            aria-label="Đóng"
+            aria-label={t('common.close')}
             onClick={onClose}
             disabled={submitting}
           >
@@ -124,28 +124,28 @@ const RequestUpdateModal = ({
               <IconComponent size={36} strokeWidth={1.5} />
             </div>
             <h2 id="request-update-title" className={styles['modal-title']}>
-              {title || 'Yêu cầu cập nhật booking'}
+              {title || t('companyBookingWizard.requestUpdateModal.defaultTitle')}
             </h2>
             {bookingId && (
               <p className={styles['booking-id']}>
-                Booking ID: <strong>#{bookingId}</strong>
+                {t('companyBookingWizard.requestUpdateModal.bookingId')}: <strong>#{bookingId}</strong>
               </p>
             )}
             <p className={styles['instruction-text']}>
-              {message || 'Vui lòng nhập lý do yêu cầu cập nhật booking:'}
+              {message || t('companyBookingWizard.requestUpdateModal.defaultMessage')}
             </p>
             <textarea
               ref={textareaRef}
               value={updateMessage}
               onChange={(e) => setUpdateMessage(e.target.value)}
-              placeholder="Ví dụ: Vui lòng cập nhật thông tin khách hàng, ngày khởi hành, hoặc số lượng khách..."
+              placeholder={t('companyBookingWizard.requestUpdateModal.placeholder')}
               className={styles['message-textarea']}
               rows={6}
               disabled={submitting}
             />
             {!updateMessage.trim() && (
               <p className={styles['hint-text']}>
-                Vui lòng nhập thông tin yêu cầu cập nhật
+                {t('companyBookingWizard.requestUpdateModal.hint')}
               </p>
             )}
           </div>

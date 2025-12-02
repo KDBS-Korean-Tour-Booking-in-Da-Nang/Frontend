@@ -148,6 +148,19 @@ const calculateLeadDays = (isoDate) => {
       window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
         detail: { step: 1, hasErrors: Object.keys(errors).length > 0 } 
       }));
+      
+      // Scroll to first error field if there are errors
+      if (Object.keys(errors).length > 0) {
+        setTimeout(() => {
+          const firstErrorKey = Object.keys(errors)[0];
+          const errorElement = document.getElementById(firstErrorKey) || 
+                               document.querySelector(`[name="${firstErrorKey}"]`);
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            errorElement.focus();
+          }
+        }, 100);
+      }
     };
 
     const handleClearErrors = () => {
@@ -372,14 +385,45 @@ const calculateLeadDays = (isoDate) => {
             const leadDays = calculateLeadDays(formData.tourExpirationDate);
             if (leadDays !== null && adjustedValue >= leadDays) {
               adjustedValue = Math.max(0, leadDays - 1);
-              setFieldErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
-            } else {
+              // Clear error when value is auto-adjusted correctly
               setFieldErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors.tourDeadline;
+                const hasErrors = Object.keys(newErrors).length > 0;
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                    detail: { step: 1, hasErrors } 
+                  }));
+                }, 0);
+                return newErrors;
+              });
+            } else {
+              // Clear error when value is valid
+              setFieldErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.tourDeadline;
+                const hasErrors = Object.keys(newErrors).length > 0;
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                    detail: { step: 1, hasErrors } 
+                  }));
+                }, 0);
                 return newErrors;
               });
             }
+          } else {
+            // Clear error when no expiration date is set
+            setFieldErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.tourDeadline;
+              const hasErrors = Object.keys(newErrors).length > 0;
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                  detail: { step: 1, hasErrors } 
+                }));
+              }, 0);
+              return newErrors;
+            });
           }
           nextValue = String(adjustedValue);
           const updated = {
@@ -425,16 +469,32 @@ const calculateLeadDays = (isoDate) => {
       const deadlineNum = parseInt(nextDeadline, 10);
       if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
         const adjusted = Math.max(0, leadDays - 1);
-        if (String(adjusted) !== nextDeadline) {
-          setFieldErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
-        } else {
-          setFieldErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors.tourDeadline;
-            return newErrors;
-          });
-        }
         nextDeadline = String(adjusted);
+        // Clear error when value is auto-adjusted correctly
+        setFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.tourDeadline;
+          const hasErrors = Object.keys(newErrors).length > 0;
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+              detail: { step: 1, hasErrors } 
+            }));
+          }, 0);
+          return newErrors;
+        });
+      } else {
+        // Clear error when value is valid
+        setFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.tourDeadline;
+          const hasErrors = Object.keys(newErrors).length > 0;
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+              detail: { step: 1, hasErrors } 
+            }));
+          }, 0);
+          return newErrors;
+        });
       }
     }
     const updated = {
@@ -615,33 +675,6 @@ const calculateLeadDays = (isoDate) => {
         </div>
 
         <div className={styles['form-group']}>
-          <label htmlFor="tourDeadline" className={styles['form-label']}>
-            <CalendarDays className={styles['label-icon']} size={18} />
-            {t('tourWizard.step1.fields.tourDeadline')}
-            {fieldErrors.tourDeadline && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
-          </label>
-          <input
-            type="number"
-            id="tourDeadline"
-            name="tourDeadline"
-            value={formData.tourDeadline}
-            onChange={handleChange}
-            placeholder={t('tourWizard.step1.placeholders.tourDeadline')}
-            onKeyDown={preventInvalidNumberKeys}
-            onWheel={(e) => e.currentTarget.blur()}
-            min="0"
-            max={MAX_LEAD_DAYS}
-            className={styles['form-input']}
-          />
-          {fieldErrors.tourDeadline && (
-            <span className={styles['error-message']}>{fieldErrors.tourDeadline}</span>
-          )}
-          {!fieldErrors.tourDeadline && (
-            <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
-          )}
-        </div>
-
-        <div className={styles['form-group']}>
           <label htmlFor="tourExpirationDate" className={styles['form-label']}>
             <Calendar className={styles['label-icon']} size={18} />
             {t('tourWizard.step1.fields.tourExpirationDate')}
@@ -707,6 +740,33 @@ const calculateLeadDays = (isoDate) => {
             </small>
           )}
         </div>
+
+        <div className={styles['form-group']}>
+          <label htmlFor="tourDeadline" className={styles['form-label']}>
+            <CalendarDays className={styles['label-icon']} size={18} />
+            {t('tourWizard.step1.fields.tourDeadline')}
+            {fieldErrors.tourDeadline && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+          </label>
+          <input
+            type="number"
+            id="tourDeadline"
+            name="tourDeadline"
+            value={formData.tourDeadline}
+            onChange={handleChange}
+            placeholder={t('tourWizard.step1.placeholders.tourDeadline')}
+            onKeyDown={preventInvalidNumberKeys}
+            onWheel={(e) => e.currentTarget.blur()}
+            min="0"
+            max={MAX_LEAD_DAYS}
+            className={styles['form-input']}
+          />
+          {fieldErrors.tourDeadline && (
+            <span className={styles['error-message']}>{fieldErrors.tourDeadline}</span>
+          )}
+          {!fieldErrors.tourDeadline && (
+            <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
+          )}
+        </div>
       </div>
 
       <div className={styles['step-summary']}>
@@ -740,12 +800,12 @@ const calculateLeadDays = (isoDate) => {
             <strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.tours')}
           </p>
           <p>
-            <CalendarDays className={styles['summary-item-icon']} size={16} />
-            <strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
             <Calendar className={styles['summary-item-icon']} size={16} />
             <strong>{t('tourWizard.step1.summary.tourExpirationDate')}</strong> {formData.tourExpirationDate || t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <CalendarDays className={styles['summary-item-icon']} size={16} />
+            <strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}
           </p>
         </div>
       </div>

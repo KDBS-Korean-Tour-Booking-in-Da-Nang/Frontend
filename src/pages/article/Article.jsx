@@ -6,11 +6,11 @@ import Slider from 'react-slick';
 import { ArrowPathIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import articleService from '../../services/articleService';
 import { getArticleSummary, extractFirstImageUrl } from '../../utils/htmlConverter';
-import styles from './News.module.css';
+import styles from './Article.module.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-const News = () => {
+const Article = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
@@ -87,21 +87,21 @@ const News = () => {
 
   const heroSlides = [
     {
-      title: t('news.hero.title'),
-      subtitle: t('news.hero.subtitle'),
-      eyebrow: t('news.hero.eyebrow', { defaultValue: 'Travel Journal' }),
+      title: t('article.hero.title'),
+      subtitle: t('article.hero.subtitle'),
+      eyebrow: t('article.hero.eyebrow', { defaultValue: 'Travel Journal' }),
       image: '/tour1.jpg'
     },
     {
-      title: t('news.hero.slide2Title', { defaultValue: 'Exciting Travel Information' }),
-      subtitle: t('news.hero.slide2Subtitle', { defaultValue: 'Discover attractive destinations and curated itineraries designed for soft, effortless journeys.' }),
-      eyebrow: t('news.hero.slide2Eyebrow', { defaultValue: 'Destination Highlights' }),
+      title: t('article.hero.slide2Title', { defaultValue: 'Exciting Travel Information' }),
+      subtitle: t('article.hero.slide2Subtitle', { defaultValue: 'Discover attractive destinations and curated itineraries designed for soft, effortless journeys.' }),
+      eyebrow: t('article.hero.slide2Eyebrow', { defaultValue: 'Destination Highlights' }),
       image: '/tour2.jpg'
     },
     {
-      title: t('news.hero.slide3Title', { defaultValue: 'Unique Experiences' }),
-      subtitle: t('news.hero.slide3Subtitle', { defaultValue: 'Providing useful tips about activities, events, and cultural moments worth cherishing.' }),
-      eyebrow: t('news.hero.slide3Eyebrow', { defaultValue: 'Inspired Moments' }),
+      title: t('article.hero.slide3Title', { defaultValue: 'Unique Experiences' }),
+      subtitle: t('article.hero.slide3Subtitle', { defaultValue: 'Providing useful tips about activities, events, and cultural moments worth cherishing.' }),
+      eyebrow: t('article.hero.slide3Eyebrow', { defaultValue: 'Inspired Moments' }),
       image: '/tour3.jpg'
     }
   ];
@@ -157,7 +157,7 @@ const News = () => {
               aria-haspopup="dialog"
               aria-expanded={showCategories ? 'true' : 'false'}
             >
-              {t('news.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
+              {t('article.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
           </div>
@@ -170,7 +170,7 @@ const News = () => {
             {loading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-200 border-t-primary"></div>
-                <span className="ml-3 text-gray-600">{t('news.loading')}</span>
+                <span className="ml-3 text-gray-600">{t('article.loading')}</span>
               </div>
             ) : articles.length > 0 ? (
               <div className="space-y-6">
@@ -186,11 +186,11 @@ const News = () => {
                     <div
                       key={article.articleId}
                       className={`${styles.card} ${styles.articleCard} group cursor-pointer`}
-                      onClick={() => navigate(`/news/detail?id=${article.articleId}`)}
+                      onClick={() => navigate(`/article/detail?id=${article.articleId}`)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          navigate(`/news/detail?id=${article.articleId}`);
+                          navigate(`/article/detail?id=${article.articleId}`);
                         }
                       }}
                       role="button"
@@ -207,7 +207,7 @@ const News = () => {
                             />
                           ) : (
                             <div className={`${styles.articleImagePlaceholder} w-full h-full bg-slate-50 flex items-center justify-center`}>
-                              <span className="text-gray-400 text-xs sm:text-sm">{t('news.noImage')}</span>
+                              <span className="text-gray-400 text-xs sm:text-sm">{t('article.noImage')}</span>
                             </div>
                           )}
                         </div>
@@ -223,7 +223,7 @@ const News = () => {
                                 </span>
                               </div>
                               <span className={`${styles.chip} px-3 py-1 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap`}>
-                                {t('news.category')}
+                                {t('article.category')}
                               </span>
                             </div>
                             
@@ -238,13 +238,13 @@ const News = () => {
                           
                           <div className="flex justify-between items-center mt-auto pt-2 sm:pt-0 text-sm text-gray-400">
                             <span className="hidden sm:block text-xs uppercase tracking-[0.25em]">
-                              {t('news.readMore')}
+                              {t('article.readMore')}
                             </span>
                             <Link
-                              to={`/news/detail?id=${article.articleId}`}
+                              to={`/article/detail?id=${article.articleId}`}
                               className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-semibold text-sm md:text-base transition-colors"
                             >
-                              {t('news.readMore')}
+                              {t('article.readMore')}
                               <svg className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 transform group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                               </svg>
@@ -268,8 +268,8 @@ const News = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('news.noArticles')}</h3>
-                <p className="text-gray-500">{t('news.noArticlesDesc')}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('article.noArticles')}</h3>
+                <p className="text-gray-500">{t('article.noArticlesDesc')}</p>
               </div>
             )}
             
@@ -284,10 +284,10 @@ const News = () => {
                   {loadingMore ? (
                     <>
                       <ArrowPathIcon className="h-5 w-5 mr-2 animate-spin" />
-                      {t('news.loadingMore')}
+                      {t('article.loadingMore')}
                     </>
                   ) : (
-                    t('news.loadMore')
+                    t('article.loadMore')
                   )}
                 </button>
               </div>
@@ -298,13 +298,13 @@ const News = () => {
             <div className="hidden lg:block lg:col-span-1 lg:pl-0 justify-self-end">
             <div className={`${styles.card} p-8 lg:sticky lg:top-24 w-[320px] space-y-6`}>
               <h3 className="text-lg font-semibold text-gray-900">
-                {t('news.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
+                {t('article.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
               </h3>
               
               <div className="space-y-5">
                 <div className={styles.sidebarBlock}>
                   <h4 className={styles.sidebarHeading}>
-                    {t('news.sidebar.sortBy', { defaultValue: 'Sort by' })}
+                    {t('article.sidebar.sortBy', { defaultValue: 'Sort by' })}
                   </h4>
                   <div>
                     <select
@@ -313,10 +313,10 @@ const News = () => {
                       className="w-full mt-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60"
                     >
                       <option value="newest">
-                        {t('news.sidebar.sortNewest', { defaultValue: 'Newest first' })}
+                        {t('article.sidebar.sortNewest', { defaultValue: 'Newest first' })}
                       </option>
                       <option value="oldest">
-                        {t('news.sidebar.sortOldest', { defaultValue: 'Oldest first' })}
+                        {t('article.sidebar.sortOldest', { defaultValue: 'Oldest first' })}
                       </option>
                     </select>
                   </div>
@@ -334,7 +334,7 @@ const News = () => {
                 <div className={`${styles.mobileSheet} p-5`}>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-semibold text-gray-900">
-                      {t('news.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
+                      {t('article.sidebar.filterTitle', { defaultValue: 'Filter & Sort' })}
                     </h3>
                     <button onClick={() => setShowCategories(false)} className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                       <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -343,7 +343,7 @@ const News = () => {
                   <div className="space-y-4">
                     <div className={styles.sidebarBlock}>
                       <h4 className={styles.sidebarHeading}>
-                        {t('news.sidebar.sortBy', { defaultValue: 'Sort by' })}
+                        {t('article.sidebar.sortBy', { defaultValue: 'Sort by' })}
                       </h4>
                       <div>
                         <select
@@ -352,10 +352,10 @@ const News = () => {
                           className="w-full mt-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60"
                         >
                           <option value="newest">
-                            {t('news.sidebar.sortNewest', { defaultValue: 'Newest first' })}
+                            {t('article.sidebar.sortNewest', { defaultValue: 'Newest first' })}
                           </option>
                           <option value="oldest">
-                            {t('news.sidebar.sortOldest', { defaultValue: 'Oldest first' })}
+                            {t('article.sidebar.sortOldest', { defaultValue: 'Oldest first' })}
                           </option>
                         </select>
                       </div>
@@ -374,4 +374,4 @@ const News = () => {
   );
 };
 
-export default News;
+export default Article;

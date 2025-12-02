@@ -32,25 +32,38 @@ export const useStepValidation = (tourData) => {
     },
     step2: {
       isValid: !!(
-        tourData.itinerary && 
-        tourData.itinerary.length > 0 && 
+        tourData.tourDescription && 
+        String(tourData.tourDescription).trim() &&
         tourData.tourSchedule && 
         String(tourData.tourSchedule).trim()
       ),
       missingFields: [
-        (!tourData.itinerary || tourData.itinerary.length === 0) && 'tourWizard.step2.title',
+        (!tourData.tourDescription || !String(tourData.tourDescription).trim()) && 'tourWizard.step2.tourDescription.title',
         (!tourData.tourSchedule || !String(tourData.tourSchedule).trim()) && 'tourWizard.step2.fields.tourSchedule'
       ].filter(Boolean)
     },
     step3: {
-      isValid: !!(
-        tourData.adultPrice && 
-        String(tourData.adultPrice).trim() &&
-        tourData.childrenPrice && 
-        String(tourData.childrenPrice).trim() &&
-        tourData.babyPrice && 
-        String(tourData.babyPrice).trim()
-      ),
+      isValid: (() => {
+        const MIN_PRICE = 10000; // Minimum price: 10,000 VND
+        
+        // Check if all prices are non-empty
+        const adultPrice = tourData.adultPrice ? String(tourData.adultPrice).trim() : '';
+        const childrenPrice = tourData.childrenPrice ? String(tourData.childrenPrice).trim() : '';
+        const babyPrice = tourData.babyPrice ? String(tourData.babyPrice).trim() : '';
+        
+        if (!adultPrice || !childrenPrice || !babyPrice) {
+          return false;
+        }
+        
+        // Check if all prices meet minimum requirement
+        const adultPriceNum = parseInt(adultPrice.replace(/[^0-9]/g, ''), 10);
+        const childrenPriceNum = parseInt(childrenPrice.replace(/[^0-9]/g, ''), 10);
+        const babyPriceNum = parseInt(babyPrice.replace(/[^0-9]/g, ''), 10);
+        
+        return !isNaN(adultPriceNum) && adultPriceNum >= MIN_PRICE &&
+               !isNaN(childrenPriceNum) && childrenPriceNum >= MIN_PRICE &&
+               !isNaN(babyPriceNum) && babyPriceNum >= MIN_PRICE;
+      })(),
       missingFields: [
         (!tourData.adultPrice || !String(tourData.adultPrice).trim()) && 'tourWizard.step3.pricing.adultPrice',
         (!tourData.childrenPrice || !String(tourData.childrenPrice).trim()) && 'tourWizard.step3.pricing.childrenPrice',

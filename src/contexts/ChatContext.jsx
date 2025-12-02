@@ -1136,6 +1136,33 @@ export const ChatProvider = ({ children }) => {
       // Find the minimized chat
       const minimizedChat = state.minimizedChats.find(chat => chat.userId === userId);
       if (minimizedChat) {
+        // Prepare the final minimized chats list
+        let finalMinimizedChats = [...(state.minimizedChats || [])];
+        
+        // If there's already an active chat, minimize it first (same logic as openChatWithUser)
+        if (state.activeChatUser && state.messages.length > 0) {
+          const currentUserId = state.activeChatUser.userName || state.activeChatUser.username;
+          
+          // Check if this chat is already minimized
+          const existingChat = finalMinimizedChats.find(chat => chat.userId === currentUserId);
+          
+          if (!existingChat) {
+            // Add current chat to minimized chats
+            const minimizedChatToAdd = {
+              userId: currentUserId,
+              user: state.activeChatUser,
+              messages: state.messages,
+              timestamp: Date.now()
+            };
+            finalMinimizedChats.push(minimizedChatToAdd);
+            dispatch({ type: ActionTypes.ADD_MINIMIZED_CHAT, payload: minimizedChatToAdd });
+          }
+        }
+        
+        // Remove the restored chat from minimized chats
+        finalMinimizedChats = finalMinimizedChats.filter(chat => chat.userId !== userId);
+        dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
+        
         // Set as active chat
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: minimizedChat.user });
         // If we don't have messages (because we don't persist them), load from API; else restore
@@ -1149,8 +1176,6 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
         dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
-        // Remove from minimized chats
-        dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
         
         // Save restored chat state to localStorage
         const minimalUser = pickMinimalUser(minimizedChat.user);
@@ -1160,11 +1185,11 @@ export const ChatProvider = ({ children }) => {
         }));
         
         // Update minimized chats in localStorage
-        const updatedMinimizedChats = state.minimizedChats
-          .filter(chat => chat.userId !== userId)
+        const minimizedChatsForStorage = finalMinimizedChats
           .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
-        if (updatedMinimizedChats.length > 0) {
-          localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
+        
+        if (minimizedChatsForStorage.length > 0) {
+          localStorage.setItem('minimizedChats', JSON.stringify(minimizedChatsForStorage));
         } else {
           localStorage.removeItem('minimizedChats');
         }

@@ -91,8 +91,12 @@ const Step2Insurance = ({
     setGuestsState(updatedGuests);
     persistInsuranceState(updatedGuests);
 
-    const guestName = updatedGuests.find(g => g.bookingGuestId === guestId)?.fullName || 'khách';
-    showSuccess(`Đã cập nhật trạng thái bảo hiểm cho ${guestName}. Thay đổi sẽ được lưu khi bạn hoàn thành booking.`);
+    const guestName = updatedGuests.find(g => g.bookingGuestId === guestId)?.fullName || t('companyBookingWizard.insurance.guestFallback');
+    showSuccess(
+      t('companyBookingWizard.insurance.toasts.statusUpdated', {
+        guestName
+      })
+    );
   };
 
   const handleReject = () => {
@@ -107,7 +111,7 @@ const Step2Insurance = ({
       const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_REJECTED', message.trim());
       onBookingUpdate(updatedBooking);
       setShowRejectModal(false);
-      showSuccess('Đã từ chối booking');
+      showSuccess(t('companyBookingWizard.insurance.toasts.rejected'));
       // Navigate back after rejection
       setTimeout(() => {
         onBack();
@@ -173,7 +177,7 @@ const Step2Insurance = ({
         onStepCompleted(2, 3);
       }
 
-      showSuccess('Đã ghi nhận các thay đổi bảo hiểm. Vui lòng hoàn thành booking để lưu vào database.');
+      showSuccess(t('companyBookingWizard.insurance.toasts.saved'));
       onNext();
     } catch (error) {
       // Error preparing insurance status changes - show in UI if needed
@@ -222,12 +226,12 @@ const Step2Insurance = ({
             <ShieldCheck size={28} strokeWidth={1.6} />
           </div>
           <div>
-            <h2 className={styles.title}>Thông tin bảo hiểm</h2>
+            <h2 className={styles.title}>{t('companyBookingWizard.insurance.header.title')}</h2>
             <p className={styles.description}>
-              Duy trì tone pastel, tập trung vào trạng thái bảo hiểm của từng khách. Đảm bảo tất cả đều SUCCESS trước khi tiếp tục.
+              {t('companyBookingWizard.insurance.header.description')}
             </p>
           </div>
-          <span className={styles.stepBadge}>Bước 2 / 3</span>
+          <span className={styles.stepBadge}>{t('companyBookingWizard.insurance.header.stepBadge')}</span>
         </div>
       </div>
 
@@ -236,14 +240,14 @@ const Step2Insurance = ({
         <div className={styles.summaryCard}>
           <div className={styles.summaryLabelRow}>
             <UsersRound className={styles.summaryIcon} strokeWidth={1.5} />
-            <span className={styles.summaryLabel}>Tổng khách</span>
+            <span className={styles.summaryLabel}>{t('companyBookingWizard.insurance.summary.totalGuests')}</span>
           </div>
           <span className={styles.summaryValue}>{guestsState.length}</span>
         </div>
         <div className={styles.summaryCard}>
           <div className={styles.summaryLabelRow}>
             <ShieldCheck className={`${styles.summaryIcon} ${styles.success}`} strokeWidth={1.5} />
-            <span className={styles.summaryLabel}>SUCCESS</span>
+            <span className={styles.summaryLabel}>{t('companyBookingWizard.insurance.summary.success')}</span>
           </div>
           <span className={styles.summaryValue}>
             {guestsState.filter(g => g.insuranceStatus === 'Success').length}
@@ -252,7 +256,7 @@ const Step2Insurance = ({
         <div className={styles.summaryCard}>
           <div className={styles.summaryLabelRow}>
             <AlertTriangle className={`${styles.summaryIcon} ${styles.failed}`} strokeWidth={1.5} />
-            <span className={styles.summaryLabel}>FAILED</span>
+            <span className={styles.summaryLabel}>{t('companyBookingWizard.insurance.summary.failed')}</span>
           </div>
           <span className={styles.summaryValue}>
             {guestsState.filter(g => g.insuranceStatus === 'Failed').length}
@@ -261,7 +265,7 @@ const Step2Insurance = ({
         <div className={styles.summaryCard}>
           <div className={styles.summaryLabelRow}>
             <ArrowRight className={styles.summaryIcon} strokeWidth={1.5} />
-            <span className={styles.summaryLabel}>PENDING</span>
+            <span className={styles.summaryLabel}>{t('companyBookingWizard.insurance.summary.pending')}</span>
           </div>
           <span className={styles.summaryValue}>
             {guestsState.filter(g => !g.insuranceStatus || g.insuranceStatus === 'Pending').length}
@@ -273,19 +277,19 @@ const Step2Insurance = ({
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
           <ShieldCheck className={styles.sectionIcon} strokeWidth={1.5} />
-          Danh sách khách và bảo hiểm
+          {t('companyBookingWizard.insurance.table.title')}
         </h3>
         {guestsState && guestsState.length > 0 ? (
           <div className={styles.guestsTable}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>STT</th>
-                  <th>Họ tên</th>
-                  <th>Ngày sinh</th>
-                  <th>CMND/CCCD</th>
-                  <th>Trạng thái bảo hiểm</th>
-                  {!isReadOnly && <th>Thao tác</th>}
+                  <th>{t('companyBookingWizard.insurance.table.columns.index')}</th>
+                  <th>{t('companyBookingWizard.insurance.table.columns.fullName')}</th>
+                  <th>{t('companyBookingWizard.insurance.table.columns.birthDate')}</th>
+                  <th>{t('companyBookingWizard.insurance.table.columns.idNumber')}</th>
+                  <th>{t('companyBookingWizard.insurance.table.columns.insuranceStatus')}</th>
+                  {!isReadOnly && <th>{t('companyBookingWizard.insurance.table.columns.actions')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -310,7 +314,7 @@ const Step2Insurance = ({
                               onClick={() => handleInsuranceStatusChange(guest.bookingGuestId, 'SUCCESS')}
                               className={`${styles.statusBtn} ${styles.successBtn}`}
                               disabled={currentStatus === 'Success' || loading.continue}
-                              title="Duyệt bảo hiểm"
+                              title={t('companyBookingWizard.insurance.actions.approveTooltip')}
                             >
                               <Check size={16} strokeWidth={2.5} />
                             </button>
@@ -318,7 +322,7 @@ const Step2Insurance = ({
                               onClick={() => handleInsuranceStatusChange(guest.bookingGuestId, 'FAILED')}
                               className={`${styles.statusBtn} ${styles.failedBtn}`}
                               disabled={currentStatus === 'Failed' || loading.continue}
-                              title="Từ chối bảo hiểm"
+                              title={t('companyBookingWizard.insurance.actions.rejectTooltip')}
                             >
                               <X size={16} strokeWidth={2.5} />
                             </button>
@@ -332,7 +336,7 @@ const Step2Insurance = ({
             </table>
           </div>
         ) : (
-          <p className={styles.emptyMessage}>Chưa có thông tin khách</p>
+          <p className={styles.emptyMessage}>{t('companyBookingWizard.insurance.table.empty')}</p>
         )}
       </div>
 
@@ -347,7 +351,7 @@ const Step2Insurance = ({
                 disabled={loading.reject || loading.continue}
               >
                 <ShieldCheck size={18} />
-                Duyệt tất cả
+                {t('companyBookingWizard.insurance.actions.approveAll')}
               </button>
             )}
             <button
@@ -356,7 +360,9 @@ const Step2Insurance = ({
               disabled={loading.reject || booking.bookingStatus === 'BOOKING_REJECTED'}
             >
               <X size={18} />
-              {loading.reject ? 'Đang xử lý...' : 'Từ chối booking'}
+              {loading.reject
+                ? t('companyBookingWizard.insurance.actions.rejectProcessing')
+                : t('companyBookingWizard.insurance.actions.rejectBooking')}
             </button>
             <button
               onClick={handleContinue}
@@ -371,10 +377,10 @@ const Step2Insurance = ({
             >
               <ArrowRight size={18} />
               {isStep2Completed
-                ? 'Đã ghi nhận'
+                ? t('companyBookingWizard.insurance.actions.alreadySaved')
                 : loading.continue
-                  ? 'Đang xử lý...'
-                  : 'Xác nhận và tiếp tục'}
+                  ? t('companyBookingWizard.insurance.actions.continueProcessing')
+                  : t('companyBookingWizard.insurance.actions.continue')}
             </button>
           </div>
         </div>
@@ -383,7 +389,7 @@ const Step2Insurance = ({
       {!allSuccess && guestsState.length > 0 && (
         <div className={styles.warning}>
           <AlertTriangle size={18} />
-          <p>Tất cả khách phải có trạng thái bảo hiểm SUCCESS để tiếp tục.</p>
+          <p>{t('companyBookingWizard.insurance.warning.allSuccessRequired')}</p>
         </div>
       )}
 
@@ -392,8 +398,8 @@ const Step2Insurance = ({
         isOpen={showConfirmModal}
         onClose={() => !loading.continue && setShowConfirmModal(false)}
         onConfirm={handleConfirmContinue}
-        title="Xác nhận duyệt bảo hiểm"
-        message="Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối?"
+        title={t('companyBookingWizard.insurance.confirmModal.title')}
+        message={t('companyBookingWizard.insurance.confirmModal.message')}
         confirmText={t('common.confirm') || 'Xác nhận'}
         cancelText={t('common.cancel') || 'Hủy'}
         icon="✓"
@@ -408,8 +414,8 @@ const Step2Insurance = ({
           onClose={() => setShowRejectModal(false)}
           onConfirm={handleConfirmReject}
           bookingId={booking?.bookingId}
-          title="Lý do từ chối booking"
-          message="Vui lòng nhập lý do từ chối booking ở bước bảo hiểm:"
+          title={t('companyBookingWizard.insurance.rejectModal.title')}
+          message={t('companyBookingWizard.insurance.rejectModal.message')}
         />
       )}
     </div>

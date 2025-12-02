@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { 
   XMarkIcon,
   ExclamationTriangleIcon,
@@ -14,11 +15,14 @@ import {
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 
 const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => {
+  const { t, i18n } = useTranslation();
+  
   if (!isOpen || !report) return null;
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('vi-VN', {
+    if (!dateString) return t('staff.forumReportManagement.status.na');
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Date(dateString).toLocaleString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -29,14 +33,14 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'PENDING': { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300', label: 'Chờ duyệt' },
-      'INVESTIGATING': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', label: 'Đang điều tra' },
-      'RESOLVED': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', label: 'Đã xử lý' },
-      'DISMISSED': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: 'Bỏ qua' },
-      'CLOSED': { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: 'Đóng' }
+      'PENDING': { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300', label: t('staff.forumReportManagement.status.pending') },
+      'INVESTIGATING': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', label: t('staff.forumReportManagement.status.investigating') },
+      'RESOLVED': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', label: t('staff.forumReportManagement.status.resolved') },
+      'DISMISSED': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: t('staff.forumReportManagement.status.dismissed') },
+      'CLOSED': { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: t('staff.forumReportManagement.status.closed') }
     };
     
-    const map = statusMap[status] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: status };
+    const map = statusMap[status] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: status || t('staff.forumReportManagement.status.na') };
     
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${map.bg} ${map.text} ${map.border}`}>
@@ -50,14 +54,14 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
     
     const reasonsUpper = typeof reasons === 'string' ? reasons.toUpperCase() : '';
     const typeMap = {
-      'SPAM': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300', label: 'Spam' },
-      'INAPPROPRIATE': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', label: 'Không phù hợp' },
-      'HARASSMENT': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: 'Quấy rối' },
-      'COPYRIGHT': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', label: 'Bản quyền' },
-      'VIOLENCE': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: 'Bạo lực' },
-      'HATE_SPEECH': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: 'Ngôn từ thù địch' },
-      'FALSE_INFO': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300', label: 'Thông tin sai' },
-      'OTHER': { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: 'Khác' }
+      'SPAM': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300', label: t('staff.forumReportManagement.violationTypes.spam') },
+      'INAPPROPRIATE': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', label: t('staff.forumReportManagement.violationTypes.inappropriate') },
+      'HARASSMENT': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: t('staff.forumReportManagement.violationTypes.harassment') },
+      'COPYRIGHT': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', label: t('staff.forumReportManagement.violationTypes.copyright') },
+      'VIOLENCE': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: t('staff.forumReportManagement.violationTypes.violence') },
+      'HATE_SPEECH': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', label: t('staff.forumReportManagement.violationTypes.hateSpeech') },
+      'FALSE_INFO': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300', label: t('staff.forumReportManagement.violationTypes.falseInfo') },
+      'OTHER': { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: t('staff.forumReportManagement.violationTypes.other') }
     };
     
     let matchedType = 'OTHER';
@@ -68,7 +72,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
       }
     }
     
-    const map = typeMap[matchedType] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: 'Khác' };
+    const map = typeMap[matchedType] || { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', label: t('staff.forumReportManagement.violationTypes.other') };
     
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${map.bg} ${map.text} ${map.border}`}>
@@ -93,8 +97,8 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
               <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Chi tiết báo cáo</h2>
-              <p className="text-sm text-gray-500 mt-0.5">ID: #{report.reportId}</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('staff.forumReportManagement.modal.title')}</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{t('staff.forumReportManagement.modal.reportId', { id: report.reportId })}</p>
             </div>
           </div>
           <button
@@ -114,7 +118,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
                 <TagIcon className="w-5 h-5 text-amber-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-1">Trạng thái</p>
+                <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.status')}</p>
                 {getStatusBadge(report.status)}
               </div>
             </div>
@@ -130,12 +134,12 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-1">Loại nội dung</p>
+                <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.contentType')}</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {report.targetType === 'POST' ? 'Bài viết' : 'Bình luận'}
+                  {report.targetType === 'POST' ? t('staff.forumReportManagement.reportTypes.post') : t('staff.forumReportManagement.reportTypes.comment')}
                 </p>
                 {report.targetId && (
-                  <p className="text-xs text-gray-400 mt-0.5">ID: {report.targetId}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('staff.forumReportManagement.modal.fields.targetId', { id: report.targetId })}</p>
                 )}
               </div>
             </div>
@@ -148,8 +152,8 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
                 <UserIcon className="w-5 h-5 text-green-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-1">Người báo cáo</p>
-                <p className="text-sm font-medium text-gray-900 mb-1">{report.reporterName || report.reporterUsername || 'N/A'}</p>
+                <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.reporter')}</p>
+                <p className="text-sm font-medium text-gray-900 mb-1">{report.reporterName || report.reporterUsername || t('staff.forumReportManagement.status.na')}</p>
                 {report.reporterEmail && (
                   <p className="text-xs text-gray-500">{report.reporterEmail}</p>
                 )}
@@ -161,7 +165,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
                 <InformationCircleIcon className="w-5 h-5 text-orange-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-1">Loại vi phạm</p>
+                <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.violationType')}</p>
                 {getTypeBadge(report.reason)}
               </div>
             </div>
@@ -174,7 +178,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
                 <CalendarIcon className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Ngày báo cáo</p>
+                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">{t('staff.forumReportManagement.modal.fields.reportDate')}</p>
                 <p className="text-sm font-semibold text-gray-900">{formatDate(report.reportedAt || report.createdAt)}</p>
               </div>
             </div>
@@ -184,7 +188,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
                   <CheckCircleOutlineIcon className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-green-600 font-semibold uppercase mb-1">Ngày xử lý</p>
+                  <p className="text-xs text-green-600 font-semibold uppercase mb-1">{t('staff.forumReportManagement.modal.fields.resolvedDate')}</p>
                   <p className="text-sm font-semibold text-gray-900">{formatDate(report.resolvedAt)}</p>
                 </div>
               </div>
@@ -194,17 +198,17 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
           {/* Target Content Info */}
           {(report.targetTitle || report.targetAuthor) && (report.targetTitle !== 'N/A' || report.targetAuthor !== 'N/A') && (
             <div className="p-4 rounded-[20px] bg-gray-50 border border-gray-200">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Thông tin nội dung</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">{t('staff.forumReportManagement.modal.fields.contentInfo')}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {report.targetTitle && report.targetTitle !== 'N/A' && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Tiêu đề</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.title')}</p>
                     <p className="text-sm font-medium text-gray-900 line-clamp-2">{report.targetTitle}</p>
                   </div>
                 )}
                 {report.targetAuthor && report.targetAuthor !== 'N/A' && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Tác giả</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.author')}</p>
                     <p className="text-sm font-medium text-gray-900">{report.targetAuthor}</p>
                   </div>
                 )}
@@ -215,7 +219,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
           {/* Reason Description */}
           {report.reason && report.reason !== 'N/A' && (
             <div className="p-4 rounded-[20px] bg-amber-50 border border-amber-200">
-              <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-2">Lý do báo cáo</p>
+              <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-2">{t('staff.forumReportManagement.modal.fields.reason')}</p>
               <p className="text-sm text-gray-900">{report.reason}</p>
             </div>
           )}
@@ -223,7 +227,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
           {/* Description */}
           {report.description && report.description !== 'N/A' && (
             <div className="p-4 rounded-[20px] bg-purple-50 border border-purple-200">
-              <p className="text-xs text-purple-600 font-semibold uppercase tracking-wider mb-2">Mô tả chi tiết</p>
+              <p className="text-xs text-purple-600 font-semibold uppercase tracking-wider mb-2">{t('staff.forumReportManagement.modal.fields.description')}</p>
               <p className="text-sm text-gray-900 whitespace-pre-wrap">{report.description}</p>
             </div>
           )}
@@ -233,13 +237,13 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {report.adminNote && report.adminNote !== 'N/A' && (
                 <div className="p-4 rounded-[20px] bg-blue-50 border border-blue-200">
-                  <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-2">Ghi chú admin</p>
+                  <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-2">{t('staff.forumReportManagement.modal.fields.adminNote')}</p>
                   <p className="text-sm text-gray-900">{report.adminNote}</p>
                 </div>
               )}
               {report.resolvedByUsername && report.resolvedByUsername !== 'N/A' && (
                 <div className="p-4 rounded-[20px] bg-green-50 border border-green-200">
-                  <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-2">Xử lý bởi</p>
+                  <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-2">{t('staff.forumReportManagement.modal.fields.resolvedBy')}</p>
                   <p className="text-sm font-medium text-gray-900">{report.resolvedByUsername}</p>
                 </div>
               )}
@@ -254,7 +258,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
               onClick={onClose}
               className="px-6 py-2.5 rounded-[20px] border border-gray-200 text-gray-700 font-semibold hover:bg-gray-100 transition-all"
             >
-              Đóng
+              {t('staff.forumReportManagement.modal.actions.close')}
             </button>
             <button
               onClick={() => {
@@ -264,7 +268,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
               className="px-6 py-2.5 rounded-[20px] bg-red-500 text-white font-semibold hover:bg-red-600 transition-all shadow-[0_8px_20px_rgba(239,68,68,0.3)] flex items-center gap-2"
             >
               <XCircleIcon className="w-4 h-4" />
-              Từ chối
+              {t('staff.forumReportManagement.modal.actions.reject')}
             </button>
             <button
               onClick={() => {
@@ -274,7 +278,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
               className="px-6 py-2.5 rounded-[20px] bg-green-500 text-white font-semibold hover:bg-green-600 transition-all shadow-[0_8px_20px_rgba(34,197,94,0.3)] flex items-center gap-2"
             >
               <CheckCircleIcon className="w-4 h-4" />
-              Duyệt
+              {t('staff.forumReportManagement.modal.actions.approve')}
             </button>
           </div>
         )}
@@ -285,7 +289,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
               onClick={onClose}
               className="px-6 py-2.5 rounded-[20px] bg-[#4c9dff] text-white font-semibold hover:bg-[#3f85d6] transition-all shadow-[0_8px_20px_rgba(76,157,255,0.3)]"
             >
-              Đóng
+              {t('staff.forumReportManagement.modal.actions.close')}
             </button>
           </div>
         )}

@@ -40,9 +40,9 @@ import CompanyBookingDetailWizard from './pages/company/bookings/CompanyBookingD
 import BusinessDashboard from './pages/company/CompanyLayout';
 import Dashboard from './pages/company/dashboard/Dashboard';
 import VoucherManagement from './pages/company/vouchers/VoucherManagement';
-import News from './pages/news/News';
+import Article from './pages/article/Article';
 import StaffDashboard from './pages/staff/StaffDashboard';
-import NewsDetail from './pages/news/NewsDetail/NewsDetail';
+import ArticleDetail from './pages/article/ArticleDetail/ArticleDetail';
 import AboutUs from './pages/about/AboutUs';
 import Contact from './pages/contact/Contact';
 import BookingCheckPaymentPage from './pages/payment/BookingCheckPaymentPage/BookingCheckPaymentPage';
@@ -263,9 +263,9 @@ function AppContent() {
                     <Route path="vouchers" element={<VoucherManagement />} />
                     {/** company-info route intentionally removed */}
                   </Route>
-                  {/* News routes */}
-                  <Route path="/news/detail" element={<NewsDetail />} />
-                  <Route path="/news" element={<News />} />
+                  {/* Article routes */}
+                  <Route path="/article/detail" element={<ArticleDetail />} />
+                  <Route path="/article" element={<Article />} />
                   {/* About & Contact routes */}
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/contact" element={<Contact />} />

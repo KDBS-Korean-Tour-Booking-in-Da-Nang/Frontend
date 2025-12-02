@@ -138,9 +138,9 @@ const Navbar = () => {
       // For tour, also check if we're on tour detail page
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
     }
-    if (path === '/news') {
-      // For news, also check if we're on news detail page
-      return location.pathname === '/news' || location.pathname.startsWith('/news/');
+    if (path === '/article') {
+      // For article, also check if we're on article detail page
+      return location.pathname === '/article' || location.pathname.startsWith('/article/');
     }
     if (path === '/about') {
       return location.pathname === '/about';
@@ -175,7 +175,7 @@ const Navbar = () => {
             <Link to="/" className={styles['nav-link']}>{t('nav.home')}</Link>
             <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
             <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
-            <Link to="/news" className={styles['nav-link']}>{t('nav.news')}</Link>
+            <Link to="/article" className={styles['nav-link']}>{t('nav.article')}</Link>
             <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
             <Link to="/contact" className={styles['nav-link']}>{t('nav.contact')}</Link>
           </div>
@@ -351,11 +351,11 @@ const Navbar = () => {
           </Link>
 
           <Link
-            to="/news"
+            to="/article"
             className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
-            {t('nav.news')}
+            {t('nav.article')}
           </Link>
 
           <Link

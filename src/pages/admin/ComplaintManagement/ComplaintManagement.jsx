@@ -43,7 +43,8 @@ const ComplaintManagement = () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getAllComplaints();
+      // Auto redirect on 401 for user-initiated actions
+      const data = await getAllComplaints(true);
       setAllComplaints(Array.isArray(data) ? data : []);
       setComplaints(Array.isArray(data) ? data : []);
     } catch (err) {
