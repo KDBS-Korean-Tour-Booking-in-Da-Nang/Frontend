@@ -1,5 +1,6 @@
 // Booking API service
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+import { getApiPath } from '../config/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -473,27 +474,79 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
       requestBody.message = message;
     }
     
-    const response = await fetch(`${API_BASE_URL}/api/booking/change-status/${bookingId}`, {
+    // Use getApiPath for consistent URL handling in dev/prod
+    const url = getApiPath(`/api/booking/change-status/${bookingId}`);
+    
+    // Log URL in development for debugging
+    if (import.meta.env.DEV) {
+      console.log('[BookingAPI] Calling change-status endpoint:', url);
+    }
+    
+    let response = await fetch(url, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 
-    if (!response.ok) {
-      const message = await parseErrorMessage(response);
+    // Fallback: If 404 in dev mode with relative path, try full URL
+    if (!response.ok && response.status === 404 && import.meta.env.DEV && url.startsWith('/')) {
+      const fallbackUrl = `${API_BASE_URL}/api/booking/change-status/${bookingId}`;
+      console.warn('[BookingAPI] Proxy may not be working, trying direct URL:', fallbackUrl);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
-      const wasHandled = await checkAndHandleApiError(response, true);
-      if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+      try {
+        response = await fetch(fallbackUrl, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(requestBody),
+        });
+      } catch (fallbackError) {
+        console.error('[BookingAPI] Fallback URL also failed:', fallbackError);
+      }
+    }
+
+    if (!response.ok) {
+      const errorMessage = await parseErrorMessage(response);
+      
+      // Handle 401 - session expired
+      if (response.status === 401) {
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          throw new Error('Session expired. Please login again.');
+        }
       }
       
-      throw new Error(message);
+      // Handle 500 - server error (don't redirect, show error message)
+      if (response.status === 500) {
+        // Log detailed error in development
+        if (import.meta.env.DEV) {
+          console.error('[BookingAPI] Server error (500):', {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            errorMessage
+          });
+        }
+        throw new Error(errorMessage || 'Server error occurred. Please try again later.');
+      }
+      
+      // Handle 403, 404 with global error handler (auto redirect)
+      if (response.status === 403 || response.status === 404) {
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
+        }
+      }
+      
+      throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
     return result;
   } catch (error) {
+    // Enhanced error logging
+    if (import.meta.env.DEV) {
+      console.error('[BookingAPI] changeBookingStatus error:', error);
+    }
     throw error;
   }
 };
