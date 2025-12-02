@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import styles from './CommentReportModal.module.css';
 
@@ -65,7 +66,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className={styles['comment-report-modal-overlay']} onClick={handleClose}>
       <div className={styles['comment-report-modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['comment-report-modal-header']}>
@@ -151,6 +152,8 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default CommentReportModal;

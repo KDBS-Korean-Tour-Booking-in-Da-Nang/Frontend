@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
   EyeIcon,
@@ -26,6 +27,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 
 const ForumManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
@@ -85,11 +87,11 @@ const ForumManagement = () => {
         const data = await response.json();
         setAllPosts(Array.isArray(data) ? data : []);
       } else {
-        setError('Không thể tải danh sách bài viết');
+        setError(t('admin.forumManagement.error') || 'Không thể tải danh sách bài viết');
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
-      setError('Có lỗi xảy ra khi tải danh sách bài viết');
+      setError(t('admin.forumManagement.error') || 'Có lỗi xảy ra khi tải danh sách bài viết');
     } finally {
       setLoading(false);
     }
@@ -116,11 +118,11 @@ const ForumManagement = () => {
         const reportsList = data.content || data || [];
         setReports(reportsList);
       } else {
-        setError('Không thể tải danh sách báo cáo');
+        setError(t('admin.forumManagement.error') || 'Không thể tải danh sách báo cáo');
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
-      setError('Có lỗi xảy ra khi tải danh sách báo cáo');
+      setError(t('admin.forumManagement.error') || 'Có lỗi xảy ra khi tải danh sách báo cáo');
     } finally {
       setReportsLoading(false);
     }
@@ -194,7 +196,8 @@ const ForumManagement = () => {
     if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('vi-VN', {
+      const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+      return date.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -299,20 +302,20 @@ const ForumManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Forum Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">View & moderate community posts</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.forumManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.forumManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Quản lý các bài viết và bình luận trong forum, xử lý báo cáo vi phạm.
+            {t('admin.forumManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.forumManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.forumManagement.exportReport')}
           </button>
           <button
             onClick={() => setShowReports(!showReports)}
@@ -323,17 +326,17 @@ const ForumManagement = () => {
             }`}
           >
             <FlagIcon className="h-5 w-5" />
-            {showReports ? 'Ẩn Báo cáo' : 'Báo cáo'}
+            {showReports ? t('admin.forumManagement.hideReports') : t('admin.forumManagement.reports')}
           </button>
         </div>
       </div>
 
       {!showReports && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <StatCard icon={NewspaperIcon} label="Tổng bài viết" value={stats.total} trend="+5 tuần này" />
-          <StatCard icon={DocumentTextIcon} label="Đang hoạt động" value={stats.active} trend="+3 tuần này" color="text-green-600" />
-          <StatCard icon={ChatBubbleBottomCenterTextIcon} label="Tổng bình luận" value={stats.comments} trend="+12% MoM" color="text-[#4c9dff]" />
-          <StatCard icon={ExclamationTriangleIcon} label="Báo cáo" value={stats.reports} trend="Cần xử lý" color="text-amber-500" />
+          <StatCard icon={NewspaperIcon} label={t('admin.forumManagement.stats.totalPosts')} value={stats.total} trend={t('admin.forumManagement.stats.totalPostsTrend')} />
+          <StatCard icon={DocumentTextIcon} label={t('admin.forumManagement.stats.active')} value={stats.active} trend={t('admin.forumManagement.stats.activeTrend')} color="text-green-600" />
+          <StatCard icon={ChatBubbleBottomCenterTextIcon} label={t('admin.forumManagement.stats.totalComments')} value={stats.comments} trend={t('admin.forumManagement.stats.totalCommentsTrend')} color="text-[#4c9dff]" />
+          <StatCard icon={ExclamationTriangleIcon} label={t('admin.forumManagement.stats.reports')} value={stats.reports} trend={t('admin.forumManagement.stats.reportsTrend')} color="text-amber-500" />
         </div>
       )}
 
@@ -341,7 +344,7 @@ const ForumManagement = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Lọc theo:</span>
+              <span className="text-sm font-medium text-gray-700">{t('admin.forumManagement.reportFilters.all')}</span>
               <button
                 onClick={() => setReportFilter('all')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg ${
@@ -350,7 +353,7 @@ const ForumManagement = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Tất cả
+                {t('admin.forumManagement.reportFilters.all')}
               </button>
               <button
                 onClick={() => setReportFilter('POST')}
@@ -360,7 +363,7 @@ const ForumManagement = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Bài viết
+                {t('admin.forumManagement.reportFilters.post')}
               </button>
               <button
                 onClick={() => setReportFilter('COMMENT')}
@@ -370,7 +373,7 @@ const ForumManagement = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Bình luận
+                {t('admin.forumManagement.reportFilters.comment')}
               </button>
             </div>
           </div>
@@ -381,7 +384,7 @@ const ForumManagement = () => {
             </div>
           ) : filteredReports.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">Không có báo cáo nào</p>
+              <p className="text-gray-500">{t('admin.forumManagement.noReports')}</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -394,14 +397,14 @@ const ForumManagement = () => {
                           {report.status}
                         </span>
                         <span className="text-sm font-medium text-gray-700">
-                          {report.targetType === 'POST' ? 'Bài viết' : 'Bình luận'}
+                          {report.targetType === 'POST' ? t('admin.forumManagement.reportLabels.post') : t('admin.forumManagement.reportLabels.comment')}
                         </span>
                         <span className="text-xs text-gray-500">
-                          Báo cáo bởi: {report.reporterUsername || 'N/A'}
+                          {t('admin.forumManagement.reportLabels.reportedBy', { name: report.reporterUsername || 'N/A' })}
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {report.targetTitle || 'Không có tiêu đề'}
+                        {report.targetTitle || t('admin.forumManagement.reportLabels.noTitle')}
                       </h3>
                       {report.description && (
                         <p className="text-sm text-gray-600 mb-2">{report.description}</p>
@@ -432,7 +435,7 @@ const ForumManagement = () => {
                         {report.targetAuthor && (
                           <div className="flex items-center gap-1">
                             <UserIcon className="h-4 w-4" />
-                            <span>Tác giả: {report.targetAuthor}</span>
+                            <span>{t('admin.forumManagement.reportLabels.reportedBy', { name: report.targetAuthor })}</span>
                           </div>
                         )}
                       </div>
@@ -441,7 +444,7 @@ const ForumManagement = () => {
                       <button
                         onClick={() => handleViewReportDetails(report)}
                         className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
-                        title="Xem chi tiết"
+                        title={t('admin.forumManagement.actions.viewDetails')}
                       >
                         <EyeIcon className="h-4 w-4" />
                       </button>
@@ -466,7 +469,7 @@ const ForumManagement = () => {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  placeholder="Tìm theo nội dung, tác giả hoặc ID bài viết..."
+                  placeholder={t('admin.forumManagement.searchPlaceholder')}
                   className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -479,9 +482,9 @@ const ForumManagement = () => {
                   }}
                   className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="active">Hoạt động</option>
-                  <option value="inactive">Tạm khóa</option>
+                  <option value="all">{t('admin.forumManagement.statusFilter.all')}</option>
+                  <option value="active">{t('admin.forumManagement.statusFilter.active')}</option>
+                  <option value="inactive">{t('admin.forumManagement.statusFilter.inactive')}</option>
                 </select>
                 <select
                   value={sortBy}
@@ -491,8 +494,8 @@ const ForumManagement = () => {
                   }}
                   className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="newest">Mới nhất</option>
-                  <option value="oldest">Cũ nhất</option>
+                  <option value="newest">{t('admin.forumManagement.sortBy.newest')}</option>
+                  <option value="oldest">{t('admin.forumManagement.sortBy.oldest')}</option>
                 </select>
               </div>
             </div>
@@ -506,24 +509,24 @@ const ForumManagement = () => {
           ) : (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-100">
-                  <thead className="bg-gray-50/70">
-                    <tr>
-                      {['ID', 'Bài viết', 'Tác giả', 'Lượt thích', 'Bình luận', 'Ngày đăng', 'Thao tác'].map((header) => (
-                        <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-50">
-                    {posts.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
-                          Không tìm thấy bài viết phù hợp với bộ lọc hiện tại.
-                        </td>
-                      </tr>
-                    ) : (
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50/70">
+                <tr>
+                  {[t('admin.forumManagement.tableHeaders.id'), t('admin.forumManagement.tableHeaders.post'), t('admin.forumManagement.tableHeaders.author'), t('admin.forumManagement.tableHeaders.likes'), t('admin.forumManagement.tableHeaders.comments'), t('admin.forumManagement.tableHeaders.date'), t('admin.forumManagement.tableHeaders.actions')].map((header) => (
+                    <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-50">
+                {posts.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                      {t('admin.forumManagement.noResults')}
+                    </td>
+                  </tr>
+                ) : (
                       posts.map((post) => (
                         <tr key={post.forumPostId || post.id} className="hover:bg-[#e9f2ff]/40 transition">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -580,7 +583,7 @@ const ForumManagement = () => {
                             <button
                               onClick={() => handleView(post)}
                               className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
-                              title="Xem chi tiết"
+                              title={t('admin.forumManagement.actions.viewDetails')}
                             >
                               <EyeIcon className="h-4 w-4" />
                             </button>
@@ -600,21 +603,20 @@ const ForumManagement = () => {
                     disabled={currentPage === 1}
                     className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Trước
+                    {t('admin.forumManagement.pagination.previous')}
                   </button>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Sau
+                    {t('admin.forumManagement.pagination.next')}
                   </button>
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm text-gray-700">
-                      Hiển thị trang <span className="font-medium">{currentPage}</span> / <span className="font-medium">{totalPages}</span> của{' '}
-                      <span className="font-medium">{totalItems}</span> bài viết
+                      {t('admin.forumManagement.pagination.showing', { current: currentPage, total: totalPages, items: totalItems })}
                     </p>
                   </div>
                   <div>
@@ -624,7 +626,7 @@ const ForumManagement = () => {
                         disabled={currentPage === 1}
                         className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span className="sr-only">Trước</span>
+                        <span className="sr-only">{t('admin.forumManagement.pagination.previous')}</span>
                         <ChevronLeftIcon className="h-5 w-5" />
                       </button>
                       {[...Array(totalPages)].map((_, idx) => {
@@ -653,7 +655,7 @@ const ForumManagement = () => {
                         disabled={currentPage === totalPages}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span className="sr-only">Sau</span>
+                        <span className="sr-only">{t('admin.forumManagement.pagination.next')}</span>
                         <ChevronRightIcon className="h-5 w-5" />
                       </button>
                     </nav>
@@ -680,7 +682,7 @@ const ForumManagement = () => {
                     <div className="p-2 bg-white bg-opacity-20 rounded-lg">
                       <DocumentTextIcon className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white">Chi tiết Bài viết</h3>
+                    <h3 className="text-2xl font-bold text-white">{t('admin.forumManagement.modal.title')}</h3>
                   </div>
                   <button
                     onClick={() => setIsModalOpen(false)}
@@ -727,7 +729,7 @@ const ForumManagement = () => {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <PhotoIcon className="h-5 w-5" />
-                        <span>Hình ảnh ({selectedPost.images.length})</span>
+                        <span>{t('admin.forumManagement.modal.images', { count: selectedPost.images.length })}</span>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {selectedPost.images.map((img, idx) => (
@@ -748,7 +750,7 @@ const ForumManagement = () => {
                   <div className="space-y-3 pt-4 border-t border-gray-200">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                       <DocumentTextIcon className="h-5 w-5" />
-                      <span>Nội dung</span>
+                      <span>{t('admin.forumManagement.modal.content')}</span>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
@@ -765,7 +767,7 @@ const ForumManagement = () => {
                           <HeartIcon className="h-5 w-5 text-red-600" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-600">Lượt thích</p>
+                          <p className="text-xs text-gray-600">{t('admin.forumManagement.modal.likes')}</p>
                           <p className="text-lg font-bold text-red-600">{selectedPost.reactions.likeCount || 0}</p>
                         </div>
                       </div>
@@ -774,7 +776,7 @@ const ForumManagement = () => {
                           <ChatBubbleLeftRightIcon className="h-5 w-5 text-[#4c9dff]" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-600">Bình luận</p>
+                          <p className="text-xs text-gray-600">{t('admin.forumManagement.modal.comments')}</p>
                           <p className="text-lg font-bold text-[#4c9dff]">{selectedPost.reactions.commentCount || 0}</p>
                         </div>
                       </div>
@@ -789,13 +791,13 @@ const ForumManagement = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-gray-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-colors"
                 >
-                  Đóng
+                  {t('admin.forumManagement.modal.close')}
                 </button>
                 <button
                   onClick={() => handleViewDetails(selectedPost.forumPostId || selectedPost.id)}
                   className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-5 py-2.5 bg-[#4c9dff] text-sm font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200"
                 >
-                  Xem chi tiết
+                  {t('admin.forumManagement.modal.viewDetails')}
                 </button>
               </div>
             </div>

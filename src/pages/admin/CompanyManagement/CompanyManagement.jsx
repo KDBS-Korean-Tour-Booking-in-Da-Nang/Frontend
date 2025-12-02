@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -20,6 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const CompanyManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -45,7 +47,7 @@ const CompanyManagement = () => {
       const token = getToken();
       
       if (!token) {
-        setError('Vui lòng đăng nhập lại');
+        setError(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
         setLoading(false);
         return;
       }
@@ -57,7 +59,7 @@ const CompanyManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError(t('common.errors.sessionExpired') || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -104,7 +106,7 @@ const CompanyManagement = () => {
       setCompanies(mappedCompanies);
     } catch (err) {
       console.error('Error fetching companies:', err);
-      setError('Không thể tải danh sách công ty. Vui lòng thử lại.');
+      setError(t('admin.companyManagement.error') || 'Không thể tải danh sách công ty. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -158,11 +160,11 @@ const CompanyManagement = () => {
     try {
       const token = getToken();
       if (!token) {
-        alert('Vui lòng đăng nhập lại');
+        alert(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
         return;
       }
 
-      if (!confirm(`Bạn có chắc chắn muốn phê duyệt công ty "${company.name}"?`)) {
+      if (!confirm(t('admin.companyManagement.confirmApprove', { name: company.name }))) {
         return;
       }
 
@@ -198,12 +200,12 @@ const CompanyManagement = () => {
         throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
       }
 
-      alert('Phê duyệt công ty thành công!');
+      alert(t('admin.companyManagement.approveSuccess'));
       setModalOpen(false);
       await fetchCompanies();
     } catch (err) {
       console.error('Error approving company:', err);
-      alert(err.message || 'Không thể phê duyệt công ty. Vui lòng thử lại.');
+      alert(err.message || t('admin.companyManagement.approveError'));
     }
   };
 
@@ -211,11 +213,11 @@ const CompanyManagement = () => {
     try {
       const token = getToken();
       if (!token) {
-        alert('Vui lòng đăng nhập lại');
+        alert(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
         return;
       }
 
-      if (!confirm(`Bạn có chắc chắn muốn từ chối công ty "${company.name}"?`)) {
+      if (!confirm(t('admin.companyManagement.confirmReject', { name: company.name }))) {
         return;
       }
 
@@ -236,12 +238,12 @@ const CompanyManagement = () => {
         throw new Error(errorData.message || 'Không thể từ chối công ty');
       }
 
-      alert('Từ chối công ty thành công!');
+      alert(t('admin.companyManagement.rejectSuccess'));
       setModalOpen(false);
       await fetchCompanies();
     } catch (err) {
       console.error('Error rejecting company:', err);
-      alert(err.message || 'Không thể từ chối công ty. Vui lòng thử lại.');
+      alert(err.message || t('admin.companyManagement.rejectError'));
     }
   };
 
@@ -251,7 +253,7 @@ const CompanyManagement = () => {
       setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: true });
       const token = getToken();
       if (!token) {
-        alert('Vui lòng đăng nhập lại');
+        alert(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
         return;
       }
 
@@ -324,7 +326,7 @@ const CompanyManagement = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách công ty...</p>
+          <p className="mt-4 text-gray-600">{t('admin.companyManagement.loading')}</p>
         </div>
       </div>
     );
@@ -339,7 +341,7 @@ const CompanyManagement = () => {
             onClick={fetchCompanies}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Thử lại
+            {t('admin.companyManagement.retry')}
           </button>
         </div>
       </div>
@@ -350,29 +352,29 @@ const CompanyManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">Company Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">Xét duyệt đăng ký công ty</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">{t('admin.companyManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.companyManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Quản lý và xét duyệt các yêu cầu đăng ký tài khoản công ty du lịch.
+            {t('admin.companyManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.companyManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.companyManagement.exportReport')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={BuildingOfficeIcon} label="Tổng công ty" value={stats.total} trend="Đã đăng ký" />
-        <StatCard icon={ClockIcon} label="Chờ duyệt" value={stats.pending} trend="Cần xử lý" color="text-amber-500" />
-        <StatCard icon={CheckCircleIcon} label="Đã duyệt" value={stats.approved} trend="Hoạt động" color="text-green-600" />
-        <StatCard icon={XCircleIcon} label="Đã từ chối" value={stats.rejected} trend="Không hoạt động" color="text-red-600" />
+        <StatCard icon={BuildingOfficeIcon} label={t('admin.companyManagement.stats.totalCompanies')} value={stats.total} trend={t('admin.companyManagement.stats.totalCompaniesDesc')} />
+        <StatCard icon={ClockIcon} label={t('admin.companyManagement.stats.pending')} value={stats.pending} trend={t('admin.companyManagement.stats.pendingDesc')} color="text-amber-500" />
+        <StatCard icon={CheckCircleIcon} label={t('admin.companyManagement.stats.approved')} value={stats.approved} trend={t('admin.companyManagement.stats.approvedDesc')} color="text-green-600" />
+        <StatCard icon={XCircleIcon} label={t('admin.companyManagement.stats.rejected')} value={stats.rejected} trend={t('admin.companyManagement.stats.rejectedDesc')} color="text-red-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -383,7 +385,7 @@ const CompanyManagement = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo tên, email hoặc mã công ty..."
+              placeholder={t('admin.companyManagement.searchPlaceholder')}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -393,10 +395,10 @@ const CompanyManagement = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="pending">Chờ duyệt</option>
-              <option value="approved">Đã duyệt</option>
-              <option value="rejected">Đã từ chối</option>
+              <option value="ALL">{t('admin.companyManagement.statusFilter.all')}</option>
+              <option value="pending">{t('admin.companyManagement.statusFilter.pending')}</option>
+              <option value="approved">{t('admin.companyManagement.statusFilter.approved')}</option>
+              <option value="rejected">{t('admin.companyManagement.statusFilter.rejected')}</option>
             </select>
           </div>
         </div>
@@ -405,7 +407,7 @@ const CompanyManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['Công ty', 'Trạng thái', 'Ngày đăng ký', 'Thao tác'].map((header) => (
+                {[t('admin.companyManagement.tableHeaders.company'), t('admin.companyManagement.tableHeaders.status'), t('admin.companyManagement.tableHeaders.registrationDate'), t('admin.companyManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -416,7 +418,7 @@ const CompanyManagement = () => {
               {filteredCompanies.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? 'Đang tải...' : 'Không tìm thấy công ty phù hợp với bộ lọc hiện tại.'}
+                    {loading ? t('admin.companyManagement.loading') : t('admin.companyManagement.noResults')}
                   </td>
                 </tr>
               ) : (
@@ -459,7 +461,7 @@ const CompanyManagement = () => {
                     <ApprovalStatusBadge status={company.approvalStatus} />
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {company.createdAt ? new Date(company.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                    {company.createdAt ? new Date(company.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -467,7 +469,7 @@ const CompanyManagement = () => {
                         <button 
                           onClick={() => handleViewDetails(company)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                          title="Xem chi tiết"
+                          title={t('admin.companyManagement.actions.viewDetails')}
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
@@ -477,14 +479,14 @@ const CompanyManagement = () => {
                           <button 
                             onClick={() => handleApprove(company)}
                             className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition shadow-sm" 
-                            title="Phê duyệt"
+                            title={t('admin.companyManagement.actions.approve')}
                           >
                             <CheckIcon className="h-4 w-4" />
                           </button>
                           <button 
                             onClick={() => handleReject(company)}
                             className="p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-sm" 
-                            title="Từ chối"
+                            title={t('admin.companyManagement.actions.reject')}
                           >
                             <XMarkIcon className="h-4 w-4" />
                           </button>
@@ -518,13 +520,13 @@ const CompanyManagement = () => {
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-[#4c9dff] to-[#3f85d6] text-white px-6 py-4 flex items-center justify-between z-10">
               <div>
-                <h2 className="text-2xl font-bold">Chi tiết công ty</h2>
+                <h2 className="text-2xl font-bold">{t('admin.companyManagement.modal.title')}</h2>
                 <p className="text-white/80 text-sm mt-1">{selectedCompany?.name}</p>
               </div>
               <button
                 onClick={handleCloseModal}
                 className="p-2 rounded-full hover:bg-white/20 transition"
-                aria-label="Đóng"
+                aria-label={t('admin.companyManagement.modal.close')}
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -535,7 +537,7 @@ const CompanyManagement = () => {
               {fileData.loading ? (
                 <div className="flex items-center justify-center py-20">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
-                  <p className="ml-4 text-gray-600">Đang tải thông tin file...</p>
+                  <p className="ml-4 text-gray-600">{t('admin.companyManagement.modal.loadingFiles')}</p>
                 </div>
               ) : (
                 <>
@@ -544,9 +546,9 @@ const CompanyManagement = () => {
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                         <DocumentTextIcon className="h-8 w-8 text-gray-400" />
                       </div>
-                      <p className="text-gray-600 text-lg font-semibold mb-2">Không tìm thấy thông tin file upload</p>
+                      <p className="text-gray-600 text-lg font-semibold mb-2">{t('admin.companyManagement.modal.noFiles')}</p>
                       <p className="text-gray-400 text-sm">
-                        Công ty này có thể chưa upload files hoặc có vấn đề với dữ liệu.
+                        {t('admin.companyManagement.modal.noFilesDesc')}
                       </p>
                     </div>
                   ) : (
@@ -559,8 +561,8 @@ const CompanyManagement = () => {
                               <DocumentTextIcon className="h-6 w-6 text-[#4c9dff]" />
                             </div>
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">Giấy phép kinh doanh</h3>
-                              <p className="text-sm text-gray-500">File PDF</p>
+                              <h3 className="text-lg font-semibold text-gray-900">{t('admin.companyManagement.modal.businessLicense')}</h3>
+                              <p className="text-sm text-gray-500">{t('admin.companyManagement.modal.businessLicenseDesc')}</p>
                             </div>
                           </div>
                           {fileData.businessLicenseUrl && (
@@ -569,12 +571,12 @@ const CompanyManagement = () => {
                               className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
                             >
                               <ArrowDownTrayIcon className="h-4 w-4" />
-                              Mở trong tab mới
+                              {t('admin.companyManagement.modal.openInNewTab')}
                             </button>
                           )}
                         </div>
                         {!fileData.businessLicenseUrl && (
-                          <p className="text-gray-400 text-sm italic">Không có file</p>
+                          <p className="text-gray-400 text-sm italic">{t('admin.companyManagement.modal.noFile')}</p>
                         )}
                       </div>
 
@@ -587,8 +589,8 @@ const CompanyManagement = () => {
                               <EyeIcon className="h-5 w-5 text-green-600" />
                             </div>
                             <div>
-                              <h3 className="text-base font-semibold text-gray-900">CCCD mặt trước</h3>
-                              <p className="text-xs text-gray-500">Ảnh chụp</p>
+                              <h3 className="text-base font-semibold text-gray-900">{t('admin.companyManagement.modal.idCardFront')}</h3>
+                              <p className="text-xs text-gray-500">{t('admin.companyManagement.modal.idCardFrontDesc')}</p>
                             </div>
                           </div>
                           {fileData.idCardFrontUrl ? (
@@ -596,7 +598,7 @@ const CompanyManagement = () => {
                               <div className="absolute inset-3 flex items-center justify-center overflow-hidden">
                                 <img
                                   src={fileData.idCardFrontUrl}
-                                  alt="CCCD mặt trước"
+                                  alt={t('admin.companyManagement.modal.idCardFront')}
                                   className="w-full h-full rounded-lg shadow-md object-contain"
                                   onError={(e) => {
                                     e.target.style.display = 'none';
@@ -604,12 +606,12 @@ const CompanyManagement = () => {
                                     if (errorMsg) errorMsg.style.display = 'block';
                                   }}
                                 />
-                                <p className="text-red-500 text-sm hidden text-center absolute">Không thể tải ảnh</p>
+                                <p className="text-red-500 text-sm hidden text-center absolute">{t('admin.companyManagement.modal.imageLoadError')}</p>
                               </div>
                             </div>
                           ) : (
                             <div className="flex justify-center items-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200" style={{ aspectRatio: '16/10', height: '280px' }}>
-                              <p className="text-gray-400 text-sm">Không có ảnh</p>
+                              <p className="text-gray-400 text-sm">{t('admin.companyManagement.modal.noImage')}</p>
                             </div>
                           )}
                         </div>
@@ -621,8 +623,8 @@ const CompanyManagement = () => {
                               <EyeIcon className="h-5 w-5 text-purple-600" />
                             </div>
                             <div>
-                              <h3 className="text-base font-semibold text-gray-900">CCCD mặt sau</h3>
-                              <p className="text-xs text-gray-500">Ảnh chụp</p>
+                              <h3 className="text-base font-semibold text-gray-900">{t('admin.companyManagement.modal.idCardBack')}</h3>
+                              <p className="text-xs text-gray-500">{t('admin.companyManagement.modal.idCardBackDesc')}</p>
                             </div>
                           </div>
                           {fileData.idCardBackUrl ? (
@@ -630,7 +632,7 @@ const CompanyManagement = () => {
                               <div className="absolute inset-3 flex items-center justify-center overflow-hidden">
                                 <img
                                   src={fileData.idCardBackUrl}
-                                  alt="CCCD mặt sau"
+                                  alt={t('admin.companyManagement.modal.idCardBack')}
                                   className="w-full h-full rounded-lg shadow-md object-contain"
                                   onError={(e) => {
                                     e.target.style.display = 'none';
@@ -638,12 +640,12 @@ const CompanyManagement = () => {
                                     if (errorMsg) errorMsg.style.display = 'block';
                                   }}
                                 />
-                                <p className="text-red-500 text-sm hidden text-center absolute">Không thể tải ảnh</p>
+                                <p className="text-red-500 text-sm hidden text-center absolute">{t('admin.companyManagement.modal.imageLoadError')}</p>
                               </div>
                             </div>
                           ) : (
                             <div className="flex justify-center items-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200" style={{ aspectRatio: '16/10', height: '280px' }}>
-                              <p className="text-gray-400 text-sm">Không có ảnh</p>
+                              <p className="text-gray-400 text-sm">{t('admin.companyManagement.modal.noImage')}</p>
                             </div>
                           )}
                         </div>
@@ -662,13 +664,13 @@ const CompanyManagement = () => {
                     onClick={() => handleReject(selectedCompany)}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium"
                   >
-                    Từ chối
+                    {t('admin.companyManagement.actions.reject')}
                   </button>
                   <button
                     onClick={() => handleApprove(selectedCompany)}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
                   >
-                    Phê duyệt
+                    {t('admin.companyManagement.actions.approve')}
                   </button>
                 </>
               )}
@@ -676,7 +678,7 @@ const CompanyManagement = () => {
                 onClick={handleCloseModal}
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
               >
-                Đóng
+                {t('admin.companyManagement.modal.close')}
               </button>
             </div>
           </div>
@@ -704,11 +706,12 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 );
 
 const ApprovalStatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const statusMap = {
-    pending: { color: 'bg-amber-100 text-amber-700', label: 'Chờ duyệt', icon: ClockIcon },
-    not_updated: { color: 'bg-gray-100 text-gray-700', label: 'Chưa cập nhật', icon: ClockIcon },
-    approved: { color: 'bg-green-100 text-green-700', label: 'Đã duyệt', icon: CheckCircleIcon },
-    rejected: { color: 'bg-red-100 text-red-700', label: 'Đã từ chối', icon: XCircleIcon }
+    pending: { color: 'bg-amber-100 text-amber-700', label: t('admin.companyManagement.status.pending'), icon: ClockIcon },
+    not_updated: { color: 'bg-gray-100 text-gray-700', label: t('admin.companyManagement.status.notUpdated'), icon: ClockIcon },
+    approved: { color: 'bg-green-100 text-green-700', label: t('admin.companyManagement.status.approved'), icon: CheckCircleIcon },
+    rejected: { color: 'bg-red-100 text-red-700', label: t('admin.companyManagement.status.rejected'), icon: XCircleIcon }
   };
 
   const statusInfo = statusMap[status] || statusMap.pending;

@@ -96,6 +96,39 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   
   const [imageSources, setImageSources] = useState(initialImageSources);
 
+  // Update image sources when post images change (e.g., after edit)
+  useEffect(() => {
+    setImageSources(initialImageSources);
+  }, [initialImageSources]);
+
+  // Update state values when post data changes (e.g., after edit)
+  useEffect(() => {
+    // Update reaction counts if provided in post
+    if (post.reactions?.likeCount !== undefined && post.reactions.likeCount !== null) {
+      setLikeCount(post.reactions.likeCount);
+    }
+    if (post.reactions?.dislikeCount !== undefined && post.reactions.dislikeCount !== null) {
+      setDislikeCount(post.reactions.dislikeCount);
+    }
+    
+    // Update save count if provided in post
+    if (post.saveCount !== undefined && post.saveCount !== null) {
+      setSaveCount(post.saveCount);
+    }
+    
+    // Update comment count if provided in post
+    if (post.comments !== undefined) {
+      setCommentCount(post.comments.length || 0);
+    }
+  }, [post.reactions?.likeCount, post.reactions?.dislikeCount, post.saveCount, post.comments?.length]);
+
+  // Reset translation state when post content changes (e.g., after edit)
+  useEffect(() => {
+    setTranslatedText('');
+    setShowTranslated(false);
+    setTranslateError('');
+  }, [post.content]);
+
   useEffect(() => {
     // Use initial data from API response if available, only fetch if missing
     const hasReactionData = post.reactions && (
@@ -131,12 +164,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         setTimeout(fetchUserData, 100);
       }
     }
-    
-    // Images are already resolved in useMemo, just ensure state is set
-    if (initialImageSources.length > 0 && imageSources.length === 0) {
-      setImageSources(initialImageSources);
-    }
-  }, [post.forumPostId, user?.email, initialImageSources, imageSources.length]);
+  }, [post.forumPostId, user?.email]);
 
   // Intersection Observer for preloading images - images are already resolved, just preload
   useEffect(() => {
@@ -1000,10 +1028,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               disabled={isTranslating}
             >
               {isTranslating
-                ? 'Đang dịch...'
+                ? t('forum.post.translating')
                 : showTranslated && translatedText
-                  ? 'Ẩn bản dịch'
-                  : 'Dịch nội dung'}
+                  ? t('forum.post.hideTranslation')
+                  : t('forum.post.translate')}
             </button>
           </div>
         )}
@@ -1144,6 +1172,31 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   // Return true if props are equal (skip re-render), false if different (re-render)
   if (prevProps.post.forumPostId !== nextProps.post.forumPostId) return false;
   if (prevProps.isFirstPost !== nextProps.isFirstPost) return false;
+  
+  // Compare post content fields (important for edit updates)
+  if (prevProps.post.title !== nextProps.post.title) return false;
+  if (prevProps.post.content !== nextProps.post.content) return false;
+  
+  // Compare hashtags
+  const prevHashtags = prevProps.post.hashtags || [];
+  const nextHashtags = nextProps.post.hashtags || [];
+  if (prevHashtags.length !== nextHashtags.length) return false;
+  const prevHashtagContents = prevHashtags.map(h => h.content || h).sort().join(',');
+  const nextHashtagContents = nextHashtags.map(h => h.content || h).sort().join(',');
+  if (prevHashtagContents !== nextHashtagContents) return false;
+  
+  // Compare metadata (for link previews)
+  const prevMetadata = prevProps.post.metadata || prevProps.post.meta;
+  const nextMetadata = nextProps.post.metadata || nextProps.post.meta;
+  if (JSON.stringify(prevMetadata) !== JSON.stringify(nextMetadata)) return false;
+  
+  // Compare images
+  const prevImages = prevProps.post.images || [];
+  const nextImages = nextProps.post.images || [];
+  if (prevImages.length !== nextImages.length) return false;
+  const prevImagePaths = prevImages.map(img => typeof img === 'string' ? img : img.imgPath).sort().join(',');
+  const nextImagePaths = nextImages.map(img => typeof img === 'string' ? img : img.imgPath).sort().join(',');
+  if (prevImagePaths !== nextImagePaths) return false;
   
   // Compare reactions
   const prevReactions = prevProps.post.reactions;

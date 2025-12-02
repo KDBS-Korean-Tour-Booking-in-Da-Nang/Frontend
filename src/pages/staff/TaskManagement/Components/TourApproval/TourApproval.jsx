@@ -21,7 +21,7 @@ const TourApproval = () => {
   const { showSuccess } = useToast();
 
   // Check if user has permission to manage tours
-  const canManageTours = user?.staffTask === 'APPROVE_TOUR_BOOKING' || user?.role === 'ADMIN';
+  const canManageTours = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
   const [loading, setLoading] = useState(true);
   const [tours, setTours] = useState([]);

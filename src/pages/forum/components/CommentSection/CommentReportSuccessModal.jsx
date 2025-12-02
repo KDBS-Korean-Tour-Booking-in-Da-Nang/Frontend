@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
 import { CheckCircle2 } from 'lucide-react';
 import styles from './CommentReportSuccessModal.module.css';
 
@@ -37,7 +38,7 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className={styles['comment-report-success-overlay']} onClick={onClose}>
       <div className={styles['comment-report-success-modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['success-icon']}>
@@ -75,6 +76,8 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default CommentReportSuccessModal;

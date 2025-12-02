@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Pagination from '../Pagination';
 import { 
   UsersIcon,
@@ -12,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const UserManagement = () => {
+  const { t, i18n } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [userForm, setUserForm] = useState({
@@ -84,7 +86,7 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = (userId) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+    if (confirm(t('admin.userManagement.modal.deleteConfirm'))) {
       setUserList(userList.filter(user => user.id !== userId));
     }
   };
@@ -147,15 +149,15 @@ const UserManagement = () => {
       {/* Page header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage user accounts and their permissions</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin.userManagement.title')}</h1>
+          <p className="mt-1 text-sm text-gray-500">{t('admin.userManagement.subtitle')}</p>
         </div>
         <button
           onClick={handleAddUser}
           className="bg-[#4c9dff] hover:bg-[#3f85d6] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center shadow-[0_12px_30px_rgba(76,157,255,0.35)] transition-all duration-200"
         >
           <PlusIcon className="h-4 w-4 mr-2" />
-          Add User
+          {t('admin.userManagement.addUser')}
         </button>
       </div>
 
@@ -167,7 +169,7 @@ const UserManagement = () => {
               <UsersIcon className="h-8 w-8 text-[#4c9dff]" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Total Users</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.userManagement.stats.totalUsers')}</p>
               <p className="text-2xl font-semibold text-gray-900">{userList.length}</p>
             </div>
           </div>
@@ -179,7 +181,7 @@ const UserManagement = () => {
               <CheckIcon className="h-8 w-8 text-green-500" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Active Users</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.userManagement.stats.activeUsers')}</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {userList.filter(user => user.status === 'active').length}
               </p>
@@ -193,7 +195,7 @@ const UserManagement = () => {
               <UserCircleIcon className="h-8 w-8 text-purple-500" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Business Users</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.userManagement.stats.businessUsers')}</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {userList.filter(user => user.role === 'business').length}
               </p>
@@ -207,7 +209,7 @@ const UserManagement = () => {
               <XMarkIcon className="h-8 w-8 text-red-500" />
             </div>
             <div className="ml-5">
-              <p className="text-sm font-medium text-gray-500">Inactive Users</p>
+              <p className="text-sm font-medium text-gray-500">{t('admin.userManagement.stats.inactiveUsers')}</p>
               <p className="text-2xl font-semibold text-gray-900">
                 {userList.filter(user => user.status === 'inactive').length}
               </p>
@@ -224,22 +226,22 @@ const UserManagement = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
+                    {t('admin.userManagement.tableHeaders.user')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    {t('admin.userManagement.tableHeaders.role')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t('admin.userManagement.tableHeaders.status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bookings
+                    {t('admin.userManagement.tableHeaders.bookings')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Login
+                    {t('admin.userManagement.tableHeaders.lastLogin')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t('admin.userManagement.tableHeaders.actions')}
                   </th>
                 </tr>
               </thead>
@@ -261,7 +263,7 @@ const UserManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
-                        {user.role}
+                        {t(`admin.userManagement.roles.${user.role}`) || user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -270,20 +272,20 @@ const UserManagement = () => {
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {user.status}
+                        {t(`admin.userManagement.status.${user.status}`) || user.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {user.totalBookings}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(user.lastLogin).toLocaleDateString()}
+                      {new Date(user.lastLogin).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => handleEditUser(user)}
                         className="text-blue-600 hover:text-blue-900"
-                        title="Edit"
+                        title={t('admin.userManagement.actions.edit')}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
@@ -294,7 +296,7 @@ const UserManagement = () => {
                             ? 'text-red-600 hover:text-red-900' 
                             : 'text-green-600 hover:text-green-900'
                         }`}
-                        title={user.status === 'active' ? 'Deactivate' : 'Activate'}
+                        title={user.status === 'active' ? t('admin.userManagement.actions.deactivate') : t('admin.userManagement.actions.activate')}
                       >
                         {user.status === 'active' ? (
                           <XMarkIcon className="h-4 w-4" />
@@ -305,7 +307,7 @@ const UserManagement = () => {
                       <button
                         onClick={() => handleDeleteUser(user.id)}
                         className="text-red-600 hover:text-red-900"
-                        title="Delete"
+                        title={t('admin.userManagement.actions.delete')}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>
@@ -340,12 +342,12 @@ const UserManagement = () => {
                   <div className="sm:flex sm:items-start">
                     <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
                       <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        {editingUser ? 'Edit User' : 'Add New User'}
+                        {editingUser ? t('admin.userManagement.modal.editTitle') : t('admin.userManagement.modal.addTitle')}
                       </h3>
                       
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                          <label className="block text-sm font-medium text-gray-700">{t('admin.userManagement.modal.fields.fullName')}</label>
                           <input
                             type="text"
                             value={userForm.name}
@@ -356,7 +358,7 @@ const UserManagement = () => {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Email</label>
+                          <label className="block text-sm font-medium text-gray-700">{t('admin.userManagement.modal.fields.email')}</label>
                           <input
                             type="email"
                             value={userForm.email}
@@ -367,28 +369,28 @@ const UserManagement = () => {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Role</label>
+                          <label className="block text-sm font-medium text-gray-700">{t('admin.userManagement.modal.fields.role')}</label>
                           <select
                             value={userForm.role}
                             onChange={(e) => setUserForm({...userForm, role: e.target.value})}
                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                           >
-                            <option value="user">User</option>
-                            <option value="business">Business</option>
-                            <option value="staff">Staff</option>
-                            <option value="admin">Admin</option>
+                            <option value="user">{t('admin.userManagement.modal.roleOptions.user')}</option>
+                            <option value="business">{t('admin.userManagement.modal.roleOptions.business')}</option>
+                            <option value="staff">{t('admin.userManagement.modal.roleOptions.staff')}</option>
+                            <option value="admin">{t('admin.userManagement.modal.roleOptions.admin')}</option>
                           </select>
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Status</label>
+                          <label className="block text-sm font-medium text-gray-700">{t('admin.userManagement.modal.fields.status')}</label>
                           <select
                             value={userForm.status}
                             onChange={(e) => setUserForm({...userForm, status: e.target.value})}
                             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-[#4c9dff] focus:border-[#4c9dff]"
                           >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="active">{t('admin.userManagement.modal.statusOptions.active')}</option>
+                            <option value="inactive">{t('admin.userManagement.modal.statusOptions.inactive')}</option>
                           </select>
                         </div>
                       </div>
@@ -401,14 +403,14 @@ const UserManagement = () => {
                     type="submit"
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-[0_12px_30px_rgba(76,157,255,0.35)] px-4 py-2 bg-[#4c9dff] text-base font-medium text-white hover:bg-[#3f85d6] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] transition-all duration-200 sm:ml-3 sm:w-auto sm:text-sm"
                   >
-                    {editingUser ? 'Update' : 'Add'} User
+                    {editingUser ? t('admin.userManagement.modal.update') : t('admin.userManagement.modal.add')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4c9dff] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                   >
-                    Cancel
+                    {t('admin.userManagement.modal.cancel')}
                   </button>
                 </div>
               </form>

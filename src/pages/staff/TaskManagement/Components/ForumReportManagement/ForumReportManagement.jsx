@@ -32,7 +32,7 @@ const ForumReportManagement = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Check if user has permission to manage forum reports
-  const canManageForumReports = user?.staffTask === 'FORUM_REPORT' || user?.role === 'ADMIN';
+  const canManageForumReports = user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || user?.role === 'ADMIN';
 
   // Fetch reports from API
   const fetchReports = useCallback(async (page = currentPage) => {

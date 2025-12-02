@@ -599,7 +599,11 @@ const CompanyBookingDetailWizard = () => {
                 type="button" 
                 className={styles['btn-primary']} 
                 onClick={handleNext}
-                disabled={currentStep >= 3}
+                disabled={
+                  currentStep >= 3 || 
+                  (currentStep === 1 && !completedSteps.has(1)) ||
+                  (currentStep === 2 && !completedSteps.has(2))
+                }
               >
                 {t('companyBookingWizard.navigation.next')}
               </button>

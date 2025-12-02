@@ -9,13 +9,17 @@ import {
   ExclamationTriangleIcon,
   BuildingOfficeIcon,
   MapPinIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  TicketIcon
 } from '@heroicons/react/24/outline';
 import articleService from '../../../services/articleService';
+import { getAllComplaints } from '../../../services/bookingAPI';
 import ForumReportManagement from './Components/ForumReportManagement/ForumReportManagement';
 import CompanyManagement from './Components/CompanyManagement/CompanyManagement';
 import TourApproval from './Components/TourApproval/TourApproval';
 import ArticleManagement from './Components/ArticleManagement/ArticleManagement';
+import BookingComplaint from './Components/BookingComplaint/BookingComplaint';
+import ResolveTicket from './Components/ResolveTicket/ResolveTicket';
 
 const pastelCardClasses = 'rounded-[28px] bg-white/95 border border-[#eceff7] shadow-[0_15px_45px_rgba(15,23,42,0.08)]';
 
@@ -27,14 +31,15 @@ const TaskManagement = () => {
 
   // Data for summary cards only
   const [forumReportsCount, setForumReportsCount] = useState(0);
+  const [bookingComplaintsCount, setBookingComplaintsCount] = useState(0);
   const [companyRequestsCount, setCompanyRequestsCount] = useState(0);
   const [pendingToursCount, setPendingToursCount] = useState(0);
   const [pendingArticlesCount, setPendingArticlesCount] = useState(0);
 
-  const canHandleForumReports = user?.staffTask === 'FORUM_REPORT' || user?.role === 'ADMIN';
-  const canHandleCompanyRequests = user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
-  const canHandleTours = user?.staffTask === 'APPROVE_TOUR_BOOKING' || user?.role === 'ADMIN';
-  const canHandleArticles = user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
+  const canHandleForumReports = user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || user?.role === 'ADMIN';
+  const canHandleCompanyRequests = user?.staffTask === 'COMPANY_REQUEST_AND_RESOLVE_TICKET' || user?.role === 'ADMIN';
+  const canHandleTours = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
+  const canHandleArticles = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
   // Load summary data for dashboard
   const loadSummaryData = useCallback(async () => {
@@ -56,6 +61,15 @@ const TaskManagement = () => {
           }
         } catch (error) {
           console.error('Error loading forum reports count:', error);
+        }
+
+        // Load booking complaints count
+        try {
+          const complaints = await getAllComplaints();
+          const pending = Array.isArray(complaints) ? complaints.filter(c => !c.resolutionType) : [];
+          setBookingComplaintsCount(pending.length);
+        } catch (error) {
+          console.error('Error loading booking complaints count:', error);
         }
       }
 
@@ -125,14 +139,19 @@ const TaskManagement = () => {
     if (canHandleForumReports) {
       sections.push({
         id: 'forum-section',
-        title: 'Forum Task',
-        description: 'Xử lý báo cáo từ diễn đàn',
+        title: 'Forum & Complaint Task',
+        description: 'Xử lý báo cáo từ diễn đàn và khiếu nại đặt tour',
         icon: ExclamationTriangleIcon,
         items: [
           {
             id: 'forum-reports',
             label: 'Forum Report Management',
             helper: 'Theo dõi và cập nhật báo cáo mới'
+          },
+          {
+            id: 'booking-complaint',
+            label: 'Booking Complaint',
+            helper: 'Xử lý khiếu nại từ khách hàng về đặt tour'
           }
         ]
       });
@@ -146,6 +165,11 @@ const TaskManagement = () => {
           label: 'Company Management',
           helper: 'Phê duyệt doanh nghiệp đăng ký'
         });
+        items.push({
+          id: 'resolve-ticket',
+          label: 'Resolve Ticket',
+          helper: 'Xử lý và giải quyết ticket hỗ trợ'
+        });
       }
       if (canHandleArticles) {
         items.push({
@@ -157,7 +181,7 @@ const TaskManagement = () => {
       sections.push({
         id: 'company-article-section',
         title: 'Company & Article',
-        description: 'Quản lý doanh nghiệp và bài viết',
+        description: 'Quản lý doanh nghiệp, ticket và bài viết',
         icon: BuildingOfficeIcon,
         items
       });
@@ -207,6 +231,14 @@ const TaskManagement = () => {
         icon: ExclamationTriangleIcon,
         accent: 'bg-[#fff8ee]',
       });
+      cards.push({
+        id: 'complaint-card',
+        label: 'Booking Complaints',
+        value: bookingComplaintsCount,
+        sublabel: 'Khiếu nại chờ xử lý',
+        icon: ExclamationTriangleIcon,
+        accent: 'bg-[#fff0f0]',
+      });
     }
     if (canHandleCompanyRequests) {
       cards.push({
@@ -239,14 +271,18 @@ const TaskManagement = () => {
       });
     }
     return cards;
-  }, [canHandleForumReports, canHandleCompanyRequests, canHandleTours, canHandleArticles, forumReportsCount, companyRequestsCount, pendingToursCount, pendingArticlesCount]);
+  }, [canHandleForumReports, canHandleCompanyRequests, canHandleTours, canHandleArticles, forumReportsCount, bookingComplaintsCount, companyRequestsCount, pendingToursCount, pendingArticlesCount]);
 
   const renderActiveSection = () => {
     switch (activeSection) {
       case 'forum-reports':
         return <ForumReportManagement />;
+      case 'booking-complaint':
+        return <BookingComplaint />;
       case 'company-management':
         return <CompanyManagement />;
+      case 'resolve-ticket':
+        return <ResolveTicket />;
       case 'tour-approval':
         return <TourApproval />;
       case 'article-management':

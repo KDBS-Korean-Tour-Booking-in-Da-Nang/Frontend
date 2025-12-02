@@ -33,7 +33,7 @@ const Contact = () => {
     },
     {
       icon: Mail,
-      label: 'Email',
+      label: t('contactPage.channels.mailLabel', { defaultValue: 'Email' }),
       value: 'softcare@kdbs.vn',
       hint: t('contactPage.channels.mailHint', { defaultValue: 'Reply within 12 hours' }),
       action: 'mailto:softcare@kdbs.vn'
@@ -73,7 +73,7 @@ const Contact = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const subject = encodeURIComponent(`[Contact] ${formData.topic || 'Soft inquiry'} – ${formData.name}`);
+    const subject = encodeURIComponent(`[Contact] ${formData.topic || t('contactPage.form.softInquiry', { defaultValue: 'Soft inquiry' })} – ${formData.name}`);
     const body = encodeURIComponent(`${formData.message}\n\n${formData.name}\n${formData.email}`);
     window.location.href = `mailto:softcare@kdbs.vn?subject=${subject}&body=${body}`;
   };

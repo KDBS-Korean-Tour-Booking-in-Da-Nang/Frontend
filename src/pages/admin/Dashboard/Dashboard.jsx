@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Chart from 'react-apexcharts';
 import {
   MapIcon,
@@ -24,6 +25,7 @@ import worldMapData from '../../../assets/data/world-110m.json';
 const geoData = worldMapData;
 
 const Dashboard = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -137,7 +139,8 @@ const Dashboard = () => {
 
   // Format currency
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('vi-VN', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'VND'
     }).format(value);
@@ -146,9 +149,9 @@ const Dashboard = () => {
   // Stats cards data
   const statsCards = [
     {
-      name: 'Tổng số Tour',
+      name: t('admin.dashboard.stats.totalTours'),
       value: stats.totalTours,
-      change: '+12%',
+      change: t('admin.dashboard.stats.totalToursChange'),
       changeType: 'positive',
       icon: MapIcon,
       color: 'blue',
@@ -157,9 +160,9 @@ const Dashboard = () => {
       borderColor: 'border-l-[#4c9dff]'
     },
     {
-      name: 'Tổng số Đặt Tour',
+      name: t('admin.dashboard.stats.totalBookings'),
       value: stats.totalBookings,
-      change: '+8%',
+      change: t('admin.dashboard.stats.totalBookingsChange'),
       changeType: 'positive',
       icon: ClipboardDocumentListIcon,
       color: 'green',
@@ -168,9 +171,9 @@ const Dashboard = () => {
       borderColor: 'border-l-green-500'
     },
     {
-      name: 'Tổng Doanh Thu',
+      name: t('admin.dashboard.stats.totalRevenue'),
       value: formatCurrency(stats.totalRevenue),
-      change: '+15%',
+      change: t('admin.dashboard.stats.totalRevenueChange'),
       changeType: 'positive',
       icon: CurrencyDollarIcon,
       color: 'yellow',
@@ -179,9 +182,9 @@ const Dashboard = () => {
       borderColor: 'border-l-yellow-500'
     },
     {
-      name: 'Tổng số Người Dùng',
+      name: t('admin.dashboard.stats.totalUsers'),
       value: stats.totalUsers,
-      change: '+5%',
+      change: t('admin.dashboard.stats.totalUsersChange'),
       changeType: 'positive',
       icon: UserGroupIcon,
       color: 'purple',
@@ -190,9 +193,9 @@ const Dashboard = () => {
       borderColor: 'border-l-purple-500'
     },
     {
-      name: 'Tour Đang Hoạt Động',
+      name: t('admin.dashboard.stats.activeTours'),
       value: stats.activeTours,
-      change: '+3%',
+      change: t('admin.dashboard.stats.activeToursChange'),
       changeType: 'positive',
       icon: EyeIcon,
       color: 'indigo',
@@ -201,9 +204,9 @@ const Dashboard = () => {
       borderColor: 'border-l-indigo-500'
     },
     {
-      name: 'Đặt Tour Đang Chờ',
+      name: t('admin.dashboard.stats.pendingBookings'),
       value: stats.pendingBookings,
-      change: '-2%',
+      change: t('admin.dashboard.stats.pendingBookingsChange'),
       changeType: 'negative',
       icon: ClockIcon,
       color: 'orange',
@@ -216,7 +219,7 @@ const Dashboard = () => {
   // Booking trend data (last 6 months)
   const bookingTrendData = {
     series: [{
-      name: 'Số lượng đặt tour',
+      name: t('admin.dashboard.charts.bookingTrend'),
       data: [45, 52, 48, 61, 55, 67]
     }],
     options: {
@@ -239,11 +242,15 @@ const Dashboard = () => {
       },
       colors: ['#2979FF'],
       xaxis: {
-        categories: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6']
+        categories: i18n.language === 'ko' 
+          ? ['1월', '2월', '3월', '4월', '5월', '6월']
+          : i18n.language === 'en'
+          ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+          : ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6']
       },
       yaxis: {
         title: {
-          text: 'Số lượng'
+          text: i18n.language === 'ko' ? '수량' : i18n.language === 'en' ? 'Quantity' : 'Số lượng'
         }
       },
       grid: {
@@ -271,7 +278,7 @@ const Dashboard = () => {
         type: 'donut',
         height: 350
       },
-      labels: ['Trong nước', 'Nước ngoài', 'Trong ngày'],
+      labels: [t('admin.dashboard.tourCategories.domestic'), t('admin.dashboard.tourCategories.international'), t('admin.dashboard.tourCategories.day')],
       colors: ['#2979FF', '#36C2A8', '#6EDDCB'],
       legend: {
         position: 'bottom',
@@ -304,7 +311,7 @@ const Dashboard = () => {
               },
               total: {
                 show: true,
-                label: 'Tổng Tour',
+                label: i18n.language === 'ko' ? '총 투어' : i18n.language === 'en' ? 'Total Tours' : 'Tổng Tour',
                 fontSize: '14px',
                 fontWeight: 600,
                 formatter: function () {
@@ -318,7 +325,7 @@ const Dashboard = () => {
       tooltip: {
         y: {
           formatter: function (val) {
-            return val + ' tour';
+            return val + (i18n.language === 'ko' ? ' 투어' : i18n.language === 'en' ? ' tours' : ' tour');
           }
         }
       }
@@ -328,7 +335,7 @@ const Dashboard = () => {
   // Booking status data for cards
   const bookingStatusCards = [
     {
-      label: 'Hoàn thành',
+      label: t('admin.dashboard.bookingStatus.completed'),
       value: stats.completedBookings,
       percentage: stats.totalBookings > 0 
         ? Math.round((stats.completedBookings / stats.totalBookings) * 100) 
@@ -340,7 +347,7 @@ const Dashboard = () => {
       borderColor: 'border-[#9fc2ff]'
     },
     {
-      label: 'Đang chờ',
+      label: t('admin.dashboard.bookingStatus.pending'),
       value: stats.pendingBookings,
       percentage: stats.totalBookings > 0 
         ? Math.round((stats.pendingBookings / stats.totalBookings) * 100) 
@@ -352,7 +359,7 @@ const Dashboard = () => {
       borderColor: 'border-green-200'
     },
     {
-      label: 'Đã hủy',
+      label: t('admin.dashboard.bookingStatus.cancelled'),
       value: stats.cancelledBookings,
       percentage: stats.totalBookings > 0 
         ? Math.round((stats.cancelledBookings / stats.totalBookings) * 100) 
@@ -366,13 +373,29 @@ const Dashboard = () => {
   ];
 
   // Top countries data (mock data for map)
-  const topCountries = [
-    { name: 'Việt Nam', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
-    { name: 'Hàn Quốc', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
-    { name: 'Nhật Bản', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
-    { name: 'Thái Lan', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
-    { name: 'Singapore', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
-  ];
+  const topCountries = i18n.language === 'ko'
+    ? [
+        { name: '베트남', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
+        { name: '한국', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
+        { name: '일본', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
+        { name: '태국', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
+        { name: '싱가포르', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
+      ]
+    : i18n.language === 'en'
+    ? [
+        { name: 'Vietnam', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
+        { name: 'South Korea', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
+        { name: 'Japan', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
+        { name: 'Thailand', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
+        { name: 'Singapore', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
+      ]
+    : [
+        { name: 'Việt Nam', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
+        { name: 'Hàn Quốc', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
+        { name: 'Nhật Bản', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
+        { name: 'Thái Lan', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
+        { name: 'Singapore', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
+      ];
 
   if (loading) {
     return (
@@ -386,8 +409,8 @@ const Dashboard = () => {
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
       {/* Page header */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Quản Trị</h1>
-        <p className="mt-2 text-gray-600">Tổng quan về hệ thống quản lý tour và đặt tour</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('admin.dashboard.title')}</h1>
+        <p className="mt-2 text-gray-600">{t('admin.dashboard.subtitle')}</p>
       </div>
 
       {/* Stats cards */}
@@ -413,7 +436,7 @@ const Dashboard = () => {
                         <ArrowDownIcon className="h-4 w-4 mr-1" />
                       )}
                       <span>{stat.change}</span>
-                      <span className="ml-1 text-gray-500 text-xs">so với tháng trước</span>
+                      <span className="ml-1 text-gray-500 text-xs">{t('admin.dashboard.changeFromLastMonth')}</span>
                     </div>
                   </div>
                   <div className={`${stat.bgColor} p-4 rounded-lg`}>
@@ -431,8 +454,8 @@ const Dashboard = () => {
         {/* Booking Trend */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Xu hướng Đặt Tour</h3>
-            <span className="text-sm text-gray-500">6 tháng gần nhất</span>
+            <h3 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.charts.bookingTrend')}</h3>
+            <span className="text-sm text-gray-500">{t('admin.dashboard.charts.bookingTrendSubtitle')}</span>
           </div>
           <Chart
             options={bookingTrendData.options}
@@ -445,8 +468,8 @@ const Dashboard = () => {
         {/* Tour Category Distribution */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Phân Loại Tour</h3>
-            <span className="text-sm text-gray-500">Tổng: {stats.totalTours} tour</span>
+            <h3 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.charts.tourCategory')}</h3>
+            <span className="text-sm text-gray-500">{t('admin.dashboard.charts.tourCategorySubtitle', { total: stats.totalTours })}</span>
           </div>
           <Chart
             options={tourCategoryData.options}
@@ -461,8 +484,8 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Trạng Thái Đặt Tour</h3>
-            <p className="text-sm text-gray-500 mt-1">Tổng: {stats.totalBookings} đặt tour</p>
+            <h3 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.charts.bookingStatus')}</h3>
+            <p className="text-sm text-gray-500 mt-1">{t('admin.dashboard.charts.bookingStatusSubtitle', { total: stats.totalBookings })}</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -504,14 +527,14 @@ const Dashboard = () => {
           <div>
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <GlobeAltIcon className="h-5 w-5 text-[#4c9dff]" />
-              Top Quốc Gia
+              {t('admin.dashboard.worldMap.title')}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">Phân bố người dùng theo quốc gia</p>
+            <p className="text-sm text-gray-500 mt-1">{t('admin.dashboard.worldMap.subtitle')}</p>
           </div>
           <select className="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>Hôm nay</option>
-            <option>Tuần này</option>
-            <option>Tháng này</option>
+            <option>{t('admin.dashboard.worldMap.timeFilter.today')}</option>
+            <option>{t('admin.dashboard.worldMap.timeFilter.thisWeek')}</option>
+            <option>{t('admin.dashboard.worldMap.timeFilter.thisMonth')}</option>
           </select>
         </div>
         
@@ -590,7 +613,7 @@ const Dashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">{country.name}</h4>
-                    <p className="text-sm text-gray-500">{country.users.toLocaleString()} Users</p>
+                    <p className="text-sm text-gray-500">{country.users.toLocaleString()} {t('admin.dashboard.worldMap.users')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -620,7 +643,7 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium mb-1">Tour Hoàn Thành</p>
+              <p className="text-blue-100 text-sm font-medium mb-1">{t('admin.dashboard.infoCards.completedTours')}</p>
               <p className="text-3xl font-bold">{stats.completedBookings}</p>
             </div>
             <CheckCircleIcon className="h-12 w-12 text-blue-200" />
@@ -630,7 +653,7 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium mb-1">Doanh Nghiệp</p>
+              <p className="text-green-100 text-sm font-medium mb-1">{t('admin.dashboard.infoCards.companies')}</p>
               <p className="text-3xl font-bold">{stats.totalCompanies}</p>
             </div>
             <BuildingOfficeIcon className="h-12 w-12 text-green-200" />
@@ -640,7 +663,7 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium mb-1">Tỷ Lệ Hoàn Thành</p>
+              <p className="text-purple-100 text-sm font-medium mb-1">{t('admin.dashboard.infoCards.completionRate')}</p>
               <p className="text-3xl font-bold">
                 {stats.totalBookings > 0
                   ? Math.round((stats.completedBookings / stats.totalBookings) * 100)

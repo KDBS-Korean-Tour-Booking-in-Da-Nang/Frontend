@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import AssignTaskModal from './AssignTaskModal';
 import AddStaffModal from './AddStaffModal';
+import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import Pagination from '../Pagination';
 import { 
   UserGroupIcon,
@@ -29,6 +31,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const StaffManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const { showSuccess } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,6 +50,8 @@ const StaffManagement = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedStaffForTask, setSelectedStaffForTask] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
@@ -59,7 +64,7 @@ const StaffManagement = () => {
       const token = getToken();
       
       if (!token) {
-        setError('Vui lòng đăng nhập lại');
+        setError(t('common.errors.loginRequired'));
         setLoading(false);
         return;
       }
@@ -71,7 +76,7 @@ const StaffManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError(t('common.errors.sessionExpired'));
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -133,7 +138,7 @@ const StaffManagement = () => {
       setStaffList(mappedStaff);
     } catch (err) {
       console.error('Error fetching staff list:', err);
-      setError('Không thể tải danh sách nhân viên. Vui lòng thử lại.');
+      setError(t('admin.staffManagement.error'));
     } finally {
       setLoading(false);
     }
@@ -142,9 +147,9 @@ const StaffManagement = () => {
   // Map StaffTask enum to task ID
   const mapStaffTaskToTaskId = (staffTask) => {
     const taskMap = {
-      'FORUM_REPORT': 'forum_report',
-      'COMPANY_REQUEST_AND_APPROVE_ARTICLE': 'company_request',
-      'APPROVE_TOUR_BOOKING': 'approve_tour'
+      'FORUM_REPORT_AND_BOOKING_COMPLAINT': 'forum_report',
+      'COMPANY_REQUEST_AND_RESOLVE_TICKET': 'company_request',
+      'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE': 'approve_tour'
     };
     return taskMap[staffTask] || null;
   };
@@ -152,9 +157,9 @@ const StaffManagement = () => {
   // Map task ID to StaffTask enum
   const mapTaskIdToStaffTask = (taskId) => {
     const taskMap = {
-      'forum_report': 'FORUM_REPORT',
-      'company_request': 'COMPANY_REQUEST_AND_APPROVE_ARTICLE',
-      'approve_tour': 'APPROVE_TOUR_BOOKING'
+      'forum_report': 'FORUM_REPORT_AND_BOOKING_COMPLAINT',
+      'company_request': 'COMPANY_REQUEST_AND_RESOLVE_TICKET',
+      'approve_tour': 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE'
     };
     return taskMap[taskId] || null;
   };
@@ -173,19 +178,62 @@ const StaffManagement = () => {
   const handleEditStaff = (staff) => {
     // Note: Backend doesn't have update endpoint, so we'll disable edit for now
     // or show a message that edit is not available
-    setError('Chức năng chỉnh sửa nhân viên chưa được hỗ trợ. Backend chưa có endpoint cập nhật thông tin nhân viên.');
+    setError(t('admin.staffManagement.editNotSupported'));
   };
 
-  const handleDeleteStaff = (staffId) => {
-    // Note: Backend doesn't have delete endpoint
-    setError('Chức năng xóa nhân viên chưa được hỗ trợ. Backend chưa có endpoint xóa nhân viên.');
+  const handleDeleteStaff = (staff) => {
+    setStaffToDelete(staff);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!staffToDelete) return;
+
+    try {
+      const token = getToken();
+      if (!token) {
+        setError(t('common.errors.loginRequired'));
+        setIsDeleteModalOpen(false);
+        return;
+      }
+
+      const headers = createAuthHeaders(token);
+
+      const response = await fetch(`${BaseURL}/api/staff/${staffToDelete.userId}`, {
+        method: 'DELETE',
+        headers
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          setError(t('common.errors.sessionExpired'));
+          setIsDeleteModalOpen(false);
+          return;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Không thể xóa nhân viên');
+      }
+
+      // Refresh staff list
+      await fetchStaffList();
+      setIsDeleteModalOpen(false);
+      setStaffToDelete(null);
+      setError(''); // Clear error on success
+      showSuccess(t('admin.staffManagement.deleteSuccess'));
+    } catch (err) {
+      console.error('Error deleting staff:', err);
+      setError(err.message || t('admin.staffManagement.deleteError'));
+      setIsDeleteModalOpen(false);
+      setStaffToDelete(null);
+    }
   };
 
   const handleStatusToggle = async (staffId) => {
     try {
       const token = getToken();
       if (!token) {
-        setError('Vui lòng đăng nhập lại');
+        setError(t('common.errors.loginRequired'));
         return;
       }
 
@@ -205,7 +253,7 @@ const StaffManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError(t('common.errors.sessionExpired'));
           return;
         }
         const errorData = await response.json();
@@ -215,9 +263,9 @@ const StaffManagement = () => {
       // Refresh staff list
       await fetchStaffList();
       setError(''); // Clear error on success
-      showSuccess(newBanStatus ? 'Đã tạm dừng nhân viên thành công' : 'Đã kích hoạt nhân viên thành công');
+      showSuccess(newBanStatus ? t('admin.staffManagement.banSuccess') : t('admin.staffManagement.unbanSuccess'));
     } catch (err) {
-      setError(err.message || 'Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại.');
+      setError(err.message || t('admin.staffManagement.statusError'));
     }
   };
 
@@ -230,7 +278,7 @@ const StaffManagement = () => {
       const token = getToken();
       
       if (!token) {
-        setError('Vui lòng đăng nhập lại');
+        setError(t('common.errors.loginRequired'));
         return;
       }
 
@@ -252,7 +300,7 @@ const StaffManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError(t('common.errors.sessionExpired'));
           return;
         }
         const errorData = await response.json();
@@ -266,9 +314,9 @@ const StaffManagement = () => {
       setIsModalOpen(false);
       setStaffForm({ username: '', password: '', staffTask: '' });
       setError(''); // Clear error on success
-      showSuccess('Tạo tài khoản nhân viên thành công!');
+      showSuccess(t('admin.addStaffModal.createSuccess'));
     } catch (err) {
-      setError(err.message || 'Không thể tạo tài khoản nhân viên. Vui lòng thử lại.');
+      setError(err.message || t('admin.addStaffModal.createError'));
       throw err; // Re-throw to let modal handle it
     } finally {
       setSubmitting(false);
@@ -286,7 +334,7 @@ const StaffManagement = () => {
     try {
       const token = getToken();
       if (!token) {
-        setError('Vui lòng đăng nhập lại');
+        setError(t('common.errors.loginRequired'));
         return;
       }
 
@@ -308,7 +356,7 @@ const StaffManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError(t('common.errors.sessionExpired'));
           return;
         }
         const errorData = await response.json().catch(() => ({}));
@@ -318,18 +366,18 @@ const StaffManagement = () => {
       // Refresh staff list
       await fetchStaffList();
       setError(''); // Clear error on success
-      showSuccess('Cập nhật nhiệm vụ thành công!');
+      showSuccess(t('admin.assignTaskModal.updateSuccess'));
     } catch (err) {
       console.error('Error updating staff task:', err);
-      setError(err.message || 'Không thể cập nhật nhiệm vụ nhân viên. Vui lòng thử lại.');
+      setError(err.message || t('admin.assignTaskModal.updateError'));
       throw err; // Re-throw to let modal handle it
     }
   };
 
   const taskOptions = [
-    { id: 'forum_report', label: 'Forum Report', icon: FlagIcon, value: 'FORUM_REPORT' },
-    { id: 'company_request', label: 'Company Request + Approve Article', icon: BuildingOfficeIcon, value: 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' },
-    { id: 'approve_tour', label: 'Approve Tour', icon: MapPinIcon, value: 'APPROVE_TOUR_BOOKING' }
+    { id: 'forum_report', label: t('admin.staffManagement.tasks.forumReport'), icon: FlagIcon, value: 'FORUM_REPORT_AND_BOOKING_COMPLAINT' },
+    { id: 'company_request', label: t('admin.staffManagement.tasks.companyRequest'), icon: BuildingOfficeIcon, value: 'COMPANY_REQUEST_AND_RESOLVE_TICKET' },
+    { id: 'approve_tour', label: t('admin.staffManagement.tasks.approveTour'), icon: MapPinIcon, value: 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' }
   ];
 
   // Filter staff list based on search and filters
@@ -377,7 +425,7 @@ const StaffManagement = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách nhân viên...</p>
+          <p className="mt-4 text-gray-600">{t('admin.staffManagement.loading')}</p>
         </div>
       </div>
     );
@@ -392,7 +440,7 @@ const StaffManagement = () => {
             onClick={fetchStaffList}
             className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
           >
-            Thử lại
+            {t('admin.staffManagement.retry')}
           </button>
         </div>
       </div>
@@ -409,36 +457,36 @@ const StaffManagement = () => {
       
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Staff Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">View & manage your team</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.staffManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.staffManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Quản lý nhân viên và phân quyền truy cập hệ thống.
+            {t('admin.staffManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.staffManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.staffManagement.exportReport')}
           </button>
           <button
             onClick={handleAddStaff}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
           >
             <PlusIcon className="h-5 w-5" />
-            Thêm nhân viên
+            {t('admin.staffManagement.addStaff')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={UserGroupIcon} label="Tổng nhân viên" value={stats.total} trend="+2 tuần này" />
-        <StatCard icon={UserCircleIcon} label="Đang hoạt động" value={stats.active} trend="+1 tuần này" color="text-green-600" />
-        <StatCard icon={ShieldCheckIcon} label="Quản trị viên" value={stats.admin} trend="Không đổi" color="text-purple-600" />
-        <StatCard icon={XMarkIcon} label="Tạm dừng" value={stats.inactive} trend="0 thay đổi" color="text-gray-600" />
+        <StatCard icon={UserGroupIcon} label={t('admin.staffManagement.stats.total')} value={stats.total} trend={t('admin.staffManagement.stats.totalTrend')} />
+        <StatCard icon={UserCircleIcon} label={t('admin.staffManagement.stats.active')} value={stats.active} trend={t('admin.staffManagement.stats.activeTrend')} color="text-green-600" />
+        <StatCard icon={ShieldCheckIcon} label={t('admin.staffManagement.stats.admin')} value={stats.admin} trend={t('admin.staffManagement.stats.adminTrend')} color="text-purple-600" />
+        <StatCard icon={XMarkIcon} label={t('admin.staffManagement.stats.inactive')} value={stats.inactive} trend={t('admin.staffManagement.stats.inactiveTrend')} color="text-gray-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -447,7 +495,7 @@ const StaffManagement = () => {
             <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm theo tên, email hoặc mã nhân viên..."
+              placeholder={t('admin.staffManagement.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -459,17 +507,17 @@ const StaffManagement = () => {
               onChange={(e) => setRoleFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả vai trò</option>
-              <option value="staff">Nhân viên</option>
+              <option value="ALL">{t('admin.staffManagement.roleFilter.all')}</option>
+              <option value="staff">{t('admin.staffManagement.roleFilter.staff')}</option>
             </select>
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="inactive">Tạm dừng</option>
+              <option value="ALL">{t('admin.staffManagement.statusFilter.all')}</option>
+              <option value="active">{t('admin.staffManagement.statusFilter.active')}</option>
+              <option value="inactive">{t('admin.staffManagement.statusFilter.inactive')}</option>
             </select>
           </div>
         </div>
@@ -478,7 +526,7 @@ const StaffManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['Nhân viên', 'Vai trò', 'Trạng thái', 'Nhiệm vụ được giao', 'Ngày tạo', 'Thao tác'].map((header) => (
+                {[t('admin.staffManagement.tableHeaders.staff'), t('admin.staffManagement.tableHeaders.role'), t('admin.staffManagement.tableHeaders.status'), t('admin.staffManagement.tableHeaders.assignedTasks'), t('admin.staffManagement.tableHeaders.createdAt'), t('admin.staffManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -489,7 +537,7 @@ const StaffManagement = () => {
               {filteredStaffList.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? 'Đang tải...' : 'Không tìm thấy nhân viên phù hợp với bộ lọc hiện tại.'}
+                    {loading ? t('admin.staffManagement.loading') : t('admin.staffManagement.noResults')}
                   </td>
                 </tr>
               ) : (
@@ -536,7 +584,7 @@ const StaffManagement = () => {
                           );
                         })}
                         {(!staff.assignedTasks || staff.assignedTasks.length === 0) && (
-                          <span className="text-xs text-gray-400">Chưa có</span>
+                          <span className="text-xs text-gray-400">{t('admin.staffManagement.tasks.none')}</span>
                         )}
                       </div>
                     </td>
@@ -584,14 +632,14 @@ const StaffManagement = () => {
                         <button 
                           onClick={() => handleAssignTask(staff)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition" 
-                          title="Giao nhiệm vụ"
+                          title={t('admin.staffManagement.actions.assignTask')}
                         >
                           <ClipboardDocumentListIcon className="h-4 w-4" />
                         </button>
                         <button 
                           onClick={() => handleEditStaff(staff)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                          title="Chỉnh sửa (chưa hỗ trợ)"
+                          title={t('admin.staffManagement.actions.edit')}
                         >
                           <PencilIcon className="h-4 w-4" />
                         </button>
@@ -602,7 +650,7 @@ const StaffManagement = () => {
                               ? 'text-gray-500 hover:text-red-600 hover:border-red-200' 
                               : 'text-gray-500 hover:text-green-600 hover:border-green-200'
                           }`}
-                          title={staff.status === 'active' ? 'Tạm dừng' : 'Kích hoạt'}
+                          title={staff.status === 'active' ? t('admin.staffManagement.actions.ban') : t('admin.staffManagement.actions.unban')}
                         >
                           {staff.status === 'active' ? (
                             <XMarkIcon className="h-4 w-4" />
@@ -611,9 +659,9 @@ const StaffManagement = () => {
                           )}
                         </button>
                         <button 
-                          onClick={() => handleDeleteStaff(staff.userId)}
+                          onClick={() => handleDeleteStaff(staff)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                          title="Xóa (chưa hỗ trợ)"
+                          title={t('admin.staffManagement.actions.delete')}
                         >
                           <TrashIcon className="h-4 w-4" />
                         </button>
@@ -663,6 +711,22 @@ const StaffManagement = () => {
         staff={selectedStaffForTask}
         onConfirm={handleTaskConfirm}
       />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setStaffToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Xóa nhân viên"
+        message={t('admin.staffManagement.deleteConfirm.message', { name: staffToDelete?.username })}
+        itemName={staffToDelete?.username}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        danger={true}
+      />
     </div>
   );
 };
@@ -685,9 +749,10 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 );
 
 const StatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const map = status === 'active'
-    ? { color: 'bg-green-100 text-green-700', label: 'Đang hoạt động' }
-    : { color: 'bg-gray-100 text-gray-500', label: 'Tạm dừng' };
+    ? { color: 'bg-green-100 text-green-700', label: t('admin.staffManagement.status.active') }
+    : { color: 'bg-gray-100 text-gray-500', label: t('admin.staffManagement.status.inactive') };
   return (
     <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
       {map.label}
@@ -696,9 +761,10 @@ const StatusBadge = ({ status }) => {
 };
 
 const RoleBadge = ({ role }) => {
+  const { t } = useTranslation();
   const map = role === 'admin'
-    ? { color: 'bg-purple-100 text-purple-700', label: 'Quản trị viên' }
-    : { color: 'bg-[#bfd7ff] text-[#2563eb]', label: 'Nhân viên' };
+    ? { color: 'bg-purple-100 text-purple-700', label: t('admin.staffManagement.roles.admin') }
+    : { color: 'bg-[#bfd7ff] text-[#2563eb]', label: t('admin.staffManagement.roles.staff') };
   return (
     <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
       {map.label}

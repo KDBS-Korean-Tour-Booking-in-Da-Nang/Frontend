@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../../contexts/AuthContext';
-import { getAllComplaints, getComplaintById, resolveBookingComplaint } from '../../../services/bookingAPI';
-import Pagination from '../Pagination';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { getAllComplaints, getComplaintById, resolveBookingComplaint } from '../../../../../services/bookingAPI';
+import { useNavigate } from 'react-router-dom';
 import {
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
@@ -10,11 +9,12 @@ import {
   ClockIcon,
   EyeIcon,
   XMarkIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 
-const ComplaintManagement = () => {
-  const { t } = useTranslation();
+const BookingComplaint = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
   const [searchType, setSearchType] = useState('all'); // 'all' or 'complaintId'
   const [allComplaints, setAllComplaints] = useState([]);
@@ -32,6 +32,7 @@ const ComplaintManagement = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
+  const canManageBookingComplaints = user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || user?.role === 'ADMIN';
   const isAdminOrStaff = user && (user.role === 'ADMIN' || user.role === 'STAFF');
 
   // Load all complaints on mount
@@ -100,7 +101,6 @@ const ComplaintManagement = () => {
     setCurrentPage(0);
   }, [searchInput, searchType, filterStatus]);
 
-
   const stats = useMemo(() => {
     const total = allComplaints.length;
     const resolved = allComplaints.filter((c) => c.resolutionType !== null && c.resolutionType !== undefined).length;
@@ -112,12 +112,12 @@ const ComplaintManagement = () => {
     e?.preventDefault();
     const trimmed = searchInput.trim();
     if (!trimmed) {
-      setError(t('admin.complaintManagement.errors.enterComplaintId'));
+      setError('Please enter a complaint ID.');
       return;
     }
     const id = Number(trimmed);
     if (!Number.isFinite(id) || id <= 0) {
-      setError(t('admin.complaintManagement.errors.invalidId'));
+      setError('Complaint ID must be a positive number.');
       return;
     }
 
@@ -134,11 +134,11 @@ const ComplaintManagement = () => {
         setComplaints([complaint]);
       } else {
         setComplaints([]);
-        setError(t('admin.complaintManagement.errors.notFound'));
+        setError('Complaint not found.');
       }
     } catch (err) {
       console.error('Error fetching complaint:', err);
-      setError(err?.message || t('admin.complaintManagement.errors.loadError'));
+      setError(err?.message || 'Failed to load complaint.');
       setComplaints([]);
     } finally {
       setLoading(false);
@@ -147,7 +147,7 @@ const ComplaintManagement = () => {
 
   const handleOpenResolveModal = (complaint) => {
     if (!isAdminOrStaff) {
-      setError(t('admin.complaintManagement.resolveModal.noPermission'));
+      setError('You do not have permission to resolve complaints.');
       return;
     }
     setComplaintToResolve(complaint);
@@ -165,7 +165,7 @@ const ComplaintManagement = () => {
 
   const handleResolve = async () => {
     if (!complaintToResolve || !resolutionType) {
-      setError(t('admin.complaintManagement.resolveModal.error'));
+      setError('Please select a resolution type.');
       return;
     }
     try {
@@ -176,7 +176,7 @@ const ComplaintManagement = () => {
       handleCloseResolveModal();
     } catch (err) {
       console.error('Error resolving complaint:', err);
-      setError(err?.message || t('admin.complaintManagement.errors.resolveError'));
+      setError(err?.message || 'Failed to resolve complaint.');
     } finally {
       setResolvingId(null);
     }
@@ -201,18 +201,50 @@ const ComplaintManagement = () => {
     setSelectedComplaint(null);
   };
 
+  // Check if user has permission
+  if (user && !canManageBookingComplaints) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc]">
+        <div className="max-w-md w-full rounded-[32px] bg-white/90 border border-gray-200 shadow-lg p-10 text-center">
+          <div className="w-16 h-16 rounded-[20px] bg-red-100 flex items-center justify-center text-red-600 mx-auto mb-6">
+            <ExclamationTriangleIcon className="h-7 w-7" />
+          </div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-3">Không có quyền truy cập</h2>
+          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+            Bạn không có quyền quản lý khiếu nại đặt tour. Vui lòng liên hệ admin để được phân quyền.
+          </p>
+          <button
+            onClick={() => navigate('/staff/tasks')}
+            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white bg-[#4c9dff] hover:bg-[#3f85d6] transition-all shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
+          >
+            Quay lại Task Management
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">
-            {t('admin.complaintManagement.title')}
-          </p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.complaintManagement.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {t('admin.complaintManagement.subtitle')}
-          </p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/staff/tasks')}
+            className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-600 hover:text-gray-700 transition-all duration-200"
+            title="Back to tasks"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">
+              Booking Complaint Management
+            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Manage booking complaints</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              View all complaints and manage resolution status for staff processing.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -220,19 +252,19 @@ const ComplaintManagement = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           icon={ExclamationTriangleIcon}
-          label={t('admin.complaintManagement.stats.total')}
+          label="Total complaints"
           value={stats.total}
           color="text-amber-500"
         />
         <StatCard
           icon={CheckCircleIcon}
-          label={t('admin.complaintManagement.stats.resolved')}
+          label="Resolved"
           value={stats.resolved}
           color="text-green-600"
         />
         <StatCard
           icon={ClockIcon}
-          label={t('admin.complaintManagement.stats.pending')}
+          label="Pending"
           value={stats.pending}
           color="text-blue-600"
         />
@@ -248,7 +280,7 @@ const ComplaintManagement = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={searchType === 'complaintId' ? t('admin.complaintManagement.search.placeholderId') : t('admin.complaintManagement.search.placeholderAll')}
+                placeholder={searchType === 'complaintId' ? 'Enter complaint ID...' : 'Search in messages...'}
                 className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -260,19 +292,19 @@ const ComplaintManagement = () => {
               }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">{t('admin.complaintManagement.search.all')}</option>
-              <option value="complaintId">{t('admin.complaintManagement.search.byComplaintId')}</option>
+              <option value="all">Search all</option>
+              <option value="complaintId">Search by Complaint ID</option>
             </select>
             <div className="flex gap-2 items-center">
-              <span className="text-sm text-gray-600">{t('admin.complaintManagement.search.filterByStatus')}</span>
+              <span className="text-sm text-gray-600">Filter by status:</span>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="all">{t('admin.complaintManagement.search.all')}</option>
-                <option value="pending">{t('admin.complaintManagement.search.pending')}</option>
-                <option value="resolved">{t('admin.complaintManagement.search.resolved')}</option>
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="resolved">Resolved</option>
               </select>
             </div>
           </div>
@@ -281,7 +313,7 @@ const ComplaintManagement = () => {
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? t('admin.complaintManagement.loading') : t('admin.complaintManagement.refresh')}
+            {loading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
         {searchType === 'complaintId' && searchInput.trim() && (
@@ -291,7 +323,7 @@ const ComplaintManagement = () => {
               disabled={loading}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? t('admin.complaintManagement.loading') : t('admin.complaintManagement.searchById')}
+              {loading ? 'Loading...' : 'Search by ID'}
             </button>
           </div>
         )}
@@ -311,8 +343,8 @@ const ComplaintManagement = () => {
             </h2>
             <p className="text-sm text-gray-500">
               {allComplaints.length > 0
-                ? t('admin.complaintManagement.showing', { count: paginatedComplaints.length, filtered: filteredComplaints.length, total: allComplaints.length })
-                : t('admin.complaintManagement.noComplaints')}
+                ? `Showing ${paginatedComplaints.length} of ${filteredComplaints.length} filtered complaints (${allComplaints.length} total)`
+                : 'No complaints found'}
             </p>
           </div>
         </div>
@@ -321,7 +353,7 @@ const ComplaintManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {[t('admin.complaintManagement.tableHeaders.id'), t('admin.complaintManagement.tableHeaders.message'), t('admin.complaintManagement.tableHeaders.createdAt'), t('admin.complaintManagement.tableHeaders.resolution'), t('admin.complaintManagement.tableHeaders.resolvedAt'), t('admin.complaintManagement.tableHeaders.action')].map((header) => (
+                {['ID', 'Message', 'Created at', 'Resolution', 'Resolved at', 'Action'].map((header) => (
                   <th
                     key={header}
                     className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
@@ -336,10 +368,10 @@ const ComplaintManagement = () => {
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-gray-500 text-sm">
                     {loading
-                      ? t('admin.complaintManagement.loadingComplaints')
+                      ? 'Loading complaints...'
                       : allComplaints.length === 0
-                      ? t('admin.complaintManagement.noComplaints')
-                      : t('admin.complaintManagement.noMatch')}
+                      ? 'No complaints found.'
+                      : 'No complaints match your search criteria.'}
                   </td>
                 </tr>
               ) : (
@@ -366,13 +398,13 @@ const ComplaintManagement = () => {
                           type="button"
                           onClick={() => handleViewDetail(complaint)}
                           className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-all duration-200"
-                          title={t('admin.complaintManagement.actions.viewDetails')}
+                          title="View details"
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
                         {complaint.resolutionType ? (
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
-                            {t('admin.complaintManagement.status.resolved')}
+                            Resolved
                           </span>
                         ) : (
                           <button
@@ -380,7 +412,7 @@ const ComplaintManagement = () => {
                             onClick={() => handleOpenResolveModal(complaint)}
                             disabled={resolvingId === complaint.complaintId || !isAdminOrStaff}
                             className="p-2 rounded-lg bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                            title={t('admin.complaintManagement.actions.resolve')}
+                            title="Resolve complaint"
                           >
                             {resolvingId === complaint.complaintId ? (
                               <ClockIcon className="h-5 w-5 animate-spin" />
@@ -400,13 +432,29 @@ const ComplaintManagement = () => {
 
         {/* Pagination */}
         {filteredComplaints.length > itemsPerPage && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredComplaints.length}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-          />
+          <div className="px-6 py-4 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">
+                Page {currentPage + 1} of {totalPages}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                  disabled={currentPage === 0}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                  disabled={currentPage >= totalPages - 1}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -453,19 +501,18 @@ const StatCard = ({ icon: IconComponent, label, value, color = 'text-blue-600' }
 );
 
 const ResolutionBadge = ({ resolutionType }) => {
-  const { t } = useTranslation();
   if (!resolutionType) {
     return (
       <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700">
-        {t('admin.complaintManagement.status.pending')}
+        Pending
       </span>
     );
   }
 
   const map = {
-    COMPANY_FAULT: { color: 'bg-red-100 text-red-700', label: t('admin.complaintManagement.status.companyFault') },
-    USER_FAULT: { color: 'bg-blue-100 text-blue-700', label: t('admin.complaintManagement.status.userFault') },
-    NO_FAULT: { color: 'bg-green-100 text-green-700', label: t('admin.complaintManagement.status.noFault') },
+    COMPANY_FAULT: { color: 'bg-red-100 text-red-700', label: 'Company fault' },
+    USER_FAULT: { color: 'bg-blue-100 text-blue-700', label: 'User fault' },
+    NO_FAULT: { color: 'bg-green-100 text-green-700', label: 'No fault' },
   };
 
   const cfg = map[resolutionType] || { color: 'bg-gray-100 text-gray-700', label: resolutionType };
@@ -478,12 +525,10 @@ const ResolutionBadge = ({ resolutionType }) => {
 };
 
 const ComplaintDetailModal = ({ complaint, onClose }) => {
-  const { t, i18n } = useTranslation();
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
     try {
-      const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
-      return new Date(value).toLocaleString(locale);
+      return new Date(value).toLocaleString();
     } catch {
       return value;
     }
@@ -502,13 +547,13 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
         <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('admin.complaintManagement.modal.title')}</h2>
-              <p className="text-sm text-gray-500 mt-1">{t('admin.complaintManagement.modal.complaintId', { id: complaint.complaintId })}</p>
+              <h2 className="text-2xl font-bold text-gray-900">Complaint Details</h2>
+              <p className="text-sm text-gray-500 mt-1">Complaint ID: #{complaint.complaintId}</p>
             </div>
             <button
               onClick={onClose}
               className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200"
-              title={t('admin.complaintManagement.modal.close')}
+              title="Close"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -521,7 +566,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
             {/* Message Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.complaintManagement.modal.message')}
+                Message
               </label>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
@@ -534,7 +579,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.complaintManagement.modal.status')}
+                  Status
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
                   <ResolutionBadge resolutionType={complaint.resolutionType} />
@@ -542,7 +587,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.complaintManagement.modal.createdAt')}
+                  Created At
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
                   <p className="text-sm text-gray-700">{formatDateTime(complaint.createdAt)}</p>
@@ -554,7 +599,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
             {complaint.resolutionType && (
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.complaintManagement.modal.resolvedAt')}
+                  Resolved At
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
                   <p className="text-sm text-gray-700">{formatDateTime(complaint.resolvedAt)}</p>
@@ -571,7 +616,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
               onClick={onClose}
               className="px-6 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-all duration-200"
             >
-              {t('admin.complaintManagement.modal.close')}
+              Close
             </button>
           </div>
         </div>
@@ -590,24 +635,23 @@ const ResolveComplaintModal = ({
   onClose, 
   isResolving 
 }) => {
-  const { t } = useTranslation();
   const resolutionOptions = [
     {
       value: 'NO_FAULT',
-      label: t('admin.complaintManagement.resolveModal.resolutionOptions.noFault.label'),
-      description: t('admin.complaintManagement.resolveModal.resolutionOptions.noFault.description'),
+      label: 'No Fault',
+      description: 'Neither party is at fault. Booking status will change to SUCCESS.',
       color: 'bg-green-50 text-green-700 border-green-200'
     },
     {
       value: 'USER_FAULT',
-      label: t('admin.complaintManagement.resolveModal.resolutionOptions.userFault.label'),
-      description: t('admin.complaintManagement.resolveModal.resolutionOptions.userFault.description'),
+      label: 'User Fault',
+      description: 'User is at fault. Booking status will change to SUCCESS.',
       color: 'bg-blue-50 text-blue-700 border-blue-200'
     },
     {
       value: 'COMPANY_FAULT',
-      label: t('admin.complaintManagement.resolveModal.resolutionOptions.companyFault.label'),
-      description: t('admin.complaintManagement.resolveModal.resolutionOptions.companyFault.description'),
+      label: 'Company Fault',
+      description: 'Company is at fault. Booking status remains UNDER_COMPLAINT.',
       color: 'bg-red-50 text-red-700 border-red-200'
     }
   ];
@@ -625,14 +669,14 @@ const ResolveComplaintModal = ({
         <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-green-50/50 to-blue-50/50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('admin.complaintManagement.resolveModal.title')}</h2>
-              <p className="text-sm text-gray-500 mt-1">{t('admin.complaintManagement.resolveModal.complaintId', { id: complaint.complaintId })}</p>
+              <h2 className="text-2xl font-bold text-gray-900">Resolve Complaint</h2>
+              <p className="text-sm text-gray-500 mt-1">Complaint ID: #{complaint.complaintId}</p>
             </div>
             <button
               onClick={onClose}
               disabled={isResolving}
               className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200 disabled:opacity-50"
-              title={t('admin.complaintManagement.resolveModal.close')}
+              title="Close"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -645,7 +689,7 @@ const ResolveComplaintModal = ({
             {/* Complaint Message Preview */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.complaintManagement.resolveModal.complaintMessage')}
+                Complaint Message
               </label>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed line-clamp-4">
@@ -657,7 +701,7 @@ const ResolveComplaintModal = ({
             {/* Resolution Type Selection */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                {t('admin.complaintManagement.resolveModal.resolutionType')} <span className="text-red-500">{t('admin.complaintManagement.resolveModal.required')}</span>
+                Resolution Type <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {resolutionOptions.map((option) => (
@@ -690,13 +734,13 @@ const ResolveComplaintModal = ({
             {/* Note Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.complaintManagement.resolveModal.note')}
+                Resolution Note (Optional)
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={4}
-                placeholder={t('admin.complaintManagement.resolveModal.notePlaceholder')}
+                placeholder="Add any additional notes or comments about this resolution..."
                 disabled={isResolving}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
@@ -712,7 +756,7 @@ const ResolveComplaintModal = ({
               disabled={isResolving}
               className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition-all duration-200 disabled:opacity-50"
             >
-              {t('admin.complaintManagement.resolveModal.cancel')}
+              Cancel
             </button>
             <button
               onClick={onResolve}
@@ -722,10 +766,10 @@ const ResolveComplaintModal = ({
               {isResolving ? (
                 <>
                   <ClockIcon className="h-4 w-4 animate-spin" />
-                  {t('admin.complaintManagement.resolveModal.resolving')}
+                  Resolving...
                 </>
               ) : (
-                t('admin.complaintManagement.resolveModal.confirm')
+                'Confirm Resolution'
               )}
             </button>
           </div>
@@ -735,5 +779,4 @@ const ResolveComplaintModal = ({
   );
 };
 
-export default ComplaintManagement;
-
+export default BookingComplaint;

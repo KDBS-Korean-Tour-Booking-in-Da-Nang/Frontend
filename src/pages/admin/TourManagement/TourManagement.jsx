@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders, getTourImageUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -11,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const TourManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,11 +125,11 @@ const TourManagement = () => {
         setIsDetailModalOpen(true);
       } else {
         const errorText = await response.text();
-        alert(`Lỗi khi tải chi tiết tour: ${errorText}`);
+        alert(t('admin.tourManagement.detailError'));
       }
     } catch (error) {
       console.error('Error fetching tour details:', error);
-      alert('Đã xảy ra lỗi khi tải chi tiết tour');
+      alert(t('admin.tourManagement.detailError'));
     } finally {
       setLoadingDetail(false);
     }
@@ -135,7 +137,7 @@ const TourManagement = () => {
 
   // Handle approve tour
   const handleApproveTour = async (tourId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn phê duyệt tour này?')) {
+    if (!window.confirm(t('admin.tourManagement.confirmApprove'))) {
       return;
     }
 
@@ -160,20 +162,20 @@ const TourManagement = () => {
           const data = await refreshResponse.json();
           setTours(Array.isArray(data) ? data : []);
         }
-        alert('Phê duyệt tour thành công!');
+        alert(t('admin.tourManagement.approveSuccess'));
       } else {
         const errorText = await response.text();
-        alert(`Lỗi khi phê duyệt tour: ${errorText}`);
+        alert(t('admin.tourManagement.approveError', { error: errorText }));
       }
     } catch (error) {
       console.error('Error approving tour:', error);
-      alert('Đã xảy ra lỗi khi phê duyệt tour');
+      alert(t('admin.tourManagement.approveError', { error: '' }));
     }
   };
 
   // Handle reject tour
   const handleRejectTour = async (tourId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối tour này?')) {
+    if (!window.confirm(t('admin.tourManagement.confirmReject'))) {
       return;
     }
 
@@ -199,20 +201,21 @@ const TourManagement = () => {
           const data = await refreshResponse.json();
           setTours(Array.isArray(data) ? data : []);
         }
-        alert('Từ chối tour thành công!');
+        alert(t('admin.tourManagement.rejectSuccess'));
       } else {
         const errorText = await response.text();
-        alert(`Lỗi khi từ chối tour: ${errorText}`);
+        alert(t('admin.tourManagement.rejectError', { error: errorText }));
       }
     } catch (error) {
       console.error('Error rejecting tour:', error);
-      alert('Đã xảy ra lỗi khi từ chối tour');
+      alert(t('admin.tourManagement.rejectError', { error: '' }));
     }
   };
 
   const formatPrice = (price) => {
     if (!price) return 'N/A';
-    return new Intl.NumberFormat('vi-VN', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -222,7 +225,8 @@ const TourManagement = () => {
     if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('vi-VN');
+      const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+      return date.toLocaleDateString(locale);
     } catch {
       return dateString;
     }
@@ -233,7 +237,7 @@ const TourManagement = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách tour...</p>
+          <p className="mt-4 text-gray-600">{t('admin.tourManagement.loading')}</p>
         </div>
       </div>
     );
@@ -244,20 +248,20 @@ const TourManagement = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Tour Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý Tour</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.tourManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.tourManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Xem và quản lý tất cả các tour trong hệ thống.
+            {t('admin.tourManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.tourManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.tourManagement.exportReport')}
           </button>
         </div>
       </div>
@@ -267,7 +271,7 @@ const TourManagement = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Tổng số tour</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourManagement.stats.totalTours')}</p>
               <p className="text-xl font-bold text-gray-900 mt-1">{tours.length}</p>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
@@ -278,7 +282,7 @@ const TourManagement = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Tour hiển thị</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourManagement.stats.displayedTours')}</p>
               <p className="text-xl font-bold text-gray-900 mt-1">{filteredAndSortedTours.length}</p>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
@@ -289,7 +293,7 @@ const TourManagement = () => {
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Trang hiện tại</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourManagement.stats.currentPage')}</p>
               <p className="text-xl font-bold text-gray-900 mt-1">
                 {currentPage + 1} / {totalPages || 1}
               </p>
@@ -313,7 +317,7 @@ const TourManagement = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(0);
               }}
-              placeholder="Tìm kiếm tour theo tên, mô tả, điểm khởi hành..."
+              placeholder={t('admin.tourManagement.searchPlaceholder')}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -326,10 +330,10 @@ const TourManagement = () => {
               }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="newest">Mới nhất</option>
-              <option value="oldest">Cũ nhất</option>
-              <option value="name-asc">Tên A-Z</option>
-              <option value="name-desc">Tên Z-A</option>
+              <option value="newest">{t('admin.tourManagement.sortBy.newest')}</option>
+              <option value="oldest">{t('admin.tourManagement.sortBy.oldest')}</option>
+              <option value="name-asc">{t('admin.tourManagement.sortBy.nameAsc')}</option>
+              <option value="name-desc">{t('admin.tourManagement.sortBy.nameDesc')}</option>
             </select>
           </div>
         </div>
@@ -338,7 +342,7 @@ const TourManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['STT', 'Tên tour', 'Trạng thái', 'Giá', 'Thời gian', 'Ngày tạo', 'Thao tác'].map((header) => (
+                {[t('admin.tourManagement.tableHeaders.stt'), t('admin.tourManagement.tableHeaders.tourName'), t('admin.tourManagement.tableHeaders.status'), t('admin.tourManagement.tableHeaders.price'), t('admin.tourManagement.tableHeaders.duration'), t('admin.tourManagement.tableHeaders.createdAt'), t('admin.tourManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -349,7 +353,7 @@ const TourManagement = () => {
               {paginatedTours.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? 'Đang tải...' : 'Không tìm thấy tour phù hợp với bộ lọc hiện tại.'}
+                    {loading ? t('admin.tourManagement.loading') : t('admin.tourManagement.noResults')}
                   </td>
                 </tr>
               ) : (

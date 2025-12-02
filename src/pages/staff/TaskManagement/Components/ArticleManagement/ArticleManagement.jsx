@@ -25,7 +25,7 @@ const ArticleManagement = () => {
   const [error, setError] = useState('');
 
   // Check if user has permission to manage articles
-  const canManageArticles = user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
+  const canManageArticles = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
   const softUI = {
     pageBg: 'bg-gradient-to-b from-[#fefefe] via-[#f8f6ff] to-[#f3fbff]',

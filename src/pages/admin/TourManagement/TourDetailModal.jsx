@@ -1,13 +1,16 @@
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MapPinIcon, CurrencyDollarIcon, ClockIcon, CalendarIcon, UserIcon } from '@heroicons/react/24/outline';
 import { API_ENDPOINTS, getTourImageUrl } from '../../../config/api';
 
 const TourDetailModal = ({ isOpen, onClose, tour }) => {
+  const { t, i18n } = useTranslation();
   if (!isOpen || !tour) return null;
 
   const formatPrice = (price) => {
     if (!price) return 'N/A';
-    return new Intl.NumberFormat('vi-VN', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'VND'
     }).format(price);
@@ -15,7 +18,8 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('vi-VN', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Date(dateString).toLocaleString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -35,7 +39,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-2xl font-semibold text-gray-900">Chi tiết Tour</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('admin.tourDetailModal.title')}</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-[20px] hover:bg-gray-50 transition-colors text-gray-400 hover:text-gray-600"
@@ -75,7 +79,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
 
           {/* Tour ID */}
           <div className="bg-gray-50 rounded-[24px] p-4">
-            <p className="text-sm text-gray-500 mb-1">Mã Tour</p>
+            <p className="text-sm text-gray-500 mb-1">{t('admin.tourDetailModal.fields.tourId')}</p>
             <p className="text-lg font-semibold text-gray-900">#{tour.tourId || tour.id}</p>
           </div>
 
@@ -85,7 +89,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
               <div className="bg-blue-50 rounded-[24px] p-4 border border-blue-100">
                 <div className="flex items-center gap-3 mb-2">
                   <MapPinIcon className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
-                  <p className="text-sm text-gray-500">Điểm khởi hành</p>
+                  <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.departurePoint')}</p>
                 </div>
                 <p className="text-base font-medium text-gray-900">{tour.departurePoint}</p>
               </div>
@@ -95,19 +99,19 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
               <div className="bg-green-50 rounded-[24px] p-4 border border-green-100">
                 <div className="flex items-center gap-3 mb-2">
                   <CurrencyDollarIcon className="w-5 h-5 text-green-600" strokeWidth={1.5} />
-                  <p className="text-sm text-gray-500">Giá người lớn</p>
+                  <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.adultPrice')}</p>
                 </div>
                 <p className="text-base font-semibold text-green-700">
                   {formatPrice(tour.price || tour.adultPrice)}
                 </p>
                 {tour.childrenPrice && (
                   <p className="text-sm text-gray-600 mt-1">
-                    Trẻ em: {formatPrice(tour.childrenPrice)}
+                    {t('admin.tourDetailModal.fields.childrenPrice', { price: formatPrice(tour.childrenPrice) })}
                   </p>
                 )}
                 {tour.babyPrice && (
                   <p className="text-sm text-gray-600">
-                    Em bé: {formatPrice(tour.babyPrice)}
+                    {t('admin.tourDetailModal.fields.babyPrice', { price: formatPrice(tour.babyPrice) })}
                   </p>
                 )}
               </div>
@@ -129,7 +133,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
               <div className="bg-amber-50 rounded-[24px] p-4 border border-amber-100">
                 <div className="flex items-center gap-3 mb-2">
                   <CalendarIcon className="w-5 h-5 text-amber-600" strokeWidth={1.5} />
-                  <p className="text-sm text-gray-500">Ngày tạo</p>
+                  <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.createdAt')}</p>
                 </div>
                 <p className="text-base font-medium text-gray-900">
                   {formatDate(tour.createdAt)}
@@ -141,24 +145,24 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
           {/* Additional Info */}
           {(tour.tourVehicle || tour.tourType || tour.amount) && (
             <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-gray-900">Thông tin bổ sung</h4>
+              <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.additionalInfo')}</h4>
               <div className="grid grid-cols-2 gap-3">
                 {tour.tourVehicle && (
                   <div className="bg-gray-50 rounded-[20px] p-3">
-                    <p className="text-xs text-gray-500 mb-1">Phương tiện</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('admin.tourDetailModal.fields.vehicle')}</p>
                     <p className="text-sm font-medium text-gray-900">{tour.tourVehicle}</p>
                   </div>
                 )}
                 {tour.tourType && (
                   <div className="bg-gray-50 rounded-[20px] p-3">
-                    <p className="text-xs text-gray-500 mb-1">Loại tour</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('admin.tourDetailModal.fields.tourType')}</p>
                     <p className="text-sm font-medium text-gray-900">{tour.tourType}</p>
                   </div>
                 )}
                 {tour.amount && (
                   <div className="bg-gray-50 rounded-[20px] p-3">
-                    <p className="text-xs text-gray-500 mb-1">Số lượng</p>
-                    <p className="text-sm font-medium text-gray-900">{tour.amount} người</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('admin.tourDetailModal.fields.amount')}</p>
+                    <p className="text-sm font-medium text-gray-900">{t('admin.tourDetailModal.fields.amountPeople', { amount: tour.amount })}</p>
                   </div>
                 )}
               </div>
@@ -170,7 +174,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
             <div className="bg-indigo-50 rounded-[24px] p-4 border border-indigo-100">
               <div className="flex items-center gap-3 mb-2">
                 <UserIcon className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
-                <p className="text-sm text-gray-500">Công ty</p>
+                <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.company')}</p>
               </div>
               <p className="text-base font-medium text-gray-900">{tour.companyEmail}</p>
             </div>
@@ -183,7 +187,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
             onClick={onClose}
             className="px-6 py-2.5 rounded-[24px] text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors"
           >
-            Đóng
+            {t('admin.tourDetailModal.close')}
           </button>
         </div>
       </div>

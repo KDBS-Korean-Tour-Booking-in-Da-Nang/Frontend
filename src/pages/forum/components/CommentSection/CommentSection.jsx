@@ -602,7 +602,8 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         userEmail: user.email,
         forumPostId: post.forumPostId,
         content: replyText.trim(),
-        imgPath: null,
+        // BE yêu cầu @NotBlank cho imgPath, dùng giá trị placeholder khi không có ảnh
+        imgPath: 'NO_IMAGE',
         parentCommentId: comment.forumCommentId
       };
 
@@ -612,6 +613,12 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         body: JSON.stringify(body)
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
       if (response.ok) {
         const newReply = await response.json();
         setReplies(prev => [newReply, ...prev]);
@@ -620,9 +627,15 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         if (onCountChange) {
           onCountChange(prev => prev + 1);
         }
+      } else {
+        // Handle error response
+        const errorText = await response.text().catch(() => '');
+        console.error('Error submitting reply:', response.status, errorText);
+        alert('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại.');
       }
     } catch (error) {
       console.error('Error submitting reply:', error);
+      alert('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại.');
     } finally {
       setIsSubmittingReply(false);
     }

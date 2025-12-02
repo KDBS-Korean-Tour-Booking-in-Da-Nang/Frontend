@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 
 const Pagination = ({ 
@@ -7,6 +8,7 @@ const Pagination = ({
   itemsPerPage,
   onPageChange 
 }) => {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
 
   // currentPage is 0-based, so we calculate correctly
@@ -75,7 +77,7 @@ const Pagination = ({
   return (
     <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
       <div className="text-sm text-gray-600">
-        Hiển thị <span className="font-medium">{startIndex}</span> - <span className="font-medium">{endIndex}</span> trong tổng số <span className="font-medium">{totalItems}</span>
+        {t('admin.pagination.showing', { start: startIndex, end: endIndex, total: totalItems })}
       </div>
       <div className="flex items-center gap-2">
         {/* First page */}
@@ -83,7 +85,7 @@ const Pagination = ({
           onClick={() => handlePageChange(0)}
           disabled={currentPage === 0}
           className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Trang đầu"
+          title={t('admin.pagination.firstPage')}
         >
           <ChevronDoubleLeftIcon className="h-4 w-4" />
         </button>
@@ -93,7 +95,7 @@ const Pagination = ({
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 0}
           className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Trang trước"
+          title={t('admin.pagination.previous')}
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </button>
@@ -130,7 +132,7 @@ const Pagination = ({
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage >= totalPages - 1}
           className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Trang sau"
+          title={t('admin.pagination.next')}
         >
           <ChevronRightIcon className="h-4 w-4" />
         </button>
@@ -140,7 +142,7 @@ const Pagination = ({
           onClick={() => handlePageChange(totalPages - 1)}
           disabled={currentPage >= totalPages - 1}
           className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Trang cuối"
+          title={t('admin.pagination.lastPage')}
         >
           <ChevronDoubleRightIcon className="h-4 w-4" />
         </button>

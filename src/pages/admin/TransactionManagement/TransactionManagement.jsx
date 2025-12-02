@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -17,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const TransactionManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +39,7 @@ const TransactionManagement = () => {
       const token = getToken();
       
       if (!token) {
-        setError('Vui lòng đăng nhập lại');
+        setError(t('common.errors.loginRequired'));
         setLoading(false);
         return;
       }
@@ -48,7 +50,7 @@ const TransactionManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          setError(t('common.errors.sessionExpired'));
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -93,7 +95,7 @@ const TransactionManagement = () => {
       setTransactions(mappedTransactions);
     } catch (err) {
       console.error('Error fetching transactions:', err);
-      setError('Không thể tải danh sách giao dịch. Vui lòng thử lại.');
+      setError(t('admin.transactionManagement.error'));
     } finally {
       setLoading(false);
     }
@@ -142,15 +144,17 @@ const TransactionManagement = () => {
     return { total, completed, totalRevenue, pending };
   }, [transactions]);
 
-  const formatCurrency = (value) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+  const formatCurrency = (value) => {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách giao dịch...</p>
+          <p className="mt-4 text-gray-600">{t('admin.transactionManagement.loading')}</p>
         </div>
       </div>
     );
@@ -165,7 +169,7 @@ const TransactionManagement = () => {
             onClick={fetchTransactions}
             className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
           >
-            Thử lại
+            {t('admin.transactionManagement.retry')}
           </button>
         </div>
       </div>
@@ -176,29 +180,29 @@ const TransactionManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Transaction Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">View & track all transactions</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.transactionManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.transactionManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Theo dõi và quản lý tất cả các giao dịch thanh toán trong hệ thống.
+            {t('admin.transactionManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.transactionManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.transactionManagement.exportReport')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={CurrencyDollarIcon} label="Tổng giao dịch" value={stats.total} trend="+8% MoM" />
-        <StatCard icon={ArrowTrendingUpIcon} label="Đã hoàn thành" value={stats.completed} trend="+5% MoM" color="text-green-600" />
-        <StatCard icon={CurrencyFormatter} label="Tổng doanh thu" value={formatCurrency(stats.totalRevenue)} trend="+12% MoM" color="text-[#4c9dff]" />
-        <StatCard icon={ArrowTrendingDownIcon} label="Đang chờ" value={stats.pending} trend="Cần xử lý" color="text-amber-500" />
+        <StatCard icon={CurrencyDollarIcon} label={t('admin.transactionManagement.stats.total')} value={stats.total} trend={t('admin.transactionManagement.stats.totalTrend')} />
+        <StatCard icon={ArrowTrendingUpIcon} label={t('admin.transactionManagement.stats.completed')} value={stats.completed} trend={t('admin.transactionManagement.stats.completedTrend')} color="text-green-600" />
+        <StatCard icon={CurrencyFormatter} label={t('admin.transactionManagement.stats.totalRevenue')} value={formatCurrency(stats.totalRevenue)} trend={t('admin.transactionManagement.stats.totalRevenueTrend')} color="text-[#4c9dff]" />
+        <StatCard icon={ArrowTrendingDownIcon} label={t('admin.transactionManagement.stats.pending')} value={stats.pending} trend={t('admin.transactionManagement.stats.pendingTrend')} color="text-amber-500" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -209,7 +213,7 @@ const TransactionManagement = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo tên, email, order id hoặc order info..."
+              placeholder={t('admin.transactionManagement.searchPlaceholder')}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -219,10 +223,10 @@ const TransactionManagement = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="completed">Đã hoàn thành</option>
-              <option value="pending">Đang chờ</option>
-              <option value="failed">Thất bại</option>
+              <option value="ALL">{t('admin.transactionManagement.statusFilter.all')}</option>
+              <option value="completed">{t('admin.transactionManagement.statusFilter.completed')}</option>
+              <option value="pending">{t('admin.transactionManagement.statusFilter.pending')}</option>
+              <option value="failed">{t('admin.transactionManagement.statusFilter.failed')}</option>
             </select>
           </div>
         </div>
@@ -234,7 +238,7 @@ const TransactionManagement = () => {
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-blue-50/50 w-16">
                   STT
                 </th>
-                {['Khách hàng', 'Trạng thái', 'Số tiền', 'Phương thức', 'Ngày giao dịch', 'Thao tác'].map((header) => (
+                {[t('admin.transactionManagement.tableHeaders.customer'), t('admin.transactionManagement.tableHeaders.status'), t('admin.transactionManagement.tableHeaders.amount'), t('admin.transactionManagement.tableHeaders.paymentMethod'), t('admin.transactionManagement.tableHeaders.transactionDate'), t('admin.transactionManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -245,7 +249,7 @@ const TransactionManagement = () => {
               {filteredTransactions.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                    Không tìm thấy giao dịch phù hợp với bộ lọc hiện tại.
+                    {t('admin.transactionManagement.noResults')}
                   </td>
                 </tr>
               ) : (
@@ -275,7 +279,7 @@ const TransactionManagement = () => {
                     <div className="flex items-center gap-1 text-sm text-gray-600">
                       <CalendarIcon className="h-4 w-4 text-gray-400" />
                       {transaction.transactionDate 
-                        ? new Date(transaction.transactionDate).toLocaleDateString('vi-VN')
+                        ? new Date(transaction.transactionDate).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN')
                         : 'N/A'}
                     </div>
                   </td>
@@ -286,7 +290,7 @@ const TransactionManagement = () => {
                         setIsDetailModalOpen(true);
                       }}
                       className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                      title="Xem chi tiết"
+                      title={t('admin.transactionManagement.actions.viewDetails')}
                     >
                       <EyeIcon className="h-4 w-4" />
                     </button>
@@ -344,10 +348,11 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 );
 
 const StatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const map = {
-    completed: { color: 'bg-green-100 text-green-700', label: 'Đã hoàn thành' },
-    pending: { color: 'bg-amber-100 text-amber-700', label: 'Đang chờ' },
-    failed: { color: 'bg-red-100 text-red-700', label: 'Thất bại' }
+    completed: { color: 'bg-green-100 text-green-700', label: t('admin.transactionManagement.status.completed') },
+    pending: { color: 'bg-amber-100 text-amber-700', label: t('admin.transactionManagement.status.pending') },
+    failed: { color: 'bg-red-100 text-red-700', label: t('admin.transactionManagement.status.failed') }
   };
   const statusMap = map[status] || { color: 'bg-gray-100 text-gray-500', label: status };
   return (

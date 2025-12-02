@@ -545,6 +545,20 @@ const BookingManagement = () => {
 
   const canApproveFromList = (status) => status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
 
+  // Check if booking status allows editing/approval actions
+  const canEditBooking = (status) => {
+    if (!status) return false;
+    const statusUpper = status.toUpperCase();
+    const disabledStatuses = [
+      'BOOKING_SUCCESS',
+      'BOOKING_REJECTED',
+      'BOOKING_UNDER_COMPLAINT',
+      'BOOKING_SUCCESS_PENDING',
+      'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED'
+    ];
+    return !disabledStatuses.includes(statusUpper);
+  };
+
   return (
     <div className={styles['booking-management']}>
       {/* Header */}
@@ -734,6 +748,7 @@ const BookingManagement = () => {
                 bookings.map((b) => {
                   const isPendingBooking = isPendingStatus(b.bookingStatus);
                   const isUnderComplaint = b.bookingStatus === 'BOOKING_UNDER_COMPLAINT';
+                  const canEdit = canEditBooking(b.bookingStatus);
                   return (
                   <tr key={b.id}>
                     <td>
@@ -765,13 +780,13 @@ const BookingManagement = () => {
                             type="button"
                             title={t('bookingManagement.actions.editBooking')}
                             onClick={() => handleEditBooking(b)}
-                            className={`${styles['action-btn']} ${isPendingBooking ? styles['action-btn-disabled'] : ''}`}
-                            disabled={isPendingBooking}
+                            className={`${styles['action-btn']} ${(!canEdit || isPendingBooking) ? styles['action-btn-disabled'] : ''}`}
+                            disabled={!canEdit || isPendingBooking}
                           >
                             <PencilSquareIcon className={styles['action-icon']} />
                           </button>
                         )}
-                        {!isUnderComplaint && canApproveFromList(b.bookingStatus) && (
+                        {!isUnderComplaint && canApproveFromList(b.bookingStatus) && canEdit && (
                           <button
                             type="button"
                             title={t('bookingManagement.actions.confirmTourCompletion')}

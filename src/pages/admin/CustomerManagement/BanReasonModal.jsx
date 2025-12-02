@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { NoSymbolIcon } from '@heroicons/react/24/solid';
 
 const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
+  const { t } = useTranslation();
   const [selectedReason, setSelectedReason] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -10,12 +12,12 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
   if (!isOpen || !customer) return null;
 
   const presetReasons = [
-    { value: 'SPAM', label: 'Spam hoặc nội dung không phù hợp' },
-    { value: 'HARASSMENT', label: 'Quấy rối hoặc hành vi không đúng mực' },
-    { value: 'FRAUD', label: 'Gian lận hoặc lừa đảo' },
-    { value: 'VIOLATION', label: 'Vi phạm điều khoản sử dụng' },
-    { value: 'INAPPROPRIATE', label: 'Hành vi không phù hợp' },
-    { value: 'OTHER', label: 'Khác' }
+    { value: 'SPAM', label: t('admin.banReasonModal.reasons.spam') },
+    { value: 'HARASSMENT', label: t('admin.banReasonModal.reasons.harassment') },
+    { value: 'FRAUD', label: t('admin.banReasonModal.reasons.fraud') },
+    { value: 'VIOLATION', label: t('admin.banReasonModal.reasons.violation') },
+    { value: 'INAPPROPRIATE', label: t('admin.banReasonModal.reasons.inappropriate') },
+    { value: 'OTHER', label: t('admin.banReasonModal.reasons.other') }
   ];
 
   const handleReasonChange = (value) => {
@@ -27,12 +29,12 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
 
   const handleSubmit = async () => {
     if (!selectedReason) {
-      alert('Vui lòng chọn lý do ban');
+      alert(t('admin.banReasonModal.errors.selectReason'));
       return;
     }
 
     if (selectedReason === 'OTHER' && !customReason.trim()) {
-      alert('Vui lòng nhập lý do ban');
+      alert(t('admin.banReasonModal.errors.enterReason'));
       return;
     }
 
@@ -68,7 +70,7 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
               <NoSymbolIcon className="w-5 h-5 text-red-600" strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Ban người dùng</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.banReasonModal.title')}</h2>
               <p className="text-sm text-gray-500 mt-0.5">{customer.name || customer.email}</p>
             </div>
           </div>
@@ -83,7 +85,7 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
           <p className="text-sm text-gray-600 mb-4">
-            Vui lòng chọn lý do ban cho người dùng này. Lý do này sẽ được lưu lại trong hệ thống.
+            {t('admin.banReasonModal.description')}
           </p>
 
           {/* Reason Options */}
@@ -116,12 +118,12 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
           {selectedReason === 'OTHER' && (
             <div className="mt-4 pb-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nhập lý do ban
+                {t('admin.banReasonModal.customReasonLabel')}
               </label>
               <textarea
                 value={customReason}
                 onChange={(e) => setCustomReason(e.target.value)}
-                placeholder="Vui lòng nhập lý do ban chi tiết..."
+                placeholder={t('admin.banReasonModal.customReasonPlaceholder')}
                 className="w-full px-4 py-3 rounded-[24px] border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-300 text-sm resize-none"
                 rows="4"
               />
@@ -136,14 +138,14 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
             disabled={isSubmitting}
             className="px-6 py-2.5 rounded-[20px] border border-gray-200 text-gray-700 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Hủy
+            {t('admin.banReasonModal.cancel')}
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !selectedReason || (selectedReason === 'OTHER' && !customReason.trim())}
             className="px-6 py-2.5 rounded-[20px] bg-red-500 text-white font-semibold hover:bg-red-600 transition-all shadow-[0_8px_20px_rgba(239,68,68,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
-            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận ban'}
+            {isSubmitting ? t('admin.banReasonModal.processing') : t('admin.banReasonModal.confirm')}
           </button>
         </div>
       </div>

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 
 const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalError, formErrors: externalFormErrors }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -32,10 +34,10 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
 
     const errors = {};
     if (!formData.username.trim()) {
-      errors.username = 'Vui lòng nhập username';
+      errors.username = t('admin.addStaffModal.errors.usernameRequired');
     }
     if (!formData.password.trim()) {
-      errors.password = 'Vui lòng nhập password';
+      errors.password = t('admin.addStaffModal.errors.passwordRequired');
     }
 
     if (Object.keys(errors).length > 0) {
@@ -77,8 +79,8 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
               <UserPlusIcon className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Thêm nhân viên mới</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Tạo tài khoản nhân viên mới cho hệ thống</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.addStaffModal.title')}</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{t('admin.addStaffModal.subtitle')}</p>
             </div>
           </div>
           <button
@@ -101,7 +103,7 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
             {/* Username Field */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Username <span className="text-red-500">*</span>
+                {t('admin.addStaffModal.fields.username')} <span className="text-red-500">{t('admin.addStaffModal.fields.usernameRequired')}</span>
               </label>
               <input
                 type="text"
@@ -112,19 +114,19 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
                     ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-400' 
                     : 'border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-400'
                 } focus:outline-none focus:ring-2 transition-all text-sm`}
-                placeholder="Nhập username"
+                placeholder={t('admin.addStaffModal.fields.usernamePlaceholder')}
                 required
               />
               {formErrors.username && (
                 <p className="text-xs text-red-600 ml-1">{formErrors.username}</p>
               )}
-              <p className="text-xs text-gray-500 ml-1">Username phải là duy nhất trong hệ thống</p>
+              <p className="text-xs text-gray-500 ml-1">{t('admin.addStaffModal.fields.usernameHint')}</p>
             </div>
 
             {/* Password Field */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Password <span className="text-red-500">*</span>
+                {t('admin.addStaffModal.fields.password')} <span className="text-red-500">{t('admin.addStaffModal.fields.passwordRequired')}</span>
               </label>
               <input
                 type="password"
@@ -135,31 +137,31 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
                     ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-400' 
                     : 'border-gray-200 bg-gray-50 focus:ring-blue-500 focus:border-blue-400'
                 } focus:outline-none focus:ring-2 transition-all text-sm`}
-                placeholder="Nhập password"
+                placeholder={t('admin.addStaffModal.fields.passwordPlaceholder')}
                 required
               />
               {formErrors.password && (
                 <p className="text-xs text-red-600 ml-1">{formErrors.password}</p>
               )}
-              <p className="text-xs text-gray-500 ml-1">Mật khẩu tối thiểu 6 ký tự</p>
+              <p className="text-xs text-gray-500 ml-1">{t('admin.addStaffModal.fields.passwordHint')}</p>
             </div>
 
             {/* Staff Task Field */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
-                Nhiệm vụ (tùy chọn)
+                {t('admin.addStaffModal.fields.staffTask')}
               </label>
               <select
                 value={formData.staffTask}
                 onChange={(e) => handleInputChange('staffTask', e.target.value)}
                 className="w-full px-4 py-3 rounded-[20px] border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-sm"
               >
-                <option value="">Không gán nhiệm vụ</option>
-                <option value="FORUM_REPORT">Forum Report</option>
-                <option value="COMPANY_REQUEST_AND_APPROVE_ARTICLE">Company Request + Approve Article</option>
-                <option value="APPROVE_TOUR_BOOKING">Approve Tour Booking</option>
+                <option value="">{t('admin.addStaffModal.fields.staffTaskNone')}</option>
+                <option value="FORUM_REPORT_AND_BOOKING_COMPLAINT">{t('admin.addStaffModal.fields.staffTaskForum')}</option>
+                <option value="COMPANY_REQUEST_AND_RESOLVE_TICKET">{t('admin.addStaffModal.fields.staffTaskCompany')}</option>
+                <option value="APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE">{t('admin.addStaffModal.fields.staffTaskTour')}</option>
               </select>
-              <p className="text-xs text-gray-500 ml-1">Nhiệm vụ có thể được gán sau khi tạo tài khoản</p>
+              <p className="text-xs text-gray-500 ml-1">{t('admin.addStaffModal.fields.staffTaskHint')}</p>
             </div>
           </div>
 
@@ -171,14 +173,14 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
               disabled={submitting}
               className="px-6 py-2.5 rounded-[20px] border border-gray-200 text-gray-700 font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Hủy
+              {t('admin.addStaffModal.cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-6 py-2.5 rounded-[20px] bg-[#4c9dff] text-white font-semibold hover:bg-[#3f85d6] transition-all shadow-[0_8px_20px_rgba(76,157,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              {submitting ? 'Đang tạo...' : 'Tạo nhân viên'}
+              {submitting ? t('admin.addStaffModal.submitting') : t('admin.addStaffModal.submit')}
             </button>
           </div>
         </form>

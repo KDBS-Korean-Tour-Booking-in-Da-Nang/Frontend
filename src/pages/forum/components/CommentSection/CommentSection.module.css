@@ -237,23 +237,44 @@
   transform: translateY(-1px);
 }
 
-.comment-action-btn.active {
-  background-color: rgba(199, 210, 254, 0.35);
-  color: #312e81;
-  border-color: rgba(167, 139, 250, 0.4);
+/* Like button styles */
+.like-btn.active {
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.3);
 }
 
-.like-btn.active .action-icon,
-.dislike-btn.active .action-icon {
-  color: inherit;
+.like-btn.active .action-icon {
+  color: #2563eb;
 }
 
 .like-btn:hover {
-  background-color: rgba(199, 210, 254, 0.25);
+  background-color: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+
+.like-btn:hover .action-icon {
+  color: #2563eb;
+}
+
+/* Dislike button styles */
+.dislike-btn.active {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dislike-btn.active .action-icon {
+  color: #ef4444;
 }
 
 .dislike-btn:hover {
-  background-color: rgba(254, 215, 170, 0.3);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.dislike-btn:hover .action-icon {
+  color: #ef4444;
 }
 
 .action-icon {

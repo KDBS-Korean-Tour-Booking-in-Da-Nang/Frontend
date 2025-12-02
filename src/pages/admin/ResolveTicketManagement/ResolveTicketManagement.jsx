@@ -1,10 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
-import { getAllComplaints, getComplaintById, resolveBookingComplaint } from '../../../services/bookingAPI';
 import Pagination from '../Pagination';
 import {
-  ExclamationTriangleIcon,
+  TicketIcon,
   MagnifyingGlassIcon,
   CheckCircleIcon,
   ClockIcon,
@@ -12,171 +11,177 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 
-const ComplaintManagement = () => {
-  const { t } = useTranslation();
+const ResolveTicketManagement = () => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [searchInput, setSearchInput] = useState('');
-  const [searchType, setSearchType] = useState('all'); // 'all' or 'complaintId'
-  const [allComplaints, setAllComplaints] = useState([]);
-  const [complaints, setComplaints] = useState([]);
+  const [searchType, setSearchType] = useState('all'); // 'all' or 'ticketId'
+  const [allTickets, setAllTickets] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [resolvingId, setResolvingId] = useState(null);
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
-  const [resolutionType, setResolutionType] = useState('NO_FAULT');
+  const [resolutionType, setResolutionType] = useState('RESOLVED');
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending', 'resolved'
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
-  const [complaintToResolve, setComplaintToResolve] = useState(null);
+  const [ticketToResolve, setTicketToResolve] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  const isAdminOrStaff = user && (user.role === 'ADMIN' || user.role === 'STAFF');
+  const isAdmin = user && user.role === 'ADMIN';
 
-  // Load all complaints on mount
+  // Load all tickets on mount
   useEffect(() => {
-    loadAllComplaints();
+    loadAllTickets();
   }, []);
 
-  const loadAllComplaints = async () => {
+  const loadAllTickets = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getAllComplaints();
-      setAllComplaints(Array.isArray(data) ? data : []);
-      setComplaints(Array.isArray(data) ? data : []);
+      // TODO: Replace with actual API endpoint when available
+      // const data = await getAllTickets();
+      // For now, use placeholder empty array
+      const data = [];
+      setAllTickets(Array.isArray(data) ? data : []);
+      setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error loading complaints:', err);
-      setError(err?.message || 'Failed to load complaints.');
+      console.error('Error loading tickets:', err);
+      setError(err?.message || t('admin.resolveTicketManagement.errors.loadError'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter complaints based on search and status
-  const filteredComplaints = useMemo(() => {
-    let filtered = [...allComplaints];
+  // Filter tickets based on search and status
+  const filteredTickets = useMemo(() => {
+    let filtered = [...allTickets];
 
     // Filter by status
     if (filterStatus === 'pending') {
-      filtered = filtered.filter((c) => !c.resolutionType);
+      filtered = filtered.filter((t) => !t.resolutionType || t.status === 'PENDING');
     } else if (filterStatus === 'resolved') {
-      filtered = filtered.filter((c) => c.resolutionType);
+      filtered = filtered.filter((t) => t.resolutionType || t.status === 'RESOLVED');
     }
 
     // Filter by search
     if (searchInput.trim()) {
-      if (searchType === 'complaintId') {
+      if (searchType === 'ticketId') {
         const id = Number(searchInput.trim());
         if (Number.isFinite(id) && id > 0) {
-          filtered = filtered.filter((c) => c.complaintId === id);
+          filtered = filtered.filter((t) => t.ticketId === id);
         } else {
           filtered = [];
         }
       } else {
-        // Search in message
+        // Search in subject or message
         const searchLower = searchInput.toLowerCase();
-        filtered = filtered.filter((c) =>
-          c.message?.toLowerCase().includes(searchLower)
+        filtered = filtered.filter((t) =>
+          t.subject?.toLowerCase().includes(searchLower) ||
+          t.message?.toLowerCase().includes(searchLower)
         );
       }
     }
 
     return filtered;
-  }, [allComplaints, searchInput, searchType, filterStatus]);
+  }, [allTickets, searchInput, searchType, filterStatus]);
 
   // Pagination
-  const paginatedComplaints = useMemo(() => {
+  const paginatedTickets = useMemo(() => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredComplaints.slice(startIndex, endIndex);
-  }, [filteredComplaints, currentPage, itemsPerPage]);
+    return filteredTickets.slice(startIndex, endIndex);
+  }, [filteredTickets, currentPage, itemsPerPage]);
 
-  const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(0);
   }, [searchInput, searchType, filterStatus]);
 
-
   const stats = useMemo(() => {
-    const total = allComplaints.length;
-    const resolved = allComplaints.filter((c) => c.resolutionType !== null && c.resolutionType !== undefined).length;
+    const total = allTickets.length;
+    const resolved = allTickets.filter((t) => t.resolutionType || t.status === 'RESOLVED').length;
     const pending = total - resolved;
     return { total, resolved, pending };
-  }, [allComplaints]);
+  }, [allTickets]);
 
   const handleSearchById = async (e) => {
     e?.preventDefault();
     const trimmed = searchInput.trim();
     if (!trimmed) {
-      setError(t('admin.complaintManagement.errors.enterComplaintId'));
+      setError(t('admin.resolveTicketManagement.errors.enterTicketId'));
       return;
     }
     const id = Number(trimmed);
     if (!Number.isFinite(id) || id <= 0) {
-      setError(t('admin.complaintManagement.errors.invalidId'));
+      setError(t('admin.resolveTicketManagement.errors.invalidId'));
       return;
     }
 
     setLoading(true);
     setError('');
     try {
-      const complaint = await getComplaintById(id);
-      if (complaint) {
-        // Check if complaint already exists in list, otherwise add it
-        const exists = allComplaints.some((c) => c.complaintId === complaint.complaintId);
-        if (!exists) {
-          setAllComplaints([...allComplaints, complaint]);
-        }
-        setComplaints([complaint]);
-      } else {
-        setComplaints([]);
-        setError(t('admin.complaintManagement.errors.notFound'));
-      }
+      // TODO: Replace with actual API endpoint when available
+      // const ticket = await getTicketById(id);
+      // if (ticket) {
+      //   const exists = allTickets.some((t) => t.ticketId === ticket.ticketId);
+      //   if (!exists) {
+      //     setAllTickets([...allTickets, ticket]);
+      //   }
+      //   setTickets([ticket]);
+      // } else {
+      //   setTickets([]);
+      //   setError('Ticket not found.');
+      // }
+      setTickets([]);
+      setError(t('admin.resolveTicketManagement.errors.notFound'));
     } catch (err) {
-      console.error('Error fetching complaint:', err);
-      setError(err?.message || t('admin.complaintManagement.errors.loadError'));
-      setComplaints([]);
+      console.error('Error fetching ticket:', err);
+      setError(err?.message || t('admin.resolveTicketManagement.errors.loadError'));
+      setTickets([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenResolveModal = (complaint) => {
-    if (!isAdminOrStaff) {
-      setError(t('admin.complaintManagement.resolveModal.noPermission'));
+  const handleOpenResolveModal = (ticket) => {
+    if (!isAdmin) {
+      setError(t('admin.resolveTicketManagement.errors.noPermission'));
       return;
     }
-    setComplaintToResolve(complaint);
+    setTicketToResolve(ticket);
     setIsResolveModalOpen(true);
-    setResolutionType('NO_FAULT');
+    setResolutionType('RESOLVED');
     setNote('');
   };
 
   const handleCloseResolveModal = () => {
     setIsResolveModalOpen(false);
-    setComplaintToResolve(null);
-    setResolutionType('NO_FAULT');
+    setTicketToResolve(null);
+    setResolutionType('RESOLVED');
     setNote('');
   };
 
   const handleResolve = async () => {
-    if (!complaintToResolve || !resolutionType) {
-      setError(t('admin.complaintManagement.resolveModal.error'));
+    if (!ticketToResolve || !resolutionType) {
+      setError(t('admin.resolveTicketManagement.errors.selectResolution'));
       return;
     }
     try {
-      setResolvingId(complaintToResolve.complaintId);
-      await resolveBookingComplaint(complaintToResolve.complaintId, resolutionType, note);
-      // Refresh all complaints
-      await loadAllComplaints();
+      setResolvingId(ticketToResolve.ticketId);
+      // TODO: Replace with actual API endpoint when available
+      // await resolveTicket(ticketToResolve.ticketId, resolutionType, note);
+      // Refresh all tickets
+      await loadAllTickets();
       handleCloseResolveModal();
     } catch (err) {
-      console.error('Error resolving complaint:', err);
-      setError(err?.message || t('admin.complaintManagement.errors.resolveError'));
+      console.error('Error resolving ticket:', err);
+      setError(err?.message || t('admin.resolveTicketManagement.errors.resolveError'));
     } finally {
       setResolvingId(null);
     }
@@ -191,14 +196,14 @@ const ComplaintManagement = () => {
     }
   };
 
-  const handleViewDetail = (complaint) => {
-    setSelectedComplaint(complaint);
+  const handleViewDetail = (ticket) => {
+    setSelectedTicket(ticket);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedComplaint(null);
+    setSelectedTicket(null);
   };
 
   return (
@@ -207,11 +212,11 @@ const ComplaintManagement = () => {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">
-            {t('admin.complaintManagement.title')}
+            {t('admin.resolveTicketManagement.title')}
           </p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.complaintManagement.title')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.resolveTicketManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {t('admin.complaintManagement.subtitle')}
+            {t('admin.resolveTicketManagement.subtitle')}
           </p>
         </div>
       </div>
@@ -219,22 +224,22 @@ const ComplaintManagement = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={ExclamationTriangleIcon}
-          label={t('admin.complaintManagement.stats.total')}
+          icon={TicketIcon}
+          label={t('admin.resolveTicketManagement.stats.total')}
           value={stats.total}
-          color="text-amber-500"
+          color="text-blue-500"
         />
         <StatCard
           icon={CheckCircleIcon}
-          label={t('admin.complaintManagement.stats.resolved')}
+          label={t('admin.resolveTicketManagement.stats.resolved')}
           value={stats.resolved}
           color="text-green-600"
         />
         <StatCard
           icon={ClockIcon}
-          label={t('admin.complaintManagement.stats.pending')}
+          label={t('admin.resolveTicketManagement.stats.pending')}
           value={stats.pending}
-          color="text-blue-600"
+          color="text-amber-500"
         />
       </div>
 
@@ -248,8 +253,9 @@ const ComplaintManagement = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={searchType === 'complaintId' ? t('admin.complaintManagement.search.placeholderId') : t('admin.complaintManagement.search.placeholderAll')}
+                placeholder={searchType === 'ticketId' ? t('admin.resolveTicketManagement.search.placeholderId') : t('admin.resolveTicketManagement.search.placeholderAll')}
                 className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
               />
             </div>
             <select
@@ -259,39 +265,41 @@ const ComplaintManagement = () => {
                 setSearchInput('');
               }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled
             >
-              <option value="all">{t('admin.complaintManagement.search.all')}</option>
-              <option value="complaintId">{t('admin.complaintManagement.search.byComplaintId')}</option>
+              <option value="all">{t('admin.resolveTicketManagement.search.all')}</option>
+              <option value="ticketId">{t('admin.resolveTicketManagement.search.byTicketId')}</option>
             </select>
             <div className="flex gap-2 items-center">
-              <span className="text-sm text-gray-600">{t('admin.complaintManagement.search.filterByStatus')}</span>
+              <span className="text-sm text-gray-600">{t('admin.resolveTicketManagement.search.filterByStatus')}</span>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
               >
-                <option value="all">{t('admin.complaintManagement.search.all')}</option>
-                <option value="pending">{t('admin.complaintManagement.search.pending')}</option>
-                <option value="resolved">{t('admin.complaintManagement.search.resolved')}</option>
+                <option value="all">{t('admin.resolveTicketManagement.search.all')}</option>
+                <option value="pending">{t('admin.resolveTicketManagement.search.pending')}</option>
+                <option value="resolved">{t('admin.resolveTicketManagement.search.resolved')}</option>
               </select>
             </div>
           </div>
           <button
-            onClick={loadAllComplaints}
+            onClick={loadAllTickets}
             disabled={loading}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? t('admin.complaintManagement.loading') : t('admin.complaintManagement.refresh')}
+            {loading ? t('admin.resolveTicketManagement.loading') : t('admin.resolveTicketManagement.refresh')}
           </button>
         </div>
-        {searchType === 'complaintId' && searchInput.trim() && (
+        {searchType === 'ticketId' && searchInput.trim() && (
           <div className="mt-4">
             <button
               onClick={handleSearchById}
               disabled={loading}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? t('admin.complaintManagement.loading') : t('admin.complaintManagement.searchById')}
+              {loading ? t('admin.resolveTicketManagement.loading') : t('admin.resolveTicketManagement.searchById')}
             </button>
           </div>
         )}
@@ -302,17 +310,17 @@ const ComplaintManagement = () => {
         )}
       </div>
 
-      {/* Complaints table */}
+      {/* Tickets table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              Complaints {filteredComplaints.length > 0 && `(${filteredComplaints.length})`}
+              Support Tickets {filteredTickets.length > 0 && `(${filteredTickets.length})`}
             </h2>
             <p className="text-sm text-gray-500">
-              {allComplaints.length > 0
-                ? t('admin.complaintManagement.showing', { count: paginatedComplaints.length, filtered: filteredComplaints.length, total: allComplaints.length })
-                : t('admin.complaintManagement.noComplaints')}
+              {allTickets.length > 0
+                ? `Showing ${paginatedTickets.length} of ${filteredTickets.length} filtered tickets (${allTickets.length} total)`
+                : 'No tickets found'}
             </p>
           </div>
         </div>
@@ -321,7 +329,7 @@ const ComplaintManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {[t('admin.complaintManagement.tableHeaders.id'), t('admin.complaintManagement.tableHeaders.message'), t('admin.complaintManagement.tableHeaders.createdAt'), t('admin.complaintManagement.tableHeaders.resolution'), t('admin.complaintManagement.tableHeaders.resolvedAt'), t('admin.complaintManagement.tableHeaders.action')].map((header) => (
+                {['ID', 'Subject', 'Created at', 'Status', 'Priority', 'Action'].map((header) => (
                   <th
                     key={header}
                     className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
@@ -332,57 +340,61 @@ const ComplaintManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-50">
-              {paginatedComplaints.length === 0 ? (
+              {paginatedTickets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500 text-sm">
-                    {loading
-                      ? t('admin.complaintManagement.loadingComplaints')
-                      : allComplaints.length === 0
-                      ? t('admin.complaintManagement.noComplaints')
-                      : t('admin.complaintManagement.noMatch')}
+                  <td colSpan={6} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <TicketIcon className="h-16 w-16 text-gray-300" />
+                      <div>
+                        <p className="text-lg font-semibold text-gray-700">{t('admin.resolveTicketManagement.noTickets')}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {t('admin.resolveTicketManagement.noTicketsDesc')}
+                        </p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : (
-                paginatedComplaints.map((complaint, index) => (
-                  <tr key={complaint.complaintId} className="hover:bg-[#e9f2ff]/40 transition">
+                paginatedTickets.map((ticket) => (
+                  <tr key={ticket.ticketId} className="hover:bg-[#e9f2ff]/40 transition">
                     <td className="px-6 py-4 text-sm text-gray-600 font-semibold">
-                      #{complaint.complaintId}
+                      #{ticket.ticketId}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-md">
-                      <p className="line-clamp-3 whitespace-pre-wrap">{complaint.message || 'N/A'}</p>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {ticket.subject || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDateTime(complaint.createdAt)}
+                      {formatDateTime(ticket.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <ResolutionBadge resolutionType={complaint.resolutionType} />
+                      <StatusBadge status={ticket.status || ticket.resolutionType} />
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDateTime(complaint.resolvedAt)}
+                      {ticket.priority || 'N/A'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => handleViewDetail(complaint)}
+                          onClick={() => handleViewDetail(ticket)}
                           className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-all duration-200"
-                          title={t('admin.complaintManagement.actions.viewDetails')}
+                          title={t('admin.resolveTicketManagement.actions.viewDetails')}
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        {complaint.resolutionType ? (
+                        {ticket.resolutionType || ticket.status === 'RESOLVED' ? (
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
-                            {t('admin.complaintManagement.status.resolved')}
+                            {t('admin.resolveTicketManagement.status.resolved')}
                           </span>
                         ) : (
                           <button
                             type="button"
-                            onClick={() => handleOpenResolveModal(complaint)}
-                            disabled={resolvingId === complaint.complaintId || !isAdminOrStaff}
+                            onClick={() => handleOpenResolveModal(ticket)}
+                            disabled={resolvingId === ticket.ticketId || !isAdmin}
                             className="p-2 rounded-lg bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                            title={t('admin.complaintManagement.actions.resolve')}
+                            title={t('admin.resolveTicketManagement.actions.resolve')}
                           >
-                            {resolvingId === complaint.complaintId ? (
+                            {resolvingId === ticket.ticketId ? (
                               <ClockIcon className="h-5 w-5 animate-spin" />
                             ) : (
                               <CheckCircleIcon className="h-5 w-5" />
@@ -399,11 +411,11 @@ const ComplaintManagement = () => {
         </div>
 
         {/* Pagination */}
-        {filteredComplaints.length > itemsPerPage && (
+        {filteredTickets.length > itemsPerPage && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            totalItems={filteredComplaints.length}
+            totalItems={filteredTickets.length}
             itemsPerPage={itemsPerPage}
             onPageChange={setCurrentPage}
           />
@@ -411,24 +423,24 @@ const ComplaintManagement = () => {
       </div>
 
       {/* Detail Modal */}
-      {isModalOpen && selectedComplaint && (
-        <ComplaintDetailModal
-          complaint={selectedComplaint}
+      {isModalOpen && selectedTicket && (
+        <TicketDetailModal
+          ticket={selectedTicket}
           onClose={handleCloseModal}
         />
       )}
 
       {/* Resolve Modal */}
-      {isResolveModalOpen && complaintToResolve && (
-        <ResolveComplaintModal
-          complaint={complaintToResolve}
+      {isResolveModalOpen && ticketToResolve && (
+        <ResolveTicketModal
+          ticket={ticketToResolve}
           resolutionType={resolutionType}
           setResolutionType={setResolutionType}
           note={note}
           setNote={setNote}
           onResolve={handleResolve}
           onClose={handleCloseResolveModal}
-          isResolving={resolvingId === complaintToResolve.complaintId}
+          isResolving={resolvingId === ticketToResolve.ticketId}
         />
       )}
     </div>
@@ -452,32 +464,32 @@ const StatCard = ({ icon: IconComponent, label, value, color = 'text-blue-600' }
   </div>
 );
 
-const ResolutionBadge = ({ resolutionType }) => {
+const StatusBadge = ({ status }) => {
   const { t } = useTranslation();
-  if (!resolutionType) {
+  if (!status || status === 'PENDING') {
     return (
       <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700">
-        {t('admin.complaintManagement.status.pending')}
+        {t('admin.resolveTicketManagement.status.pending')}
       </span>
     );
   }
 
-  const map = {
-    COMPANY_FAULT: { color: 'bg-red-100 text-red-700', label: t('admin.complaintManagement.status.companyFault') },
-    USER_FAULT: { color: 'bg-blue-100 text-blue-700', label: t('admin.complaintManagement.status.userFault') },
-    NO_FAULT: { color: 'bg-green-100 text-green-700', label: t('admin.complaintManagement.status.noFault') },
-  };
-
-  const cfg = map[resolutionType] || { color: 'bg-gray-100 text-gray-700', label: resolutionType };
+  if (status === 'RESOLVED') {
+    return (
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+        {t('admin.resolveTicketManagement.status.resolved')}
+      </span>
+    );
+  }
 
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${cfg.color}`}>
-      {cfg.label}
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
+      {status}
     </span>
   );
 };
 
-const ComplaintDetailModal = ({ complaint, onClose }) => {
+const TicketDetailModal = ({ ticket, onClose }) => {
   const { t, i18n } = useTranslation();
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
@@ -502,13 +514,13 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
         <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('admin.complaintManagement.modal.title')}</h2>
-              <p className="text-sm text-gray-500 mt-1">{t('admin.complaintManagement.modal.complaintId', { id: complaint.complaintId })}</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t('admin.resolveTicketManagement.modal.title')}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t('admin.resolveTicketManagement.modal.ticketId', { id: ticket.ticketId })}</p>
             </div>
             <button
               onClick={onClose}
               className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200"
-              title={t('admin.complaintManagement.modal.close')}
+              title="Close"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -518,14 +530,26 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
         {/* Content */}
         <div className="px-6 py-6 overflow-y-auto flex-1">
           <div className="space-y-6">
+            {/* Subject Section */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                {t('admin.resolveTicketManagement.modal.subject')}
+              </label>
+              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+                <p className="text-sm text-gray-800 leading-relaxed">
+                  {ticket.subject || 'N/A'}
+                </p>
+              </div>
+            </div>
+
             {/* Message Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.complaintManagement.modal.message')}
+                {t('admin.resolveTicketManagement.modal.message')}
               </label>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                  {complaint.message || 'N/A'}
+                  {ticket.message || 'N/A'}
                 </p>
               </div>
             </div>
@@ -534,33 +558,42 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.complaintManagement.modal.status')}
+                  {t('admin.resolveTicketManagement.modal.status')}
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <ResolutionBadge resolutionType={complaint.resolutionType} />
+                  <StatusBadge status={ticket.status || ticket.resolutionType} />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.complaintManagement.modal.createdAt')}
+                  {t('admin.resolveTicketManagement.modal.priority')}
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <p className="text-sm text-gray-700">{formatDateTime(complaint.createdAt)}</p>
+                  <p className="text-sm text-gray-700">{ticket.priority || 'N/A'}</p>
                 </div>
               </div>
             </div>
 
-            {/* Resolved Information */}
-            {complaint.resolutionType && (
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.complaintManagement.modal.resolvedAt')}
+                  {t('admin.resolveTicketManagement.modal.createdAt')}
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <p className="text-sm text-gray-700">{formatDateTime(complaint.resolvedAt)}</p>
+                  <p className="text-sm text-gray-700">{formatDateTime(ticket.createdAt)}</p>
                 </div>
               </div>
-            )}
+              {ticket.resolvedAt && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    {t('admin.resolveTicketManagement.modal.resolvedAt')}
+                  </label>
+                  <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                    <p className="text-sm text-gray-700">{formatDateTime(ticket.resolvedAt)}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -571,7 +604,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
               onClick={onClose}
               className="px-6 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-all duration-200"
             >
-              {t('admin.complaintManagement.modal.close')}
+              {t('admin.resolveTicketManagement.modal.close')}
             </button>
           </div>
         </div>
@@ -580,8 +613,8 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
   );
 };
 
-const ResolveComplaintModal = ({ 
-  complaint, 
+const ResolveTicketModal = ({ 
+  ticket, 
   resolutionType, 
   setResolutionType, 
   note, 
@@ -593,23 +626,17 @@ const ResolveComplaintModal = ({
   const { t } = useTranslation();
   const resolutionOptions = [
     {
-      value: 'NO_FAULT',
-      label: t('admin.complaintManagement.resolveModal.resolutionOptions.noFault.label'),
-      description: t('admin.complaintManagement.resolveModal.resolutionOptions.noFault.description'),
+      value: 'RESOLVED',
+      label: t('admin.resolveTicketManagement.resolveModal.resolutionOptions.resolved.label'),
+      description: t('admin.resolveTicketManagement.resolveModal.resolutionOptions.resolved.description'),
       color: 'bg-green-50 text-green-700 border-green-200'
     },
     {
-      value: 'USER_FAULT',
-      label: t('admin.complaintManagement.resolveModal.resolutionOptions.userFault.label'),
-      description: t('admin.complaintManagement.resolveModal.resolutionOptions.userFault.description'),
-      color: 'bg-blue-50 text-blue-700 border-blue-200'
+      value: 'CLOSED',
+      label: t('admin.resolveTicketManagement.resolveModal.resolutionOptions.closed.label'),
+      description: t('admin.resolveTicketManagement.resolveModal.resolutionOptions.closed.description'),
+      color: 'bg-gray-50 text-gray-700 border-gray-200'
     },
-    {
-      value: 'COMPANY_FAULT',
-      label: t('admin.complaintManagement.resolveModal.resolutionOptions.companyFault.label'),
-      description: t('admin.complaintManagement.resolveModal.resolutionOptions.companyFault.description'),
-      color: 'bg-red-50 text-red-700 border-red-200'
-    }
   ];
 
   return (
@@ -625,14 +652,14 @@ const ResolveComplaintModal = ({
         <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-green-50/50 to-blue-50/50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('admin.complaintManagement.resolveModal.title')}</h2>
-              <p className="text-sm text-gray-500 mt-1">{t('admin.complaintManagement.resolveModal.complaintId', { id: complaint.complaintId })}</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t('admin.resolveTicketManagement.resolveModal.title')}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t('admin.resolveTicketManagement.resolveModal.ticketId', { id: ticket.ticketId })}</p>
             </div>
             <button
               onClick={onClose}
               disabled={isResolving}
               className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200 disabled:opacity-50"
-              title={t('admin.complaintManagement.resolveModal.close')}
+              title="Close"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -642,14 +669,14 @@ const ResolveComplaintModal = ({
         {/* Content */}
         <div className="px-6 py-6 overflow-y-auto flex-1">
           <div className="space-y-6">
-            {/* Complaint Message Preview */}
+            {/* Ticket Preview */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.complaintManagement.resolveModal.complaintMessage')}
+                {t('admin.resolveTicketManagement.resolveModal.ticketSubject')}
               </label>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
-                <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed line-clamp-4">
-                  {complaint.message || 'N/A'}
+                <p className="text-sm text-gray-800 leading-relaxed line-clamp-4">
+                  {ticket.subject || 'N/A'}
                 </p>
               </div>
             </div>
@@ -657,7 +684,7 @@ const ResolveComplaintModal = ({
             {/* Resolution Type Selection */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                {t('admin.complaintManagement.resolveModal.resolutionType')} <span className="text-red-500">{t('admin.complaintManagement.resolveModal.required')}</span>
+                {t('admin.resolveTicketManagement.resolveModal.resolutionType')} <span className="text-red-500">{t('admin.resolveTicketManagement.resolveModal.required')}</span>
               </label>
               <div className="space-y-2">
                 {resolutionOptions.map((option) => (
@@ -690,13 +717,13 @@ const ResolveComplaintModal = ({
             {/* Note Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.complaintManagement.resolveModal.note')}
+                {t('admin.resolveTicketManagement.resolveModal.note')}
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={4}
-                placeholder={t('admin.complaintManagement.resolveModal.notePlaceholder')}
+                placeholder={t('admin.resolveTicketManagement.resolveModal.notePlaceholder')}
                 disabled={isResolving}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-60 disabled:cursor-not-allowed"
               />
@@ -712,7 +739,7 @@ const ResolveComplaintModal = ({
               disabled={isResolving}
               className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition-all duration-200 disabled:opacity-50"
             >
-              {t('admin.complaintManagement.resolveModal.cancel')}
+              {t('admin.resolveTicketManagement.resolveModal.cancel')}
             </button>
             <button
               onClick={onResolve}
@@ -722,10 +749,10 @@ const ResolveComplaintModal = ({
               {isResolving ? (
                 <>
                   <ClockIcon className="h-4 w-4 animate-spin" />
-                  {t('admin.complaintManagement.resolveModal.resolving')}
+                  {t('admin.resolveTicketManagement.resolveModal.resolving')}
                 </>
               ) : (
-                t('admin.complaintManagement.resolveModal.confirm')
+                t('admin.resolveTicketManagement.resolveModal.confirm')
               )}
             </button>
           </div>
@@ -735,5 +762,4 @@ const ResolveComplaintModal = ({
   );
 };
 
-export default ComplaintManagement;
-
+export default ResolveTicketManagement;

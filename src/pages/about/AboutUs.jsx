@@ -180,12 +180,12 @@ const AboutUs = () => {
   ];
 
   const integrationBadges = [
-    'Kakao Business API',
-    'Naver / Google Calendar',
-    'VNPay & Toss Payments',
-    'Zalo OA',
-    'AirTable Sync',
-    'GSAP Micro Animations'
+    t('about.integrations.badge0', { defaultValue: 'Kakao Business API' }),
+    t('about.integrations.badge1', { defaultValue: 'Naver / Google Calendar' }),
+    t('about.integrations.badge2', { defaultValue: 'VNPay & Toss Payments' }),
+    t('about.integrations.badge3', { defaultValue: 'Zalo OA' }),
+    t('about.integrations.badge4', { defaultValue: 'AirTable Sync' }),
+    t('about.integrations.badge5', { defaultValue: 'GSAP Micro Animations' })
   ];
 
   useEffect(() => {
@@ -391,33 +391,33 @@ const AboutUs = () => {
                         <SparklesIcon className="w-8 h-8 text-[#9a8cff]" />
                       </div>
                       <div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-gray-500">Control Hub</p>
-                        <p className="text-2xl font-semibold text-gray-900">Booking + Ops Cloud</p>
+                        <p className="text-sm uppercase tracking-[0.3em] text-gray-500">{t('about.heroCard.controlHub', { defaultValue: 'Control Hub' })}</p>
+                        <p className="text-2xl font-semibold text-gray-900">{t('about.heroCard.bookingOpsCloud', { defaultValue: 'Booking + Ops Cloud' })}</p>
                       </div>
                     </div>
                     <div className="rounded-[24px] border border-white/80 bg-white/60 p-5 space-y-4 transition-transform duration-300 hover:scale-[1.02]">
-                      <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Realtime routing</p>
+                      <p className="text-xs uppercase tracking-[0.25em] text-gray-500">{t('about.heroCard.realtimeRouting', { defaultValue: 'Realtime routing' })}</p>
                       <div className="flex items-center justify-between text-gray-900">
-                        <span className="text-3xl font-semibold">Seoul</span>
+                        <span className="text-3xl font-semibold">{t('about.heroCard.seoul', { defaultValue: 'Seoul' })}</span>
                         <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent" />
-                        <span className="text-3xl font-semibold">Đà Nẵng</span>
+                        <span className="text-3xl font-semibold">{t('about.heroCard.daNang', { defaultValue: 'Đà Nẵng' })}</span>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                       <div className="rounded-[22px] bg-white/70 p-4 transition-transform duration-300 hover:scale-[1.02]">
-                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Automation</p>
-                        <p className="text-lg font-semibold text-gray-900">92% tasks</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">{t('about.heroCard.automation', { defaultValue: 'Automation' })}</p>
+                        <p className="text-lg font-semibold text-gray-900">{t('about.heroCard.automationValue', { defaultValue: '92% tasks' })}</p>
                       </div>
                       <div className="rounded-[22px] bg-white/70 p-4 transition-transform duration-300 hover:scale-[1.02]">
-                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Coverage</p>
-                        <p className="text-lg font-semibold text-gray-900">KOR ↔︎ VN</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">{t('about.heroCard.coverage', { defaultValue: 'Coverage' })}</p>
+                        <p className="text-lg font-semibold text-gray-900">{t('about.heroCard.coverageValue', { defaultValue: 'KOR ↔︎ VN' })}</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="absolute -top-6 -right-6 rounded-[24px] bg-white px-4 py-3 shadow-xl border border-white/70 transition-transform duration-300 hover:-translate-y-0.5 hover:scale-105">
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Live</p>
-                  <p className="text-lg font-semibold text-gray-900">Ops radar v3.1</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">{t('about.heroCard.live', { defaultValue: 'Live' })}</p>
+                  <p className="text-lg font-semibold text-gray-900">{t('about.heroCard.opsRadar', { defaultValue: 'Ops radar v3.1' })}</p>
                 </div>
               </div>
             </div>
@@ -429,7 +429,7 @@ const AboutUs = () => {
           <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8">
             <div className="rounded-[32px] bg-white/90 border border-white/70 shadow-[0_25px_90px_rgba(154,168,199,0.25)] p-8 space-y-6 transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.01]">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Live control</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-gray-500">{t('about.control.liveControl', { defaultValue: 'Live control' })}</p>
                 <h3 className="text-3xl font-semibold text-gray-900">
                   {t('about.control.korvn', { defaultValue: 'Korean × Đà Nẵng workforce' })}
                 </h3>
@@ -451,7 +451,7 @@ const AboutUs = () => {
 
             <div className="rounded-[32px] bg-white/90 border border-white/70 shadow-[0_25px_90px_rgba(154,168,199,0.25)] p-8 space-y-6 transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.01]">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Automation pulse</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-gray-500">{t('about.control.automationPulse', { defaultValue: 'Automation pulse' })}</p>
                 <h3 className="text-3xl font-semibold text-gray-900">
                   {t('about.control.monitor', { defaultValue: 'Trạng thái điều hành realtime' })}
                 </h3>

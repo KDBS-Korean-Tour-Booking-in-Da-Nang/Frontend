@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useChat } from '../../../contexts/ChatContext';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -20,10 +22,12 @@ import { useNotifications } from '../../../contexts/NotificationContext';
  
 
 const NavbarCompany = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, getToken } = useAuth();
   const { unreadCount, fetchList, fetchUnreadCount } = useNotifications();
   const fetchListRef = useRef(fetchList);
   useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
+  const [balance, setBalance] = useState(null);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
   // Fetch unread count on mount and when user changes
   useEffect(() => {
@@ -31,6 +35,59 @@ const NavbarCompany = () => {
       fetchUnreadCount();
     }
   }, [user?.email, fetchUnreadCount]);
+
+  // Fetch balance from API
+  useEffect(() => {
+    const loadBalance = async () => {
+      if (!user || user.role !== 'COMPANY') {
+        setBalance(null);
+        return;
+      }
+
+      // First try to use balance from user object if available
+      if (user.balance !== undefined && user.balance !== null) {
+        setBalance(user.balance);
+        return;
+      }
+
+      // If not in user object, fetch from API
+      setIsLoadingBalance(true);
+      try {
+        const token = getToken();
+        const response = await fetch(API_ENDPOINTS.GET_USER(user.email), {
+          headers: createAuthHeaders(token)
+        });
+
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+
+        if (response.ok) {
+          const userData = await response.json();
+          setBalance(userData.balance || 0);
+        }
+      } catch (error) {
+        console.error('Error loading balance:', error);
+        setBalance(0);
+      } finally {
+        setIsLoadingBalance(false);
+      }
+    };
+
+    loadBalance();
+  }, [user?.email, user?.balance, getToken]);
+
+  // Format balance with proper decimal places (precision 15, scale 2)
+  const formatBalance = (bal) => {
+    if (bal === null || bal === undefined) return '0.00';
+    const num = typeof bal === 'string' ? parseFloat(bal) : bal;
+    if (isNaN(num)) return '0.00';
+    return new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  };
   
   // Add error boundary for chat context
   let chatState, chatActions;
@@ -264,8 +321,10 @@ const NavbarCompany = () => {
                 {/* Balance - Always show for COMPANY users */}
                 {user.role === 'COMPANY' && (
                   <div className={styles['balance-container']}>
-                    <span className={styles['balance-amount']}>10.000</span>
-                    <button className={styles['balance-add']}>
+                    <span className={styles['balance-amount']}>
+                      {isLoadingBalance ? '...' : formatBalance(balance)}
+                    </span>
+                    <button className={styles['balance-add']} title="Add balance">
                       <PlusIcon />
                     </button>
                   </div>

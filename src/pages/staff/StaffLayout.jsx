@@ -33,14 +33,21 @@ const StaffLayout = ({ children }) => {
   const isAdmin = user?.role === 'ADMIN';
   const taskMenuItems = useMemo(() => {
     const items = [];
-    if (user?.staffTask === 'FORUM_REPORT' || isAdmin) {
-      items.push({
-        id: 'forum-reports',
-        label: 'Forum Report Management',
-        color: 'bg-blue-500'
-      });
+    if (user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || isAdmin) {
+      items.push(
+        {
+          id: 'forum-reports',
+          label: 'Forum Report Management',
+          color: 'bg-blue-500'
+        },
+        {
+          id: 'booking-complaint',
+          label: 'Booking Complaint',
+          color: 'bg-red-500'
+        }
+      );
     }
-    if (user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || isAdmin) {
+    if (user?.staffTask === 'COMPANY_REQUEST_AND_RESOLVE_TICKET' || isAdmin) {
       items.push(
         {
           id: 'company-management',
@@ -48,18 +55,25 @@ const StaffLayout = ({ children }) => {
           color: 'bg-amber-500'
         },
         {
+          id: 'resolve-ticket',
+          label: 'Resolve Ticket',
+          color: 'bg-purple-500'
+        }
+      );
+    }
+    if (user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || isAdmin) {
+      items.push(
+        {
+          id: 'tour-approval',
+          label: 'Tour Approval',
+          color: 'bg-emerald-500'
+        },
+        {
           id: 'article-management',
           label: 'Article Management',
           color: 'bg-indigo-500'
         }
       );
-    }
-    if (user?.staffTask === 'APPROVE_TOUR_BOOKING' || isAdmin) {
-      items.push({
-        id: 'tour-approval',
-        label: 'Tour Approval',
-        color: 'bg-emerald-500'
-      });
     }
     return items;
   }, [user?.staffTask, isAdmin]);

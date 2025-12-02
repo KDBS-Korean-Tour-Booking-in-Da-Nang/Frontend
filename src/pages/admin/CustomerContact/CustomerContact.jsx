@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../../../contexts/ChatContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getAvatarUrl } from '../../../config/api';
@@ -15,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const CustomerContact = () => {
+  const { t, i18n } = useTranslation();
   const { state, actions } = useChat();
   const { user: authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -128,7 +130,8 @@ const CustomerContact = () => {
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('vi-VN', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return date.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -137,10 +140,11 @@ const CustomerContact = () => {
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('vi-VN', {
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    return date.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit'
-    }) + ' ' + date.toLocaleDateString('vi-VN', {
+    }) + ' ' + date.toLocaleDateString(locale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -215,14 +219,14 @@ const CustomerContact = () => {
         {/* Header - Fixed height */}
         <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Chat Box</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('admin.customerContact.chatBox')}</h2>
             {/* WebSocket Connection Status */}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${
                 state.isConnected ? 'bg-green-500' : 'bg-red-500'
               }`}></div>
               <span className="text-xs text-gray-500">
-                {state.isConnected ? 'Đang kết nối' : 'Mất kết nối'}
+                {state.isConnected ? t('admin.customerContact.connected') : t('admin.customerContact.disconnected')}
               </span>
             </div>
           </div>
@@ -236,7 +240,7 @@ const CustomerContact = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm kiếm..."
+              placeholder={t('admin.customerContact.searchPlaceholder')}
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -247,14 +251,14 @@ const CustomerContact = () => {
           {state.loadingUsers && mergedUserList.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mb-2"></div>
-              <p className="text-sm">Đang tải danh sách...</p>
+              <p className="text-sm">{t('admin.customerContact.loadingUsers')}</p>
             </div>
           ) : mergedUserList.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
-              <p className="text-sm">Không có người dùng nào</p>
+              <p className="text-sm">{t('admin.customerContact.noUsers')}</p>
               {state.error && (
                 <p className="text-xs text-red-500 mt-2">
-                  Lỗi tải danh sách. Chat vẫn hoạt động bình thường.
+                  {t('admin.customerContact.loadError')}
                 </p>
               )}
             </div>
@@ -303,7 +307,7 @@ const CustomerContact = () => {
                         // Determine if message is from current user
                         const lastMessageSender = lastMessage.senderName || lastMessage.sender?.userName || lastMessage.sender?.username || '';
                         const isFromMe = lastMessage.isOwn || (lastMessageSender.toLowerCase() === currentLoginName);
-                        const prefix = isFromMe ? 'Bạn: ' : 'Tôi: ';
+                        const prefix = isFromMe ? t('admin.customerContact.you') : t('admin.customerContact.me');
                         return (
                           <p className="text-sm text-gray-500 truncate line-clamp-1">
                             {prefix}{lastMessage.content}
@@ -341,7 +345,7 @@ const CustomerContact = () => {
                 />
                 <div>
                   <p className="font-semibold text-gray-900">{activeUserName}</p>
-                  <p className="text-sm text-gray-500">Last seen a few minutes ago</p>
+                  <p className="text-sm text-gray-500">{t('admin.customerContact.lastSeen')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -368,7 +372,7 @@ const CustomerContact = () => {
                 </div>
               ) : state.messages.length === 0 ? (
                 <div className="flex justify-center items-center h-full text-gray-500">
-                  <p>Chưa có tin nhắn nào. Bắt đầu cuộc trò chuyện!</p>
+                  <p>{t('admin.customerContact.noMessages')}</p>
                 </div>
               ) : (
                  <div className="px-4 py-4">
@@ -469,7 +473,7 @@ const CustomerContact = () => {
                                    {/* Sent status only for last sent message */}
                                    {isLastOwnMessage && (
                                      <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                                       Sent <span className="text-gray-400">↓</span>
+                                       {t('admin.customerContact.sent')} <span className="text-gray-400">↓</span>
                                      </p>
                                    )}
                                  </div>
@@ -494,7 +498,7 @@ const CustomerContact = () => {
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Nhập tin nhắn..."
+                  placeholder={t('admin.customerContact.messagePlaceholder')}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -520,7 +524,7 @@ const CustomerContact = () => {
           <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center text-gray-500">
               <ChatBubbleLeftRightIcon className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg">Chọn một người dùng để bắt đầu trò chuyện</p>
+              <p className="text-lg">{t('admin.customerContact.selectUser')}</p>
             </div>
           </div>
         )}

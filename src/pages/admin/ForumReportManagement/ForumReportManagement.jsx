@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -15,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ForumReportManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken, user } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -54,7 +56,7 @@ const ForumReportManagement = () => {
           targetId: report.targetId,
           reporterName: report.reporterUsername || 'N/A',
           reporterEmail: '', // Not in summary response
-          reason: report.reasons || 'Không có lý do',
+          reason: report.reasons || t('admin.forumReportManagement.noReason') || 'Không có lý do',
           status: report.status,
           createdAt: report.reportedAt,
           reportCount: report.reportCount || 0
@@ -128,11 +130,11 @@ const ForumReportManagement = () => {
 
   const handleApprove = async (reportId) => {
     if (!user?.email) {
-      alert('Vui lòng đăng nhập để thực hiện thao tác này');
+      alert(t('common.errors.loginRequired'));
       return;
     }
 
-    if (!window.confirm('Bạn có chắc chắn muốn duyệt báo cáo này?')) {
+    if (!window.confirm(t('admin.forumReportManagement.confirmApprove'))) {
       return;
     }
 
@@ -145,7 +147,7 @@ const ForumReportManagement = () => {
         headers: createAuthHeaders(token),
         body: JSON.stringify({
           status: 'RESOLVED',
-          adminNote: 'Báo cáo đã được duyệt và xử lý'
+          adminNote: t('admin.forumReportManagement.approveNote') || 'Báo cáo đã được duyệt và xử lý'
         })
       });
 
@@ -157,24 +159,24 @@ const ForumReportManagement = () => {
       if (response.ok) {
         // Refresh reports and stats
         setRefreshTrigger(prev => prev + 1);
-        alert('Duyệt báo cáo thành công!');
+        alert(t('admin.forumReportManagement.approveSuccess'));
       } else {
         const errorText = await response.text();
-        alert(`Lỗi khi duyệt báo cáo: ${errorText}`);
+        alert(t('admin.forumReportManagement.approveError', { error: errorText }));
       }
     } catch (error) {
       console.error('Error approving report:', error);
-      alert('Đã xảy ra lỗi khi duyệt báo cáo');
+      alert(t('admin.forumReportManagement.loadError'));
     }
   };
 
   const handleReject = async (reportId) => {
     if (!user?.email) {
-      alert('Vui lòng đăng nhập để thực hiện thao tác này');
+      alert(t('common.errors.loginRequired'));
       return;
     }
 
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối báo cáo này?')) {
+    if (!window.confirm(t('admin.forumReportManagement.confirmReject'))) {
       return;
     }
 
@@ -187,7 +189,7 @@ const ForumReportManagement = () => {
         headers: createAuthHeaders(token),
         body: JSON.stringify({
           status: 'DISMISSED',
-          adminNote: 'Báo cáo đã bị từ chối'
+          adminNote: t('admin.forumReportManagement.rejectNote') || 'Báo cáo đã bị từ chối'
         })
       });
 
@@ -199,14 +201,14 @@ const ForumReportManagement = () => {
       if (response.ok) {
         // Refresh reports and stats
         setRefreshTrigger(prev => prev + 1);
-        alert('Từ chối báo cáo thành công!');
+        alert(t('admin.forumReportManagement.rejectSuccess'));
       } else {
         const errorText = await response.text();
-        alert(`Lỗi khi từ chối báo cáo: ${errorText}`);
+        alert(t('admin.forumReportManagement.rejectError', { error: errorText }));
       }
     } catch (error) {
       console.error('Error rejecting report:', error);
-      alert('Đã xảy ra lỗi khi từ chối báo cáo');
+      alert(t('admin.forumReportManagement.loadError'));
     }
   };
 
@@ -233,7 +235,7 @@ const ForumReportManagement = () => {
           reporterEmail: fullReport.reporterEmail || '',
           reason: Array.isArray(fullReport.reasons) 
             ? fullReport.reasons.join(', ') 
-            : (fullReport.reasons || 'Không có lý do'),
+            : (fullReport.reasons || t('admin.forumReportManagement.noReason') || 'Không có lý do'),
           status: fullReport.status,
           createdAt: fullReport.reportedAt,
           resolvedAt: fullReport.resolvedAt,
@@ -247,11 +249,11 @@ const ForumReportManagement = () => {
         setIsDetailModalOpen(true);
       } else {
         const errorText = await response.text();
-        alert(`Lỗi khi tải chi tiết báo cáo: ${errorText}`);
+        alert(t('admin.forumReportManagement.detailError', { error: errorText }));
       }
     } catch (error) {
       console.error('Error fetching report details:', error);
-      alert('Đã xảy ra lỗi khi tải chi tiết báo cáo');
+      alert(t('admin.forumReportManagement.detailLoadError'));
     }
   };
 
@@ -260,7 +262,7 @@ const ForumReportManagement = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách báo cáo...</p>
+          <p className="mt-4 text-gray-600">{t('admin.forumReportManagement.loading')}</p>
         </div>
       </div>
     );
@@ -270,29 +272,29 @@ const ForumReportManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Forum Report Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý báo cáo từ forum</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.forumReportManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.forumReportManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Xem xét và duyệt các báo cáo từ người dùng về nội dung vi phạm trên forum.
+            {t('admin.forumReportManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.forumReportManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.forumReportManagement.exportReport')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={ExclamationTriangleIcon} label="Tổng báo cáo" value={stats.total} trend="" />
-        <StatCard icon={ClockIcon} label="Chờ duyệt" value={stats.pending} trend="Cần xử lý" color="text-amber-500" />
-        <StatCard icon={CheckCircleIcon} label="Đã xử lý" value={stats.resolved} trend="" color="text-green-600" />
-        <StatCard icon={XCircleIcon} label="Đã từ chối" value={stats.dismissed} trend="" color="text-red-600" />
+        <StatCard icon={ExclamationTriangleIcon} label={t('admin.forumReportManagement.stats.total')} value={stats.total} trend="" />
+        <StatCard icon={ClockIcon} label={t('admin.forumReportManagement.stats.pending')} value={stats.pending} trend={t('admin.forumReportManagement.stats.pendingDesc')} color="text-amber-500" />
+        <StatCard icon={CheckCircleIcon} label={t('admin.forumReportManagement.stats.resolved')} value={stats.resolved} trend="" color="text-green-600" />
+        <StatCard icon={XCircleIcon} label={t('admin.forumReportManagement.stats.dismissed')} value={stats.dismissed} trend="" color="text-red-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -303,7 +305,7 @@ const ForumReportManagement = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo mã báo cáo, người báo cáo, tiêu đề bài viết..."
+              placeholder={t('admin.forumReportManagement.searchPlaceholder')}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -313,24 +315,24 @@ const ForumReportManagement = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ duyệt</option>
-              <option value="INVESTIGATING">Đang điều tra</option>
-              <option value="RESOLVED">Đã xử lý</option>
-              <option value="DISMISSED">Bỏ qua</option>
-              <option value="CLOSED">Đóng</option>
+              <option value="ALL">{t('admin.forumReportManagement.statusFilter.all')}</option>
+              <option value="PENDING">{t('admin.forumReportManagement.statusFilter.pending')}</option>
+              <option value="INVESTIGATING">{t('admin.forumReportManagement.statusFilter.investigating')}</option>
+              <option value="RESOLVED">{t('admin.forumReportManagement.statusFilter.resolved')}</option>
+              <option value="DISMISSED">{t('admin.forumReportManagement.statusFilter.dismissed')}</option>
+              <option value="CLOSED">{t('admin.forumReportManagement.statusFilter.closed')}</option>
             </select>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả loại</option>
-              <option value="SPAM">Spam</option>
-              <option value="INAPPROPRIATE">Nội dung không phù hợp</option>
-              <option value="HARASSMENT">Quấy rối</option>
-              <option value="COPYRIGHT">Vi phạm bản quyền</option>
-              <option value="OTHER">Khác</option>
+              <option value="ALL">{t('admin.forumReportManagement.typeFilter.all')}</option>
+              <option value="SPAM">{t('admin.forumReportManagement.typeFilter.spam')}</option>
+              <option value="INAPPROPRIATE">{t('admin.forumReportManagement.typeFilter.inappropriate')}</option>
+              <option value="HARASSMENT">{t('admin.forumReportManagement.typeFilter.harassment')}</option>
+              <option value="COPYRIGHT">{t('admin.forumReportManagement.typeFilter.copyright')}</option>
+              <option value="OTHER">{t('admin.forumReportManagement.typeFilter.other')}</option>
             </select>
           </div>
         </div>
@@ -339,7 +341,7 @@ const ForumReportManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['STT', 'Báo cáo', 'Người báo cáo', 'Loại vi phạm', 'Trạng thái', 'Ngày báo cáo', 'Thao tác'].map((header) => (
+                {[t('admin.forumReportManagement.tableHeaders.stt'), t('admin.forumReportManagement.tableHeaders.report'), t('admin.forumReportManagement.tableHeaders.reporter'), t('admin.forumReportManagement.tableHeaders.violationType'), t('admin.forumReportManagement.tableHeaders.status'), t('admin.forumReportManagement.tableHeaders.reportDate'), t('admin.forumReportManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -350,7 +352,7 @@ const ForumReportManagement = () => {
               {filteredReports.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? 'Đang tải...' : 'Không tìm thấy báo cáo phù hợp với bộ lọc hiện tại.'}
+                    {loading ? t('admin.forumReportManagement.loading') : t('admin.forumReportManagement.noResults')}
                   </td>
                 </tr>
               ) : (
@@ -365,7 +367,7 @@ const ForumReportManagement = () => {
                           ? 'bg-blue-100 text-blue-700' 
                           : 'bg-purple-100 text-purple-700'
                       }`}>
-                        {report.targetType === 'POST' ? 'Bài viết' : 'Bình luận'}
+                        {report.targetType === 'POST' ? t('admin.forumReportManagement.reportTypes.post') : t('admin.forumReportManagement.reportTypes.comment')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -378,14 +380,14 @@ const ForumReportManagement = () => {
                       <StatusBadge status={report.status} />
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {report.createdAt ? new Date(report.createdAt).toLocaleString('vi-VN') : 'N/A'}
+                      {report.createdAt ? new Date(report.createdAt).toLocaleString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => handleViewDetails(report.reportId)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                          title="Xem chi tiết"
+                          title={t('admin.forumReportManagement.actions.viewDetails')}
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
@@ -394,14 +396,14 @@ const ForumReportManagement = () => {
                             <button 
                               onClick={() => handleApprove(report.reportId)}
                               className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition" 
-                              title="Duyệt báo cáo"
+                              title={t('admin.forumReportManagement.actions.approve')}
                             >
                               <CheckCircleIcon className="h-4 w-4" />
                             </button>
                             <button 
                               onClick={() => handleReject(report.reportId)}
                               className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                              title="Từ chối báo cáo"
+                              title={t('admin.forumReportManagement.actions.reject')}
                             >
                               <XCircleIcon className="h-4 w-4" />
                             </button>
@@ -420,7 +422,7 @@ const ForumReportManagement = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <div className="text-sm text-gray-600">
-              Trang {currentPage + 1} / {totalPages}
+              {t('admin.forumReportManagement.pagination.page', { current: currentPage + 1, total: totalPages })}
             </div>
             <div className="flex gap-2">
               <button
@@ -428,14 +430,14 @@ const ForumReportManagement = () => {
                 disabled={currentPage === 0}
                 className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                Trước
+                {t('admin.forumReportManagement.pagination.previous')}
               </button>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                 disabled={currentPage >= totalPages - 1}
                 className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                Sau
+                {t('admin.forumReportManagement.pagination.next')}
               </button>
       </div>
           </div>
@@ -475,12 +477,13 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 );
 
 const StatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const statusMap = {
-    'PENDING': { color: 'bg-amber-100 text-amber-700', label: 'Chờ duyệt' },
-    'INVESTIGATING': { color: 'bg-blue-100 text-blue-700', label: 'Đang điều tra' },
-    'RESOLVED': { color: 'bg-green-100 text-green-700', label: 'Đã xử lý' },
-    'DISMISSED': { color: 'bg-red-100 text-red-700', label: 'Bỏ qua' },
-    'CLOSED': { color: 'bg-gray-100 text-gray-700', label: 'Đóng' }
+    'PENDING': { color: 'bg-amber-100 text-amber-700', label: t('admin.forumReportManagement.status.pending') },
+    'INVESTIGATING': { color: 'bg-blue-100 text-blue-700', label: t('admin.forumReportManagement.status.investigating') },
+    'RESOLVED': { color: 'bg-green-100 text-green-700', label: t('admin.forumReportManagement.status.resolved') },
+    'DISMISSED': { color: 'bg-red-100 text-red-700', label: t('admin.forumReportManagement.status.dismissed') },
+    'CLOSED': { color: 'bg-gray-100 text-gray-700', label: t('admin.forumReportManagement.status.closed') }
   };
   
   const map = statusMap[status] || { color: 'bg-gray-100 text-gray-500', label: status || 'N/A' };
@@ -493,6 +496,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const TypeBadge = ({ reasons }) => {
+  const { t } = useTranslation();
   if (!reasons) {
     return (
       <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
@@ -504,14 +508,14 @@ const TypeBadge = ({ reasons }) => {
   // Reasons is a string (joined from Set), try to find the first matching type
   const reasonsUpper = reasons.toUpperCase();
   const typeMap = {
-    'SPAM': { color: 'bg-purple-100 text-purple-700', label: 'Spam' },
-    'INAPPROPRIATE': { color: 'bg-orange-100 text-orange-700', label: 'Không phù hợp' },
-    'HARASSMENT': { color: 'bg-red-100 text-red-700', label: 'Quấy rối' },
-    'COPYRIGHT': { color: 'bg-blue-100 text-blue-700', label: 'Bản quyền' },
-    'VIOLENCE': { color: 'bg-red-100 text-red-700', label: 'Bạo lực' },
-    'HATE_SPEECH': { color: 'bg-red-100 text-red-700', label: 'Ngôn từ thù địch' },
-    'FALSE_INFO': { color: 'bg-yellow-100 text-yellow-700', label: 'Thông tin sai' },
-    'OTHER': { color: 'bg-gray-100 text-gray-700', label: 'Khác' }
+    'SPAM': { color: 'bg-purple-100 text-purple-700', label: t('admin.forumReportManagement.violationTypes.spam') },
+    'INAPPROPRIATE': { color: 'bg-orange-100 text-orange-700', label: t('admin.forumReportManagement.violationTypes.inappropriate') },
+    'HARASSMENT': { color: 'bg-red-100 text-red-700', label: t('admin.forumReportManagement.violationTypes.harassment') },
+    'COPYRIGHT': { color: 'bg-blue-100 text-blue-700', label: t('admin.forumReportManagement.violationTypes.copyright') },
+    'VIOLENCE': { color: 'bg-red-100 text-red-700', label: t('admin.forumReportManagement.violationTypes.violence') },
+    'HATE_SPEECH': { color: 'bg-red-100 text-red-700', label: t('admin.forumReportManagement.violationTypes.hateSpeech') },
+    'FALSE_INFO': { color: 'bg-yellow-100 text-yellow-700', label: t('admin.forumReportManagement.violationTypes.falseInfo') },
+    'OTHER': { color: 'bg-gray-100 text-gray-700', label: t('admin.forumReportManagement.violationTypes.other') }
   };
   
   // Find first matching type

@@ -67,6 +67,10 @@
     "status": {
       "WAITING_FOR_APPROVAL": "Chờ Duyệt",
       "COMPANY_PENDING": "Đang chờ"
+    },
+    "errors": {
+      "loginRequired": "Vui lòng đăng nhập lại",
+      "sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
     }
   },
   "auth": {
@@ -432,6 +436,1003 @@
       "cancel": "Hủy",
       "save": "Lưu",
       "update": "Cập nhật"
+    },
+    "adminDashboard": {
+      "accessDenied": "Truy cập bị từ chối",
+      "accessDeniedMessage": "Bạn không có quyền truy cập trang quản trị. Chỉ quản trị viên mới có thể xem trang này.",
+      "goToHomepage": "Về trang chủ",
+      "adminLogin": "Đăng nhập Admin",
+      "loading": "Đang tải..."
+    },
+    "adminLayout": {
+      "menu": "MENU",
+      "contact": "LIÊN HỆ",
+      "customerContact": "Liên hệ khách hàng",
+      "menuItems": {
+        "dashboard": "Dashboard",
+        "customerManagement": "Quản lý khách hàng",
+        "companyManagement": "Quản lý công ty",
+        "staffManagement": "Quản lý nhân viên",
+        "forumReportManagement": "Quản lý báo cáo diễn đàn",
+        "complaintManagement": "Quản lý khiếu nại",
+        "resolveTicketManagement": "Quản lý giải quyết ticket",
+        "newsManagement": "Quản lý tin tức",
+        "tourManagement": "Quản lý tour",
+        "transactionManagement": "Quản lý giao dịch"
+      },
+      "search": "Tìm kiếm",
+      "searchPlaceholder": "Tìm kiếm...",
+      "profile": "Hồ sơ",
+      "accountSettings": "Cài đặt tài khoản",
+      "support": "Hỗ trợ",
+      "signOut": "Đăng xuất",
+      "adminUser": "Người dùng Admin"
+    },
+    "companyManagement": {
+      "title": "Xét duyệt đăng ký công ty",
+      "subtitle": "Quản lý và xét duyệt các yêu cầu đăng ký tài khoản công ty du lịch.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "stats": {
+        "totalCompanies": "Tổng công ty",
+        "totalCompaniesDesc": "Đã đăng ký",
+        "pending": "Chờ duyệt",
+        "pendingDesc": "Cần xử lý",
+        "approved": "Đã duyệt",
+        "approvedDesc": "Hoạt động",
+        "rejected": "Đã từ chối",
+        "rejectedDesc": "Không hoạt động"
+      },
+      "searchPlaceholder": "Tìm theo tên, email hoặc mã công ty...",
+      "statusFilter": {
+        "all": "Tất cả trạng thái",
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Đã từ chối"
+      },
+      "tableHeaders": {
+        "company": "Công ty",
+        "status": "Trạng thái",
+        "registrationDate": "Ngày đăng ký",
+        "actions": "Thao tác"
+      },
+      "status": {
+        "pending": "Chờ duyệt",
+        "notUpdated": "Chưa cập nhật",
+        "approved": "Đã duyệt",
+        "rejected": "Đã từ chối"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "approve": "Phê duyệt",
+        "reject": "Từ chối"
+      },
+      "loading": "Đang tải danh sách công ty...",
+      "error": "Không thể tải danh sách công ty. Vui lòng thử lại.",
+      "retry": "Thử lại",
+      "noResults": "Không tìm thấy công ty phù hợp với bộ lọc hiện tại.",
+      "confirmApprove": "Bạn có chắc chắn muốn phê duyệt công ty \"{{name}}\"?",
+      "confirmReject": "Bạn có chắc chắn muốn từ chối công ty \"{{name}}\"?",
+      "approveSuccess": "Phê duyệt công ty thành công!",
+      "rejectSuccess": "Từ chối công ty thành công!",
+      "approveError": "Không thể phê duyệt công ty. Vui lòng thử lại.",
+      "rejectError": "Không thể từ chối công ty. Vui lòng thử lại.",
+      "modal": {
+        "title": "Chi tiết công ty",
+        "close": "Đóng",
+        "loadingFiles": "Đang tải thông tin file...",
+        "noFiles": "Không tìm thấy thông tin file upload",
+        "noFilesDesc": "Công ty này có thể chưa upload files hoặc có vấn đề với dữ liệu.",
+        "businessLicense": "Giấy phép kinh doanh",
+        "businessLicenseDesc": "File PDF",
+        "openInNewTab": "Mở trong tab mới",
+        "noFile": "Không có file",
+        "idCardFront": "CCCD mặt trước",
+        "idCardFrontDesc": "Ảnh chụp",
+        "idCardBack": "CCCD mặt sau",
+        "idCardBackDesc": "Ảnh chụp",
+        "noImage": "Không có ảnh",
+        "imageLoadError": "Không thể tải ảnh"
+      }
+    },
+    "complaintManagement": {
+      "title": "Manage booking complaints",
+      "subtitle": "View all complaints and manage resolution status for admin processing.",
+      "stats": {
+        "total": "Total complaints",
+        "resolved": "Resolved",
+        "pending": "Pending"
+      },
+      "search": {
+        "all": "Search all",
+        "byComplaintId": "Search by Complaint ID",
+        "placeholderAll": "Search in messages...",
+        "placeholderId": "Enter complaint ID...",
+        "filterByStatus": "Filter by status:",
+        "all": "All",
+        "pending": "Pending",
+        "resolved": "Resolved"
+      },
+      "refresh": "Refresh",
+      "loading": "Loading...",
+      "searchById": "Search by ID",
+      "tableHeaders": {
+        "id": "ID",
+        "message": "Message",
+        "createdAt": "Created at",
+        "resolution": "Resolution",
+        "resolvedAt": "Resolved at",
+        "action": "Action"
+      },
+      "status": {
+        "pending": "Pending",
+        "companyFault": "Company fault",
+        "userFault": "User fault",
+        "noFault": "No fault",
+        "resolved": "Resolved"
+      },
+      "actions": {
+        "viewDetails": "View details",
+        "resolve": "Resolve complaint"
+      },
+      "noComplaints": "No complaints found.",
+      "noMatch": "No complaints match your search criteria.",
+      "loadingComplaints": "Loading complaints...",
+      "showing": "Showing {{count}} of {{filtered}} filtered complaints ({{total}} total)",
+      "modal": {
+        "title": "Complaint Details",
+        "complaintId": "Complaint ID: #{{id}}",
+        "close": "Close",
+        "message": "Message",
+        "status": "Status",
+        "createdAt": "Created At",
+        "resolvedAt": "Resolved At"
+      },
+      "resolveModal": {
+        "title": "Resolve Complaint",
+        "complaintId": "Complaint ID: #{{id}}",
+        "close": "Close",
+        "complaintMessage": "Complaint Message",
+        "resolutionType": "Resolution Type",
+        "required": "*",
+        "resolutionOptions": {
+          "noFault": {
+            "label": "No Fault",
+            "description": "Neither party is at fault. Booking status will change to SUCCESS."
+          },
+          "userFault": {
+            "label": "User Fault",
+            "description": "User is at fault. Booking status will change to SUCCESS."
+          },
+          "companyFault": {
+            "label": "Company Fault",
+            "description": "Company is at fault. Booking status remains UNDER_COMPLAINT."
+          }
+        },
+        "note": "Resolution Note (Optional)",
+        "notePlaceholder": "Add any additional notes or comments about this resolution...",
+        "cancel": "Cancel",
+        "confirm": "Confirm Resolution",
+        "resolving": "Resolving...",
+        "error": "Please select a resolution type.",
+        "noPermission": "You do not have permission to resolve complaints."
+      },
+      "errors": {
+        "enterComplaintId": "Please enter a complaint ID.",
+        "invalidId": "Complaint ID must be a positive number.",
+        "notFound": "Complaint not found.",
+        "loadError": "Failed to load complaints.",
+        "resolveError": "Failed to resolve complaint."
+      }
+    },
+    "customerContact": {
+      "chatBox": "Chat Box",
+      "connected": "Đang kết nối",
+      "disconnected": "Mất kết nối",
+      "searchPlaceholder": "Tìm kiếm...",
+      "loadingUsers": "Đang tải danh sách...",
+      "noUsers": "Không có người dùng nào",
+      "loadError": "Lỗi tải danh sách. Chat vẫn hoạt động bình thường.",
+      "lastSeen": "Last seen a few minutes ago",
+      "noMessages": "Chưa có tin nhắn nào. Bắt đầu cuộc trò chuyện!",
+      "loadingMessages": "Đang tải tin nhắn...",
+      "messagePlaceholder": "Nhập tin nhắn...",
+      "sent": "Sent",
+      "selectUser": "Chọn một người dùng để bắt đầu trò chuyện",
+      "you": "Bạn: ",
+      "me": "Tôi: "
+    },
+    "customerManagement": {
+      "title": "View & nurture your travelers",
+      "subtitle": "Theo dõi khách hàng thân thiết và lịch sử đặt tour để cá nhân hóa ưu đãi.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "stats": {
+        "totalCustomers": "Tổng khách hàng",
+        "totalCustomersTrend": "+12% MoM",
+        "active": "Đang hoạt động",
+        "activeTrend": "+3% MoM",
+        "vip": "Khách VIP",
+        "vipTrend": "+1 VIP tuần này",
+        "lifetimeValue": "Lifetime value",
+        "lifetimeValueTrend": "5.4% YoY"
+      },
+      "searchPlaceholder": "Tìm theo tên, email hoặc mã khách...",
+      "statusFilter": {
+        "all": "Tất cả trạng thái",
+        "active": "Đang hoạt động",
+        "inactive": "Tạm dừng"
+      },
+      "tableHeaders": {
+        "customer": "Khách hàng",
+        "status": "Trạng thái",
+        "accumulated": "Tích lũy",
+        "lastBooking": "Lần đặt gần nhất",
+        "actions": "Thao tác"
+      },
+      "status": {
+        "active": "Đang hoạt động",
+        "inactive": "Tạm dừng"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "banUser": "Ban user",
+        "unbanUser": "Unban user"
+      },
+      "bookings": "bookings",
+      "noBooking": "Chưa có",
+      "loading": "Đang tải danh sách khách hàng...",
+      "error": "Không thể tải danh sách khách hàng. Vui lòng thử lại.",
+      "retry": "Thử lại",
+      "noResults": "Không tìm thấy khách hàng phù hợp với bộ lọc hiện tại."
+    },
+    "banReasonModal": {
+      "title": "Ban người dùng",
+      "description": "Vui lòng chọn lý do ban cho người dùng này. Lý do này sẽ được lưu lại trong hệ thống.",
+      "reasons": {
+        "spam": "Spam hoặc nội dung không phù hợp",
+        "harassment": "Quấy rối hoặc hành vi không đúng mực",
+        "fraud": "Gian lận hoặc lừa đảo",
+        "violation": "Vi phạm điều khoản sử dụng",
+        "inappropriate": "Hành vi không phù hợp",
+        "other": "Khác"
+      },
+      "customReasonLabel": "Nhập lý do ban",
+      "customReasonPlaceholder": "Vui lòng nhập lý do ban chi tiết...",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận ban",
+      "processing": "Đang xử lý...",
+      "errors": {
+        "selectReason": "Vui lòng chọn lý do ban",
+        "enterReason": "Vui lòng nhập lý do ban"
+      }
+    },
+    "customerDetailModal": {
+      "title": "Chi tiết khách hàng",
+      "id": "ID: {{id}}",
+      "close": "Đóng",
+      "status": {
+        "active": "Đang hoạt động",
+        "inactive": "Tạm dừng"
+      },
+      "sections": {
+        "personalInfo": "Thông tin cá nhân",
+        "contactInfo": "Thông tin liên hệ",
+        "accountFinancial": "Thông tin tài khoản & Tài chính",
+        "banReason": "Lý do bị ban",
+        "role": "Vai trò"
+      },
+      "fields": {
+        "dob": "Ngày sinh",
+        "gender": "Giới tính",
+        "cccd": "Số CCCD/CMND",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "city": "Thành phố: {{city}}",
+        "country": "Quốc gia: {{country}}",
+        "balance": "Số dư",
+        "totalOrders": "Tổng đơn hàng",
+        "lastOrder": "Đơn hàng gần nhất",
+        "accountCreated": "Ngày tạo tài khoản"
+      },
+      "gender": {
+        "male": "Nam",
+        "female": "Nữ",
+        "other": "Khác"
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard Quản Trị",
+      "subtitle": "Tổng quan về hệ thống quản lý tour và đặt tour",
+      "stats": {
+        "totalTours": "Tổng số Tour",
+        "totalToursChange": "+12%",
+        "totalBookings": "Tổng số Đặt Tour",
+        "totalBookingsChange": "+8%",
+        "totalRevenue": "Tổng Doanh Thu",
+        "totalRevenueChange": "+15%",
+        "totalUsers": "Tổng số Người Dùng",
+        "totalUsersChange": "+5%",
+        "activeTours": "Tour Đang Hoạt Động",
+        "activeToursChange": "+3%",
+        "pendingBookings": "Đặt Tour Đang Chờ",
+        "pendingBookingsChange": "-2%"
+      },
+      "changeFromLastMonth": "so với tháng trước",
+      "charts": {
+        "bookingTrend": "Xu hướng Đặt Tour",
+        "bookingTrendSubtitle": "6 tháng gần nhất",
+        "tourCategory": "Phân Loại Tour",
+        "tourCategorySubtitle": "Tổng: {{total}} tour",
+        "bookingStatus": "Trạng Thái Đặt Tour",
+        "bookingStatusSubtitle": "Tổng: {{total}} đặt tour"
+      },
+      "bookingStatus": {
+        "completed": "Hoàn thành",
+        "pending": "Đang chờ",
+        "cancelled": "Đã hủy"
+      },
+      "tourCategories": {
+        "domestic": "Trong nước",
+        "international": "Nước ngoài",
+        "day": "Trong ngày"
+      },
+      "worldMap": {
+        "title": "Top Quốc Gia",
+        "subtitle": "Phân bố người dùng theo quốc gia",
+        "timeFilter": {
+          "today": "Hôm nay",
+          "thisWeek": "Tuần này",
+          "thisMonth": "Tháng này"
+        },
+        "users": "Users"
+      },
+      "infoCards": {
+        "completedTours": "Tour Hoàn Thành",
+        "companies": "Doanh Nghiệp",
+        "completionRate": "Tỷ Lệ Hoàn Thành"
+      }
+    },
+    "forumManagement": {
+      "title": "View & moderate community posts",
+      "subtitle": "Quản lý các bài viết và bình luận trong forum, xử lý báo cáo vi phạm.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "reports": "Báo cáo",
+      "hideReports": "Ẩn Báo cáo",
+      "stats": {
+        "totalPosts": "Tổng bài viết",
+        "totalPostsTrend": "+5 tuần này",
+        "active": "Đang hoạt động",
+        "activeTrend": "+3 tuần này",
+        "totalComments": "Tổng bình luận",
+        "totalCommentsTrend": "+12% MoM",
+        "reports": "Báo cáo",
+        "reportsTrend": "Cần xử lý"
+      },
+      "reportFilters": {
+        "all": "Tất cả",
+        "post": "Bài viết",
+        "comment": "Bình luận"
+      },
+      "noReports": "Không có báo cáo nào",
+      "reportLabels": {
+        "post": "Bài viết",
+        "comment": "Bình luận",
+        "reportedBy": "Báo cáo bởi: {{name}}",
+        "noTitle": "Không có tiêu đề"
+      },
+      "searchPlaceholder": "Tìm theo nội dung, tác giả hoặc ID bài viết...",
+      "statusFilter": {
+        "all": "Tất cả trạng thái",
+        "active": "Hoạt động",
+        "inactive": "Tạm khóa"
+      },
+      "sortBy": {
+        "newest": "Mới nhất",
+        "oldest": "Cũ nhất"
+      },
+      "tableHeaders": {
+        "id": "ID",
+        "post": "Bài viết",
+        "author": "Tác giả",
+        "likes": "Lượt thích",
+        "comments": "Bình luận",
+        "date": "Ngày đăng",
+        "actions": "Thao tác"
+      },
+      "noResults": "Không tìm thấy bài viết phù hợp với bộ lọc hiện tại.",
+      "actions": {
+        "viewDetails": "Xem chi tiết"
+      },
+      "pagination": {
+        "previous": "Trước",
+        "next": "Sau",
+        "showing": "Hiển thị trang {{current}} / {{total}} của {{items}} bài viết"
+      },
+      "modal": {
+        "title": "Chi tiết Bài viết",
+        "close": "Đóng",
+        "author": "Tác giả",
+        "images": "Hình ảnh ({{count}})",
+        "content": "Nội dung",
+        "likes": "Lượt thích",
+        "comments": "Bình luận",
+        "viewDetails": "Xem chi tiết"
+      }
+    },
+    "forumReportManagement": {
+      "title": "Quản lý báo cáo từ forum",
+      "subtitle": "Xem xét và duyệt các báo cáo từ người dùng về nội dung vi phạm trên forum.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "stats": {
+        "total": "Tổng báo cáo",
+        "pending": "Chờ duyệt",
+        "pendingDesc": "Cần xử lý",
+        "resolved": "Đã xử lý",
+        "dismissed": "Đã từ chối"
+      },
+      "searchPlaceholder": "Tìm theo mã báo cáo, người báo cáo, tiêu đề bài viết...",
+      "statusFilter": {
+        "all": "Tất cả trạng thái",
+        "pending": "Chờ duyệt",
+        "investigating": "Đang điều tra",
+        "resolved": "Đã xử lý",
+        "dismissed": "Bỏ qua",
+        "closed": "Đóng"
+      },
+      "typeFilter": {
+        "all": "Tất cả loại",
+        "spam": "Spam",
+        "inappropriate": "Nội dung không phù hợp",
+        "harassment": "Quấy rối",
+        "copyright": "Vi phạm bản quyền",
+        "other": "Khác"
+      },
+      "tableHeaders": {
+        "stt": "STT",
+        "report": "Báo cáo",
+        "reporter": "Người báo cáo",
+        "violationType": "Loại vi phạm",
+        "status": "Trạng thái",
+        "reportDate": "Ngày báo cáo",
+        "actions": "Thao tác"
+      },
+      "reportTypes": {
+        "post": "Bài viết",
+        "comment": "Bình luận"
+      },
+      "status": {
+        "pending": "Chờ duyệt",
+        "investigating": "Đang điều tra",
+        "resolved": "Đã xử lý",
+        "dismissed": "Bỏ qua",
+        "closed": "Đóng"
+      },
+      "violationTypes": {
+        "spam": "Spam",
+        "inappropriate": "Không phù hợp",
+        "harassment": "Quấy rối",
+        "copyright": "Bản quyền",
+        "violence": "Bạo lực",
+        "hateSpeech": "Ngôn từ thù địch",
+        "falseInfo": "Thông tin sai",
+        "other": "Khác"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "approve": "Duyệt báo cáo",
+        "reject": "Từ chối báo cáo"
+      },
+      "loading": "Đang tải danh sách báo cáo...",
+      "noResults": "Không tìm thấy báo cáo phù hợp với bộ lọc hiện tại.",
+      "pagination": {
+        "page": "Trang {{current}} / {{total}}",
+        "previous": "Trước",
+        "next": "Sau"
+      },
+      "confirmApprove": "Bạn có chắc chắn muốn duyệt báo cáo này?",
+      "confirmReject": "Bạn có chắc chắn muốn từ chối báo cáo này?",
+      "approveSuccess": "Duyệt báo cáo thành công!",
+      "rejectSuccess": "Từ chối báo cáo thành công!",
+      "approveError": "Lỗi khi duyệt báo cáo: {{error}}",
+      "rejectError": "Lỗi khi từ chối báo cáo: {{error}}",
+      "loadError": "Đã xảy ra lỗi khi duyệt báo cáo",
+      "detailError": "Lỗi khi tải chi tiết báo cáo: {{error}}",
+      "detailLoadError": "Đã xảy ra lỗi khi tải chi tiết báo cáo",
+      "noReason": "Không có lý do",
+      "approveNote": "Báo cáo đã được duyệt và xử lý",
+      "rejectNote": "Báo cáo đã bị từ chối"
+    },
+    "reportDetailModal": {
+      "title": "Chi tiết báo cáo",
+      "id": "ID: #{{id}}",
+      "close": "Đóng",
+      "fields": {
+        "status": "Trạng thái",
+        "contentType": "Loại nội dung",
+        "contentId": "ID: {{id}}",
+        "reporter": "Người báo cáo",
+        "violationType": "Loại vi phạm",
+        "reportDate": "Ngày báo cáo",
+        "resolvedDate": "Ngày xử lý",
+        "contentInfo": "Thông tin nội dung",
+        "title": "Tiêu đề",
+        "author": "Tác giả",
+        "reason": "Lý do báo cáo",
+        "description": "Mô tả chi tiết",
+        "adminNote": "Ghi chú admin",
+        "resolvedBy": "Xử lý bởi"
+      },
+      "actions": {
+        "close": "Đóng",
+        "reject": "Từ chối",
+        "approve": "Duyệt"
+      }
+    },
+    "pagination": {
+      "showing": "Hiển thị {{start}} - {{end}} trong tổng số {{total}}",
+      "firstPage": "Trang đầu",
+      "previous": "Trang trước",
+      "next": "Trang sau",
+      "lastPage": "Trang cuối"
+    },
+    "reportManagement": {
+      "title": "Report Management",
+      "subtitle": "Generate and manage system reports",
+      "generateNew": "Generate New Report",
+      "reportTypes": {
+        "title": "Report Types",
+        "user": "User Reports",
+        "revenue": "Revenue Reports",
+        "company": "Company Reports",
+        "staff": "Staff Reports",
+        "forum": "Forum Reports"
+      },
+      "stats": {
+        "total": "Total Reports",
+        "completed": "Completed",
+        "generating": "Generating",
+        "totalDownloads": "Total Downloads"
+      },
+      "tableHeaders": {
+        "report": "Report",
+        "type": "Type",
+        "period": "Period",
+        "status": "Status",
+        "downloads": "Downloads",
+        "actions": "Actions"
+      },
+      "status": {
+        "completed": "completed",
+        "generating": "generating",
+        "pending": "pending"
+      },
+      "actions": {
+        "viewDetails": "View Details",
+        "download": "Download",
+        "generate": "Generate"
+      },
+      "recentReports": "Recent Reports",
+      "modal": {
+        "period": "Period",
+        "status": "Status",
+        "type": "Type",
+        "downloads": "Downloads",
+        "generatedAt": "Generated At",
+        "fileSize": "File Size",
+        "downloadReport": "Download Report",
+        "generateReport": "Generate Report",
+        "close": "Close",
+        "generateMessage": "Report generation started! You will be notified when it's ready."
+      }
+    },
+    "resolveTicketManagement": {
+      "title": "Manage Support Tickets",
+      "subtitle": "View all support tickets and manage resolution status. This feature is under development.",
+      "stats": {
+        "total": "Total tickets",
+        "resolved": "Resolved",
+        "pending": "Pending"
+      },
+      "search": {
+        "all": "Search all",
+        "byTicketId": "Search by Ticket ID",
+        "placeholderAll": "Search tickets...",
+        "placeholderId": "Enter ticket ID...",
+        "filterByStatus": "Filter by status:",
+        "all": "All",
+        "pending": "Pending",
+        "resolved": "Resolved"
+      },
+      "refresh": "Refresh",
+      "loading": "Loading...",
+      "searchById": "Search by ID",
+      "tableHeaders": {
+        "id": "ID",
+        "subject": "Subject",
+        "createdAt": "Created at",
+        "status": "Status",
+        "priority": "Priority",
+        "action": "Action"
+      },
+      "status": {
+        "pending": "Pending",
+        "resolved": "Resolved"
+      },
+      "actions": {
+        "viewDetails": "View details",
+        "resolve": "Resolve ticket"
+      },
+      "noTickets": "No tickets available",
+      "noTicketsDesc": "This feature is under development. Support ticket management will be available soon.",
+      "showing": "Showing {{count}} of {{filtered}} filtered tickets ({{total}} total)",
+      "errors": {
+        "enterTicketId": "Please enter a ticket ID.",
+        "invalidId": "Ticket ID must be a positive number.",
+        "notFound": "Ticket not found.",
+        "loadError": "Failed to load tickets.",
+        "resolveError": "Failed to resolve ticket.",
+        "noPermission": "You do not have permission to resolve tickets.",
+        "selectResolution": "Please select a resolution type."
+      },
+      "modal": {
+        "title": "Ticket Details",
+        "ticketId": "Ticket ID: #{{id}}",
+        "close": "Close",
+        "subject": "Subject",
+        "message": "Message",
+        "status": "Status",
+        "priority": "Priority",
+        "createdAt": "Created At",
+        "resolvedAt": "Resolved At"
+      },
+      "resolveModal": {
+        "title": "Resolve Ticket",
+        "ticketId": "Ticket ID: #{{id}}",
+        "close": "Close",
+        "ticketSubject": "Ticket Subject",
+        "resolutionType": "Resolution Type",
+        "required": "*",
+        "resolutionOptions": {
+          "resolved": {
+            "label": "Resolved",
+            "description": "Ticket has been successfully resolved."
+          },
+          "closed": {
+            "label": "Closed",
+            "description": "Ticket has been closed."
+          }
+        },
+        "note": "Resolution Note (Optional)",
+        "notePlaceholder": "Add any additional notes or comments about this resolution...",
+        "cancel": "Cancel",
+        "confirm": "Confirm Resolution",
+        "resolving": "Resolving..."
+      }
+    },
+    "staffManagement": {
+      "title": "View & manage your team",
+      "subtitle": "Quản lý nhân viên và phân quyền truy cập hệ thống.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "addStaff": "Thêm nhân viên",
+      "stats": {
+        "total": "Tổng nhân viên",
+        "totalTrend": "+2 tuần này",
+        "active": "Đang hoạt động",
+        "activeTrend": "+1 tuần này",
+        "admin": "Quản trị viên",
+        "adminTrend": "Không đổi",
+        "inactive": "Tạm dừng",
+        "inactiveTrend": "0 thay đổi"
+      },
+      "searchPlaceholder": "Tìm theo tên, email hoặc mã nhân viên...",
+      "roleFilter": {
+        "all": "Tất cả vai trò",
+        "staff": "Nhân viên"
+      },
+      "statusFilter": {
+        "all": "Tất cả trạng thái",
+        "active": "Đang hoạt động",
+        "inactive": "Tạm dừng"
+      },
+      "tableHeaders": {
+        "staff": "Nhân viên",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "assignedTasks": "Nhiệm vụ được giao",
+        "createdAt": "Ngày tạo",
+        "actions": "Thao tác"
+      },
+      "status": {
+        "active": "Đang hoạt động",
+        "inactive": "Tạm dừng"
+      },
+      "roles": {
+        "admin": "Quản trị viên",
+        "staff": "Nhân viên"
+      },
+      "tasks": {
+        "none": "Chưa có",
+        "forumReport": "Forum Report & Booking Complaint",
+        "companyRequest": "Company Request & Resolve Ticket",
+        "approveTour": "Approve Tour Booking & Article"
+      },
+      "actions": {
+        "assignTask": "Giao nhiệm vụ",
+        "edit": "Chỉnh sửa (chưa hỗ trợ)",
+        "ban": "Tạm dừng",
+        "unban": "Kích hoạt",
+        "delete": "Xóa nhân viên"
+      },
+      "loading": "Đang tải danh sách nhân viên...",
+      "error": "Không thể tải danh sách nhân viên. Vui lòng thử lại.",
+      "retry": "Thử lại",
+      "noResults": "Không tìm thấy nhân viên phù hợp với bộ lọc hiện tại.",
+      "editNotSupported": "Chức năng chỉnh sửa nhân viên chưa được hỗ trợ. Backend chưa có endpoint cập nhật thông tin nhân viên.",
+      "deleteConfirm": {
+        "title": "Xóa nhân viên",
+        "message": "Bạn có chắc chắn muốn xóa nhân viên \"{{name}}\" không?",
+        "confirm": "Xóa",
+        "cancel": "Hủy"
+      },
+      "deleteSuccess": "Xóa nhân viên thành công!",
+      "deleteError": "Không thể xóa nhân viên. Vui lòng thử lại.",
+      "banSuccess": "Đã tạm dừng nhân viên thành công",
+      "unbanSuccess": "Đã kích hoạt nhân viên thành công",
+      "statusError": "Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại."
+    },
+    "addStaffModal": {
+      "title": "Thêm nhân viên mới",
+      "subtitle": "Tạo tài khoản nhân viên mới cho hệ thống",
+      "close": "Đóng",
+      "fields": {
+        "username": "Username",
+        "usernameRequired": "*",
+        "usernamePlaceholder": "Nhập username",
+        "usernameHint": "Username phải là duy nhất trong hệ thống",
+        "password": "Password",
+        "passwordRequired": "*",
+        "passwordPlaceholder": "Nhập password",
+        "passwordHint": "Mật khẩu tối thiểu 6 ký tự",
+        "staffTask": "Nhiệm vụ (tùy chọn)",
+        "staffTaskNone": "Không gán nhiệm vụ",
+        "staffTaskForum": "Forum Report & Booking Complaint",
+        "staffTaskCompany": "Company Request & Resolve Ticket",
+        "staffTaskTour": "Approve Tour Booking & Article",
+        "staffTaskHint": "Nhiệm vụ có thể được gán sau khi tạo tài khoản"
+      },
+      "errors": {
+        "usernameRequired": "Vui lòng nhập username",
+        "passwordRequired": "Vui lòng nhập password"
+      },
+      "cancel": "Hủy",
+      "submit": "Tạo nhân viên",
+      "submitting": "Đang tạo...",
+      "createSuccess": "Tạo tài khoản nhân viên thành công!",
+      "createError": "Không thể tạo tài khoản nhân viên. Vui lòng thử lại."
+    },
+    "assignTaskModal": {
+      "title": "Giao nhiệm vụ",
+      "description": "Chọn nhiệm vụ cho nhân viên này. Mỗi nhân viên chỉ có thể được gán một nhiệm vụ tại một thời điểm.",
+      "close": "Đóng",
+      "noTask": "Không gán nhiệm vụ",
+      "noTaskDesc": "Nhân viên sẽ không có nhiệm vụ cụ thể",
+      "tasks": {
+        "forumReport": {
+          "label": "Forum Report & Booking Complaint",
+          "description": "Xử lý báo cáo từ diễn đàn và khiếu nại booking"
+        },
+        "companyRequest": {
+          "label": "Company Request & Resolve Ticket",
+          "description": "Xử lý yêu cầu công ty và giải quyết ticket"
+        },
+        "approveTour": {
+          "label": "Approve Tour Booking & Article",
+          "description": "Phê duyệt đặt tour và bài viết"
+        }
+      },
+      "cancel": "Hủy",
+      "confirm": "Xác nhận",
+      "processing": "Đang xử lý...",
+      "updateSuccess": "Cập nhật nhiệm vụ thành công!",
+      "updateError": "Không thể cập nhật nhiệm vụ nhân viên. Vui lòng thử lại."
+    },
+    "tourManagement": {
+      "title": "Quản lý Tour",
+      "subtitle": "Xem và quản lý tất cả các tour trong hệ thống.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "stats": {
+        "totalTours": "Tổng số tour",
+        "displayedTours": "Tour hiển thị",
+        "currentPage": "Trang hiện tại"
+      },
+      "searchPlaceholder": "Tìm kiếm tour theo tên, mô tả, điểm khởi hành...",
+      "sortBy": {
+        "newest": "Mới nhất",
+        "oldest": "Cũ nhất",
+        "nameAsc": "Tên A-Z",
+        "nameDesc": "Tên Z-A"
+      },
+      "tableHeaders": {
+        "stt": "STT",
+        "tourName": "Tên tour",
+        "status": "Trạng thái",
+        "price": "Giá",
+        "duration": "Thời gian",
+        "createdAt": "Ngày tạo",
+        "actions": "Thao tác"
+      },
+      "status": {
+        "approved": "Đã duyệt",
+        "pending": "Chờ duyệt",
+        "disabled": "Đã vô hiệu",
+        "na": "N/A"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "approve": "Phê duyệt tour",
+        "reject": "Từ chối tour"
+      },
+      "loading": "Đang tải danh sách tour...",
+      "noResults": "Không tìm thấy tour phù hợp với bộ lọc hiện tại.",
+      "pagination": {
+        "page": "Trang {{current}} / {{total}} ({{count}} tour)",
+        "previous": "Trước",
+        "next": "Sau"
+      },
+      "confirmApprove": "Bạn có chắc chắn muốn phê duyệt tour này?",
+      "confirmReject": "Bạn có chắc chắn muốn từ chối tour này?",
+      "approveSuccess": "Phê duyệt tour thành công!",
+      "rejectSuccess": "Từ chối tour thành công!",
+      "approveError": "Lỗi khi phê duyệt tour: {{error}}",
+      "rejectError": "Lỗi khi từ chối tour: {{error}}",
+      "detailError": "Đã xảy ra lỗi khi tải chi tiết tour"
+    },
+    "tourDetailModal": {
+      "title": "Chi tiết Tour",
+      "close": "Đóng",
+      "fields": {
+        "tourId": "Mã Tour",
+        "departurePoint": "Điểm khởi hành",
+        "adultPrice": "Giá người lớn",
+        "childrenPrice": "Trẻ em: {{price}}",
+        "babyPrice": "Em bé: {{price}}",
+        "duration": "Thời gian",
+        "createdAt": "Ngày tạo",
+        "additionalInfo": "Thông tin bổ sung",
+        "vehicle": "Phương tiện",
+        "tourType": "Loại tour",
+        "amount": "Số lượng",
+        "amountPeople": "{{amount}} người",
+        "company": "Công ty"
+      }
+    },
+    "transactionManagement": {
+      "title": "View & track all transactions",
+      "subtitle": "Theo dõi và quản lý tất cả các giao dịch thanh toán trong hệ thống.",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "exportReport": "Xuất báo cáo",
+      "stats": {
+        "total": "Tổng giao dịch",
+        "totalTrend": "+8% MoM",
+        "completed": "Đã hoàn thành",
+        "completedTrend": "+5% MoM",
+        "totalRevenue": "Tổng doanh thu",
+        "totalRevenueTrend": "+12% MoM",
+        "pending": "Đang chờ",
+        "pendingTrend": "Cần xử lý"
+      },
+      "searchPlaceholder": "Tìm theo tên, email, order id hoặc order info...",
+      "statusFilter": {
+        "all": "Tất cả trạng thái",
+        "completed": "Đã hoàn thành",
+        "pending": "Đang chờ",
+        "failed": "Thất bại"
+      },
+      "tableHeaders": {
+        "stt": "STT",
+        "customer": "Khách hàng",
+        "status": "Trạng thái",
+        "amount": "Số tiền",
+        "paymentMethod": "Phương thức",
+        "transactionDate": "Ngày giao dịch",
+        "actions": "Thao tác"
+      },
+      "status": {
+        "completed": "Đã hoàn thành",
+        "pending": "Đang chờ",
+        "failed": "Thất bại"
+      },
+      "actions": {
+        "viewDetails": "Xem chi tiết"
+      },
+      "loading": "Đang tải danh sách giao dịch...",
+      "error": "Không thể tải danh sách giao dịch. Vui lòng thử lại.",
+      "retry": "Thử lại",
+      "noResults": "Không tìm thấy giao dịch phù hợp với bộ lọc hiện tại."
+    },
+    "transactionDetailModal": {
+      "title": "Chi tiết giao dịch",
+      "close": "Đóng",
+      "fields": {
+        "orderId": "Order Id:",
+        "orderInfo": "Order Info:",
+        "orderInfoNone": "Không có thông tin",
+        "amount": "Số tiền:",
+        "paymentMethod": "Phương thức thanh toán:",
+        "transactionDate": "Ngày giao dịch:"
+      },
+      "sections": {
+        "customerInfo": "Thông tin khách hàng",
+        "customerName": "Tên khách hàng:",
+        "email": "Email:",
+        "transactionInfo": "Thông tin giao dịch",
+        "time": "Thời gian"
+      }
+    },
+    "userManagement": {
+      "title": "User Management",
+      "subtitle": "Manage user accounts and their permissions",
+      "addUser": "Add User",
+      "stats": {
+        "totalUsers": "Total Users",
+        "activeUsers": "Active Users",
+        "businessUsers": "Business Users",
+        "inactiveUsers": "Inactive Users"
+      },
+      "tableHeaders": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "bookings": "Bookings",
+        "lastLogin": "Last Login",
+        "actions": "Actions"
+      },
+      "roles": {
+        "admin": "admin",
+        "staff": "staff",
+        "business": "business",
+        "user": "user"
+      },
+      "status": {
+        "active": "active",
+        "inactive": "inactive"
+      },
+      "actions": {
+        "edit": "Edit",
+        "deactivate": "Deactivate",
+        "activate": "Activate",
+        "delete": "Delete"
+      },
+      "modal": {
+        "editTitle": "Edit User",
+        "addTitle": "Add New User",
+        "fields": {
+          "fullName": "Full Name",
+          "email": "Email",
+          "role": "Role",
+          "status": "Status"
+        },
+        "roleOptions": {
+          "user": "User",
+          "business": "Business",
+          "staff": "Staff",
+          "admin": "Admin"
+        },
+        "statusOptions": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "update": "Update User",
+        "add": "Add User",
+        "cancel": "Cancel",
+        "deleteConfirm": "Are you sure you want to delete this user?"
+      }
     }
   },
   "profile": {
@@ -639,7 +1640,10 @@
       "saveSuccess": "Bài viết đã được lưu",
       "unsaveSuccess": "Đã bỏ lưu bài viết",
       "likeSuccess": "Đã thích bài viết",
-      "unlikeSuccess": "Đã bỏ thích bài viết"
+      "unlikeSuccess": "Đã bỏ thích bài viết",
+      "translate": "Dịch nội dung",
+      "translating": "Đang dịch...",
+      "hideTranslation": "Ẩn bản dịch"
     },
     "comments": {
       "placeholder": "Viết bình luận...",
@@ -2702,61 +3706,209 @@
   },
   "about": {
     "hero": {
-      "title": "Về Chúng Tôi",
-      "subtitle": "Kết nối văn hóa Hàn Quốc và Đà Nẵng thông qua những trải nghiệm du lịch đáng nhớ"
+      "title": "Tour Management Studio cho Hàn Quốc × Đà Nẵng",
+      "subtitle": "Một nền tảng pastel giúp đội ngũ điều phối booking, kiểm soát tour, thanh toán và chăm sóc khách Hàn ngay tại Đà Nẵng – trực quan, tối giản nhưng giàu công nghệ.",
+      "highlight1": "Booking Hub realtime",
+      "highlight2": "Tour workflow cho Đà Nẵng",
+      "highlight3": "Dashboard tiếng Hàn hoàn chỉnh",
+      "since": {
+        "label": "Từ năm",
+        "value": "2018"
+      },
+      "focus": {
+        "label": "Tập trung",
+        "value": "Vận hành Booking"
+      }
     },
     "mission": {
-      "title": "Sứ Mệnh Của Chúng Tôi",
-      "description": "KDBS cam kết mang đến những trải nghiệm du lịch tuyệt vời, kết nối văn hóa Hàn Quốc và Đà Nẵng thông qua các tour du lịch chất lượng cao và dịch vụ chuyên nghiệp."
+      "title": "Hệ Điều Hành Đặt Tour",
+      "description": "Chúng tôi xây dựng nền tảng quản lý tour song ngữ Hàn - Việt giúp doanh nghiệp tại Đà Nẵng vận hành booking, điều phối đối tác và chăm sóc khách Hàn một cách trực quan, công nghệ và theo chuẩn tối giản mềm mại.",
+      "badge": "Sứ mệnh mềm mại"
     },
     "values": {
       "title": "Giá Trị Cốt Lõi",
+      "subtitle": "Định hình trải nghiệm mềm mại với icon mảnh, gam pastel và bố cục thoáng đãng.",
+      "badge": "Giá trị cốt lõi",
       "quality": {
-        "title": "Chất Lượng",
-        "desc": "Cam kết mang đến dịch vụ tốt nhất cho khách hàng"
+        "title": "Hệ điều hành Booking",
+        "desc": "Điều phối đặt tour, voucher, tình trạng thanh toán trên một mặt phẳng pastel."
       },
       "trust": {
-        "title": "Tin Cậy",
-        "desc": "Xây dựng niềm tin thông qua sự minh bạch và chuyên nghiệp"
+        "title": "Trung tâm tuân thủ",
+        "desc": "Theo dõi visa, hợp đồng, SLA đối tác Hàn với cảnh báo realtime."
       },
       "excellence": {
-        "title": "Xuất Sắc",
-        "desc": "Không ngừng cải thiện và nâng cao chất lượng dịch vụ"
+        "title": "Liên kết Seoul × Đà Nẵng",
+        "desc": "Đồng bộ đối tác Hàn, nhà cung ứng địa phương và lịch trình đa ngôn ngữ."
       },
       "passion": {
-        "title": "Đam Mê",
-        "desc": "Đam mê với du lịch và kết nối văn hóa"
+        "title": "Tự động hóa chăm sóc",
+        "desc": "Playbook chăm sóc khách Hàn, lịch follow-up và nhắc nhớ trải nghiệm."
       }
     },
     "team": {
-      "title": "Đội Ngũ Của Chúng Tôi",
+      "title": "Đội Ngũ Vibe Studio",
+      "badge": "Human touch",
       "member1": {
         "name": "Nguyễn Văn A",
         "role": "CEO & Founder",
-        "desc": "Hơn 10 năm kinh nghiệm trong ngành du lịch"
+        "desc": "10+ năm kiến tạo sản phẩm du lịch song văn hóa."
       },
       "member2": {
         "name": "Trần Thị B",
-        "role": "Giám Đốc Marketing",
-        "desc": "Chuyên gia về marketing du lịch và truyền thông"
+        "role": "Creative Director",
+        "desc": "Định hình trải nghiệm thị giác và xúc cảm mềm mại."
       },
       "member3": {
         "name": "Lê Văn C",
-        "role": "Giám Đốc Vận Hành",
-        "desc": "Đảm bảo chất lượng dịch vụ và trải nghiệm khách hàng"
+        "role": "Experience Lead",
+        "desc": "Chuẩn hóa quy trình chăm sóc khách cân bằng - tinh gọn."
       }
     },
     "stats": {
-      "customers": "Khách Hàng",
-      "tours": "Tour Du Lịch",
-      "satisfaction": "Hài Lòng",
-      "partners": "Đối Tác"
+      "customers": "Đặt chỗ đã xử lý",
+      "tours": "Phạm vi tự động hóa",
+      "satisfaction": "Nhanh hơn từ khách hàng tiềm năng đến tour",
+      "partners": "Đối tác Hàn Quốc"
+    },
+    "timeline": {
+      "badge": "Journey",
+      "caption": "Minimal Soft Korean timeline",
+      "start": {
+        "title": "Khởi đầu từ Seoul",
+        "desc": "Kết nối những chuyên gia Hàn Quốc đầu tiên với cộng đồng yêu Đà Nẵng."
+      },
+      "expand": {
+        "title": "Bản sắc tối giản",
+        "desc": "Ứng dụng nghệ thuật sống Hàn để tái thiết kế tour chăm sóc cảm xúc."
+      },
+      "partnership": {
+        "title": "Đối tác chuẩn quốc tế",
+        "desc": "Hợp tác với chuỗi lưu trú, spa công nghệ cao cho hành trình thư giãn."
+      },
+      "future": {
+        "title": "Studio trải nghiệm",
+        "desc": "Ra mắt studio cảm hứng Hàn tại Đà Nẵng với công nghệ tương tác."
+      }
+    },
+    "monitor": {
+      "booking": "Tải đặt chỗ",
+      "operations": "Sẵn sàng vận hành",
+      "experience": "Điểm trải nghiệm"
+    },
+    "metrics": {
+      "korAgents": "Đại lý Hàn Quốc trực tuyến",
+      "korAgents.caption": "Đối tác Seoul & Busan",
+      "vnOperators": "Điều hành viên Đà Nẵng",
+      "vnOperators.caption": "Hậu cần tour & tài xế",
+      "sla": "Ổn định SLA",
+      "sla.caption": "Giám sát realtime"
+    },
+    "control": {
+      "korvn": "Lực lượng lao động Hàn Quốc × Đà Nẵng",
+      "monitor": "Trạng thái điều hành realtime",
+      "liveControl": "Điều khiển trực tiếp",
+      "automationPulse": "Nhịp tự động hóa"
+    },
+    "heroCard": {
+      "controlHub": "Trung tâm điều khiển",
+      "bookingOpsCloud": "Đám mây Booking + Ops",
+      "realtimeRouting": "Định tuyến realtime",
+      "automation": "Tự động hóa",
+      "automationValue": "92% nhiệm vụ",
+      "coverage": "Phạm vi",
+      "coverageValue": "KOR ↔︎ VN",
+      "live": "Trực tiếp",
+      "opsRadar": "Radar Ops v3.1",
+      "seoul": "Seoul",
+      "daNang": "Đà Nẵng"
+    },
+    "workflow": {
+      "badge": "Quy trình",
+      "caption": "Chu trình vận hành tour Hàn - Đà Nẵng",
+      "capture": "Thu thập & đánh giá khách hàng tiềm năng",
+      "capture.detail": "Zalo, KakaoTalk, web booking form đồng bộ về CRM Hàn - Việt.",
+      "design": "Thiết kế hành trình",
+      "design.detail": "Chọn tour mẫu, áp dụng voucher, tính giá KRW ↔︎ VND tức thời.",
+      "coordinate": "Điều phối nhà cung ứng",
+      "coordinate.detail": "Push alert đến khách sạn, xe, HDV với checklist hai ngôn ngữ.",
+      "care": "Chăm sóc & báo cáo",
+      "care.detail": "Theo dõi cảm xúc khách Hàn, tự động phát hành báo cáo cho đối tác."
+    },
+    "integrations": {
+      "badge": "Ngăn xếp kết nối",
+      "title": "Thư viện công nghệ chúng tôi sử dụng",
+      "badge0": "Kakao Business API",
+      "badge1": "Naver / Google Calendar",
+      "badge2": "VNPay & Toss Payments",
+      "badge3": "Zalo OA",
+      "badge4": "AirTable Sync",
+      "badge5": "GSAP Micro Animations",
+      "kakaoAPI": "Kakao Business API",
+      "naverCalendar": "Naver / Google Calendar",
+      "vnpayToss": "VNPay & Toss Payments",
+      "zaloOA": "Zalo OA",
+      "airtableSync": "AirTable Sync",
+      "gsapAnimations": "GSAP Micro Animations"
     },
     "story": {
-      "title": "Câu Chuyện Của Chúng Tôi",
-      "paragraph1": "KDBS được thành lập với sứ mệnh kết nối hai nền văn hóa đặc sắc - Hàn Quốc và Đà Nẵng. Chúng tôi tin rằng du lịch không chỉ là việc di chuyển từ nơi này đến nơi khác, mà còn là cơ hội để khám phá, học hỏi và kết nối với những con người và văn hóa mới.",
-      "paragraph2": "Với đội ngũ chuyên nghiệp và giàu kinh nghiệm, chúng tôi cam kết mang đến những trải nghiệm du lịch đáng nhớ, từ những tour du lịch được thiết kế cẩn thận đến dịch vụ chăm sóc khách hàng tận tâm. Mỗi chuyến đi là một câu chuyện, và chúng tôi muốn câu chuyện của bạn trở nên đặc biệt.",
-      "paragraph3": "Hãy cùng chúng tôi khám phá những điều tuyệt vời mà du lịch mang lại!"
+      "title": "Câu Chuyện Mềm Mại",
+      "badge": "Câu chuyện mềm mại",
+      "paragraph1": "KDBS sinh ra từ cảm hứng Minimal Soft Korean – nơi nhịp sống chậm, ánh sáng trắng và vật liệu bo góc tạo nên sự an tâm. Mỗi tour được biên tập như một bản hòa âm với nhịp thở công nghệ và thiên nhiên.",
+      "paragraph2": "Chúng tôi ưu tiên sức khỏe tinh thần trong từng bước: từ spa hương thảo mộc, thiền thở biển, đến trải nghiệm thực tế mở rộng giúp lưu giữ cảm xúc. Công nghệ chỉ làm nền, cảm xúc của bạn là trung tâm.",
+      "paragraph3": "Hãy để chúng tôi giúp bạn chạm tới phiên bản bình yên nhất của mình giữa lòng Đà Nẵng."
+    }
+  },
+  "contactPage": {
+    "hero": {
+      "badge": "Minimal Soft Korean Contact",
+      "title": "Chúng tôi lắng nghe mọi nhịp cảm xúc của bạn",
+      "subtitle": "Kết nối với studio theo phong cách tối giản, pastel, bo góc mềm mại – để mỗi hành trình Hàn Quốc × Đà Nẵng được chăm sóc tinh tế."
+    },
+    "moments": {
+      "one": "Thiết kế lịch trình mềm mại cho đoàn Hàn",
+      "two": "Tư vấn thủ tục visa & thanh toán Toss/VNPay",
+      "three": "Kích hoạt đội chăm sóc cảm xúc tại Đà Nẵng"
+    },
+    "channels": {
+      "phoneLabel": "Studio Line",
+      "phoneHint": "09:00 – 21:00 (GMT+7)",
+      "mailLabel": "Email",
+      "mailHint": "Reply within 12 hours",
+      "chatLabel": "Zalo / Kakao",
+      "chatHint": "Instant pastel support"
+    },
+    "office": {
+      "hoursTitle": "Calm Office Hours",
+      "hoursValue": "Mon – Sat · 08:30 – 19:30",
+      "addressTitle": "Studio Address"
+    },
+    "form": {
+      "title": "Gửi lời nhắn pastel",
+      "subtitle": "Chúng tôi phản hồi nhẹ nhàng trong vòng 12 giờ, với đề xuất phù hợp vibe của bạn.",
+      "name": "Họ và tên",
+      "email": "Email liên hệ",
+      "topic": "Chủ đề nhẹ nhàng",
+      "topicPlaceholder": "Ví dụ: Tour 4N3Đ cho khách Hàn",
+      "message": "Lời nhắn",
+      "cta": "Gửi lời nhắn",
+      "softInquiry": "Soft inquiry"
+    },
+    "social": {
+      "badge": "Social pastel"
+    },
+    "visit": {
+      "badge": "Visit studio",
+      "title": "Đặt lịch hẹn riêng với studio",
+      "subtitle": "Không gian pastel ấm áp với trà thảo mộc, bảng mood Korean và bàn điều phối booking toả sáng.",
+      "map": "Xem bản đồ",
+      "schedule": "Đặt lịch pastel",
+      "zenTitle": "Zen checklist",
+      "zenOne": "Sound healing playlist 528Hz",
+      "zenTwo": "Tea pairing theo mùa",
+      "zenThree": "Mẫu itinerary bo góc 32px",
+      "flowTitle": "Flow",
+      "flowCopy": "15 phút lắng nghe, 20 phút phối hợp vibe, 5 phút chốt hành trình."
     }
   }
 }

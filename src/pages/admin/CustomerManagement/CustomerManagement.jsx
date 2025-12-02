@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -21,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const CustomerManagement = () => {
+  const { t, i18n } = useTranslation();
   const { getToken } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -303,7 +305,7 @@ const CustomerManagement = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải danh sách khách hàng...</p>
+          <p className="mt-4 text-gray-600">{t('admin.customerManagement.loading')}</p>
         </div>
       </div>
     );
@@ -318,7 +320,7 @@ const CustomerManagement = () => {
             onClick={fetchCustomers}
             className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
           >
-            Thử lại
+            {t('admin.customerManagement.retry')}
           </button>
         </div>
       </div>
@@ -329,29 +331,29 @@ const CustomerManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">Customer Management</p>
-          <h1 className="text-3xl font-bold text-gray-900">View & nurture your travelers</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.customerManagement.title')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.customerManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Theo dõi khách hàng thân thiết và lịch sử đặt tour để cá nhân hóa ưu đãi.
+            {t('admin.customerManagement.subtitle')}
           </p>
         </div>
         <div className="flex gap-3">
           <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
             <FunnelIcon className="h-5 w-5" />
-            Bộ lọc nâng cao
+            {t('admin.customerManagement.advancedFilter')}
           </button>
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
             <ArrowDownTrayIcon className="h-5 w-5" />
-            Xuất báo cáo
+            {t('admin.customerManagement.exportReport')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={UsersIcon} label="Tổng khách hàng" value={stats.total} trend="+12% MoM" />
-        <StatCard icon={UserCircleIcon} label="Đang hoạt động" value={stats.active} trend="+3% MoM" color="text-green-600" />
-        <StatCard icon={StarIcon} label="Khách VIP" value={stats.vip} trend="+1 VIP tuần này" color="text-amber-500" />
-        <StatCard icon={CurrencyFormatter} label="Lifetime value" value={formatCurrency(stats.value)} trend="5.4% YoY" color="text-blue-600" />
+        <StatCard icon={UsersIcon} label={t('admin.customerManagement.stats.totalCustomers')} value={stats.total} trend={t('admin.customerManagement.stats.totalCustomersTrend')} />
+        <StatCard icon={UserCircleIcon} label={t('admin.customerManagement.stats.active')} value={stats.active} trend={t('admin.customerManagement.stats.activeTrend')} color="text-green-600" />
+        <StatCard icon={StarIcon} label={t('admin.customerManagement.stats.vip')} value={stats.vip} trend={t('admin.customerManagement.stats.vipTrend')} color="text-amber-500" />
+        <StatCard icon={CurrencyFormatter} label={t('admin.customerManagement.stats.lifetimeValue')} value={formatCurrency(stats.value)} trend={t('admin.customerManagement.stats.lifetimeValueTrend')} color="text-blue-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -362,7 +364,7 @@ const CustomerManagement = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo tên, email hoặc mã khách..."
+              placeholder={t('admin.customerManagement.searchPlaceholder')}
               className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -372,9 +374,9 @@ const CustomerManagement = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="inactive">Tạm dừng</option>
+              <option value="ALL">{t('admin.customerManagement.statusFilter.all')}</option>
+              <option value="active">{t('admin.customerManagement.statusFilter.active')}</option>
+              <option value="inactive">{t('admin.customerManagement.statusFilter.inactive')}</option>
             </select>
           </div>
         </div>
@@ -383,7 +385,7 @@ const CustomerManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['Khách hàng', 'Trạng thái', 'Tích lũy', 'Lần đặt gần nhất', 'Thao tác'].map((header) => (
+                {[t('admin.customerManagement.tableHeaders.customer'), t('admin.customerManagement.tableHeaders.status'), t('admin.customerManagement.tableHeaders.accumulated'), t('admin.customerManagement.tableHeaders.lastBooking'), t('admin.customerManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -394,7 +396,7 @@ const CustomerManagement = () => {
               {filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? 'Đang tải...' : 'Không tìm thấy khách hàng phù hợp với bộ lọc hiện tại.'}
+                    {loading ? t('admin.customerManagement.loading') : t('admin.customerManagement.noResults')}
                   </td>
                 </tr>
               ) : (
@@ -438,24 +440,24 @@ const CustomerManagement = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-semibold text-gray-900">{formatCurrency(customer.lifetimeValue)}</div>
-                    <div className="text-xs text-gray-500">{customer.totalBookings} bookings</div>
+                    <div className="text-xs text-gray-500">{customer.totalBookings} {t('admin.customerManagement.bookings')}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {customer.lastBooking ? new Date(customer.lastBooking).toLocaleDateString('vi-VN') : 'Chưa có'}
+                    {customer.lastBooking ? new Date(customer.lastBooking).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : t('admin.customerManagement.noBooking')}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={() => handleViewDetail(customer)}
                         className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
-                        title="Xem chi tiết"
+                        title={t('admin.customerManagement.actions.viewDetails')}
                       >
                         <EyeIcon className="h-4 w-4" />
                       </button>
                       <button 
                         onClick={() => handleBanClick(customer)}
                         className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                        title={customer.status === 'active' ? 'Ban user' : 'Unban user'}
+                        title={customer.status === 'active' ? t('admin.customerManagement.actions.banUser') : t('admin.customerManagement.actions.unbanUser')}
                       >
                         {customer.status === 'active' ? (
                           <NoSymbolIcon className="h-4 w-4" />
@@ -529,9 +531,10 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 );
 
 const StatusBadge = ({ status }) => {
+  const { t } = useTranslation();
   const map = status === 'active'
-    ? { color: 'bg-green-100 text-green-700', label: 'Đang hoạt động' }
-    : { color: 'bg-gray-100 text-gray-500', label: 'Tạm dừng' };
+    ? { color: 'bg-green-100 text-green-700', label: t('admin.customerManagement.status.active') }
+    : { color: 'bg-gray-100 text-gray-500', label: t('admin.customerManagement.status.inactive') };
   return (
     <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
       {map.label}

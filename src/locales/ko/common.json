@@ -69,6 +69,10 @@
 		"status": {
 			"WAITING_FOR_APPROVAL": "승인 대기",
 			"COMPANY_PENDING": "대기 중"
+		},
+		"errors": {
+			"loginRequired": "다시 로그인해주세요",
+			"sessionExpired": "세션이 만료되었습니다. 다시 로그인해주세요."
 		}
 	},
 	"auth": {
@@ -434,6 +438,1003 @@
 			"cancel": "취소",
 			"save": "저장",
 			"update": "업데이트"
+		},
+		"adminDashboard": {
+			"accessDenied": "접근 거부",
+			"accessDeniedMessage": "관리자 대시보드에 접근할 권한이 없습니다. 관리자만 이 페이지를 볼 수 있습니다.",
+			"goToHomepage": "홈페이지로 이동",
+			"adminLogin": "관리자 로그인",
+			"loading": "로딩 중..."
+		},
+		"adminLayout": {
+			"menu": "메뉴",
+			"contact": "연락처",
+			"customerContact": "고객 연락처",
+			"menuItems": {
+				"dashboard": "대시보드",
+				"customerManagement": "고객 관리",
+				"companyManagement": "회사 관리",
+				"staffManagement": "직원 관리",
+				"forumReportManagement": "포럼 신고 관리",
+				"complaintManagement": "불만 관리",
+				"resolveTicketManagement": "티켓 해결 관리",
+				"newsManagement": "뉴스 관리",
+				"tourManagement": "투어 관리",
+				"transactionManagement": "거래 관리"
+			},
+			"search": "검색",
+			"searchPlaceholder": "검색...",
+			"profile": "프로필",
+			"accountSettings": "계정 설정",
+			"support": "지원",
+			"signOut": "로그아웃",
+			"adminUser": "관리자 사용자"
+		},
+		"companyManagement": {
+			"title": "회사 등록 승인",
+			"subtitle": "여행 회사 계정 등록 요청을 관리하고 승인합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"stats": {
+				"totalCompanies": "총 회사",
+				"totalCompaniesDesc": "등록됨",
+				"pending": "승인 대기",
+				"pendingDesc": "처리 필요",
+				"approved": "승인됨",
+				"approvedDesc": "활성",
+				"rejected": "거절됨",
+				"rejectedDesc": "비활성"
+			},
+			"searchPlaceholder": "이름, 이메일 또는 회사 코드로 검색...",
+			"statusFilter": {
+				"all": "모든 상태",
+				"pending": "승인 대기",
+				"approved": "승인됨",
+				"rejected": "거절됨"
+			},
+			"tableHeaders": {
+				"company": "회사",
+				"status": "상태",
+				"registrationDate": "등록일",
+				"actions": "작업"
+			},
+			"status": {
+				"pending": "승인 대기",
+				"notUpdated": "업데이트 안 됨",
+				"approved": "승인됨",
+				"rejected": "거절됨"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"approve": "승인",
+				"reject": "거절"
+			},
+			"loading": "회사 목록 로딩 중...",
+			"error": "회사 목록을 불러올 수 없습니다. 다시 시도해주세요.",
+			"retry": "다시 시도",
+			"noResults": "현재 필터와 일치하는 회사를 찾을 수 없습니다.",
+			"confirmApprove": "\"{{name}}\" 회사를 승인하시겠습니까?",
+			"confirmReject": "\"{{name}}\" 회사를 거절하시겠습니까?",
+			"approveSuccess": "회사 승인 성공!",
+			"rejectSuccess": "회사 거절 성공!",
+			"approveError": "회사를 승인할 수 없습니다. 다시 시도해주세요.",
+			"rejectError": "회사를 거절할 수 없습니다. 다시 시도해주세요.",
+			"modal": {
+				"title": "회사 상세",
+				"close": "닫기",
+				"loadingFiles": "파일 정보 로딩 중...",
+				"noFiles": "파일 업로드 정보를 찾을 수 없습니다",
+				"noFilesDesc": "이 회사는 파일을 업로드하지 않았거나 데이터에 문제가 있을 수 있습니다.",
+				"businessLicense": "사업자 등록증",
+				"businessLicenseDesc": "PDF 파일",
+				"openInNewTab": "새 탭에서 열기",
+				"noFile": "파일 없음",
+				"idCardFront": "신분증 앞면",
+				"idCardFrontDesc": "사진",
+				"idCardBack": "신분증 뒷면",
+				"idCardBackDesc": "사진",
+				"noImage": "이미지 없음",
+				"imageLoadError": "이미지를 불러올 수 없습니다"
+			}
+		},
+		"complaintManagement": {
+			"title": "예약 불만 관리",
+			"subtitle": "모든 불만을 보고 관리자가 처리할 해결 상태를 관리합니다.",
+			"stats": {
+				"total": "총 불만",
+				"resolved": "해결됨",
+				"pending": "대기 중"
+			},
+			"search": {
+				"all": "전체 검색",
+				"byComplaintId": "불만 ID로 검색",
+				"placeholderAll": "메시지에서 검색...",
+				"placeholderId": "불만 ID 입력...",
+				"filterByStatus": "상태별 필터:",
+				"all": "전체",
+				"pending": "대기 중",
+				"resolved": "해결됨"
+			},
+			"refresh": "새로고침",
+			"loading": "로딩 중...",
+			"searchById": "ID로 검색",
+			"tableHeaders": {
+				"id": "ID",
+				"message": "메시지",
+				"createdAt": "생성일",
+				"resolution": "해결",
+				"resolvedAt": "해결일",
+				"action": "작업"
+			},
+			"status": {
+				"pending": "대기 중",
+				"companyFault": "회사 과실",
+				"userFault": "사용자 과실",
+				"noFault": "과실 없음",
+				"resolved": "해결됨"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"resolve": "불만 해결"
+			},
+			"noComplaints": "불만을 찾을 수 없습니다.",
+			"noMatch": "검색 조건과 일치하는 불만이 없습니다.",
+			"loadingComplaints": "불만 로딩 중...",
+			"showing": "{{filtered}}개 필터링된 불만 중 {{count}}개 표시 (총 {{total}}개)",
+			"modal": {
+				"title": "불만 상세",
+				"complaintId": "불만 ID: #{{id}}",
+				"close": "닫기",
+				"message": "메시지",
+				"status": "상태",
+				"createdAt": "생성일",
+				"resolvedAt": "해결일"
+			},
+			"resolveModal": {
+				"title": "불만 해결",
+				"complaintId": "불만 ID: #{{id}}",
+				"close": "닫기",
+				"complaintMessage": "불만 메시지",
+				"resolutionType": "해결 유형",
+				"required": "*",
+				"resolutionOptions": {
+					"noFault": {
+						"label": "과실 없음",
+						"description": "어느 쪽도 과실이 없습니다. 예약 상태가 SUCCESS로 변경됩니다."
+					},
+					"userFault": {
+						"label": "사용자 과실",
+						"description": "사용자 과실입니다. 예약 상태가 SUCCESS로 변경됩니다."
+					},
+					"companyFault": {
+						"label": "회사 과실",
+						"description": "회사 과실입니다. 예약 상태는 UNDER_COMPLAINT로 유지됩니다."
+					}
+				},
+				"note": "해결 메모 (선택사항)",
+				"notePlaceholder": "이 해결에 대한 추가 메모나 의견을 입력하세요...",
+				"cancel": "취소",
+				"confirm": "해결 확인",
+				"resolving": "해결 중...",
+				"error": "해결 유형을 선택해주세요.",
+				"noPermission": "불만을 해결할 권한이 없습니다."
+			},
+			"errors": {
+				"enterComplaintId": "불만 ID를 입력해주세요.",
+				"invalidId": "불만 ID는 양수여야 합니다.",
+				"notFound": "불만을 찾을 수 없습니다.",
+				"loadError": "불만을 불러오지 못했습니다.",
+				"resolveError": "불만을 해결하지 못했습니다."
+			}
+		},
+		"customerContact": {
+			"chatBox": "채팅 상자",
+			"connected": "연결됨",
+			"disconnected": "연결 끊김",
+			"searchPlaceholder": "검색...",
+			"loadingUsers": "사용자 목록 로딩 중...",
+			"noUsers": "사용자 없음",
+			"loadError": "목록 로딩 오류. 채팅은 정상적으로 작동합니다.",
+			"lastSeen": "몇 분 전에 마지막으로 봄",
+			"noMessages": "아직 메시지가 없습니다. 대화를 시작하세요!",
+			"loadingMessages": "메시지 로딩 중...",
+			"messagePlaceholder": "메시지 입력...",
+			"sent": "전송됨",
+			"selectUser": "대화를 시작할 사용자 선택",
+			"you": "당신: ",
+			"me": "나: "
+		},
+		"customerManagement": {
+			"title": "여행객 보기 및 육성",
+			"subtitle": "충성 고객과 예약 이력을 추적하여 맞춤형 혜택을 제공합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"stats": {
+				"totalCustomers": "총 고객",
+				"totalCustomersTrend": "+12% MoM",
+				"active": "활성",
+				"activeTrend": "+3% MoM",
+				"vip": "VIP 고객",
+				"vipTrend": "이번 주 +1 VIP",
+				"lifetimeValue": "평생 가치",
+				"lifetimeValueTrend": "5.4% YoY"
+			},
+			"searchPlaceholder": "이름, 이메일 또는 고객 코드로 검색...",
+			"statusFilter": {
+				"all": "모든 상태",
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"tableHeaders": {
+				"customer": "고객",
+				"status": "상태",
+				"accumulated": "누적",
+				"lastBooking": "마지막 예약",
+				"actions": "작업"
+			},
+			"status": {
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"banUser": "사용자 차단",
+				"unbanUser": "사용자 차단 해제"
+			},
+			"bookings": "예약",
+			"noBooking": "없음",
+			"loading": "고객 목록 로딩 중...",
+			"error": "고객 목록을 불러올 수 없습니다. 다시 시도해주세요.",
+			"retry": "다시 시도",
+			"noResults": "현재 필터와 일치하는 고객을 찾을 수 없습니다."
+		},
+		"banReasonModal": {
+			"title": "사용자 차단",
+			"description": "이 사용자에 대한 차단 사유를 선택해주세요. 이 사유는 시스템에 저장됩니다.",
+			"reasons": {
+				"spam": "스팸 또는 부적절한 내용",
+				"harassment": "괴롭힘 또는 부적절한 행동",
+				"fraud": "사기 또는 사기",
+				"violation": "서비스 약관 위반",
+				"inappropriate": "부적절한 행동",
+				"other": "기타"
+			},
+			"customReasonLabel": "차단 사유 입력",
+			"customReasonPlaceholder": "상세한 차단 사유를 입력해주세요...",
+			"cancel": "취소",
+			"confirm": "차단 확인",
+			"processing": "처리 중...",
+			"errors": {
+				"selectReason": "차단 사유를 선택해주세요",
+				"enterReason": "차단 사유를 입력해주세요"
+			}
+		},
+		"customerDetailModal": {
+			"title": "고객 상세",
+			"id": "ID: {{id}}",
+			"close": "닫기",
+			"status": {
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"sections": {
+				"personalInfo": "개인 정보",
+				"contactInfo": "연락처 정보",
+				"accountFinancial": "계정 및 재무 정보",
+				"banReason": "차단 사유",
+				"role": "역할"
+			},
+			"fields": {
+				"dob": "생년월일",
+				"gender": "성별",
+				"cccd": "신분증 번호",
+				"email": "이메일",
+				"phone": "전화번호",
+				"address": "주소",
+				"city": "도시: {{city}}",
+				"country": "국가: {{country}}",
+				"balance": "잔액",
+				"totalOrders": "총 주문",
+				"lastOrder": "마지막 주문",
+				"accountCreated": "계정 생성일"
+			},
+			"gender": {
+				"male": "남성",
+				"female": "여성",
+				"other": "기타"
+			}
+		},
+		"dashboard": {
+			"title": "관리자 대시보드",
+			"subtitle": "투어 관리 및 예약 시스템 개요",
+			"stats": {
+				"totalTours": "총 투어",
+				"totalToursChange": "+12%",
+				"totalBookings": "총 예약",
+				"totalBookingsChange": "+8%",
+				"totalRevenue": "총 매출",
+				"totalRevenueChange": "+15%",
+				"totalUsers": "총 사용자",
+				"totalUsersChange": "+5%",
+				"activeTours": "활성 투어",
+				"activeToursChange": "+3%",
+				"pendingBookings": "대기 중인 예약",
+				"pendingBookingsChange": "-2%"
+			},
+			"changeFromLastMonth": "지난달 대비",
+			"charts": {
+				"bookingTrend": "예약 추세",
+				"bookingTrendSubtitle": "최근 6개월",
+				"tourCategory": "투어 카테고리",
+				"tourCategorySubtitle": "총: {{total}}개 투어",
+				"bookingStatus": "예약 상태",
+				"bookingStatusSubtitle": "총: {{total}}개 예약"
+			},
+			"bookingStatus": {
+				"completed": "완료",
+				"pending": "대기 중",
+				"cancelled": "취소됨"
+			},
+			"tourCategories": {
+				"domestic": "국내",
+				"international": "해외",
+				"day": "당일"
+			},
+			"worldMap": {
+				"title": "상위 국가",
+				"subtitle": "국가별 사용자 분포",
+				"timeFilter": {
+					"today": "오늘",
+					"thisWeek": "이번 주",
+					"thisMonth": "이번 달"
+				},
+				"users": "사용자"
+			},
+			"infoCards": {
+				"completedTours": "완료된 투어",
+				"companies": "기업",
+				"completionRate": "완료율"
+			}
+		},
+		"forumManagement": {
+			"title": "커뮤니티 게시물 보기 및 관리",
+			"subtitle": "포럼 게시물 및 댓글을 관리하고 위반 신고를 처리합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"reports": "신고",
+			"hideReports": "신고 숨기기",
+			"stats": {
+				"totalPosts": "총 게시물",
+				"totalPostsTrend": "이번 주 +5",
+				"active": "활성",
+				"activeTrend": "이번 주 +3",
+				"totalComments": "총 댓글",
+				"totalCommentsTrend": "+12% MoM",
+				"reports": "신고",
+				"reportsTrend": "처리 필요"
+			},
+			"reportFilters": {
+				"all": "전체",
+				"post": "게시물",
+				"comment": "댓글"
+			},
+			"noReports": "신고 없음",
+			"reportLabels": {
+				"post": "게시물",
+				"comment": "댓글",
+				"reportedBy": "신고자: {{name}}",
+				"noTitle": "제목 없음"
+			},
+			"searchPlaceholder": "내용, 작성자 또는 게시물 ID로 검색...",
+			"statusFilter": {
+				"all": "모든 상태",
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"sortBy": {
+				"newest": "최신순",
+				"oldest": "오래된순"
+			},
+			"tableHeaders": {
+				"id": "ID",
+				"post": "게시물",
+				"author": "작성자",
+				"likes": "좋아요",
+				"comments": "댓글",
+				"date": "날짜",
+				"actions": "작업"
+			},
+			"noResults": "현재 필터와 일치하는 게시물을 찾을 수 없습니다.",
+			"actions": {
+				"viewDetails": "상세 보기"
+			},
+			"pagination": {
+				"previous": "이전",
+				"next": "다음",
+				"showing": "{{items}}개 게시물 중 {{current}} / {{total}} 페이지 표시"
+			},
+			"modal": {
+				"title": "게시물 상세",
+				"close": "닫기",
+				"author": "작성자",
+				"images": "이미지 ({{count}})",
+				"content": "내용",
+				"likes": "좋아요",
+				"comments": "댓글",
+				"viewDetails": "상세 보기"
+			}
+		},
+		"forumReportManagement": {
+			"title": "포럼 신고 관리",
+			"subtitle": "포럼의 위반 내용에 대한 사용자 신고를 검토하고 승인합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"stats": {
+				"total": "총 신고",
+				"pending": "승인 대기",
+				"pendingDesc": "처리 필요",
+				"resolved": "해결됨",
+				"dismissed": "거절됨"
+			},
+			"searchPlaceholder": "신고 코드, 신고자, 게시물 제목으로 검색...",
+			"statusFilter": {
+				"all": "모든 상태",
+				"pending": "승인 대기",
+				"investigating": "조사 중",
+				"resolved": "해결됨",
+				"dismissed": "거절됨",
+				"closed": "닫힘"
+			},
+			"typeFilter": {
+				"all": "모든 유형",
+				"spam": "스팸",
+				"inappropriate": "부적절한 내용",
+				"harassment": "괴롭힘",
+				"copyright": "저작권 위반",
+				"other": "기타"
+			},
+			"tableHeaders": {
+				"stt": "번호",
+				"report": "신고",
+				"reporter": "신고자",
+				"violationType": "위반 유형",
+				"status": "상태",
+				"reportDate": "신고일",
+				"actions": "작업"
+			},
+			"reportTypes": {
+				"post": "게시물",
+				"comment": "댓글"
+			},
+			"status": {
+				"pending": "승인 대기",
+				"investigating": "조사 중",
+				"resolved": "해결됨",
+				"dismissed": "거절됨",
+				"closed": "닫힘"
+			},
+			"violationTypes": {
+				"spam": "스팸",
+				"inappropriate": "부적절",
+				"harassment": "괴롭힘",
+				"copyright": "저작권",
+				"violence": "폭력",
+				"hateSpeech": "혐오 발언",
+				"falseInfo": "거짓 정보",
+				"other": "기타"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"approve": "신고 승인",
+				"reject": "신고 거절"
+			},
+			"loading": "신고 목록 로딩 중...",
+			"noResults": "현재 필터와 일치하는 신고를 찾을 수 없습니다.",
+			"pagination": {
+				"page": "{{current}} / {{total}} 페이지",
+				"previous": "이전",
+				"next": "다음"
+			},
+			"confirmApprove": "이 신고를 승인하시겠습니까?",
+			"confirmReject": "이 신고를 거절하시겠습니까?",
+			"approveSuccess": "신고 승인 성공!",
+			"rejectSuccess": "신고 거절 성공!",
+			"approveError": "신고 승인 오류: {{error}}",
+			"rejectError": "신고 거절 오류: {{error}}",
+			"loadError": "신고 승인 중 오류가 발생했습니다",
+			"detailError": "신고 상세 로딩 오류: {{error}}",
+			"detailLoadError": "신고 상세를 로딩하는 중 오류가 발생했습니다",
+			"noReason": "사유 없음",
+			"approveNote": "신고가 승인되어 처리되었습니다",
+			"rejectNote": "신고가 거부되었습니다"
+		},
+		"reportDetailModal": {
+			"title": "신고 상세",
+			"id": "ID: #{{id}}",
+			"close": "닫기",
+			"fields": {
+				"status": "상태",
+				"contentType": "내용 유형",
+				"contentId": "ID: {{id}}",
+				"reporter": "신고자",
+				"violationType": "위반 유형",
+				"reportDate": "신고일",
+				"resolvedDate": "해결일",
+				"contentInfo": "내용 정보",
+				"title": "제목",
+				"author": "작성자",
+				"reason": "신고 사유",
+				"description": "상세 설명",
+				"adminNote": "관리자 메모",
+				"resolvedBy": "해결자"
+			},
+			"actions": {
+				"close": "닫기",
+				"reject": "거절",
+				"approve": "승인"
+			}
+		},
+		"pagination": {
+			"showing": "총 {{total}}개 중 {{start}} - {{end}} 표시",
+			"firstPage": "첫 페이지",
+			"previous": "이전 페이지",
+			"next": "다음 페이지",
+			"lastPage": "마지막 페이지"
+		},
+		"reportManagement": {
+			"title": "보고서 관리",
+			"subtitle": "시스템 보고서 생성 및 관리",
+			"generateNew": "새 보고서 생성",
+			"reportTypes": {
+				"title": "보고서 유형",
+				"user": "사용자 보고서",
+				"revenue": "매출 보고서",
+				"company": "회사 보고서",
+				"staff": "스태프 보고서",
+				"forum": "포럼 보고서"
+			},
+			"stats": {
+				"total": "총 보고서",
+				"completed": "완료됨",
+				"generating": "생성 중",
+				"totalDownloads": "총 다운로드"
+			},
+			"tableHeaders": {
+				"report": "보고서",
+				"type": "유형",
+				"period": "기간",
+				"status": "상태",
+				"downloads": "다운로드",
+				"actions": "작업"
+			},
+			"status": {
+				"completed": "완료됨",
+				"generating": "생성 중",
+				"pending": "대기 중"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"download": "다운로드",
+				"generate": "생성"
+			},
+			"recentReports": "최근 보고서",
+			"modal": {
+				"period": "기간",
+				"status": "상태",
+				"type": "유형",
+				"downloads": "다운로드",
+				"generatedAt": "생성일",
+				"fileSize": "파일 크기",
+				"downloadReport": "보고서 다운로드",
+				"generateReport": "보고서 생성",
+				"close": "닫기",
+				"generateMessage": "보고서 생성이 시작되었습니다! 준비되면 알림을 받으실 수 있습니다."
+			}
+		},
+		"resolveTicketManagement": {
+			"title": "지원 티켓 관리",
+			"subtitle": "모든 지원 티켓을 보고 해결 상태를 관리합니다. 이 기능은 개발 중입니다.",
+			"stats": {
+				"total": "총 티켓",
+				"resolved": "해결됨",
+				"pending": "대기 중"
+			},
+			"search": {
+				"all": "전체 검색",
+				"byTicketId": "티켓 ID로 검색",
+				"placeholderAll": "티켓 검색...",
+				"placeholderId": "티켓 ID 입력...",
+				"filterByStatus": "상태별 필터:",
+				"all": "전체",
+				"pending": "대기 중",
+				"resolved": "해결됨"
+			},
+			"refresh": "새로고침",
+			"loading": "로딩 중...",
+			"searchById": "ID로 검색",
+			"tableHeaders": {
+				"id": "ID",
+				"subject": "제목",
+				"createdAt": "생성일",
+				"status": "상태",
+				"priority": "우선순위",
+				"action": "작업"
+			},
+			"status": {
+				"pending": "대기 중",
+				"resolved": "해결됨"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"resolve": "티켓 해결"
+			},
+			"noTickets": "사용 가능한 티켓 없음",
+			"noTicketsDesc": "이 기능은 개발 중입니다. 지원 티켓 관리가 곧 제공될 예정입니다.",
+			"showing": "{{filtered}}개 필터링된 티켓 중 {{count}}개 표시 (총 {{total}}개)",
+			"errors": {
+				"enterTicketId": "티켓 ID를 입력해주세요.",
+				"invalidId": "티켓 ID는 양수여야 합니다.",
+				"notFound": "티켓을 찾을 수 없습니다.",
+				"loadError": "티켓을 불러오지 못했습니다.",
+				"resolveError": "티켓을 해결하지 못했습니다.",
+				"noPermission": "티켓을 해결할 권한이 없습니다.",
+				"selectResolution": "해결 유형을 선택해주세요."
+			},
+			"modal": {
+				"title": "티켓 상세",
+				"ticketId": "티켓 ID: #{{id}}",
+				"close": "닫기",
+				"subject": "제목",
+				"message": "메시지",
+				"status": "상태",
+				"priority": "우선순위",
+				"createdAt": "생성일",
+				"resolvedAt": "해결일"
+			},
+			"resolveModal": {
+				"title": "티켓 해결",
+				"ticketId": "티켓 ID: #{{id}}",
+				"close": "닫기",
+				"ticketSubject": "티켓 제목",
+				"resolutionType": "해결 유형",
+				"required": "*",
+				"resolutionOptions": {
+					"resolved": {
+						"label": "해결됨",
+						"description": "티켓이 성공적으로 해결되었습니다."
+					},
+					"closed": {
+						"label": "닫힘",
+						"description": "티켓이 닫혔습니다."
+					}
+				},
+				"note": "해결 메모 (선택사항)",
+				"notePlaceholder": "이 해결에 대한 추가 메모나 의견을 입력하세요...",
+				"cancel": "취소",
+				"confirm": "해결 확인",
+				"resolving": "해결 중..."
+			}
+		},
+		"staffManagement": {
+			"title": "팀 보기 및 관리",
+			"subtitle": "직원을 관리하고 시스템 접근 권한을 부여합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"addStaff": "직원 추가",
+			"stats": {
+				"total": "총 직원",
+				"totalTrend": "이번 주 +2",
+				"active": "활성",
+				"activeTrend": "이번 주 +1",
+				"admin": "관리자",
+				"adminTrend": "변화 없음",
+				"inactive": "비활성",
+				"inactiveTrend": "0 변화"
+			},
+			"searchPlaceholder": "이름, 이메일 또는 직원 코드로 검색...",
+			"roleFilter": {
+				"all": "모든 역할",
+				"staff": "직원"
+			},
+			"statusFilter": {
+				"all": "모든 상태",
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"tableHeaders": {
+				"staff": "직원",
+				"role": "역할",
+				"status": "상태",
+				"assignedTasks": "할당된 작업",
+				"createdAt": "생성일",
+				"actions": "작업"
+			},
+			"status": {
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"roles": {
+				"admin": "관리자",
+				"staff": "직원"
+			},
+			"tasks": {
+				"none": "없음",
+				"forumReport": "포럼 신고 및 예약 불만",
+				"companyRequest": "회사 요청 및 티켓 해결",
+				"approveTour": "투어 예약 및 기사 승인"
+			},
+			"actions": {
+				"assignTask": "작업 할당",
+				"edit": "수정 (지원 안 됨)",
+				"ban": "일시 중지",
+				"unban": "활성화",
+				"delete": "직원 삭제"
+			},
+			"loading": "직원 목록 로딩 중...",
+			"error": "직원 목록을 불러올 수 없습니다. 다시 시도해주세요.",
+			"retry": "다시 시도",
+			"noResults": "현재 필터와 일치하는 직원을 찾을 수 없습니다.",
+			"editNotSupported": "직원 수정 기능은 지원되지 않습니다. 백엔드에 직원 정보를 업데이트하는 엔드포인트가 없습니다.",
+			"deleteConfirm": {
+				"title": "직원 삭제",
+				"message": "\"{{name}}\" 직원을 삭제하시겠습니까?",
+				"confirm": "삭제",
+				"cancel": "취소"
+			},
+			"deleteSuccess": "직원 삭제 성공!",
+			"deleteError": "직원을 삭제할 수 없습니다. 다시 시도해주세요.",
+			"banSuccess": "직원 일시 중지 성공",
+			"unbanSuccess": "직원 활성화 성공",
+			"statusError": "직원 상태를 업데이트할 수 없습니다. 다시 시도해주세요."
+		},
+		"addStaffModal": {
+			"title": "새 직원 추가",
+			"subtitle": "시스템에 대한 새 직원 계정 생성",
+			"close": "닫기",
+			"fields": {
+				"username": "사용자 이름",
+				"usernameRequired": "*",
+				"usernamePlaceholder": "사용자 이름 입력",
+				"usernameHint": "사용자 이름은 시스템에서 고유해야 합니다",
+				"password": "비밀번호",
+				"passwordRequired": "*",
+				"passwordPlaceholder": "비밀번호 입력",
+				"passwordHint": "비밀번호는 최소 6자 이상이어야 합니다",
+				"staffTask": "작업 (선택사항)",
+				"staffTaskNone": "작업 할당 안 됨",
+				"staffTaskForum": "포럼 신고 및 예약 불만",
+				"staffTaskCompany": "회사 요청 및 티켓 해결",
+				"staffTaskTour": "투어 예약 및 기사 승인",
+				"staffTaskHint": "작업은 계정 생성 후 할당할 수 있습니다"
+			},
+			"errors": {
+				"usernameRequired": "사용자 이름을 입력해주세요",
+				"passwordRequired": "비밀번호를 입력해주세요"
+			},
+			"cancel": "취소",
+			"submit": "직원 생성",
+			"submitting": "생성 중...",
+			"createSuccess": "직원 계정 생성 성공!",
+			"createError": "직원 계정을 생성할 수 없습니다. 다시 시도해주세요."
+		},
+		"assignTaskModal": {
+			"title": "작업 할당",
+			"description": "이 직원에 대한 작업을 선택하세요. 각 직원은 한 번에 하나의 작업만 할당받을 수 있습니다.",
+			"close": "닫기",
+			"noTask": "작업 할당 안 됨",
+			"noTaskDesc": "직원은 특정 작업이 없습니다",
+			"tasks": {
+				"forumReport": {
+					"label": "포럼 신고 및 예약 불만",
+					"description": "포럼 신고 및 예약 불만 처리"
+				},
+				"companyRequest": {
+					"label": "회사 요청 및 티켓 해결",
+					"description": "회사 요청 처리 및 티켓 해결"
+				},
+				"approveTour": {
+					"label": "투어 예약 및 기사 승인",
+					"description": "투어 예약 및 기사 승인"
+				}
+			},
+			"cancel": "취소",
+			"confirm": "확인",
+			"processing": "처리 중...",
+			"updateSuccess": "작업 업데이트 성공!",
+			"updateError": "직원 작업을 업데이트할 수 없습니다. 다시 시도해주세요."
+		},
+		"tourManagement": {
+			"title": "투어 관리",
+			"subtitle": "시스템의 모든 투어를 보고 관리합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"stats": {
+				"totalTours": "총 투어",
+				"displayedTours": "표시된 투어",
+				"currentPage": "현재 페이지"
+			},
+			"searchPlaceholder": "이름, 설명, 출발지로 투어 검색...",
+			"sortBy": {
+				"newest": "최신순",
+				"oldest": "오래된순",
+				"nameAsc": "이름 A-Z",
+				"nameDesc": "이름 Z-A"
+			},
+			"tableHeaders": {
+				"stt": "번호",
+				"tourName": "투어 이름",
+				"status": "상태",
+				"price": "가격",
+				"duration": "기간",
+				"createdAt": "생성일",
+				"actions": "작업"
+			},
+			"status": {
+				"approved": "승인됨",
+				"pending": "승인 대기",
+				"disabled": "비활성화됨",
+				"na": "N/A"
+			},
+			"actions": {
+				"viewDetails": "상세 보기",
+				"approve": "투어 승인",
+				"reject": "투어 거절"
+			},
+			"loading": "투어 목록 로딩 중...",
+			"noResults": "현재 필터와 일치하는 투어를 찾을 수 없습니다.",
+			"pagination": {
+				"page": "{{current}} / {{total}} 페이지 ({{count}}개 투어)",
+				"previous": "이전",
+				"next": "다음"
+			},
+			"confirmApprove": "이 투어를 승인하시겠습니까?",
+			"confirmReject": "이 투어를 거절하시겠습니까?",
+			"approveSuccess": "투어 승인 성공!",
+			"rejectSuccess": "투어 거절 성공!",
+			"approveError": "투어 승인 오류: {{error}}",
+			"rejectError": "투어 거절 오류: {{error}}",
+			"detailError": "투어 상세를 로딩하는 중 오류가 발생했습니다"
+		},
+		"tourDetailModal": {
+			"title": "투어 상세",
+			"close": "닫기",
+			"fields": {
+				"tourId": "투어 코드",
+				"departurePoint": "출발지",
+				"adultPrice": "성인 가격",
+				"childrenPrice": "아동: {{price}}",
+				"babyPrice": "유아: {{price}}",
+				"duration": "기간",
+				"createdAt": "생성일",
+				"additionalInfo": "추가 정보",
+				"vehicle": "교통수단",
+				"tourType": "투어 유형",
+				"amount": "수량",
+				"amountPeople": "{{amount}}명",
+				"company": "회사"
+			}
+		},
+		"transactionManagement": {
+			"title": "모든 거래 보기 및 추적",
+			"subtitle": "시스템의 모든 결제 거래를 추적하고 관리합니다.",
+			"advancedFilter": "고급 필터",
+			"exportReport": "보고서 내보내기",
+			"stats": {
+				"total": "총 거래",
+				"totalTrend": "+8% MoM",
+				"completed": "완료됨",
+				"completedTrend": "+5% MoM",
+				"totalRevenue": "총 매출",
+				"totalRevenueTrend": "+12% MoM",
+				"pending": "대기 중",
+				"pendingTrend": "처리 필요"
+			},
+			"searchPlaceholder": "이름, 이메일, 주문 ID 또는 주문 정보로 검색...",
+			"statusFilter": {
+				"all": "모든 상태",
+				"completed": "완료됨",
+				"pending": "대기 중",
+				"failed": "실패"
+			},
+			"tableHeaders": {
+				"stt": "번호",
+				"customer": "고객",
+				"status": "상태",
+				"amount": "금액",
+				"paymentMethod": "결제 방법",
+				"transactionDate": "거래일",
+				"actions": "작업"
+			},
+			"status": {
+				"completed": "완료됨",
+				"pending": "대기 중",
+				"failed": "실패"
+			},
+			"actions": {
+				"viewDetails": "상세 보기"
+			},
+			"loading": "거래 목록 로딩 중...",
+			"error": "거래 목록을 불러올 수 없습니다. 다시 시도해주세요.",
+			"retry": "다시 시도",
+			"noResults": "현재 필터와 일치하는 거래를 찾을 수 없습니다."
+		},
+		"transactionDetailModal": {
+			"title": "거래 상세",
+			"close": "닫기",
+			"fields": {
+				"orderId": "주문 ID:",
+				"orderInfo": "주문 정보:",
+				"orderInfoNone": "정보 없음",
+				"amount": "금액:",
+				"paymentMethod": "결제 방법:",
+				"transactionDate": "거래일:"
+			},
+			"sections": {
+				"customerInfo": "고객 정보",
+				"customerName": "고객 이름:",
+				"email": "이메일:",
+				"transactionInfo": "거래 정보",
+				"time": "시간"
+			}
+		},
+		"userManagement": {
+			"title": "사용자 관리",
+			"subtitle": "사용자 계정 및 권한 관리",
+			"addUser": "사용자 추가",
+			"stats": {
+				"totalUsers": "총 사용자",
+				"activeUsers": "활성 사용자",
+				"businessUsers": "비즈니스 사용자",
+				"inactiveUsers": "비활성 사용자"
+			},
+			"tableHeaders": {
+				"user": "사용자",
+				"role": "역할",
+				"status": "상태",
+				"bookings": "예약",
+				"lastLogin": "마지막 로그인",
+				"actions": "작업"
+			},
+			"roles": {
+				"admin": "관리자",
+				"staff": "직원",
+				"business": "비즈니스",
+				"user": "사용자"
+			},
+			"status": {
+				"active": "활성",
+				"inactive": "비활성"
+			},
+			"actions": {
+				"edit": "수정",
+				"deactivate": "비활성화",
+				"activate": "활성화",
+				"delete": "삭제"
+			},
+			"modal": {
+				"editTitle": "사용자 수정",
+				"addTitle": "새 사용자 추가",
+				"fields": {
+					"fullName": "이름",
+					"email": "이메일",
+					"role": "역할",
+					"status": "상태"
+				},
+				"roleOptions": {
+					"user": "사용자",
+					"business": "비즈니스",
+					"staff": "직원",
+					"admin": "관리자"
+				},
+				"statusOptions": {
+					"active": "활성",
+					"inactive": "비활성"
+				},
+				"update": "사용자 업데이트",
+				"add": "사용자 추가",
+				"cancel": "취소",
+				"deleteConfirm": "이 사용자를 삭제하시겠습니까?"
+			}
 		}
 	},
 	"profile": {
@@ -641,7 +1642,10 @@
 			"saveSuccess": "게시물이 저장되었습니다",
 			"unsaveSuccess": "게시물 저장이 취소되었습니다",
 			"likeSuccess": "게시물에 좋아요를 눌렀습니다",
-			"unlikeSuccess": "게시물 좋아요를 취소했습니다"
+			"unlikeSuccess": "게시물 좋아요를 취소했습니다",
+			"translate": "내용 번역",
+			"translating": "번역 중...",
+			"hideTranslation": "번역 숨기기"
 		},
 		"comments": {
 			"placeholder": "댓글을 작성하세요...",
@@ -2676,61 +3680,209 @@
   },
   "about": {
     "hero": {
-      "title": "회사 소개",
-      "subtitle": "잊을 수 없는 여행 경험을 통해 한국과 다낭 문화를 연결합니다"
+      "title": "한국 × 다낭 투어 관리 스튜디오",
+      "subtitle": "다낭에서 바로 예약 조정, 투어 관리, 결제 처리, 한국 고객 케어를 도와주는 파스텔 플랫폼 – 직관적이고 미니멀하면서도 기술이 풍부합니다.",
+      "highlight1": "실시간 예약 허브",
+      "highlight2": "다낭 투어 워크플로우",
+      "highlight3": "완전한 한국어 대시보드",
+      "since": {
+        "label": "시작",
+        "value": "2018"
+      },
+      "focus": {
+        "label": "집중",
+        "value": "예약 운영"
+      }
     },
     "mission": {
-      "title": "우리의 사명",
-      "description": "KDBS는 고품질 투어와 전문 서비스를 통해 한국과 다낭 문화를 연결하는 훌륭한 여행 경험을 제공하기 위해 노력합니다."
+      "title": "투어 예약 운영 시스템",
+      "description": "우리는 다낭의 기업들이 예약 운영, 파트너 조정, 한국 고객 케어를 직관적이고 기술 중심적이며 부드러운 미니멀 기준에 따라 수행할 수 있도록 돕는 한-베 이중 언어 투어 관리 플랫폼을 구축합니다.",
+      "badge": "부드러운 사명"
     },
     "values": {
       "title": "핵심 가치",
+      "subtitle": "얇은 아이콘, 파스텔 팔레트, 넓은 레이아웃으로 부드러운 경험을 형성합니다.",
+      "badge": "핵심 가치",
       "quality": {
-        "title": "품질",
-        "desc": "고객에게 최고의 서비스를 제공하기 위해 노력합니다"
+        "title": "예약 운영 체계",
+        "desc": "파스텔 평면에서 투어 예약, 바우처, 결제 상태를 조정합니다."
       },
       "trust": {
-        "title": "신뢰",
-        "desc": "투명성과 전문성을 통해 신뢰를 구축합니다"
+        "title": "준수 센터",
+        "desc": "실시간 경고와 함께 비자, 계약, 한국 파트너 SLA를 추적합니다."
       },
       "excellence": {
-        "title": "우수성",
-        "desc": "서비스 품질을 지속적으로 개선하고 향상시킵니다"
+        "title": "서울 × 다낭 링크",
+        "desc": "한국 파트너, 현지 공급업체, 다국어 일정을 동기화합니다."
       },
       "passion": {
-        "title": "열정",
-        "desc": "여행과 문화적 연결에 대한 열정"
+        "title": "케어 자동화",
+        "desc": "한국 고객 케어 플레이북, 후속 일정, 경험 알림."
       }
     },
     "team": {
-      "title": "우리 팀",
+      "title": "바이브 스튜디오 팀",
+      "badge": "인간적 터치",
       "member1": {
-        "name": "김철수",
+        "name": "Nguyễn Văn A",
         "role": "CEO & 창립자",
-        "desc": "관광업계 10년 이상의 경험"
+        "desc": "10년 이상 이중 문화 여행 제품 창조."
       },
       "member2": {
-        "name": "이영희",
-        "role": "마케팅 디렉터",
-        "desc": "관광 마케팅 및 커뮤니케이션 전문가"
+        "name": "Trần Thị B",
+        "role": "크리에이티브 디렉터",
+        "desc": "시각적이고 감정적인 부드러운 경험 형성."
       },
       "member3": {
-        "name": "박민수",
-        "role": "운영 디렉터",
-        "desc": "서비스 품질 및 고객 경험 보장"
+        "name": "Lê Văn C",
+        "role": "경험 리드",
+        "desc": "균형 잡힌, 린한 고객 케어 프로세스 표준화."
       }
     },
     "stats": {
-      "customers": "고객",
-      "tours": "투어",
-      "satisfaction": "만족도",
-      "partners": "파트너"
+      "customers": "처리된 예약",
+      "tours": "자동화 커버리지",
+      "satisfaction": "리드에서 투어까지 더 빠름",
+      "partners": "한국 파트너"
+    },
+    "timeline": {
+      "badge": "여정",
+      "caption": "미니멀 소프트 코리안 타임라인",
+      "start": {
+        "title": "서울에서 시작",
+        "desc": "첫 한국 전문가들을 다낭을 사랑하는 커뮤니티와 연결."
+      },
+      "expand": {
+        "title": "미니멀 정체성",
+        "desc": "한국 생활 예술을 적용하여 감정적 케어 투어를 재설계."
+      },
+      "partnership": {
+        "title": "국제 표준 파트너",
+        "desc": "휴양 여정을 위한 숙박 체인, 첨단 스파와 파트너십."
+      },
+      "future": {
+        "title": "경험 스튜디오",
+        "desc": "인터랙티브 기술을 갖춘 다낭의 한국 영감 스튜디오 출시."
+      }
+    },
+    "monitor": {
+      "booking": "예약 부하",
+      "operations": "운영 준비도",
+      "experience": "경험 점수"
+    },
+    "metrics": {
+      "korAgents": "한국 에이전트 온라인",
+      "korAgents.caption": "서울 & 부산 파트너",
+      "vnOperators": "다낭 운영자",
+      "vnOperators.caption": "투어 물류 & 운전사",
+      "sla": "SLA 안정성",
+      "sla.caption": "실시간 모니터링"
+    },
+    "control": {
+      "korvn": "한국 × 다낭 인력",
+      "monitor": "실시간 운영 상태",
+      "liveControl": "실시간 제어",
+      "automationPulse": "자동화 펄스"
+    },
+    "heroCard": {
+      "controlHub": "제어 허브",
+      "bookingOpsCloud": "예약 + 운영 클라우드",
+      "realtimeRouting": "실시간 라우팅",
+      "automation": "자동화",
+      "automationValue": "92% 작업",
+      "coverage": "커버리지",
+      "coverageValue": "KOR ↔︎ VN",
+      "live": "라이브",
+      "opsRadar": "운영 레이더 v3.1",
+      "seoul": "서울",
+      "daNang": "다낭"
+    },
+    "workflow": {
+      "badge": "워크플로우",
+      "caption": "한국 - 다낭 투어 운영 사이클",
+      "capture": "리드 포착 및 자격 평가",
+      "capture.detail": "Zalo, KakaoTalk, 웹 예약 양식이 한-베 CRM으로 동기화됩니다.",
+      "design": "여정 설계",
+      "design.detail": "투어 템플릿 선택, 바우처 적용, KRW ↔︎ VND 가격 즉시 계산.",
+      "coordinate": "공급업체 조정",
+      "coordinate.detail": "호텔, 차량, 가이드에 이중 언어 체크리스트와 함께 알림 푸시.",
+      "care": "케어 및 보고",
+      "care.detail": "한국 고객 감정 추적, 파트너를 위한 보고서 자동 생성."
+    },
+    "integrations": {
+      "badge": "연결된 스택",
+      "title": "우리가 사용하는 기술 스택",
+      "badge0": "카카오 비즈니스 API",
+      "badge1": "네이버 / 구글 캘린더",
+      "badge2": "VNPay & 토스 페이먼츠",
+      "badge3": "Zalo OA",
+      "badge4": "에어테이블 동기화",
+      "badge5": "GSAP 마이크로 애니메이션",
+      "kakaoAPI": "카카오 비즈니스 API",
+      "naverCalendar": "네이버 / 구글 캘린더",
+      "vnpayToss": "VNPay & 토스 페이먼츠",
+      "zaloOA": "Zalo OA",
+      "airtableSync": "에어테이블 동기화",
+      "gsapAnimations": "GSAP 마이크로 애니메이션"
     },
     "story": {
-      "title": "우리의 이야기",
-      "paragraph1": "KDBS는 한국과 다낭이라는 두 가지 독특한 문화를 연결하는 사명으로 설립되었습니다. 우리는 여행이 단순히 한 곳에서 다른 곳으로 이동하는 것이 아니라, 새로운 사람들과 문화를 탐구하고 배우며 연결할 수 있는 기회라고 믿습니다.",
-      "paragraph2": "전문적이고 경험이 풍부한 팀과 함께, 우리는 신중하게 설계된 투어부터 헌신적인 고객 서비스에 이르기까지 잊을 수 없는 여행 경험을 제공하기 위해 노력합니다. 모든 여행은 이야기이며, 우리는 여러분의 이야기가 특별해지기를 원합니다.",
-      "paragraph3": "여행이 가져다주는 멋진 것들을 함께 탐험해 보세요!"
+      "title": "부드러운 서사",
+      "badge": "부드러운 서사",
+      "paragraph1": "KDBS는 미니멀 소프트 코리안 영감에서 태어났습니다 – 느린 속도, 흰색 빛, 둥근 재료가 마음의 평화를 만드는 곳. 각 투어는 기술과 자연의 리듬으로 편집된 하모니처럼 편집됩니다.",
+      "paragraph2": "우리는 모든 단계에서 정신 건강을 우선시합니다: 허브 스파, 바다 호흡 명상, 감정을 보존하는 확장 현실 경험까지. 기술은 단지 배경일 뿐, 당신의 감정이 중심입니다.",
+      "paragraph3": "다낭의 심장에서 가장 평화로운 버전의 자신에 도달하도록 도와드리겠습니다."
+    }
+  },
+  "contactPage": {
+    "hero": {
+      "badge": "미니멀 소프트 코리안 연락처",
+      "title": "우리는 당신의 모든 감정의 리듬을 듣습니다",
+      "subtitle": "미니멀하고 파스텔하며 부드럽게 둥근 스타일로 스튜디오와 연결하세요 – 모든 한국 × 다낭 여정이 섬세하게 돌봄받도록."
+    },
+    "moments": {
+      "one": "한국 그룹을 위한 부드러운 일정 설계",
+      "two": "비자 절차 및 Toss/VNPay 결제 상담",
+      "three": "다낭에서 감정 케어 팀 활성화"
+    },
+    "channels": {
+      "phoneLabel": "스튜디오 라인",
+      "phoneHint": "09:00 – 21:00 (GMT+7)",
+      "mailLabel": "이메일",
+      "mailHint": "12시간 이내 응답",
+      "chatLabel": "Zalo / Kakao",
+      "chatHint": "즉시 파스텔 지원"
+    },
+    "office": {
+      "hoursTitle": "차분한 사무실 시간",
+      "hoursValue": "Mon – Sat · 08:30 – 19:30",
+      "addressTitle": "스튜디오 주소"
+    },
+    "form": {
+      "title": "파스텔 메시지 보내기",
+      "subtitle": "12시간 이내에 부드럽게 응답하며, 당신의 바이브에 맞는 제안을 드립니다.",
+      "name": "성명",
+      "email": "연락처 이메일",
+      "topic": "부드러운 주제",
+      "topicPlaceholder": "예: 한국 고객을 위한 4박3일 투어",
+      "message": "메시지",
+      "cta": "메시지 보내기",
+      "softInquiry": "부드러운 문의"
+    },
+    "social": {
+      "badge": "소셜 파스텔"
+    },
+    "visit": {
+      "badge": "스튜디오 방문",
+      "title": "스튜디오와 개인 약속 잡기",
+      "subtitle": "허브 차, 한국 무드 보드, 빛나는 예약 조정 데스크가 있는 따뜻한 파스텔 공간.",
+      "map": "지도 보기",
+      "schedule": "파스텔 일정 잡기",
+      "zenTitle": "젠 체크리스트",
+      "zenOne": "사운드 힐링 플레이리스트 528Hz",
+      "zenTwo": "계절별 차 페어링",
+      "zenThree": "32px 둥근 일정 템플릿",
+      "flowTitle": "플로우",
+      "flowCopy": "15분 듣기, 20분 바이브 조정, 5분 여정 확정."
     }
   }
 }

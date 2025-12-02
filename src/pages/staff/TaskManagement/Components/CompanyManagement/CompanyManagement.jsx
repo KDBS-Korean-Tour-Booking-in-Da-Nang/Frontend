@@ -28,7 +28,7 @@ const CompanyManagement = () => {
   const { showSuccess, showError } = useToast();
 
   // Check if user has permission to manage companies
-  const canManageCompanies = user?.staffTask === 'COMPANY_REQUEST_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
+  const canManageCompanies = user?.staffTask === 'COMPANY_REQUEST_AND_RESOLVE_TICKET' || user?.role === 'ADMIN';
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [companies, setCompanies] = useState([]);

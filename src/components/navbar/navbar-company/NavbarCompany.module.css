@@ -310,9 +310,9 @@
 .balance-container {
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.1);
+  background: transparent;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid #cccccc;
   border-radius: 20px;
   padding: 0.5rem 1rem;
   gap: 0.5rem;
@@ -321,7 +321,9 @@
 
 .balance-container:hover {
   transform: translateY(-1px);
-  background: rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  border-color: #cccccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .balance-amount {

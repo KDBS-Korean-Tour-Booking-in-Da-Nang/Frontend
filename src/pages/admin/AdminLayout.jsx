@@ -22,7 +22,8 @@ import {
   LifebuoyIcon,
   ArrowRightOnRectangleIcon,
   CurrencyDollarIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  TicketIcon
 } from '@heroicons/react/24/outline';
 import { ShieldAlert } from 'lucide-react';
 
@@ -58,23 +59,24 @@ const AdminLayout = ({ children }) => {
 
   const menuSections = [
     {
-      title: 'MENU',
+      title: t('admin.adminLayout.menu'),
       items: [
-        { name: 'Dashboard', to: '/admin', icon: ChartBarIcon },
-        { name: 'Customer Management', to: '/admin/customers', icon: UsersIcon },
-        { name: 'Company Management', to: '/admin/company', icon: BuildingOfficeIcon },
-        { name: 'Staff Management', to: '/admin/staff', icon: UserGroupIcon },
-        { name: 'Forum Report Management', to: '/admin/forum-reports', icon: ExclamationTriangleIcon },
-        { name: 'Complaint Management', to: '/admin/complaints', icon: ShieldAlert },
-        { name: 'News Management', to: '/admin/news', icon: DocumentTextIcon },
-        { name: 'Tour Management', to: '/admin/tour', icon: MapPinIcon },
-        { name: 'Transaction Management', to: '/admin/transactions', icon: CurrencyDollarIcon },
+        { name: t('admin.adminLayout.menuItems.dashboard'), to: '/admin', icon: ChartBarIcon },
+        { name: t('admin.adminLayout.menuItems.customerManagement'), to: '/admin/customers', icon: UsersIcon },
+        { name: t('admin.adminLayout.menuItems.companyManagement'), to: '/admin/company', icon: BuildingOfficeIcon },
+        { name: t('admin.adminLayout.menuItems.staffManagement'), to: '/admin/staff', icon: UserGroupIcon },
+        { name: t('admin.adminLayout.menuItems.forumReportManagement'), to: '/admin/forum-reports', icon: ExclamationTriangleIcon },
+        { name: t('admin.adminLayout.menuItems.complaintManagement'), to: '/admin/complaints', icon: ShieldAlert },
+        { name: t('admin.adminLayout.menuItems.resolveTicketManagement'), to: '/admin/resolve-tickets', icon: TicketIcon },
+        { name: t('admin.adminLayout.menuItems.newsManagement'), to: '/admin/news', icon: DocumentTextIcon },
+        { name: t('admin.adminLayout.menuItems.tourManagement'), to: '/admin/tour', icon: MapPinIcon },
+        { name: t('admin.adminLayout.menuItems.transactionManagement'), to: '/admin/transactions', icon: CurrencyDollarIcon },
       ],
     },
     {
-      title: 'LIÊN HỆ',
+      title: t('admin.adminLayout.contact'),
       items: [
-        { name: 'Liên hệ khách hàng', to: '/admin/contact', icon: ChatBubbleLeftRightIcon },
+        { name: t('admin.adminLayout.customerContact'), to: '/admin/contact', icon: ChatBubbleLeftRightIcon },
       ],
     },
   ];
@@ -165,7 +167,7 @@ const AdminLayout = ({ children }) => {
             <div className="flex-1 flex items-center">
               <form className="w-full flex md:ml-0" action="#" method="GET">
                 <label htmlFor="search-field" className="sr-only">
-                  Search
+                  {t('admin.adminLayout.search')}
                 </label>
                 <div className="relative w-full text-gray-400 focus-within:text-gray-600">
                   <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
@@ -174,7 +176,7 @@ const AdminLayout = ({ children }) => {
                   <input
                     id="search-field"
                     className="block w-full h-full pl-8 pr-3 py-2 border-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent"
-                    placeholder="Search for..."
+                    placeholder={t('admin.adminLayout.searchPlaceholder')}
                     type="search"
                     name="search"
                   />
@@ -207,7 +209,7 @@ const AdminLayout = ({ children }) => {
                   onClick={() => setShowUserDropdown((s) => !s)}
                   className="flex items-center space-x-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
                 >
-                  <span className="text-sm font-medium text-gray-700">{user?.name || 'Admin'}</span>
+                  <span className="text-sm font-medium text-gray-700">{user?.name || t('admin.adminLayout.adminUser')}</span>
                   <div className="h-8 w-8 rounded-full bg-gray-200 ring-1 ring-gray-300 flex items-center justify-center">
                     <UserCircleIcon className="h-5 w-5 text-gray-600" />
                   </div>
@@ -222,7 +224,7 @@ const AdminLayout = ({ children }) => {
                           <UserCircleIcon className="h-6 w-6 text-gray-600" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Admin User'}</div>
+                          <div className="text-sm font-semibold text-gray-900 truncate">{user?.name || t('admin.adminLayout.adminUser')}</div>
                           <div className="text-xs text-gray-500 truncate">{user?.email || 'admin@example.com'}</div>
                         </div>
                       </div>
@@ -234,21 +236,21 @@ const AdminLayout = ({ children }) => {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <UserCircleIcon className="h-5 w-5 text-gray-500" />
-                        <span>Profile</span>
+                        <span>{t('admin.adminLayout.profile')}</span>
                       </button>
                       <button
                         onClick={() => { setShowUserDropdown(false); navigate('/settings'); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <Cog6ToothIcon className="h-5 w-5 text-gray-500" />
-                        <span>Account settings</span>
+                        <span>{t('admin.adminLayout.accountSettings')}</span>
                       </button>
                       <button
                         onClick={() => { setShowUserDropdown(false); navigate('/support'); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <LifebuoyIcon className="h-5 w-5 text-gray-500" />
-                        <span>Support</span>
+                        <span>{t('admin.adminLayout.support')}</span>
                       </button>
                       <div className="my-2 border-t border-gray-100" />
                       <button
@@ -256,7 +258,7 @@ const AdminLayout = ({ children }) => {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                       >
                         <ArrowRightOnRectangleIcon className="h-5 w-5 text-red-500" />
-                        <span>Sign out</span>
+                        <span>{t('admin.adminLayout.signOut')}</span>
                       </button>
                     </div>
                   </div>
