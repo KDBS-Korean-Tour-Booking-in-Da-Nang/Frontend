@@ -17,7 +17,8 @@
   content: "";
   position: fixed;             /* gradient phủ full màn hình và không cuộn */
   inset: 0;                    /* top/right/bottom/left: 0 */
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 30%, #cbd5e1 70%, #fce7f3 100%);
+  /* Đồng bộ background với Homepage & AboutUs */
+  background: linear-gradient(to bottom, #fefefe, #f8f6ff, #f3fbff);
   pointer-events: none;        /* không ăn click */
   z-index: -1;                 /* đứng sau toàn bộ nội dung trang */
 }

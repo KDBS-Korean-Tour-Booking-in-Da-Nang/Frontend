@@ -403,7 +403,7 @@ const TourDetailPage = () => {
     if (daysLeft !== null && daysLeft <= 7 && daysLeft > 0) {
       return (
         <span className={styles["voucher-status-badge"]}>
-          Còn {daysLeft} ngày
+          {t("tourPage.detail.vouchers.statusDays", { days: daysLeft })}
         </span>
       );
     }
@@ -418,8 +418,9 @@ const TourDetailPage = () => {
     if (Number.isNaN(endDate.getTime())) return null;
     const diff = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
     if (diff < 0) return null;
-    if (diff === 0) return 'Hết hạn hôm nay';
-    if (diff <= 7) return `Còn ${diff} ngày`;
+    if (diff === 0) return t("tourPage.detail.vouchers.expiresToday");
+    if (diff <= 7)
+      return t("tourPage.detail.vouchers.daysLeft", { days: diff });
     return null;
   };
 
@@ -929,7 +930,7 @@ const TourDetailPage = () => {
                                         <span
                                           className={styles["voucher-date-label"]}
                                         >
-                                          Thời gian
+                                          {t("tourPage.detail.vouchers.periodLabel")}
                                         </span>
                                         {getDaysLeftText({ endDate }) && (
                                           <span
@@ -942,8 +943,10 @@ const TourDetailPage = () => {
                                         )}
                                       </div>
                                       <div className={styles["voucher-date-range"]}>
-                                        Từ: {formatDate(startDate)} <br />
-                                        Đến: {formatDate(endDate)}
+                                        {t("tourPage.detail.vouchers.fromDate")}{" "}
+                                        {formatDate(startDate)} <br />
+                                        {t("tourPage.detail.vouchers.toDate")}{" "}
+                                        {formatDate(endDate)}
                                       </div>
                                     </div>
                                   </div>
@@ -956,7 +959,10 @@ const TourDetailPage = () => {
                                             voucherCode
                                           );
                                           showSuccess(
-                                            `Đã sao chép: ${voucherCode}`
+                                            t(
+                                              "tourPage.detail.vouchers.copySuccess",
+                                              { code: voucherCode }
+                                            )
                                           );
                                         } catch {
                                           const textArea =
@@ -967,7 +973,10 @@ const TourDetailPage = () => {
                                           document.execCommand("copy");
                                           document.body.removeChild(textArea);
                                           showSuccess(
-                                            `Đã sao chép: ${voucherCode}`
+                                            t(
+                                              "tourPage.detail.vouchers.copySuccess",
+                                              { code: voucherCode }
+                                            )
                                           );
                                         }
                                       }}
@@ -981,7 +990,7 @@ const TourDetailPage = () => {
                                             ]
                                       }`}
                                     >
-                                      Sao chép mã
+                                      {t("tourPage.detail.vouchers.copyButton")}
                                     </button>
                                     <button
                                       onClick={() => {
@@ -994,7 +1003,8 @@ const TourDetailPage = () => {
                                       }}
                                       className={styles["btn-detail"]}
                                     >
-                                      <Eye size={14} /> Chi tiết
+                                      <Eye size={14} />{" "}
+                                      {t("tourPage.detail.vouchers.detailButton")}
                                     </button>
                                   </div>
                                 </div>
@@ -1005,7 +1015,7 @@ const TourDetailPage = () => {
 
                         <div className={styles["voucher-footer"]}>
                           <span className={styles["voucher-help-text"]}>
-                            Các ưu đãi hiện có dành cho tour này.
+                            {t("tourPage.detail.vouchers.footerHelper")}
                           </span>
                           {voucherSuggestions.length > 3 && (
                             <button
@@ -1013,7 +1023,7 @@ const TourDetailPage = () => {
                               className={styles["voucher-cta"]}
                               onClick={() => setIsVoucherListModalOpen(true)}
                             >
-                              Xem tất cả
+                              {t("tourPage.detail.vouchers.cta")}
                             </button>
                           )}
                         </div>

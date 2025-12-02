@@ -14,6 +14,7 @@ const TossPaymentPage = () => {
   const { showInfo } = useToast();
   const { t } = useTranslation();
   const [error, setError] = useState('');
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
 
   const orderResponse = location?.state?.orderResponse || null;
   const backUrl = location?.state?.backUrl || `/booking/payment?id=${bookingId}`;
@@ -42,6 +43,19 @@ const TossPaymentPage = () => {
     navigate(backUrl || '/', { replace: true });
   };
 
+  const handleBackClick = () => {
+    setShowBackConfirm(true);
+  };
+
+  const handleCancelBack = () => {
+    setShowBackConfirm(false);
+  };
+
+  const handleConfirmBack = () => {
+    // Hủy thanh toán và chuyển đến trang lịch sử booking
+    navigate('/user/booking-history', { replace: true });
+  };
+
   const handleError = (error) => {
     const message =
       error?.message || t('payment.tossPayment.toast.error') || 'Có lỗi xảy ra';
@@ -64,9 +78,44 @@ const TossPaymentPage = () => {
         </div>
       )}
       <div className={styles.cardWrapper}>
+        {showBackConfirm && (
+          <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/40">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+              <h2 className="mb-3 text-lg font-semibold text-gray-900">
+                {t('payment.tossPayment.backConfirmTitle', {
+                  defaultValue: 'Bạn có chắc muốn quay lại?',
+                })}
+              </h2>
+              <p className="mb-5 text-sm text-gray-600">
+                {t('payment.tossPayment.backConfirmMessage', {
+                  defaultValue:
+                    'Nếu bạn quay lại bây giờ, quá trình thanh toán hiện tại sẽ bị hủy. Bạn sẽ được chuyển đến lịch sử đặt tour.',
+                })}
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelBack}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  {t('common.cancel', { defaultValue: 'Hủy' })}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmBack}
+                  className="rounded-full bg-[#1a8eea] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1670c4]"
+                >
+                  {t('payment.tossPayment.backConfirmOk', {
+                    defaultValue: 'Xác nhận quay lại',
+                  })}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <button
           type="button"
-          onClick={handleClose}
+          onClick={handleBackClick}
           className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:text-[#1670c4]"
         >
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EAF3FF] text-[#1a8eea]">

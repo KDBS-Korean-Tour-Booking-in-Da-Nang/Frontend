@@ -2350,7 +2350,39 @@
 				"tagGlobal": "Works on all tours",
 				"tagTour": "Exclusive for this tour",
 				"tagGeneric": "Flexible offer",
-				"unknownName": "Special voucher"
+				"unknownName": "Special voucher",
+				"sessionExpired": "Your session has expired. Please log in again.",
+				"statusDays": "{{days}} day(s) left",
+				"expiresToday": "Expires today",
+				"daysLeft": "Ends in {{days}} day(s)",
+				"periodLabel": "Validity period",
+				"fromDate": "From:",
+				"toDate": "To:",
+				"copyButton": "Copy code",
+				"copySuccess": "Copied: {{code}}",
+				"detailButton": "Details",
+				"footerHelper": "Current offers available for this tour.",
+				"expired": "Expired",
+				"detailTitle": "Voucher details",
+				"loadingDetail": "Loading voucher details...",
+				"notFound": "Voucher not found",
+				"notExist": "This voucher does not exist",
+				"loadError": "Unable to load voucher information",
+				"companyIdLabel": "Company ID:",
+				"discountPercent": "Save {{value}}%",
+				"discountAmount": "Save {{amount}}",
+				"expiryLabel": "Expires:",
+				"remainingQuantity": "{{count}} vouchers left",
+				"usageTimeTitle": "Usage period",
+				"minOrderTitle": "Minimum order",
+				"benefitsTitle": "Benefits",
+				"maxDiscount": "Max discount {{amount}}",
+				"appliesToToursTitle": "Applies to tours",
+				"moreTours": "+{{count}} more tours",
+				"listTitle": "Voucher list",
+				"listCloseLabel": "Close",
+				"listEmpty": "No vouchers available",
+				"voucherFallbackName": "Voucher"
 			},
 			"highlights": {
 				"title": "Tour highlights",
@@ -2420,7 +2452,84 @@
 			"placeholder": "Search tours..."
 		},
 		"voucherList": {
-			"title": "Voucher List"
+			"title": "Voucher List",
+			"subtitle": "Discover special vouchers curated just for you",
+			"loginRequired": "Please login to view your vouchers.",
+			"loadError": "Unable to load voucher list.",
+			"backToTourList": "Back to tour list",
+			"refresh": "Refresh",
+			"refreshing": "Refreshing…",
+			"filter": {
+				"label": "Voucher type:",
+				"all": "All",
+				"percent": "Percent off",
+				"amount": "Amount off"
+			},
+			"sort": {
+				"label": "Sort by:",
+				"newest": "Newest",
+				"oldest": "Oldest"
+			},
+			"days": {
+				"expired": "Expired",
+				"expiresToday": "Expires today",
+				"remaining": "{{count}} days left",
+				"remainingShort": "{{count}} days left"
+			},
+			"empty": {
+				"title": "No vouchers found",
+				"filtered": "There are no active \"{{type}}\" vouchers.",
+				"all": "There are no active vouchers at the moment.",
+				"showAll": "View all vouchers"
+			},
+			"card": {
+				"discountPercent": "{{value}}% OFF",
+				"discountAmount": "{{value}} OFF",
+				"remaining": "{{count}} vouchers left",
+				"time": "Validity",
+				"from": "From",
+				"to": "To"
+			},
+			"actions": {
+				"copy": "Copy code",
+				"details": "Details"
+			},
+			"copySuccess": "Voucher code copied: {{code}}",
+			"loadMore": "Load more"
+		},
+		"voucherDetail": {
+			"notFound": "Voucher not found",
+			"notExist": "This voucher does not exist",
+			"loadError": "Unable to load voucher information",
+			"backToVoucherList": "Back to voucher list",
+			"days": {
+				"expired": "Expired",
+				"expiresToday": "Expires today",
+				"remaining": "{{count}} days left"
+			},
+			"header": {
+				"discountPercent": "{{value}}% OFF",
+				"expiryLabel": "Exp.",
+				"remaining": "{{count}} vouchers left"
+			},
+			"sections": {
+				"timeTitle": "Voucher usage period",
+				"start": "Start",
+				"end": "End",
+				"minOrderTitle": "Minimum order value",
+				"benefitTitle": "Benefits",
+				"benefitIntro": "Limited usage. Use it before it's gone!",
+				"benefitPercent": "• {{value}}% off",
+				"benefitMax": "• Maximum discount {{value}}",
+				"benefitAmount": "• Discount {{value}}",
+				"appliesToTitle": "Applies to tours",
+				"appliesToListTitle": "This voucher applies to the following tours:",
+				"appliesToAllTours": "This voucher applies to all tours from this company."
+			},
+			"actions": {
+				"copy": "Copy code"
+			},
+			"copySuccess": "Voucher code copied: {{code}}"
 		},
 		"historyBooking": {
 			"title": "Booking History"
@@ -2950,6 +3059,9 @@
 		"checkPayment": {
 			"title": "Pay for Tour Booking",
 			"subtitle": "Please check the information carefully before clicking pay. Toss payment gateway will open in this window.",
+			"badge": "Payment Checkout",
+			"heroTitle": "Pay for Tour Booking",
+			"heroSubtitle": "Review booking information, apply vouchers and complete payment below.",
 			"loadingBooking": "Loading booking information...",
 			"bookingInfo": "Booking Information",
 			"bookingSummary": {
@@ -2962,7 +3074,13 @@
 			},
 			"guestsInfo": {
 				"title": "Guest Information ({{count}})",
-				"noGuests": "No guest information available"
+				"noGuests": "No guest information available",
+				"viewAll": "View all guests",
+				"badge": "Guest list",
+				"fullTitle": "Guest list",
+				"fullSubtitle": "All guests in this booking",
+				"closeModal": "Close guest list",
+				"close": "Close"
 			},
 			"noBookingFound": "Booking information not found. Please check the booking code.",
 			"paymentInfo": "Payment Information",
@@ -2985,6 +3103,7 @@
 			"actions": {
 				"backToWizard": "← Return to wizard to re-enter",
 				"viewHistory": "View Booking History",
+				"viewHome": "Go Home",
 				"pay": "Pay",
 				"processing": "Initializing..."
 			},
@@ -3009,6 +3128,7 @@
 				"backToWizardSuccess": "Returned to wizard. Please fill in information from the beginning. A new booking will be created when you confirm."
 			},
 			"voucherModal": {
+				"badge": "Voucher soft list",
 				"title": "Select Voucher to Apply",
 				"subtitle": "Each booking can only apply 1 voucher.",
 				"loading": "Loading vouchers...",
@@ -3028,6 +3148,18 @@
 			},
 			"statusBanner": {
 				"tossRedirectInfo": "Redirecting to Toss payment gateway. Please complete the transaction to complete tour booking."
+			},
+			"actionConfirm": {
+				"cancel": "Cancel",
+				"viewHistoryTitle": "View booking history?",
+				"viewHistoryMessage": "You will be redirected to booking history. Changes on this payment page will not be saved.",
+				"viewHistoryConfirm": "Go to booking history",
+				"goHomeTitle": "Go back to home?",
+				"goHomeMessage": "You will return to the home page. Changes on this payment page will not be saved.",
+				"goHomeConfirm": "Go Home",
+				"payTitle": "Confirm payment?",
+				"payMessage": "Please double-check your booking details and payment amount before continuing.",
+				"payConfirm": "Continue to payment"
 			}
 		},
 		"result": {
@@ -3054,7 +3186,12 @@
 		"tossPayment": {
 			"title": "Payment via Toss",
 			"subtitle": "Please complete the payment transaction in this window. You can go back if you need to make changes.",
-			"backButton": "Go Back",
+			"back": "Go Back",
+			"security": "PCI-DSS compliant secure connection from Toss",
+			"tip": "Keep this window open until the payment is complete.",
+			"backConfirmTitle": "Are you sure you want to go back?",
+			"backConfirmMessage": "If you go back now, the current payment process will be cancelled and you will be redirected to your booking history.",
+			"backConfirmOk": "Confirm and go back",
 			"toast": {
 				"missingData": "Missing payment gateway initialization data. Please reinitialize.",
 				"error": "An error occurred while initializing Toss payment gateway.",

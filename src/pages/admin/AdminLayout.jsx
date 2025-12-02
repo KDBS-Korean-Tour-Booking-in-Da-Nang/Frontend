@@ -96,6 +96,17 @@ const AdminLayout = ({ children }) => {
     };
   });
 
+  // Format balance with proper decimal places (precision 15, scale 2)
+  const formatBalance = (bal) => {
+    if (bal === null || bal === undefined) return '0.00';
+    const num = typeof bal === 'string' ? parseFloat(bal) : bal;
+    if (Number.isNaN(num)) return '0.00';
+    return new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
@@ -184,7 +195,17 @@ const AdminLayout = ({ children }) => {
               </form>
             </div>
             
-            <div className="ml-4 flex items-center md:ml-6">
+            <div className="ml-4 flex items-center md:ml-6 gap-4">
+              {/* Admin Balance (left of language selector) */}
+              {user && (
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
+                  <CurrencyDollarIcon className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-semibold text-gray-800">
+                    {formatBalance(user.balance ?? 0)}
+                  </span>
+                </div>
+              )}
+
               {/* Language Dropdown */}
               <div className="relative" ref={languageRef}>
                 <button

@@ -63,7 +63,7 @@ const VoucherList = () => {
     if (!authLoading && !user) {
       navigate('/login', { 
         state: { 
-          message: 'Vui lòng đăng nhập để xem danh sách voucher',
+          message: t('tourList.voucherList.loginRequired'),
           from: '/tour/voucher-list'
         } 
       });
@@ -143,7 +143,7 @@ const VoucherList = () => {
         setCompanyNamesMap(namesMap);
       }
     } catch {
-      setError('Không thể tải danh sách voucher');
+      setError(t('tourList.voucherList.loadError'));
       setVouchers([]);
     } finally {
       setLoading(false);
@@ -203,9 +203,9 @@ const VoucherList = () => {
     const endDate = new Date(voucher.endDate);
     if (Number.isNaN(endDate.getTime())) return null;
     const diff = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-    if (diff < 0) return 'Đã hết hạn';
-    if (diff === 0) return 'Hết hạn hôm nay';
-    return `Còn ${diff} ngày`;
+    if (diff < 0) return t('tourList.voucherList.days.expired');
+    if (diff === 0) return t('tourList.voucherList.days.expiresToday');
+    return t('tourList.voucherList.days.remaining', { count: diff });
   };
 
   const getStatusBadge = (voucher) => {
@@ -216,7 +216,7 @@ const VoucherList = () => {
     if (daysLeft !== null && daysLeft <= 7 && daysLeft > 0) {
       return (
         <span className={styles.statusBadge}>
-          Còn {daysLeft} ngày
+          {t('tourList.voucherList.days.remainingShort', { count: daysLeft })}
         </span>
       );
     }
@@ -249,7 +249,7 @@ const VoucherList = () => {
                 onClick={() => navigate('/tour')}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
-                Quay lại danh sách tour
+                {t('tourList.voucherList.backToTourList')}
               </button>
             </div>
           </div>
@@ -273,7 +273,7 @@ const VoucherList = () => {
                 <ChevronLeft className="h-4 w-4" />
               </span>
               <span className="font-semibold text-sm whitespace-nowrap">
-                Quay lại danh sách tour
+                {t('tourList.voucherList.backToTourList')}
               </span>
             </button>
             <button
@@ -288,16 +288,18 @@ const VoucherList = () => {
                 className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`}
               />
               <span className="font-semibold text-sm">
-                {refreshing ? 'Đang tải…' : 'Làm mới'}
+                {refreshing
+                  ? t('tourList.voucherList.refreshing')
+                  : t('tourList.voucherList.refresh')}
               </span>
             </button>
           </div>
           <div className="mt-4">
             <h1 className="text-3xl font-bold text-[#0f172a] tracking-tight">
-              {t('tourList.voucherList.title') || 'Danh sách Voucher'}
+              {t('tourList.voucherList.title')}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
-              Khám phá các voucher ưu đãi đặc biệt dành cho bạn
+              {t('tourList.voucherList.subtitle')}
             </p>
           </div>
         </div>
@@ -308,7 +310,7 @@ const VoucherList = () => {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-600 inline-flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-400" />
-              Loại voucher:
+              {t('tourList.voucherList.filter.label')}
             </span>
             <div className="flex gap-2">
               <button
@@ -319,7 +321,7 @@ const VoucherList = () => {
                     : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
-                Tất cả
+                {t('tourList.voucherList.filter.all')}
               </button>
               <button
                 onClick={() => setFilterType('PERCENT')}
@@ -329,7 +331,7 @@ const VoucherList = () => {
                     : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
-                Giảm %
+                {t('tourList.voucherList.filter.percent')}
               </button>
               <button
                 onClick={() => setFilterType('AMOUNT')}
@@ -339,14 +341,16 @@ const VoucherList = () => {
                     : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
-                Giảm tiền
+                {t('tourList.voucherList.filter.amount')}
               </button>
             </div>
           </div>
 
           {/* Sort by Newest */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-sm font-medium text-gray-700">Sắp xếp:</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t('tourList.voucherList.sort.label')}
+            </span>
             <div className="flex gap-2">
               <button
                 onClick={() => setSortBy('newest')}
@@ -356,7 +360,7 @@ const VoucherList = () => {
                     : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
-                Mới nhất
+                {t('tourList.voucherList.sort.newest')}
               </button>
               <button
                 onClick={() => setSortBy('oldest')}
@@ -366,7 +370,7 @@ const VoucherList = () => {
                     : 'bg-[#f6f8ff] text-gray-700 border border-gray-200 hover:bg-white'
                 }`}
               >
-                Cũ nhất
+                {t('tourList.voucherList.sort.oldest')}
               </button>
             </div>
           </div>
@@ -390,26 +394,31 @@ const VoucherList = () => {
               />
             </svg>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Không tìm thấy voucher
+              {t('tourList.voucherList.empty.title')}
             </h3>
             <p className="text-gray-600 mb-6">
               {filterType !== 'ALL' 
-                ? `Không có voucher loại "${filterType === 'PERCENT' ? 'Giảm %' : 'Giảm tiền'}" nào đang hoạt động`
-                : 'Hiện tại không có voucher nào đang hoạt động'}
+                ? t('tourList.voucherList.empty.filtered', {
+                    type:
+                      filterType === 'PERCENT'
+                        ? t('tourList.voucherList.filter.percent')
+                        : t('tourList.voucherList.filter.amount'),
+                  })
+                : t('tourList.voucherList.empty.all')}
             </p>
             {filterType !== 'ALL' && (
               <button
                 onClick={() => setFilterType('ALL')}
                 className="px-5 py-2 bg-[#2979FF] text-white rounded-full hover:bg-[#1f62d6] transition mr-2"
               >
-                Xem tất cả voucher
+                {t('tourList.voucherList.empty.showAll')}
               </button>
             )}
             <button
               onClick={() => navigate('/tour')}
               className="px-6 py-2 bg-[#2979FF] text-white rounded-full hover:bg-[#1f62d6] transition"
             >
-              Quay lại danh sách tour
+              {t('tourList.voucherList.backToTourList')}
             </button>
           </div>
         ) : (
@@ -486,15 +495,23 @@ const VoucherList = () => {
                           }`}
                         >
                           {voucher.discountType === 'PERCENT' 
-                            ? `Giảm ${voucher.discountValue}%`
-                            : `Giảm ${formatCurrency(voucher.discountValue)}`
-                          }
+                            ? t('tourList.voucherList.card.discountPercent', {
+                                value: voucher.discountValue,
+                              })
+                            : t('tourList.voucherList.card.discountAmount', {
+                                value: formatCurrency(voucher.discountValue),
+                              })}
                         </span>
                       </div>
                       <div className={styles.remainingInfo}>
                         <Clock className={styles.remainingIcon} />
                         <span>
-                          Còn {voucher.remainingQuantity !== undefined ? voucher.remainingQuantity : voucher.totalQuantity}
+                          {t('tourList.voucherList.card.remaining', {
+                            count:
+                              voucher.remainingQuantity !== undefined
+                                ? voucher.remainingQuantity
+                                : voucher.totalQuantity,
+                          })}
                         </span>
                       </div>
                     </div>
@@ -505,7 +522,9 @@ const VoucherList = () => {
                         <div className={styles.dateRangeHeader}>
                           <div className={styles.dateRangeLabel}>
                             <Calendar className={styles.dateRangeIcon} />
-                            <span className={styles.dateRangeText}>Thời gian</span>
+                            <span className={styles.dateRangeText}>
+                              {t('tourList.voucherList.card.time')}
+                            </span>
                           </div>
                           {getDaysLeftText(voucher) && (
                             <span
@@ -521,13 +540,17 @@ const VoucherList = () => {
                         </div>
                         <div className={styles.dateRangeContent}>
                           <div>
-                            <span className={styles.dateRangeItem}>Từ:</span>{' '}
+                            <span className={styles.dateRangeItem}>
+                              {t('tourList.voucherList.card.from')}
+                            </span>{' '}
                             <span className={styles.dateRangeValue}>
                               {formatDate(voucher.startDate)}
                             </span>
                           </div>
                           <div>
-                            <span className={styles.dateRangeItem}>Đến:</span>{' '}
+                            <span className={styles.dateRangeItem}>
+                              {t('tourList.voucherList.card.to')}
+                            </span>{' '}
                             <span className={styles.dateRangeValue}>
                               {formatDate(voucher.endDate)}
                             </span>
@@ -542,7 +565,11 @@ const VoucherList = () => {
                         onClick={async () => {
                           try {
                             await navigator.clipboard.writeText(voucher.code);
-                            showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
+                        showSuccess(
+                          t('tourList.voucherList.copySuccess', {
+                            code: voucher.code,
+                          })
+                        );
                           } catch {
                             const textArea = document.createElement('textarea');
                             textArea.value = voucher.code;
@@ -550,7 +577,11 @@ const VoucherList = () => {
                             textArea.select();
                             document.execCommand('copy');
                             document.body.removeChild(textArea);
-                            showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
+                            showSuccess(
+                              t('tourList.voucherList.copySuccess', {
+                                code: voucher.code,
+                              })
+                            );
                           }
                         }}
                         className={`${styles.copyButton} ${
@@ -559,7 +590,7 @@ const VoucherList = () => {
                             : styles.copyButtonAmount
                         }`}
                       >
-                        Sao chép mã
+                        {t('tourList.voucherList.actions.copy')}
                       </button>
                       <button
                         onClick={() =>
@@ -568,7 +599,7 @@ const VoucherList = () => {
                         className={styles.detailsButton}
                       >
                         <Eye className={styles.detailsButtonIcon} />
-                        Chi tiết
+                        {t('tourList.voucherList.actions.details')}
                       </button>
                     </div>
                   </div>
@@ -583,7 +614,9 @@ const VoucherList = () => {
                   onClick={handleLoadMore}
                   className={styles.loadMoreButton}
                 >
-                  <span className={styles.loadMoreText}>Xem thêm</span>
+                  <span className={styles.loadMoreText}>
+                    {t('tourList.voucherList.loadMore')}
+                  </span>
                   <ChevronDown className={styles.loadMoreIcon} size={18} strokeWidth={1.5} />
                 </button>
               </div>

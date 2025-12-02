@@ -281,7 +281,7 @@ function AppContent() {
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
-      {shouldShowCozeChat() && <CozeChat />}
+      {!isStaffAdminPage && shouldShowCozeChat() && <CozeChat />}
     </div>
   );
 }

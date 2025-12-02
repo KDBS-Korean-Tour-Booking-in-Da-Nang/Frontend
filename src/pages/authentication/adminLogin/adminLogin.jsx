@@ -30,12 +30,12 @@ const AdminLogin = () => {
     let hasErrors = false;
 
     if (!username.trim()) {
-      setUsernameError('Username là bắt buộc');
+      setUsernameError('Username is required');
       hasErrors = true;
     }
 
     if (!password.trim()) {
-      setPasswordError('Mật khẩu là bắt buộc');
+      setPasswordError('Password is required');
       hasErrors = true;
     }
 
@@ -66,12 +66,12 @@ const AdminLogin = () => {
         // Add more specific error messages based on response
         if (response.status === 401) {
           if (data.code === 1008) {
-            errorMessage = `Xác thực thất bại. Vui lòng kiểm tra lại username và password.`;
+            errorMessage = 'Authentication failed. Please check your username and password.';
           } else {
-            errorMessage = `Username hoặc password không đúng. Vui lòng thử lại.`;
+            errorMessage = 'Incorrect username or password. Please try again.';
           }
         } else if (response.status === 400) {
-          errorMessage = `Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.`;
+          errorMessage = 'Invalid data. Please check your information.';
         }
         
         setError(errorMessage);
@@ -93,24 +93,24 @@ const AdminLogin = () => {
           };
 
           login(user, token, false);
-          showSuccess('Đăng nhập thành công!');
+          showSuccess('Login successful!');
           
           // Redirect to admin dashboard
           navigate('/admin');
         } else {
-          setError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN mới được phép đăng nhập vào trang quản trị.`);
+          setError(`This account does not have permission to access admin area. Current role: ${userData.role}. Only ADMIN can log in to this page.`);
         }
       } else {
         // Handle API error response
-        const errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+        const errorMessage = data.message || 'Login failed. Please check your credentials.';
         setError(errorMessage);
       }
     } catch (err) {
       // More specific error handling
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
+        setError('Cannot connect to server. Please check if the backend is running.');
       } else {
-        setError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+        setError('An error occurred while logging in. Please try again later.');
       }
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ const AdminLogin = () => {
               <KeyRound className="w-6 h-6" strokeWidth={1.4} />
             </div>
             <p className="mt-4 text-sm font-semibold tracking-[0.2em] uppercase">Sign in</p>
-            <p className="text-xs text-[#b85858]">Chào quản trị viên</p>
+            <p className="text-xs text-[#b85858]">Welcome, Administrator</p>
           </div>
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
@@ -152,7 +152,7 @@ const AdminLogin = () => {
                     setUsernameError('');
                   }}
                   className="w-full bg-transparent text-sm text-[#3f1f1f] placeholder:text-[#ba8686] focus:outline-none"
-                  placeholder="Tên đăng nhập admin"
+                  placeholder="Admin username"
                 />
               </div>
               {usernameError && (
@@ -164,7 +164,7 @@ const AdminLogin = () => {
 
             <div>
               <label htmlFor="password" className="text-xs uppercase tracking-[0.3em] text-[#a86060]">
-                Mật khẩu
+                Password
               </label>
               <div className={`mt-2 rounded-3xl bg-[#fff1f1] border ${passwordError ? 'border-[#f17575]' : 'border-[#ffd7d7]'} px-4 py-3 focus-within:border-[#f17575] focus-within:shadow-[0_0_0_2px_rgba(241,117,117,0.15)] transition-all flex items-center gap-2`}>
                 <input
@@ -203,10 +203,10 @@ const AdminLogin = () => {
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <span className="h-4 w-4 rounded-full border-2 border-white/60 border-t-transparent animate-spin" />
-                  <span>Đang đăng nhập...</span>
+                  <span>Signing in...</span>
                 </div>
               ) : (
-                'Đăng nhập'
+                'Sign in'
               )}
             </button>
           </form>
@@ -218,7 +218,7 @@ const AdminLogin = () => {
             className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-[#b85858] hover:text-[#a03c3c] transition-colors"
           >
             <UserRound className="w-4 h-4" strokeWidth={1.5} />
-            Đăng nhập người dùng / doanh nghiệp
+            Sign in as Customer / Company
           </Link>
 
           <div className="mt-6 h-6" />

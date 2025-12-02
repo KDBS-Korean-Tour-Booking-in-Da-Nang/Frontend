@@ -2349,7 +2349,39 @@
 				"tagGlobal": "모든 투어 적용",
 				"tagTour": "해당 투어 전용",
 				"tagGeneric": "유연한 혜택",
-				"unknownName": "스페셜 바우처"
+				"unknownName": "스페셜 바우처",
+				"sessionExpired": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+				"statusDays": "{{days}}일 남음",
+				"expiresToday": "오늘 만료",
+				"daysLeft": "{{days}}일 후 만료",
+				"periodLabel": "유효 기간",
+				"fromDate": "시작:",
+				"toDate": "종료:",
+				"copyButton": "코드 복사",
+				"copySuccess": "복사됨: {{code}}",
+				"detailButton": "자세히 보기",
+				"footerHelper": "이 투어에 적용 가능한 현재 혜택입니다.",
+				"expired": "만료됨",
+				"detailTitle": "바우처 상세",
+				"loadingDetail": "바우처 정보를 불러오는 중...",
+				"notFound": "바우처를 찾을 수 없습니다",
+				"notExist": "해당 바우처가 존재하지 않습니다",
+				"loadError": "바우처 정보를 불러올 수 없습니다",
+				"companyIdLabel": "회사 ID:",
+				"discountPercent": "{{value}}% 할인",
+				"discountAmount": "{{amount}} 할인",
+				"expiryLabel": "만료일:",
+				"remainingQuantity": "잔여: {{count}}개 바우처",
+				"usageTimeTitle": "사용 기간",
+				"minOrderTitle": "최소 주문 금액",
+				"benefitsTitle": "혜택",
+				"maxDiscount": "최대 {{amount}} 할인",
+				"appliesToToursTitle": "적용 투어",
+				"moreTours": "+{{count}}개 투어 더 보기",
+				"listTitle": "바우처 목록",
+				"listCloseLabel": "닫기",
+				"listEmpty": "사용 가능한 바우처가 없습니다",
+				"voucherFallbackName": "바우처"
 			},
 			"highlights": {
 				"title": "투어 하이라이트",
@@ -2419,7 +2451,84 @@
 			"placeholder": "투어 검색..."
 		},
 		"voucherList": {
-			"title": "바우처 목록"
+			"title": "바우처 목록",
+			"subtitle": "당신을 위해 준비된 특별한 바우처를 만나보세요",
+			"loginRequired": "바우처 목록을 보려면 로그인해주세요.",
+			"loadError": "바우처 목록을 불러올 수 없습니다.",
+			"backToTourList": "투어 목록으로 돌아가기",
+			"refresh": "새로고침",
+			"refreshing": "불러오는 중…",
+			"filter": {
+				"label": "바우처 유형:",
+				"all": "전체",
+				"percent": "할인율",
+				"amount": "금액 할인"
+			},
+			"sort": {
+				"label": "정렬:",
+				"newest": "최신순",
+				"oldest": "오래된순"
+			},
+			"days": {
+				"expired": "만료됨",
+				"expiresToday": "오늘 만료",
+				"remaining": "남은 기간 {{count}}일",
+				"remainingShort": "D-{{count}}"
+			},
+			"empty": {
+				"title": "바우처를 찾을 수 없습니다",
+				"filtered": "현재 \"{{type}}\" 유형의 활성 바우처가 없습니다.",
+				"all": "현재 사용 가능한 바우처가 없습니다.",
+				"showAll": "전체 바우처 보기"
+			},
+			"card": {
+				"discountPercent": "{{value}}% 할인",
+				"discountAmount": "{{value}} 할인",
+				"remaining": "남은 바우처: {{count}}개",
+				"time": "사용 기간",
+				"from": "시작",
+				"to": "종료"
+			},
+			"actions": {
+				"copy": "코드 복사",
+				"details": "상세 보기"
+			},
+			"copySuccess": "바우처 코드가 복사되었습니다: {{code}}",
+			"loadMore": "더 보기"
+		},
+		"voucherDetail": {
+			"notFound": "바우처를 찾을 수 없습니다",
+			"notExist": "해당 바우처가 존재하지 않습니다",
+			"loadError": "바우처 정보를 불러올 수 없습니다",
+			"backToVoucherList": "바우처 목록으로 돌아가기",
+			"days": {
+				"expired": "만료됨",
+				"expiresToday": "오늘 만료",
+				"remaining": "남은 기간 {{count}}일"
+			},
+			"header": {
+				"discountPercent": "{{value}}% 할인",
+				"expiryLabel": "유효기간",
+				"remaining": "남은 바우처: {{count}}개"
+			},
+			"sections": {
+				"timeTitle": "바우처 사용 기간",
+				"start": "시작",
+				"end": "종료",
+				"minOrderTitle": "최소 주문 금액",
+				"benefitTitle": "혜택",
+				"benefitIntro": "사용 가능 수량이 한정되어 있습니다. 서둘러 이용해 보세요!",
+				"benefitPercent": "• {{value}}% 할인",
+				"benefitMax": "• 최대 {{value}} 할인",
+				"benefitAmount": "• {{value}} 할인",
+				"appliesToTitle": "적용 투어",
+				"appliesToListTitle": "이 바우처는 아래 투어에 적용됩니다:",
+				"appliesToAllTours": "이 바우처는 해당 회사의 모든 투어에 적용됩니다."
+			},
+			"actions": {
+				"copy": "코드 복사"
+			},
+			"copySuccess": "바우처 코드가 복사되었습니다: {{code}}"
 		},
 		"historyBooking": {
 			"title": "예약 내역"
@@ -2955,6 +3064,9 @@
 		"checkPayment": {
 			"title": "투어 예약 결제",
 			"subtitle": "결제하기 전에 정보를 신중하게 확인해 주세요. 토스 결제 게이트웨이가 이 창에서 열립니다.",
+			"badge": "결제 확인",
+			"heroTitle": "투어 예약 결제",
+			"heroSubtitle": "예약 정보를 확인하고, 바우처를 적용한 뒤 아래에서 결제를 완료하세요.",
 			"loadingBooking": "예약 정보를 불러오는 중...",
 			"bookingInfo": "예약 정보",
 			"bookingSummary": {
@@ -2967,7 +3079,13 @@
 			},
 			"guestsInfo": {
 				"title": "고객 정보 ({{count}})",
-				"noGuests": "고객 정보가 없습니다"
+				"noGuests": "고객 정보가 없습니다",
+				"viewAll": "모든 고객 보기",
+				"badge": "고객 목록",
+				"fullTitle": "고객 목록",
+				"fullSubtitle": "이 예약에 포함된 모든 고객",
+				"closeModal": "고객 목록 닫기",
+				"close": "닫기"
 			},
 			"noBookingFound": "예약 정보를 찾을 수 없습니다. 예약 코드를 확인해 주세요.",
 			"paymentInfo": "결제 정보",
@@ -2990,6 +3108,7 @@
 			"actions": {
 				"backToWizard": "← 다시 입력하려면 마법사로 돌아가기",
 				"viewHistory": "예약 내역 보기",
+				"viewHome": "홈으로",
 				"pay": "결제",
 				"processing": "초기화 중..."
 			},
@@ -3014,6 +3133,7 @@
 				"backToWizardSuccess": "마법사로 돌아왔습니다. 처음부터 정보를 입력해 주세요. 확인 시 새 예약이 생성됩니다."
 			},
 			"voucherModal": {
+				"badge": "바우처 목록",
 				"title": "적용할 바우처 선택",
 				"subtitle": "각 예약에는 바우처 1개만 적용할 수 있습니다.",
 				"loading": "바우처를 불러오는 중...",
@@ -3033,6 +3153,18 @@
 			},
 			"statusBanner": {
 				"tossRedirectInfo": "토스 결제 게이트웨이로 이동 중입니다. 거래를 완료하여 투어 예약을 완료해 주세요."
+			},
+			"actionConfirm": {
+				"cancel": "취소",
+				"viewHistoryTitle": "예약 내역을 보시겠습니까?",
+				"viewHistoryMessage": "예약 내역 페이지로 이동합니다. 현재 결제 페이지에서의 변경 사항은 저장되지 않습니다.",
+				"viewHistoryConfirm": "예약 내역으로 이동",
+				"goHomeTitle": "홈으로 돌아가시겠습니까?",
+				"goHomeMessage": "홈 페이지로 이동합니다. 현재 결제 페이지에서의 변경 사항은 저장되지 않습니다.",
+				"goHomeConfirm": "홈으로",
+				"payTitle": "결제를 진행하시겠습니까?",
+				"payMessage": "계속하기 전에 예약 정보와 결제 금액을 다시 한 번 확인해 주세요.",
+				"payConfirm": "결제 계속"
 			}
 		},
 		"result": {
@@ -3059,7 +3191,12 @@
 		"tossPayment": {
 			"title": "토스로 결제",
 			"subtitle": "이 창에서 결제 거래를 완료해 주세요. 변경이 필요하면 돌아갈 수 있습니다.",
-			"backButton": "돌아가기",
+			"back": "돌아가기",
+			"security": "Toss의 PCI-DSS 규격 보안 연결",
+			"tip": "결제가 완료될 때까지 이 창을 닫지 마세요.",
+			"backConfirmTitle": "정말 돌아가시겠습니까?",
+			"backConfirmMessage": "지금 돌아가시면 현재 결제가 취소되고 예약 내역 페이지로 이동합니다.",
+			"backConfirmOk": "돌아가기 확인",
 			"toast": {
 				"missingData": "결제 게이트웨이 초기화 데이터가 없습니다. 다시 초기화해 주세요.",
 				"error": "토스 결제 게이트웨이를 초기화하는 중 오류가 발생했습니다.",

@@ -42,7 +42,8 @@ const formatDateTime = (dateString) => {
     const year = date.getFullYear();
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${day} Th${month} ${year} ${hours}:${minutes}`;
+    // Numeric, locale-agnostic format to work across languages
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   } catch {
     return '-';
   }
@@ -79,9 +80,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
     const end = new Date(endDate);
     if (Number.isNaN(end.getTime())) return null;
     const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
-    if (diff < 0) return 'Đã hết hạn';
-    if (diff === 0) return 'Hết hạn hôm nay';
-    return `Còn ${diff} ngày`;
+    if (diff < 0) return t('tourPage.detail.vouchers.expired');
+    if (diff === 0) return t('tourPage.detail.vouchers.expiresToday');
+    return t('tourPage.detail.vouchers.daysLeft', { days: diff });
   };
 
   // Fetch tour details from tourIds
@@ -141,7 +142,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
         const allVouchers = await getAllVouchers();
         
         if (!Array.isArray(allVouchers)) {
-          setError('Không tìm thấy voucher');
+          setError(t('tourPage.detail.vouchers.notFound'));
           setLoading(false);
           return;
         }
@@ -153,7 +154,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
         );
 
         if (!foundVoucher) {
-          setError('Voucher không tồn tại');
+          setError(t('tourPage.detail.vouchers.notExist'));
           setLoading(false);
           return;
         }
@@ -192,7 +193,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
         }
       } catch (err) {
         console.error('Error fetching voucher:', err);
-        setError('Không thể tải thông tin voucher');
+        setError(t('tourPage.detail.vouchers.loadError'));
       } finally {
         setLoading(false);
       }
@@ -206,7 +207,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
     
     try {
       await navigator.clipboard.writeText(voucher.code);
-      showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
+      showSuccess(
+        t('tourPage.detail.vouchers.copySuccess', { code: voucher.code })
+      );
     } catch (err) {
       const textArea = document.createElement('textarea');
       textArea.value = voucher.code;
@@ -214,7 +217,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
+      showSuccess(
+        t('tourPage.detail.vouchers.copySuccess', { code: voucher.code })
+      );
     }
   };
 
@@ -224,7 +229,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Chi tiết Voucher"
+      title={t('tourPage.detail.vouchers.detailTitle')}
       size="md"
     >
       <div className={styles['voucher-detail-wrapper']}>
@@ -232,7 +237,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
         {loading && (
           <div className={styles['loading-container']}>
             <div className={styles['spinner']}></div>
-            <p>Đang tải thông tin voucher...</p>
+            <p>{t('tourPage.detail.vouchers.loadingDetail')}</p>
           </div>
         )}
 
@@ -249,21 +254,30 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
               <div className={styles['voucher-header-content']}>
                 <div className={styles['voucher-header-left']}>
                   <div className={styles['voucher-company-id']}>
-                    {companyName !== 'N/A' ? companyName : `Company ID: ${voucher.companyId || 'N/A'}`}
+                    {companyName !== 'N/A'
+                      ? companyName
+                      : `${t('tourPage.detail.vouchers.companyIdLabel')} ${
+                          voucher.companyId || 'N/A'
+                        }`}
                   </div>
                   <div className={styles['voucher-discount-display']}>
                     {voucher.discountType === 'PERCENT' ? (
                       <span className={styles['voucher-discount-text']}>
-                        Giảm {voucher.discountValue}%
+                        {t('tourPage.detail.vouchers.discountPercent', {
+                          value: voucher.discountValue,
+                        })}
                       </span>
                     ) : (
                       <span className={styles['voucher-discount-text']}>
-                        {formatCurrency(voucher.discountValue)}
+                        {t('tourPage.detail.vouchers.discountAmount', {
+                          amount: formatCurrency(voucher.discountValue),
+                        })}
                       </span>
                     )}
                   </div>
                   <div className={styles['voucher-expiry']}>
-                    HSD: {formatDate(voucher.endDate)}
+                    {t('tourPage.detail.vouchers.expiryLabel')}{' '}
+                    {formatDate(voucher.endDate)}
                   </div>
                 </div>
                 <div className={styles['voucher-header-right']}>
@@ -272,7 +286,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                   </div>
                   {voucher.remainingQuantity !== undefined && voucher.remainingQuantity !== null && (
                     <div className={styles['voucher-remaining-display']}>
-                      Còn lại: {voucher.remainingQuantity} voucher
+                      {t('tourPage.detail.vouchers.remainingQuantity', {
+                        count: voucher.remainingQuantity,
+                      })}
                     </div>
                   )}
                 </div>
@@ -285,7 +301,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                 <div className={styles['voucher-section-header']}>
                   <div className={styles['section-title-wrapper']}>
                     <Calendar className={styles['section-icon']} size={14} strokeWidth={1.5} />
-                    <h3 className={styles['section-title']}>Thời gian sử dụng</h3>
+                    <h3 className={styles['section-title']}>
+                      {t('tourPage.detail.vouchers.usageTimeTitle')}
+                    </h3>
                   </div>
                   {getDaysLeftLabel(voucher.endDate) && (
                     <span className={styles['voucher-days-left']}>
@@ -304,7 +322,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                 <div className={styles['voucher-section']}>
                   <div className={styles['section-title-wrapper']}>
                     <Banknote className={styles['section-icon']} size={14} strokeWidth={1.5} />
-                    <h3 className={styles['section-title']}>Đơn tối thiểu</h3>
+                    <h3 className={styles['section-title']}>
+                      {t('tourPage.detail.vouchers.minOrderTitle')}
+                    </h3>
                   </div>
                   <div className={styles['section-box']}>
                     <div className={styles['section-text']}>
@@ -321,19 +341,35 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                   ) : (
                     <Banknote className={styles['section-icon']} size={14} strokeWidth={1.5} />
                   )}
-                  <h3 className={styles['section-title']}>Ưu đãi</h3>
+                  <h3 className={styles['section-title']}>
+                    {t('tourPage.detail.vouchers.benefitsTitle')}
+                  </h3>
                 </div>
                 <div className={styles['section-box']}>
                   <div className={styles['benefits-list']}>
                     {voucher.discountType === 'PERCENT' ? (
                       <>
-                        <div className={styles['benefit-item']}>Giảm {voucher.discountValue}%</div>
+                        <div className={styles['benefit-item']}>
+                          {t('tourPage.detail.vouchers.discountPercent', {
+                            value: voucher.discountValue,
+                          })}
+                        </div>
                         {voucher.minOrderValue && (
-                          <div className={styles['benefit-item']}>Tối đa {formatCurrency(Math.min(voucher.minOrderValue, 100000))}</div>
+                          <div className={styles['benefit-item']}>
+                            {t('tourPage.detail.vouchers.maxDiscount', {
+                              amount: formatCurrency(
+                                Math.min(voucher.minOrderValue, 100000)
+                              ),
+                            })}
+                          </div>
                         )}
                       </>
                     ) : (
-                      <div className={styles['benefit-item']}>Giảm {formatCurrency(voucher.discountValue)}</div>
+                      <div className={styles['benefit-item']}>
+                        {t('tourPage.detail.vouchers.discountAmount', {
+                          amount: formatCurrency(voucher.discountValue),
+                        })}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -343,7 +379,9 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                 <div className={styles['voucher-section']}>
                   <div className={styles['section-title-wrapper']}>
                     <Clock className={styles['section-icon']} size={14} strokeWidth={1.5} />
-                    <h3 className={styles['section-title']}>Áp dụng cho tour</h3>
+                    <h3 className={styles['section-title']}>
+                      {t('tourPage.detail.vouchers.appliesToToursTitle')}
+                    </h3>
                   </div>
                   <div className={styles['section-box']}>
                     <div className={styles['tours-items']}>
@@ -358,7 +396,11 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                       })}
                       {voucher.tourIds.length > 3 && (
                         <div className={styles['tour-item']}>
-                          <span className={styles['tour-more']}>+{voucher.tourIds.length - 3} tour khác</span>
+                          <span className={styles['tour-more']}>
+                            {t('tourPage.detail.vouchers.moreTours', {
+                              count: voucher.tourIds.length - 3,
+                            })}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -374,7 +416,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
                 className={`${styles['copy-button']} ${getVoucherButtonGradient(voucher.discountType)}`}
               >
                 <Copy className={styles['copy-icon']} size={16} strokeWidth={2} />
-                Sao chép mã
+                {t('tourPage.detail.vouchers.copyButton')}
               </button>
             </div>
           </div>

@@ -26,20 +26,20 @@ const formatDate = (dateString) => {
   }
 };
 
-const getDaysLeftText = (endDate) => {
+const getDaysLeftText = (endDate, t) => {
   if (!endDate) return null;
   const now = new Date();
   const end = new Date(endDate);
   if (Number.isNaN(end.getTime())) return null;
   const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
   if (diff < 0) return null;
-  if (diff === 0) return 'Hết hạn hôm nay';
-  if (diff <= 7) return `Còn ${diff} ngày`;
+  if (diff === 0) return t('tourPage.detail.vouchers.expiresToday');
+  if (diff <= 7) return t('tourPage.detail.vouchers.daysLeft', { days: diff });
   return null;
 };
 
-const getStatusBadge = (endDate) => {
-  const daysLeftText = getDaysLeftText(endDate);
+const getStatusBadge = (endDate, t) => {
+  const daysLeftText = getDaysLeftText(endDate, t);
   if (!daysLeftText) return null;
   return <span className={styles.statusBadge}>{daysLeftText}</span>;
 };
@@ -53,7 +53,9 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
   const handleCopyCode = async (voucherCode) => {
     try {
       await navigator.clipboard.writeText(voucherCode);
-      showSuccess(`Đã sao chép: ${voucherCode}`);
+      showSuccess(
+        t('tourPage.detail.vouchers.copySuccess', { code: voucherCode })
+      );
     } catch {
       const textArea = document.createElement('textarea');
       textArea.value = voucherCode;
@@ -61,7 +63,9 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      showSuccess(`Đã sao chép: ${voucherCode}`);
+      showSuccess(
+        t('tourPage.detail.vouchers.copySuccess', { code: voucherCode })
+      );
     }
   };
 
@@ -82,8 +86,14 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
       <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>Danh sách Voucher</h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label="Đóng">
+          <h2 className={styles.modalTitle}>
+            {t('tourPage.detail.vouchers.listTitle')}
+          </h2>
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label={t('tourPage.detail.vouchers.listCloseLabel')}
+          >
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
@@ -92,7 +102,7 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
         <div className={styles.modalContent}>
           {vouchers.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>Không có voucher nào</p>
+              <p>{t('tourPage.detail.vouchers.listEmpty')}</p>
             </div>
           ) : (
             <div className={styles.voucherGrid}>
@@ -100,14 +110,17 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
                 const rawDiscountType = voucher.discountType || voucher.meta?.discountType || 'PERCENT';
                 const discountType = rawDiscountType === 'FIXED' ? 'AMOUNT' : rawDiscountType === 'AMOUNT' ? 'AMOUNT' : 'PERCENT';
                 const voucherCode = voucher.voucherCode || voucher.code || voucher.meta?.code || '';
-                const voucherName = voucher?.meta?.name || voucher.name || 'Voucher';
+                const voucherName =
+                  voucher?.meta?.name ||
+                  voucher.name ||
+                  t('tourPage.detail.vouchers.voucherFallbackName');
                 const startDate = voucher.startDate || voucher.meta?.startDate || '';
                 const endDate = voucher.endDate || voucher.meta?.endDate || '';
 
                 return (
                   <div key={voucher.voucherId || voucher.id || voucherCode} className={styles.voucherCard}>
                     {/* Status Badge */}
-                    {getStatusBadge(endDate)}
+                    {getStatusBadge(endDate, t)}
 
                     {/* LEFT SECTION */}
                     <div className={`${styles.leftSection} ${getVoucherHeaderGradient(discountType)}`}>
@@ -148,24 +161,34 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
                         </h3>
                         <div className={styles.subtitle}>
                           {discountType === 'PERCENT'
-                            ? `Giảm ${voucher.discountValue || 0}%`
-                            : `Giảm ${formatCurrency(voucher.discountValue || 0)}`}
+                            ? t('tourPage.detail.vouchers.discountPercent', {
+                                value: voucher.discountValue || 0,
+                              })
+                            : t('tourPage.detail.vouchers.discountAmount', {
+                                amount: formatCurrency(
+                                  voucher.discountValue || 0
+                                ),
+                              })}
                         </div>
                       </div>
 
                       <div className={styles.dateBox}>
                         <div className={styles.dateRow}>
                           <Calendar size={14} className={styles.iconSmall} />
-                          <span className={styles.dateLabel}>Thời gian</span>
-                          {getDaysLeftText(endDate) && (
+                          <span className={styles.dateLabel}>
+                            {t('tourPage.detail.vouchers.periodLabel')}
+                          </span>
+                          {getDaysLeftText(endDate, t) && (
                             <span className={styles.countdownBadge}>
-                              {getDaysLeftText(endDate)}
+                              {getDaysLeftText(endDate, t)}
                             </span>
                           )}
                         </div>
                         <div className={styles.dateRange}>
-                          Từ: {formatDate(startDate)} <br />
-                          Đến: {formatDate(endDate)}
+                          {t('tourPage.detail.vouchers.fromDate')}{' '}
+                          {formatDate(startDate)} <br />
+                          {t('tourPage.detail.vouchers.toDate')}{' '}
+                          {formatDate(endDate)}
                         </div>
                       </div>
 
@@ -174,7 +197,8 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
                           onClick={() => handleCopyCode(voucherCode)}
                           className={`${styles.btnCopy} ${getVoucherButtonGradient(discountType)}`}
                         >
-                          <Copy size={14} /> Sao chép
+                          <Copy size={14} />{' '}
+                          {t('tourPage.detail.vouchers.copyButton')}
                         </button>
 
                         <button
@@ -185,7 +209,8 @@ const VoucherListModal = ({ isOpen, onClose, vouchers = [], onVoucherClick }) =>
                           }}
                           className={styles.btnDetail}
                         >
-                          <Eye size={14} /> Chi tiết
+                          <Eye size={14} />{' '}
+                          {t('tourPage.detail.vouchers.detailButton')}
                         </button>
                       </div>
                     </div>

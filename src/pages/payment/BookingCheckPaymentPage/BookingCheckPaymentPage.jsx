@@ -88,6 +88,13 @@ const BookingCheckPaymentPage = () => {
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [showBackToWizardModal, setShowBackToWizardModal] = useState(false);
+  const [actionConfirmState, setActionConfirmState] = useState({
+    open: false,
+    title: '',
+    message: '',
+    confirmLabel: '',
+    onConfirm: null,
+  });
 
   // Load booking information và tính toán tổng tiền
   useEffect(() => {
@@ -550,6 +557,55 @@ const BookingCheckPaymentPage = () => {
     }
   };
 
+  // Xử lý phím Enter trong ô voucher: tự apply voucher thay vì submit form
+  const handleVoucherKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      // Thử apply voucher với code hiện tại
+      handleApplyVoucher();
+    }
+  };
+
+  // Khi rời khỏi ô voucher (blur), nếu có mã thì tự apply
+  const handleVoucherBlur = () => {
+    const trimmed = voucherCode?.trim();
+    if (!trimmed) {
+      return;
+    }
+    handleApplyVoucher(trimmed);
+  };
+
+  // Mở modal xác nhận cho một hành động bất kỳ
+  const openActionConfirm = ({ title, message, confirmLabel, onConfirm }) => {
+    setActionConfirmState({
+      open: true,
+      title,
+      message,
+      confirmLabel,
+      onConfirm,
+    });
+  };
+
+  const handleActionConfirm = () => {
+    if (typeof actionConfirmState.onConfirm === 'function') {
+      actionConfirmState.onConfirm();
+    }
+    setActionConfirmState((prev) => ({
+      ...prev,
+      open: false,
+      onConfirm: null,
+    }));
+  };
+
+  const handleActionCancel = () => {
+    setActionConfirmState((prev) => ({
+      ...prev,
+      open: false,
+      onConfirm: null,
+    }));
+  };
+
   // Xử lý thay đổi email input
   const handleEmailChange = (event) => {
     setUserEmail(event.target.value);
@@ -691,6 +747,53 @@ const BookingCheckPaymentPage = () => {
   // Xử lý mở modal xác nhận quay lại wizard
   const handleBackToWizardClick = () => {
     setShowBackToWizardModal(true);
+  };
+
+  // Handler cho các button chính để hiển thị modal xác nhận trước khi thực hiện
+  const handleViewHistoryClick = () => {
+    openActionConfirm({
+      title: t('payment.checkPayment.actionConfirm.viewHistoryTitle', {
+        defaultValue: 'Xem lịch sử booking?',
+      }),
+      message: t('payment.checkPayment.actionConfirm.viewHistoryMessage', {
+        defaultValue: 'Bạn sẽ được chuyển đến trang lịch sử booking. Các thay đổi trên trang thanh toán hiện tại sẽ không được lưu.',
+      }),
+      confirmLabel: t('payment.checkPayment.actionConfirm.viewHistoryConfirm', {
+        defaultValue: 'Đi đến lịch sử booking',
+      }),
+      onConfirm: () => navigate('/user/booking-history'),
+    });
+  };
+
+  const handleGoHomeClick = () => {
+    openActionConfirm({
+      title: t('payment.checkPayment.actionConfirm.goHomeTitle', {
+        defaultValue: 'Về trang chủ?',
+      }),
+      message: t('payment.checkPayment.actionConfirm.goHomeMessage', {
+        defaultValue: 'Bạn sẽ quay lại trang chủ. Các thay đổi trên trang thanh toán hiện tại sẽ không được lưu.',
+      }),
+      confirmLabel: t('payment.checkPayment.actionConfirm.goHomeConfirm', {
+        defaultValue: 'Về trang chủ',
+      }),
+      onConfirm: () => navigate('/'),
+    });
+  };
+
+  const handlePayClick = () => {
+    openActionConfirm({
+      title: t('payment.checkPayment.actionConfirm.payTitle', {
+        defaultValue: 'Xác nhận thanh toán?',
+      }),
+      message: t('payment.checkPayment.actionConfirm.payMessage', {
+        defaultValue: 'Vui lòng kiểm tra lại thông tin booking và số tiền thanh toán trước khi tiếp tục.',
+      }),
+      confirmLabel: t('payment.checkPayment.actionConfirm.payConfirm', {
+        defaultValue: 'Tiếp tục thanh toán',
+      }),
+      // Gọi lại handleSubmit theo cách thủ công với event giả
+      onConfirm: () => handleSubmit({ preventDefault: () => {} }),
+    });
   };
 
   // Xử lý xác nhận quay lại wizard để điền lại thông tin
@@ -992,6 +1095,8 @@ const BookingCheckPaymentPage = () => {
                               type="text"
                               value={voucherCode}
                               onChange={handleVoucherChange}
+                              onKeyDown={handleVoucherKeyDown}
+                              onBlur={handleVoucherBlur}
                               className="w-full rounded-[18px] border border-gray-200 bg-white px-9 py-3 text-sm text-gray-900 shadow-sm focus:border-[#1a8eea] focus:outline-none focus:ring-2 focus:ring-[#1a8eea]/40"
                               placeholder={t('payment.checkPayment.voucherPlaceholder')}
                               aria-describedby="voucherCode-hint"
@@ -1079,7 +1184,7 @@ const BookingCheckPaymentPage = () => {
                   <div className="flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
                     <button
                       type="button"
-                      onClick={() => navigate('/user/booking-history')}
+                      onClick={handleViewHistoryClick}
                       className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300"
                     >
                       <History className="h-4 w-4" />
@@ -1087,15 +1192,16 @@ const BookingCheckPaymentPage = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate('/')}
+                      onClick={handleGoHomeClick}
                       className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300"
                     >
                       <Home className="h-4 w-4" />
                       {t('payment.checkPayment.actions.viewHome', { defaultValue: 'Về trang chủ' })}
                     </button>
                     <button
-                      type="submit"
+                      type="button"
                       disabled={isSubmitting || !booking}
+                      onClick={handlePayClick}
                       className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-transparent bg-[#1a8eea] px-8 py-3 text-base font-bold text-white shadow-[0_18px_45px_rgba(26,142,234,0.35)] transition hover:-translate-y-0.5 hover:bg-[#1670c4] disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                       {isSubmitting ? (
@@ -1117,6 +1223,50 @@ const BookingCheckPaymentPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal xác nhận chung cho các hành động trên trang */}
+      {actionConfirmState.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={handleActionCancel}
+            aria-hidden="true"
+          />
+          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-[28px] border border-white/70 bg-white/95 shadow-[0_30px_100px_rgba(157,168,199,0.35)]">
+            <div className="border-b border-white/60 bg-gradient-to-r from-[#eaf3ff] to-[#fff6fb] px-6 py-5">
+              <div className="mb-1 flex items-center gap-2">
+                <Info className="h-5 w-5 text-[#1a8eea]" />
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {actionConfirmState.title}
+                </h3>
+              </div>
+            </div>
+            <div className="px-6 py-5">
+              <p className="mb-6 text-sm text-gray-600">
+                {actionConfirmState.message}
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleActionCancel}
+                  className="rounded-[18px] border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300"
+                >
+                  {t('payment.checkPayment.actionConfirm.cancel', {
+                    defaultValue: 'Hủy',
+                  })}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleActionConfirm}
+                  className="rounded-[18px] border border-transparent bg-[#1a8eea] px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(26,142,234,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1670c4]"
+                >
+                  {actionConfirmState.confirmLabel}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal chọn voucher */}
       {isVoucherModalOpen && (

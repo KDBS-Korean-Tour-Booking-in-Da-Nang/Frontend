@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../contexts/ToastContext';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
@@ -36,6 +37,7 @@ const VoucherDetailPage = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { showSuccess } = useToast();
   const [voucher, setVoucher] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ const VoucherDetailPage = () => {
         const allVouchers = await getAllVouchers();
         
         if (!Array.isArray(allVouchers)) {
-          setError('Không tìm thấy voucher');
+          setError(t('tourList.voucherDetail.notFound'));
           setLoading(false);
           return;
         }
@@ -112,7 +114,7 @@ const VoucherDetailPage = () => {
         );
 
         if (!foundVoucher) {
-          setError('Voucher không tồn tại');
+          setError(t('tourList.voucherDetail.notExist'));
           setLoading(false);
           return;
         }
@@ -152,7 +154,7 @@ const VoucherDetailPage = () => {
         }
       } catch (err) {
         console.error('Error fetching voucher:', err);
-        setError('Không thể tải thông tin voucher');
+        setError(t('tourList.voucherDetail.loadError'));
       } finally {
         setLoading(false);
       }
@@ -166,9 +168,9 @@ const VoucherDetailPage = () => {
     const end = new Date(endDate);
     if (Number.isNaN(end.getTime())) return null;
     const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
-    if (diff < 0) return 'Đã hết hạn';
-    if (diff === 0) return 'Hết hạn hôm nay';
-    return `Còn ${diff} ngày`;
+    if (diff < 0) return t('tourList.voucherDetail.days.expired');
+    if (diff === 0) return t('tourList.voucherDetail.days.expiresToday');
+    return t('tourList.voucherDetail.days.remaining', { count: diff });
   };
 
   const formatReadableDateTime = (dateString) => {
@@ -202,7 +204,9 @@ const VoucherDetailPage = () => {
       <div className={styles.errorContainer}>
         <div className={styles.errorContent}>
           <div className={styles.errorBox}>
-            <div className={styles.errorText}>{error || 'Voucher không tồn tại'}</div>
+            <div className={styles.errorText}>
+              {error || t('tourList.voucherDetail.notExist')}
+            </div>
           </div>
         </div>
       </div>
@@ -220,7 +224,7 @@ const VoucherDetailPage = () => {
             <span className={styles.backButtonIcon}>
               <ChevronLeft />
             </span>
-            <span>Quay lại danh sách voucher</span>
+            <span>{t('tourList.voucherDetail.backToVoucherList')}</span>
           </button>
           {/* Voucher Header Card - Auto height based on content */}
           <div className={styles.voucherCard}>
@@ -238,7 +242,9 @@ const VoucherDetailPage = () => {
                   <div className={styles.discountValue}>
                     {voucher.discountType === 'PERCENT' ? (
                       <div className={styles.discountText}>
-                        Giảm {voucher.discountValue}%
+                        {t('tourList.voucherDetail.header.discountPercent', {
+                          value: voucher.discountValue,
+                        })}
                       </div>
                     ) : (
                       <div className={styles.discountText}>
@@ -247,7 +253,7 @@ const VoucherDetailPage = () => {
                     )}
                   </div>
                   <div className={styles.expiryDate}>
-                    HSD: {formatDate(voucher.endDate)}
+                    {t('tourList.voucherDetail.header.expiryLabel')}: {formatDate(voucher.endDate)}
                   </div>
                 </div>
                 <div className={styles.headerRight}>
@@ -256,7 +262,9 @@ const VoucherDetailPage = () => {
                   </div>
                   {voucher.remainingQuantity !== undefined && voucher.remainingQuantity !== null && (
                     <div className={styles.remainingQuantity}>
-                      Còn lại: {voucher.remainingQuantity} voucher
+                      {t('tourList.voucherDetail.header.remaining', {
+                        count: voucher.remainingQuantity,
+                      })}
                     </div>
                   )}
                 </div>
@@ -269,7 +277,9 @@ const VoucherDetailPage = () => {
                 {/* Thời gian sử dụng mã */}
                 <div className={styles.section}>
                   <div className={styles.sectionHeader}>
-                    <h3 className={styles.sectionTitle}>Thời gian sử dụng mã</h3>
+                    <h3 className={styles.sectionTitle}>
+                      {t('tourList.voucherDetail.sections.timeTitle')}
+                    </h3>
                     {getDaysLeftLabel(voucher.endDate) && (
                       <span className={styles.daysLeftBadge}>
                         {getDaysLeftLabel(voucher.endDate)}
@@ -278,13 +288,13 @@ const VoucherDetailPage = () => {
                   </div>
                   <div className={styles.timeBox}>
                     <div className={styles.timeItem}>
-                      Bắt đầu:
+                      {t('tourList.voucherDetail.sections.start')}:
                       <span className={styles.timeValue}>
                         {formatReadableDateTime(voucher.startDate)}
                       </span>
                     </div>
                     <div className={styles.timeItem}>
-                      Kết thúc:
+                      {t('tourList.voucherDetail.sections.end')}:
                       <span className={styles.timeValue}>
                         {formatReadableDateTime(voucher.endDate)}
                       </span>
@@ -295,7 +305,9 @@ const VoucherDetailPage = () => {
                 {/* Đơn tối thiểu - Only show if minOrderValue exists */}
                 {voucher.minOrderValue && (
                   <div className={styles.section}>
-                    <h3 className={styles.sectionTitle}>Đơn tối thiểu</h3>
+                    <h3 className={styles.sectionTitle}>
+                      {t('tourList.voucherDetail.sections.minOrderTitle')}
+                    </h3>
                     <div className={styles.minOrderBox}>
                       <div className={styles.minOrderValue}>
                         {formatCurrency(voucher.minOrderValue)}
@@ -306,21 +318,37 @@ const VoucherDetailPage = () => {
 
                 {/* Ưu đãi */}
                 <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Ưu đãi</h3>
+                  <h3 className={styles.sectionTitle}>
+                    {t('tourList.voucherDetail.sections.benefitTitle')}
+                  </h3>
                   <div className={styles.benefitBox}>
                     <p className={styles.benefitText}>
-                      Lượt sử dụng có hạn. Nhanh tay kẻo lỡ bạn nhé!
+                      {t('tourList.voucherDetail.sections.benefitIntro')}
                     </p>
                     <div className={styles.benefitList}>
                       {voucher.discountType === 'PERCENT' ? (
                         <>
-                          <div>• Giảm {voucher.discountValue}%</div>
+                          <div>
+                            {t('tourList.voucherDetail.sections.benefitPercent', {
+                              value: voucher.discountValue,
+                            })}
+                          </div>
                           {voucher.minOrderValue && (
-                            <div>• Giảm tối đa {formatCurrency(Math.min(voucher.minOrderValue, 100000))}</div>
+                            <div>
+                              {t('tourList.voucherDetail.sections.benefitMax', {
+                                value: formatCurrency(
+                                  Math.min(voucher.minOrderValue, 100000)
+                                ),
+                              })}
+                            </div>
                           )}
                         </>
                       ) : (
-                        <div>• Giảm {formatCurrency(voucher.discountValue)}</div>
+                        <div>
+                          {t('tourList.voucherDetail.sections.benefitAmount', {
+                            value: formatCurrency(voucher.discountValue),
+                          })}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -329,12 +357,14 @@ const VoucherDetailPage = () => {
 
               {/* Áp dụng cho tour */}
               <div className={styles.tourSection}>
-                <h3 className={styles.sectionTitle}>Áp dụng cho tour</h3>
+                <h3 className={styles.sectionTitle}>
+                  {t('tourList.voucherDetail.sections.appliesToTitle')}
+                </h3>
                 <div className={styles.tourBox}>
                   {voucher.tourIds && voucher.tourIds.length > 0 ? (
                     <div className={styles.sectionGroup}>
                       <p className={styles.tourListTitle}>
-                        Voucher này áp dụng cho các tour sau:
+                        {t('tourList.voucherDetail.sections.appliesToListTitle')}
                       </p>
                       <div className={styles.tourListScrollable}>
                         {voucher.tourIds.map((tourId, idx) => {
@@ -350,7 +380,7 @@ const VoucherDetailPage = () => {
                     </div>
                   ) : (
                     <p className={styles.tourGlobalText}>
-                      Voucher này áp dụng cho tất cả các tour của công ty.
+                      {t('tourList.voucherDetail.sections.appliesToAllTours')}
                     </p>
                   )}
                 </div>
@@ -363,7 +393,9 @@ const VoucherDetailPage = () => {
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(voucher.code);
-                    showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
+                    showSuccess(
+                      t('tourList.voucherDetail.copySuccess', { code: voucher.code })
+                    );
                   } catch {
                     const textArea = document.createElement('textarea');
                     textArea.value = voucher.code;
@@ -371,7 +403,9 @@ const VoucherDetailPage = () => {
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    showSuccess(`Đã sao chép mã voucher: ${voucher.code}`);
+                    showSuccess(
+                      t('tourList.voucherDetail.copySuccess', { code: voucher.code })
+                    );
                   }
                 }}
                 className={`${styles.copyButton} ${
@@ -380,7 +414,7 @@ const VoucherDetailPage = () => {
                     : styles.copyButtonAmount
                 }`}
               >
-                Sao chép mã
+                {t('tourList.voucherDetail.actions.copy')}
               </button>
             </div>
           </div>

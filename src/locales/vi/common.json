@@ -2366,7 +2366,39 @@
         "tagGlobal": "Áp dụng mọi tour",
         "tagTour": "Ưu đãi tour này",
         "tagGeneric": "Ưu đãi linh hoạt",
-        "unknownName": "Voucher ưu đãi"
+        "unknownName": "Voucher ưu đãi",
+        "sessionExpired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+        "statusDays": "Còn {{days}} ngày",
+        "expiresToday": "Hết hạn hôm nay",
+        "daysLeft": "Còn {{days}} ngày",
+        "periodLabel": "Thời gian",
+        "fromDate": "Từ:",
+        "toDate": "Đến:",
+        "copyButton": "Sao chép mã",
+        "copySuccess": "Đã sao chép: {{code}}",
+        "detailButton": "Chi tiết",
+        "footerHelper": "Các ưu đãi hiện có dành cho tour này.",
+        "expired": "Đã hết hạn",
+        "detailTitle": "Chi tiết Voucher",
+        "loadingDetail": "Đang tải thông tin voucher...",
+        "notFound": "Không tìm thấy voucher",
+        "notExist": "Voucher không tồn tại",
+        "loadError": "Không thể tải thông tin voucher",
+        "companyIdLabel": "Company ID:",
+        "discountPercent": "Giảm {{value}}%",
+        "discountAmount": "Giảm {{amount}}",
+        "expiryLabel": "HSD:",
+        "remainingQuantity": "Còn lại: {{count}} voucher",
+        "usageTimeTitle": "Thời gian sử dụng",
+        "minOrderTitle": "Đơn tối thiểu",
+        "benefitsTitle": "Ưu đãi",
+        "maxDiscount": "Tối đa {{amount}}",
+        "appliesToToursTitle": "Áp dụng cho tour",
+        "moreTours": "+{{count}} tour khác",
+        "listTitle": "Danh sách Voucher",
+        "listCloseLabel": "Đóng",
+        "listEmpty": "Không có voucher nào",
+        "voucherFallbackName": "Voucher"
       },
       "highlights": {
         "title": "Điểm nổi bật của tour",
@@ -2436,7 +2468,84 @@
       "placeholder": "Tìm kiếm tour..."
     },
     "voucherList": {
-      "title": "Danh sách voucher"
+      "title": "Danh sách voucher",
+      "subtitle": "Khám phá các voucher ưu đãi đặc biệt dành cho bạn",
+      "loginRequired": "Vui lòng đăng nhập để xem danh sách voucher",
+      "loadError": "Không thể tải danh sách voucher",
+      "backToTourList": "Quay lại danh sách tour",
+      "refresh": "Làm mới",
+      "refreshing": "Đang tải…",
+      "filter": {
+        "label": "Loại voucher:",
+        "all": "Tất cả",
+        "percent": "Giảm %",
+        "amount": "Giảm tiền"
+      },
+      "sort": {
+        "label": "Sắp xếp:",
+        "newest": "Mới nhất",
+        "oldest": "Cũ nhất"
+      },
+      "days": {
+        "expired": "Đã hết hạn",
+        "expiresToday": "Hết hạn hôm nay",
+        "remaining": "Còn {{count}} ngày",
+        "remainingShort": "Còn {{count}} ngày"
+      },
+      "empty": {
+        "title": "Không tìm thấy voucher",
+        "filtered": "Không có voucher loại \"{{type}}\" nào đang hoạt động",
+        "all": "Hiện tại không có voucher nào đang hoạt động",
+        "showAll": "Xem tất cả voucher"
+      },
+      "card": {
+        "discountPercent": "Giảm {{value}}%",
+        "discountAmount": "Giảm {{value}}",
+        "remaining": "Còn lại: {{count}} voucher",
+        "time": "Thời gian",
+        "from": "Từ",
+        "to": "Đến"
+      },
+      "actions": {
+        "copy": "Sao chép mã",
+        "details": "Chi tiết"
+      },
+      "copySuccess": "Đã sao chép mã voucher: {{code}}",
+      "loadMore": "Xem thêm"
+    },
+    "voucherDetail": {
+      "notFound": "Không tìm thấy voucher",
+      "notExist": "Voucher không tồn tại",
+      "loadError": "Không thể tải thông tin voucher",
+      "backToVoucherList": "Quay lại danh sách voucher",
+      "days": {
+        "expired": "Đã hết hạn",
+        "expiresToday": "Hết hạn hôm nay",
+        "remaining": "Còn {{count}} ngày"
+      },
+      "header": {
+        "discountPercent": "Giảm {{value}}%",
+        "expiryLabel": "HSD",
+        "remaining": "Còn lại: {{count}} voucher"
+      },
+      "sections": {
+        "timeTitle": "Thời gian sử dụng mã",
+        "start": "Bắt đầu",
+        "end": "Kết thúc",
+        "minOrderTitle": "Đơn tối thiểu",
+        "benefitTitle": "Ưu đãi",
+        "benefitIntro": "Lượt sử dụng có hạn. Nhanh tay kẻo lỡ bạn nhé!",
+        "benefitPercent": "• Giảm {{value}}%",
+        "benefitMax": "• Giảm tối đa {{value}}",
+        "benefitAmount": "• Giảm {{value}}",
+        "appliesToTitle": "Áp dụng cho tour",
+        "appliesToListTitle": "Voucher này áp dụng cho các tour sau:",
+        "appliesToAllTours": "Voucher này áp dụng cho tất cả các tour của công ty."
+      },
+      "actions": {
+        "copy": "Sao chép mã"
+      },
+      "copySuccess": "Đã sao chép mã voucher: {{code}}"
     },
     "historyBooking": {
       "title": "Lịch sử đặt tour"
@@ -2941,6 +3050,9 @@
     "checkPayment": {
       "title": "Thanh toán đơn đặt tour",
       "subtitle": "Vui lòng kiểm tra kỹ thông tin trước khi bấm thanh toán. Cổng Toss sẽ mở trong cửa sổ này.",
+      "badge": "Thanh toán đơn đặt tour",
+      "heroTitle": "Thanh toán đơn đặt tour",
+      "heroSubtitle": "Kiểm tra thông tin booking, áp dụng voucher và hoàn tất thanh toán bên dưới.",
       "loadingBooking": "Đang tải thông tin booking...",
       "bookingInfo": "Thông tin booking",
       "bookingSummary": {
@@ -2953,7 +3065,13 @@
       },
       "guestsInfo": {
         "title": "Thông tin hành khách ({{count}})",
-        "noGuests": "Chưa có thông tin hành khách"
+        "noGuests": "Chưa có thông tin hành khách",
+        "viewAll": "Xem tất cả hành khách",
+        "badge": "Danh sách hành khách",
+        "fullTitle": "Danh sách hành khách",
+        "fullSubtitle": "Tất cả hành khách trong booking này",
+        "closeModal": "Đóng danh sách hành khách",
+        "close": "Đóng"
       },
       "noBookingFound": "Không tìm thấy thông tin booking. Vui lòng kiểm tra lại mã booking.",
       "paymentInfo": "Thông tin thanh toán",
@@ -2976,6 +3094,7 @@
       "actions": {
         "backToWizard": "← Quay lại wizard để điền lại",
         "viewHistory": "Xem lịch sử booking",
+        "viewHome": "Về trang chủ",
         "pay": "Thanh toán",
         "processing": "Đang khởi tạo..."
       },
@@ -3000,6 +3119,7 @@
         "backToWizardSuccess": "Đã quay lại wizard. Vui lòng điền lại thông tin từ đầu. Khi xác nhận, booking mới sẽ được tạo."
       },
       "voucherModal": {
+        "badge": "Danh sách voucher",
         "title": "Chọn voucher để áp dụng",
         "subtitle": "Mỗi booking chỉ áp dụng được 1 voucher.",
         "loading": "Đang tải voucher...",
@@ -3019,6 +3139,18 @@
       },
       "statusBanner": {
         "tossRedirectInfo": "Đang chuyển tới cổng thanh toán Toss. Vui lòng hoàn tất giao dịch để hoàn tất đặt tour."
+      },
+      "actionConfirm": {
+        "cancel": "Hủy",
+        "viewHistoryTitle": "Xem lịch sử booking?",
+        "viewHistoryMessage": "Bạn sẽ được chuyển đến trang lịch sử booking. Các thay đổi trên trang thanh toán hiện tại sẽ không được lưu.",
+        "viewHistoryConfirm": "Đi đến lịch sử booking",
+        "goHomeTitle": "Về trang chủ?",
+        "goHomeMessage": "Bạn sẽ quay lại trang chủ. Các thay đổi trên trang thanh toán hiện tại sẽ không được lưu.",
+        "goHomeConfirm": "Về trang chủ",
+        "payTitle": "Xác nhận thanh toán?",
+        "payMessage": "Vui lòng kiểm tra lại thông tin booking và số tiền thanh toán trước khi tiếp tục.",
+        "payConfirm": "Tiếp tục thanh toán"
       }
     },
     "result": {
@@ -3045,7 +3177,12 @@
     "tossPayment": {
       "title": "Thanh toán qua Toss",
       "subtitle": "Vui lòng hoàn tất giao dịch thanh toán trong cửa sổ này. Bạn có thể quay lại nếu cần thay đổi.",
-      "backButton": "Quay lại",
+      "back": "Quay lại",
+      "security": "Kết nối bảo mật chuẩn PCI-DSS từ Toss",
+      "tip": "Giữ cửa sổ này mở đến khi thanh toán hoàn tất.",
+      "backConfirmTitle": "Bạn có chắc muốn quay lại?",
+      "backConfirmMessage": "Nếu bạn quay lại bây giờ, quá trình thanh toán hiện tại sẽ bị hủy và bạn sẽ được chuyển đến lịch sử đặt tour.",
+      "backConfirmOk": "Xác nhận quay lại",
       "toast": {
         "missingData": "Thiếu dữ liệu khởi tạo cổng thanh toán. Vui lòng khởi tạo lại.",
         "error": "Đã xảy ra lỗi khi khởi tạo cổng thanh toán Toss.",
