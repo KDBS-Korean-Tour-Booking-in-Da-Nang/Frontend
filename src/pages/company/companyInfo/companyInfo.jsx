@@ -59,7 +59,6 @@ const CompanyInfo = () => {
       localStorage.setItem('company_onboarding_pending', 'true');
     } catch (error) {
       // Silently fail if localStorage is not available
-      console.warn('Failed to set company_onboarding_pending:', error);
     }
   }, []);
 
@@ -121,7 +120,9 @@ const CompanyInfo = () => {
                   idCardFrontName: parsed.idCardFrontName || '',
                   idCardBackName: parsed.idCardBackName || ''
                 });
-              } catch {}
+              } catch {
+                // Silently handle parse error
+              }
             }
           }
         }
@@ -289,7 +290,7 @@ const CompanyInfo = () => {
             // Status should now be WAITING_FOR_APPROVAL
           }
         } catch (refreshError) {
-          console.error('Error refreshing user data:', refreshError);
+          // Silently handle error refreshing user data
           // Continue with navigation even if refresh fails
         }
         
@@ -357,7 +358,7 @@ const CompanyInfo = () => {
             }
           }
         } catch (parseError) {
-          console.error('Could not parse error response:', parseError);
+          // Silently handle parse error response
           // Fallback error handling
           if (response.status === 500) {
             errorMessage = 'Lỗi xử lý trên máy chủ. Vui lòng kiểm tra lại ảnh CCCD và thử lại.';

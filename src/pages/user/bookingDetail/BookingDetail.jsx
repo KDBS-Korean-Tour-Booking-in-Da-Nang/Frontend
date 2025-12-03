@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { getBookingById, getGuestsByBookingId, updateBooking, userConfirmTourCompletion, createBookingComplaint } from '../../../services/bookingAPI';
 import { DeleteConfirmModal } from '../../../components/modals';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { formatDateForAPI } from '../../../utils/bookingFormatter';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import EditBookingModal from './EditBookingModal';
 import ComplaintModal from './ComplaintModal';
 import {
@@ -85,6 +87,7 @@ const BookingDetail = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { showSuccess } = useToast();
+  const { user, getToken } = useAuth();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -241,6 +244,16 @@ const BookingDetail = () => {
       showSuccess(t('bookingDetail.completion.toastSuccess'));
       const refreshedBooking = await getBookingById(booking.bookingId);
       setBooking(refreshedBooking);
+      
+      // Refresh balance for company if booking is now BOOKING_SUCCESS
+      // This will update company's balance in navbar and dashboard
+      if (refreshedBooking?.bookingStatus === 'BOOKING_SUCCESS') {
+        // Trigger balance update event for company users
+        // Use a small delay to ensure the event listener is ready
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('balanceUpdated'));
+        }, 100);
+      }
     } catch (err) {
       setError(err.message || t('bookingDetail.completion.toastError'));
     } finally {
@@ -459,24 +472,27 @@ const BookingDetail = () => {
                 <p>{t('bookingDetail.info.waitingForConfirmation')}</p>
                 {renderCompletionInfo()}
               </div>
-              <div className={styles['completion-actions']}>
-                <button 
-                  className={styles['confirm-btn']}
-                  onClick={() => setShowCompletionConfirmModal(true)}
-                  disabled={confirmingCompletion}
-                >
-                  <CheckCircleIcon className={styles['action-icon']} />
-                  <span>{t('bookingDetail.actions.complete')}</span>
-                </button>
-                <button 
-                  type="button"
-                  className={styles['complaint-btn']}
-                  onClick={() => setShowComplaintModal(true)}
-                >
-                  <XCircleIcon className={styles['action-icon']} />
-                  <span>{t('bookingDetail.actions.complaint')}</span>
-                </button>
-              </div>
+              {/* Hide buttons if user has already confirmed but company hasn't */}
+              {!(booking?.userConfirmedCompletion === true && booking?.companyConfirmedCompletion === false) && (
+                <div className={styles['completion-actions']}>
+                  <button 
+                    className={styles['confirm-btn']}
+                    onClick={() => setShowCompletionConfirmModal(true)}
+                    disabled={confirmingCompletion}
+                  >
+                    <CheckCircleIcon className={styles['action-icon']} />
+                    <span>{t('bookingDetail.actions.complete')}</span>
+                  </button>
+                  <button 
+                    type="button"
+                    className={styles['complaint-btn']}
+                    onClick={() => setShowComplaintModal(true)}
+                  >
+                    <XCircleIcon className={styles['action-icon']} />
+                    <span>{t('bookingDetail.actions.complaint')}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {isUnderComplaint && (

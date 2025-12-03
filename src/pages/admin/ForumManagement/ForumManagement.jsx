@@ -21,7 +21,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   FlagIcon
 } from '@heroicons/react/24/outline';
-import { API_ENDPOINTS, getImageUrl, getAvatarUrl, FrontendURL, createAuthHeaders } from '../../../config/api';
+import { API_ENDPOINTS, getImageUrl, getAvatarUrl, FrontendURL, createAuthHeaders, normalizeToRelativePath } from '../../../config/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -90,7 +90,7 @@ const ForumManagement = () => {
         setError(t('admin.forumManagement.error') || 'Không thể tải danh sách bài viết');
       }
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      // Silently handle error fetching posts
       setError(t('admin.forumManagement.error') || 'Có lỗi xảy ra khi tải danh sách bài viết');
     } finally {
       setLoading(false);
@@ -121,7 +121,7 @@ const ForumManagement = () => {
         setError(t('admin.forumManagement.error') || 'Không thể tải danh sách báo cáo');
       }
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      // Silently handle error fetching reports
       setError(t('admin.forumManagement.error') || 'Có lỗi xảy ra khi tải danh sách báo cáo');
     } finally {
       setReportsLoading(false);
@@ -265,16 +265,18 @@ const ForumManagement = () => {
       
       if (response.ok) {
         const data = await response.json();
+        // Normalize thumbnailUrl về relative path để không lưu BaseURL vào state
+        const rawThumbnail = data.thumbnailUrl || data.tourImgPath;
         setTourPreviews(prev => ({
           ...prev,
           [tourId]: {
             title: data.title || data.tourName,
-            thumbnailUrl: getImageUrl(data.thumbnailUrl || data.tourImgPath)
+            thumbnailUrl: normalizeToRelativePath(rawThumbnail)
           }
         }));
       }
     } catch (error) {
-      console.error('Error fetching tour preview:', error);
+      // Silently handle error fetching tour preview
     }
   };
 
@@ -537,8 +539,10 @@ const ForumManagement = () => {
                               const tourId = extractTourId(post);
                               const tourPreview = tourId ? tourPreviews[tourId] : null;
                               const hasImages = post.images && post.images.length > 0;
-                              const displayImage = tourPreview?.thumbnailUrl || 
-                                (hasImages ? getImageUrl(typeof post.images[0] === 'string' ? post.images[0] : post.images[0]?.imgPath) : null);
+                              // Normalize image URL khi hiển thị (state đã lưu relative path)
+                              const displayImage = tourPreview?.thumbnailUrl 
+                                ? getImageUrl(tourPreview.thumbnailUrl)
+                                : (hasImages ? getImageUrl(typeof post.images[0] === 'string' ? post.images[0] : post.images[0]?.imgPath) : null);
                               const cleanText = cleanContent(post.content || '');
                               const displayTitle = post.title || (tourPreview?.title || null);
                               const displayContent = cleanText || 'N/A';

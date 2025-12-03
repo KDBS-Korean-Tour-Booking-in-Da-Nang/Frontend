@@ -4,6 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import ReportDetailModal from './ReportDetailModal';
+import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
@@ -30,6 +31,8 @@ const ForumReportManagement = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [reportToApprove, setReportToApprove] = useState(null);
 
   // Fetch reports from API
   const fetchReports = useCallback(async (page = currentPage) => {
@@ -65,10 +68,10 @@ const ForumReportManagement = () => {
         setReports(mappedReports);
         setTotalPages(data.totalPages || 0);
       } else {
-        console.error('Failed to fetch reports:', response.statusText);
+        // Silently handle failed to fetch reports
       }
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      // Silently handle error fetching reports
     } finally {
       setLoading(false);
     }
@@ -104,7 +107,7 @@ const ForumReportManagement = () => {
           });
         }
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        // Silently handle error fetching stats
       }
     };
 
@@ -128,13 +131,9 @@ const ForumReportManagement = () => {
     });
   }, [reports, search, statusFilter, typeFilter]);
 
-  const handleApprove = async (reportId) => {
+  const approveReport = async (reportId) => {
     if (!user?.email) {
       alert(t('common.errors.loginRequired'));
-      return;
-    }
-
-    if (!window.confirm(t('admin.forumReportManagement.confirmApprove'))) {
       return;
     }
 
@@ -165,9 +164,22 @@ const ForumReportManagement = () => {
         alert(t('admin.forumReportManagement.approveError', { error: errorText }));
       }
     } catch (error) {
-      console.error('Error approving report:', error);
+      // Silently handle error approving report
       alert(t('admin.forumReportManagement.loadError'));
     }
+  };
+
+  const handleApprove = (reportId) => {
+    const report = reports.find(r => r.reportId === reportId) || { reportId };
+    setReportToApprove(report);
+    setIsApproveModalOpen(true);
+  };
+
+  const handleConfirmApprove = async () => {
+    if (!reportToApprove) return;
+    await approveReport(reportToApprove.reportId);
+    setIsApproveModalOpen(false);
+    setReportToApprove(null);
   };
 
   const handleReject = async (reportId) => {
@@ -207,7 +219,7 @@ const ForumReportManagement = () => {
         alert(t('admin.forumReportManagement.rejectError', { error: errorText }));
       }
     } catch (error) {
-      console.error('Error rejecting report:', error);
+      // Silently handle error rejecting report
       alert(t('admin.forumReportManagement.loadError'));
     }
   };
@@ -252,7 +264,7 @@ const ForumReportManagement = () => {
         alert(t('admin.forumReportManagement.detailError', { error: errorText }));
       }
     } catch (error) {
-      console.error('Error fetching report details:', error);
+      // Silently handle error fetching report details
       alert(t('admin.forumReportManagement.detailLoadError'));
     }
   };
@@ -454,6 +466,22 @@ const ForumReportManagement = () => {
         report={selectedReport}
         onApprove={handleApprove}
         onReject={handleReject}
+      />
+      
+      {/* Approve Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isApproveModalOpen}
+        onClose={() => {
+          setIsApproveModalOpen(false);
+          setReportToApprove(null);
+        }}
+        onConfirm={handleConfirmApprove}
+        title={t('admin.forumReportManagement.approveConfirm.title')}
+        message={t('admin.forumReportManagement.approveConfirm.message', { id: reportToApprove?.reportId })}
+        itemName={reportToApprove?.reportId?.toString()}
+        confirmText={t('admin.forumReportManagement.approveConfirm.confirm')}
+        cancelText={t('admin.forumReportManagement.approveConfirm.cancel')}
+        danger={false}
       />
     </div>
   );

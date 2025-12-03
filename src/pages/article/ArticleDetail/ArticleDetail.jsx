@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CalendarIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import articleService from '../../../services/articleService';
-import { htmlToJsx } from '../../../utils/htmlConverter';
+import { htmlToJsx, normalizeImageUrlsInHtml } from '../../../utils/htmlConverter';
+import { getImageUrl } from '../../../config/api';
 import styles from './ArticleDetail.module.css';
 
 const ArticleDetail = () => {
@@ -49,7 +50,7 @@ const ArticleDetail = () => {
       const data = await articleService.getArticleById(articleId);
       setArticle(data);
     } catch (error) {
-      console.error('Error loading article:', error);
+      // Silently handle error loading article
       setError(t('articleDetail.errorMessage'));
     } finally {
       setLoading(false);
@@ -195,7 +196,7 @@ const ArticleDetail = () => {
               {articleContent ? (
                 <div className="prose prose-lg max-w-none">
                   <div
-                    dangerouslySetInnerHTML={{ __html: getStyledContent(articleContent) }}
+                    dangerouslySetInnerHTML={{ __html: normalizeImageUrlsInHtml(getStyledContent(articleContent), getImageUrl) }}
                     className={styles.articleProse}
                   />
                 </div>

@@ -49,7 +49,7 @@ const BookingComplaint = () => {
       setAllComplaints(Array.isArray(data) ? data : []);
       setComplaints(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error loading complaints:', err);
+      // Silently handle error loading complaints
       setError(err?.message || 'Failed to load complaints.');
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ const BookingComplaint = () => {
         setError('Complaint not found.');
       }
     } catch (err) {
-      console.error('Error fetching complaint:', err);
+      // Silently handle error fetching complaint
       setError(err?.message || 'Failed to load complaint.');
       setComplaints([]);
     } finally {
@@ -176,7 +176,7 @@ const BookingComplaint = () => {
       await loadAllComplaints();
       handleCloseResolveModal();
     } catch (err) {
-      console.error('Error resolving complaint:', err);
+      // Silently handle error resolving complaint
       setError(err?.message || 'Failed to resolve complaint.');
     } finally {
       setResolvingId(null);

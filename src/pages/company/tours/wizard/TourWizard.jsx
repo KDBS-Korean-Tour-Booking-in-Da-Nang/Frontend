@@ -512,14 +512,7 @@ const TourWizardContent = () => {
           let errorData;
           try {
             errorData = await response.json();
-            console.error('Tour creation error:', errorData);
-            console.error('Error details:', {
-              status: response.status,
-              statusText: response.statusText,
-              errorCode: errorData.code,
-              errorMessage: errorData.message,
-              errorData: errorData
-            });
+            // Silently handle tour creation error
             setSubmitError(errorData.message || t('toast.save_error') || 'Lưu thất bại');
           } catch (e) {
             // If JSON parsing fails, get text response

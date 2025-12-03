@@ -6,6 +6,7 @@ import { useToast } from '../../../../../contexts/ToastContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getTourImageUrl } from '../../../../../config/api';
 import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import TourDetailModal from './TourDetailModal';
+import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import { 
   XMarkIcon, 
   ExclamationTriangleIcon,
@@ -37,6 +38,10 @@ const TourApproval = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState('');
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [tourToApprove, setTourToApprove] = useState(null);
+  const [tourToReject, setTourToReject] = useState(null);
 
   // Fetch tours from API
   useEffect(() => {
@@ -71,12 +76,11 @@ const TourApproval = () => {
           setTours(toursList);
           setError(''); // Clear error on success
         } else {
-          const errorText = await response.text();
-          console.error('Failed to fetch tours:', response.statusText, errorText);
+          // Silently handle failed to fetch tours
           setError(t('admin.tourApproval.error.loadTours'));
         }
       } catch (error) {
-        console.error('Error fetching tours:', error);
+        // Silently handle error fetching tours
         setError(t('admin.tourApproval.error.loadTours'));
       } finally {
         setLoading(false);
@@ -162,18 +166,24 @@ const TourApproval = () => {
         setError(t('admin.tourApproval.error.loadDetail'));
       }
     } catch (error) {
-      console.error('Error fetching tour details:', error);
+      // Silently handle error fetching tour details
       setError(t('admin.tourApproval.error.loadDetail'));
     } finally {
       setLoadingDetail(false);
     }
   };
 
-  // Handle approve tour
-  const handleApproveTour = async (tourId) => {
-    if (!window.confirm(t('admin.tourApproval.confirm.approve'))) {
-      return;
-    }
+  // Handle approve tour - opens modal
+  const handleApproveTour = (tourId) => {
+    const tour = tours.find(t => (t.tourId || t.id) === tourId) || { tourId: tourId || tour.id };
+    setTourToApprove(tour);
+    setIsApproveModalOpen(true);
+  };
+
+  // Confirm approve tour - calls API
+  const confirmApproveTour = async () => {
+    if (!tourToApprove) return;
+    const tourId = tourToApprove.tourId || tourToApprove.id;
 
     try {
       const token = getToken();
@@ -207,6 +217,8 @@ const TourApproval = () => {
           }
           setTours(toursList);
         }
+        setIsApproveModalOpen(false);
+        setTourToApprove(null);
         showSuccess(t('admin.tourApproval.success.approve'));
         setIsDetailModalOpen(false);
       } else {
@@ -214,16 +226,22 @@ const TourApproval = () => {
         setError(t('admin.tourApproval.error.approve', { error: errorText }));
       }
     } catch (error) {
-      console.error('Error approving tour:', error);
+      // Silently handle error approving tour
       setError(t('admin.tourApproval.error.approveGeneric'));
     }
   };
 
-  // Handle reject tour
-  const handleRejectTour = async (tourId) => {
-    if (!window.confirm(t('admin.tourApproval.confirm.reject'))) {
-      return;
-    }
+  // Handle reject tour - opens modal
+  const handleRejectTour = (tourId) => {
+    const tour = tours.find(t => (t.tourId || t.id) === tourId) || { tourId: tourId || tour.id };
+    setTourToReject(tour);
+    setIsRejectModalOpen(true);
+  };
+
+  // Confirm reject tour - calls API
+  const confirmRejectTour = async () => {
+    if (!tourToReject) return;
+    const tourId = tourToReject.tourId || tourToReject.id;
 
     try {
       const token = getToken();
@@ -258,6 +276,8 @@ const TourApproval = () => {
           }
           setTours(toursList);
         }
+        setIsRejectModalOpen(false);
+        setTourToReject(null);
         showSuccess(t('admin.tourApproval.success.reject'));
         setIsDetailModalOpen(false);
       } else {
@@ -265,7 +285,7 @@ const TourApproval = () => {
         setError(t('admin.tourApproval.error.reject', { error: errorText }));
       }
     } catch (error) {
-      console.error('Error rejecting tour:', error);
+      // Silently handle error rejecting tour
       setError(t('admin.tourApproval.error.rejectGeneric'));
     }
   };
@@ -548,20 +568,24 @@ const TourApproval = () => {
                         >
                           <Eye className="h-4 w-4" strokeWidth={1.5} />
                         </button>
-                        <button
-                          onClick={() => handleApproveTour(tour.tourId || tour.id)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
-                          title={t('admin.tourApproval.actions.approve')}
-                        >
-                          <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
-                        </button>
-                        <button
-                          onClick={() => handleRejectTour(tour.tourId || tour.id)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
-                          title={t('admin.tourApproval.actions.reject')}
-                        >
-                          <XCircle className="h-4 w-4" strokeWidth={1.5} />
-                        </button>
+                        {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
+                          <button
+                            onClick={() => handleApproveTour(tour.tourId || tour.id)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                            title={t('admin.tourApproval.actions.approve')}
+                          >
+                            <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                          </button>
+                        )}
+                        {(tour.tourStatus || tour.status || '').toUpperCase() !== 'DISABLED' && (
+                          <button
+                            onClick={() => handleRejectTour(tour.tourId || tour.id)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                            title={t('admin.tourApproval.actions.reject')}
+                          >
+                            <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -607,6 +631,38 @@ const TourApproval = () => {
         tour={selectedTour}
         onApprove={selectedTour ? () => handleApproveTour(selectedTour.tourId || selectedTour.id) : null}
         onReject={selectedTour ? () => handleRejectTour(selectedTour.tourId || selectedTour.id) : null}
+      />
+
+      {/* Approve Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isApproveModalOpen}
+        onClose={() => {
+          setIsApproveModalOpen(false);
+          setTourToApprove(null);
+        }}
+        onConfirm={confirmApproveTour}
+        title={t('admin.tourApproval.approveConfirm.title')}
+        message={t('admin.tourApproval.approveConfirm.message', { name: tourToApprove?.title || tourToApprove?.tourName || tourToApprove?.tourId || tourToApprove?.id })}
+        itemName={tourToApprove?.title || tourToApprove?.tourName || tourToApprove?.tourId?.toString() || tourToApprove?.id?.toString()}
+        confirmText={t('admin.tourApproval.approveConfirm.confirm')}
+        cancelText={t('admin.tourApproval.approveConfirm.cancel')}
+        danger={false}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isRejectModalOpen}
+        onClose={() => {
+          setIsRejectModalOpen(false);
+          setTourToReject(null);
+        }}
+        onConfirm={confirmRejectTour}
+        title={t('admin.tourApproval.rejectConfirm.title')}
+        message={t('admin.tourApproval.rejectConfirm.message', { name: tourToReject?.title || tourToReject?.tourName || tourToReject?.tourId || tourToReject?.id })}
+        itemName={tourToReject?.title || tourToReject?.tourName || tourToReject?.tourId?.toString() || tourToReject?.id?.toString()}
+        confirmText={t('admin.tourApproval.rejectConfirm.confirm')}
+        cancelText={t('admin.tourApproval.rejectConfirm.cancel')}
+        danger={true}
       />
     </div>
   );

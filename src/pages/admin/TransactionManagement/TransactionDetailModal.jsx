@@ -6,10 +6,6 @@ const TransactionDetailModal = ({ isOpen, onClose, transaction }) => {
   const { t, i18n } = useTranslation();
   if (!isOpen || !transaction) return null;
 
-  // Debug: Log transaction data
-  console.log('Transaction in modal:', transaction);
-  console.log('OrderInfo value:', transaction.orderInfo);
-
   const formatCurrency = (value) => {
     if (!value) return 'N/A';
     const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';

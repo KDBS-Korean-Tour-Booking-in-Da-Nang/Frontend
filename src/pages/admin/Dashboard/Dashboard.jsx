@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Chart from 'react-apexcharts';
 import {
@@ -26,8 +26,15 @@ const geoData = worldMapData;
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
-  const { getToken } = useAuth();
+  const { user, getToken } = useAuth();
   const [loading, setLoading] = useState(true);
+  // Initialize balance from user object if available
+  const [balance, setBalance] = useState(() => {
+    if (user?.role === 'ADMIN' && user?.balance !== undefined && user?.balance !== null) {
+      return user.balance;
+    }
+    return null;
+  });
   const [stats, setStats] = useState({
     totalTours: 0,
     totalBookings: 0,
@@ -40,6 +47,46 @@ const Dashboard = () => {
     totalCompanies: 0
   });
 
+  // Sync balance with user object when user changes
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      if (user.balance !== undefined && user.balance !== null) {
+        setBalance(user.balance);
+      } else if (balance === null) {
+        // Only set to 0 if balance is still null (initial state)
+        setBalance(0);
+      }
+    } else {
+      setBalance(null);
+    }
+  }, [user?.balance, user?.role]);
+
+  // Listen for balance update events
+  useEffect(() => {
+    if (!user || user.role !== 'ADMIN') {
+      return;
+    }
+
+    const handleBalanceUpdate = (event) => {
+      // If balance is provided in event, use it directly
+      if (event.detail?.balance !== undefined) {
+        setBalance(event.detail.balance);
+      } else {
+        // Otherwise, refresh from user object
+        if (user.balance !== undefined && user.balance !== null) {
+          setBalance(user.balance);
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('balanceUpdated', handleBalanceUpdate);
+      return () => {
+        window.removeEventListener('balanceUpdated', handleBalanceUpdate);
+      };
+    }
+  }, [user]);
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -51,6 +98,8 @@ const Dashboard = () => {
           setLoading(false);
           return;
         }
+
+        // Balance is already synced with user object via useEffect above
 
         const headers = createAuthHeaders(token);
 
@@ -90,7 +139,7 @@ const Dashboard = () => {
           // This is a limitation - ideally there should be an admin endpoint for all bookings
           // For now, we'll calculate from available data
         } catch (e) {
-          console.error('Error fetching bookings:', e);
+          // Silently handle error fetching bookings
         }
 
         // Calculate stats
@@ -113,12 +162,15 @@ const Dashboard = () => {
         const mockPendingBookings = Math.floor(mockTotalBookings * 0.15);
         const mockCompletedBookings = Math.floor(mockTotalBookings * 0.75);
         const mockCancelledBookings = Math.floor(mockTotalBookings * 0.10);
-        const mockTotalRevenue = mockCompletedBookings * 2500000; // Average booking value
+        
+        // Total Revenue should use balance from API (same as company dashboard)
+        // Balance is already fetched in fetchBalance() above
+        const totalRevenue = balance !== null ? balance : 0;
 
         setStats({
           totalTours,
           totalBookings: mockTotalBookings,
-          totalRevenue: mockTotalRevenue,
+          totalRevenue,
           totalUsers,
           activeTours,
           pendingBookings: mockPendingBookings,
@@ -128,14 +180,14 @@ const Dashboard = () => {
           tourCategories
         });
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        // Silently handle error fetching dashboard data
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [getToken, balance]);
 
   // Format currency
   const formatCurrency = (value) => {

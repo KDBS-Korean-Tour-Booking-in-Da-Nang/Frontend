@@ -3,15 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../../../contexts/ToastContext';
-import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../../../config/api';
+import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl, getImageUrl } from '../../../../../config/api';
 import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import Pagination from '../../../../admin/Pagination';
+import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import {
   BuildingOfficeIcon,
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
   ArrowDownTrayIcon,
+  ArrowTopRightOnSquareIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
@@ -47,6 +49,10 @@ const CompanyManagement = () => {
   const [processing, setProcessing] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [companyToApprove, setCompanyToApprove] = useState(null);
+  const [companyToReject, setCompanyToReject] = useState(null);
 
   // Fetch companies (users with role COMPANY/BUSINESS) from API
   const fetchCompanies = async () => {
@@ -114,7 +120,7 @@ const CompanyManagement = () => {
 
       setCompanies(mappedCompanies);
     } catch (err) {
-      console.error('Error fetching companies:', err);
+      // Silently handle error fetching companies
       setError(t('staff.companyManagement.error.loadCompanies'));
     } finally {
       setLoading(false);
@@ -167,10 +173,15 @@ const CompanyManagement = () => {
     return { total, pending, approved, rejected };
   }, [companies]);
 
-  const handleApprove = async (company) => {
-    if (!confirm(t('staff.companyManagement.confirm.approve', { name: company.name }))) {
-      return;
-    }
+  // Handle approve - opens modal
+  const handleApprove = (company) => {
+    setCompanyToApprove(company);
+    setIsApproveModalOpen(true);
+  };
+
+  // Confirm approve - calls API
+  const confirmApprove = async () => {
+    if (!companyToApprove) return;
 
     setProcessing(true);
     try {
@@ -183,7 +194,7 @@ const CompanyManagement = () => {
       const headers = createAuthHeaders(token);
 
       // Chỉ update role lên COMPANY. Backend sẽ tự cập nhật Status (ví dụ: từ WAITING_FOR_APPROVAL -> UNBANNED).
-      const roleResponse = await fetch(`${BaseURL}/api/staff/update-role/${company.userId}?role=COMPANY`, {
+      const roleResponse = await fetch(`${BaseURL}/api/staff/update-role/${companyToApprove.userId}?role=COMPANY`, {
         method: 'PUT',
         headers
       });
@@ -198,28 +209,37 @@ const CompanyManagement = () => {
         throw new Error(errorData.message || t('staff.companyManagement.error.updateRole'));
       }
 
+      setIsApproveModalOpen(false);
+      setCompanyToApprove(null);
       showSuccess(t('staff.companyManagement.success.approve'));
       setModalOpen(false);
       await fetchCompanies();
     } catch (err) {
-      console.error('Error approving company:', err);
+      // Silently handle error approving company
       showError(err.message || t('staff.companyManagement.error.approve'));
     } finally {
       setProcessing(false);
     }
   };
 
-  const handleReject = async (company) => {
-    if (!confirm(t('staff.companyManagement.confirm.reject', { name: company.name }))) {
-      return;
-    }
+  // Handle reject - opens modal
+  const handleReject = (company) => {
+    setCompanyToReject(company);
+    setIsRejectModalOpen(true);
+  };
+
+  // Confirm reject - calls API
+  const confirmReject = async () => {
+    if (!companyToReject) return;
 
     // Theo yêu cầu: từ chối không gọi API ban/unban ở đây, chỉ hiển thị thông báo.
     try {
+      setIsRejectModalOpen(false);
+      setCompanyToReject(null);
       showSuccess(t('staff.companyManagement.success.reject'));
       setModalOpen(false);
     } catch (err) {
-      console.error('Error rejecting company:', err);
+      // Silently handle error rejecting company
       showError(err.message || t('staff.companyManagement.error.reject'));
     } finally {
       setProcessing(false);
@@ -261,16 +281,16 @@ const CompanyManagement = () => {
         return;
       }
 
-      // Construct file URLs from file names
+      // Construct file URLs from file names using getImageUrl helper
       // Backend stores files in /uploads/business/registrationFile and /uploads/idcard/front, /uploads/idcard/back
       const businessLicenseUrl = uploadStatus.businessLicenseFileName 
-        ? `${BaseURL}/uploads/business/registrationFile/${uploadStatus.businessLicenseFileName}`
+        ? getImageUrl(`/uploads/business/registrationFile/${uploadStatus.businessLicenseFileName}`)
         : null;
       const idCardFrontUrl = uploadStatus.idCardFrontFileName
-        ? `${BaseURL}/uploads/idcard/front/${uploadStatus.idCardFrontFileName}`
+        ? getImageUrl(`/uploads/idcard/front/${uploadStatus.idCardFrontFileName}`)
         : null;
       const idCardBackUrl = uploadStatus.idCardBackFileName
-        ? `${BaseURL}/uploads/idcard/back/${uploadStatus.idCardBackFileName}`
+        ? getImageUrl(`/uploads/idcard/back/${uploadStatus.idCardBackFileName}`)
         : null;
 
       setFileData({
@@ -280,7 +300,7 @@ const CompanyManagement = () => {
         loading: false
       });
     } catch (err) {
-      console.error('Error fetching company files:', err);
+      // Silently handle error fetching company files
       showError(t('staff.companyManagement.error.loadFiles'));
       setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: false });
     }
@@ -524,137 +544,137 @@ const CompanyManagement = () => {
 
       {/* Modal for viewing company files */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-white via-gray-50/40 to-slate-50/50 rounded-[32px] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-100/50">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-[#4c9dff] to-[#3f85d6] text-white px-6 py-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-b border-gray-200/30 px-8 py-5 flex items-center justify-between z-10">
               <div>
-                <h2 className="text-2xl font-bold">{t('staff.companyManagement.modal.title')}</h2>
-                <p className="text-white/80 text-sm mt-1">{selectedCompany?.name}</p>
+                <h2 className="text-2xl font-semibold text-gray-800">{t('staff.companyManagement.modal.title')}</h2>
+                <p className="text-gray-600 text-sm mt-1 font-medium">{selectedCompany?.name}</p>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="p-2 rounded-full hover:bg-white/20 transition"
+                className="p-2 rounded-[16px] hover:bg-white/60 transition-all duration-200 text-gray-600 hover:text-gray-800"
                 aria-label={t('staff.companyManagement.modal.close')}
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
               {fileData.loading ? (
                 <div className="flex items-center justify-center py-20">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
-                  <p className="ml-4 text-gray-600">{t('staff.companyManagement.modal.loadingFiles')}</p>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-300"></div>
+                  <p className="ml-4 text-gray-600 font-medium">{t('staff.companyManagement.modal.loadingFiles')}</p>
                 </div>
               ) : (
                 <>
                   {!fileData.businessLicenseUrl && !fileData.idCardFrontUrl && !fileData.idCardBackUrl ? (
                     <div className="text-center py-20">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                        <DocumentTextIcon className="h-8 w-8 text-gray-400" />
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-[24px] bg-gray-100/60 mb-5">
+                        <DocumentTextIcon className="h-10 w-10 text-gray-400" />
                       </div>
-                      <p className="text-gray-600 text-lg font-semibold mb-2">{t('staff.companyManagement.modal.noFiles.title')}</p>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-gray-700 text-lg font-semibold mb-2">{t('staff.companyManagement.modal.noFiles.title')}</p>
+                      <p className="text-gray-500 text-sm">
                         {t('staff.companyManagement.modal.noFiles.description')}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-6">
                       {/* Business License PDF */}
-                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                      <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-gray-200/50 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-[#bfd7ff] rounded-lg">
-                              <DocumentTextIcon className="h-6 w-6 text-[#4c9dff]" />
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gray-100/60 rounded-[20px]">
+                              <DocumentTextIcon className="h-6 w-6 text-gray-500" />
                             </div>
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{t('staff.companyManagement.modal.businessLicense.title')}</h3>
-                              <p className="text-sm text-gray-500">{t('staff.companyManagement.modal.businessLicense.desc')}</p>
+                              <h3 className="text-lg font-semibold text-gray-800">{t('staff.companyManagement.modal.businessLicense.title')}</h3>
+                              <p className="text-sm text-gray-600 mt-0.5">{t('staff.companyManagement.modal.businessLicense.desc')}</p>
                             </div>
                           </div>
                           {fileData.businessLicenseUrl && (
                             <button
                               onClick={() => handleOpenPdf(fileData.businessLicenseUrl)}
-                              className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
+                              className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
                             >
-                              <ArrowDownTrayIcon className="h-4 w-4" />
+                              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                               {t('staff.companyManagement.modal.businessLicense.openInNewTab')}
                             </button>
                           )}
                         </div>
                         {!fileData.businessLicenseUrl && (
-                          <p className="text-gray-400 text-sm italic">{t('staff.companyManagement.modal.businessLicense.noFile')}</p>
+                          <p className="text-gray-500 text-sm italic pl-16">{t('staff.companyManagement.modal.businessLicense.noFile')}</p>
                         )}
                       </div>
 
                       {/* ID Cards - Grid layout */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-fit mx-auto">
                         {/* ID Card Front */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                              <EyeIcon className="h-5 w-5 text-green-600" />
+                        <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-purple-200/50 shadow-sm p-5">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-purple-100/60 rounded-[20px]">
+                              <EyeIcon className="h-5 w-5 text-purple-500" />
                             </div>
                             <div>
-                              <h3 className="text-base font-semibold text-gray-900">{t('staff.companyManagement.modal.idCard.front.title')}</h3>
-                              <p className="text-xs text-gray-500">{t('staff.companyManagement.modal.idCard.front.desc')}</p>
+                              <h3 className="text-base font-semibold text-gray-800">{t('staff.companyManagement.modal.idCard.front.title')}</h3>
+                              <p className="text-xs text-gray-600 mt-0.5">{t('staff.companyManagement.modal.idCard.front.desc')}</p>
                             </div>
                           </div>
                           {fileData.idCardFrontUrl ? (
-                            <div className="relative bg-gray-50 rounded-lg p-3 border-2 border-dashed border-gray-200" style={{ aspectRatio: '15/10', height: '280px' }}>
-                              <div className="absolute inset-3 flex items-center justify-center overflow-hidden">
+                            <div className="relative bg-gradient-to-br from-purple-50/50 to-gray-50/50 rounded-[24px] p-4 border-2 border-dashed border-purple-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                              <div className="absolute inset-4 flex items-center justify-center overflow-hidden rounded-[20px]">
                                 <img
                                   src={fileData.idCardFrontUrl}
                                   alt={t('staff.companyManagement.modal.idCard.front.alt')}
-                                  className="w-full h-full rounded-lg shadow-md object-contain"
+                                  className="w-full h-full rounded-[20px] shadow-lg object-contain"
                                   onError={(e) => {
                                     e.target.style.display = 'none';
                                     const errorMsg = e.target.nextElementSibling;
                                     if (errorMsg) errorMsg.style.display = 'block';
                                   }}
                                 />
-                                <p className="text-red-500 text-sm hidden text-center absolute">{t('staff.companyManagement.modal.idCard.imageLoadError')}</p>
+                                <p className="text-red-400 text-sm hidden text-center absolute">{t('staff.companyManagement.modal.idCard.imageLoadError')}</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="flex justify-center items-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200" style={{ aspectRatio: '15/10', height: '280px' }}>
-                              <p className="text-gray-400 text-sm">{t('staff.companyManagement.modal.idCard.noImage')}</p>
+                            <div className="flex justify-center items-center bg-gradient-to-br from-purple-50/50 to-gray-50/50 rounded-[24px] border-2 border-dashed border-purple-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                              <p className="text-gray-500 text-sm">{t('staff.companyManagement.modal.idCard.noImage')}</p>
                             </div>
                           )}
                         </div>
 
                         {/* ID Card Back */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 bg-purple-100 rounded-lg">
-                              <EyeIcon className="h-5 w-5 text-purple-600" />
+                        <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-orange-200/50 shadow-sm p-5">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-orange-100/60 rounded-[20px]">
+                              <EyeIcon className="h-5 w-5 text-orange-500" />
                             </div>
                             <div>
-                              <h3 className="text-base font-semibold text-gray-900">{t('staff.companyManagement.modal.idCard.back.title')}</h3>
-                              <p className="text-xs text-gray-500">{t('staff.companyManagement.modal.idCard.back.desc')}</p>
+                              <h3 className="text-base font-semibold text-gray-800">{t('staff.companyManagement.modal.idCard.back.title')}</h3>
+                              <p className="text-xs text-gray-600 mt-0.5">{t('staff.companyManagement.modal.idCard.back.desc')}</p>
                             </div>
                           </div>
                           {fileData.idCardBackUrl ? (
-                            <div className="relative bg-gray-50 rounded-lg p-3 border-2 border-dashed border-gray-200" style={{ aspectRatio: '15/10', height: '280px' }}>
-                              <div className="absolute inset-3 flex items-center justify-center overflow-hidden">
+                            <div className="relative bg-gradient-to-br from-orange-50/50 to-gray-50/50 rounded-[24px] p-4 border-2 border-dashed border-orange-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                              <div className="absolute inset-4 flex items-center justify-center overflow-hidden rounded-[20px]">
                                 <img
                                   src={fileData.idCardBackUrl}
                                   alt={t('staff.companyManagement.modal.idCard.back.alt')}
-                                  className="w-full h-full rounded-lg shadow-md object-contain"
+                                  className="w-full h-full rounded-[20px] shadow-lg object-contain"
                                   onError={(e) => {
                                     e.target.style.display = 'none';
                                     const errorMsg = e.target.nextElementSibling;
                                     if (errorMsg) errorMsg.style.display = 'block';
                                   }}
                                 />
-                                <p className="text-red-500 text-sm hidden text-center absolute">{t('staff.companyManagement.modal.idCard.imageLoadError')}</p>
+                                <p className="text-red-400 text-sm hidden text-center absolute">{t('staff.companyManagement.modal.idCard.imageLoadError')}</p>
                               </div>
                             </div>
                           ) : (
-                            <div className="flex justify-center items-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200" style={{ aspectRatio: '15/10', height: '280px' }}>
-                              <p className="text-gray-400 text-sm">{t('staff.companyManagement.modal.idCard.noImage')}</p>
+                            <div className="flex justify-center items-center bg-gradient-to-br from-orange-50/50 to-gray-50/50 rounded-[24px] border-2 border-dashed border-orange-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                              <p className="text-gray-500 text-sm">{t('staff.companyManagement.modal.idCard.noImage')}</p>
                             </div>
                           )}
                         </div>
@@ -666,20 +686,20 @@ const CompanyManagement = () => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-t border-gray-200/30 px-8 py-5 flex justify-end gap-3">
               {selectedCompany?.approvalStatus === 'pending' && (
                 <>
                   <button
                     onClick={() => handleReject(selectedCompany)}
                     disabled={processing}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    className="px-5 py-2.5 bg-red-200/80 hover:bg-red-300/80 text-red-700 rounded-[20px] transition-all duration-200 text-sm font-medium shadow-sm border border-red-300/30 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {t('staff.companyManagement.actions.reject')}
                   </button>
                   <button
                     onClick={() => handleApprove(selectedCompany)}
                     disabled={processing}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    className="px-5 py-2.5 bg-green-200/80 hover:bg-green-300/80 text-green-700 rounded-[20px] transition-all duration-200 text-sm font-medium shadow-sm border border-green-300/30 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {t('staff.companyManagement.actions.approve')}
                   </button>
@@ -687,7 +707,7 @@ const CompanyManagement = () => {
               )}
               <button
                 onClick={handleCloseModal}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium"
+                className="px-6 py-2.5 border border-gray-300/50 rounded-[20px] text-gray-700 hover:bg-white/60 transition-all duration-200 font-medium bg-white/40 backdrop-blur-sm"
               >
                 {t('staff.companyManagement.modal.close')}
               </button>
@@ -695,6 +715,38 @@ const CompanyManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Approve Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isApproveModalOpen}
+        onClose={() => {
+          setIsApproveModalOpen(false);
+          setCompanyToApprove(null);
+        }}
+        onConfirm={confirmApprove}
+        title={t('staff.companyManagement.approveConfirm.title')}
+        message={t('staff.companyManagement.approveConfirm.message', { name: companyToApprove?.name })}
+        itemName={companyToApprove?.name}
+        confirmText={t('staff.companyManagement.approveConfirm.confirm')}
+        cancelText={t('staff.companyManagement.approveConfirm.cancel')}
+        danger={false}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isRejectModalOpen}
+        onClose={() => {
+          setIsRejectModalOpen(false);
+          setCompanyToReject(null);
+        }}
+        onConfirm={confirmReject}
+        title={t('staff.companyManagement.rejectConfirm.title')}
+        message={t('staff.companyManagement.rejectConfirm.message', { name: companyToReject?.name })}
+        itemName={companyToReject?.name}
+        confirmText={t('staff.companyManagement.rejectConfirm.confirm')}
+        cancelText={t('staff.companyManagement.rejectConfirm.cancel')}
+        danger={true}
+      />
     </div>
   );
 };

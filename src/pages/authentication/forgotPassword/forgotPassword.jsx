@@ -62,7 +62,9 @@ const ForgotPassword = () => {
           try {
             localStorage.setItem(`hasPassword_${email}`, 'true');
             localStorage.removeItem(`isOAuthOnly_${email}`);
-          } catch {}
+          } catch (err) {
+            // Silently handle localStorage errors
+          }
         }
       } else {
         // Check if it's an OAuth-only user error
@@ -84,7 +86,9 @@ const ForgotPassword = () => {
           if (email) {
             try {
               localStorage.setItem(`isOAuthOnly_${email}`, 'true');
-            } catch {}
+            } catch (err) {
+              // Silently handle localStorage errors
+            }
           }
           
           setGeneralError(data.message || t('auth.forgot.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver.');
@@ -188,7 +192,9 @@ const ForgotPassword = () => {
           try {
             localStorage.setItem(`hasPassword_${email}`, 'true');
             localStorage.removeItem(`isOAuthOnly_${email}`);
-          } catch {}
+          } catch (err) {
+            // Silently handle localStorage errors
+          }
         }
       } else {
         // Check if it's an OAuth-only user error
@@ -204,7 +210,9 @@ const ForgotPassword = () => {
           if (email) {
             try {
               localStorage.setItem(`isOAuthOnly_${email}`, 'true');
-            } catch {}
+            } catch (err) {
+              // Silently handle localStorage errors
+            }
           }
         }
         setGeneralError(data.message || t('toast.auth.general_error') || 'Gửi lại OTP thất bại');
@@ -302,7 +310,7 @@ const ForgotPassword = () => {
                 {t('auth.common.backToForgot')}
               </button>
             </div>
-        </div>
+          </div>
         </div>
       </div>
     </div>

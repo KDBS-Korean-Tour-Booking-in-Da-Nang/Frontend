@@ -65,7 +65,6 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
         throw new Error('Failed to fetch saved posts');
       }
     } catch (error) {
-      console.error('Error fetching saved posts:', error);
       // Only show error if we're showing loading (user-initiated fetch)
       if (showLoading) {
         setError(t('forum.modals.savedPosts.loadError'));
@@ -118,7 +117,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
         }));
       }
     } catch (error) {
-      console.error('Error unsaving post:', error);
+      // Silently handle error unsaving post
     }
   };
 

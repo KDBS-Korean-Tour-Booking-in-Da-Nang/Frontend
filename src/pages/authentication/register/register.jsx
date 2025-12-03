@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
 import { Icon } from '@iconify/react';
@@ -27,7 +27,6 @@ const Register = () => {
   const [generalError, setGeneralError] = useState('');
   const { showSuccess } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // GSAP animations
   useEffect(() => {
@@ -97,7 +96,7 @@ const Register = () => {
   };
 
   const handleChange = (e) => {
-const { name, value } = e.target;
+    const { name, value } = e.target;
     if (name === 'username') {
       const sanitized = sanitizeUsername(value);
       setFormData(prev => ({ ...prev, username: sanitized }));
@@ -338,7 +337,9 @@ const { name, value } = e.target;
         try {
           sessionStorage.setItem('post_reg_email', formData.email);
           sessionStorage.setItem('post_reg_password', trimmedPassword);
-        } catch {}
+        } catch (err) {
+          // Silently handle sessionStorage errors
+        }
         
         // Show success message
         showSuccess('toast.auth.register_success');
@@ -360,7 +361,6 @@ const { name, value } = e.target;
         }
       }
     } catch (error) {
-      console.error('Registration error:', error);
       setGeneralError(t('auth.register.errors.registerFailed') || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
@@ -547,8 +547,6 @@ const { name, value } = e.target;
               >
                 {loading ? t('auth.register.submitting') : t('auth.register.submit')}
               </button>
-
-
           </form>
 
             <div className={styles['login-link']}>

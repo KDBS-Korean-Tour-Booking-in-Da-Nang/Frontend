@@ -66,12 +66,16 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('accessToken');
             sessionStorage.removeItem('user');
             sessionStorage.removeItem('token');
-          } catch {}
+          } catch {
+            // Silently handle error clearing storage on build change
+          }
         }
         if (currentBuildId && currentBuildId !== lastBuildId) {
           localStorage.setItem('last_build_session_id', currentBuildId);
         }
-      } catch {}
+      } catch {
+        // Silently handle error checking build session
+      }
 
       const remembered = localStorage.getItem('rememberMe') === 'true';
       rememberRef.current = remembered;
@@ -102,7 +106,7 @@ export const AuthProvider = ({ children }) => {
               setUser(JSON.parse(savedUser));
             }
           } catch (e) {
-            console.error('Error parsing user data:', e);
+            // Silently handle error parsing user data
           }
         }
       } else {
@@ -121,10 +125,12 @@ export const AuthProvider = ({ children }) => {
                 const tokenKey = isAdminOrStaff ? `token_${role}` : 'token';
                 sessionStorage.setItem(userKey, JSON.stringify(parsed));
                 sessionStorage.setItem(tokenKey, token);
-              } catch {}
+              } catch {
+                // Silently handle error mirroring user data to sessionStorage
+              }
             }
           } catch (e) {
-            console.error('Error parsing user data:', e);
+            // Silently handle error parsing user data
           }
         }
       }
@@ -166,7 +172,9 @@ export const AuthProvider = ({ children }) => {
               sessionStorage.removeItem(tokenKey);
               localStorage.removeItem(userKey);
               localStorage.removeItem(tokenKey);
-            } catch {}
+            } catch {
+              // Silently handle error clearing role-specific storage
+            }
           }
           // If different role, do nothing - let that role continue
         }
@@ -178,7 +186,9 @@ export const AuthProvider = ({ children }) => {
           try {
             sessionStorage.removeItem('user');
             sessionStorage.removeItem('token');
-          } catch {}
+          } catch {
+            // Silently handle error clearing sessionStorage on logout
+          }
         }
         if (e.key === 'authLogin' && e.newValue && mounted) {
           // Another tab completed login or updated credentials
@@ -204,10 +214,14 @@ export const AuthProvider = ({ children }) => {
                   const tokenKey = isAdminOrStaff ? `token_${role}` : 'token';
                   sessionStorage.setItem(userKey, JSON.stringify(parsed));
                   sessionStorage.setItem(tokenKey, nextToken);
-                } catch {}
+                } catch {
+                  // Silently handle error mirroring user data to sessionStorage on authLogin
+                }
                 startInactivityTimer();
               }
-            } catch {}
+            } catch {
+              // Silently handle error parsing user data on authLogin
+            }
           }
         }
       };
@@ -284,7 +298,9 @@ export const AuthProvider = ({ children }) => {
       // Broadcast login to other tabs
       localStorage.setItem('authLogin', String(Date.now()));
       setTimeout(() => localStorage.removeItem('authLogin'), 0);
-    } catch {}
+    } catch {
+      // Silently handle error broadcasting login to other tabs
+    }
 
     // Note: Navigation is handled by the component that calls login
     // No automatic redirects here to avoid page reloads
@@ -320,8 +336,12 @@ export const AuthProvider = ({ children }) => {
         try {
           localStorage.setItem(`forceLogout_${role}`, String(Date.now()));
           setTimeout(() => localStorage.removeItem(`forceLogout_${role}`), 0);
-        } catch {}
-      } catch {}
+        } catch {
+          // Silently handle error notifying other tabs of role logout
+        }
+      } catch {
+        // Silently handle error clearing role-specific storage on logout
+      }
     } else {
       // For USER and COMPANY, or no role specified, clear legacy storage (backward compatibility)
     try {
@@ -330,17 +350,23 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('accessToken');
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('rememberMe');
-    } catch {}
+    } catch {
+      // Silently handle error clearing localStorage on logout
+    }
     try {
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('token');
-    } catch {}
+    } catch {
+      // Silently handle error clearing sessionStorage on logout
+    }
     clearInactivityTimer();
     // Notify other tabs
     try {
       localStorage.setItem('forceLogout', String(Date.now()));
       setTimeout(() => localStorage.removeItem('forceLogout'), 0);
-    } catch {}
+    } catch {
+      // Silently handle error notifying other tabs of logout
+    }
     }
   };
 
@@ -367,7 +393,9 @@ export const AuthProvider = ({ children }) => {
       // Notify other tabs about profile update
       localStorage.setItem('authLogin', String(Date.now()));
       setTimeout(() => localStorage.removeItem('authLogin'), 0);
-    } catch {}
+    } catch {
+      // Silently handle error notifying other tabs about profile update
+    }
   };
 
   const getToken = () => {
@@ -432,7 +460,7 @@ export const AuthProvider = ({ children }) => {
       }
       return null;
     } catch (error) {
-      console.error('Error refreshing user data:', error);
+      // Silently handle error refreshing user data
       // If 401, logout will be handled by apiErrorHandler
       return null;
     }

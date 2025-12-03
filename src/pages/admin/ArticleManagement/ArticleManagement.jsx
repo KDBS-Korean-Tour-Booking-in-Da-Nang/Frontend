@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { RefreshCcw, FileText, Check, X, Eye } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import articleService from '../../../services/articleService';
-import { extractTextFromHtml, getArticleSummary, extractFirstImageUrl, htmlToJsx } from '../../../utils/htmlConverter';
+import { extractTextFromHtml, getArticleSummary, extractFirstImageUrl, htmlToJsx, normalizeImageUrlsInHtml } from '../../../utils/htmlConverter';
+import { getImageUrl } from '../../../config/api';
 
 const ArticleManagement = () => {
   const { user, loading: authLoading } = useAuth();
@@ -60,7 +61,6 @@ const ArticleManagement = () => {
       // Don't show error or logout if it's a 401 from background polling
       if (isBackgroundPoll && error?.status === 401) {
         // Silently fail - token might be expired, but don't logout from background polling
-        console.warn('Background article refresh failed: token expired');
         return;
       }
       setError(t('articleManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
@@ -294,7 +294,9 @@ const ArticleManagement = () => {
 
             <div className="space-y-4">
               {currentArticles.map((article, index) => {
-                const thumbnail = article.articleThumbnail || extractFirstImageUrl(article.articleContent || '');
+                const rawThumbnail = article.articleThumbnail || extractFirstImageUrl(article.articleContent || '');
+                // Normalize thumbnail URL using getImageUrl helper to handle both relative and absolute URLs
+                const thumbnail = rawThumbnail ? getImageUrl(rawThumbnail) : null;
                 const summary = article.articleDescription || getArticleSummary(article.articleContent || '', 100);
                 const isSelected = selectedArticles.includes(article.articleId);
                 
@@ -487,7 +489,7 @@ const ArticleManagement = () => {
               <div className="prose prose-lg max-w-none text-[#4a4f5a] leading-relaxed">
                 {selectedArticle.articleContent && (
                   <div 
-                    dangerouslySetInnerHTML={{ __html: htmlToJsx(selectedArticle.articleContent) }}
+                    dangerouslySetInnerHTML={{ __html: normalizeImageUrlsInHtml(htmlToJsx(selectedArticle.articleContent), getImageUrl) }}
                     className="article-content"
                   />
                 )}

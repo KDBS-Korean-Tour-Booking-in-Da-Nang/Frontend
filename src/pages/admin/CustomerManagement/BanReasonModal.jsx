@@ -48,7 +48,7 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
       setCustomReason('');
       onClose();
     } catch (error) {
-      console.error('Error banning user:', error);
+      // Silently handle error banning user
     } finally {
       setIsSubmitting(false);
     }

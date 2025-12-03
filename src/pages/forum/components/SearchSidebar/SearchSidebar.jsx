@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
-import { BaseURL, API_ENDPOINTS } from '../../../../config/api';
-import { Search, Hash, User, FileText, TrendingUp, X, Check, Clock, History } from 'lucide-react';
+import { API_ENDPOINTS } from '../../../../config/api';
+import { Search, Hash, User, FileText, TrendingUp, X, Check, History } from 'lucide-react';
 import styles from './SearchSidebar.module.css';
 
 const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
@@ -61,7 +61,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
         setSearchHistory(parsedHistory);
       }
     } catch (error) {
-      console.error('Error loading search history:', error);
+      // Silently handle error loading search history
     }
   };
 
@@ -74,7 +74,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
       setSearchHistory(newHistory);
       localStorage.setItem('forum-search-history', JSON.stringify(newHistory));
     } catch (error) {
-      console.error('Error saving search history:', error);
+      // Silently handle error saving search history
     }
   };
 
@@ -109,7 +109,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
         setPopularHashtags(mockHashtags);
       }
     } catch (error) {
-      console.error('Error fetching popular hashtags:', error);
       // Fallback to mock data
       const mockHashtags = [
         { content: 'technology', count: 156 },
@@ -211,7 +210,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     try {
       localStorage.setItem('forum-search-history', JSON.stringify(newHistory));
     } catch (error) {
-      console.error('Error updating search history:', error);
+      // Silently handle error updating search history
     }
   };
 
@@ -220,7 +219,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     try {
       localStorage.removeItem('forum-search-history');
     } catch (error) {
-      console.error('Error clearing search history:', error);
+      // Silently handle error clearing search history
     }
   };
 
@@ -390,7 +389,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
       setShowSuggest(true);
       setSelectedIndex(-1);
     } catch (e) {
-      console.error('Error fetching suggestions:', e);
+      // Silently handle error fetching suggestions
       setSuggestions([]);
       setShowSuggest(false);
     }

@@ -790,7 +790,7 @@ export const ChatProvider = ({ children }) => {
             }
           }
         } catch (error) {
-          console.error('Error restoring minimized chats on mount:', error);
+          // Silently handle error restoring minimized chats on mount
         }
       } else {
         // Already restored in initialState, mark as restored
@@ -849,7 +849,9 @@ export const ChatProvider = ({ children }) => {
       try {
         localStorage.removeItem('chatBoxState');
         localStorage.removeItem('minimizedChats');
-      } catch {}
+      } catch {
+        // Silently handle error removing localStorage items
+      }
     }
     
     // Update refs for next comparison
@@ -979,7 +981,7 @@ export const ChatProvider = ({ children }) => {
           const sortedMessages = formattedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
           dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
         } catch (e2) {
-          console.error('Error opening chat with user:', e2);
+          // Silently handle error opening chat with user
           dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
           dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
         }
@@ -1055,7 +1057,7 @@ export const ChatProvider = ({ children }) => {
           await chatApiService.sendMessage(messageData.senderName, messageData.receiverName, messageData.content);
           // Message already added to local state via optimistic update
         } catch (apiError) {
-          console.error('API send failed:', apiError);
+          // Silently handle API send failed error
           // Remove the temporary message if API also fails
           dispatch({ 
             type: ActionTypes.UPDATE_MESSAGE, 
@@ -1064,7 +1066,7 @@ export const ChatProvider = ({ children }) => {
         }
         
       } catch (error) {
-        console.error('Error in sendMessage:', error);
+        // Silently handle error in sendMessage
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       }
     },
@@ -1317,7 +1319,7 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: formattedMessages });
         
       } catch (error) {
-        console.error('Error loading conversation:', error);
+        // Silently handle error loading conversation
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
       } finally {
@@ -1368,7 +1370,7 @@ export const ChatProvider = ({ children }) => {
         }
         
       } catch (error) {
-        console.error('Error loading more messages:', error);
+        // Silently handle error loading more messages
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       } finally {
         dispatch({ type: ActionTypes.SET_LOADING_MORE_MESSAGES, payload: false });
@@ -1477,8 +1479,8 @@ export const ChatProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Error restoring minimized chats:', error);
-        // Don't remove localStorage on error, just log it
+        // Silently handle error restoring minimized chats
+        // Don't remove localStorage on error
         // localStorage.removeItem('minimizedChats');
       }
     },
@@ -1520,7 +1522,7 @@ export const ChatProvider = ({ children }) => {
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (!context) {
-    console.error('ChatContext not found. Make sure ChatProvider is properly wrapped around the component.');
+    // Silently handle ChatContext not found
     throw new Error('useChat must be used within a ChatProvider');
   }
   return context;

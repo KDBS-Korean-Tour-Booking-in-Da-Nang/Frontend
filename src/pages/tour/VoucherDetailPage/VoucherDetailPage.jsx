@@ -86,7 +86,7 @@ const VoucherDetailPage = () => {
         setToursMap(toursMap);
       }
     } catch (error) {
-      console.error('Error fetching tour details:', error);
+      // Silently handle error fetching tour details
       // Don't show error to user - tours are optional information
     }
   };
@@ -153,7 +153,7 @@ const VoucherDetailPage = () => {
           fetchTourDetails(foundVoucher.tourIds);
         }
       } catch (err) {
-        console.error('Error fetching voucher:', err);
+        // Silently handle error fetching voucher
         setError(t('tourList.voucherDetail.loadError'));
       } finally {
         setLoading(false);

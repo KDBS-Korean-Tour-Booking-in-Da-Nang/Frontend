@@ -71,7 +71,7 @@ export const TourWizardProvider = ({ children }) => {
 export const useTourWizardContext = () => {
   const context = useContext(TourWizardContext);
   if (!context) {
-    console.error('TourWizardContext is not available. Make sure component is wrapped with TourWizardProvider');
+    // Silently handle TourWizardContext not available
     throw new Error('useTourWizardContext must be used within a TourWizardProvider');
   }
   return context;
