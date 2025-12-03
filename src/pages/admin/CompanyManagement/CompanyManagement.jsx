@@ -4,6 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
+import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import {
   BuildingOfficeIcon,
   ClockIcon,
@@ -36,6 +37,8 @@ const CompanyManagement = () => {
     idCardBackUrl: null,
     loading: false
   });
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [companyToApprove, setCompanyToApprove] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
@@ -160,52 +163,52 @@ const CompanyManagement = () => {
     try {
       const token = getToken();
       if (!token) {
-        alert(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
-        return;
-      }
-
-      if (!confirm(t('admin.companyManagement.confirmApprove', { name: company.name }))) {
+      setError(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
         return;
       }
 
       const headers = createAuthHeaders(token);
 
-      // Update role to COMPANY (if not already)
-      const roleResponse = await fetch(`${BaseURL}/api/staff/update-role/${company.userId}?role=COMPANY`, {
-        method: 'PUT',
-        headers
-      });
+      // Dựa vào status hiện tại (WAITING_FOR_APPROVAL) để gọi API nâng role lên COMPANY.
+      // Backend sẽ tự cập nhật Status từ WAITING_FOR_APPROVAL sang UNBANNED.
+      const roleResponse = await fetch(
+        `${BaseURL}/api/staff/update-role/${company.userId}?role=COMPANY`,
+        {
+          method: 'PUT',
+          headers
+        }
+      );
 
       if (!roleResponse.ok) {
         if (roleResponse.status === 401) {
           await checkAndHandle401(roleResponse);
           return;
         }
-        const errorData = await roleResponse.json();
+        const errorData = await roleResponse.json().catch(() => ({}));
         throw new Error(errorData.message || 'Không thể cập nhật role');
       }
 
-      // Unban user (set status to UNBANNED)
-      const statusResponse = await fetch(`${BaseURL}/api/staff/ban-user/${company.userId}?ban=false`, {
-        method: 'PUT',
-        headers
-      });
+      // Cập nhật lại state trên FE để thấy ngay kết quả (status từ WAITING_FOR_APPROVAL -> UNBANNED)
+      setCompanies(prev =>
+        prev.map(c =>
+          c.userId === company.userId
+            ? {
+                ...c,
+                status: 'UNBANNED',
+                approvalStatus: 'approved'
+              }
+            : c
+        )
+      );
 
-      if (!statusResponse.ok) {
-        if (statusResponse.status === 401) {
-          await checkAndHandle401(statusResponse);
-          return;
-        }
-        const errorData = await statusResponse.json();
-        throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
-      }
-
-      alert(t('admin.companyManagement.approveSuccess'));
       setModalOpen(false);
+      setApproveModalOpen(false);
+      setCompanyToApprove(null);
+      // Vẫn gọi lại API để đồng bộ với backend
       await fetchCompanies();
     } catch (err) {
       console.error('Error approving company:', err);
-      alert(err.message || t('admin.companyManagement.approveError'));
+      setError(err.message || t('admin.companyManagement.approveError'));
     }
   };
 
@@ -221,26 +224,9 @@ const CompanyManagement = () => {
         return;
       }
 
-      const headers = createAuthHeaders(token);
-
-      // Ban user (reject)
-      const response = await fetch(`${BaseURL}/api/staff/ban-user/${company.userId}?ban=true`, {
-        method: 'PUT',
-        headers
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          await checkAndHandle401(response);
-          return;
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Không thể từ chối công ty');
-      }
-
+      // Từ chối: chỉ thông báo, không đổi status/bann user ở đây
       alert(t('admin.companyManagement.rejectSuccess'));
       setModalOpen(false);
-      await fetchCompanies();
     } catch (err) {
       console.error('Error rejecting company:', err);
       alert(err.message || t('admin.companyManagement.rejectError'));
@@ -473,7 +459,10 @@ const CompanyManagement = () => {
                       {company.approvalStatus === 'pending' && (
                         <>
                           <button 
-                            onClick={() => handleApprove(company)}
+                            onClick={() => {
+                              setCompanyToApprove(company);
+                              setApproveModalOpen(true);
+                            }}
                             className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition shadow-sm" 
                             title={t('admin.companyManagement.actions.approve')}
                           >
@@ -663,7 +652,10 @@ const CompanyManagement = () => {
                     {t('admin.companyManagement.actions.reject')}
                   </button>
                   <button
-                    onClick={() => handleApprove(selectedCompany)}
+                    onClick={() => {
+                      setCompanyToApprove(selectedCompany);
+                      setApproveModalOpen(true);
+                    }}
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
                   >
                     {t('admin.companyManagement.actions.approve')}
@@ -680,6 +672,25 @@ const CompanyManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Modal xác nhận duyệt công ty */}
+      <DeleteConfirmModal
+        isOpen={approveModalOpen}
+        onClose={() => {
+          setApproveModalOpen(false);
+          setCompanyToApprove(null);
+        }}
+        onConfirm={() => {
+          if (companyToApprove) {
+            return handleApprove(companyToApprove);
+          }
+        }}
+        title={t('admin.companyManagement.title')}
+        message={t('admin.companyManagement.confirmApprove', { name: companyToApprove?.name || '' })}
+        confirmText={t('admin.companyManagement.actions.approve')}
+        cancelText={t('common.cancel')}
+        danger={false}
+      />
     </div>
   );
 };

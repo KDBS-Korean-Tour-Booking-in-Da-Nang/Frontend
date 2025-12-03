@@ -110,6 +110,13 @@ const TourWizardContent = () => {
     }
   }, [currentStep, stepValidations, step1ValidationAttempted, step2ValidationAttempted, step3ValidationAttempted, step4ValidationAttempted]);
 
+  // Clear submitError automatically when user fixes missing thumbnail on Step 4
+  useEffect(() => {
+    if (currentStep === 4 && tourData.thumbnail && submitError) {
+      setSubmitError('');
+    }
+  }, [currentStep, tourData.thumbnail, submitError]);
+
   const steps = [
     { id: 1, title: t('tourWizard.steps.step1.title'), description: t('tourWizard.steps.step1.description') },
     { id: 2, title: t('tourWizard.steps.step2.title'), description: t('tourWizard.steps.step2.description') },
@@ -316,7 +323,13 @@ const TourWizardContent = () => {
       
       // Validate final data
       if (!tourData.tourName || !tourData.thumbnail) {
-        setSubmitError(t('toast.required') || 'Vui lòng điền đầy đủ thông tin');
+        const missingFieldLabel = !tourData.tourName
+          ? t('tourWizard.step1.fields.tourName')
+          : t('tourWizard.step4.thumbnail.title');
+        setSubmitError(
+          t('toast.required', { field: missingFieldLabel }) ||
+          `${missingFieldLabel} là bắt buộc`
+        );
         setIsSubmitting(false);
         return;
       }
@@ -382,7 +395,11 @@ const TourWizardContent = () => {
       const deadlineDays = parseDeadline(tourData.tourDeadline, expirationDate);
 
       if (deadlineDays === null || !expirationDate) {
-        setSubmitError(t('toast.required') || 'Vui lòng điền đầy đủ thông tin');
+        const fieldLabel = t('tourWizard.step3.title');
+        setSubmitError(
+          t('toast.fill_missing_field', { field: fieldLabel }) ||
+          'Vui lòng điền đầy đủ thông tin'
+        );
         setIsSubmitting(false);
         return;
       }
@@ -396,7 +413,11 @@ const TourWizardContent = () => {
       })();
 
       if (leadDaysForValidation === null || leadDaysForValidation < 0) {
-        setSubmitError(t('toast.required') || 'Vui lòng điền đầy đủ thông tin');
+        const fieldLabel = t('tourWizard.step3.title');
+        setSubmitError(
+          t('toast.fill_missing_field', { field: fieldLabel }) ||
+          'Vui lòng điền đầy đủ thông tin'
+        );
         setIsSubmitting(false);
         return;
       }
@@ -615,7 +636,7 @@ const TourWizardContent = () => {
               type="button" 
               className={styles['btn-success']} 
               onClick={handleSubmit}
-              disabled={isSubmitting || !!submitError}
+              disabled={isSubmitting}
             >
               {isSubmitting ? t('tourWizard.navigation.creating') : t('tourWizard.navigation.complete')}
             </button>

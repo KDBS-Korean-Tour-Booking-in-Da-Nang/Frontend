@@ -182,7 +182,7 @@ const CompanyManagement = () => {
 
       const headers = createAuthHeaders(token);
 
-      // Update role to COMPANY (if not already)
+      // Chỉ update role lên COMPANY. Backend sẽ tự cập nhật Status (ví dụ: từ WAITING_FOR_APPROVAL -> UNBANNED).
       const roleResponse = await fetch(`${BaseURL}/api/staff/update-role/${company.userId}?role=COMPANY`, {
         method: 'PUT',
         headers
@@ -196,22 +196,6 @@ const CompanyManagement = () => {
         }
         const errorData = await roleResponse.json().catch(() => ({}));
         throw new Error(errorData.message || t('staff.companyManagement.error.updateRole'));
-      }
-
-      // Unban user (set status to UNBANNED)
-      const statusResponse = await fetch(`${BaseURL}/api/staff/ban-user/${company.userId}?ban=false`, {
-        method: 'PUT',
-        headers
-      });
-
-      if (!statusResponse.ok) {
-        if (statusResponse.status === 401) {
-          await checkAndHandle401(statusResponse);
-          showError(t('staff.companyManagement.error.sessionExpired'));
-          return;
-        }
-        const errorData = await statusResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || t('staff.companyManagement.error.updateStatus'));
       }
 
       showSuccess(t('staff.companyManagement.success.approve'));
@@ -230,35 +214,10 @@ const CompanyManagement = () => {
       return;
     }
 
-    setProcessing(true);
+    // Theo yêu cầu: từ chối không gọi API ban/unban ở đây, chỉ hiển thị thông báo.
     try {
-      const token = getToken();
-      if (!token) {
-        showError(t('staff.companyManagement.error.loginRequired'));
-        return;
-      }
-
-      const headers = createAuthHeaders(token);
-
-      // Ban user (reject)
-      const response = await fetch(`${BaseURL}/api/staff/ban-user/${company.userId}?ban=true`, {
-        method: 'PUT',
-        headers
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          await checkAndHandle401(response);
-          showError(t('staff.companyManagement.error.sessionExpired'));
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || t('staff.companyManagement.error.reject'));
-      }
-
       showSuccess(t('staff.companyManagement.success.reject'));
       setModalOpen(false);
-      await fetchCompanies();
     } catch (err) {
       console.error('Error rejecting company:', err);
       showError(err.message || t('staff.companyManagement.error.reject'));

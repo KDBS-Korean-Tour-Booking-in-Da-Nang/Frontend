@@ -1162,8 +1162,8 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       isOpen={showDeleteConfirmModal}
       onClose={() => setShowDeleteConfirmModal(false)}
       onConfirm={confirmDelete}
-      title={"Xác nhận xóa bài viết"}
-      message={"Bạn có chắc chắn muốn xóa bài viết này?"}
+      // Sử dụng text đa ngôn ngữ mặc định trong common.deleteConfirm.*
+      itemName={t('forum.post.title')}
     />
     </>
   );
