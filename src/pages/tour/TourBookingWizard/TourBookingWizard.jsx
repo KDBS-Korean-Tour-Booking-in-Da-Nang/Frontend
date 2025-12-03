@@ -132,6 +132,13 @@ const BookingWizardContent = () => {
     }
   }, [currentStep, stepValidations.step1?.isValid]);
 
+  // Reset step2ValidationAttempted when step2 becomes valid
+  useEffect(() => {
+    if (currentStep === 2 && stepValidations.step2?.isValid) {
+      setStep2ValidationAttempted(false);
+    }
+  }, [currentStep, stepValidations.step2?.isValid]);
+
   // Authentication and role guard
   useEffect(() => {
     if (!authLoading && !user) {
