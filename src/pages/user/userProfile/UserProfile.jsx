@@ -28,6 +28,7 @@ const GenderLabelIcon = () => (
 
 const UserProfile = () => {
   const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language || 'vi';
   const { user, updateUser, getToken, refreshUser } = useAuth();
   const { showSuccess } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -91,6 +92,13 @@ const UserProfile = () => {
   };
 
   const notUpdatedLabel = t('profile.notUpdated');
+
+  // Simple role helper: treat explicit COMPANY role or roles array containing COMPANY as company user
+  const isCompanyUser = !!(
+    user?.role === 'COMPANY' ||
+    user?.role === 'ROLE_COMPANY' ||
+    (Array.isArray(user?.roles) && (user.roles.includes('COMPANY') || user.roles.includes('ROLE_COMPANY')))
+  );
 
   const getLanguageName = (lang) => {
     const key = `lang.${lang}`;
@@ -228,8 +236,9 @@ const UserProfile = () => {
       setIsChangingPassword(false);
     }
   };
-  const isDeletingRef = useRef(false);
-  const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
+  const isDeletingRef = useRef(false);          // for DOB input deletion detection
+  const previousDobValueRef = useRef('');       // track previous DOB value like Step1Contact
+  const datePickerRef = useRef(null);           // Ref for DatePicker to trigger programmatically
 
   // All users can change avatar regardless of login method
 
@@ -309,10 +318,10 @@ const UserProfile = () => {
   }, [user, i18n.language]); // Reformat DOB on language change
 
   const getDateSeparator = () => {
-    switch (i18n.language) {
+    switch (currentLanguage) {
+      case 'vi': return '/';
+      case 'en': return '/';
       case 'ko': return '.';
-      case 'vi':
-      case 'en':
       default: return '/';
     }
   };
@@ -320,41 +329,89 @@ const UserProfile = () => {
   const formatDateFromNormalizedSafe = (val) => {
     try {
       let iso = '';
-      if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) iso = val; else if (val) {
+      if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) iso = val;
+      else if (val) {
         const d = new Date(val);
-        if (!isNaN(d.getTime())) iso = d.toISOString().slice(0,10);
+        if (!isNaN(d.getTime())) iso = d.toISOString().slice(0, 10);
       }
       if (!iso) return '';
-      const [y,m,d] = iso.split('-');
+      const [y, m, d] = iso.split('-');
       const sep = getDateSeparator();
-      if (i18n.language === 'ko') return `${y}${sep}${m}${sep}${d}`;
-      if (i18n.language === 'vi') return `${d}${sep}${m}${sep}${y}`;
+      if (currentLanguage === 'ko') return `${y}${sep}${m}${sep}${d}`;
+      if (currentLanguage === 'vi') return `${d}${sep}${m}${sep}${y}`;
       return `${m}${sep}${d}${sep}${y}`;
-    } catch { return ''; }
+    } catch {
+      return '';
+    }
   };
 
-  const parseDateFromDisplayToISO = (display) => {
-    if (!display) return '';
-    const sep = getDateSeparator();
-    const parts = display.split(sep);
-    if (parts.length !== 3) return '';
-    let y,m,d;
-    if (i18n.language === 'ko') { y=parts[0]; m=parts[1]; d=parts[2]; }
-    else if (i18n.language === 'vi') { d=parts[0]; m=parts[1]; y=parts[2]; }
-    else { m=parts[0]; d=parts[1]; y=parts[2]; }
-    if (!(y && m && d)) return '';
-    const iso = `${y.padStart(4,'0')}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-    const test = new Date(iso);
-    return isNaN(test.getTime()) ? '' : iso;
+  // --- Date helpers copied from Step1Contact (parsing + validation) ---
+  const parseDateFromDisplay = (displayValue) => {
+    if (!displayValue || displayValue.trim() === '') {
+      return null;
+    }
+
+    const separator = getDateSeparator();
+    const parts = displayValue.split(separator);
+    
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    let day, month, year;
+    
+    switch (currentLanguage) {
+      case 'vi': // DD/MM/YYYY
+        day = parts[0];
+        month = parts[1];
+        year = parts[2];
+        break;
+      case 'ko': // YYYY.MM.DD
+        year = parts[0];
+        month = parts[1];
+        day = parts[2];
+        break;
+      default: // MM/DD/YYYY
+        month = parts[0];
+        day = parts[1];
+        year = parts[2];
+        break;
+    }
+    
+    const date = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+    return isNaN(date.getTime()) ? null : date.toISOString().split('T')[0];
+  };
+
+  const validateDateInput = (inputValue) => {
+    if (!inputValue || inputValue.trim() === '') {
+      return null;
+    }
+
+    // First try to parse using language-specific format
+    const parsedDate = parseDateFromDisplay(inputValue);
+    
+    if (parsedDate) {
+      return parsedDate; // ISO yyyy-mm-dd
+    }
+    
+    // If parsing failed, return null
+    return null;
   };
 
   const validateDob = (displayValue) => {
-    const iso = parseDateFromDisplayToISO(displayValue || '');
-    if (!displayValue || !iso) {
+    // Cho phép DOB trống (user không bắt buộc phải nhập DOB trong hồ sơ)
+    if (!displayValue || !displayValue.trim()) {
+      setDobError('');
+      return true;
+    }
+
+    const normalized = validateDateInput(displayValue);
+    if (!normalized) {
       setDobError(t('booking.errors.dobInvalidFormat'));
       return false;
     }
-    const birth = new Date(iso);
+
+    const birth = new Date(normalized);
     const today = new Date();
     // must be strictly in the past
     if (birth.getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) {
@@ -378,32 +435,249 @@ const UserProfile = () => {
     return true;
   };
 
-  const formatDobInputOnType = (value) => {
+  // Live DOB formatter when typing – logic synced with Step1Contact.formatDateInput
+  const formatDobInput = (value, fieldKey) => {
     if (!value) return '';
-    const sep = getDateSeparator();
-    const clean = value.replace(/[^\d\/\.]/g, '');
-    const prevEndsSep = (editForm.dob || '').endsWith(sep);
-    const parts = clean.split(sep);
-    // deletion mode
-    if (isDeletingRef.current) return clean;
-    // Allow incomplete parts without forcing
-    const incomplete = parts.some((p, idx)=>{
-      if (i18n.language === 'ko') return (idx===0 ? p.length>0 && p.length<4 : p.length>0 && p.length<2);
-      return p.length>0 && p.length<2;
-    });
-    if (incomplete) return clean;
-    // Auto-insert separators when parts complete
-    if (i18n.language === 'vi') {
-      if (parts.length===1 && parts[0].length===2) return parts[0]+sep;
-      if (parts.length===2 && parts[1].length===2) return parts[0]+sep+parts[1]+sep;
-    } else if (i18n.language === 'en') {
-      if (parts.length===1 && parts[0].length===2) return parts[0]+sep;
-      if (parts.length===2 && parts[1].length===2) return parts[0]+sep+parts[1]+sep;
-    } else { // ko YYYY.MM.DD
-      if (parts.length===1 && parts[0].length===4) return parts[0]+sep;
-      if (parts.length===2 && parts[1].length===2) return parts[0]+sep+parts[1]+sep;
+    
+    // Only allow numbers and separators
+    const cleanValue = value.replace(/[^\d\/\.]/g, '');
+    
+    const separator = getDateSeparator();
+    let parts = cleanValue.split(separator);
+    
+    // Detect deletion by comparing with previous value
+    const previousValue = previousDobValueRef.current;
+    const isDeletingNow = cleanValue.length < previousValue.length;
+    
+    const isDeletingTrailingSeparator =
+      previousValue.endsWith(separator) &&
+      !cleanValue.endsWith(separator) &&
+      cleanValue.length === previousValue.length - 1;
+    
+    const isDeletingLastSeparator =
+      previousValue.endsWith(separator) &&
+      !cleanValue.endsWith(separator) &&
+      cleanValue.length === previousValue.length - 1 &&
+      cleanValue.split(separator).every(part => part.length >= 2 || part === '');
+    
+    const isInDeletionMode = isDeletingRef.current;
+    const shouldBeFormatted = previousValue.includes(separator) || cleanValue.includes(separator);
+    const isDeletingFromFormatted =
+      shouldBeFormatted && cleanValue.length <= previousValue.replace(/[\/\.]/g, '').length;
+    
+    // update previous for next call
+    previousDobValueRef.current = cleanValue;
+
+    // Leap year & days-in-month helpers
+    const isLeapYear = (year) =>
+      (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+
+    const getDaysInMonth = (month, year) => {
+      const m = parseInt(month, 10);
+      const y = parseInt(year, 10);
+      if ([1, 3, 5, 7, 8, 10, 12].includes(m)) return 31;
+      if ([4, 6, 9, 11].includes(m)) return 30;
+      if (m === 2) return isLeapYear(y) ? 29 : 28;
+      return 31;
+    };
+
+    const validateAndFormat = (day, month, year) => {
+      const currentYear = new Date().getFullYear();
+      const minYear = 1900;
+      const maxYear = currentYear;
+
+      if (year && year.length === 4) {
+        let y = parseInt(year, 10);
+        if (y < minYear) y = minYear;
+        if (y > maxYear) y = maxYear;
+        year = String(y);
+      }
+
+      if (month && month.length === 2) {
+        let m = parseInt(month, 10);
+        if (m < 1) m = 1;
+        if (m > 12) m = 12;
+        month = String(m).padStart(2, '0');
+      }
+
+      if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+        let d = parseInt(day, 10);
+        const daysInMonth = getDaysInMonth(month, year);
+        if (d < 1) d = 1;
+        if (d > daysInMonth) d = daysInMonth;
+        day = String(d).padStart(2, '0');
+      }
+
+      return { day, month, year };
+    };
+
+    // Allow deletion freely
+    if (isDeletingNow || isDeletingTrailingSeparator || isDeletingLastSeparator || isInDeletionMode || isDeletingFromFormatted) {
+      isDeletingRef.current = true;
+      return cleanValue;
     }
-    return clean;
+
+    if (isDeletingRef.current && !isDeletingNow && !isDeletingTrailingSeparator && !isDeletingLastSeparator && !isInDeletionMode && !isDeletingFromFormatted) {
+      isDeletingRef.current = false;
+    }
+
+    if (isDeletingRef.current) return cleanValue;
+    if (cleanValue === separator) return cleanValue;
+    if (cleanValue.endsWith(separator)) return cleanValue;
+
+    const hasEmptyParts = parts.some(part => part === '');
+    if (hasEmptyParts) return cleanValue;
+
+    const currentLanguage =
+      i18n.language && i18n.language.startsWith('ko')
+        ? 'ko'
+        : i18n.language && i18n.language.startsWith('en')
+        ? 'en'
+        : 'vi';
+
+    const hasIncompleteParts = parts.some(part => {
+      if (currentLanguage === 'ko') {
+        return part.length > 0 && (
+          (part === parts[0] && part.length < 4) || // year incomplete
+          (part !== parts[0] && part.length < 2)    // month/day incomplete
+        );
+      }
+      // vi / en: month/day 2 digits
+      return part.length > 0 && part.length < 2;
+    });
+    if (hasIncompleteParts) return cleanValue;
+
+    // Language-specific formatting
+    switch (currentLanguage) {
+      case 'vi': { // DD/MM/YYYY
+        if (parts.length === 1) {
+          let day = parts[0];
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day, 10) > 31) day = '31';
+          if (parseInt(day, 10) > 3 && day.length === 1) day = '0' + day;
+          if (day.length === 2 && parseInt(day, 10) > 3) return day + separator;
+          return day;
+        }
+        if (parts.length === 2) {
+          let day = parts[0];
+          let month = parts[1];
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day, 10) > 31) day = '31';
+          if (parseInt(day, 10) > 3 && day.length === 1) day = '0' + day;
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month, 10) > 12) month = '12';
+          if (parseInt(month, 10) > 1 && month.length === 1) month = '0' + month;
+          if (month === '') return day;
+          if (month.length === 2 && parseInt(month, 10) > 1) return day + separator + month + separator;
+          return day + separator + month;
+        }
+        if (parts.length === 3) {
+          let day = parts[0];
+          let month = parts[1];
+          let year = parts[2];
+          if (year === '') return day + separator + month;
+          if (month === '') return day;
+          if (year.length > 4) year = year.substring(0, 4);
+          if (year.length === 4) {
+            const validated = validateAndFormat(day, month, year);
+            return `${validated.day}${separator}${validated.month}${separator}${validated.year}`;
+          }
+          return day + separator + month + separator + year;
+        }
+        break;
+      }
+      case 'en': { // MM/DD/YYYY
+        if (parts.length === 1) {
+          let month = parts[0];
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month, 10) > 12) month = '12';
+          if (parseInt(month, 10) > 1 && month.length === 1) month = '0' + month;
+          if (month.length === 2 && parseInt(month, 10) > 1) return month + separator;
+          return month;
+        }
+        if (parts.length === 2) {
+          let month = parts[0];
+          let day = parts[1];
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month, 10) > 12) month = '12';
+          if (parseInt(month, 10) > 1 && month.length === 1) month = '0' + month;
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day, 10) > 31) day = '31';
+          if (parseInt(day, 10) > 3 && day.length === 1) day = '0' + day;
+          if (day === '') return month;
+          if (day.length === 2 && parseInt(day, 10) > 3) return month + separator + day + separator;
+          return month + separator + day;
+        }
+        if (parts.length === 3) {
+          let month = parts[0];
+          let day = parts[1];
+          let year = parts[2];
+          if (year === '') return month + separator + day;
+          if (day === '') return month;
+          if (year.length > 4) year = year.substring(0, 4);
+          if (year.length === 4) {
+            const validated = validateAndFormat(day, month, year);
+            return `${validated.month}${separator}${validated.day}${separator}${validated.year}`;
+          }
+          return month + separator + day + separator + year;
+        }
+        break;
+      }
+      case 'ko': { // YYYY.MM.DD
+        if (parts.length === 1) {
+          let year = parts[0];
+          if (year.length > 4) year = year.substring(0, 4);
+          if (year.length === 4) {
+            const currentYear = new Date().getFullYear();
+            let y = parseInt(year, 10);
+            if (y > currentYear) y = currentYear;
+            if (y < 1900) y = 1900;
+            year = String(y);
+          }
+          if (year.length === 4) return year + separator;
+          return year;
+        }
+        if (parts.length === 2) {
+          let year = parts[0];
+          let month = parts[1];
+          if (year.length > 4) year = year.substring(0, 4);
+          if (year.length === 4) {
+            const currentYear = new Date().getFullYear();
+            let y = parseInt(year, 10);
+            if (y > currentYear) y = currentYear;
+            if (y < 1900) y = 1900;
+            year = String(y);
+          }
+          if (month.length > 2) month = month.substring(0, 2);
+          if (parseInt(month, 10) > 12) month = '12';
+          if (parseInt(month, 10) > 1 && month.length === 1) month = '0' + month;
+          if (month === '') return year;
+          if (month.length === 2 && parseInt(month, 10) > 1) return year + separator + month + separator;
+          return year + separator + month;
+        }
+        if (parts.length === 3) {
+          let year = parts[0];
+          let month = parts[1];
+          let day = parts[2];
+          if (day === '') return year + separator + month;
+          if (month === '') return year;
+          if (year.length > 4) year = year.substring(0, 4);
+          if (day.length > 2) day = day.substring(0, 2);
+          if (parseInt(day, 10) > 31) day = '31';
+          if (parseInt(day, 10) > 3 && day.length === 1) day = '0' + day;
+          if (year.length === 4) {
+            const validated = validateAndFormat(day, month, year);
+            return `${validated.year}${separator}${validated.month}${separator}${validated.day}`;
+          }
+          return year + separator + month + separator + day;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return cleanValue;
   };
 
   // Determine if profile form has any changes compared to current user data
@@ -579,8 +853,8 @@ const UserProfile = () => {
       }
     }
     
-    // Normalize DOB to ISO before validation
-    const normalizedDob = parseDateFromDisplayToISO(userData.dob || '');
+    // Normalize DOB to ISO before validation (using same logic as Step1Contact)
+    const normalizedDob = validateDateInput(userData.dob || '');
     // Only validate DOB if user entered something - allow empty DOB
     if (userData.dob && userData.dob.trim() && !normalizedDob) {
       const errorMsg = t('booking.errors.dobInvalidFormat') || 'Định dạng ngày sinh không hợp lệ';
@@ -767,13 +1041,15 @@ const UserProfile = () => {
                 </button>
                 {showLanguageDropdown && (
                   <div className={styles['dropdown-menu']}>
-                    <button 
-                      className={`${styles['dropdown-option']} ${i18n.language === 'vi' ? styles['active'] : ''}`}
-                      onClick={() => changeLanguage('vi')}
-                    >
-                      <img src="/VN.png" alt={getLanguageName('vi')} className={styles['flag-icon']} />
-                      <span>{getLanguageName('vi')}</span>
-                    </button>
+                    {isCompanyUser && (
+                      <button 
+                        className={`${styles['dropdown-option']} ${i18n.language === 'vi' ? styles['active'] : ''}`}
+                        onClick={() => changeLanguage('vi')}
+                      >
+                        <img src="/VN.png" alt={getLanguageName('vi')} className={styles['flag-icon']} />
+                        <span>{getLanguageName('vi')}</span>
+                      </button>
+                    )}
                     <button 
                       className={`${styles['dropdown-option']} ${i18n.language === 'en' ? styles['active'] : ''}`}
                       onClick={() => changeLanguage('en')}
@@ -1174,15 +1450,26 @@ const UserProfile = () => {
                 onFocus={() => setEditingFields(prev => new Set(prev).add('dob'))}
                 onChange={(e) => {
                   const raw = e.target.value;
-                  const formatted = formatDobInputOnType(raw);
+                  // clean & format like Step1Contact while typing
+                  const clean = raw.replace(/[^\d\/\.]/g, '');
+                  const formatted = formatDobInput(clean, 'dob');
                   setEditForm(prev => ({ ...prev, dob: formatted }));
-                  if (formatted.split(getDateSeparator()).join('').length >= 6) {
+                  // optional: early validation when user đã gõ tương đối đủ
+                  const digitsCount = formatted.replace(/[^\d]/g, '').length;
+                  if (digitsCount >= 6) {
                     validateDob(formatted);
                   } else {
                     setDobError('');
                   }
                 }}
-                onKeyDown={(e) => { if (e.key === 'Backspace') isDeletingRef.current = true; else if (e.key.length===1) isDeletingRef.current = false; if (e.key==='Enter') e.currentTarget.blur(); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Backspace') {
+                    isDeletingRef.current = true;
+                  } else if (e.key.length === 1) {
+                    isDeletingRef.current = false;
+                  }
+                  if (e.key === 'Enter') e.currentTarget.blur();
+                }}
                 onBlur={(e) => {
                   setEditingFields(prev => { const s=new Set(prev); s.delete('dob'); return s; });
                   validateDob(e.target.value);
@@ -1212,7 +1499,7 @@ const UserProfile = () => {
                     ref={datePickerRef}
                     value={(() => {
                       if (!editForm.dob) return null;
-                      const iso = parseDateFromDisplayToISO(editForm.dob);
+                      const iso = validateDateInput(editForm.dob || '');
                       return iso ? new Date(iso) : null;
                     })()}
                     onChange={(date) => {

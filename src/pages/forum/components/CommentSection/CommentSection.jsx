@@ -422,6 +422,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   const [showDropdown, setShowDropdown] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
+  const [localDeleteOpen, setLocalDeleteOpen] = useState(false);
 
   const dropdownRef = useRef(null);
   const userInfoRef = useRef(null);
@@ -684,12 +685,51 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     }
   };
 
-  // Handle delete
-  const handleDelete = async () => {
+  // Handle delete (top-level uses parent modal, replies use local modal)
+  const handleDelete = () => {
     if (onRequestDelete) {
       onRequestDelete(comment);
       setShowDropdown(false);
       return;
+    }
+
+    // Reply or comment without parent-provided delete handler
+    setLocalDeleteOpen(true);
+    setShowDropdown(false);
+  };
+
+  const confirmLocalDelete = async () => {
+    if (!comment || !user) return;
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
+      const response = await fetch(API_ENDPOINTS.COMMENTS + `/${comment.forumCommentId}?userEmail=${user.email}`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(token),
+      });
+
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Cập nhật list ở component cha (top-level hoặc replies)
+        if (onCommentDeleted) {
+          onCommentDeleted(comment.forumCommentId);
+        }
+        // Cập nhật tổng số comment phía post card
+        if (onCountChange) {
+          onCountChange(prev => prev - 1);
+        }
+      } else {
+        alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
+    } finally {
+      setLocalDeleteOpen(false);
     }
   };
 
@@ -885,7 +925,6 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                   setReplies(prev => prev.filter(reply => reply.forumCommentId !== commentId));
                 }}
                 onReportComment={onReportComment}
-                onRequestDelete={onRequestDelete}
                 reportedComments={reportedComments}
                 setReportedComments={setReportedComments}
               />
@@ -914,6 +953,17 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
           </div>
         )}
       </div>
+      {/* Local Delete Confirm Modal for replies (when parent không quản lý xóa) */}
+      <DeleteConfirmModal
+        isOpen={localDeleteOpen}
+        onClose={() => setLocalDeleteOpen(false)}
+        onConfirm={confirmLocalDelete}
+        title={t('forum.comments.deleteConfirm')}
+        message={comment ? t('forum.comments.deleteConfirm') : ''}
+        itemName={t('forum.comments.deleteConfirm')}
+        confirmText={t('forum.comments.delete')}
+        cancelText={t('forum.comments.cancel')}
+      />
     </div>
   );
 };

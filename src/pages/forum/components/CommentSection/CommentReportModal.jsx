@@ -70,7 +70,8 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
     <div className={styles['comment-report-modal-overlay']} onClick={handleClose}>
       <div className={styles['comment-report-modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['comment-report-modal-header']}>
-          <h3>{t('forum.modals.report.title')}</h3>
+          {/* Dùng title riêng cho report comment, fallback "Report Comment" nếu chưa khai báo i18n */}
+          <h3>{t('forum.modals.report.commentTitle', 'Report Comment')}</h3>
           <button 
             className={styles['close-btn']} 
             onClick={handleClose}

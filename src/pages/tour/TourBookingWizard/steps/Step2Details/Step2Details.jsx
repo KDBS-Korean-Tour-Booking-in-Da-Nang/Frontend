@@ -1979,9 +1979,17 @@ const Step2Details = () => {
   };
 
   const handleNationalityChange = (memberType, globalIndex, value) => {
-    // For adult members, convert globalIndex to localIndex for setMember
-    // adult[0] = globalIndex 0, adult[1] = globalIndex 1, etc.
-    const localIndex = globalIndex;
+    // Convert globalIndex -> localIndex depending on memberType
+    let localIndex;
+    if (memberType === 'adult') {
+      localIndex = globalIndex;
+    } else if (memberType === 'child') {
+      localIndex = globalIndex - (plan.members?.adult?.length || 0);
+    } else if (memberType === 'infant') {
+      localIndex = globalIndex - (plan.members?.adult?.length || 0) - (plan.members?.child?.length || 0);
+    } else {
+      localIndex = globalIndex;
+    }
     
     handleMemberChange(memberType, localIndex, 'nationality', value);
     
@@ -2342,8 +2350,9 @@ const Step2Details = () => {
                 <input
                   type="text"
                   id={`${memberType}-${localIndex}-fullName`}
-                    value={member.fullName || ''}
-                  onChange={(e) => handleMemberChange(memberType, globalIndex, 'fullName', e.target.value)}
+                  value={member.fullName || ''}
+                  // IMPORTANT: use localIndex for setMember so we don't create extra members
+                  onChange={(e) => handleMemberChange(memberType, localIndex, 'fullName', e.target.value)}
                   onBlur={() => setTouchedFieldsWithRef(prev => new Set(prev).add(`${memberType}_${localIndex}_fullName`))}
                   className={`${styles['form-input']} ${errors[`member_${globalIndex}_name`] && touchedFields.has(`${memberType}_${localIndex}_fullName`) ? styles['error'] : ''}`}
                   placeholder={t('booking.step2.placeholders.fullName')}
@@ -2375,7 +2384,8 @@ const Step2Details = () => {
                        // If there's a normalized date, convert it to display format for editing
                        if (member.dob && /^\d{4}-\d{2}-\d{2}$/.test(member.dob)) {
                          const displayFormat = formatDateFromNormalized(member.dob);
-                         handleMemberChange(memberType, globalIndex, 'dob', displayFormat);
+                         // Use localIndex when writing back to members array
+                         handleMemberChange(memberType, localIndex, 'dob', displayFormat);
                        }
                      }}
                      onKeyDown={(e) => {
@@ -2563,8 +2573,9 @@ const Step2Details = () => {
                 </div>
                 <select
                   id={`${memberType}-${localIndex}-gender`}
-                    value={member.gender || ''}
-                  onChange={(e) => handleMemberChange(memberType, globalIndex, 'gender', e.target.value)}
+                  value={member.gender || ''}
+                  // Use localIndex here; validation still uses globalIndex
+                  onChange={(e) => handleMemberChange(memberType, localIndex, 'gender', e.target.value)}
                   onBlur={() => setTouchedFieldsWithRef(prev => new Set(prev).add(`${memberType}_${localIndex}_gender`))}
                   className={`${styles['form-select']} ${errors[`member_${globalIndex}_gender`] && touchedFields.has(`${memberType}_${localIndex}_gender`) ? styles['error'] : ''}`}
                 >
