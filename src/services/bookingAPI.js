@@ -24,10 +24,17 @@ const parseErrorMessage = async (response) => {
  * @returns {Object} - Headers object with Authorization
  */
 const getAuthHeaders = () => {
-  // Try multiple common token keys
+  // Try multiple token keys, including role-specific ones for ADMIN/STAFF
   const token =
-    localStorage.getItem('token') ||
+    // Session tokens (current tab, highest priority)
+    sessionStorage.getItem('token_ADMIN') ||
+    sessionStorage.getItem('token_STAFF') ||
     sessionStorage.getItem('token') ||
+    // Persistent tokens (other tabs / remembered sessions)
+    localStorage.getItem('token_ADMIN') ||
+    localStorage.getItem('token_STAFF') ||
+    localStorage.getItem('token') ||
+    // Fallback shared access token (used across roles)
     localStorage.getItem('accessToken') ||
     sessionStorage.getItem('accessToken');
   const headers = {
