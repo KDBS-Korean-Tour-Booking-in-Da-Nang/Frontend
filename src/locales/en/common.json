@@ -4,13 +4,17 @@
 		"home": "Home",
 		"forum": "Forum",
 		"tours": "Tours",
-		"news": "News",
+		"tourBooking": "Tour Booking",
+		"article": "Articles",
+		"about": "About Us",
 		"selfTravel": "Self-Travel",
 		"contact": "Contact",
 		"admin": "Admin Dashboard",
 		"profile": "Profile",
 		"payment": "Payment",
+		"dashboard": "Dashboard",
 		"businessInfo": "Business Info",
+		"companyInfo": "Company Info",
 		"login": "Login",
 		"logout": "Logout",
 		"register": "Register",
@@ -25,9 +29,11 @@
 	"common": {
 		"close": "Close",
 		"cancel": "Cancel",
+		"confirm": "Confirm",
 		"delete": "Delete",
 		"processing": "Processing...",
 		"item": "item",
+		"sendMessage": "Send Message",
 		"modal": {
 			"confirmLeave": {
 				"title": "Leave the tour wizard?",
@@ -58,6 +64,14 @@
 		},
 		"vehicles": {
 			"tourBus": "Tour Bus"
+		},
+		"status": {
+			"WAITING_FOR_APPROVAL": "Waiting for Approval",
+			"COMPANY_PENDING": "Pending"
+		},
+		"errors": {
+			"loginRequired": "Please login again",
+			"sessionExpired": "Session expired. Please login again."
 		}
 	},
 	"auth": {
@@ -105,6 +119,16 @@
 			"oauthErrorNaver": "Cannot connect to Naver. Please try again.",
 			"successMessage": "Login successful!"
 		},
+		"banned": {
+			"title": "Account banned",
+			"subtitle": "Your account has been temporarily banned by the administrator",
+			"description": "Due to policy violations or suspicious activities, your account has been banned. If you believe this is a mistake, please contact support or the system administrator for further review.",
+			"info": "You can no longer continue using the system with this account. Please log in with another account or contact support for more details.",
+			"backToLogin": "Back to login",
+			"backToHome": "Back to homepage",
+			"ariaBackToLogin": "Go back to login page",
+			"ariaBackToHome": "Go back to homepage"
+		},
 		"register": {
 			"title": "Create account",
 			"headerSubtitle": "Create a new account to get started",
@@ -125,7 +149,7 @@
 			"login": "Login",
 			"errors": {
 				"passwordMismatch": "Passwords do not match",
-				"passwordMinLength": "Password must be at least 6 characters",
+				"passwordMinLength": "Password must be at least 8 characters",
 				"usernameRequired": "Username is required",
 				"registerFailed": "Registration failed. Please try again."
 			}
@@ -136,7 +160,10 @@
 			"submit": "Send email",
 			"sending": "Sending...",
 			"success": "OTP has been sent to your email.",
-			"error": "Failed to send OTP. Please try again."
+			"error": "Failed to send OTP. Please try again.",
+			"errors": {
+				"oauthOnly": "This account is logged in via Google/Naver and does not have a password. Please log in using Google/Naver."
+			}
 		},
 		"verify": {
 			"title": "Verify Email",
@@ -174,37 +201,117 @@
 	},
 	"home": {
 		"hero": {
-			"titleLead": "Tours",
-			"titleEmph": "Da Nang - Korea",
-			"desc": "Explore Da Nang's beauty and Korean culture with high-quality tours.",
-			"btnPayment": "Payment",
-			"btnProfile": "Profile",
-			"btnRegister": "Register",
-			"btnLogin": "Login"
+			"badge": "Explore Da Nang with us",
+			"titleFrom": "From",
+			"titleSoutheast": "Southeast Korea",
+			"titleTo": "to Da Nang",
+			"desc": "Stay updated with the latest travel tips, suggestions and offers.",
+			"btnBookNow": "Book Now"
 		},
-		"welcome": {
-			"heading": "Welcome to",
-			"subheading": "Da Nang - Korea Tours"
+		"services": {
+			"sectionTitle": "SERVICES",
+			"headline": "Why use KDBS",
+			"card1": {
+				"title": "Everything you need",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			},
+			"card2": {
+				"title": "Flexible booking",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			},
+			"card3": {
+				"title": "AI Integration",
+				"desc": "From flights, accommodation, to sightseeing, just trust our complete products."
+			}
+		},
+		"destinations": {
+			"sectionTitle": "TOP DESTINATIONS",
+			"headline": "Discover the top highlights",
+			"seeAll": "See all",
+			"card1": {
+				"location": "Indonesia",
+				"title": "Pandawa Beach, Bali Island",
+				"rating": "4.9"
+			},
+			"card2": {
+				"location": "Bangkok",
+				"title": "Bangkok City, Thailand",
+				"rating": "4.8"
+			},
+			"card3": {
+				"location": "Japan",
+				"title": "Tokyo City, Japan",
+				"rating": "4.9"
+			}
 		},
 		"features": {
-			"sectionTitle": "Features",
-			"headline": "Best service for you",
-			"blurb": "Modern tour management with many useful features",
-			"securityTitle": "Secure",
-			"securityDesc": "Multi-layer security ensures safe personal and payment info.",
-			"speedTitle": "Fast",
-			"speedDesc": "Optimized UI for quick actions and time-saving.",
-			"reliableTitle": "Reliable",
-			"reliableDesc": "Built with modern, reliable technologies.",
-			"friendlyTitle": "Friendly",
-			"friendlyDesc": "User-friendly interface for everyone."
+			"sectionTitle": "MAIN FEATURES",
+			"headline": "We provide the best service",
+			"desc": "Hello! Travelo is here to help you find your dream vacation. Easy, you just need to find where you want to go and buy tickets.",
+			"card1": {
+				"title": "Choose multiple locations",
+				"desc": "Choose your favorite location"
+			},
+			"card2": {
+				"title": "Schedule your trip",
+				"desc": "Set the date you want"
+			},
+			"card3": {
+				"title": "Big discounts",
+				"desc": "Get discounts for all services"
+			}
 		},
-		"cta": {
-			"title1": "Ready to start?",
-			"title2": "Sign up today.",
-			"desc": "Join us to explore amazing destinations.",
-			"btn": "Sign up for free"
+		"testimonials": {
+			"sectionTitle": "TESTIMONIALS",
+			"headline": "Trust our customers",
+			"name": "Irfan Rahmat",
+			"role": "Travel enthusiast",
+			"review": "I love Travelo, this is the best place to buy tickets and help you find your dream vacation."
+		},
+		"newsletter": {
+			"sectionTitle": "NEWSLETTER SIGNUP",
+			"headline": "Prepare yourself and let's explore the beauty of the world",
+			"emailPlaceholder": "Your email",
+			"btnSubscribe": "Subscribe"
 		}
+	},
+	"footer": {
+		"company": {
+			"title": "Company",
+			"about": "About Us",
+			"careers": "Careers",
+			"press": "Press",
+			"blog": "Blog"
+		},
+		"support": {
+			"title": "Support",
+			"help": "Help Center",
+			"contact": "Contact",
+			"status": "Status",
+			"community": "Community"
+		},
+		"legal": {
+			"title": "Legal",
+			"privacy": "Privacy Policy",
+			"terms": "Terms of Service",
+			"cookies": "Cookie Policy",
+			"gdpr": "GDPR"
+		},
+		"social": {
+			"title": "Social Media",
+			"facebook": "Facebook",
+			"twitter": "Twitter",
+			"instagram": "Instagram",
+			"linkedin": "LinkedIn"
+		},
+		"newsletter": {
+			"title": "Newsletter Subscription",
+			"desc": "Get updates on the latest tours and special offers.",
+			"emailPlaceholder": "Enter your email",
+			"subscribe": "Subscribe"
+		},
+		"copyright": "© 2024 KDBS. All rights reserved.",
+		"rights": "All rights reserved."
 	},
 	"pending": {
 		"title": "Pending Approval",
@@ -224,7 +331,7 @@
 		"info_submit_success": "Business information submitted successfully!",
 		"info_submit_failed": "An error occurred while submitting information. Please try again."
 	},
-	"business": {
+  "company": {
 		"loading": "Loading...",
 		"notFoundTitle": "Registration information not found",
 		"backToRegister": "Back to register",
@@ -340,6 +447,1087 @@
 			"cancel": "Cancel",
 			"save": "Save",
 			"update": "Update"
+		},
+		"adminDashboard": {
+			"accessDenied": "Access Denied",
+			"accessDeniedMessage": "You don't have permission to access the admin dashboard. Only administrators can view this page.",
+			"goToHomepage": "Go to Homepage",
+			"adminLogin": "Admin Login",
+			"loading": "Loading..."
+		},
+		"adminLayout": {
+			"menu": "MENU",
+			"contact": "CONTACT",
+			"customerContact": "Customer contact",
+			"menuItems": {
+				"dashboard": "Dashboard",
+				"customerManagement": "Customer Management",
+				"companyManagement": "Company Management",
+				"staffManagement": "Staff Management",
+				"forumReportManagement": "Forum Report Management",
+				"complaintManagement": "Complaint Management",
+				"resolveTicketManagement": "Resolve Ticket Management",
+				"articleManagement": "Article Management",
+				"tourManagement": "Tour Management",
+				"transactionManagement": "Transaction Management"
+			},
+			"search": "Search",
+			"searchPlaceholder": "Search for...",
+			"profile": "Profile",
+			"accountSettings": "Account settings",
+			"support": "Support",
+			"signOut": "Sign out",
+			"adminUser": "Admin User"
+		},
+		"companyManagement": {
+			"title": "Company registration approval",
+			"subtitle": "Manage and approve travel company account registration requests.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"stats": {
+				"totalCompanies": "Total companies",
+				"totalCompaniesDesc": "Registered",
+				"pending": "Pending approval",
+				"pendingDesc": "Needs processing",
+				"approved": "Approved",
+				"approvedDesc": "Active",
+				"rejected": "Rejected",
+				"rejectedDesc": "Inactive"
+			},
+			"searchPlaceholder": "Search by name, email or company code...",
+			"statusFilter": {
+				"all": "All statuses",
+				"pending": "Pending approval",
+				"approved": "Approved",
+				"rejected": "Rejected"
+			},
+			"tableHeaders": {
+				"company": "Company",
+				"status": "Status",
+				"registrationDate": "Registration date",
+				"actions": "Actions"
+			},
+			"status": {
+				"pending": "Pending approval",
+				"notUpdated": "Not updated",
+				"approved": "Approved",
+				"rejected": "Rejected"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"approve": "Approve",
+				"reject": "Reject"
+			},
+			"loading": "Loading company list...",
+			"error": "Unable to load company list. Please try again.",
+			"retry": "Retry",
+			"noResults": "No companies found matching current filters.",
+			"confirmApprove": "Are you sure you want to approve company \"{{name}}\"?",
+			"confirmReject": "Are you sure you want to reject company \"{{name}}\"?",
+			"approveSuccess": "Company approved successfully!",
+			"rejectSuccess": "Company rejected successfully!",
+			"approveError": "Unable to approve company. Please try again.",
+			"rejectError": "Unable to reject company. Please try again.",
+			"modal": {
+				"title": "Company details",
+				"close": "Close",
+				"loadingFiles": "Loading file information...",
+				"noFiles": "No file upload information found",
+				"noFilesDesc": "This company may not have uploaded files or there is an issue with the data.",
+				"businessLicense": "Business license",
+				"businessLicenseDesc": "PDF file",
+				"openInNewTab": "Open in new tab",
+				"noFile": "No file",
+				"idCardFront": "ID card front",
+				"idCardFrontDesc": "Photo",
+				"idCardBack": "ID card back",
+				"idCardBackDesc": "Photo",
+				"noImage": "No image",
+				"imageLoadError": "Unable to load image"
+			}
+		},
+		"complaintManagement": {
+			"title": "Manage booking complaints",
+			"subtitle": "View all complaints and manage resolution status for admin processing.",
+			"stats": {
+				"total": "Total complaints",
+				"resolved": "Resolved",
+				"pending": "Pending"
+			},
+			"search": {
+				"all": "Search all",
+				"byComplaintId": "Search by Complaint ID",
+				"placeholderAll": "Search in messages...",
+				"placeholderId": "Enter complaint ID...",
+				"filterByStatus": "Filter by status:",
+				"all": "All",
+				"pending": "Pending",
+				"resolved": "Resolved"
+			},
+			"refresh": "Refresh",
+			"loading": "Loading...",
+			"searchById": "Search by ID",
+			"tableHeaders": {
+				"id": "ID",
+				"message": "Message",
+				"createdAt": "Created at",
+				"resolution": "Resolution",
+				"resolvedAt": "Resolved at",
+				"action": "Action"
+			},
+			"status": {
+				"pending": "Pending",
+				"companyFault": "Company fault",
+				"userFault": "User fault",
+				"noFault": "No fault",
+				"resolved": "Resolved"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"resolve": "Resolve complaint"
+			},
+			"noComplaints": "No complaints found.",
+			"noMatch": "No complaints match your search criteria.",
+			"loadingComplaints": "Loading complaints...",
+			"showing": "Showing {{count}} of {{filtered}} filtered complaints ({{total}} total)",
+			"modal": {
+				"title": "Complaint Details",
+				"complaintId": "Complaint ID: #{{id}}",
+				"close": "Close",
+				"message": "Message",
+				"status": "Status",
+				"createdAt": "Created At",
+				"resolvedAt": "Resolved At"
+			},
+			"resolveModal": {
+				"title": "Resolve Complaint",
+				"complaintId": "Complaint ID: #{{id}}",
+				"close": "Close",
+				"complaintMessage": "Complaint Message",
+				"resolutionType": "Resolution Type",
+				"required": "*",
+				"resolutionOptions": {
+					"noFault": {
+						"label": "No Fault",
+						"description": "Neither party is at fault. Booking status will change to SUCCESS."
+					},
+					"userFault": {
+						"label": "User Fault",
+						"description": "User is at fault. Booking status will change to SUCCESS."
+					},
+					"companyFault": {
+						"label": "Company Fault",
+						"description": "Company is at fault. Booking status remains UNDER_COMPLAINT."
+					}
+				},
+				"note": "Resolution Note (Optional)",
+				"notePlaceholder": "Add any additional notes or comments about this resolution...",
+				"cancel": "Cancel",
+				"confirm": "Confirm Resolution",
+				"resolving": "Resolving...",
+				"error": "Please select a resolution type.",
+				"noPermission": "You do not have permission to resolve complaints."
+			},
+			"errors": {
+				"enterComplaintId": "Please enter a complaint ID.",
+				"invalidId": "Complaint ID must be a positive number.",
+				"notFound": "Complaint not found.",
+				"loadError": "Failed to load complaints.",
+				"resolveError": "Failed to resolve complaint."
+			}
+		},
+		"customerContact": {
+			"chatBox": "Chat Box",
+			"connected": "Connected",
+			"disconnected": "Disconnected",
+			"searchPlaceholder": "Search...",
+			"loadingUsers": "Loading user list...",
+			"noUsers": "No users available",
+			"loadError": "Error loading list. Chat still works normally.",
+			"lastSeen": "Last seen a few minutes ago",
+			"noMessages": "No messages yet. Start a conversation!",
+			"loadingMessages": "Loading messages...",
+			"messagePlaceholder": "Type a message...",
+			"sent": "Sent",
+			"selectUser": "Select a user to start chatting",
+			"you": "You: ",
+			"me": "Me: "
+		},
+		"customerManagement": {
+			"title": "View & nurture your travelers",
+			"subtitle": "Track loyal customers and booking history to personalize offers.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"stats": {
+				"totalCustomers": "Total customers",
+				"totalCustomersTrend": "+12% MoM",
+				"active": "Active",
+				"activeTrend": "+3% MoM",
+				"vip": "VIP customers",
+				"vipTrend": "+1 VIP this week",
+				"lifetimeValue": "Lifetime value",
+				"lifetimeValueTrend": "5.4% YoY"
+			},
+			"searchPlaceholder": "Search by name, email or customer code...",
+			"statusFilter": {
+				"all": "All statuses",
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"tableHeaders": {
+				"customer": "Customer",
+				"status": "Status",
+				"accumulated": "Accumulated",
+				"lastBooking": "Last booking",
+				"actions": "Actions"
+			},
+			"status": {
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"banUser": "Ban user",
+				"unbanUser": "Unban user"
+			},
+			"bookings": "bookings",
+			"noBooking": "None",
+			"loading": "Loading customer list...",
+			"error": "Unable to load customer list. Please try again.",
+			"retry": "Retry",
+			"noResults": "No customers found matching current filters."
+		},
+		"banReasonModal": {
+			"title": "Ban user",
+			"description": "Please select a ban reason for this user. This reason will be saved in the system.",
+			"reasons": {
+				"spam": "Spam or inappropriate content",
+				"harassment": "Harassment or inappropriate behavior",
+				"fraud": "Fraud or scam",
+				"violation": "Terms of service violation",
+				"inappropriate": "Inappropriate behavior",
+				"other": "Other"
+			},
+			"customReasonLabel": "Enter ban reason",
+			"customReasonPlaceholder": "Please enter detailed ban reason...",
+			"cancel": "Cancel",
+			"confirm": "Confirm ban",
+			"processing": "Processing...",
+			"errors": {
+				"selectReason": "Please select a ban reason",
+				"enterReason": "Please enter ban reason"
+			}
+		},
+		"customerDetailModal": {
+			"title": "Customer details",
+			"id": "ID: {{id}}",
+			"close": "Close",
+			"status": {
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"sections": {
+				"personalInfo": "Personal information",
+				"contactInfo": "Contact information",
+				"accountFinancial": "Account & Financial information",
+				"banReason": "Ban reason",
+				"role": "Role"
+			},
+			"fields": {
+				"dob": "Date of birth",
+				"gender": "Gender",
+				"cccd": "ID card number",
+				"email": "Email",
+				"phone": "Phone number",
+				"address": "Address",
+				"city": "City: {{city}}",
+				"country": "Country: {{country}}",
+				"balance": "Balance",
+				"totalOrders": "Total orders",
+				"lastOrder": "Last order",
+				"accountCreated": "Account created date"
+			},
+			"gender": {
+				"male": "Male",
+				"female": "Female",
+				"other": "Other"
+			}
+		},
+		"dashboard": {
+			"title": "Admin Dashboard",
+			"subtitle": "Overview of tour management and booking system",
+			"stats": {
+				"totalTours": "Total Tours",
+				"totalToursChange": "+12%",
+				"totalBookings": "Total Bookings",
+				"totalBookingsChange": "+8%",
+				"totalRevenue": "Total Revenue",
+				"totalRevenueChange": "+15%",
+				"totalUsers": "Total Users",
+				"totalUsersChange": "+5%",
+				"activeTours": "Active Tours",
+				"activeToursChange": "+3%",
+				"pendingBookings": "Pending Bookings",
+				"pendingBookingsChange": "-2%"
+			},
+			"changeFromLastMonth": "from last month",
+			"charts": {
+				"bookingTrend": "Booking Trend",
+				"bookingTrendSubtitle": "Last 6 months",
+				"tourCategory": "Tour Category",
+				"tourCategorySubtitle": "Total: {{total}} tours",
+				"bookingStatus": "Booking Status",
+				"bookingStatusSubtitle": "Total: {{total}} bookings"
+			},
+			"bookingStatus": {
+				"completed": "Completed",
+				"pending": "Pending",
+				"cancelled": "Cancelled"
+			},
+			"tourCategories": {
+				"domestic": "Domestic",
+				"international": "International",
+				"day": "Day trip"
+			},
+			"worldMap": {
+				"title": "Top Countries",
+				"subtitle": "User distribution by country",
+				"timeFilter": {
+					"today": "Today",
+					"thisWeek": "This week",
+					"thisMonth": "This month"
+				},
+				"users": "Users"
+			},
+			"infoCards": {
+				"completedTours": "Completed Tours",
+				"companies": "Companies",
+				"completionRate": "Completion Rate"
+			}
+		},
+		"forumManagement": {
+			"title": "View & moderate community posts",
+			"subtitle": "Manage forum posts and comments, handle violation reports.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"reports": "Reports",
+			"hideReports": "Hide Reports",
+			"stats": {
+				"totalPosts": "Total posts",
+				"totalPostsTrend": "+5 this week",
+				"active": "Active",
+				"activeTrend": "+3 this week",
+				"totalComments": "Total comments",
+				"totalCommentsTrend": "+12% MoM",
+				"reports": "Reports",
+				"reportsTrend": "Needs processing"
+			},
+			"reportFilters": {
+				"all": "All",
+				"post": "Post",
+				"comment": "Comment"
+			},
+			"noReports": "No reports available",
+			"reportLabels": {
+				"post": "Post",
+				"comment": "Comment",
+				"reportedBy": "Reported by: {{name}}",
+				"noTitle": "No title"
+			},
+			"searchPlaceholder": "Search by content, author or post ID...",
+			"statusFilter": {
+				"all": "All statuses",
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"sortBy": {
+				"newest": "Newest",
+				"oldest": "Oldest"
+			},
+			"tableHeaders": {
+				"id": "ID",
+				"post": "Post",
+				"author": "Author",
+				"likes": "Likes",
+				"comments": "Comments",
+				"date": "Date",
+				"actions": "Actions"
+			},
+			"noResults": "No posts found matching current filters.",
+			"actions": {
+				"viewDetails": "View details"
+			},
+			"pagination": {
+				"previous": "Previous",
+				"next": "Next",
+				"showing": "Showing page {{current}} / {{total}} of {{items}} posts"
+			},
+			"modal": {
+				"title": "Post Details",
+				"close": "Close",
+				"author": "Author",
+				"images": "Images ({{count}})",
+				"content": "Content",
+				"likes": "Likes",
+				"comments": "Comments",
+				"viewDetails": "View details"
+			}
+		},
+		"forumReportManagement": {
+			"title": "Forum report management",
+			"subtitle": "Review and approve user reports about violating content on the forum.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"stats": {
+				"total": "Total reports",
+				"pending": "Pending approval",
+				"pendingDesc": "Needs processing",
+				"resolved": "Resolved",
+				"dismissed": "Dismissed"
+			},
+			"searchPlaceholder": "Search by report code, reporter, post title...",
+			"statusFilter": {
+				"all": "All statuses",
+				"pending": "Pending approval",
+				"investigating": "Investigating",
+				"resolved": "Resolved",
+				"dismissed": "Dismissed",
+				"closed": "Closed"
+			},
+			"typeFilter": {
+				"all": "All types",
+				"spam": "Spam",
+				"inappropriate": "Inappropriate content",
+				"harassment": "Harassment",
+				"copyright": "Copyright violation",
+				"other": "Other"
+			},
+			"tableHeaders": {
+				"stt": "No.",
+				"report": "Report",
+				"reporter": "Reporter",
+				"violationType": "Violation type",
+				"status": "Status",
+				"reportDate": "Report date",
+				"actions": "Actions"
+			},
+			"reportTypes": {
+				"post": "Post",
+				"comment": "Comment"
+			},
+			"status": {
+				"pending": "Pending approval",
+				"investigating": "Investigating",
+				"resolved": "Resolved",
+				"dismissed": "Dismissed",
+				"closed": "Closed"
+			},
+			"violationTypes": {
+				"spam": "Spam",
+				"inappropriate": "Inappropriate",
+				"harassment": "Harassment",
+				"copyright": "Copyright",
+				"violence": "Violence",
+				"hateSpeech": "Hate speech",
+				"falseInfo": "False information",
+				"other": "Other"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"approve": "Approve report",
+				"reject": "Reject report"
+			},
+			"loading": "Loading report list...",
+			"noResults": "No reports found matching current filters.",
+			"pagination": {
+				"page": "Page {{current}} / {{total}}",
+				"previous": "Previous",
+				"next": "Next"
+			},
+			"confirmApprove": "Are you sure you want to approve this report?",
+			"confirmReject": "Are you sure you want to reject this report?",
+			"approveSuccess": "Report approved successfully!",
+			"rejectSuccess": "Report rejected successfully!",
+			"approveError": "Error approving report: {{error}}",
+			"rejectError": "Error rejecting report: {{error}}",
+			"loadError": "An error occurred while approving report",
+			"detailError": "Error loading report details: {{error}}",
+			"detailLoadError": "An error occurred while loading report details",
+			"noReason": "No reason",
+			"approveNote": "Report has been approved and processed",
+			"rejectNote": "Report has been rejected"
+		},
+		"reportDetailModal": {
+			"title": "Report details",
+			"id": "ID: #{{id}}",
+			"close": "Close",
+			"fields": {
+				"status": "Status",
+				"contentType": "Content type",
+				"contentId": "ID: {{id}}",
+				"reporter": "Reporter",
+				"violationType": "Violation type",
+				"reportDate": "Report date",
+				"resolvedDate": "Resolved date",
+				"contentInfo": "Content information",
+				"title": "Title",
+				"author": "Author",
+				"reason": "Report reason",
+				"description": "Detailed description",
+				"adminNote": "Admin note",
+				"resolvedBy": "Resolved by"
+			},
+			"actions": {
+				"close": "Close",
+				"reject": "Reject",
+				"approve": "Approve"
+			}
+		},
+		"pagination": {
+			"showing": "Showing {{start}} - {{end}} of {{total}} total",
+			"firstPage": "First page",
+			"previous": "Previous page",
+			"next": "Next page",
+			"lastPage": "Last page"
+		},
+		"reportManagement": {
+			"title": "Report Management",
+			"subtitle": "Generate and manage system reports",
+			"generateNew": "Generate New Report",
+			"reportTypes": {
+				"title": "Report Types",
+				"user": "User Reports",
+				"revenue": "Revenue Reports",
+				"company": "Company Reports",
+				"staff": "Staff Reports",
+				"forum": "Forum Reports"
+			},
+			"stats": {
+				"total": "Total Reports",
+				"completed": "Completed",
+				"generating": "Generating",
+				"totalDownloads": "Total Downloads"
+			},
+			"tableHeaders": {
+				"report": "Report",
+				"type": "Type",
+				"period": "Period",
+				"status": "Status",
+				"downloads": "Downloads",
+				"actions": "Actions"
+			},
+			"status": {
+				"completed": "completed",
+				"generating": "generating",
+				"pending": "pending"
+			},
+			"actions": {
+				"viewDetails": "View Details",
+				"download": "Download",
+				"generate": "Generate"
+			},
+			"recentReports": "Recent Reports",
+			"modal": {
+				"period": "Period",
+				"status": "Status",
+				"type": "Type",
+				"downloads": "Downloads",
+				"generatedAt": "Generated At",
+				"fileSize": "File Size",
+				"downloadReport": "Download Report",
+				"generateReport": "Generate Report",
+				"close": "Close",
+				"generateMessage": "Report generation started! You will be notified when it's ready."
+			}
+		},
+		"resolveTicketManagement": {
+			"title": "Manage Support Tickets",
+			"subtitle": "View all support tickets and manage resolution status. This feature is under development.",
+			"stats": {
+				"total": "Total tickets",
+				"resolved": "Resolved",
+				"pending": "Pending"
+			},
+			"search": {
+				"all": "Search all",
+				"byTicketId": "Search by Ticket ID",
+				"placeholderAll": "Search tickets...",
+				"placeholderId": "Enter ticket ID...",
+				"filterByStatus": "Filter by status:",
+				"all": "All",
+				"pending": "Pending",
+				"resolved": "Resolved"
+			},
+			"refresh": "Refresh",
+			"loading": "Loading...",
+			"searchById": "Search by ID",
+			"tableHeaders": {
+				"id": "ID",
+				"subject": "Subject",
+				"createdAt": "Created at",
+				"status": "Status",
+				"priority": "Priority",
+				"action": "Action"
+			},
+			"status": {
+				"pending": "Pending",
+				"resolved": "Resolved"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"resolve": "Resolve ticket"
+			},
+			"noTickets": "No tickets available",
+			"noTicketsDesc": "This feature is under development. Support ticket management will be available soon.",
+			"showing": "Showing {{count}} of {{filtered}} filtered tickets ({{total}} total)",
+			"errors": {
+				"enterTicketId": "Please enter a ticket ID.",
+				"invalidId": "Ticket ID must be a positive number.",
+				"notFound": "Ticket not found.",
+				"loadError": "Failed to load tickets.",
+				"resolveError": "Failed to resolve ticket.",
+				"noPermission": "You do not have permission to resolve tickets.",
+				"selectResolution": "Please select a resolution type."
+			},
+			"modal": {
+				"title": "Ticket Details",
+				"ticketId": "Ticket ID: #{{id}}",
+				"close": "Close",
+				"subject": "Subject",
+				"message": "Message",
+				"status": "Status",
+				"priority": "Priority",
+				"createdAt": "Created At",
+				"resolvedAt": "Resolved At"
+			},
+			"resolveModal": {
+				"title": "Resolve Ticket",
+				"ticketId": "Ticket ID: #{{id}}",
+				"close": "Close",
+				"ticketSubject": "Ticket Subject",
+				"resolutionType": "Resolution Type",
+				"required": "*",
+				"resolutionOptions": {
+					"resolved": {
+						"label": "Resolved",
+						"description": "Ticket has been successfully resolved."
+					},
+					"closed": {
+						"label": "Closed",
+						"description": "Ticket has been closed."
+					}
+				},
+				"note": "Resolution Note (Optional)",
+				"notePlaceholder": "Add any additional notes or comments about this resolution...",
+				"cancel": "Cancel",
+				"confirm": "Confirm Resolution",
+				"resolving": "Resolving..."
+			}
+		},
+		"staffManagement": {
+			"title": "View & manage your team",
+			"subtitle": "Manage staff and system access permissions.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"addStaff": "Add Staff",
+			"stats": {
+				"total": "Total staff",
+				"totalTrend": "+2 this week",
+				"active": "Active",
+				"activeTrend": "+1 this week",
+				"admin": "Administrators",
+				"adminTrend": "No change",
+				"inactive": "Inactive",
+				"inactiveTrend": "0 changes"
+			},
+			"searchPlaceholder": "Search by name, email or staff code...",
+			"roleFilter": {
+				"all": "All roles",
+				"staff": "Staff"
+			},
+			"statusFilter": {
+				"all": "All statuses",
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"tableHeaders": {
+				"staff": "Staff",
+				"role": "Role",
+				"status": "Status",
+				"assignedTasks": "Assigned tasks",
+				"createdAt": "Created date",
+				"actions": "Actions"
+			},
+			"status": {
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"roles": {
+				"admin": "Administrator",
+				"staff": "Staff"
+			},
+			"tasks": {
+				"none": "None",
+				"forumReport": "Forum Report & Booking Complaint",
+				"companyRequest": "Company Request & Resolve Ticket",
+				"approveTour": "Approve Tour Booking & Article"
+			},
+			"actions": {
+				"assignTask": "Assign task",
+				"edit": "Edit (not supported)",
+				"ban": "Suspend",
+				"unban": "Activate",
+				"delete": "Delete staff"
+			},
+			"loading": "Loading staff list...",
+			"error": "Unable to load staff list. Please try again.",
+			"retry": "Retry",
+			"noResults": "No staff found matching current filters.",
+			"editNotSupported": "Staff editing feature is not supported. Backend does not have an endpoint to update staff information.",
+			"deleteConfirm": {
+				"title": "Delete staff",
+				"message": "Are you sure you want to delete staff \"{{name}}\"?",
+				"confirm": "Delete",
+				"cancel": "Cancel"
+			},
+			"deleteSuccess": "Staff deleted successfully!",
+			"deleteError": "Unable to delete staff. Please try again.",
+			"banSuccess": "Staff suspended successfully",
+			"unbanSuccess": "Staff activated successfully",
+			"statusError": "Unable to update staff status. Please try again."
+		},
+		"addStaffModal": {
+			"title": "Add new staff",
+			"subtitle": "Create a new staff account for the system",
+			"close": "Close",
+			"fields": {
+				"username": "Username",
+				"usernameRequired": "*",
+				"usernamePlaceholder": "Enter username",
+				"usernameHint": "Username must be unique in the system",
+				"password": "Password",
+				"passwordRequired": "*",
+				"passwordPlaceholder": "Enter password",
+				"passwordHint": "Password must be at least 6 characters",
+				"staffTask": "Task (optional)",
+				"staffTaskNone": "No task assigned",
+				"staffTaskForum": "Forum Report & Booking Complaint",
+				"staffTaskCompany": "Company Request & Resolve Ticket",
+				"staffTaskTour": "Approve Tour Booking & Article",
+				"staffTaskHint": "Task can be assigned after account creation"
+			},
+			"errors": {
+				"usernameRequired": "Please enter username",
+				"passwordRequired": "Please enter password"
+			},
+			"cancel": "Cancel",
+			"submit": "Create staff",
+			"submitting": "Creating...",
+			"createSuccess": "Staff account created successfully!",
+			"createError": "Unable to create staff account. Please try again."
+		},
+		"assignTaskModal": {
+			"title": "Assign task",
+			"description": "Select a task for this staff member. Each staff member can only be assigned one task at a time.",
+			"close": "Close",
+			"noTask": "No task assigned",
+			"noTaskDesc": "Staff will not have a specific task",
+			"tasks": {
+				"forumReport": {
+					"label": "Forum Report & Booking Complaint",
+					"description": "Handle forum reports and booking complaints"
+				},
+				"companyRequest": {
+					"label": "Company Request & Resolve Ticket",
+					"description": "Handle company requests and resolve tickets"
+				},
+				"approveTour": {
+					"label": "Approve Tour Booking & Article",
+					"description": "Approve tour bookings and articles"
+				}
+			},
+			"cancel": "Cancel",
+			"confirm": "Confirm",
+			"processing": "Processing...",
+			"updateSuccess": "Task updated successfully!",
+			"updateError": "Unable to update staff task. Please try again."
+		},
+		"tourManagement": {
+			"title": "Tour Management",
+			"subtitle": "View and manage all tours in the system.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"stats": {
+				"totalTours": "Total tours",
+				"displayedTours": "Displayed tours",
+				"currentPage": "Current page"
+			},
+			"searchPlaceholder": "Search tours by name, description, departure point...",
+			"sortBy": {
+				"newest": "Newest",
+				"oldest": "Oldest",
+				"nameAsc": "Name A-Z",
+				"nameDesc": "Name Z-A"
+			},
+			"tableHeaders": {
+				"stt": "No.",
+				"tourName": "Tour name",
+				"status": "Status",
+				"price": "Price",
+				"duration": "Duration",
+				"createdAt": "Created date",
+				"actions": "Actions"
+			},
+			"status": {
+				"approved": "Approved",
+				"pending": "Pending approval",
+				"disabled": "Disabled",
+				"na": "N/A"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"approve": "Approve tour",
+				"reject": "Reject tour"
+			},
+			"loading": "Loading tour list...",
+			"noResults": "No tours found matching current filters.",
+			"pagination": {
+				"page": "Page {{current}} / {{total}} ({{count}} tours)",
+				"previous": "Previous",
+				"next": "Next"
+			},
+			"confirmApprove": "Are you sure you want to approve this tour?",
+			"confirmReject": "Are you sure you want to reject this tour?",
+			"approveSuccess": "Tour approved successfully!",
+			"rejectSuccess": "Tour rejected successfully!",
+			"approveError": "Error approving tour: {{error}}",
+			"rejectError": "Error rejecting tour: {{error}}",
+			"detailError": "An error occurred while loading tour details"
+		},
+		"tourDetailModal": {
+			"title": "Tour Details",
+			"close": "Close",
+			"fields": {
+				"tourId": "Tour Code",
+				"departurePoint": "Departure point",
+				"adultPrice": "Adult price",
+				"childrenPrice": "Children: {{price}}",
+				"babyPrice": "Baby: {{price}}",
+				"duration": "Duration",
+				"createdAt": "Created date",
+				"additionalInfo": "Additional information",
+				"vehicle": "Vehicle",
+				"tourType": "Tour type",
+				"amount": "Amount",
+				"amountPeople": "{{amount}} people",
+				"company": "Company"
+			},
+			"actions": {
+				"approve": "Approve",
+				"reject": "Reject",
+				"confirmApprove": "Are you sure you want to approve this tour?",
+				"confirmReject": "Are you sure you want to reject this tour?"
+			}
+		},
+		"tourApproval": {
+			"title": "Tour Management",
+			"subtitle": "View and manage all tours in the system.",
+			"permissionDenied": {
+				"title": "Access Denied",
+				"message": "You do not have permission to approve tours. Please contact admin to get permission.",
+				"backButton": "Back to Task Management"
+			},
+			"loading": "Loading tour list...",
+			"error": {
+				"loadTours": "Unable to load tour list",
+				"loadDetail": "An error occurred while loading tour details",
+				"approve": "Error approving tour: {{error}}",
+				"reject": "Error rejecting tour: {{error}}",
+				"approveGeneric": "An error occurred while approving tour",
+				"rejectGeneric": "An error occurred while rejecting tour"
+			},
+			"stats": {
+				"totalTours": "Total tours",
+				"displayedTours": "Displayed tours",
+				"currentPage": "Current page"
+			},
+			"filters": {
+				"advancedFilter": "Advanced filter",
+				"exportReport": "Export report",
+				"searchPlaceholder": "Search tours by name, description, departure point...",
+				"statusFilter": {
+					"all": "All statuses",
+					"notApproved": "Pending approval",
+					"public": "Approved",
+					"disabled": "Disabled"
+				},
+				"sortBy": {
+					"newest": "Newest",
+					"oldest": "Oldest",
+					"nameAsc": "Name A-Z",
+					"nameDesc": "Name Z-A"
+				}
+			},
+			"table": {
+				"headers": {
+					"stt": "No.",
+					"tourName": "Tour name",
+					"status": "Status",
+					"price": "Price",
+					"duration": "Duration",
+					"createdAt": "Created date",
+					"actions": "Actions"
+				},
+				"noResults": "No tours found matching current filters.",
+				"loading": "Loading..."
+			},
+			"status": {
+				"approved": "Approved",
+				"pending": "Pending approval",
+				"disabled": "Disabled",
+				"na": "N/A"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"approve": "Approve tour",
+				"reject": "Reject tour"
+			},
+			"pagination": {
+				"page": "Page {{current}} / {{total}} ({{count}} tours)",
+				"previous": "Previous",
+				"next": "Next"
+			},
+			"confirm": {
+				"approve": "Are you sure you want to approve this tour?",
+				"reject": "Are you sure you want to reject this tour?"
+			},
+			"success": {
+				"approve": "Tour approved successfully!",
+				"reject": "Tour rejected successfully!"
+			},
+			"durationTemplate": "{{days}} days {{nights}} nights"
+		},
+		"transactionManagement": {
+			"title": "View & track all transactions",
+			"subtitle": "Track and manage all payment transactions in the system.",
+			"advancedFilter": "Advanced filter",
+			"exportReport": "Export report",
+			"stats": {
+				"total": "Total transactions",
+				"totalTrend": "+8% MoM",
+				"completed": "Completed",
+				"completedTrend": "+5% MoM",
+				"totalRevenue": "Total revenue",
+				"totalRevenueTrend": "+12% MoM",
+				"pending": "Pending",
+				"pendingTrend": "Needs processing"
+			},
+			"searchPlaceholder": "Search by name, email, order id or order info...",
+			"statusFilter": {
+				"all": "All statuses",
+				"completed": "Completed",
+				"pending": "Pending",
+				"failed": "Failed"
+			},
+			"tableHeaders": {
+				"stt": "No.",
+				"customer": "Customer",
+				"status": "Status",
+				"amount": "Amount",
+				"paymentMethod": "Payment method",
+				"transactionDate": "Transaction date",
+				"actions": "Actions"
+			},
+			"status": {
+				"completed": "Completed",
+				"pending": "Pending",
+				"failed": "Failed"
+			},
+			"actions": {
+				"viewDetails": "View details"
+			},
+			"loading": "Loading transaction list...",
+			"error": "Unable to load transaction list. Please try again.",
+			"retry": "Retry",
+			"noResults": "No transactions found matching current filters."
+		},
+		"transactionDetailModal": {
+			"title": "Transaction details",
+			"close": "Close",
+			"fields": {
+				"orderId": "Order Id:",
+				"orderInfo": "Order Info:",
+				"orderInfoNone": "No information",
+				"amount": "Amount:",
+				"paymentMethod": "Payment method:",
+				"transactionDate": "Transaction date:"
+			},
+			"sections": {
+				"customerInfo": "Customer information",
+				"customerName": "Customer name:",
+				"email": "Email:",
+				"transactionInfo": "Transaction information",
+				"time": "Time"
+			}
+		},
+		"userManagement": {
+			"title": "User Management",
+			"subtitle": "Manage user accounts and their permissions",
+			"addUser": "Add User",
+			"stats": {
+				"totalUsers": "Total Users",
+				"activeUsers": "Active Users",
+				"businessUsers": "Business Users",
+				"inactiveUsers": "Inactive Users"
+			},
+			"tableHeaders": {
+				"user": "User",
+				"role": "Role",
+				"status": "Status",
+				"bookings": "Bookings",
+				"lastLogin": "Last Login",
+				"actions": "Actions"
+			},
+			"roles": {
+				"admin": "admin",
+				"staff": "staff",
+				"business": "business",
+				"user": "user"
+			},
+			"status": {
+				"active": "active",
+				"inactive": "inactive"
+			},
+			"actions": {
+				"edit": "Edit",
+				"deactivate": "Deactivate",
+				"activate": "Activate",
+				"delete": "Delete"
+			},
+			"modal": {
+				"editTitle": "Edit User",
+				"addTitle": "Add New User",
+				"fields": {
+					"fullName": "Full Name",
+					"email": "Email",
+					"role": "Role",
+					"status": "Status"
+				},
+				"roleOptions": {
+					"user": "User",
+					"business": "Business",
+					"staff": "Staff",
+					"admin": "Admin"
+				},
+				"statusOptions": {
+					"active": "Active",
+					"inactive": "Inactive"
+				},
+				"update": "Update User",
+				"add": "Add User",
+				"cancel": "Cancel",
+				"deleteConfirm": "Are you sure you want to delete this user?"
+			}
 		}
 	},
 	"profile": {
@@ -354,6 +1542,7 @@
 			"phone": "Phone",
 			"dob": "Date of birth",
 			"gender": "Gender",
+			"address": "Address",
 			"cccd": "ID number",
 			"id": "ID",
 			"role": "Role",
@@ -372,13 +1561,453 @@
 			"other": "Other"
 		},
 		"cancel": "Cancel",
-		"saveChanges": "Save changes"
+		"saveChanges": "Save changes",
+		"sidebar": {
+			"profile": "Profile",
+			"settings": "Settings",
+			"changePassword": "Change password",
+			"favorites": "Favorites",
+			"payments": "Payments",
+			"notifications": "Notifications"
+		},
+		"actions": {
+			"edit": "Edit profile",
+			"chooseAvatar": "Choose avatar",
+			"cancel": "Cancel",
+			"save": "Save changes",
+			"updating": "Updating..."
+		},
+		"settings": {
+			"language": "Language",
+			"theme": "Theme",
+			"themeOptions": {
+				"light": "Light",
+				"dark": "Dark"
+			}
+		},
+		"password": {
+			"current": "Current password",
+			"new": "New password",
+			"confirm": "Confirm new password",
+			"submit": "Update password",
+			"processing": "Updating...",
+			"success": "Password updated successfully!",
+			"socialDisabled": "Accounts logged in via social providers cannot change passwords here.",
+			"errors": {
+				"currentRequired": "Please enter your current password",
+				"newRequired": "Please enter a new password",
+				"confirmRequired": "Please confirm your new password",
+				"minLength": "New password must be at least 8 characters",
+				"match": "Password confirmation does not match",
+				"sameAsCurrent": "New password cannot match the current password",
+				"generic": "Unable to change password. Please try again.",
+				"oauthOnly": "This account is logged in via Google/Naver and does not have a password. Cannot change password."
+			}
+		},
+		"favorites": {
+			"title": "Favorite tours",
+			"empty": "You don't have any favorite tours yet."
+		},
+		"payments": {
+			"title": "Payment methods",
+			"empty": "You haven't added any payment methods yet."
+		},
+		"notifications": {
+			"email": "Email notifications",
+			"push": "Push notifications",
+			"enabled": "Enabled",
+			"disabled": "Disabled"
+		},
+		"placeholders": {
+			"addressOptional": "Enter address (optional)"
+		},
+		"datePicker": {
+			"open": "Open date picker"
+		},
+		"errors": {
+			"invalidName": "Invalid name: cannot start with a number or contain special characters.",
+			"avatarSize": "Image size must not exceed 5MB",
+			"avatarFormat": "Unsupported image format (only JPG, PNG, GIF, WebP are allowed)",
+			"tokenMissing": "Authentication token not found",
+			"updateFailed": "An error occurred while updating information",
+			"mustBe13": "You must be at least 13 years old"
+		},
+		"toast": {
+			"updateSuccess": "Profile updated successfully!"
+		}
+	},
+	"staff": {
+		"layout": {
+			"sidebar": {
+				"brand": "KDBS Staff",
+				"sections": {
+					"menu": "MENU",
+					"contact": "CONTACT"
+				},
+				"taskManagement": "Task Management",
+				"menuItems": {
+					"forumReportManagement": "Forum Report Management",
+					"bookingComplaint": "Booking Complaint",
+					"companyManagement": "Company Management",
+					"resolveTicket": "Resolve Ticket",
+					"tourApproval": "Tour Approval",
+					"articleManagement": "Article Management"
+				},
+				"contactCustomer": "Customer Contact"
+			},
+			"header": {
+				"searchPlaceholder": "Search for...",
+				"userDropdown": {
+					"profile": "Profile",
+					"accountSettings": "Account settings",
+					"support": "Support",
+					"signOut": "Sign out",
+					"staffUser": "Staff",
+					"staffUserFallback": "Staff User"
+				}
+			}
+		},
+		"companyManagement": {
+			"title": "Company registration approval",
+			"subtitle": "Manage and approve travel company account registration requests.",
+			"permissionDenied": {
+				"title": "Access Denied",
+				"message": "You do not have permission to manage companies. Please contact admin to get permission.",
+				"backButton": "Back to Task Management"
+			},
+			"loading": "Loading company list...",
+			"error": {
+				"loadCompanies": "Unable to load company list. Please try again.",
+				"sessionExpired": "Session expired. Please login again.",
+				"loginRequired": "Please login again",
+				"loadFiles": "Unable to load file information. Please try again.",
+				"updateRole": "Unable to update role",
+				"updateStatus": "Unable to update status",
+				"approve": "Unable to approve company. Please try again.",
+				"reject": "Unable to reject company. Please try again."
+			},
+			"retry": "Retry",
+			"stats": {
+				"totalCompanies": "Total companies",
+				"totalCompaniesDesc": "Registered",
+				"pending": "Pending approval",
+				"pendingDesc": "Needs processing",
+				"approved": "Approved",
+				"approvedDesc": "Active",
+				"rejected": "Rejected",
+				"rejectedDesc": "Inactive"
+			},
+			"filters": {
+				"advancedFilter": "Advanced filter",
+				"exportReport": "Export report",
+				"searchPlaceholder": "Search by name, email or company code...",
+				"statusFilter": {
+					"all": "All statuses",
+					"pending": "Pending approval",
+					"approved": "Approved",
+					"rejected": "Rejected"
+				}
+			},
+			"table": {
+				"headers": {
+					"company": "Company",
+					"status": "Status",
+					"registrationDate": "Registration date",
+					"actions": "Actions"
+				},
+				"loading": "Loading...",
+				"noResults": "No companies found matching current filters."
+			},
+			"status": {
+				"pending": "Pending approval",
+				"notUpdated": "Not updated",
+				"approved": "Approved",
+				"rejected": "Rejected",
+				"na": "N/A"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"approve": "Approve",
+				"reject": "Reject"
+			},
+			"confirm": {
+				"approve": "Are you sure you want to approve company \"{{name}}\"?",
+				"reject": "Are you sure you want to reject company \"{{name}}\"?"
+			},
+			"success": {
+				"approve": "Company approved successfully!",
+				"reject": "Company rejected successfully!"
+			},
+			"modal": {
+				"title": "Company details",
+				"close": "Close",
+				"closeLabel": "Close",
+				"loadingFiles": "Loading file information...",
+				"noFiles": {
+					"title": "No file upload information found",
+					"description": "This company may not have uploaded files or there is an issue with the data."
+				},
+				"businessLicense": {
+					"title": "Business license",
+					"desc": "PDF file",
+					"openInNewTab": "Open in new tab",
+					"noFile": "No file"
+				},
+				"idCard": {
+					"front": {
+						"title": "ID card front",
+						"desc": "Photo",
+						"alt": "ID card front"
+					},
+					"back": {
+						"title": "ID card back",
+						"desc": "Photo",
+						"alt": "ID card back"
+					},
+					"noImage": "No image",
+					"imageLoadError": "Unable to load image"
+				}
+			}
+		},
+		"taskManagement": {
+			"dashboard": {
+				"title": "Staff Dashboard",
+				"taskManagement": "Task Management",
+				"subtitle": "Track and handle tasks assigned by admin.",
+				"role": "Role:",
+				"noTasks": {
+					"title": "You currently have no tasks",
+					"description": "When admin assigns tasks, management items will appear in the Task Management menu for you to handle."
+				},
+				"selectTask": {
+					"title": "Select a task to handle",
+					"description": "The statistics board gives you an overview. To start handling specific tasks, open the",
+					"taskManagement": "Task Management",
+					"instruction": "menu in the sidebar and select the assigned task item."
+				}
+			},
+			"summaryCards": {
+				"forumReports": {
+					"label": "Forum Reports",
+					"sublabel": "Reports to handle"
+				},
+				"bookingComplaints": {
+					"label": "Booking Complaints",
+					"sublabel": "Pending complaints"
+				},
+				"companyRequests": {
+					"label": "Company Requests",
+					"sublabel": "Pending approval"
+				},
+				"pendingTours": {
+					"label": "Pending Tours",
+					"sublabel": "Tours awaiting approval"
+				},
+				"pendingArticles": {
+					"label": "Pending Articles",
+					"sublabel": "Unapproved articles"
+				}
+			},
+			"sidebar": {
+				"dashboardOverview": "Dashboard overview",
+				"sections": {
+					"forumComplaint": {
+						"title": "Forum & Complaint Task",
+						"description": "Handle forum reports and tour booking complaints",
+						"items": {
+							"forumReports": {
+								"label": "Forum Report Management",
+								"helper": "Track and update new reports"
+							},
+							"bookingComplaint": {
+								"label": "Booking Complaint",
+								"helper": "Handle customer complaints about tour bookings"
+							}
+						}
+					},
+					"companyArticle": {
+						"title": "Company & Article",
+						"description": "Manage businesses, tickets and articles",
+						"items": {
+							"companyManagement": {
+								"label": "Company Management",
+								"helper": "Approve business registrations"
+							},
+							"resolveTicket": {
+								"label": "Resolve Ticket",
+								"helper": "Handle and resolve support tickets"
+							},
+							"articleManagement": {
+								"label": "Article Management",
+								"helper": "Approve articles and news"
+							}
+						}
+					},
+					"tour": {
+						"title": "Tour Task",
+						"description": "Review new tours",
+						"items": {
+							"tourApproval": {
+								"label": "Tour Approval",
+								"helper": "View and approve pending tours"
+							}
+						}
+					}
+				}
+			}
+		},
+		"forumReportManagement": {
+			"title": "Forum Report Management",
+			"subtitle": "Forum report management",
+			"description": "Review and approve user reports about violating content on the forum.",
+			"permissionDenied": {
+				"title": "Access Denied",
+				"message": "You do not have permission to manage forum reports. Please contact admin to get permission.",
+				"backButton": "Back to Task Management"
+			},
+			"loading": "Loading report list...",
+			"error": {
+				"loadDetail": "Error loading report details: {{error}}",
+				"loadDetailGeneric": "An error occurred while loading report details",
+				"approve": "Error approving report: {{error}}",
+				"approveGeneric": "An error occurred while approving report",
+				"reject": "Error rejecting report: {{error}}",
+				"rejectGeneric": "An error occurred while rejecting report",
+				"loginRequired": "Please login to perform this action"
+			},
+			"stats": {
+				"total": "Total reports",
+				"pending": "Pending approval",
+				"pendingDesc": "Needs processing",
+				"resolved": "Resolved",
+				"dismissed": "Dismissed"
+			},
+			"filters": {
+				"advancedFilter": "Advanced filter",
+				"exportReport": "Export report",
+				"searchPlaceholder": "Search by report code, reporter, post title...",
+				"statusFilter": {
+					"all": "All statuses",
+					"pending": "Pending approval",
+					"investigating": "Investigating",
+					"resolved": "Resolved",
+					"dismissed": "Dismissed",
+					"closed": "Closed"
+				},
+				"typeFilter": {
+					"all": "All types",
+					"spam": "Spam",
+					"inappropriate": "Inappropriate content",
+					"harassment": "Harassment",
+					"copyright": "Copyright violation",
+					"other": "Other"
+				}
+			},
+			"table": {
+				"headers": {
+					"stt": "No.",
+					"report": "Report",
+					"reporter": "Reporter",
+					"violationType": "Violation type",
+					"status": "Status",
+					"reportDate": "Report date",
+					"actions": "Actions"
+				},
+				"loading": "Loading...",
+				"noResults": "No reports found matching current filters."
+			},
+			"reportTypes": {
+				"post": "Post",
+				"comment": "Comment"
+			},
+			"status": {
+				"pending": "Pending approval",
+				"investigating": "Investigating",
+				"resolved": "Resolved",
+				"dismissed": "Dismissed",
+				"closed": "Closed",
+				"na": "N/A"
+			},
+			"violationTypes": {
+				"spam": "Spam",
+				"inappropriate": "Inappropriate",
+				"harassment": "Harassment",
+				"copyright": "Copyright",
+				"violence": "Violence",
+				"hateSpeech": "Hate speech",
+				"falseInfo": "False information",
+				"other": "Other",
+				"na": "N/A"
+			},
+			"actions": {
+				"viewDetails": "View details",
+				"approve": "Approve report",
+				"reject": "Reject report"
+			},
+			"pagination": {
+				"page": "Page {{current}} / {{total}}",
+				"previous": "Previous",
+				"next": "Next"
+			},
+			"confirm": {
+				"approve": "Are you sure you want to approve this report?",
+				"reject": "Are you sure you want to reject this report?"
+			},
+			"success": {
+				"approve": "Report approved successfully!",
+				"reject": "Report rejected successfully!"
+			},
+			"adminNote": {
+				"approve": "Report has been approved and processed",
+				"reject": "Report has been rejected"
+			},
+			"noReason": "No reason",
+			"modal": {
+				"title": "Report details",
+				"close": "Close",
+				"reportId": "ID: #{{id}}",
+				"fields": {
+					"status": "Status",
+					"contentType": "Content type",
+					"targetId": "ID: {{id}}",
+					"reporter": "Reporter",
+					"violationType": "Violation type",
+					"reportDate": "Report date",
+					"resolvedDate": "Resolved date",
+					"contentInfo": "Content information",
+					"title": "Title",
+					"author": "Author",
+					"reason": "Report reason",
+					"description": "Detailed description",
+					"adminNote": "Admin note",
+					"resolvedBy": "Resolved by"
+				},
+				"actions": {
+					"close": "Close",
+					"reject": "Reject",
+					"approve": "Approve"
+				}
+			}
+		}
 	},
 	"oauth": {
 		"successLogin": "Login successful!",
 		"missingInfo": "Missing required authentication info",
 		"failed": "OAuth verification failed: {{message}}"
 	},
+  "chatDropdown": {
+    "title": "Chats",
+    "searchPlaceholder": "Search in Messenger",
+    "empty": {
+      "search": "No users found",
+      "noUsers": "No users to show yet"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} min",
+      "hoursAgo": "{{count}} hr"
+    }
+  },
 	"staffLogin": {
 		"title": "Staff/Admin Login",
 		"subtitle": "Access the management system",
@@ -473,7 +2102,10 @@
 			"saveSuccess": "Post saved",
 			"unsaveSuccess": "Post unsaved",
 			"likeSuccess": "Post liked",
-			"unlikeSuccess": "Post unliked"
+			"unlikeSuccess": "Post unliked",
+			"translate": "Translate content",
+			"translating": "Translating...",
+			"hideTranslation": "Hide translation"
 		},
 		"comments": {
 			"placeholder": "Write a comment...",
@@ -517,8 +2149,8 @@
 			"posts": "posts"
 		},
 		"sidebar": {
-			"savedPosts": "📚 Saved Posts",
-			"myPosts": "📝 My Posts",
+			"savedPosts": "Saved Posts",
+			"myPosts": "My Posts",
 			"trendingTopics": "Trending Topics",
 			"onlineUsers": "Online Users",
 			"follow": "Follow",
@@ -670,6 +2302,8 @@
 	},
 	"toast": {
 		"required": "{{field}} is required",
+		"fill_missing_field": "Please fill in the missing {{field}}",
+		"name_required": "Name is required",
 		"login_required": "Please login to continue",
 		"save_success": "Save successful",
 		"save_error": "An error occurred while saving",
@@ -677,6 +2311,7 @@
 		"max_capacity_range": "Maximum capacity must be between 1 and 9999.",
 		"company_only": "Only Company accounts can perform this action.",
 		"field_invalid": "Invalid value",
+		"min_price": "Minimum price is {{min}} VND",
 		"tour": {
 			"upload_image_failed": "Unable to upload image. Please try again.",
 			"file_size_exceeded": "File size must not exceed 5MB",
@@ -698,6 +2333,7 @@
 		"auth": {
 			"login_success": "Login successful!",
 			"login_failed": "Login failed. Please try again.",
+			"invalid_credentials": "Login failed. Please check your password.",
 			"register_success": "Registration successful! Please check your email to verify your account.",
 			"email_already_exists": "This email is already registered",
 			"google_connection_failed": "Cannot connect to Google. Please try again.",
@@ -708,9 +2344,16 @@
 			"otp_resend_failed": "Unable to resend OTP code. Please try again.",
 			"password_reset_email_sent": "Password reset email has been sent!",
 			"otp_verify_success": "OTP verification successful!",
-			"general_error": "An error occurred. Please try again."
+			"general_error": "An error occurred. Please try again.",
+			"email_not_found": "Login failed. Please check your email.",
+			"wrong_password": "Login failed. Please check your password.",
+			"both_invalid": "Login failed. Please check your email or password."
 		},
-		"forum": {
+    "company": {
+      "info_submit_success": "Company information submitted successfully!",
+      "info_submit_failed": "An error occurred while submitting information. Please try again."
+    },
+    "forum": {
 			"post_update_success": "Post updated successfully!",
 			"post_create_success": "Post created successfully!",
 			"post_update_failed": "Failed to update post. Please try again.",
@@ -752,20 +2395,23 @@
                 "vehicle": "Vehicle *",
                 "duration": "Duration (Days)",
                 "nights": "Nights",
-                "maxCapacity": "Max Capacity",
-                "bookingDeadline": "Booking Deadline"
+                "maxCapacity": "Max Tours",
+                "tourDeadline": "Minimum Advance Days",
+                "tourExpirationDate": "Booking Cut-off Date"
             },
 			"placeholders": {
 				"tourName": "Example: Da Nang - Hoi An 3D2N Tour, Korea 5D4N Tour",
 				"duration": "Example: 3",
 				"nights": "Example: 2",
-				"maxCapacity": "Example: 30",
-				"bookingDeadline": "Select booking deadline date and time"
+                "maxCapacity": "Example: 30",
+                "tourDeadline": "Example: 7",
+                "tourExpirationDate": "Select booking cut-off date"
 			},
 			"help": {
 				"departurePoint": "All tours depart from Da Nang",
-				"vehicle": "Default vehicle: Tourist Bus",
-				"bookingDeadline": "Deadline for customers to book the tour"
+                "vehicle": "Default vehicle: Tourist Bus",
+                "tourDeadline": "Guests must book at least this many days before departure",
+                "tourExpirationDate": "Bookings close after this date"
 			},
 			"hints": {
 				"nightsSuggestion": "Suggestion: {{suggest}} night(s) (for {{days}} day(s)).",
@@ -778,13 +2424,17 @@
 				"departurePoint": "Departure Point:",
 				"vehicle": "Vehicle:",
 				"duration": "Duration:",
+				"tourIntDuration": "Tour Duration:",
+				"tourIntDurationValue": "{{days}} day(s)",
 				"days": "day(s)",
 				"nights": "night(s)",
-				"maxCapacity": "Max Capacity:",
-				"bookingDeadline": "Booking Deadline:",
+				"maxCapacity": "Max Tours:",
+                "tourDeadline": "Minimum Advance:",
+                "tourExpirationDate": "Booking Closes:",
 				"notEntered": "Not entered",
 				"notSelected": "Not selected",
-				"guests": "guests"
+				"guests": "guests",
+				"tours": "tour"
 			}
 		},
 		"step2": {
@@ -895,8 +2545,8 @@
 			}
 		},
 		"step3": {
-			"title": "Pricing & Policies",
-			"subtitle": "Set up tour pricing and policies",
+			"title": "Pricing",
+			"subtitle": "Set up tour pricing",
 			"pricing": {
                 "title": "Tour Pricing",
                 "adultPrice": "Adult Price (≥ 12 years)",
@@ -979,20 +2629,42 @@
 			"step2": { "title": "Tour Details", "description": "Select date and group information" },
 			"step3": { "title": "Confirm", "description": "Review and confirm booking" }
 		},
-		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking" },
+		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking", "backtoTour": "Back to tour" },
 		"auth": {
 			"checking": "Checking authentication...",
 			"loginRequiredTitle": "Login Required",
 			"loginRequiredMessage": "You need to login to book a tour.",
-			"loginButton": "Login"
+			"loginButton": "Login",
+			"accessDeniedTitle": "Cannot book tour",
+			"companyNotAllowed": "Company accounts (COMPANY) cannot book tours. Please use a user account."
 		},
-		"processing": "Processing..."
+		"processing": "Processing...",
+		"toast": {
+			"formatDataError": "Unable to prepare booking data. Please check your information.",
+			"validationError": "Invalid data: {{errors}}",
+			"bookingSuccess": "Tour booking successful. Please proceed with payment to complete.",
+			"bookingError": "Unable to create booking. Please try again later.",
+			"companyNotAllowedError": "Company accounts cannot book tours."
+		},
+		"backToWizard": {
+			"modal": {
+				"title": "Confirm return to wizard",
+				"message": "When returning to wizard, you need to fill in information from the beginning to create a new transaction.",
+				"confirm": "Confirm",
+				"cancel": "Cancel"
+			},
+			"button": "← Return to wizard to re-enter",
+			"success": "Returned to wizard. Please fill in information from the beginning. A new booking will be created when you confirm.",
+			"error": "An error occurred while returning to wizard. Please try again.",
+			"missingTourError": "Cannot return to wizard. Missing tour information."
+		}
 	},
 	"tourManagement": {
 		"title": "Tour Management",
 		"createNew": "Create New Tour",
 		"header": {
 			"title": "Tour List",
+			"subtitle": "Manage all of your tours",
 			"addNew": "Add New Tour"
 		},
 		"loading": {
@@ -1016,7 +2688,9 @@
 		"statusBadge": {
 			"ACTIVE": "ACTIVE",
 			"INACTIVE": "INACTIVE",
+			"PUBLIC": "APPROVED",
 			"NOT_APPROVED": "PENDING",
+			"DISABLED": "DISABLED",
 			"DRAFT": "DRAFT",
 			"UNKNOWN": "UNKNOWN"
 		},
@@ -1108,7 +2782,9 @@
 			"errorTitle": "An error occurred",
 			"backToList": "Back to tour list",
 			"back": "Back to list",
+			"backToManagement": "Manage tours",
 			"badge": "Tour",
+			"tourIntDuration": "{{days}} day(s)",
 			"overview": {
 				"title": "Tour overview",
 				"departVehicle": "Depart from {{departure}} by {{vehicle}}.",
@@ -1117,7 +2793,59 @@
 				"babyPrice": "Baby price",
 				"free": "Free",
 				"amount": "Capacity",
-				"availableDates": "Departure dates"
+				"availableDates": "Departure dates",
+				"tourIntDuration": "Tour Duration:",
+				"tourIntDurationValue": "{{days}} day(s)"
+			},
+			"vouchers": {
+				"title": "Suggested vouchers",
+				"subtitle": "Current discounts that can be applied to this tour.",
+				"loading": "Checking applicable vouchers...",
+				"errorGeneric": "We couldn't load voucher suggestions. Please try again later.",
+				"noBooking": "No booking data yet to preview vouchers for this tour.",
+				"empty": "There are no active vouchers for this tour right now.",
+				"saves": "Save {{amount}}",
+				"minOrder": "Minimum order {{amount}}",
+				"original": "Original total",
+				"after": "After discount",
+				"helper": "Previewed from a sample booking so you know what to expect.",
+				"cta": "View all vouchers",
+				"tagGlobal": "Works on all tours",
+				"tagTour": "Exclusive for this tour",
+				"tagGeneric": "Flexible offer",
+				"unknownName": "Special voucher",
+				"sessionExpired": "Your session has expired. Please log in again.",
+				"statusDays": "{{days}} day(s) left",
+				"expiresToday": "Expires today",
+				"daysLeft": "Ends in {{days}} day(s)",
+				"periodLabel": "Validity period",
+				"fromDate": "From:",
+				"toDate": "To:",
+				"copyButton": "Copy code",
+				"copySuccess": "Copied: {{code}}",
+				"detailButton": "Details",
+				"footerHelper": "Current offers available for this tour.",
+				"expired": "Expired",
+				"detailTitle": "Voucher details",
+				"loadingDetail": "Loading voucher details...",
+				"notFound": "Voucher not found",
+				"notExist": "This voucher does not exist",
+				"loadError": "Unable to load voucher information",
+				"companyIdLabel": "Company ID:",
+				"discountPercent": "Save {{value}}%",
+				"discountAmount": "Save {{amount}}",
+				"expiryLabel": "Expires:",
+				"remainingQuantity": "{{count}} vouchers left",
+				"usageTimeTitle": "Usage period",
+				"minOrderTitle": "Minimum order",
+				"benefitsTitle": "Benefits",
+				"maxDiscount": "Max discount {{amount}}",
+				"appliesToToursTitle": "Applies to tours",
+				"moreTours": "+{{count}} more tours",
+				"listTitle": "Voucher list",
+				"listCloseLabel": "Close",
+				"listEmpty": "No vouchers available",
+				"voucherFallbackName": "Voucher"
 			},
 			"highlights": {
 				"title": "Tour highlights",
@@ -1140,18 +2868,27 @@
 			"gallery": {
 				"title": "Tour gallery"
 			},
-        "reviews": {
-            "title": "Ratings & Reviews",
-            "placeholder": "Share your experience...",
-            "submit": "Submit review",
-            "cannotRate": "You are not eligible to rate this tour.",
-            "empty": "No reviews yet.",
-            "edit": "Edit",
-            "delete": "Delete",
-            "editPrompt": "Edit your comment:",
-            "editStarPrompt": "Edit stars (1-5):",
-            "deleteConfirm": "Delete this review?"
-        },
+            "weather": {
+                "title": "Weather in area:",
+				"loading": "Loading weather...",
+				"empty": "No weather data.",
+				"cityRange": "{{city}} — {{days}} days"
+			},
+			"reviews": {
+				"title": "Ratings & Reviews",
+				"placeholder": "Share your experience...",
+				"submit": "Submit review",
+				"cannotRate": "You are not eligible to rate this tour.",
+				"empty": "No reviews yet.",
+				"noReviews": "No reviews yet",
+				"ratingFormat": "{{avg}}/5 ({{total}} reviews)",
+				"edit": "Edit",
+				"delete": "Delete",
+				"editPrompt": "Edit your comment:",
+				"editStarPrompt": "Edit stars (1-5):",
+				"deleteConfirm": "Delete this review?"
+			},
+			"durationTemplate": "{{days}} days {{nights}} nights",
 			"booking": {
 				"price": "Tour price",
 				"includedNote": "Price includes taxes and service fees",
@@ -1180,6 +2917,86 @@
 		"search": {
 			"placeholder": "Search tours..."
 		},
+		"voucherList": {
+			"title": "Voucher List",
+			"subtitle": "Discover special vouchers curated just for you",
+			"loginRequired": "Please login to view your vouchers.",
+			"loadError": "Unable to load voucher list.",
+			"backToTourList": "Back to tour list",
+			"refresh": "Refresh",
+			"refreshing": "Refreshing…",
+			"filter": {
+				"label": "Voucher type:",
+				"all": "All",
+				"percent": "Percent off",
+				"amount": "Amount off"
+			},
+			"sort": {
+				"label": "Sort by:",
+				"newest": "Newest",
+				"oldest": "Oldest"
+			},
+			"days": {
+				"expired": "Expired",
+				"expiresToday": "Expires today",
+				"remaining": "{{count}} days left",
+				"remainingShort": "{{count}} days left"
+			},
+			"empty": {
+				"title": "No vouchers found",
+				"filtered": "There are no active \"{{type}}\" vouchers.",
+				"all": "There are no active vouchers at the moment.",
+				"showAll": "View all vouchers"
+			},
+			"card": {
+				"discountPercent": "{{value}}% OFF",
+				"discountAmount": "{{value}} OFF",
+				"remaining": "{{count}} vouchers left",
+				"time": "Validity",
+				"from": "From",
+				"to": "To"
+			},
+			"actions": {
+				"copy": "Copy code",
+				"details": "Details"
+			},
+			"copySuccess": "Voucher code copied: {{code}}",
+			"loadMore": "Load more"
+		},
+		"voucherDetail": {
+			"notFound": "Voucher not found",
+			"notExist": "This voucher does not exist",
+			"loadError": "Unable to load voucher information",
+			"backToVoucherList": "Back to voucher list",
+			"days": {
+				"expired": "Expired",
+				"expiresToday": "Expires today",
+				"remaining": "{{count}} days left"
+			},
+			"header": {
+				"discountPercent": "{{value}}% OFF",
+				"expiryLabel": "Exp.",
+				"remaining": "{{count}} vouchers left"
+			},
+			"sections": {
+				"timeTitle": "Voucher usage period",
+				"start": "Start",
+				"end": "End",
+				"minOrderTitle": "Minimum order value",
+				"benefitTitle": "Benefits",
+				"benefitIntro": "Limited usage. Use it before it's gone!",
+				"benefitPercent": "• {{value}}% off",
+				"benefitMax": "• Maximum discount {{value}}",
+				"benefitAmount": "• Discount {{value}}",
+				"appliesToTitle": "Applies to tours",
+				"appliesToListTitle": "This voucher applies to the following tours:",
+				"appliesToAllTours": "This voucher applies to all tours from this company."
+			},
+			"actions": {
+				"copy": "Copy code"
+			},
+			"copySuccess": "Voucher code copied: {{code}}"
+		},
 		"historyBooking": {
 			"title": "Booking History"
 		},
@@ -1198,11 +3015,27 @@
 			"title": "No tours found",
 			"desc": "Try a different keyword or select another category."
 		},
-		"loadMore": "Load more"
+		"loadMore": "Load more",
+		"pagination": {
+			"showing": "Showing {{start}} to {{end}} of {{total}} tours",
+			"firstPage": "First page",
+			"previousPage": "Previous page",
+			"nextPage": "Next page",
+			"lastPage": "Last page"
+		},
+		"topTours": {
+			"title": "Top 3 Most Popular Tours",
+			"subtitle": "Tours with the most bookings and highest 5-star ratings",
+			"badge": "Top {{rank}}"
+		},
+		"allTours": {
+			"title": "All Tours"
+		}
 	},
-	"bookingHistory": {
+  "bookingHistory": {
 		"title": "Booking History",
 		"subtitle": "View all your tour bookings",
+		"backButton": "Back",
 		"loading": "Loading booking history...",
 		"loginRequired": {
 			"title": "Login Required",
@@ -1226,7 +3059,8 @@
 			"totalAmount": "Total Amount",
 			"viewDetails": "View Details",
 			"bookedOn": "Booked On",
-			"alreadyFeedbacked": "Already Feedbacked"
+			"alreadyFeedbacked": "Already Feedbacked",
+			"transaction": "Transaction"
 		},
 		"filters": {
 			"status": "Filter by Status",
@@ -1238,9 +3072,126 @@
 		"status": {
 			"pending": "Pending",
 			"confirmed": "Confirmed",
+			"cancelled": "Cancelled",
+			"pendingPayment": "Pending Payment",
+			"waitingForApproved": "Waiting for Approval",
+			"waitingForUpdate": "Waiting for Update",
+			"bookingSuccessPending": "Approved (Awaiting Tour)",
+			"bookingSuccessWaitForConfirmed": "Awaiting Completion Confirmation",
+      "bookingUnderComplaint": "Under Complaint",
+			"bookingSuccess": "Booking Successful",
+			"bookingFailed": "Booking Failed",
+			"bookingRejected": "Booking Rejected"
+    },
+    "transactionStatus": {
+			"pending": "Pending",
+			"success": "Success",
+			"failed": "Failed",
 			"cancelled": "Cancelled"
 		}
-	},
+  },
+  "bookingDetail": {
+    "sections": {
+      "tourInfo": "Tour Information",
+      "contactInfo": "Contact Information",
+      "email": "Email"
+    },
+    "actions": {
+      "editBooking": "Edit booking",
+      "complete": "Complete",
+      "complaint": "Submit complaint"
+    },
+    "info": {
+      "successPending": "Your booking has been approved by the company. Please wait until the tour takes place to confirm completion.",
+      "expectedEndDatePrefix": "Expected end date:",
+      "waitingForConfirmation": "The tour has ended. Please confirm you have completed the trip or submit a complaint if there were any issues.",
+      "underComplaint": "Your booking is currently under complaint. Automatic confirmation will be paused until the complaint is resolved."
+    },
+    "completion": {
+      "toastSuccess": "Tour completion has been confirmed. We will notify the company.",
+      "toastError": "Unable to confirm tour completion",
+      "autoConfirmWithDate": "If neither party confirms, the system will automatically confirm after {{date}}.",
+      "autoConfirmDefault": "If neither party confirms, the system will automatically confirm after 3 days from the end of the tour."
+    },
+    "complaint": {
+      "toastSuccess": "Your complaint has been submitted. We will review it as soon as possible.",
+      "toastError": "Unable to submit complaint",
+      "emptyError": "Please enter your complaint details"
+    },
+    "edit": {
+      "toastSuccess": "Booking updated successfully",
+      "toastError": "Unable to update booking"
+    },
+    "modal": {
+      "completionTitle": "Confirm tour completion",
+      "completionMessage": "Do you confirm that you have fully completed this tour itinerary?",
+      "confirm": "Confirm completion",
+      "confirmProcessing": "Confirming..."
+    },
+    "error": {
+      "loadFailed": "Failed to load booking information"
+    }
+  },
+  "complaintModal": {
+    "title": "Submit tour complaint",
+    "bookingIdLabel": "Booking ID:",
+    "instruction": "Please briefly describe the issue you experienced during this tour. Our support team will review and respond as soon as possible.",
+    "placeholder": "Example: The tour guide was late, service quality did not match the commitment...",
+    "actions": {
+      "close": "Close",
+      "submit": "Submit complaint"
+    }
+  },
+  "editBookingModal": {
+    "title": "Edit booking",
+    "tabs": {
+      "contact": "Contact information",
+      "guests": "Guests ({{count}})",
+      "review": "Review"
+    },
+    "contactSection": {
+      "title": "Contact information"
+    },
+    "guestsSection": {
+      "title": "Guests ({{count}})",
+      "empty": "No guest information yet",
+      "guestTitle": "Guest {{index}} - {{type}}",
+      "guestSummary": "Guest {{index}} ({{type}}):"
+    },
+    "guests": {
+      "labelBirthDate": "Date of birth"
+    },
+    "fields": {
+      "nationality": "Nationality",
+      "idNumber": "ID/Passport",
+      "idNumberShort": "ID/Passport"
+    },
+    "placeholders": {
+      "nationality": "Vietnamese"
+    },
+    "reviewSection": {
+      "title": "Review information",
+      "contactInfoTitle": "Contact information",
+      "guestsTitle": "Guests ({{count}})"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "guestTypes": {
+      "adult": "Adult",
+      "child": "Child",
+      "baby": "Infant"
+    },
+    "actions": {
+      "submit": "Confirm update"
+    },
+    "confirmModal": {
+      "title": "Confirm booking update",
+      "message": "Are you sure all information is correct?"
+    }
+  },
 	"tourCard": {
 		"welcome": {
 			"explore": "Explore",
@@ -1273,6 +3224,7 @@
 	},
   "profileRole": {
     "USER": "User",
+    "COMPANY": "Company",
     "BUSINESS": "Business",
     "ADMIN": "Admin",
     "STAFF": "Staff",
@@ -1284,14 +3236,21 @@
             "fullName": "Full Name",
             "phone": "Phone Number",
             "email": "Email",
+        "gender": "Gender",
             "dob": "Date of Birth",
             "address": "Address",
             "pickupPoint": "Pickup Point",
             "note": "Note"
           },
+          "gender": {
+            "male": "Male",
+            "female": "Female",
+            "other": "Other"
+          },
           "placeholders": {
             "fullName": "Enter full name",
             "phone": "0123456789 or +84123456789",
+        "chooseGender": "Select gender",
             "address": "Enter full address",
             "pickupPoint": "Enter pickup point",
             "dateFormat": "Format: {format}",
@@ -1299,10 +3258,15 @@
           },
           "sectionTitle": "Contact information",
           "usePersonalInfo": "Use personal info from my account",
-          "autoFillNotice": "Account info will be auto-filled into corresponding fields. You can edit any field if needed. Empty fields will remain blank."
+          "autoFillNotice": "If the tour booker is a guest, please re-enter passenger information in Step 2."
         },
 		"step2": {
 			"loading": "Loading tour prices...",
+			"guestTypes": {
+				"adult": "Adult",
+				"child": "Child",
+				"baby": "Infant"
+			},
 			"sections": {
 				"dateTitle": "Departure Date",
 				"paxTitle": "Total Guests",
@@ -1318,7 +3282,7 @@
 				"noPrice": "No price set",
 				"free": "Free"
 			},
-			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year" },
+			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year", "selectedDate": "Selected Date" },
 			"pax": {
 				"adult": "Adult",
 				"child": "Children",
@@ -1334,31 +3298,17 @@
 				"idNumberPassport": "Passport Number"
 			},
 			"countries": {
-				"VN": "Vietnam",
-				"KR": "Korea",
-				"JP": "Japan",
-				"CN": "China",
-				"US": "United States",
-				"GB": "United Kingdom",
-				"FR": "France",
-				"DE": "Germany",
-				"TH": "Thailand",
-				"SG": "Singapore",
-				"MY": "Malaysia",
-				"PH": "Philippines",
-				"ID": "Indonesia",
-				"LA": "Laos",
-				"KH": "Cambodia",
-				"AU": "Australia",
-				"CA": "Canada"
+				"KR": "Korea"
 			},
 			"placeholders": {
 				"fullName": "Enter full name",
 				"chooseGender": "Select gender",
 				"chooseNationality": "Select nationality",
+				"selectNationalityFirst": "Please select nationality first",
 				"idVietnam": "Digits only: 12 digits (CCCD) or 9 digits (CMND/CMT)",
 				"idPassport": "Enter passport number (6-9 characters)",
-				"dateFormat": "Enter in {{format}} format"
+				"dateFormat": "Enter in {{format}} format",
+				"selectDepartureDate": "Select a departure date"
 			},
 			"datePicker": {
 				"open": "Open date picker"
@@ -1371,6 +3321,7 @@
 			},
 			"fields": {
 				"date": "Departure Date",
+				"deadlineNotice": "This tour requires {{days}} days for processing, please select a departure date after {{minDate}}",
 				"adultPax": "Adult Count",
 				"adultName1": "Adult 1 Name",
 				"adultName2": "Adult 2 Name",
@@ -1436,6 +3387,8 @@
 			"errors": {
 				"dateRequired": "Please select a departure date",
 				"dateInPast": "Departure date cannot be in the past",
+				"dateBeforeDeadline": "Departure date must be at least {{days}} day(s) from today",
+				"dateAfterExpiration": "Departure date must be on or before {{date}}",
 				"dateOverOneMonth": "Departure date must be within 1 month",
 				"fullNameRequired": "Full name is required",
 				"fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
@@ -1443,11 +3396,11 @@
 				"dobInFuture": "Date of birth cannot be in the future",
 				"dobInvalidFormat": "Invalid date format (use YYYY-MM-DD)",
 				"dobTooOld": "Invalid date of birth (age must be ≤ 120)",
-				"adultTooYoung": "Adult must be ≥ 12 years old at departure date",
-				"representativeTooYoung": "Representative must be ≥ 18 years old at departure date",
-				"childTooYoung": "Child must be ≥ 2 years old at departure date",
-				"childTooOld": "Child must be < 12 years old at departure date",
-				"infantTooOld": "Infant must be < 2 years old at departure date",
+				"adultTooYoung": "Adult must be ≥ 12 years old in the Adult section.",
+				"representativeTooYoung": "Representative must be ≥ 18 years old in the Representative section.",
+				"childTooYoung": "Child must be ≥ 2 years old in the Children section.",
+				"childTooOld": "Child must be < 12 years old in the Children section.",
+				"infantTooOld": "Infant must be < 2 years old in the Infant section.",
 				"genderRequired": "Gender is required",
 				"nationalityRequired": "Nationality is required",
 				"idRequired": "ID/Passport number is required"
@@ -1497,6 +3450,7 @@
 			"sections": {
 				"contact": "Contact Information",
 				"tour": "Tour Information",
+				"guests": "Guests Information",
 				"members": "Group Members",
 				"price": "Price Summary"
 			},
@@ -1543,6 +3497,7 @@
 				"vehicle": "Vehicle:",
 				"category": "Category:",
 				"schedule": "Schedule:",
+				"createdAt": "Created at:",
 				"noSchedule": "No schedule",
 				"notAvailable": "N/A"
 			},
@@ -1678,7 +3633,155 @@
 		"suggestionContactBankSupport": "Contact bank for support",
 		"suggestionCheckInternet": "Check internet connection",
 		"suggestionContactSupportIfIssue": "Contact support if issue persists",
-		"technicalDetails": "Technical Details (Development)"
+		"technicalDetails": "Technical Details (Development)",
+		"checkPayment": {
+			"title": "Pay for Tour Booking",
+			"subtitle": "Please check the information carefully before clicking pay. Toss payment gateway will open in this window.",
+			"badge": "Payment Checkout",
+			"heroTitle": "Pay for Tour Booking",
+			"heroSubtitle": "Review booking information, apply vouchers and complete payment below.",
+			"loadingBooking": "Loading booking information...",
+			"bookingInfo": "Booking Information",
+			"bookingSummary": {
+				"tourBookingInfo": "Tour Booking Information",
+				"tourName": "Tour Name",
+				"departureDate": "Departure Date",
+				"guestCount": "Guest Count",
+				"contactEmail": "Contact Email",
+				"createdAt": "Created At"
+			},
+			"guestsInfo": {
+				"title": "Guest Information ({{count}})",
+				"noGuests": "No guest information available",
+				"viewAll": "View all guests",
+				"badge": "Guest list",
+				"fullTitle": "Guest list",
+				"fullSubtitle": "All guests in this booking",
+				"closeModal": "Close guest list",
+				"close": "Close"
+			},
+			"noBookingFound": "Booking information not found. Please check the booking code.",
+			"paymentInfo": "Payment Information",
+			"voucherCode": "Voucher Code (Optional)",
+			"voucherPlaceholder": "Enter voucher code if available",
+			"voucherHint": "Enter voucher code and click \"Apply voucher\" to see discount details. Voucher will be saved to database when you click \"Pay\".",
+			"applyVoucher": "Apply Voucher",
+			"voucherApplied": "Applied",
+			"removeVoucher": "Remove Voucher",
+			"removeVoucherLabel": "Remove Voucher",
+			"totalAmount": "Provisional Total",
+			"totalPayment": "Total Payment",
+			"originalPrice": "Original Price",
+			"discount": "Discount (voucher)",
+			"finalAmount": "Final Amount After Discount",
+			"tempAmount": "Provisional",
+			"voucherAppliedMessage": "✓ Voucher has been applied. You will pay {{amount}}.",
+			"voucherHintMessage": "Apply voucher to get discount. Final payment amount will be displayed after applying voucher.",
+			"noTotalAmountMessage": "Actual amount may change after applying voucher. Final payment amount will be displayed after initializing Toss.",
+			"actions": {
+				"backToWizard": "← Return to wizard to re-enter",
+				"viewHistory": "View Booking History",
+				"viewHome": "Go Home",
+				"pay": "Pay",
+				"processing": "Initializing..."
+			},
+			"toast": {
+				"missingBookingId": "Missing booking code in URL. Please return to tour booking page.",
+				"sessionExpired": "Login session has expired or you lack permission. Please login again.",
+				"cannotLoadBooking": "Cannot load booking information. Booking may not exist or data is invalid.",
+				"loginToViewBooking": "Please login to view booking information.",
+				"cannotLoadBookingSupport": "Cannot load booking information. Please check again or contact support.",
+				"missingBookingIdError": "Cannot determine booking code.",
+				"invalidEmail": "Invalid email.",
+				"tossPaymentSuccess": "Toss payment order created successfully. Redirecting to payment gateway...",
+				"tossPaymentError": "Cannot initialize payment. Please try again.",
+				"voucherCodeRequired": "Please enter voucher code to apply.",
+				"voucherInvalid": "Voucher is invalid or cannot be applied to this booking. Please select voucher from the list or check the voucher code.",
+				"voucherAppliedSuccess": "Voucher applied. Discount {{amount}}. Voucher will be saved when payment is made.",
+				"voucherAppliedNoDiscount": "Voucher has been applied. Voucher will be saved when payment is made.",
+				"voucherApplyError": "Cannot apply voucher. Please check the voucher code.",
+				"voucherCalculationError": "Cannot calculate original price from voucher.",
+				"backToWizardError": "An error occurred while returning to wizard. Please try again.",
+				"backToWizardMissingTour": "Cannot return to wizard. Missing tour information.",
+				"backToWizardSuccess": "Returned to wizard. Please fill in information from the beginning. A new booking will be created when you confirm."
+			},
+			"voucherModal": {
+				"badge": "Voucher soft list",
+				"title": "Select Voucher to Apply",
+				"subtitle": "Each booking can only apply 1 voucher.",
+				"loading": "Loading vouchers...",
+				"noVouchers": "Currently no vouchers available from this company.",
+				"close": "Close",
+				"removeSelected": "Remove Selected",
+				"apply": "Apply",
+				"available": "Available Voucher",
+				"discountLabel": "Discount {{discount}}",
+				"savings": "Save {{amount}} compared to original price"
+			},
+			"backToWizardModal": {
+				"title": "Confirm Return to Wizard",
+				"message": "When returning to wizard, you need to fill in information from the beginning to create a new transaction.",
+				"confirm": "Confirm",
+				"cancel": "Cancel"
+			},
+			"statusBanner": {
+				"tossRedirectInfo": "Redirecting to Toss payment gateway. Please complete the transaction to complete tour booking."
+			},
+			"actionConfirm": {
+				"cancel": "Cancel",
+				"viewHistoryTitle": "View booking history?",
+				"viewHistoryMessage": "You will be redirected to booking history. Changes on this payment page will not be saved.",
+				"viewHistoryConfirm": "Go to booking history",
+				"goHomeTitle": "Go back to home?",
+				"goHomeMessage": "You will return to the home page. Changes on this payment page will not be saved.",
+				"goHomeConfirm": "Go Home",
+				"payTitle": "Confirm payment?",
+				"payMessage": "Please double-check your booking details and payment amount before continuing.",
+				"payConfirm": "Continue to payment"
+			}
+		},
+		"result": {
+			"title": "Payment Result",
+			"subtitle": "This is the result page redirected by the system after processing payment.",
+			"successTitle": "Payment Successful",
+			"successMessage": "Thank you. We have recorded the transaction and will continue processing your tour booking.",
+			"failedTitle": "Payment Failed",
+			"failedMessage": "Transaction failed or was cancelled. You can try again or contact support.",
+			"unknownTitle": "Transaction Status",
+			"unknownMessage": "We have received a response from the system. Please check the details below.",
+			"missingParams": "Missing transaction parameters in URL. Please check your confirmation email or contact support for assistance.",
+			"transactionInfo": "Transaction Information",
+			"orderId": "Order ID",
+			"status": "Status",
+			"paymentMethod": "Method",
+			"amount": "Amount",
+			"actions": {
+				"viewBookingHistory": "View Booking History",
+				"goHome": "Go Home",
+				"contactSupport": "Contact Support"
+			}
+		},
+		"tossPayment": {
+			"title": "Payment via Toss",
+			"subtitle": "Please complete the payment transaction in this window. You can go back if you need to make changes.",
+			"back": "Go Back",
+			"security": "PCI-DSS compliant secure connection from Toss",
+			"tip": "Keep this window open until the payment is complete.",
+			"backConfirmTitle": "Are you sure you want to go back?",
+			"backConfirmMessage": "If you go back now, the current payment process will be cancelled and you will be redirected to your booking history.",
+			"backConfirmOk": "Confirm and go back",
+			"toast": {
+				"missingData": "Missing payment gateway initialization data. Please reinitialize.",
+				"error": "An error occurred while initializing Toss payment gateway.",
+				"ready": "Toss payment gateway is ready. Please complete the transaction in this window."
+			},
+			"widget": {
+				"loading": "Loading Toss payment gateway...",
+				"redirecting": "Redirecting...",
+				"payButton": "Pay via Toss",
+				"initError": "Cannot initialize Toss payment gateway."
+			}
+		}
 	}
   ,
   "premium": {
@@ -1689,7 +3792,7 @@
       "3months": "3 months"
     },
     "price": "{{amount}} VND",
-    "purchase": "Purchase",
+    "purchase": "Purchase Premium",
     "validUntil": "Valid until",
     "activeNoExpiry": "Active Premium - No expiration date available",
     "na": "N/A",
@@ -1700,8 +3803,8 @@
       "error": "Error"
     }
   },
-  "news": {
-    "title": "News",
+  "article": {
+    "title": "Articles",
     "hero": {
       "title": "Exciting Travel Information About Attractive Destinations",
       "subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences"
@@ -1712,7 +3815,7 @@
     "noArticles": "No articles yet",
     "noArticlesDesc": "Please come back later to see the latest articles!",
     "noImage": "No image",
-    "category": "News",
+    "category": "Articles",
     "readMore": "Details",
     "sidebar": {
       "title": "TOUR CATEGORIES",
@@ -1762,25 +3865,25 @@
       }
     }
   },
-  "newsDetail": {
+  "articleDetail": {
     "backToNews": "Back",
-    "news": "News",
+    "article": "Articles",
     "loading": "Loading article...",
     "errorTitle": "Error loading article",
     "errorMessage": "Unable to load article. Please try again later.",
     "retry": "Retry",
-    "backToNewsPage": "Back to News Page",
+    "backToNewsPage": "Back to Article Page",
     "notFoundTitle": "Article not found",
     "notFoundMessage": "The article you are looking for does not exist or has been deleted.",
-    "category": "News",
+    "category": "Articles",
     "publishedAt": "Published at",
     "backToTop": "↑ Back to top",
-    "viewMoreNews": "← View more news",
+    "viewMoreNews": "← View more articles",
     "contentUpdating": "Article content is being updated..."
   },
-  "newsManagement": {
-    "title": "News Management",
-    "subtitle": "Crawl and manage news articles from various sources",
+  "articleManagement": {
+    "title": "Article Management",
+    "subtitle": "Crawl and manage articles from various sources",
     "accessDenied": {
       "title": "Access Denied",
       "message": "You need administrator or staff permissions to access this page.",
@@ -1793,8 +3896,8 @@
     "messages": {
       "autoCrawlSuccess": "Successfully auto-crawled {{count}} new articles!",
       "crawlSuccess": "Successfully crawled {{count}} new articles!",
-      "crawlError": "Error occurred while crawling news",
-      "crawlErrorDesc": "Error occurred while crawling news. Please try again later.",
+      "crawlError": "Error occurred while crawling articles",
+      "crawlErrorDesc": "Error occurred while crawling articles. Please try again later.",
       "noNewArticles": "No new articles!",
       "noNewArticlesDesc": "No new articles. All articles have been updated or already exist in the system.",
       "selectArticles": "Please select at least one article",
@@ -1805,15 +3908,15 @@
       "logoutSuccess": "Successfully logged out!"
     },
     "buttons": {
-      "crawlNews": "Crawl New News",
-      "crawling": "Crawling news...",
+      "crawlNews": "Crawl New Articles",
+      "crawling": "Crawling articles...",
       "loading": "Loading...",
       "reloadList": "Reload List",
       "approve": "Approve",
       "unapprove": "Unapprove",
       "viewDetails": "View Details",
       "logout": "Logout",
-      "backToNews": "Back to News Page"
+      "backToNews": "Back to Article Page"
     },
     "status": {
       "approved": "Approved",
@@ -1825,14 +3928,14 @@
     },
     "sidebar": {
       "title": "Management",
-      "subtitle": "News & Articles",
-      "news": "News",
+      "subtitle": "Articles & Content",
+      "article": "Articles",
       "statistics": "Statistics",
       "settings": "Settings"
     },
     "welcome": {
       "title": "Welcome, {{name}}!",
-      "description": "Manage and update news for the website",
+      "description": "Manage and update articles for the website",
       "autoCrawl": "System automatically crawls new articles at 00:00 daily"
     },
     "articles": {
@@ -1846,14 +3949,14 @@
       "next": "Next"
     },
     "noArticles": {
-      "message": "No articles yet. Start by crawling news!"
+      "message": "No articles yet. Start by crawling articles!"
     },
     "instructions": {
       "title": "Usage Instructions",
-      "crawlButton": "Click \"Crawl New News\" button to automatically collect articles from Danangxanh",
+      "crawlButton": "Click \"Crawl New Articles\" button to automatically collect articles from Danangxanh",
       "autoCrawl": "System automatically crawls new articles at 00:00 daily",
       "noDuplicates": "Duplicate articles will not be added to the system",
-      "approvedDisplay": "Approved articles will be displayed on the public news page",
+      "approvedDisplay": "Approved articles will be displayed on the public article page",
       "accessControl": "Only admins and staff can perform this function"
     },
     "modal": {
@@ -1866,10 +3969,875 @@
       "staff": "Staff"
     },
     "actions": {
-      "crawlNews": "Crawl New News",
-      "crawling": "Crawling news...",
+      "crawlNews": "Crawl New Articles",
+      "crawling": "Crawling articles...",
       "reloadList": "Reload List",
       "reloading": "Loading..."
+    }
+  },
+  "companyDashboard": {
+    "sidebar": {
+			"title": "Business Dashboard",
+      "dashboard": "Dashboard",
+      "tourManagement": "Tour Management",
+      "bookingManagement": "Booking Management",
+      "voucherManagement": "Voucher Management",
+			"businessInfo": "Business Info",
+			"companyInfo": "Company Info"
+    },
+    "actions": { "download": "Download Report" },
+    "welcome": {
+      "title": "Welcome to your Business Dashboard",
+      "subtitle": "Manage your tours, track analytics, and grow your business",
+      "createTour": "Create New Tour"
+    },
+    "stats": {
+      "totalTours": "Total Tours",
+      "totalBookings": "Total Bookings",
+      "totalRevenue": "Total Revenue",
+      "totalViews": "Total Views",
+      "activeTours": "Active Tours"
+    },
+    "dashboard": {
+      "loading": "Loading...",
+      "revenueOverview": "Revenue Overview",
+      "revenueTrends": "Monthly revenue trends",
+      "bookingStatus": "Booking Status",
+      "bookingDistribution": "Distribution of bookings",
+      "quickStats": "Quick Stats",
+      "tourStatus": "Tour Status",
+      "pendingBookings": "Pending Bookings",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "activeTours": "Active Tours",
+      "totalTours": "Total Tours",
+      "inactive": "Inactive",
+      "chartLabels": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "active": "Active",
+        "cancelled": "Cancelled",
+        "totalBookings": "Total Bookings"
+      }
+    },
+    "analytics": {
+      "sales": "Sales",
+      "purchase": "Purchase",
+      "return": "Return",
+      "marketing": "Marketing",
+      "lastYear": "Last year"
+    },
+    "header": {
+      "subtitle": "Overview and analytics"
+    },
+    "filters": {
+      "thisYear": "This Year",
+      "lastYear": "Last Year",
+      "thisQuarter": "This Quarter",
+      "thisMonth": "This Month"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createTour": "Create New Tour",
+      "createTourDesc": "Add a new tour to your collection",
+      "viewAnalytics": "View Analytics",
+      "viewAnalyticsDesc": "Check your business performance",
+      "manageOrders": "Manage Orders",
+      "manageOrdersDesc": "View and manage bookings",
+      "businessInfo": "Business Info",
+      "businessInfoDesc": "Update your business details"
+    },
+    "charts": {
+      "period": "Show:",
+      "bookingTrends": "Sales Statistics",
+      "revenueChart": "Revenue Chart",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly",
+      "chartPlaceholder": "Chart will be displayed here"
+    },
+    "panel": {
+      "title": "Sales Statistics",
+      "subtitle": "Marketing & Sales",
+      "marketing": "Marketing",
+      "sales": "Sales",
+      "sortBy": "Sort by:",
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "daily": "Daily",
+      "yLabel": "Total revenue acquisition"
+    }
+  },
+  "bookingManagement": {
+    "header": {
+      "title": "Tour Booking Management",
+      "subtitle": "View and manage all bookings by tour"
+    },
+    "stats": {
+      "totalBookings": "Total Bookings",
+      "successfulBookings": "Successful",
+      "pendingPayment": "Pending Payment",
+      "waitingApproval": "Waiting Approval"
+    },
+    "search": {
+      "placeholder": "Search by tour, customer name or booking code..."
+    },
+    "filters": {
+      "status": "Status:",
+      "allStatuses": "All Statuses",
+      "sortBy": "Sort by:"
+    },
+    "sort": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "tourAsc": "Tour Name (A-Z)",
+      "tourDesc": "Tour Name (Z-A)",
+      "amountDesc": "Amount (High to Low)",
+      "amountAsc": "Amount (Low to High)"
+    },
+    "table": {
+      "bookingId": "Booking ID",
+      "tour": "Tour",
+      "customer": "Customer",
+      "departureDate": "Departure Date",
+      "guests": "Guests",
+      "amount": "Amount",
+      "status": "Status",
+      "createdAt": "Created At"
+    },
+    "status": {
+      "PENDING_PAYMENT": "Pending Payment",
+      "WAITING_FOR_APPROVAL": "Waiting for Approval",
+      "WAITING_FOR_APPROVED": "Waiting for Approval",
+      "BOOKING_REJECTED": "Rejected",
+      "WAITING_FOR_UPDATE": "Waiting for Update",
+      "BOOKING_FAILED": "Failed",
+      "BOOKING_SUCCESS": "Success",
+      "BOOKING_SUCCESS_PENDING": "Success (Pending)",
+      "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Success (Wait for Confirmed)",
+      "BOOKING_UNDER_COMPLAINT": "Under Complaint"
+    },
+    "guests": {
+      "adults": "Adults",
+      "children": "Children",
+      "babies": "Babies"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of"
+    },
+    "empty": {
+      "noBookings": "No bookings found"
+    },
+    "errors": {
+      "loadFailed": "Unable to load booking list"
+    },
+    "loading": "Loading bookings...",
+    "tourSelector": {
+      "title": "Select tour to view bookings",
+      "loading": "Loading tour list...",
+      "empty": "No tours yet.",
+      "tourCode": "Tour code:",
+      "pagination": {
+        "showing": "Showing page",
+        "of": "of",
+        "tours": "tours"
+      }
+    },
+    "actions": {
+      "viewQuick": "Quick view",
+      "editBooking": "Edit booking",
+      "confirmTourCompletion": "Confirm tour completion",
+      "bookingPending": "Booking is in pending status, cannot access."
+    },
+    "modal": {
+      "title": "Booking #",
+      "tour": "Tour:",
+      "customer": "Customer",
+      "status": "Status",
+      "departureDate": "Departure Date",
+      "tourDuration": "Tour Duration",
+      "expectedEndDate": "Expected End Date",
+      "totalAmount": "Total Amount",
+      "createdAt": "Created At",
+      "unknown": "Unknown",
+      "days": "days"
+    }
+  },
+  "companyBookingWizard": {
+    "steps": {
+      "step1": {
+        "title": "Personal Information",
+        "description": "View and approve booking information"
+      },
+      "step2": {
+        "title": "Insurance Information",
+        "description": "Manage insurance status"
+      },
+      "step3": {
+        "title": "Confirmation",
+        "description": "Confirm booking success"
+      }
+    },
+    "header": {
+      "title": "Manage Booking #"
+    },
+    "readOnly": {
+      "title": "Read-only mode - Booking completed (BOOKING_SUCCESS)"
+    },
+    "navigation": {
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "processing": "Processing...",
+      "close": "Close"
+    },
+    "confirmModal": {
+      "title": "Confirm booking",
+      "message": "Are you sure you want to confirm booking #",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "description": "Booking will be moved to BOOKING_SUCCESS_PENDING status. When the tour ends, the system will require both company and customer to confirm completion."
+    },
+    "loading": {
+      "booking": "Loading booking information..."
+    },
+    "error": {
+      "title": "Error",
+      "notFound": "Booking not found",
+      "back": "Back"
+    },
+    "stepTooltips": {
+      "rejected": "Booking has been rejected - only step 1 is viewable",
+      "readOnlyOther": "Booking completed - Only step 3 is displayed",
+      "readOnlyStep3": "Booking completed (read-only)",
+      "completed": "Step completed (cannot go back)",
+      "notAccessible": "This step is not yet accessible"
+    },
+    "success": {
+      "bookingPending": "Booking has been moved to BOOKING_SUCCESS_PENDING status. The system will automatically wait for tour completion before requesting completion confirmation."
+    },
+    "insurance": {
+      "guestFallback": "guest",
+      "toasts": {
+        "statusUpdated": "Insurance status updated for {{guestName}}. Changes will be saved when you complete the booking.",
+        "rejected": "Booking has been rejected",
+        "saved": "Insurance changes have been recorded. Please complete the booking to save them to the system."
+      },
+      "header": {
+        "title": "Insurance information",
+        "description": "Keep the pastel tone, focus on each guest's insurance status. Make sure all are SUCCESS before continuing.",
+        "stepBadge": "Step 2 / 3"
+      },
+      "summary": {
+        "totalGuests": "Total guests",
+        "success": "SUCCESS",
+        "failed": "FAILED",
+        "pending": "PENDING"
+      },
+      "table": {
+        "title": "Guest list and insurance",
+        "columns": {
+          "index": "No.",
+          "fullName": "Full name",
+          "birthDate": "Date of birth",
+          "idNumber": "ID/Passport",
+          "insuranceStatus": "Insurance status",
+          "actions": "Actions"
+        },
+        "empty": "No guest information yet"
+      },
+      "actions": {
+        "approveTooltip": "Approve insurance",
+        "rejectTooltip": "Reject insurance",
+        "approveAll": "Approve all",
+        "rejectProcessing": "Processing...",
+        "rejectBooking": "Reject booking",
+        "alreadySaved": "Already saved",
+        "continueProcessing": "Processing...",
+        "continue": "Confirm and continue"
+      },
+      "warning": {
+        "allSuccessRequired": "All guests must have insurance status SUCCESS to continue."
+      },
+      "confirmModal": {
+        "title": "Confirm insurance approval",
+        "message": "Are you sure you want to record insurance changes and move to the final step?"
+      },
+      "rejectModal": {
+        "title": "Reason for rejecting booking",
+        "message": "Please enter the reason for rejecting the booking at the insurance step:"
+      }
+    },
+    "step1": {
+      "header": {
+        "title": "Personal information",
+        "description": "Review and approve booking details before moving to the insurance step. Minimal style, focused on key data."
+      },
+      "booking": {
+        "code": "Booking code",
+        "tour": "Tour",
+        "departureDate": "Departure date",
+        "totalGuests": "Total guests"
+      },
+      "sections": {
+        "bookingInfo": "Booking information",
+        "contactInfo": "Contact information",
+        "guests": "Guest list"
+      },
+      "guests": {
+        "columns": {
+          "index": "No.",
+          "fullName": "Full name",
+          "birthDate": "Date of birth",
+          "gender": "Gender",
+          "guestType": "Guest type",
+          "idNumber": "ID/Passport",
+          "nationality": "Nationality"
+        },
+        "empty": "No guest information yet"
+      },
+      "actions": {
+        "processing": "Processing...",
+        "requestUpdate": "Request update",
+        "reject": "Reject",
+        "approveAndContinue": "Approve & continue"
+      },
+      "toasts": {
+        "approved": "Booking information approved. Please proceed to the next steps.",
+        "rejected": "Booking has been rejected",
+        "requestedUpdate": "Booking update request has been sent"
+      },
+      "confirmModal": {
+        "title": "Confirm booking approval",
+        "message": "Are you sure you want to approve booking #{{bookingId}}?",
+        "description": "After confirming, you will move to the insurance approval step. All changes are only written to the system in the final completion step."
+      },
+      "requestUpdateModal": {
+        "title": "Request booking update",
+        "message": "Please enter the reason for requesting a booking update:"
+      },
+      "rejectModal": {
+        "title": "Reason for rejecting booking",
+        "message": "Please enter the reason for rejecting this booking:"
+      }
+    },
+    "requestUpdateModal": {
+      "defaultTitle": "Request booking update",
+      "defaultMessage": "Please enter the reason for requesting a booking update:",
+      "placeholder": "Example: Please update customer information, departure date, or number of guests...",
+      "hint": "Please enter the update request information",
+      "bookingId": "Booking ID"
+    },
+    "confirmation": {
+      "toasts": {
+        "completedByBoth": "The tour has been confirmed as completed by both parties! Payment will be transferred to the company.",
+        "companyConfirmed": "Tour completion has been confirmed! If the customer also confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
+      },
+      "header": {
+        "successTitle": "Booking has been successfully confirmed!",
+        "title": "Confirm booking",
+        "readOnlyDescription": "Read-only mode: you can view completion status and tour information.",
+        "description": "Review all information for booking #{{bookingId}} and complete the trip.",
+        "stepBadge": "Step 3 / 3"
+      },
+      "status": {
+        "completed": "COMPLETED"
+      },
+      "sections": {
+        "bookingSummary": "Booking summary",
+        "contactInfo": "Contact information",
+        "guestsApproved": "Approved guests list",
+        "guestsEmpty": "No guest information yet",
+        "completionTitle": "Confirm tour completion"
+      },
+      "guest": {
+        "insuranceLabel": "Insurance",
+        "insuranceSuccess": "SUCCESS",
+        "insurancePending": "PENDING"
+      },
+      "fields": {
+        "bookingCode": "Booking code:",
+        "tour": "Tour:",
+        "departureDate": "Departure date:",
+        "expectedEndDate": "Expected end date:",
+        "totalGuests": "Total guests:",
+        "status": "Status:"
+      },
+      "confirmation": {},
+      "completion": {
+        "companyStatus": "Company status:",
+        "userStatus": "Customer status:",
+        "confirmed": "✓ Confirmed",
+        "notConfirmed": "Not confirmed",
+        "tourEndDate": "Tour end date:",
+        "autoConfirmDate": "Auto-confirm date:",
+        "checkingStatus": "Checking tour status...",
+        "completedMessage": "The tour has been confirmed as completed by both parties. Payment will be transferred to the company's account.",
+        "autoConfirmCompany": "You have confirmed. Waiting for the customer to confirm. If the customer does not confirm within 3 days (after {{date}}), the system will auto-confirm.",
+        "autoConfirmUser": "The customer has confirmed. You can confirm now or the system will auto-confirm after 3 days (after {{date}}).",
+        "readyToConfirm": "The tour ended on {{date}}. You can confirm the tour completion to proceed with payment.",
+        "confirmProcessing": "Processing...",
+        "confirmButton": "Confirm tour completion",
+        "confirmNote": "* After you confirm:\n- If the customer also confirms, payment will be transferred immediately.\n- If the customer does not confirm, the system will auto-confirm after 3 days (after {{date}}).",
+        "waitingUser": "You have confirmed the tour completion. Waiting for the customer to confirm.",
+        "waitingUserNote": "If the customer confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
+      }
+    }
+  },
+  "voucherManagement": {
+    "title": "Voucher Management",
+    "loading": "Loading...",
+    "create": "Create voucher",
+    "loadingData": "Loading data...",
+    "warning": {
+      "title": "Company information not found.",
+      "message": "Please ensure you are logged in with a COMPANY role account and user information has been updated correctly.",
+      "currentInfo": "Current info: Role =",
+      "userId": "User ID ="
+    },
+    "empty": {
+      "message": "No vouchers yet. Create your first voucher!"
+    },
+    "card": {
+      "code": "Code",
+      "type": "Type:",
+      "value": "Value:",
+      "quantity": "Quantity:",
+      "remaining": "Remaining:",
+      "status": "Status:",
+      "appliedTo": "Applied to tour:",
+      "allTours": "Apply to all tours",
+      "startDate": "Start:",
+      "endDate": "Expires:"
+    },
+    "pagination": {
+      "showing": "Showing page",
+      "of": "of",
+      "vouchers": "vouchers"
+    },
+    "discountTypes": {
+      "percent": "Discount by %",
+      "fixed": "Discount by amount"
+    },
+    "status": {
+      "ACTIVE": "ACTIVE",
+      "INACTIVE": "INACTIVE",
+      "EXPIRED": "EXPIRED"
+    }
+  },
+  "voucherCreate": {
+    "title": "Create voucher",
+    "close": "Close",
+    "fields": {
+      "code": "Voucher code",
+      "name": "Voucher name",
+      "discountType": "Discount type",
+      "discountValue": "Discount value",
+      "totalQuantity": "Quantity",
+      "minOrderValue": "Minimum order (VND)",
+      "status": "Status",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "applyToTours": "Apply to tours"
+    },
+    "placeholders": {
+      "code": "Example: VOUCHER001",
+      "name": "Example: 10% discount for summer tour",
+      "discountPercent": "Enter % (1 - 100)",
+      "discountAmount": "Enter amount in VND (e.g., 100000 for 100k)"
+    },
+    "tourDropdown": {
+      "select": "Select tours to apply",
+      "selected": "tours selected",
+      "empty": "No tours"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "errors": {
+      "codeRequired": "Please enter voucher code",
+      "nameRequired": "Please enter voucher name",
+      "discountTypeRequired": "Please select discount type",
+      "discountValueRequired": "Please enter discount value",
+      "discountPercentRange": "Percentage must be between 1 and 100",
+      "discountAmountMin": "Discount value must be at least 1 (e.g., 100000 for 100k)",
+      "totalQuantityRequired": "Quantity must be greater than 0",
+      "startDateRequired": "Please select start date",
+      "endDateRequired": "Please select end date",
+      "endDateAfterStart": "End date must be after start date",
+      "companyNotFound": "Company information not found",
+      "createFailed": "Unable to create voucher. Please try again."
+    },
+    "success": {
+      "created": "Voucher created successfully"
+    }
+  },
+  "companyInfo": {
+    "title": "Business Account",
+    "description": "Your account has been confirmed as a business. You can access business features.",
+    "goToManagement": "Go to Management Page",
+    "goToHome": "Go to Home",
+    "pleaseLogin": "Please register/login with a Company account to continue.",
+    "registerCompany": "Register Company Account",
+    "login": "Login",
+    "upload": {
+      "title": "Booking Code",
+      "businessLicense": "Business License (PDF) *",
+      "idCardFront": "ID Card Front",
+      "idCardBack": "ID Card Back",
+      "selected": "Selected:",
+      "viewPending": "View Pending Page",
+      "tourName": "Tour Name",
+      "time": "Time",
+      "adultPrice": "Adult Price",
+      "image": "Image",
+      "status": "Status",
+      "userName": "User Name",
+      "noName": "No name",
+      "noPrice": "No price",
+      "uploaded": "Uploaded",
+      "notAvailable": "Not available",
+      "willShowInList": "Will show in tour list"
+    },
+    "errors": {
+      "businessLicenseRequired": "Please upload business license",
+      "idCardFrontRequired": "Please upload ID card front",
+      "idCardBackRequired": "Please upload ID card back",
+      "businessLicenseFormat": "Business license file must be PDF format",
+      "idCardFrontFormat": "ID card front file must be JPG, JPEG or PNG format",
+      "idCardBackFormat": "ID card back file must be JPG, JPEG or PNG format",
+      "businessLicenseSize": "Business license file must not exceed 25MB",
+      "idCardFrontSize": "ID card front file must not exceed 25MB",
+      "idCardBackSize": "ID card back file must not exceed 25MB",
+      "idCardRecognition": "Cannot recognize ID card in image. Please ensure:\n1) ID card image is clear, not blurry\n2) Not obscured or cropped\n3) Real photo (not screenshot)\n4) Sufficient lighting, no glare\n5) ID card must be intact, not torn",
+      "idCardProcessing": "Cannot process ID card image. Please check and upload a valid ID card image.",
+      "idCardRecognitionGeneric": "Cannot recognize ID card in image. Please upload a valid ID card image.",
+      "unknown": "Unknown error",
+      "serverError": "Server processing error. Please check ID card image and try again.",
+      "idCardIssue": "There is an issue with the ID card image. Please upload a valid ID card image.",
+      "submitFailed": "Failed to submit information. Please try again."
+    },
+    "loading": "Loading...",
+    "status": {
+      "pending": "Pending approval"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "close": "Close",
+    "empty": "No notifications",
+    "delete": "Delete",
+    "viewAll": "View All Notifications",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "noTitle": "No title",
+    "more": "More",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "markRead": "Mark as read",
+    "markUnread": "Mark as unread",
+    "types": {
+      "NEW_BOOKING": {
+        "title": "New booking",
+        "message": "You have received a new booking."
+      },
+      "BOOKING_CONFIRMED": {
+        "title": "Booking confirmed",
+        "message": "Your booking has been confirmed by the company."
+      },
+      "BOOKING_REJECTED": {
+        "title": "Booking rejected",
+        "message": "Your booking has been rejected. Please contact the company for more details."
+      },
+      "BOOKING_UPDATE_REQUEST": {
+        "title": "Booking update requested",
+        "message": "The company has requested you to update your booking information."
+      },
+      "BOOKING_UPDATED_BY_USER": {
+        "title": "Booking updated by customer",
+        "message": "The customer has updated the booking information as requested."
+      },
+      "TOUR_APPROVED": {
+        "title": "Tour approved",
+        "message": "Your tour has been approved by admin."
+      },
+      "NEW_RATING": {
+        "title": "New rating received",
+        "message": "You have received a new rating for your tour."
+      },
+      "LIKE_POST": {
+        "title": "Post liked",
+        "message": "Someone reacted to your post."
+      },
+      "LIKE_COMMENT": {
+        "title": "Comment liked",
+        "message": "Someone reacted to your comment."
+      },
+      "COMMENT_POST": {
+        "title": "New comment",
+        "message": "Someone commented on your post."
+      },
+      "REPLY_COMMENT": {
+        "title": "New reply",
+        "message": "Someone replied to your comment."
+      }
+    }
+  },
+  "chat": {
+    "title": "Customer Support",
+    "status": "Online",
+    "call": "Call",
+    "video": "Video Call",
+    "more": "More Options",
+    "close": "Close Chat",
+    "emoji": "Add Emoji",
+    "send": "Send Message",
+    "placeholder": "Type your message..."
+  },
+  "userChat": {
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{minutes}} minutes ago",
+      "hoursAgo": "{{hours}} hours ago",
+      "daysAgo": "{{days}} days ago"
+    },
+    "status": {
+      "active": "Active",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected"
+    },
+    "actions": {
+      "minimize": "Minimize",
+      "close": "Close"
+    },
+    "loading": {
+      "olderMessages": "Loading older messages..."
+    },
+    "empty": {
+      "startConversation": "Start conversation with {{userName}}",
+      "selectUser": "Select a user to start chatting"
+    },
+    "message": {
+      "sent": "Sent"
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "Tour Management Studio for Korea × Da Nang",
+      "subtitle": "A pastel platform that helps teams coordinate bookings, manage tours, handle payments, and care for Korean guests right in Da Nang – intuitive, minimal yet technology-rich.",
+      "highlight1": "Booking Hub realtime",
+      "highlight2": "Tour workflow for Da Nang",
+      "highlight3": "Complete Korean dashboard",
+      "since": {
+        "label": "Since",
+        "value": "2018"
+      },
+      "focus": {
+        "label": "Focus",
+        "value": "Booking Ops"
+      }
+    },
+    "mission": {
+      "title": "Tour Booking Operating System",
+      "description": "We build a bilingual Korean-Vietnamese tour management platform that helps businesses in Da Nang operate bookings, coordinate partners, and care for Korean guests in an intuitive, tech-driven way following soft minimal standards.",
+      "badge": "Soft mission"
+    },
+    "values": {
+      "title": "Core Values",
+      "subtitle": "Shaping soft experiences with thin icons, pastel palette, and spacious layouts.",
+      "badge": "Core values",
+      "quality": {
+        "title": "Booking OS",
+        "desc": "Coordinate tour bookings, vouchers, and payment status on a pastel plane."
+      },
+      "trust": {
+        "title": "Compliance Center",
+        "desc": "Track visas, contracts, Korean partner SLAs with realtime alerts."
+      },
+      "excellence": {
+        "title": "Seoul × Da Nang Link",
+        "desc": "Sync Korean partners, local suppliers, and multilingual schedules."
+      },
+      "passion": {
+        "title": "Care Automation",
+        "desc": "Korean guest care playbook, follow-up schedules, and experience reminders."
+      }
+    },
+    "team": {
+      "title": "Vibe Studio Team",
+      "badge": "Human touch",
+      "member1": {
+        "name": "Nguyễn Văn A",
+        "role": "CEO & Founder",
+        "desc": "10+ years creating bicultural travel products."
+      },
+      "member2": {
+        "name": "Trần Thị B",
+        "role": "Creative Director",
+        "desc": "Shaping visual and emotional soft experiences."
+      },
+      "member3": {
+        "name": "Lê Văn C",
+        "role": "Experience Lead",
+        "desc": "Standardizing balanced, lean guest care processes."
+      }
+    },
+    "stats": {
+      "customers": "Bookings processed",
+      "tours": "Automation coverage",
+      "satisfaction": "Faster lead-to-tour",
+      "partners": "Korean partners"
+    },
+    "timeline": {
+      "badge": "Journey",
+      "caption": "Minimal Soft Korean timeline",
+      "start": {
+        "title": "Starting from Seoul",
+        "desc": "Connecting the first Korean experts with the Da Nang-loving community."
+      },
+      "expand": {
+        "title": "Minimal identity",
+        "desc": "Applying Korean living arts to redesign emotionally caring tours."
+      },
+      "partnership": {
+        "title": "International standard partners",
+        "desc": "Partnering with accommodation chains and high-tech spas for relaxation journeys."
+      },
+      "future": {
+        "title": "Experience Studio",
+        "desc": "Launching a Korean-inspired studio in Da Nang with interactive technology."
+      }
+    },
+    "monitor": {
+      "booking": "Booking load",
+      "operations": "Ops readiness",
+      "experience": "Experience score"
+    },
+    "metrics": {
+      "korAgents": "Korean Agents Online",
+      "korAgents.caption": "Seoul & Busan partners",
+      "vnOperators": "Da Nang Operators",
+      "vnOperators.caption": "Tour logistics & chauffeur",
+      "sla": "SLA Stability",
+      "sla.caption": "Realtime monitoring"
+    },
+    "control": {
+      "korvn": "Korean × Da Nang workforce",
+      "monitor": "Realtime operational status",
+      "liveControl": "Live control",
+      "automationPulse": "Automation pulse"
+    },
+    "heroCard": {
+      "controlHub": "Control Hub",
+      "bookingOpsCloud": "Booking + Ops Cloud",
+      "realtimeRouting": "Realtime routing",
+      "automation": "Automation",
+      "automationValue": "92% tasks",
+      "coverage": "Coverage",
+      "coverageValue": "KOR ↔︎ VN",
+      "live": "Live",
+      "opsRadar": "Ops radar v3.1",
+      "seoul": "Seoul",
+      "daNang": "Da Nang"
+    },
+    "workflow": {
+      "badge": "Workflow",
+      "caption": "Korean - Da Nang tour operation cycle",
+      "capture": "Capture & qualify lead",
+      "capture.detail": "Zalo, KakaoTalk, web booking forms sync to Korean-Vietnamese CRM.",
+      "design": "Design journey",
+      "design.detail": "Select tour templates, apply vouchers, calculate KRW ↔︎ VND prices instantly.",
+      "coordinate": "Coordinate suppliers",
+      "coordinate.detail": "Push alerts to hotels, vehicles, guides with bilingual checklists.",
+      "care": "Care & reporting",
+      "care.detail": "Track Korean guest emotions, automatically generate reports for partners."
+    },
+    "integrations": {
+      "badge": "Connected stack",
+      "title": "Technology stack we use",
+      "badge0": "Kakao Business API",
+      "badge1": "Naver / Google Calendar",
+      "badge2": "VNPay & Toss Payments",
+      "badge3": "Zalo OA",
+      "badge4": "AirTable Sync",
+      "badge5": "GSAP Micro Animations",
+      "kakaoAPI": "Kakao Business API",
+      "naverCalendar": "Naver / Google Calendar",
+      "vnpayToss": "VNPay & Toss Payments",
+      "zaloOA": "Zalo OA",
+      "airtableSync": "AirTable Sync",
+      "gsapAnimations": "GSAP Micro Animations"
+    },
+    "story": {
+      "title": "Soft Narrative",
+      "badge": "Soft narrative",
+      "paragraph1": "KDBS was born from Minimal Soft Korean inspiration – where slow pace, white light, and rounded materials create peace of mind. Each tour is edited like a harmony with the rhythm of technology and nature.",
+      "paragraph2": "We prioritize mental wellness in every step: from herbal spa, sea breathing meditation, to extended reality experiences that preserve emotions. Technology is just the backdrop, your emotions are the center.",
+      "paragraph3": "Let us help you reach the most peaceful version of yourself in the heart of Da Nang."
+    }
+  },
+  "contactPage": {
+    "hero": {
+      "badge": "Minimal Soft Korean Contact",
+      "title": "We listen to every rhythm of your emotions",
+      "subtitle": "Connect with the studio in a minimal, pastel, soft-rounded style – so every Korea × Da Nang journey is delicately cared for."
+    },
+    "moments": {
+      "one": "Design soft itineraries for Korean groups",
+      "two": "Visa procedures & Toss/VNPay payment consultation",
+      "three": "Activate emotional care team in Da Nang"
+    },
+    "channels": {
+      "phoneLabel": "Studio Line",
+      "phoneHint": "09:00 – 21:00 (GMT+7)",
+      "mailLabel": "Email",
+      "mailHint": "Reply within 12 hours",
+      "chatLabel": "Zalo / Kakao",
+      "chatHint": "Instant pastel support"
+    },
+    "office": {
+      "hoursTitle": "Calm Office Hours",
+      "hoursValue": "Mon – Sat · 08:30 – 19:30",
+      "addressTitle": "Studio Address"
+    },
+    "form": {
+      "title": "Send a pastel message",
+      "subtitle": "We respond gently within 12 hours, with suggestions that match your vibe.",
+      "name": "Full name",
+      "email": "Contact email",
+      "topic": "Gentle topic",
+      "topicPlaceholder": "Example: 4N3D Tour for Korean guests",
+      "message": "Message",
+      "cta": "Send message",
+      "softInquiry": "Soft inquiry"
+    },
+    "social": {
+      "badge": "Social pastel"
+    },
+    "visit": {
+      "badge": "Visit studio",
+      "title": "Schedule a private appointment with the studio",
+      "subtitle": "Warm pastel space with herbal tea, Korean mood board, and glowing booking coordination desk.",
+      "map": "View map",
+      "schedule": "Schedule pastel",
+      "zenTitle": "Zen checklist",
+      "zenOne": "Sound healing playlist 528Hz",
+      "zenTwo": "Seasonal tea pairing",
+      "zenThree": "32px rounded itinerary template",
+      "flowTitle": "Flow",
+      "flowCopy": "15 minutes listening, 20 minutes vibe coordination, 5 minutes finalizing journey."
     }
   }
 }

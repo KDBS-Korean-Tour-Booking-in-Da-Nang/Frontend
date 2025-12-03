@@ -1,11 +1,11 @@
-import { useAuth } from '../../../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../navbar-user/Navbar';
-import BusinessNavbar from '../navbar-business/BusinessNavbar';
+import { NavbarCompany } from '../navbar-company';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const ConditionalNavbar = () => {
-  const { user } = useAuth();
   const location = useLocation();
+  const { loading, user } = useAuth();
 
   // Check if current path is staff/admin pages
   const isStaffAdminPage = location.pathname.startsWith('/staff/') || 
@@ -16,15 +16,17 @@ const ConditionalNavbar = () => {
     return null;
   }
 
-  // Check if user has business role (COMPANY in backend)
-  const isBusinessUser = user && user.role === 'COMPANY';
-
-  // Return appropriate navbar based on user role
-  if (isBusinessUser) {
-    return <BusinessNavbar />;
+  // Wait until auth state resolves; keep space to avoid layout shift
+  if (loading) {
+    return <div style={{ height: '64px' }} />; // match pt-16 (4rem)
   }
 
-  // Default navbar for regular users, admins, staff
+  // Choose navbar based on user role
+  // COMPANY role uses NavbarCompany, others (USER, GUEST) use Navbar
+  if (user && user.role === 'COMPANY') {
+    return <NavbarCompany />;
+  }
+
   return <Navbar />;
 };
 

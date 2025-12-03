@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { getApiPath } from '../../../config/api';
+import { Lock, UserRound } from 'lucide-react';
 
 const StaffLogin = () => {
-  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { login } = useAuth();
-  const { showError, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
 
 
@@ -20,31 +21,32 @@ const StaffLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setUsernameError('');
+    setPasswordError('');
+    setError('');
+
     // Collect all validation errors
-    const errors = [];
+    let hasErrors = false;
 
     if (!username.trim()) {
-      errors.push('Username là bắt buộc');
+      setUsernameError('Username is required');
+      hasErrors = true;
     }
 
     if (!password.trim()) {
-      errors.push('Mật khẩu là bắt buộc');
+      setPasswordError('Password is required');
+      hasErrors = true;
     }
 
-    // Show all errors if any
-    if (errors.length > 0) {
-      // Show all errors at the same time
-      errors.forEach((error) => {
-        showError(error);
-      });
+    if (hasErrors) {
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
-      const response = await fetch('/api/auth/login-username', {
+      const response = await fetch(getApiPath('/api/auth/login-username'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,15 +66,15 @@ const StaffLogin = () => {
         // Add more specific error messages based on response
         if (response.status === 401) {
           if (data.code === 1008) {
-            errorMessage = `Xác thực thất bại. Vui lòng kiểm tra lại username và password.`;
+            errorMessage = 'Authentication failed. Please check your username and password.';
           } else {
-            errorMessage = `Username hoặc password không đúng. Vui lòng thử lại.`;
+            errorMessage = 'Incorrect username or password. Please try again.';
           }
         } else if (response.status === 400) {
-          errorMessage = `Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.`;
+          errorMessage = 'Invalid data. Please check your information.';
         }
         
-        showError(errorMessage);
+        setError(errorMessage);
         return;
       }
 
@@ -80,36 +82,38 @@ const StaffLogin = () => {
         const token = data.result.token;
         const userData = data.result.user;
 
-        // Check if user has admin or staff role (backend uses uppercase)
-        if (userData.role === 'ADMIN' || userData.role === 'STAFF') {
+        // Check if user has staff role only
+        if (userData.role === 'STAFF') {
           const user = {
             id: userData.userId,
             role: userData.role,
             name: userData.username,
+            email: userData.email,
             avatar: userData.avatar,
-            isPremium: userData.isPremium,
-            balance: userData.balance
+            balance: userData.balance,
+            // Map backend staffTask enum to frontend field used in TaskManagement
+            staffTask: userData.staffTask
           };
 
-              login(user, token, false);
-              showSuccess('Đăng nhập thành công!');
-              navigate('/staff/news-management');
+          login(user, token, false);
+          showSuccess('Login successful!');
+          
+          // Redirect to staff dashboard
+          navigate('/staff/tasks');
         } else {
-          showError(`Tài khoản này không có quyền truy cập. Role hiện tại: ${userData.role}. Chỉ ADMIN và STAFF mới được phép đăng nhập vào trang quản lý.`);
+          setError(`This account does not have permission to access staff area. Current role: ${userData.role}. Only STAFF can log in to this page.`);
         }
       } else {
         // Handle API error response
-        const errorMessage = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
-        showError(errorMessage);
+        const errorMessage = data.message || 'Login failed. Please check your credentials.';
+        setError(errorMessage);
       }
     } catch (err) {
-      console.error('Login error:', err);
-      
       // More specific error handling
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        showError('Không thể kết nối đến server. Vui lòng kiểm tra backend có chạy không.');
+        setError('Cannot connect to server. Please check if the backend is running.');
       } else {
-        showError('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+        setError('An error occurred while logging in. Please try again later.');
       }
     } finally {
       setLoading(false);
@@ -117,23 +121,30 @@ const StaffLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
-            <ShieldCheckIcon className="h-8 w-8 text-white" />
-          </div>
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{t('staffLogin.title')}</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">{t('staffLogin.subtitle')}</p>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#f3f9ff] via-[#edf5ff] to-[#e5f2ff] flex items-center justify-center px-4 py-10 sm:px-8">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-16 left-12 w-28 h-28 rounded-[32px] bg-white/50 blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-32 h-32 rounded-[32px] bg-[#d2e7ff]/70 blur-2xl animate-pulse delay-200" />
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10 border border-gray-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="relative w-full max-w-xl">
+        <div className="bg-white/90 backdrop-blur-xl rounded-[28px] border border-white/80 shadow-[0px_20px_45px_rgba(103,140,255,0.16)] p-6 sm:p-10">
+          <div className="flex flex-col items-center text-center text-[#2563eb] gap-2">
+            <div className="w-12 h-12 rounded-2xl bg-[#e3efff] flex items-center justify-center">
+              <Lock className="w-6 h-6" strokeWidth={1.4} />
+            </div>
+            <div className="leading-snug">
+              <p className="text-sm font-semibold tracking-[0.2em] uppercase">Sign in</p>
+              <p className="text-xs text-[#5f80c5]">Welcome, Staff Team</p>
+            </div>
+          </div>
+
+          <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">{t('staffLogin.username')}</label>
-              <div className="mt-1">
+              <label htmlFor="username" className="text-xs uppercase tracking-[0.3em] text-[#5f80c5]">
+                Username
+              </label>
+              <div className={`mt-2 rounded-3xl bg-[#f2f7ff] border ${usernameError ? 'border-[#7ba8ff]' : 'border-[#d7e6ff]'} px-4 py-3 focus-within:border-[#7ba8ff] focus-within:shadow-[0_0_0_2px_rgba(123,168,255,0.18)] transition-all`}>
                 <input
                   id="username"
                   name="username"
@@ -141,16 +152,26 @@ const StaffLogin = () => {
                   autoComplete="username"
                   required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  placeholder="admin"
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameError('');
+                  }}
+                  className="w-full bg-transparent text-sm text-[#0f1a2b] placeholder:text-[#7f97c8] focus:outline-none"
+                  placeholder="Staff username"
                 />
               </div>
+              {usernameError && (
+                <div className="mt-1 text-xs text-[#0b5ed7] px-1">
+                  {usernameError}
+                </div>
+              )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">{t('staffLogin.password')}</label>
-              <div className="mt-1">
+              <label htmlFor="password" className="text-xs uppercase tracking-[0.3em] text-[#5f80c5]">
+                Password
+              </label>
+              <div className={`mt-2 rounded-3xl bg-[#f2f7ff] border ${passwordError ? 'border-[#7ba8ff]' : 'border-[#d7e6ff]'} px-4 py-3 focus-within:border-[#7ba8ff] focus-within:shadow-[0_0_0_2px_rgba(123,168,255,0.18)] transition-all flex items-center gap-2`}>
                 <input
                   id="password"
                   name="password"
@@ -158,74 +179,54 @@ const StaffLogin = () => {
                   autoComplete="current-password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError('');
+                  }}
+                  className="flex-1 bg-transparent text-sm text-[#0f1a2b] placeholder:text-[#7f97c8] focus:outline-none"
                   placeholder="••••••••"
                 />
               </div>
+              {passwordError && (
+                <div className="mt-1 text-xs text-[#0b5ed7] px-1">
+                  {passwordError}
+                </div>
+              )}
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+              <div className="rounded-2xl border border-[#d3e5ff] bg-[#eef5ff] px-4 py-3 text-xs text-[#0b5ed7]">
                 {error}
               </div>
             )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
-              >
-                {loading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {t('staffLogin.submitting')}
-                  </div>
-                ) : (
-                  t('staffLogin.submit')
-                )}
-              </button>
-              
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-3xl bg-gradient-to-r from-[#4f9bff] via-[#3c84ff] to-[#5daeff] py-3 text-sm font-semibold text-white shadow-[0px_12px_30px_rgba(66,119,255,0.35)] transition-all hover:shadow-[0px_16px_36px_rgba(66,119,255,0.45)] disabled:opacity-60"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 rounded-full border-2 border-white/60 border-t-transparent animate-spin" />
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                'Sign in'
+              )}
+            </button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">{t('staffLogin.or')}</span>
-              </div>
-            </div>
+          <div className="mt-6 border-t border-[#dfe9ff]" />
 
-            <div className="mt-6 text-center">
-              <Link
-                to="/login"
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center"
-              >
-                <UserCircleIcon className="h-4 w-4 mr-1" />
-                {t('staffLogin.loginUserBusiness')}
-              </Link>
-            </div>
-          </div>
+          <Link
+            to="/login"
+            className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-[#4d7ae6] hover:text-[#355dcc] transition-colors"
+          >
+            <UserRound className="w-4 h-4" strokeWidth={1.5} />
+            Sign in as Customer / Company
+          </Link>
 
-          {/* Demo credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-md">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Thông tin đăng nhập</h4>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>Lưu ý:</strong> Chỉ tài khoản có role "ADMIN" hoặc "STAFF" mới được phép đăng nhập</p>
-              <p><strong>Username:</strong> Nhập username của tài khoản có quyền admin/staff</p>
-              <p><strong>Mật khẩu:</strong> Mật khẩu của tài khoản đó</p>
-              <p className="text-blue-600 mt-2">
-                <strong>Tip:</strong> Đảm bảo tài khoản trong database có role = 'ADMIN' hoặc 'STAFF' (uppercase)
-              </p>
-              <p className="text-red-600 mt-2">
-                <strong>Quan trọng:</strong> Tài khoản USER hoặc BUSINESS sẽ bị từ chối truy cập
-              </p>
-            </div>
-          </div>
+          <div className="mt-6 h-6" />
         </div>
       </div>
     </div>

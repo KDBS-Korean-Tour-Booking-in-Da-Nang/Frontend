@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { X, Share2, Hash } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { API_ENDPOINTS, createAuthFormHeaders, getImageUrl, BaseURL } from '../../../config/api';
+import { API_ENDPOINTS, createAuthFormHeaders, getTourImageUrl, FrontendURL } from '../../../config/api';
 import styles from './ShareTourModal.module.css';
 
 const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const { showError } = useToast();
@@ -13,10 +17,22 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [hashtags, setHashtags] = useState([]);
+  const [hashtagInput, setHashtagInput] = useState('');
+  const [tagSuggestions, setTagSuggestions] = useState([]);
+  const [showTagSuggest, setShowTagSuggest] = useState(false);
+  const suggestTimerRef = useRef(null);
+  const choosingTagRef = useRef(false);
+  const modalContainerRef = useRef(null);
+  const bodyOverflowRef = useRef('');
 
   useEffect(() => {
     if (!isOpen || !tourId) {
       setPreview(null);
+      setHashtags([]);
+      setHashtagInput('');
+      setTagSuggestions([]);
+      setShowTagSuggest(false);
       return;
     }
     
@@ -31,15 +47,12 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           setPreview({
             title: data.tourName || '',
             summary: data.tourDescription || '',
-            thumbnailUrl: getImageUrl(data.tourImgPath),
-            linkUrl: `${BaseURL}/tour/${tourId}`
+            thumbnailUrl: getTourImageUrl(data.tourImgPath || data.thumbnailUrl),
+            linkUrl: `${FrontendURL}/tour/detail?id=${tourId}`
           });
         }
       } catch (e) {
-        console.error(e);
-        if (isMounted) {
-          showError('toast.forum.post_create_failed');
-        }
+        // Error creating post - handled silently or in UI
       }
     })();
     
@@ -48,9 +61,58 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
     };
   }, [isOpen, tourId]);
 
+  // Hashtag suggestions (debounced) like PostModal
+  useEffect(() => {
+    const q = (hashtagInput || '').trim();
+    if (!q) {
+      setTagSuggestions([]);
+      setShowTagSuggest(false);
+      return;
+    }
+    if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
+    suggestTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_ENDPOINTS.HASHTAGS_SEARCH}?keyword=${encodeURIComponent(q)}&limit=8`);
+        if (!res.ok) throw new Error('search fail');
+        const data = await res.json();
+        const items = (data || []).map(h => h.content || h);
+        const filtered = items
+          .map(s => (s || '').toLowerCase())
+          .filter(s => s && s.startsWith(q.toLowerCase()))
+          .filter(s => !hashtags.includes(s));
+        setTagSuggestions(filtered);
+        setShowTagSuggest(true);
+      } catch (e) {
+        setTagSuggestions([]);
+        setShowTagSuggest(false);
+      }
+    }, 250);
+    return () => suggestTimerRef.current && clearTimeout(suggestTimerRef.current);
+  }, [hashtagInput, hashtags]);
+
+  // Resolve portal container once on mount
+  useEffect(() => {
+    if (!modalContainerRef.current) {
+      const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+      modalContainerRef.current = root || (typeof document !== 'undefined' ? document.body : null);
+    }
+  }, []);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!modalContainerRef.current || typeof document === 'undefined') return;
+    if (isOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = bodyOverflowRef.current || '';
+      };
+    }
+  }, [isOpen]);
+
   const createPost = async () => {
     if (!user) {
-      showError('auth.loginRequired.title');
+      // User not logged in - handled by LoginRequiredModal
       return;
     }
     try {
@@ -58,13 +120,24 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       const token = getToken();
       const formData = new FormData();
       formData.append('userEmail', user.email);
-      // Body: caption + linkUrl (để FE nhận diện và render preview), FE sẽ ẩn dòng link khi hiển thị
-      formData.append('title', '');
+      
+      // Title: Use tour name from preview or default title (backend requires @NotBlank)
+      const title = preview?.title || t('forum.shareTour.title') || 'Chia sẻ tour';
+      formData.append('title', title);
+      
+      // Content: caption + linkUrl (để FE nhận diện và render preview), FE sẽ ẩn dòng link khi hiển thị
       const parts = [];
       if ((caption || '').trim()) parts.push((caption || '').trim());
       if ((preview?.linkUrl || '').trim()) parts.push(preview.linkUrl.trim());
       const content = parts.join('\n');
-      formData.append('content', content || ' ');
+      // Backend requires @NotBlank, so ensure content is not empty or just whitespace
+      formData.append('content', content.trim() || title);
+      
+      // Append hashtags like Post modal
+      hashtags.forEach(tag => {
+        formData.append('hashtags', tag);
+      });
+      
       // Embed link metadata into content fields so backend stores them as normal post
       formData.append('metadata', JSON.stringify({
         linkType: 'TOUR',
@@ -81,21 +154,52 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           const imgRes = await fetch(preview.thumbnailUrl);
           const blob = await imgRes.blob();
           const file = new File([blob], 'thumbnail.jpg', { type: blob.type || 'image/jpeg' });
-          formData.append('imageUrls', file);
+          // Fix: Use 'images' instead of 'imageUrls' to match backend ForumPostRequest
+          formData.append('images', file);
         } catch (e) {
-          console.warn('Failed to fetch thumbnail, continue without image');
+          // Failed to fetch thumbnail, continue without image
+          console.warn('Failed to fetch thumbnail image:', e);
         }
       }
 
       const headers = createAuthFormHeaders(token);
       const res = await fetch(API_ENDPOINTS.POSTS, { method: 'POST', headers, body: formData });
-      if (!res.ok) throw new Error('create post failed');
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to create post:', res.status, errorText);
+        let errorMessage = t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.';
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.message) {
+            errorMessage = errorJson.message;
+          }
+        } catch {
+          // If errorText is not JSON, use default message
+        }
+        showError(errorMessage);
+        throw new Error(`Failed to create post: ${res.status} ${errorText}`);
+      }
+      
       const post = await res.json();
+      
+      // Call onShared callback if provided
       onShared && onShared(post);
+      
+      // Close modal
       onClose && onClose();
+      
+      // Navigate to forum after a short delay to ensure modal closes smoothly
+      setTimeout(() => {
+        navigate('/forum');
+      }, 100);
     } catch (e) {
-      console.error(e);
-      showError('toast.forum.post_create_failed');
+      // Error creating post - log for debugging
+      console.error('Error creating post:', e);
+      // Error toast already shown in the res.ok check above
+      if (!e.message || !e.message.includes('Failed to create post:')) {
+        showError(t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -103,19 +207,30 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalNode = (
     <div className={styles['overlay']} onClick={onClose}>
       <div className={styles['modal']} onClick={(e) => e.stopPropagation()}> 
+        <button className={styles['close']} onClick={onClose} aria-label="Close">
+          <X size={20} strokeWidth={2} />
+        </button>
         <div className={styles['header']}>
+          <div className={styles['header-icon']}>
+            <Share2 size={24} strokeWidth={1.5} />
+          </div>
           <h3>{t('forum.shareTour.title') || 'Chia sẻ tour lên diễn đàn'}</h3>
-          <button className={styles['close']} onClick={onClose}>×</button>
         </div>
         <div className={styles['body']}>
           {preview ? (
             <div className={styles['preview-card']}>
               <div className={styles['thumb-wrap']}>
                 {preview.thumbnailUrl ? (
-                  <img src={preview.thumbnailUrl} alt={preview.title} />
+                  <img 
+                    src={preview.thumbnailUrl} 
+                    alt={preview.title}
+                    onError={(e) => {
+                      e.target.src = '/default-Tour.jpg';
+                    }}
+                  />
                 ) : (
                   <div className={styles['thumb-placeholder']}>No image</div>
                 )}
@@ -137,6 +252,77 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
           />
+          {/* Hashtag input (below content) */}
+          <div className={styles['hashtag-input-container']}>
+            <div className={styles['hashtag-input-wrapper']}>
+              <Hash size={18} strokeWidth={1.5} className={styles['hashtag-icon']} />
+              <input
+                type="text"
+                placeholder={t('forum.createPost.hashtagsPlaceholder') || 'Thêm hashtag, nhấn Enter để thêm'}
+                value={hashtagInput}
+                onChange={(e) => setHashtagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  const keys = ['Enter', ' ', 'Spacebar', ','];
+                  if (keys.includes(e.key)) {
+                    e.preventDefault();
+                    const raw = hashtagInput;
+                    const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                    if (cleaned && !hashtags.includes(cleaned)) {
+                      setHashtags([...hashtags, cleaned]);
+                    }
+                    setHashtagInput('');
+                    setShowTagSuggest(false);
+                  }
+                }}
+                onBlur={() => { if (!choosingTagRef.current) {
+                  const raw = hashtagInput;
+                  const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                  if (cleaned && !hashtags.includes(cleaned)) setHashtags([...hashtags, cleaned]);
+                  setHashtagInput('');
+                  setShowTagSuggest(false);
+                } else choosingTagRef.current = false; }}
+                className={styles['hashtag-input']}
+                onFocus={() => tagSuggestions.length > 0 && setShowTagSuggest(true)}
+              />
+            </div>
+            {showTagSuggest && tagSuggestions.length > 0 && (
+              <div className={styles['tag-suggest']}>
+                {tagSuggestions.map((t, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles['tag-suggest-item']}
+                    onMouseDown={() => { choosingTagRef.current = true; }}
+                    onClick={() => {
+                      const tag = (t || '').toLowerCase();
+                      if (tag && !hashtags.includes(tag)) setHashtags([...hashtags, tag]);
+                      setHashtagInput('');
+                      setShowTagSuggest(false);
+                      choosingTagRef.current = false;
+                    }}
+                  >
+                    #{t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {hashtags.length > 0 && (
+            <div className={styles['hashtags-container']}>
+              {hashtags.map((tag, index) => (
+                <span key={index} className={styles['hashtag-chip']}>
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => setHashtags(hashtags.filter(h => h !== tag))}
+                    className={styles['remove-hashtag']}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className={styles['footer']}>
           <button className={styles['cancel']} onClick={onClose} disabled={loading}>{t('common.cancel') || 'Hủy'}</button>
@@ -145,6 +331,9 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       </div>
     </div>
   );
+
+  if (!modalContainerRef.current) return modalNode;
+  return createPortal(modalNode, modalContainerRef.current);
 };
 
 export default ShareTourModal;

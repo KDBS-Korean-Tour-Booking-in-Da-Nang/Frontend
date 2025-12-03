@@ -84,7 +84,7 @@ import './i18n/index.js'
       keysToRemove.forEach((k) => localStorage.removeItem(k));
       localStorage.setItem(STORAGE_BOOT_KEY, currentSessionId);
     } else if (currentSessionId && lastSessionId === null) {
-      // First boot: ensure we set the session id
+      // First boot: ensure we set the session idpm
       localStorage.setItem(STORAGE_BOOT_KEY, currentSessionId);
     }
   } catch (err) {

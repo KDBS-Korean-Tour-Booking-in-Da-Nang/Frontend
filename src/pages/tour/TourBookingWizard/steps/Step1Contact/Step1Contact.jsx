@@ -2,11 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { DatePicker } from 'react-rainbow-components';
+import {
+  Calendar,
+  UserRound,
+  Phone,
+  Mail,
+  Home,
+  MapPin,
+  PenSquare,
+  CalendarDays,
+  StickyNote,
+  UserCheck
+} from 'lucide-react';
 import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
-  const { contact, setContact, setMember, plan } = useBooking();
-  const { user } = useAuth();
+  const { contact, setContact } = useBooking();
+  const { user, refreshUser, loading: authLoading } = useAuth();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'vi';
   const [errors, setErrors] = useState({});
@@ -14,12 +27,25 @@ const Step1Contact = () => {
   const [usePersonalInfo, setUsePersonalInfo] = useState(false);
   const [autoFilledFields, setAutoFilledFields] = useState(new Set());
   const [touchedFields, setTouchedFields] = useState(new Set());
+  const touchedFieldsRef = useRef(new Set()); // Ref to track touched fields for event handler
   const [editingFields, setEditingFields] = useState(new Set()); // Track which fields are being edited
   const [validatingFields, setValidatingFields] = useState(new Set()); // Track fields being validated manually
   const validatingFieldsRef = useRef(new Set()); // Ref to avoid useEffect dependency
   const [isDeleting, setIsDeleting] = useState(false); // Track if user is deleting
   const previousValueRef = useRef(''); // Track previous value to detect deletion
   const isDeletingRef = useRef(false); // Ref to track deletion state without causing re-renders
+  const originalAutoFilledNameRef = useRef(null); // Track original auto-filled name with special characters
+  const [hasUserInStorage, setHasUserInStorage] = useState(false); // Track if user exists in storage
+  const datePickerRef = useRef(null); // Ref for DatePicker to trigger programmatically
+  
+  // Helper function to set touched fields and sync with ref
+  const setTouchedFieldsWithRef = (updater) => {
+    setTouchedFields(prev => {
+      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      touchedFieldsRef.current = newValue;
+      return newValue;
+    });
+  };
   
   // Date formatting helpers (copied from Step2Details)
   const getDateSeparator = () => {
@@ -458,7 +484,6 @@ const Step1Contact = () => {
       // Normalize to standard format (YYYY-MM-DD)
       return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     } catch (error) {
-      console.error('Error normalizing date:', error);
       return dateString;
     }
   };
@@ -467,63 +492,67 @@ const Step1Contact = () => {
   const parseAndConvertDate = (dateString, fromLanguage, toLanguage) => {
     if (!dateString) return '';
     
-    
-    
     try {
-      let day, month, year;
-      
-      // Parse based on source language
-      switch (fromLanguage) {
-        case 'vi': // DD/MM/YYYY
-          const viParts = dateString.split('/');
-          if (viParts.length === 3) {
-            day = viParts[0];
-            month = viParts[1];
-            year = viParts[2];
-            
+      // Normalize detection if fromLanguage not provided
+      let detectedFrom = fromLanguage;
+      if (!detectedFrom) {
+        if (dateString.includes('.')) {
+          detectedFrom = 'ko';
+        } else if (dateString.includes('/')) {
+          const parts = dateString.split('/');
+          if (parts.length === 3) {
+            const first = parseInt(parts[0], 10);
+            const second = parseInt(parts[1], 10);
+            // If first <= 12 and second <= 31, ambiguous; prefer 'vi' when first > 12 else 'en'
+            detectedFrom = (first > 12) ? 'vi' : 'en';
           }
-          break;
-        case 'en': // MM/DD/YYYY
-          const enParts = dateString.split('/');
-          if (enParts.length === 3) {
-            month = enParts[0];
-            day = enParts[1];
-            year = enParts[2];
-            
-          }
-          break;
-        case 'ko': // YYYY.MM.DD
-          const koParts = dateString.split('.');
-          if (koParts.length === 3) {
-            year = koParts[0];
-            month = koParts[1];
-            day = koParts[2];
-            
-          }
-          break;
+        }
       }
-      
-      if (!day || !month || !year) { return dateString; }
-      
-      // Convert to target format
-      let result;
+
+      // Parse into Date components (YYYY, MM, DD)
+      const parseParts = (value, lang) => {
+        const sep = lang === 'ko' ? '.' : '/';
+        const parts = value.split(sep);
+        if (parts.length !== 3) return null;
+        let y, m, d;
+        switch (lang) {
+          case 'vi': // DD/MM/YYYY
+            d = parts[0]; m = parts[1]; y = parts[2];
+            break;
+          case 'en': // MM/DD/YYYY
+            m = parts[0]; d = parts[1]; y = parts[2];
+            break;
+          case 'ko': // YYYY.MM.DD
+            y = parts[0]; m = parts[1]; d = parts[2];
+            break;
+          default:
+            return null;
+        }
+        const year = y.padStart(4, '0');
+        const month = m.padStart(2, '0');
+        const day = d.padStart(2, '0');
+        const iso = `${year}-${month}-${day}`;
+        const date = new Date(iso);
+        if (isNaN(date.getTime())) return null;
+        return { year, month, day };
+      };
+
+      const srcLang = detectedFrom || toLanguage; // fallback
+      const parts = parseParts(dateString, srcLang);
+      if (!parts) return dateString;
+
+      const sep = toLanguage === 'ko' ? '.' : '/';
       switch (toLanguage) {
-        case 'vi': // DD/MM/YYYY
-          result = `${day}/${month}/${year}`;
-          break;
-        case 'en': // MM/DD/YYYY
-          result = `${month}/${day}/${year}`;
-          break;
-        case 'ko': // YYYY.MM.DD
-          result = `${year}.${month}.${day}`;
-          break;
+        case 'vi':
+          return `${parts.day}${sep}${parts.month}${sep}${parts.year}`;
+        case 'en':
+          return `${parts.month}${sep}${parts.day}${sep}${parts.year}`;
+        case 'ko':
+          return `${parts.year}${sep}${parts.month}${sep}${parts.day}`;
         default:
-          result = dateString;
+          return `${parts.year}-${parts.month}-${parts.day}`;
       }
-      
-      return result;
-    } catch (error) {
-      console.error('Error parsing date:', error);
+    } catch (_) {
       return dateString;
     }
   };
@@ -580,25 +609,19 @@ const Step1Contact = () => {
       return null;
   };
 
-  // Simple date display function
+  // Date display function that actively converts to current language format
   const formatDateForDisplay = (dateString, fieldKey) => {
     if (!dateString || dateString === '') return '';
     
-    // If field is being edited, return as-is to allow editing
+    // If field is being edited, do not transform user input
     if (editingFields.has(fieldKey)) {
       return dateString;
     }
     
-    // If it's already a display format (contains separator), return as is
-    const separator = getDateSeparator();
-    if (dateString.includes(separator) || dateString.includes('/') || dateString.includes('.')) {
-      return dateString;
-    }
-    
-    // If it's a normalized date (YYYY-MM-DD), format it
+    // If normalized YYYY-MM-DD, format directly for current language
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [year, month, day] = dateString.split('-');
-      
+      const separator = getDateSeparator();
       switch (currentLanguage) {
         case 'vi': return `${day}${separator}${month}${separator}${year}`;
         case 'en': return `${month}${separator}${day}${separator}${year}`;
@@ -607,8 +630,13 @@ const Step1Contact = () => {
       }
     }
     
-    // For any other input, return as-is to allow editing
-    return dateString;
+    // Otherwise, try to parse existing string and convert to current language
+    try {
+      const converted = parseAndConvertDate(dateString, null, currentLanguage);
+      return converted || dateString;
+    } catch (_) {
+      return dateString;
+    }
   };
 
   const formatDateFromNormalized = (dateString) => {
@@ -629,45 +657,170 @@ const Step1Contact = () => {
 
   // Simple date change handler
   const handleDateChange = (value) => {
-    // Update both contact and member data
-    setContact(prev => ({ ...prev, dob: value }));
-    setMember('adult', 0, { dob: value });
+    // Update only contact data (merge manually; setContact expects plain object)
+    setContact({ ...contact, dob: value });
   };
   
   // Handle auto-fill from user personal info
-  const handleUsePersonalInfo = (checked) => {
+  const handleUsePersonalInfo = async (checked) => {
     setUsePersonalInfo(checked);
     
-    if (checked && user) {
+    if (checked) {
+      // Get user data - try context first, then storage as fallback (for refresh scenarios)
+      let currentUser = user;
+      
+      // If user is not loaded from context yet, try to get from storage
+      if (!currentUser && !authLoading) {
+        try {
+          const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+          if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+          }
+        } catch (error) {
+          // Error parsing user from storage
+        }
+      }
+      
+      // Wait for auth to finish loading if still loading
+      if (!currentUser && authLoading) {
+        // Wait a bit for auth to finish loading
+        await new Promise(resolve => setTimeout(resolve, 100));
+        currentUser = user;
+        // If still not available, try storage again
+        if (!currentUser) {
+          try {
+            const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+            if (savedUser) {
+              currentUser = JSON.parse(savedUser);
+            }
+          } catch (error) {
+            // Error parsing user from storage
+          }
+        }
+      }
+      
+      if (!currentUser) {
+        return;
+      }
+      
+      // Refresh user data from server to ensure we have the latest information
+      // Only refresh if context user is available (refreshUser requires context user)
+      if (user && user.email) {
+        try {
+          const refreshedUser = await refreshUser();
+          if (refreshedUser) {
+            currentUser = refreshedUser;
+          }
+        } catch (error) {
+          // Continue with existing user data if refresh fails
+        }
+      }
+      // If user was loaded from storage but context hasn't updated yet,
+      // use the stored user data directly (it will be refreshed next time when context loads)
+      
       const newContact = { ...contact };
       const newAutoFilledFields = new Set();
       
-      // Map user data to contact fields
-      if (user.fullName) {
-        newContact.fullName = user.fullName;
+      // Map user data to contact fields (use currentUser which may be refreshed)
+      const profileName = currentUser.username || currentUser.name || currentUser.fullName;
+      if (profileName) {
+        newContact.fullName = profileName;
         newAutoFilledFields.add('fullName');
+        // Store original auto-filled name to allow special characters even after manual edit
+        originalAutoFilledNameRef.current = profileName;
       }
-      if (user.email) {
-        newContact.email = user.email;
+      if (currentUser.email) {
+        newContact.email = currentUser.email;
         newAutoFilledFields.add('email');
       }
-      if (user.phone) {
-        newContact.phone = user.phone;
+      if (currentUser.phone) {
+        newContact.phone = currentUser.phone;
         newAutoFilledFields.add('phone');
       }
-      if (user.address) {
-        newContact.address = user.address;
+      if (currentUser.address) {
+        newContact.address = currentUser.address;
         newAutoFilledFields.add('address');
       }
+      // Map gender from user profile (handle M/F/O, MALE/FEMALE/OTHER, and lowercase)
+      if (currentUser.gender) {
+        const mappedGender = (g => {
+          const u = String(g).trim().toUpperCase();
+          if (u === 'M' || u === 'MALE') return 'male';
+          if (u === 'F' || u === 'FEMALE') return 'female';
+          if (u === 'O' || u === 'OTHER') return 'other';
+          if (u === 'NAM') return 'male';
+          if (u === 'NỮ' || u === 'NU') return 'female';
+          if (u === 'KHÁC' || u === 'KHAC') return 'other';
+          if (u === 'MALE' || u === 'FEMALE' || u === 'OTHER') return u.toLowerCase();
+          return '';
+        })(currentUser.gender);
+                  if (mappedGender) {
+            newContact.gender = mappedGender;
+            newAutoFilledFields.add('gender');
+          }
+      }
+      // Date of birth: if available in profile, normalize and put directly into contact
+      if (currentUser.dob) {
+        try {
+          let iso = '';
+          if (/^\d{4}-\d{2}-\d{2}$/.test(currentUser.dob)) {
+            iso = currentUser.dob;
+          } else {
+            const d = new Date(currentUser.dob);
+            if (!isNaN(d.getTime())) {
+              iso = d.toISOString().slice(0, 10);
+            }
+          }
+          if (iso) {
+            const displayDob = formatDateFromNormalized(iso);
+            if (displayDob) {
+              // set dob into contact object before committing state
+              newContact.dob = displayDob;
+              // mark as touched so error shows
+              setTouchedFieldsWithRef(prev => new Set(prev).add('dob'));
+              // validate 18+
+              const normalized = validateDateInput(displayDob);
+              if (normalized) {
+                const birth = new Date(normalized);
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const md = today.getMonth() - birth.getMonth();
+                if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
+                setErrors(prev => {
+                  const ne = { ...prev };
+                  if (age < 18) ne.dob = t('booking.errors.representativeTooYoung'); else delete ne.dob;
+                  return ne;
+                });
+              } else {
+                setErrors(prev => ({ ...prev, dob: t('booking.errors.dobInvalidFormat') }));
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Clear any existing errors before auto-filling to prevent showing errors
+      setErrors({});
       
+      // commit new contact after composing all fields (including dob if any)
       setContact(newContact);
       setAutoFilledFields(newAutoFilledFields);
       
-      // Validate auto-filled fields to clear any existing errors
+      // Don't mark auto-filled fields as touched to prevent showing errors
+      // Only mark fields that need validation feedback (like dob for age check)
+      const newTouchedFields = new Set();
+      // Only mark dob as touched if it was auto-filled and needs age validation
+      if (newContact.dob) {
+        newTouchedFields.add('dob');
+      }
+      setTouchedFieldsWithRef(newTouchedFields);
+      
+      // Validate auto-filled fields to ensure they're valid (but don't show errors)
       // Use setTimeout to ensure state updates are processed first
       setTimeout(() => {
         Object.keys(newContact).forEach(fieldName => {
           if (newContact[fieldName]) {
+            // Validate silently (errors won't show because fields aren't touched)
             validateField(fieldName, newContact[fieldName]);
           }
         });
@@ -675,6 +828,8 @@ const Step1Contact = () => {
     } else {
       // Clear auto-filled fields when unchecked
       setAutoFilledFields(new Set());
+      // Clear original auto-filled name ref when unchecked
+      originalAutoFilledNameRef.current = null;
       // Note: We don't clear the contact data when unchecked to preserve user input
       // The user can manually edit the fields if they want to change them
     }
@@ -705,55 +860,248 @@ const Step1Contact = () => {
     window.bookingStep1Valid = isValid;
   }, [isValid]);
 
+  // Sync touchedFieldsRef with touchedFields state
+  useEffect(() => {
+    touchedFieldsRef.current = touchedFields;
+  }, [touchedFields]);
+
+  // Validation rules
+  const validateField = (name, value) => {
+    // Use functional updater to avoid race conditions when validating multiple fields
+    setErrors(prevErrors => {
+      const newErrors = { ...prevErrors };
+
+      switch (name) {
+      case 'fullName': {
+        // Regex to allow letters, numbers, spaces, hyphens, and apostrophes
+        // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
+        // Also allows numbers like: John123, Mary2, etc.
+        const nameRegex = /^[\p{L}\p{M}\d\s\-']+$/u;
+        
+        if (!value.trim()) {
+          newErrors.fullName = t('booking.errors.fullNameRequired');
+        } else {
+          // Check if there's at least one letter (required)
+          const hasLetter = /[\p{L}\p{M}]/u.test(value.trim());
+          
+          if (!hasLetter) {
+            // No letter found, invalid name
+            newErrors.fullName = t('booking.errors.fullNameInvalid');
+          } else {
+            // If name originally came from auto-fill, allow special characters from original
+            // This allows auto-filled names with special characters to pass validation
+            const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
+            
+            if (hasOriginalAutoFilledName) {
+              // Extract allowed special characters from original auto-filled name
+              const original = originalAutoFilledNameRef.current;
+              const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-'\d]/gu) || [];
+              const allowedSpecialCharsSet = new Set(allowedSpecialChars);
+              
+              // Check if current value only contains allowed characters (letters, numbers, spaces, hyphens, apostrophes, and original special chars)
+              const isValidName = value.trim().split('').every(char => {
+                const isLetter = /[\p{L}\p{M}]/u.test(char);
+                const isDigit = /\d/u.test(char);
+                const isSpaceOrPunctuation = /[\s\-']/u.test(char);
+                const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
+                return isLetter || isDigit || isSpaceOrPunctuation || isAllowedSpecialChar;
+              });
+              
+              if (!isValidName) {
+                // Contains new special characters not in original
+                newErrors.fullName = t('booking.errors.fullNameInvalid');
+              } else {
+                delete newErrors.fullName;
+              }
+            } else {
+              // No original auto-filled name, use validation that allows letters, numbers, spaces, hyphens, apostrophes
+              if (!nameRegex.test(value.trim())) {
+                newErrors.fullName = t('booking.errors.fullNameInvalid');
+              } else {
+                delete newErrors.fullName;
+              }
+            }
+          }
+        }
+        break;
+      }
+
+      case 'phone': {
+        // Updated regex: Vietnamese format (0xxxxxxxxx) or international formats with space
+        const vietnameseRegex = /^0\d{9}$/;
+        const internationalRegex = /^\+(\d{1,3})\s?\d{6,14}$/;
+        
+        if (!value.trim()) {
+          newErrors.phone = t('booking.errors.phoneRequired');
+        } else if (!vietnameseRegex.test(value) && !internationalRegex.test(value)) {
+          newErrors.phone = t('booking.errors.phoneInvalid');
+        } else {
+          delete newErrors.phone;
+        }
+        break;
+      }
+
+      case 'email': {
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (!value.trim()) {
+          newErrors.email = t('booking.errors.emailRequired');
+        } else if (!emailRegex.test(value)) {
+          newErrors.email = t('booking.errors.emailInvalid');
+        } else {
+          delete newErrors.email;
+        }
+        break;
+      }
+
+      case 'dob': {
+        if (!value.trim()) {
+          newErrors.dob = t('booking.errors.dobRequired');
+        } else {
+          // Validate date format using helper function
+          const normalizedDate = validateDateInput(value);
+          if (!normalizedDate) {
+            newErrors.dob = t('booking.errors.dobInvalidFormat');
+          } else {
+            // Validate age (≥18 for representative)
+            const birthDate = new Date(normalizedDate);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+              age--;
+            }
+            
+            if (age < 18) {
+              newErrors.dob = t('booking.errors.representativeTooYoung');
+            } else {
+              delete newErrors.dob;
+            }
+          }
+        }
+        break;
+      }
+
+      case 'address': {
+        if (!value.trim()) {
+          newErrors.address = t('booking.errors.addressRequired');
+        } else {
+          delete newErrors.address;
+        }
+        break;
+      }
+
+      case 'pickupPoint': {
+        if (!value.trim()) {
+          newErrors.pickupPoint = t('booking.errors.pickupPointRequired');
+        } else {
+          delete newErrors.pickupPoint;
+        }
+        break;
+      }
+
+      default:
+        break;
+      }
+
+      return newErrors;
+    });
+  };
+
+  // Listen for validation trigger from parent component (when Next is clicked)
+  useEffect(() => {
+    const handleValidateAll = () => {
+      // Only validate and mark touched for fields that haven't been touched yet
+      // This preserves the realtime validation logic for fields that user has already interacted with
+      const requiredFields = ['fullName', 'phone', 'email', 'dob', 'address', 'pickupPoint'];
+      
+      // Get current touched fields from ref (to avoid closure issues)
+      const currentTouchedFields = touchedFieldsRef.current;
+      const fieldsToValidate = [];
+      
+      // Identify fields that haven't been touched yet
+      requiredFields.forEach(fieldName => {
+        if (!currentTouchedFields.has(fieldName)) {
+          fieldsToValidate.push(fieldName);
+        }
+      });
+      
+      // Mark untouched fields as touched and validate them
+      if (fieldsToValidate.length > 0) {
+        // First, mark all untouched fields as touched
+        setTouchedFieldsWithRef(prev => {
+          const newTouchedFields = new Set(prev);
+          fieldsToValidate.forEach(fieldName => {
+            newTouchedFields.add(fieldName);
+          });
+          return newTouchedFields;
+        });
+        
+        // Then validate all untouched fields immediately (don't wait for state update)
+        // This ensures errors are set right away
+        fieldsToValidate.forEach(fieldName => {
+          const value = contact[fieldName];
+          validateField(fieldName, value || '');
+        });
+      }
+    };
+    
+    // Listen for custom event from parent component
+    window.addEventListener('validateStep1', handleValidateAll);
+    
+    return () => {
+      window.removeEventListener('validateStep1', handleValidateAll);
+    };
+  }, [contact, validateField]);
+
   // Handle language change and convert date format
   useEffect(() => {
-    // Check both contact.dob and plan.members.adult[0].dob
-    const currentDob = contact.dob || plan.members.adult[0]?.dob;
+    // Check contact.dob only
+    const currentDob = contact.dob;
     
     if (currentDob && currentDob.trim() !== '') {
-      // Check if the date is already in the correct format for current language
-      const separator = getDateSeparator();
-      const isAlreadyCorrectFormat = currentDob.includes(separator);
+      // Always try to convert when language changes, regardless of current format
+      // This ensures proper conversion between Vietnamese and English formats
       
-      // Only skip if the date is already in the correct format AND it's a complete date
-      if (isAlreadyCorrectFormat && currentDob.split(separator).length === 3) {
-        return;
-      }
-      
-      // Detect current format and convert to new language format
-      let fromLanguage = 'vi'; // Default
-      
-      // Detect format based on separators and structure
+      // Detect source language by separator and structure (same as Step2Details)
+      let fromLang = null;
       if (currentDob.includes('.')) {
-        fromLanguage = 'ko'; // YYYY.MM.DD
+        fromLang = 'ko';
       } else if (currentDob.includes('/')) {
         const parts = currentDob.split('/');
         if (parts.length === 3) {
-          // Check if first part is day (01-31) or month (01-12)
-          const firstPart = parseInt(parts[0]);
-          const secondPart = parseInt(parts[1]);
-          
-          // More sophisticated detection
-          if (firstPart > 12) {
-            fromLanguage = 'vi'; // DD/MM/YYYY (day > 12)
-          } else if (secondPart > 12) {
-            fromLanguage = 'en'; // MM/DD/YYYY (month/day, day > 12)
-          } else {
-            // Ambiguous case, try to detect by context
-            // If first part is 01-12 and second part is 01-12, assume MM/DD/YYYY for English
-            fromLanguage = 'en'; // Default to English for ambiguous cases
-          }
+          const first = parseInt(parts[0], 10);
+          const second = parseInt(parts[1], 10);
+          fromLang = (first > 12) ? 'vi' : 'en';
         }
       }
       
-      // Convert to current language format
-      const convertedDate = parseAndConvertDate(currentDob, fromLanguage, currentLanguage);
+      const convertedDate = parseAndConvertDate(currentDob, fromLang, currentLanguage);
       
-      if (convertedDate !== currentDob) {
+      if (convertedDate && convertedDate !== currentDob) {
         handleDateChange(convertedDate);
       }
     }
   }, [currentLanguage]); // Only trigger when language changes
+
+  // Check if user exists in storage (for refresh scenarios)
+  useEffect(() => {
+    const checkUserInStorage = () => {
+      try {
+        const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
+        setHasUserInStorage(!!savedUser);
+      } catch (error) {
+        setHasUserInStorage(false);
+      }
+    };
+    
+    checkUserInStorage();
+    
+    // Also check when auth loading completes
+    if (!authLoading) {
+      checkUserInStorage();
+    }
+  }, [authLoading, user]);
 
   // Update error messages when language changes
   useEffect(() => {
@@ -814,110 +1162,6 @@ const Step1Contact = () => {
     }
   }, [currentLanguage, t]); // Trigger when language or translation function changes
 
-  // Validation rules
-  const validateField = (name, value) => {
-    const newErrors = { ...errors };
-
-    switch (name) {
-      case 'fullName': {
-        // Regex to allow letters from all languages, spaces, hyphens, and apostrophes
-        // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
-        const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
-        
-        if (!value.trim()) {
-          newErrors.fullName = t('booking.errors.fullNameRequired');
-        } else if (!nameRegex.test(value.trim())) {
-          newErrors.fullName = t('booking.errors.fullNameInvalid');
-        } else {
-          delete newErrors.fullName;
-        }
-        break;
-      }
-
-      case 'phone': {
-        // Updated regex: Vietnamese format (0xxxxxxxxx) or international formats with space
-        const vietnameseRegex = /^0\d{9}$/;
-        const internationalRegex = /^\+(\d{1,3})\s?\d{6,14}$/;
-        
-        if (!value.trim()) {
-          newErrors.phone = t('booking.errors.phoneRequired');
-        } else if (!vietnameseRegex.test(value) && !internationalRegex.test(value)) {
-          newErrors.phone = t('booking.errors.phoneInvalid');
-        } else {
-          delete newErrors.phone;
-        }
-        break;
-      }
-
-      case 'email': {
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!value.trim()) {
-          newErrors.email = t('booking.errors.emailRequired');
-        } else if (!emailRegex.test(value)) {
-          newErrors.email = t('booking.errors.emailInvalid');
-        } else if (user && user.email && value.trim().toLowerCase() !== user.email.toLowerCase()) {
-          newErrors.email = t('booking.errors.emailMismatch');
-        } else {
-          delete newErrors.email;
-        }
-        break;
-      }
-
-      case 'dob': {
-        if (!value.trim()) {
-          newErrors.dob = t('booking.errors.dobRequired');
-        } else {
-          // Validate date format using helper function
-          const normalizedDate = validateDateInput(value);
-          if (!normalizedDate) {
-            newErrors.dob = t('booking.errors.dobInvalidFormat');
-          } else {
-            // Validate age (≥18 for representative)
-            const birthDate = new Date(normalizedDate);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-              age--;
-            }
-            
-            if (age < 18) {
-              newErrors.dob = t('booking.errors.representativeTooYoung');
-            } else {
-              delete newErrors.dob;
-            }
-          }
-        }
-        break;
-      }
-
-      case 'address': {
-        if (!value.trim()) {
-          newErrors.address = t('booking.errors.addressRequired');
-        } else {
-          delete newErrors.address;
-        }
-        break;
-      }
-
-      case 'pickupPoint': {
-        if (!value.trim()) {
-          newErrors.pickupPoint = t('booking.errors.pickupPointRequired');
-        } else {
-          delete newErrors.pickupPoint;
-        }
-        break;
-      }
-
-      default:
-        break;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   // Check if all required fields are valid
   useEffect(() => {
     const requiredFields = ['fullName', 'phone', 'email', 'dob', 'address', 'pickupPoint'];
@@ -933,16 +1177,73 @@ const Step1Contact = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Special handling for full name input - only allow letters, spaces, hyphens, apostrophes
+    // Special handling for full name input - allow letters, numbers, spaces, hyphens, apostrophes
+    // But require at least one letter before allowing numbers
     let processedValue = value;
     if (name === 'fullName') {
-      // Remove any characters that are not letters, spaces, hyphens, or apostrophes
-      // This prevents typing numbers and special characters
-      // Supports international names using Unicode properties
-      processedValue = value.replace(/[^\p{L}\p{M}\s\-']/gu, '');
+      // If name originally came from auto-fill, allow special characters from original
+      // but prevent adding new special characters that weren't in the original
+      const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
       
-      // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
-      processedValue = processedValue.replace(/\s+/g, ' ');
+      if (hasOriginalAutoFilledName) {
+        // Extract allowed special characters from original auto-filled name
+        const original = originalAutoFilledNameRef.current;
+        const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-'\d]/gu) || [];
+        const allowedSpecialCharsSet = new Set(allowedSpecialChars);
+        
+        // Check if there's at least one letter in the current value
+        const hasLetter = /[\p{L}\p{M}]/u.test(value);
+        
+        // Allow letters, numbers, spaces, hyphens, apostrophes, and special chars from original
+        // But only allow numbers if there's at least one letter
+        processedValue = value.split('').filter(char => {
+          const isLetter = /[\p{L}\p{M}]/u.test(char);
+          const isDigit = /\d/u.test(char);
+          const isSpaceOrPunctuation = /[\s\-']/u.test(char);
+          const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
+          
+          // Always allow letters, spaces, hyphens, apostrophes, and original special chars
+          if (isLetter || isSpaceOrPunctuation || isAllowedSpecialChar) {
+            return true;
+          }
+          // Allow digits only if there's at least one letter in the value
+          if (isDigit && hasLetter) {
+            return true;
+          }
+          return false;
+        }).join('');
+        
+        // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
+        processedValue = processedValue.replace(/\s+/g, ' ');
+      } else {
+        // No original auto-filled name, allow letters, numbers, spaces, hyphens, apostrophes
+        // But require at least one letter before allowing numbers
+        // Supports international names using Unicode properties
+        
+        // Check if there's at least one letter in the current value
+        const hasLetter = /[\p{L}\p{M}]/u.test(value);
+        
+        // Filter characters: allow letters, spaces, hyphens, apostrophes always
+        // Allow digits only if there's at least one letter
+        processedValue = value.split('').filter(char => {
+          const isLetter = /[\p{L}\p{M}]/u.test(char);
+          const isDigit = /\d/u.test(char);
+          const isSpaceOrPunctuation = /[\s\-']/u.test(char);
+          
+          // Always allow letters, spaces, hyphens, apostrophes
+          if (isLetter || isSpaceOrPunctuation) {
+            return true;
+          }
+          // Allow digits only if there's at least one letter in the value
+          if (isDigit && hasLetter) {
+            return true;
+          }
+          return false;
+        }).join('');
+        
+        // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
+        processedValue = processedValue.replace(/\s+/g, ' ');
+      }
     }
     // Special handling for phone number input
     else if (name === 'phone') {
@@ -1031,10 +1332,11 @@ const Step1Contact = () => {
       }
     }
     
-    setContact({ [name]: processedValue });
+    // Merge manually; avoid functional updater to match setContact API
+    setContact({ ...contact, [name]: processedValue });
     
     // Mark field as touched
-    setTouchedFields(prev => new Set(prev).add(name));
+    setTouchedFieldsWithRef(prev => new Set(prev).add(name));
     
     // Always validate on change for real-time feedback
     validateField(name, processedValue);
@@ -1049,7 +1351,7 @@ const Step1Contact = () => {
 
   const handleInputBlur = (e) => {
     const { name, value } = e.target;
-    setTouchedFields(prev => new Set(prev).add(name));
+    setTouchedFieldsWithRef(prev => new Set(prev).add(name));
     validateField(name, value);
   };
 
@@ -1059,7 +1361,7 @@ const Step1Contact = () => {
   return (
     <div className={styles['contact-form']}>
       {/* Personal Info Auto-fill Option */}
-      {user && (
+      {(user || hasUserInStorage) && (
         <div className={styles['personal-info-option']}>
           <label className={styles['checkbox-label']}>
             <input
@@ -1069,6 +1371,7 @@ const Step1Contact = () => {
               onChange={(e) => handleUsePersonalInfo(e.target.checked)}
             />
             <span className={styles['checkbox-text']}>
+              <UserCheck className={styles['personal-info-icon']} />
               {t('booking.step1.usePersonalInfo')}
             </span>
           </label>
@@ -1085,13 +1388,19 @@ const Step1Contact = () => {
       )}
 
       <div className={styles['form-section']}>
-        <h3 className={styles['section-title']}>{t('booking.step1.sectionTitle')}</h3>
+        <h3 className={styles['section-title']}>
+          <UserRound className={styles['section-icon']} />
+          {t('booking.step1.sectionTitle')}
+        </h3>
         
         <div className={styles['form-grid']}>
           <div className={styles['form-group']}>
-            <label htmlFor="fullName" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.fullName')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <PenSquare className={styles['field-icon']} />
+              <label htmlFor="fullName" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.fullName')}
+              </label>
+            </div>
             <input
               type="text"
               id="fullName"
@@ -1109,9 +1418,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="phone" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.phone')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <Phone className={styles['field-icon']} />
+              <label htmlFor="phone" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.phone')}
+              </label>
+            </div>
             <input
               type="tel"
               id="phone"
@@ -1129,9 +1441,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="email" className={`${styles['form-label']} ${styles['required']}`}>
-              Email
-            </label>
+            <div className={styles['label-with-icon']}>
+              <Mail className={styles['field-icon']} />
+              <label htmlFor="email" className={`${styles['form-label']} ${styles['required']}`}>
+                Email
+              </label>
+            </div>
             <input
               type="email"
               id="email"
@@ -1149,14 +1464,17 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="dob" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.dob')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <CalendarDays className={styles['field-icon']} />
+              <label htmlFor="dob" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.dob')}
+              </label>
+            </div>
             <div className={styles['date-input-container']}>
               <input
                 type="text"
                 id="dob"
-                value={formatDateForDisplay(plan.members.adult[0]?.dob || '', 'dob')}
+                value={formatDateForDisplay(contact.dob || '', 'dob')}
                 onFocus={(e) => {
                   const fieldKey = 'dob';
                   setEditingFields(prev => new Set(prev).add(fieldKey));
@@ -1218,7 +1536,7 @@ const Step1Contact = () => {
                   });
                   
                   // Mark field as touched
-                  setTouchedFields(prev => new Set(prev).add('dob'));
+                  setTouchedFieldsWithRef(prev => new Set(prev).add('dob'));
                   
                   // Validate when user finishes typing (onBlur)
                   if (displayValue && displayValue.length >= 8) {
@@ -1284,141 +1602,108 @@ const Step1Contact = () => {
                 placeholder={getDateFormat()}
                 title={t('booking.step1.placeholders.dateFormat', { format: getDateFormat() })}
               />
-              {/* Hidden date input for calendar picker - positioned over the text input */}
-              <input
-                type="date"
-                id="dob-hidden"
-                style={{ 
-                  position: 'absolute',
-                  left: '0',
-                  top: '0',
-                  width: '100%',
-                  height: '100%',
-                  opacity: '0',
-                  pointerEvents: 'none',
-                  border: 'none',
-                  outline: 'none',
-                  zIndex: '10'
-                }}
-                onChange={(e) => {
-                  const normalizedDate = e.target.value;
-                  const displayFormat = formatDateFromNormalized(normalizedDate);
-                  
-                  // Always update the input first (so user can see what they selected)
-                  handleDateChange(displayFormat);
-                  
-                  // Remove from editing state to show formatted date
-                  const fieldKey = 'dob';
-                  setEditingFields(prev => {
-                    const newSet = new Set(prev);
-                    newSet.delete(fieldKey);
-                    return newSet;
-                  });
-                  
-                  // Mark field as touched
-                  setTouchedFields(prev => new Set(prev).add('dob'));
-                  
-                  // Set validating flag to prevent useEffect override
-                  const dobKey = 'dob';
-                  setValidatingFields(prev => new Set(prev).add(dobKey));
-                  validatingFieldsRef.current.add(dobKey);
-                  
-                  // Validate immediately since user has finished selecting from calendar
-                  setTimeout(() => {
-                    
-                    const validationResult = validateDateInput(displayFormat);
-                    
-                    
-                    // Validate age (≥18 for representative)
-                    const birthDate = new Date(normalizedDate);
-                    const today = new Date();
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const monthDiff = today.getMonth() - birthDate.getMonth();
-                    
-                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                      age--;
+              <div className={styles['date-picker-wrapper']}>
+                <button
+                  type="button"
+                  className={styles['calendar-button']}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Trigger the hidden DatePicker via exposed handlers
+                    if (datePickerRef.current) {
+                      datePickerRef.current.focus?.();
+                      datePickerRef.current.click?.();
                     }
-                    
-                    // Set error state immediately and persistently
-                    setErrors(prev => {
-                      const newErrors = { ...prev };
-                      if (age >= 18) {
+                  }}
+                  title="Open date picker"
+                >
+                  <Calendar className={styles['calendar-icon']} />
+                </button>
+                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+                  <DatePicker
+                    ref={datePickerRef}
+                    value={(() => {
+                      if (!contact.dob) return null;
+                      const normalized = validateDateInput(contact.dob);
+                      return normalized ? new Date(normalized) : null;
+                    })()}
+                    onChange={(date) => {
+                      if (date) {
+                        // Use local date components to avoid timezone issues
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const normalizedDate = `${year}-${month}-${day}`;
+                        const displayFormat = formatDateFromNormalized(normalizedDate);
                         
-                        delete newErrors[dobKey];
-                      } else {
-                        newErrors[dobKey] = t('booking.errors.representativeTooYoung');
-                      }
-                      return newErrors;
-                    });
-                    
-                    // Clear validating flag after delay
-                    setTimeout(() => {
-                      setValidatingFields(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(dobKey);
-                        return newSet;
-                      });
-                      validatingFieldsRef.current.delete(dobKey);
-                    }, 500); // 500ms to ensure useEffect doesn't override
-                  }, 100); // 100ms delay
-                }}
-                min="1900-01-01"
-                max={(() => {
-                  const maxDate = new Date();
-                  maxDate.setMonth(maxDate.getMonth() + 1);
-                  return maxDate.toISOString().split('T')[0];
-                })()} // Giới hạn chọn trong vòng 1 tháng
-              />
-              {/* Calendar button */}
-              <button
-                type="button"
-                className={styles['calendar-button']}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  
-                  
-                  // Trigger the hidden date input
-                  const hiddenInput = document.getElementById('dob-hidden');
-                  
-                  if (hiddenInput) {
-                    // Focus the input first, then trigger click
-                    hiddenInput.focus();
-                    
-                    
-                    // Use a small delay to ensure focus is set
-                    setTimeout(() => {
-                      // Use showPicker if available, otherwise click
-                      if (hiddenInput.showPicker) {
-                        try {
+                        // Always update the input first (so user can see what they selected)
+                        handleDateChange(displayFormat);
+                        
+                        // Remove from editing state to show formatted date
+                        const fieldKey = 'dob';
+                        setEditingFields(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(fieldKey);
+                          return newSet;
+                        });
+                        
+                        // Mark field as touched
+                        setTouchedFields(prev => new Set(prev).add('dob'));
+                        
+                        // Set validating flag to prevent useEffect override
+                        const dobKey = 'dob';
+                        setValidatingFields(prev => new Set(prev).add(dobKey));
+                        validatingFieldsRef.current.add(dobKey);
+                        
+                        // Validate immediately since user has finished selecting from calendar
+                        setTimeout(() => {
+                          const validationResult = validateDateInput(displayFormat);
                           
-                          const showPickerResult = hiddenInput.showPicker();
-                          // If showPicker returns a promise, handle it
-                          if (showPickerResult && typeof showPickerResult.catch === 'function') {
-                            showPickerResult.catch(() => {
-                              // Fallback to click if showPicker fails
-                              
-                              hiddenInput.click();
-                            });
+                          // Validate age (≥18 for representative)
+                          const birthDate = new Date(normalizedDate);
+                          const today = new Date();
+                          let age = today.getFullYear() - birthDate.getFullYear();
+                          const monthDiff = today.getMonth() - birthDate.getMonth();
+                          
+                          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
                           }
-                        } catch (error) {
-                          // Fallback to click if showPicker throws error
                           
-                          hiddenInput.click();
-                        }
-                      } else {
-                        
-                        hiddenInput.click();
+                          // Set error state immediately and persistently
+                          setErrors(prev => {
+                            const newErrors = { ...prev };
+                            if (age >= 18) {
+                              delete newErrors[dobKey];
+                            } else {
+                              newErrors[dobKey] = t('booking.errors.representativeTooYoung');
+                            }
+                            return newErrors;
+                          });
+                          
+                          // Clear validating flag after delay
+                          setTimeout(() => {
+                            setValidatingFields(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(dobKey);
+                              return newSet;
+                            });
+                            validatingFieldsRef.current.delete(dobKey);
+                          }, 500); // 500ms to ensure useEffect doesn't override
+                        }, 100); // 100ms delay
                       }
-                    }, 10);
-                  } else {
-                    
-                  }
-                }}
-                title="Open date picker"
-              >
-                📅
-              </button>
+                    }}
+                    minDate={new Date('1900-01-01')}
+                    maxDate={(() => {
+                      const maxDate = new Date();
+                      maxDate.setMonth(maxDate.getMonth() + 1);
+                      return maxDate;
+                    })()}
+                    onFocus={() => {}}
+                    onBlur={() => {}}
+                    onClick={() => {}}
+                  />
+                </div>
+              </div>
             </div>
             {errors.dob && touchedFields.has('dob') && (
               <span className={styles['form-error']}>{errors.dob}</span>
@@ -1426,9 +1711,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="address" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.address')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <Home className={styles['field-icon']} />
+              <label htmlFor="address" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.address')}
+              </label>
+            </div>
             <input
               type="text"
               id="address"
@@ -1446,9 +1734,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']}>
-            <label htmlFor="pickupPoint" className={`${styles['form-label']} ${styles['required']}`}>
-              {t('booking.step1.fields.pickupPoint')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <MapPin className={styles['field-icon']} />
+              <label htmlFor="pickupPoint" className={`${styles['form-label']} ${styles['required']}`}>
+                {t('booking.step1.fields.pickupPoint')}
+              </label>
+            </div>
             <input
               type="text"
               id="pickupPoint"
@@ -1466,9 +1757,12 @@ const Step1Contact = () => {
           </div>
 
           <div className={styles['form-group']} style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="note" className={styles['form-label']}>
-              {t('booking.step1.fields.note')}
-            </label>
+            <div className={styles['label-with-icon']}>
+              <StickyNote className={styles['field-icon']} />
+              <label htmlFor="note" className={styles['form-label']}>
+                {t('booking.step1.fields.note')}
+              </label>
+            </div>
             <textarea
               id="note"
               name="note"

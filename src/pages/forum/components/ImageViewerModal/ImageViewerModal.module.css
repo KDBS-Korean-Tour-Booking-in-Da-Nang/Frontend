@@ -1,40 +1,45 @@
 .ivm-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
+  padding: 100px 24px 24px;
 }
 .ivm-modal {
-  background: #111;
-  color: #fff;
-  width: min(900px, 96vw);
-  max-height: 90vh;
-  border-radius: 12px;
+  background: #0b1120;
+  color: #f8fafc;
+  width: min(1100px, 96vw);
+  height: calc(90vh - 120px);
+  border-radius: 28px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.55);
 }
 .ivm-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  background: #1b1b1b;
+  padding: 18px 24px;
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
 }
-.ivm-user { display: flex; align-items: center; gap: 10px; }
-.ivm-user img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
-.ivm-close { background: none; border: 1px solid #333; color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-.ivm-body { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
-.ivm-image { max-width: 100%; max-height: calc(80vh - 120px); object-fit: contain; }
-.ivm-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: none; color: #fff; width: 40px; height: 60px; cursor: pointer; font-size: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-.ivm-prev { left: 12px; }
-.ivm-next { right: 12px; }
-.ivm-nav:disabled { opacity: 0.3; cursor: default; }
-.ivm-counter { position: absolute; bottom: 10px; right: 14px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 6px; font-size: 12px; color: #ddd; }
-.ivm-actions { padding: 10px 14px; display: flex; gap: 10px; border-top: 1px solid #222; background:#111; }
-.ivm-btn { background: #222; color: #fff; border: 1px solid #333; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-.ivm-btn.active { background: #2b6cb0; border-color: #2b6cb0; }
+.ivm-user { display: flex; align-items: center; gap: 12px; }
+.ivm-user img { width: 44px; height: 44px; border-radius: 16px; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+.ivm-user-name { font-weight: 600; color: #f8fafc; }
+.ivm-close { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.3); color: #e2e8f0; padding: 8px; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; }
+.ivm-close:hover { background: rgba(30, 41, 59, 0.85); color: #ffffff; }
+.ivm-body { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+.ivm-image { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 20px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); }
+.ivm-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(15, 23, 42, 0.65); border: none; color: #f8fafc; width: 52px; height: 52px; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.45); transition: transform 0.2s ease, opacity 0.2s ease; }
+.ivm-prev { left: 24px; }
+.ivm-next { right: 24px; }
+.ivm-nav:disabled { opacity: 0.15; cursor: default; }
+.ivm-nav:not(:disabled):hover { transform: translateY(-50%) scale(1.05); }
+.ivm-counter { position: absolute; bottom: 24px; right: 24px; background: rgba(15, 23, 42, 0.7); padding: 6px 12px; border-radius: 999px; font-size: 13px; color: #f8fafc; border: 1px solid rgba(148, 163, 184, 0.4); }
 

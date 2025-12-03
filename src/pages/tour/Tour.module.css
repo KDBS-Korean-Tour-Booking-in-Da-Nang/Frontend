@@ -1,6 +1,7 @@
+/* Minimal Soft Korean Style - Tour Page */
+
 .tour-page {
   min-height: 100vh;
-  background: #D4E8FF;
+  background: #fafafa;
+  margin-top: 0px;
 }
-
-/* Additional page-specific styles can be added here */

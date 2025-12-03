@@ -1,12 +1,35 @@
 // Booking API service
+import { checkAndHandleApiError } from '../utils/apiErrorHandler';
+import { getApiPath } from '../config/api';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+const parseErrorMessage = async (response) => {
+  try {
+    const text = await response.text();
+    if (!text) return `HTTP error! status: ${response.status}`;
+    try {
+      const obj = JSON.parse(text);
+      return obj?.message || `HTTP error! status: ${response.status}`;
+    } catch {
+      return text;
+    }
+  } catch {
+    return `HTTP error! status: ${response.status}`;
+  }
+};
 
 /**
  * Get authentication headers with Bearer token
  * @returns {Object} - Headers object with Authorization
  */
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  // Try multiple common token keys
+  const token =
+    localStorage.getItem('token') ||
+    sessionStorage.getItem('token') ||
+    localStorage.getItem('accessToken') ||
+    sessionStorage.getItem('accessToken');
   const headers = {
     'Content-Type': 'application/json',
   };
@@ -32,23 +55,19 @@ export const createBooking = async (bookingData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const message = await parseErrorMessage(response);
+      throw new Error(message);
     }
 
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error creating booking:', error);
     throw error;
   }
 };
@@ -60,23 +79,27 @@ export const createBooking = async (bookingData) => {
  */
 export const getBookingById = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}`, {
+    // Correct endpoint per backend controller: /api/booking/id/{bookingId}
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      // Note: For background checks, we might not want to redirect, but for consistency we'll do it
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const message = await parseErrorMessage(response);
+      
+      // 400 often indicates BE mapping error when tour is null; surface friendly text
+      if (response.status === 400) {
+        throw new Error('Bad Request');
+      }
+      throw new Error(message);
     }
 
     const result = await response.json();
@@ -88,34 +111,41 @@ export const getBookingById = async (bookingId) => {
 };
 
 /**
- * Get all bookings
- * @returns {Promise<Array>} - Array of bookings
- */
-export const getAllBookings = async () => {
+* Get all bookings for a company
+* @param {number|string} companyId - The company ID
+* @returns {Promise<Array>} - Array of bookings
+*/
+export const getAllBookings = async (companyId) => {
+  if (!companyId) {
+    return [];
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking`, {
+    const response = await fetch(`${API_BASE_URL}/api/booking/company/${companyId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const message = await parseErrorMessage(response);
+      throw new Error(message);
     }
 
     const result = await response.json();
-    return result;
+    if (Array.isArray(result)) {
+      return result;
+    }
+    if (Array.isArray(result?.bookings)) {
+      return result.bookings;
+    }
+    return [];
   } catch (error) {
-    console.error('Error fetching bookings:', error);
     throw error;
   }
 };
@@ -134,17 +164,14 @@ export const createVNPayPayment = async (paymentData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const message = await parseErrorMessage(response);
+      throw new Error(message);
     }
 
     const result = await response.json();
@@ -162,41 +189,591 @@ export const createVNPayPayment = async (paymentData) => {
  */
 export const getBookingTotal = async (bookingId) => {
   try {
-    // First try without authentication (as per requirements)
-    let response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
+    // Always use authentication headers for booking total
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
     });
 
-    // If 401, try with authentication headers
-    if (response.status === 401) {
-      console.log('GET endpoint requires auth, retrying with authentication...');
-      response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-    }
-
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Handle authentication errors
-      if (response.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        throw new Error('Unauthenticated');
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
       
+      const message = await parseErrorMessage(response);
+      if (response.status === 400) {
+        // Allow caller to continue without total
+        throw new Error('Bad Request');
+      }
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get booking details by ID (for resume payment)
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Object>} - The booking details
+ */
+export const getBookingDetails = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching booking total:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a complaint for a booking
+ * @param {number} bookingId - The booking ID
+ * @param {string} message - Complaint message from user
+ * @returns {Promise<void>}
+ */
+export const createBookingComplaint = async (bookingId, message) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/complaint`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      const errorMessage = await parseErrorMessage(response);
+
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all complaints for a booking (admin/staff view)
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Array>} - Array of complaints
+ */
+export const getComplaintsByBookingId = async (bookingId) => {
+  if (!bookingId) return [];
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/complaints`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      // Handle auth/global errors (may redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return [];
+      }
+
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return Array.isArray(result) ? result : [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Resolve a booking complaint (admin/staff)
+ * @param {number} complaintId - The complaint ID
+ * @param {'NO_FAULT'|'COMPANY_FAULT'|'USER_FAULT'} resolutionType
+ * @param {string} note - Optional resolution note
+ * @returns {Promise<void>}
+ */
+export const resolveBookingComplaint = async (complaintId, resolutionType, note = '') => {
+  if (!complaintId || !resolutionType) {
+    throw new Error('Missing complaintId or resolutionType');
+  }
+  try {
+    const body = {
+      resolutionType,
+      note: note || null,
+    };
+
+    const response = await fetch(`${API_BASE_URL}/api/booking/complaint/${complaintId}/resolve`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return;
+      }
+
+      throw new Error(message);
+    }
+
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Cancel a booking by ID
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Object>} - The updated booking response
+ */
+export const cancelBooking = async (bookingId) => {
+  try {
+    // Try common RESTful cancel endpoint patterns
+    const endpoints = [
+      `${API_BASE_URL}/api/booking/${bookingId}/cancel`,
+      `${API_BASE_URL}/api/booking/cancel/${bookingId}`
+    ];
+    let lastError;
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+        });
+        if (response.ok) {
+          const result = await response.json().catch(() => ({}));
+          return result;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        // --- PATCH: suppress console noise ---
+        // lastError = new Error(errorData.message || `HTTP error! status: ${response.status}`); // OLD
+        lastError = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        // Don't show any error in console here
+      } catch (err) {
+        // OLD: console.error('Error cancelling booking:', err);
+        lastError = err;
+        // No console log
+      }
+    }
+    throw lastError || new Error('Failed to cancel booking');
+  } catch (error) {
+    // PATCH: Don't log error
+    // OLD: console.error('Error cancelling booking:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get bookings by tour ID
+ * @param {number} tourId - The tour ID
+ * @returns {Promise<Array>} - Array of bookings
+ */
+export const getBookingsByTourId = async (tourId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/tour/${tourId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    if (Array.isArray(result)) {
+      return result;
+    }
+    if (Array.isArray(result?.bookings)) {
+      return result.bookings;
+    }
+    return [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get guests by booking ID
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Array>} - Array of booking guests
+ */
+export const getGuestsByBookingId = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/guests`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Change booking status
+ * @param {number} bookingId - The booking ID
+ * @param {string} status - The new booking status (e.g., 'WAITING_FOR_APPROVED', 'BOOKING_REJECTED', 'WAITING_FOR_UPDATE', 'BOOKING_SUCCESS')
+ * @param {string} message - Optional message (for WAITING_FOR_UPDATE status)
+ * @returns {Promise<Object>} - The updated booking response
+ */
+export const changeBookingStatus = async (bookingId, status, message = null) => {
+  try {
+    const requestBody = { status };
+    if (message) {
+      requestBody.message = message;
+    }
+    
+    // Use getApiPath for consistent URL handling in dev/prod
+    const url = getApiPath(`/api/booking/change-status/${bookingId}`);
+    
+    // Log URL in development for debugging
+    if (import.meta.env.DEV) {
+      console.log('[BookingAPI] Calling change-status endpoint:', url);
+    }
+    
+    let response = await fetch(url, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(requestBody),
+    });
+
+    // Fallback: If 404 in dev mode with relative path, try full URL
+    if (!response.ok && response.status === 404 && import.meta.env.DEV && url.startsWith('/')) {
+      const fallbackUrl = `${API_BASE_URL}/api/booking/change-status/${bookingId}`;
+      console.warn('[BookingAPI] Proxy may not be working, trying direct URL:', fallbackUrl);
+      
+      try {
+        response = await fetch(fallbackUrl, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(requestBody),
+        });
+      } catch (fallbackError) {
+        console.error('[BookingAPI] Fallback URL also failed:', fallbackError);
+      }
+    }
+
+    if (!response.ok) {
+      const errorMessage = await parseErrorMessage(response);
+      
+      // Handle 401 - session expired
+      if (response.status === 401) {
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          throw new Error('Session expired. Please login again.');
+        }
+      }
+      
+      // Handle 500 - server error (don't redirect, show error message)
+      if (response.status === 500) {
+        // Log detailed error in development
+        if (import.meta.env.DEV) {
+          console.error('[BookingAPI] Server error (500):', {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            errorMessage
+          });
+        }
+        throw new Error(errorMessage || 'Server error occurred. Please try again later.');
+      }
+      
+      // Handle 403, 404 with global error handler (auto redirect)
+      if (response.status === 403 || response.status === 404) {
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
+        }
+      }
+      
+      throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    // Enhanced error logging
+    if (import.meta.env.DEV) {
+      console.error('[BookingAPI] changeBookingStatus error:', error);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Update booking
+ * @param {number} bookingId - The booking ID
+ * @param {Object} bookingData - The booking data (same structure as createBooking)
+ * @returns {Promise<Object>} - The updated booking response
+ */
+export const updateBooking = async (bookingId, bookingData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(bookingData),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Change booking guest insurance status
+ * @param {number} guestId - The booking guest ID
+ * @param {string} status - The new insurance status (e.g., 'Success', 'Failed', 'Pending')
+ * @returns {Promise<Object>} - The updated booking guest response
+ */
+export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/booking-guest/insurance/change-status/${guestId}?status=${status}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Company confirm tour completion
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<void>}
+ */
+export const companyConfirmTourCompletion = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/company-confirm-completion`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    // No content response
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * User confirm tour completion
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<void>}
+ */
+export const userConfirmTourCompletion = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/user-confirm-completion`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    // No content response
+    return;
+  } catch (error) {
+    console.error('Error confirming tour completion:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get tour completion status
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<boolean>} - True if tour is completed, false otherwise
+ */
+export const getTourCompletionStatus = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/tour-completion-status`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return false; // Đã redirect, trả về false
+      }
+
+      const message = await parseErrorMessage(response);
+
+      if (response.status === 400) {
+        return false;
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result === true || result === 'true';
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all complaints (admin/staff view)
+ * @returns {Promise<Array>} - Array of all complaints
+ */
+export const getAllComplaints = async (autoRedirect = false) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/complaints/all`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      // Only auto redirect if explicitly requested (user actions, not background polling)
+      const wasHandled = await checkAndHandleApiError(response, autoRedirect);
+      if (wasHandled) {
+        return [];
+      }
+
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return Array.isArray(result) ? result : [];
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get complaint by complaint ID (admin/staff view)
+ * @param {number} complaintId - The complaint ID
+ * @returns {Promise<Object>} - The complaint data
+ */
+export const getComplaintById = async (complaintId) => {
+  if (!complaintId) {
+    throw new Error('Complaint ID is required');
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/id/${complaintId}/complaints`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+
+      // Handle auth/global errors (may redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return null;
+      }
+
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
     throw error;
   }
 };

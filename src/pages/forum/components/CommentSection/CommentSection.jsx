@@ -2,10 +2,23 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../config/api';
+import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
+import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import DeleteConfirmModal from '../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import styles from './CommentSection.module.css';
+import {
+  Send,
+  MessageCircle,
+  ThumbsUp,
+  ThumbsDown,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  Flag,
+  CheckCircle2
+} from 'lucide-react';
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
@@ -124,7 +137,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         userEmail: user.email,
         forumPostId: post.forumPostId,
         content: commentText.trim(),
-        imgPath: null
+        // BE yêu cầu @NotBlank cho imgPath, dùng giá trị placeholder khi không có ảnh
+        imgPath: 'NO_IMAGE',
       };
 
       const response = await fetch(API_ENDPOINTS.COMMENTS, {
@@ -132,6 +146,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         headers: createAuthHeaders(token),
         body: JSON.stringify(body),
       });
+
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
 
       if (response.ok) {
         const newComment = await response.json();
@@ -198,6 +218,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         }),
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
       if (response.ok) {
         // Add comment to reported list
         const newReportedComments = new Set([...reportedComments, reportData.targetId]);
@@ -248,6 +274,13 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         method: 'DELETE',
         headers: createAuthHeaders(token),
       });
+      
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+      
       if (response.ok) {
         if (!deleteTarget.parentCommentId) {
           setComments(prev => prev.filter(c => c.forumCommentId !== deleteTarget.forumCommentId));
@@ -289,6 +322,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
               className={styles['comment-submit-btn']}
               disabled={isSubmitting || !commentText.trim()}
             >
+              <Send className={styles['submit-icon']} strokeWidth={1.8} />
               {isSubmitting ? t('forum.comments.submitting') : t('forum.comments.submit')}
             </button>
           </form>
@@ -390,6 +424,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   const [editText, setEditText] = useState('');
 
   const dropdownRef = useRef(null);
+  const userInfoRef = useRef(null);
 
   // Load replies count on mount
   useEffect(() => {
@@ -567,7 +602,8 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         userEmail: user.email,
         forumPostId: post.forumPostId,
         content: replyText.trim(),
-        imgPath: null,
+        // BE yêu cầu @NotBlank cho imgPath, dùng giá trị placeholder khi không có ảnh
+        imgPath: 'NO_IMAGE',
         parentCommentId: comment.forumCommentId
       };
 
@@ -577,6 +613,12 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         body: JSON.stringify(body)
       });
 
+      // Handle 401 if token expired
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
       if (response.ok) {
         const newReply = await response.json();
         setReplies(prev => [newReply, ...prev]);
@@ -585,9 +627,15 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         if (onCountChange) {
           onCountChange(prev => prev + 1);
         }
+      } else {
+        // Handle error response
+        const errorText = await response.text().catch(() => '');
+        console.error('Error submitting reply:', response.status, errorText);
+        alert('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại.');
       }
     } catch (error) {
       console.error('Error submitting reply:', error);
+      alert('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại.');
     } finally {
       setIsSubmittingReply(false);
     }
@@ -661,168 +709,168 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
 
   return (
     <div className={`${styles['comment-item']} ${isReply ? styles['reply-item'] : ''}`}>
-      <img 
-        src={getAvatarUrl(comment.userAvatar)} 
-        alt={comment.username}
-        className={styles['comment-avatar']}
-      />
-      <div className={styles['comment-content']}>
-        <div className={styles['comment-header']}>
-          <span className={styles['comment-username']}>{comment.username}</span>
-          <span className={styles['comment-time']}>{formatTime(comment.createdAt)}</span>
-          {user && (
-            <div className={styles['comment-actions-menu']} ref={dropdownRef}>
-              <button 
-                className={styles['comment-more-btn']}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDropdown(!showDropdown);
-                }}
-              >
-                ⋯
-              </button>
-              {showDropdown && (
-                <div className={`${styles['comment-dropdown']} ${styles['show']}`}>
-                  {(() => {
-                    const isOwner = isCommentOwner(comment);
-                    const isReported = reportedComments && reportedComments.has(comment.forumCommentId);
-                    return isOwner ? (
-                      <>
-                        <button 
-                          className={`${styles['dropdown-item']} ${styles['edit-item']}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit();
-                          }}
-                        >
-                          <span className={styles['dropdown-icon']}>✏️</span>
-                          {t('forum.comments.edit')}
-                        </button>
-                        <button 
-                          className={`${styles['dropdown-item']} ${styles['delete-item']}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete();
-                          }}
-                        >
-                          <span className={styles['dropdown-icon']}>🗑️</span>
-                          {t('forum.comments.delete')}
-                        </button>
-                      </>
-                    ) : (
-                      isReported ? (
-                        <div className={`${styles['dropdown-item']} ${styles['report-item-disabled']}`}>
-                          <span className={styles['dropdown-icon']}>✅</span>
-                          {t('forum.comments.reported')}
-                        </div>
-                      ) : (
-                        <button 
-                          className={`${styles['dropdown-item']} ${styles['report-item']}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReport();
-                          }}
-                        >
-                          <span className={styles['dropdown-icon']}>⚠️</span>
-                          {t('forum.comments.report')}
-                        </button>
-                      )
-                    );
-                  })()}
+      {/* LEFT: Avatar only (hover on avatar) */}
+      <div className={styles['comment-left']} ref={userInfoRef}>
+        <img 
+          src={getAvatarUrl(comment.userAvatar)} 
+          alt={comment.username}
+          className={styles['comment-avatar']}
+        />
+        <UserHoverCard 
+          user={{
+            username: comment.username,
+            userAvatar: comment.userAvatar,
+            userEmail: comment.userEmail,
+            userId: comment.userId
+          }}
+          triggerRef={userInfoRef}
+          position="bottom"
+        />
+      </div>
+
+      {/* RIGHT: Bubble + actions/meta */}
+      <div className={styles['comment-right']}>
+        {/* Bubble: header (username • time • menu) + content */}
+        <div className={styles['comment-bubble']}>
+          <div className={styles['comment-header']}>
+            <span className={styles['comment-username']}>{comment.username}</span>
+            <div className={styles['comment-header-right']}>
+              <span className={styles['comment-time']}>{formatTime(comment.createdAt)}</span>
+              {user && (
+                <div className={styles['comment-actions-menu']} ref={dropdownRef}>
+                  <button
+                    className={styles['comment-more-btn']}
+                    onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}
+                  >
+                    <MoreHorizontal strokeWidth={1.6} />
+                  </button>
+                  {showDropdown && (
+                    <div className={`${styles['comment-dropdown']} ${styles['show']}`}>
+                      {(() => {
+                        const isOwner = isCommentOwner(comment);
+                        const isReported = reportedComments && reportedComments.has(comment.forumCommentId);
+                        return isOwner ? (
+                          <>
+                            <button className={`${styles['dropdown-item']} ${styles['edit-item']}`}
+                                    onClick={(e) => { e.stopPropagation(); handleEdit(); }}>
+                              <Edit3 className={styles['dropdown-icon']} strokeWidth={1.6} />
+                              {t('forum.comments.edit')}
+                            </button>
+                            <button className={`${styles['dropdown-item']} ${styles['delete-item']}`}
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(); }}>
+                              <Trash2 className={styles['dropdown-icon']} strokeWidth={1.6} />
+                              {t('forum.comments.delete')}
+                            </button>
+                          </>
+                        ) : isReported ? (
+                          <div className={`${styles['dropdown-item']} ${styles['report-item-disabled']}`}>
+                            <CheckCircle2 className={styles['dropdown-icon']} strokeWidth={1.6} />
+                            {t('forum.comments.reported')}
+                          </div>
+                        ) : (
+                          <button className={`${styles['dropdown-item']} ${styles['report-item']}`}
+                                  onClick={(e) => { e.stopPropagation(); handleReport(); }}>
+                            <Flag className={styles['dropdown-icon']} strokeWidth={1.6} />
+                            {t('forum.comments.report')}
+                          </button>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-        
-        {editing ? (
-          <div className={styles['edit-comment-form']}>
-            <textarea
-              className={styles['edit-comment-input']}
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              placeholder={t('forum.comments.editPlaceholder')}
-            />
-            <div className={styles['edit-comment-actions']}>
-              <button className={styles['save-edit-btn']} onClick={handleSaveEdit}>
-                {t('forum.comments.update')}
-              </button>
-              <button className={styles['cancel-edit-btn']} onClick={() => setEditing(false)}>
-                {t('forum.comments.cancel')}
-              </button>
-            </div>
           </div>
-        ) : (
-          <div className={styles['comment-text']}>{comment.content}</div>
-        )}
-        
-        <div className={styles['comment-actions']}>
-          {user ? (
-            <>
-              <button 
-                className={`${styles['comment-action-btn']} ${reaction.userReaction === 'LIKE' ? styles['active'] : ''}`}
-                onClick={() => handleReaction('LIKE')}
-              >
-                {t('forum.post.like')} ({reaction.likeCount})
-              </button>
-              <button 
-                className={`${styles['comment-action-btn']} ${reaction.userReaction === 'DISLIKE' ? styles['active'] : ''}`}
-                onClick={() => handleReaction('DISLIKE')}
-              >
-                {t('forum.post.dislike')} ({reaction.dislikeCount})
-              </button>
-              <button 
-                className={styles['comment-action-btn']} 
-                onClick={handleReply}
-              >
-                {t('forum.post.reply')}
-              </button>
-            </>
+          {editing ? (
+            <div className={styles['edit-comment-form']}>
+              <textarea
+                className={styles['edit-comment-input']}
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                placeholder={t('forum.comments.editPlaceholder')}
+              />
+              <div className={styles['edit-comment-actions']}>
+                <button className={styles['save-edit-btn']} onClick={handleSaveEdit}>
+                  {t('forum.comments.update')}
+                </button>
+                <button className={styles['cancel-edit-btn']} onClick={() => setEditing(false)}>
+                  {t('forum.comments.cancel')}
+                </button>
+              </div>
+            </div>
           ) : (
-            <>
-              <div 
-                className={styles['comment-action-btn-disabled']} 
-                title={t('forum.guest.loginToReact')}
-                onClick={() => onLoginRequired && onLoginRequired()}
-              >
-                {t('forum.post.like')} ({reaction.likeCount})
-              </div>
-              <div 
-                className={styles['comment-action-btn-disabled']} 
-                title={t('forum.guest.loginToReact')}
-                onClick={() => onLoginRequired && onLoginRequired()}
-              >
-                {t('forum.post.dislike')} ({reaction.dislikeCount})
-              </div>
-              <div 
-                className={styles['comment-action-btn-disabled']} 
-                title={t('forum.guest.loginToComment')}
-                onClick={() => onLoginRequired && onLoginRequired()}
-              >
-                {t('forum.post.reply')}
-              </div>
-            </>
+            <div className={styles['comment-text']}>{comment.content}</div>
           )}
         </div>
 
-        {/* Show replies button */}
+        {/* Meta row: chỉ còn actions (like/dislike/reply) */}
+        <div className={styles['comment-meta-row']}>
+          {user ? (
+            <div className={styles['comment-actions']}>
+              <button 
+                className={`${styles['comment-action-btn']} ${styles['like-btn']} ${reaction.userReaction === 'LIKE' ? styles['active'] : ''}`}
+                onClick={() => handleReaction('LIKE')}
+              >
+                <ThumbsUp className={styles['action-icon']} strokeWidth={1.6} />
+                <span className={styles['action-text']}>{t('forum.post.like')}</span>
+              </button>
+              <button 
+                className={`${styles['comment-action-btn']} ${styles['dislike-btn']} ${reaction.userReaction === 'DISLIKE' ? styles['active'] : ''}`}
+                onClick={() => handleReaction('DISLIKE')}
+              >
+                <ThumbsDown className={styles['action-icon']} strokeWidth={1.6} />
+                <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+              </button>
+              <button className={styles['comment-action-btn']} onClick={handleReply}>
+                <MessageCircle className={styles['action-icon']} strokeWidth={1.6} />
+                <span className={styles['action-text']}>{t('forum.post.reply')}</span>
+              </button>
+            </div>
+          ) : (
+            <div className={styles['comment-actions']}>
+              <div 
+                className={`${styles['comment-action-btn-disabled']} ${styles['like-btn-disabled']}`} 
+                title={t('forum.guest.loginToReact')} 
+                onClick={() => onLoginRequired && onLoginRequired()}
+              >
+                <ThumbsUp className={styles['action-icon']} strokeWidth={1.6} />
+                <span className={styles['action-text']}>{t('forum.post.like')}</span>
+              </div>
+              <div 
+                className={`${styles['comment-action-btn-disabled']} ${styles['dislike-btn-disabled']}`} 
+                title={t('forum.guest.loginToReact')} 
+                onClick={() => onLoginRequired && onLoginRequired()}
+              >
+                <ThumbsDown className={styles['action-icon']} strokeWidth={1.6} />
+                <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+              </div>
+              <div 
+                className={styles['comment-action-btn-disabled']} 
+                title={t('forum.guest.loginToComment')} 
+                onClick={() => onLoginRequired && onLoginRequired()}
+              >
+                <MessageCircle className={styles['action-icon']} strokeWidth={1.6} />
+                <span className={styles['action-text']}>{t('forum.post.reply')}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Replies toggle */}
         {replies.length > 0 && (
           <div className={styles['reply-toggle-row']}>
-            <button 
-              className={styles['show-more-btn']} 
-              onClick={handleToggleReplies}
-            >
+            <button className={styles['show-more-btn']} onClick={() => setShowReplies(!showReplies)}>
               {showReplies ? t('forum.post.hideReplies') : `${t('forum.post.showReplies')} ${replies.length}`}
             </button>
           </div>
         )}
 
-        {/* Show replies */}
+        {/* Replies list */}
         {showReplies && (
           <div className={styles['replies-container']}>
             {replies.map((reply) => (
               <CommentItem 
-                key={reply.forumCommentId} 
+                key={reply.forumCommentId}
                 comment={reply}
                 user={user}
                 t={t}
@@ -860,6 +908,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
               onClick={handleSubmitReply}
               disabled={isSubmittingReply || !replyText.trim()}
             >
+              <Send className={styles['submit-icon']} strokeWidth={1.8} />
               {isSubmittingReply ? t('forum.comments.submitting') : t('forum.comments.submit')}
             </button>
           </div>

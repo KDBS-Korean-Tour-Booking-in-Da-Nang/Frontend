@@ -23,12 +23,16 @@ export const useBookingStepValidation = (bookingData) => {
     return emailRegex.test(email);
   };
 
-  // Helper function to validate full name format (letters from all languages, spaces, hyphens, apostrophes)
+  // Helper function to validate full name format (letters, numbers, spaces, hyphens, apostrophes)
+  // Requires at least one letter
   const isValidFullName = (fullName) => {
     if (!fullName?.trim()) return false;
     // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
-    const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
-    return nameRegex.test(fullName.trim());
+    // Also allows numbers like: John123, Mary2, etc.
+    const nameRegex = /^[\p{L}\p{M}\d\s\-']+$/u;
+    const trimmed = fullName.trim();
+    // Must match regex and have at least one letter
+    return nameRegex.test(trimmed) && /[\p{L}\p{M}]/u.test(trimmed);
   };
 
   // Helper function to calculate age from date of birth at a specific date (same as Step2Details)
@@ -127,9 +131,7 @@ export const useBookingStepValidation = (bookingData) => {
         // Check email format
         isValidEmail(contact?.email) &&
         // Check DOB format and age (representative must be >= 18)
-        isValidDob(representativeDob, 18) &&
-        // Check if email matches user's email (if user has email)
-        (!user?.email || contact?.email?.trim().toLowerCase() === user.email.toLowerCase())
+        isValidDob(representativeDob, 18)
       ),
       missingFields: [
         !contact?.fullName?.trim() && 'booking.step1.fields.fullName',
@@ -138,7 +140,6 @@ export const useBookingStepValidation = (bookingData) => {
         !isValidPhone(contact?.phone) && contact?.phone?.trim() && 'booking.step1.fields.phone',
         !contact?.email?.trim() && 'booking.step1.fields.email',
         !isValidEmail(contact?.email) && contact?.email?.trim() && 'booking.step1.fields.email',
-        (user?.email && contact?.email?.trim() && contact?.email?.trim().toLowerCase() !== user.email.toLowerCase()) && 'booking.step1.fields.email',
         !representativeDob?.trim() && 'booking.step1.fields.dob',
         !isValidDob(representativeDob, 18) && representativeDob?.trim() && 'booking.step1.fields.dob',
         !contact?.address?.trim() && 'booking.step1.fields.address',
@@ -578,8 +579,7 @@ export const useBookingStepValidation = (bookingData) => {
           isValidFullName(contact?.fullName) &&
           isValidPhone(contact?.phone) &&
           isValidEmail(contact?.email) &&
-          isValidDob(contact?.dob || plan?.members?.adult?.[0]?.dob, 18) &&
-          (!user?.email || contact?.email?.trim().toLowerCase() === user.email.toLowerCase())
+          isValidDob(contact?.dob || plan?.members?.adult?.[0]?.dob, 18)
         );
         
         const step2Valid = !!(

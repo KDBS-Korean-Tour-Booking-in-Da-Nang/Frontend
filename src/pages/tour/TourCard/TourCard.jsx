@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import {
+  ClockIcon,
+  ShareIcon,
+  ArrowRightIcon
+} from '@heroicons/react/24/outline';
 import { ShareTourModal, LoginRequiredModal } from '../../../components/modals';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from './TourCard.module.css';
@@ -11,6 +16,7 @@ const TourCard = ({ tour }) => {
   const { user } = useAuth();
   const [openShare, setOpenShare] = useState(false);
   const [showLoginRequired, setShowLoginRequired] = useState(false);
+  const modalClosingRef = useRef(false);
   const { t, i18n } = useTranslation();
 
   const formatPrice = (price) => {
@@ -43,7 +49,7 @@ const TourCard = ({ tour }) => {
   };
 
   const handleViewDetails = () => {
-    navigate(`/tour/${tour.id}`);
+    navigate(`/tour/detail?id=${tour.id}`);
   };
 
   const handleShare = () => {
@@ -52,7 +58,11 @@ const TourCard = ({ tour }) => {
   };
 
   const handleCardClick = () => {
-    navigate(`/tour/${tour.id}`);
+    // Không navigate nếu modal đang mở hoặc đang trong quá trình đóng
+    if (openShare || showLoginRequired || modalClosingRef.current) {
+      return;
+    }
+    navigate(`/tour/detail?id=${tour.id}`);
   };
 
   const handleButtonClick = (e) => {
@@ -63,10 +73,10 @@ const TourCard = ({ tour }) => {
     <div className={styles['tour-card']} onClick={handleCardClick}>
       <div className={styles['tour-card-image']}>
         <img 
-          src={tour.image || '/default-tour.jpg'} 
+          src={tour.image || '/default-Tour.jpg'} 
           alt={tour.title} 
           onError={(e) => {
-            e.target.src = '/default-tour.jpg';
+            e.target.src = '/default-Tour.jpg';
           }}
         />
         {tour.featured && (
@@ -79,65 +89,79 @@ const TourCard = ({ tour }) => {
       <div className={styles['tour-card-content']}>
         <h3 className={styles['tour-card-title']}>{tour.title}</h3>
         
-        <div className={styles['tour-card-info']}>
-          <div className={styles['tour-duration']}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{formatDurationLocalized()}</span>
+        <div className={styles['tour-card-bottom']}>
+          <div className={styles['tour-card-info']}>
+            <div className={styles['tour-duration']}>
+              <ClockIcon className={styles['duration-icon']} />
+              <span>{formatDurationLocalized()}</span>
+            </div>
+            
+            <div className={styles['tour-price']}>
+              <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
+            </div>
           </div>
-          
-          <div className={styles['tour-price']}>
-            <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
+
+          <div className={styles['tour-card-actions']}>
+            <button 
+              className={styles['tour-details-btn']}
+              onClick={(e) => {
+                handleButtonClick(e);
+                handleViewDetails();
+              }}
+            >
+              <span>{t('tourCard.details')}</span>
+              <ArrowRightIcon className={styles['btn-icon']} />
+            </button>
+            <button 
+              className={styles['share-btn']}
+              onClick={(e) => {
+                handleButtonClick(e);
+                handleShare();
+              }}
+            >
+              <ShareIcon className={styles['share-icon']} />
+            </button>
           </div>
-        </div>
-
-        <div className={styles['tour-card-prices']}>
-          <div className={styles['price-row']}><span>{t('tourCard.children')}</span><span>{(tour.childrenPrice ?? 0) > 0 ? formatPrice(tour.childrenPrice) : t('tourPage.detail.overview.free')}</span></div>
-          <div className={styles['price-row']}><span>{t('tourCard.baby')}</span><span>{(tour.babyPrice ?? 0) > 0 ? formatPrice(tour.babyPrice) : t('tourPage.detail.overview.free')}</span></div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <button 
-            className={styles['tour-details-btn']}
-            onClick={(e) => {
-              handleButtonClick(e);
-              handleViewDetails();
-            }}
-          >
-            {t('tourCard.details')}
-          </button>
-          <button 
-            className={styles['share-btn']}
-            onClick={(e) => {
-              handleButtonClick(e);
-              handleShare();
-            }}
-          >
-            {t('tourCard.share') || 'Share'}
-          </button>
         </div>
       </div>
       {openShare && createPortal(
         <ShareTourModal 
           isOpen={openShare} 
-          onClose={() => setOpenShare(false)} 
+          onClose={() => {
+            modalClosingRef.current = true;
+            setOpenShare(false);
+            // Reset flag sau một khoảng thời gian ngắn để đảm bảo event đã xử lý xong
+            setTimeout(() => {
+              modalClosingRef.current = false;
+            }, 100);
+          }} 
           tourId={tour.id}
           onShared={(post)=>{ 
             // Close modal then navigate to forum like TourDetailPage
+            modalClosingRef.current = true;
             setOpenShare(false);
-            setTimeout(() => navigate('/forum'), 100);
+            setTimeout(() => {
+              modalClosingRef.current = false;
+              navigate('/forum');
+            }, 100);
           }}
         />,
         document.body
       )}
       {showLoginRequired && createPortal(
-        <LoginRequiredModal 
+        <LoginRequiredModal
           isOpen={showLoginRequired}
-          onClose={() => setShowLoginRequired(false)}
+          onClose={() => {
+            modalClosingRef.current = true;
+            setShowLoginRequired(false);
+            // Reset flag sau một khoảng thời gian ngắn để đảm bảo event đã xử lý xong
+            setTimeout(() => {
+              modalClosingRef.current = false;
+            }, 100);
+          }}
           title={t('auth.loginRequired.title')}
           message={t('auth.loginRequired.message')}
-          returnTo={`/tour/${tour.id}`}
+          returnTo={`/tour/detail?id=${tour.id}`}
         />,
         document.body
       )}

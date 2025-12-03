@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { LogIn, X } from 'lucide-react';
 import styles from './LoginRequiredModal.module.css';
 
 const LoginRequiredModal = ({ isOpen, onClose, title, message, redirectTo = '/login', returnTo = null }) => {
@@ -52,23 +53,21 @@ const LoginRequiredModal = ({ isOpen, onClose, title, message, redirectTo = '/lo
   return (
     <div className={styles['login-required-modal-overlay']} onClick={handleClose}>
       <div className={styles['login-required-modal']} onClick={(e) => e.stopPropagation()}>
-        <div className={styles['login-required-modal-header']}>
+        <button 
+          className={styles['login-required-modal-close']} 
+          onClick={handleClose}
+          aria-label={getTranslation('common.close', 'Close')}
+        >
+          <X size={20} strokeWidth={2} />
+        </button>
+        
+        <div className={styles['login-required-modal-body']}>
+          <div className={styles['login-required-modal-icon-wrapper']}>
+            <LogIn size={36} strokeWidth={1.5} />
+          </div>
           <h3 className={styles['login-required-modal-title']}>
             {title || getTranslation('auth.loginRequired.title', 'Please login to perform')}
           </h3>
-          <button 
-            className={styles['login-required-modal-close']} 
-            onClick={handleClose}
-            aria-label={getTranslation('common.close', 'Close')}
-          >
-            ✕
-          </button>
-        </div>
-        
-        <div className={styles['login-required-modal-body']}>
-          <div className={styles['login-required-modal-icon']}>
-            🔐
-          </div>
           <p className={styles['login-required-modal-message']}>
             {message || getTranslation('auth.loginRequired.message', 'Please login to perform this action.')}
           </p>

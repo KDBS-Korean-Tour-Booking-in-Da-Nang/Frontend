@@ -1,0 +1,351 @@
+/* Minimal Soft Korean - RequestUpdateModal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.request-update-modal {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+.modal-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.modal-close:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-content {
+  padding: 40px 32px 32px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+.icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: #eff6ff;
+  color: #1a8eea;
+}
+
+.icon-wrapper[data-reject="true"] {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.booking-id {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.booking-id strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.instruction-text {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  text-align: left;
+  width: 100%;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  background: #ffffff;
+  color: #1e293b;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #1a8eea;
+  box-shadow: 0 0 0 3px rgba(26, 142, 234, 0.1);
+}
+
+.message-textarea:disabled {
+  background-color: #f8fafc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.message-textarea::placeholder {
+  color: #94a3b8;
+}
+
+.hint-text {
+  margin: 0;
+  font-size: 12px;
+  color: #ef4444;
+  text-align: left;
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 32px 32px;
+  border-top: 1px solid #f0f0f0;
+  justify-content: flex-end;
+  background: #ffffff;
+  border-radius: 0 0 28px 28px;
+}
+
+.btn-cancel,
+.btn-primary {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+}
+
+.btn-cancel {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-primary {
+  background: #1a8eea;
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1478c3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.25);
+}
+
+.btn-primary:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .request-update-modal {
+    max-width: 450px;
+    margin: 16px;
+    border-radius: 24px;
+  }
+
+  .modal-content {
+    padding: 36px 28px 28px;
+    gap: 16px;
+  }
+
+  .icon-wrapper {
+    width: 64px;
+    height: 64px;
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .instruction-text {
+    font-size: 13px;
+  }
+
+  .message-textarea {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .modal-actions {
+    padding: 18px 28px 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .request-update-modal {
+    max-width: 360px;
+    margin: 12px;
+    border-radius: 20px;
+  }
+
+  .modal-close {
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .modal-content {
+    padding: 32px 24px 24px;
+    gap: 14px;
+  }
+
+  .icon-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+
+  .modal-title {
+    font-size: 17px;
+  }
+
+  .booking-id {
+    font-size: 12px;
+  }
+
+  .instruction-text {
+    font-size: 13px;
+  }
+
+  .message-textarea {
+    padding: 12px 16px;
+    font-size: 13px;
+    min-height: 100px;
+  }
+
+  .hint-text {
+    font-size: 11px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 24px 24px;
+  }
+
+  .btn-cancel,
+  .btn-primary {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .request-update-modal {
+    max-width: 320px;
+    margin: 8px;
+  }
+
+  .modal-content {
+    padding: 28px 20px 20px;
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .instruction-text {
+    font-size: 12px;
+  }
+
+  .message-textarea {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+}

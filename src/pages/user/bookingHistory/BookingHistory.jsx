@@ -1,12 +1,81 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
+import { getBookingTotal } from '../../../services/bookingAPI';
+import {
+  ArrowLeftIcon,
+  FunnelIcon,
+  CalendarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  DocumentTextIcon
+} from '@heroicons/react/24/outline';
 import BookingHistoryCard from './BookingHistoryCard';
 import styles from './BookingHistory.module.css';
 
+// Booking status helpers
+const STATUS_KEYS = {
+  PENDING_PAYMENT: 'pendingPayment',
+  WAITING_FOR_APPROVED: 'waitingForApproved',
+  WAITING_FOR_UPDATE: 'waitingForUpdate',
+  BOOKING_REJECTED: 'bookingRejected',
+  BOOKING_FAILED: 'bookingFailed',
+  BOOKING_SUCCESS_PENDING: 'bookingSuccessPending',
+  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: 'bookingSuccessWaitForConfirmed',
+  BOOKING_UNDER_COMPLAINT: 'bookingUnderComplaint',
+  BOOKING_SUCCESS: 'bookingSuccess'
+};
+
+const normalizeStatus = (status) => {
+  if (status === null || status === undefined) {
+    return STATUS_KEYS.PENDING_PAYMENT;
+  }
+
+  if (typeof status === 'number') {
+    if (status === 1) return STATUS_KEYS.BOOKING_SUCCESS;
+    if (status === 2) return STATUS_KEYS.BOOKING_REJECTED;
+    return STATUS_KEYS.PENDING_PAYMENT;
+  }
+
+  const raw = String(status).trim().toUpperCase();
+
+  if (raw === '0') return STATUS_KEYS.PENDING_PAYMENT;
+  if (raw === '1') return STATUS_KEYS.BOOKING_SUCCESS;
+  if (raw === '2') return STATUS_KEYS.BOOKING_REJECTED;
+
+  const legacyMap = {
+    PURCHASED: STATUS_KEYS.BOOKING_SUCCESS,
+    CONFIRMED: STATUS_KEYS.WAITING_FOR_APPROVED,
+    PENDING: STATUS_KEYS.PENDING_PAYMENT,
+    CANCELLED: STATUS_KEYS.BOOKING_REJECTED,
+    FAILED: STATUS_KEYS.BOOKING_FAILED,
+    SUCCESS: STATUS_KEYS.BOOKING_SUCCESS
+  };
+
+  if (STATUS_KEYS[raw]) {
+    return STATUS_KEYS[raw];
+  }
+
+  if (legacyMap[raw]) {
+    return legacyMap[raw];
+  }
+
+  return STATUS_KEYS.PENDING_PAYMENT;
+};
+
+const normalizeTrx = (trx) => {
+  if (!trx && typeof trx !== 'number') return undefined;
+  if (typeof trx === 'number') return trx === 1 ? 'success' : trx === 2 ? 'failed' : trx === 3 ? 'cancelled' : 'pending';
+  return String(trx || '').toLowerCase();
+};
+
 const BookingHistory = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +104,7 @@ const BookingHistory = () => {
           throw new Error('No authentication token found');
         }
         
-        const response = await fetch(API_ENDPOINTS.BOOKING_SUMMARY_BY_EMAIL(user.email), {
+        const response = await fetch(API_ENDPOINTS.BOOKING_BY_EMAIL(user.email), {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -44,23 +113,61 @@ const BookingHistory = () => {
         
         if (!response.ok) {
           if (response.status === 401) {
+            const { handleApiError } = await import('../../../utils/apiErrorHandler');
+            await handleApiError(response);
             throw new Error('Authentication failed. Please login again.');
           }
           throw new Error(`Failed to fetch booking history: ${response.status} ${response.statusText}`);
         }
         
         const data = await response.json();
-        setAllBookings(data);
+        // Fetch total amounts for all bookings in parallel
+        const bookingsWithTotals = await Promise.all(
+          data.map(async (booking) => {
+            try {
+              const totalResp = await getBookingTotal(booking.bookingId);
+              return {
+                bookingId: booking.bookingId,
+                tourId: booking.tourId,
+                tourName: booking.tourName,
+                contactName: booking.contactName,
+                contactPhone: booking.contactPhone,
+                contactEmail: booking.contactEmail,
+                departureDate: booking.departureDate,
+                totalGuests: booking.totalGuests,
+                status: booking.bookingStatus, // Use correct bookingStatus from BookingResponse
+                totalAmount: totalResp?.totalAmount || 0,
+                createdAt: booking.createdAt
+              };
+            } catch (err) {
+              console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
+              return {
+                bookingId: booking.bookingId,
+                tourId: booking.tourId,
+                tourName: booking.tourName,
+                contactName: booking.contactName,
+                contactPhone: booking.contactPhone,
+                contactEmail: booking.contactEmail,
+                departureDate: booking.departureDate,
+                totalGuests: booking.totalGuests,
+                status: booking.bookingStatus,
+                totalAmount: 0,
+                createdAt: booking.createdAt
+              };
+            }
+          })
+        );
+        setAllBookings(bookingsWithTotals);
         
         // Calculate pagination
-        const totalItems = data.length;
+        const totalItems = bookingsWithTotals.length;
         const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
         setTotalPages(totalPagesCount);
         
         // Set initial page data
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        setBookings(data.slice(startIndex, endIndex));
+        setBookings(bookingsWithTotals.slice(startIndex, endIndex));
       } catch (err) {
         console.error('Error fetching booking history:', err);
         setError(err.message);
@@ -81,9 +188,14 @@ const BookingHistory = () => {
 
     // Status filter
     if (statusFilter !== 'all') {
-      filteredBookings = filteredBookings.filter(booking => 
-        booking.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
+      filteredBookings = filteredBookings.filter(booking => {
+        const status = normalizeStatus(booking.status ?? booking.bookingStatus);
+        const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
+        if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
+          return status === STATUS_KEYS.BOOKING_SUCCESS || trx === 'success';
+        }
+        return status === statusFilter;
+      });
     }
 
     // Date filter
@@ -115,9 +227,14 @@ const BookingHistory = () => {
     let filteredBookings = [...allBookings];
 
     if (statusFilter !== 'all') {
-      filteredBookings = filteredBookings.filter(booking => 
-        booking.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
+      filteredBookings = filteredBookings.filter(booking => {
+        const status = normalizeStatus(booking.status ?? booking.bookingStatus);
+        const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
+        if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
+          return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
+        }
+        return status === statusFilter;
+      });
     }
 
     if (dateFilter === 'newest') {
@@ -176,6 +293,14 @@ const BookingHistory = () => {
       <div className={styles['booking-history-wrapper']}>
         {/* Header */}
         <div className={styles['booking-history-header']}>
+          <button 
+            className={styles['back-button']}
+            onClick={() => navigate(-1)}
+            title={t('bookingHistory.backButton')}
+          >
+            <ArrowLeftIcon className={styles['back-icon']} />
+            <span>{t('bookingHistory.backButton')}</span>
+          </button>
           <h1 className={styles['booking-history-title']}>
             {t('bookingHistory.title')}
           </h1>
@@ -185,7 +310,8 @@ const BookingHistory = () => {
         <div className={styles['filters-section']}>
           <div className={styles['filter-group']}>
             <label className={styles['filter-label']}>
-              {t('bookingHistory.filters.status')}
+              <FunnelIcon className={styles['filter-label-icon']} />
+              <span>{t('bookingHistory.filters.status')}</span>
             </label>
             <select 
               className={styles['filter-select']}
@@ -193,15 +319,22 @@ const BookingHistory = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="all">{t('bookingHistory.filters.allStatus')}</option>
-              <option value="pending">{t('bookingHistory.status.pending')}</option>
-              <option value="confirmed">{t('bookingHistory.status.confirmed')}</option>
-              <option value="cancelled">{t('bookingHistory.status.cancelled')}</option>
+              <option value={STATUS_KEYS.PENDING_PAYMENT}>{t('bookingHistory.status.pendingPayment')}</option>
+              <option value={STATUS_KEYS.WAITING_FOR_APPROVED}>{t('bookingHistory.status.waitingForApproved')}</option>
+              <option value={STATUS_KEYS.WAITING_FOR_UPDATE}>{t('bookingHistory.status.waitingForUpdate')}</option>
+              <option value={STATUS_KEYS.BOOKING_SUCCESS}>{t('bookingHistory.status.bookingSuccess')}</option>
+              <option value={STATUS_KEYS.BOOKING_SUCCESS_PENDING}>{t('bookingHistory.status.bookingSuccessPending')}</option>
+              <option value={STATUS_KEYS.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED}>{t('bookingHistory.status.bookingSuccessWaitForConfirmed')}</option>
+              <option value={STATUS_KEYS.BOOKING_UNDER_COMPLAINT}>{t('bookingHistory.status.bookingUnderComplaint')}</option>
+              <option value={STATUS_KEYS.BOOKING_FAILED}>{t('bookingHistory.status.bookingFailed')}</option>
+              <option value={STATUS_KEYS.BOOKING_REJECTED}>{t('bookingHistory.status.bookingRejected')}</option>
             </select>
           </div>
           
           <div className={styles['filter-group']}>
             <label className={styles['filter-label']}>
-              {t('bookingHistory.filters.date')}
+              <CalendarIcon className={styles['filter-label-icon']} />
+              <span>{t('bookingHistory.filters.date')}</span>
             </label>
             <select 
               className={styles['filter-select']}
@@ -218,7 +351,7 @@ const BookingHistory = () => {
         <div className={styles['bookings-container']}>
           {bookings.length === 0 ? (
             <div className={styles['empty-state']}>
-              <div className={styles['empty-icon']}>📋</div>
+              <DocumentTextIcon className={styles['empty-icon']} />
               <h3>{t('bookingHistory.empty.title')}</h3>
               <p>{t('bookingHistory.empty.message')}</p>
             </div>
@@ -240,15 +373,17 @@ const BookingHistory = () => {
                     className={styles['pagination-btn']}
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(1)}
+                    title="Trang đầu"
                   >
-                    «
+                    <ChevronDoubleLeftIcon className={styles['pagination-icon']} />
                   </button>
                   <button 
                     className={styles['pagination-btn']}
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
+                    title="Trang trước"
                   >
-                    ‹
+                    <ChevronLeftIcon className={styles['pagination-icon']} />
                   </button>
                   
                   {/* Page numbers */}
@@ -281,15 +416,17 @@ const BookingHistory = () => {
                     className={styles['pagination-btn']}
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
+                    title="Trang sau"
                   >
-                    ›
+                    <ChevronRightIcon className={styles['pagination-icon']} />
                   </button>
                   <button 
                     className={styles['pagination-btn']}
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(totalPages)}
+                    title="Trang cuối"
                   >
-                    »
+                    <ChevronDoubleRightIcon className={styles['pagination-icon']} />
                   </button>
                 </div>
               )}

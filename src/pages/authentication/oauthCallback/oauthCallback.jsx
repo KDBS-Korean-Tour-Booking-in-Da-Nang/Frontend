@@ -23,7 +23,6 @@ const OAuthCallback = () => {
     const username = searchParams.get('username');
     const role = searchParams.get('role');
     const avatar = searchParams.get('avatar');
-    const isPremium = searchParams.get('isPremium');
     const balance = searchParams.get('balance');
 
     // If there's an error, redirect to login with error
@@ -57,25 +56,81 @@ const OAuthCallback = () => {
         localStorage.removeItem('tokenExpiry');
       }
 
-      // Create user object from URL parameters
-      const user = {
+      // Resolve provider set prior to redirect
+      const provider = localStorage.getItem('oauth_provider');
+      // Clean temp provider flag
+      localStorage.removeItem('oauth_provider');
+
+      // Base user object from URL parameters (status may be missing here)
+      const baseUser = {
         id: parseInt(userId),
         email: decodeURIComponent(email),
         role: role ? decodeURIComponent(role) : 'USER',
         name: username ? decodeURIComponent(username) : decodeURIComponent(email).split('@')[0],
         avatar: avatar ? decodeURIComponent(avatar) : null,
-        isPremium: isPremium === 'true',
-        balance: balance ? parseFloat(balance) : 0
+        balance: balance ? parseFloat(balance) : 0,
+        authProvider: provider === 'GOOGLE' || provider === 'NAVER' ? provider : 'OAUTH'
       };
 
-      // Login user
-      login(user, decodedToken, rememberMe);
+      // Login user with token - user info from URL parameters is sufficient
+      // No need to call additional API endpoints during login flow
+      login(baseUser, decodedToken, rememberMe);
       
-      // Show success toast
-      showSuccess('toast.auth.login_success');
+      // Clear stale onboarding flags for non-pending users
+      const currentUserRole = baseUser.role;
+      const currentUserStatus = undefined; // Status not available from URL params
       
-      // Redirect nội bộ để tránh reload toàn bộ app
-      navigate('/', { replace: true });
+      if (!((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING')) {
+        localStorage.removeItem('registration_intent');
+        localStorage.removeItem('company_onboarding_pending');
+      }
+      
+      // Navigate immediately and show toast on the new page
+      // Check for pending status from localStorage if available
+      const savedUser = localStorage.getItem('user');
+      let finalStatus = currentUserStatus;
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          finalStatus = parsed.status;
+        } catch {}
+      }
+      
+      if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && finalStatus === 'COMPANY_PENDING') {
+        // Use window.location.href for pending-page to ensure full page reload
+        window.location.href = '/pending-page';
+        return;
+      }
+      
+      const returnAfterLogin = localStorage.getItem('returnAfterLogin');
+      if (returnAfterLogin) {
+        localStorage.removeItem('returnAfterLogin');
+        if (currentUserRole === 'COMPANY') {
+          navigate(returnAfterLogin, { 
+            replace: true,
+            state: { message: 'toast.auth.login_success', type: 'success' }
+          });
+          return;
+        }
+        navigate('/', { 
+          replace: true,
+          state: { message: 'toast.auth.login_success', type: 'success' }
+        });
+        return;
+      }
+
+      // Default navigation by role - use navigate to avoid page reload
+      let targetPath = '/';
+      if (currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') {
+        targetPath = '/company/dashboard';
+      } else if (currentUserRole === 'ADMIN' || currentUserRole === 'STAFF') {
+        targetPath = '/admin';
+      }
+      
+      navigate(targetPath, { 
+        replace: true,
+        state: { message: 'toast.auth.login_success', type: 'success' }
+      });
       
     } catch (err) {
       // If there's an error, redirect to login with error

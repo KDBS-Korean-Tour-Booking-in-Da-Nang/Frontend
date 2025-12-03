@@ -39,19 +39,19 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full ${sizeClasses[size]}`}>
-                <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+              <Dialog.Panel className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full mx-4 sm:mx-0 ${sizeClasses[size]}`}>
+                <div className="bg-white px-3 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-5">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <Dialog.Title as="h3" className="text-base sm:text-lg font-semibold leading-6 text-gray-900 pr-2">
                       {title}
                     </Dialog.Title>
                     <button
                       type="button"
-                      className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-0"
                       onClick={onClose}
                     >
                       <span className="sr-only">{t('common.close')}</span>
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                      <XMarkIcon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                     </button>
                   </div>
                   {children}

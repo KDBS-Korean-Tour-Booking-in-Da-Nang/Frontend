@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import styles from './CommentReportModal.module.css';
 
 const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
@@ -64,7 +66,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div className={styles['comment-report-modal-overlay']} onClick={handleClose}>
       <div className={styles['comment-report-modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['comment-report-modal-header']}>
@@ -74,7 +76,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            ×
+            <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -97,7 +99,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
               {reportReasons.map((reason) => (
                 <div 
                   key={reason.value}
-                  className={`reason-item ${selectedReasons.includes(reason.value) ? 'selected' : ''}`}
+                  className={`${styles['reason-item']} ${selectedReasons.includes(reason.value) ? styles['selected'] : ''}`}
                   onClick={() => handleReasonToggle(reason.value)}
                 >
                   <div className={styles['reason-checkbox']}>
@@ -150,6 +152,8 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default CommentReportModal;

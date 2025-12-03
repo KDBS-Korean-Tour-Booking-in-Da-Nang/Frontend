@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { API_ENDPOINTS, getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getImageUrl, getTourImageUrl } from '../config/api';
+import { checkAndHandle401 } from '../utils/apiErrorHandler';
 
 // Helper function to strip HTML tags from text
 const stripHtmlTags = (html) => {
@@ -27,7 +28,7 @@ export const useToursAPI = () => {
     title: stripHtmlTags(tour.tourName),
     duration: tour.tourDuration,
     price: tour.adultPrice ? Number(tour.adultPrice) : 0,
-    image: getImageUrl(tour.tourImgPath),
+    image: getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl),
     description: stripHtmlTags(tour.tourDescription),
     descriptionHtml: tour.tourDescription || '',
     category: mapTourTypeToCategory(tour.tourType),
@@ -54,15 +55,29 @@ export const useToursAPI = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(API_ENDPOINTS.TOURS);
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      
+      // Use /public endpoint to get only PUBLIC tours
+      const response = await fetch(API_ENDPOINTS.TOURS_PUBLIC, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (await checkAndHandle401(response)) {
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
       
       // Transform backend data to match frontend format
+      // Backend already returns only PUBLIC tours, so no need to filter
       const transformedTours = data.map(transformTour);
       
       setTours(transformedTours);
@@ -80,9 +95,21 @@ export const useToursAPI = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(id));
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+      
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(id), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (await checkAndHandle401(response)) {
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -137,18 +164,35 @@ export const useToursAPI = () => {
       setLoading(true);
       setError(null);
 
+      // Get token for authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+
       const url = `${API_ENDPOINTS.TOURS_SEARCH}?keyword=${encodeURIComponent(query)}&page=${page}&size=${size}`;
-      const response = await fetch(url, { signal });
+      const response = await fetch(url, { 
+        signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
       if (!response.ok) {
+        // Handle 401 with global error handler
+        if (await checkAndHandle401(response)) {
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const pageData = await response.json();
       const items = Array.isArray(pageData.content) ? pageData.content.map(transformTour) : [];
+      
+      // Filter only PUBLIC tours from search results
+      const publicItems = items.filter(tour => tour.tourStatus === 'PUBLIC');
+      
       return {
-        items,
+        items: publicItems,
         totalPages: pageData.totalPages ?? 0,
-        totalElements: pageData.totalElements ?? items.length,
+        totalElements: publicItems.length,
         pageNumber: pageData.number ?? page,
         pageSize: pageData.size ?? size
       };

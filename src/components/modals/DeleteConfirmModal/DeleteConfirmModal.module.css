@@ -1,147 +1,291 @@
-/* ==== Overlay ==== */
-.kdbs-modal.modal-overlay{
-  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999;
-}
-
-/* ==== Container center tuyệt đối ==== */
-.kdbs-modal .delete-confirm-modal{
-  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:min(480px, calc(100dvw - 48px)) !important; /* lock outer width */
-  max-height:calc(100dvh - 48px);
-  margin:0;
-}
-
-/* ==== Reset cục bộ, tránh global CSS đè ==== */
-.kdbs-modal .delete-confirm-modal, 
-.kdbs-modal .delete-confirm-modal *{
-  box-sizing:border-box;
-  font:inherit;
-}
-
-/* ==== Panel: grid 3 hàng: header / content / actions ==== */
-.kdbs-modal .modal-panel{
-  display:grid;
-  grid-template-rows:auto 1fr auto;
-  background:#fff;
-  border-radius:14px;
-  overflow:hidden;                 /* clip bo góc dưới */
-  box-shadow:0 12px 28px rgba(2,6,23,.22);
-  animation:panelIn .25s ease-out both;
-  max-height:inherit;
-}
-
-/* Animation chỉ áp dụng cho panel, không đụng transform center */
-@keyframes panelIn{
-  from{ opacity:0; transform:translateY(-8px) scale(.98); }
-  to  { opacity:1; transform:none; }
-}
-
-/* ==== Header ==== */
-.kdbs-modal .modal-header{
-  position:relative;
-  display:flex; align-items:center; justify-content:center;
-  padding:16px 48px;               /* đối xứng để title ở giữa */
-  border-bottom:1px solid #f1f5f9;
-  background:#fff7ed;
-}
-.kdbs-modal .warning-icon{ position:absolute; left:16px; font-size:1.25rem; }
-.kdbs-modal .modal-close{
-  position:absolute; right:12px; top:8px;
-  width:32px; height:32px; line-height:32px;
-  border:none; border-radius:8px; background:transparent;
-  font-size:20px; cursor:pointer;
-}
-.kdbs-modal .modal-close:hover{ background:#f3f4f6; }
-.kdbs-modal .modal-header h2{ margin:0; font-size:1.125rem; font-weight:700; color:#0f172a; }
-
-/* ==== Content: cuộn tại đây, spacing nhất quán ==== */
-.kdbs-modal .modal-content{
-  padding:20px 22px;
-  background:#f8fafc;
-  overflow:auto;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  gap:12px;
-}
-
-/* Card thông điệp gọn, shadow nhẹ */
-.kdbs-modal .message-card{
-  background:#fff; border:1px solid #e2e8f0; border-radius:12px;
-  padding:16px 18px;
-  box-shadow:0 2px 6px rgba(15,23,42,.05);
-  display:block;
-  width:100% !important;
-  max-width:none !important;
-  margin:0 auto !important;
-}
-.kdbs-modal .confirm-message{ margin:0 0 8px; font-size:.95rem; color:#0f172a; line-height:1.5; }
-.kdbs-modal .warning-text{ margin:0; font-size:.85rem; color:#dc2626; font-weight:500; }
-
-/* ==== Actions: dính đáy, có viền top ==== */
-.kdbs-modal .modal-actions{
-  display:flex; gap:12px; justify-content:flex-end;
-  padding:12px 22px 18px;
-  background:#fff;
-  border-top:1px solid #f1f5f9;
-}
-
-.kdbs-modal .btn-cancel,.kdbs-modal .btn-delete{
-  padding:.65rem 1.25rem; border-radius:8px; font-weight:600; font-size:.9rem;
-  cursor:pointer; transition:.2s; border:1px solid transparent;
-}
-.kdbs-modal .btn-cancel{ background:#f8fafc; color:#0f172a; border-color:#e2e8f0; }
-.kdbs-modal .btn-cancel:hover{ background:#eef2f7; }
-.kdbs-modal .btn-delete{ background:#ef4444; color:#fff; border-color:#ef4444; }
-.kdbs-modal .btn-delete:hover{ background:#dc2626; transform:translateY(-1px); box-shadow:0 6px 14px rgba(239,68,68,.35); }
-
-/* ==== Mobile ==== */
-@media (max-width:480px){
-  .kdbs-modal .modal-header{ padding:14px 40px; }
-  .kdbs-modal .modal-content{ padding:16px 18px; }
-  .kdbs-modal .modal-actions{ flex-direction:column; padding:10px 18px 16px; }
-  .kdbs-modal .btn-cancel,.kdbs-modal .btn-delete{ width:100%; }
-}
-
-/* Reset triệt để 2 lớp gây ảnh hưởng, rồi tự style lại */
-.kdbs-modal .modal-content,
-.kdbs-modal .message-card {
-  all: revert;
-}
-
-/* Re-apply style cho modal-content (khung chứa) */
-.kdbs-modal .modal-content {
-  box-sizing: border-box;
-  padding: 20px 22px;
-  background: #f8fafc;
-  overflow: auto;
+/* Minimal Soft Korean - DeleteConfirmModal */
+.kdbs-modal.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9999;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* Re-apply style cho cụm message-card (phần bạn khoanh đỏ) */
-.kdbs-modal .message-card {
+.kdbs-modal .delete-confirm-modal {
+  position: relative;
+  width: min(480px, calc(100dvw - 48px));
+  max-height: calc(100dvh - 48px);
+  margin: 0;
+}
+
+.kdbs-modal .delete-confirm-modal,
+.kdbs-modal .delete-confirm-modal * {
   box-sizing: border-box;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  font: inherit;
+}
+
+.kdbs-modal .modal-panel {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  animation: slideUp 0.3s ease-out;
+  max-height: inherit;
+}
+
+.kdbs-modal .modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
   border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 2px 6px rgba(15,23,42,.05);
-  display: block;
-  width: min(440px, 100%);
-  margin: 0 auto;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
-/* text bên trong */
-.kdbs-modal .confirm-message { margin: 0 0 8px; font-size: .95rem; color:#0f172a; line-height:1.5; }
-.kdbs-modal .warning-text   { margin: 0;       font-size: .85rem; color:#dc2626; font-weight: 500; }
-
-/* nới rộng card bên trong */
-.kdbs-modal .message-card{
-  width: 96% !important;            /* hoặc 100% nếu bạn muốn sát mép */
-  max-width: 100% !important;
-  margin: 0 auto !important;
+.kdbs-modal .modal-close:hover {
+  background: #f8fafc;
+  color: #1e293b;
 }
 
-/* remove desktop widening of outer modal - we only expand inner content */
+.kdbs-modal .modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kdbs-modal .modal-content {
+  padding: 40px 32px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.kdbs-modal .icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.kdbs-modal .modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.kdbs-modal .message-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kdbs-modal .confirm-message {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.kdbs-modal .warning-text {
+  margin: 0;
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.kdbs-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px 32px 32px;
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+  border-radius: 0 0 28px 28px;
+}
+
+.kdbs-modal .btn-cancel,
+.kdbs-modal .btn-delete,
+.kdbs-modal .btn-primary {
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  letter-spacing: -0.01em;
+}
+
+.kdbs-modal .btn-cancel {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.kdbs-modal .btn-cancel:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.kdbs-modal .btn-delete {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.kdbs-modal .btn-delete:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.kdbs-modal .btn-primary {
+  background: #1a8eea;
+  color: #ffffff;
+}
+
+.kdbs-modal .btn-primary:hover {
+  background: #1478c3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.25);
+}
+
+.kdbs-modal .btn-cancel:disabled,
+.kdbs-modal .btn-delete:disabled,
+.kdbs-modal .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .kdbs-modal .delete-confirm-modal {
+    width: min(420px, calc(100dvw - 32px));
+  }
+
+  .kdbs-modal .modal-content {
+    padding: 36px 28px 28px;
+  }
+
+  .kdbs-modal .icon-wrapper {
+    width: 64px;
+    height: 64px;
+  }
+
+  .kdbs-modal .modal-title {
+    font-size: 18px;
+  }
+
+  .kdbs-modal .confirm-message {
+    font-size: 13px;
+  }
+
+  .kdbs-modal .modal-actions {
+    padding: 18px 28px 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kdbs-modal .delete-confirm-modal {
+    width: min(360px, calc(100dvw - 24px));
+  }
+
+  .kdbs-modal .modal-close {
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .kdbs-modal .modal-content {
+    padding: 32px 24px 24px;
+    gap: 16px;
+  }
+
+  .kdbs-modal .icon-wrapper {
+    width: 56px;
+    height: 56px;
+  }
+
+  .kdbs-modal .modal-title {
+    font-size: 17px;
+  }
+
+  .kdbs-modal .confirm-message {
+    font-size: 13px;
+  }
+
+  .kdbs-modal .warning-text {
+    font-size: 12px;
+  }
+
+  .kdbs-modal .modal-actions {
+    flex-direction: column;
+    padding: 16px 24px 24px;
+    gap: 8px;
+  }
+
+  .kdbs-modal .btn-cancel,
+  .kdbs-modal .btn-delete {
+    width: 100%;
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .kdbs-modal .delete-confirm-modal {
+    width: min(320px, calc(100dvw - 16px));
+  }
+
+  .kdbs-modal .modal-content {
+    padding: 28px 20px 20px;
+  }
+
+  .kdbs-modal .modal-title {
+    font-size: 16px;
+  }
+
+  .kdbs-modal .confirm-message {
+    font-size: 12px;
+  }
+}

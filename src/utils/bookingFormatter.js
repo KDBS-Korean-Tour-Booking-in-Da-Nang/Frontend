@@ -135,13 +135,11 @@ export const formatDateForAPI = (displayDate, language = 'vi') => {
   }
   // If format is not recognized, try to parse as is
   else {
-    console.warn('Unrecognized date format:', displayDate);
     return displayDate;
   }
   
   // Validate date components
   if (!year || !month || !day) {
-    console.warn('Invalid date components:', { year, month, day });
     return displayDate;
   }
   
@@ -154,9 +152,10 @@ export const formatDateForAPI = (displayDate, language = 'vi') => {
  * @param {Object} bookingContext - Frontend booking context data
  * @param {number} tourId - Tour ID
  * @param {string} language - Current language context ('vi', 'en', 'ko')
+ * @param {string} userEmail - Email of the user making the booking
  * @returns {Object} - Formatted booking data for API
  */
-export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
+export const formatBookingData = (bookingContext, tourId, language = 'vi', userEmail = '') => {
   const { contact, plan } = bookingContext;
   
   // Validate required fields
@@ -228,16 +227,31 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi') => {
     throw new Error('Some guests are missing required information (name and birth date)');
   }
   
+  // Determine departure date format from plan.date (supports object or string)
+  let formattedDepartureDate = '';
+  try {
+    if (typeof plan?.date === 'string') {
+      formattedDepartureDate = formatDateForAPI(plan.date, language);
+    } else if (plan?.date && typeof plan.date === 'object') {
+      formattedDepartureDate = formatDate(plan.date);
+    }
+  } catch (_) {
+    // leave as empty; validation will catch and surface a friendly message
+    formattedDepartureDate = '';
+  }
+
   // Format the final booking data
+  // Note: bookingStatus is automatically set by BE @PrePersist to PENDING_PAYMENT
   const bookingData = {
     tourId: parseInt(tourId),
+    userEmail: userEmail || contact.email.trim(), // Use user email or fallback to contact email
     contactName: contact.fullName.trim(),
     contactAddress: contact.address.trim(),
     contactPhone: contact.phone.trim(),
     contactEmail: contact.email.trim(),
     pickupPoint: contact.pickupPoint?.trim() || '',
     note: contact.note?.trim() || '',
-    departureDate: formatDate(plan.date),
+    departureDate: formattedDepartureDate,
     adultsCount: plan.pax.adult,
     childrenCount: plan.pax.child,
     babiesCount: plan.pax.infant,

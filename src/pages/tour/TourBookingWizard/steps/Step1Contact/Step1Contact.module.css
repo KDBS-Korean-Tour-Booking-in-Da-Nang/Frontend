@@ -22,12 +22,10 @@
   gap: 0.5rem;
 }
 
-.section-title::before {
-  content: '';
-  width: 4px;
-  height: 1.25rem;
-  background-color: #3b82f6;
-  border-radius: 2px;
+.section-icon {
+  width: 20px;
+  height: 20px;
+  color: #2563eb;
 }
 
 .form-grid {
@@ -40,6 +38,18 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.field-icon {
+  width: 16px;
+  height: 16px;
+  color: #2563eb;
 }
 
 .form-label {
@@ -140,6 +150,13 @@
   color: #0c4a6e;
 }
 
+.personal-info-icon {
+  width: 18px;
+  height: 18px;
+  color: #0c4a6e;
+  flex-shrink: 0;
+}
+
 .checkbox-input {
   width: 18px;
   height: 18px;
@@ -151,6 +168,9 @@
 .checkbox-text {
   font-size: 1rem;
   line-height: 1.5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .auto-fill-notice {
@@ -248,8 +268,31 @@
   transform: translateY(-50%) scale(1.1);
 }
 
+.calendar-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #6b7280;
+  background: transparent;
+  transition: color 0.2s ease;
+}
+
+.calendar-button:hover .calendar-icon {
+  color: #111827;
+}
+
 .calendar-button:active {
   transform: translateY(-50%) scale(0.95);
+}
+
+.date-picker-wrapper {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsive Design */

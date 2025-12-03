@@ -1,16 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL } from '../../../../config/api';
+import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL, getApiPath } from '../../../../config/api';
 import { useNavigate } from 'react-router-dom';
+import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentSection from '../CommentSection/CommentSection';
 import ImageViewerModal from '../ImageViewerModal/ImageViewerModal';
 import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
+import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import { DeleteConfirmModal, LoginRequiredModal } from '../../../../components';
+import {
+  Bookmark,
+  BookmarkCheck,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  Flag,
+  CheckCircle2,
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle
+} from 'lucide-react';
 import styles from './PostCard.module.css';
 
-const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
+const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPost = false }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const navigate = useNavigate();
@@ -18,12 +32,19 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const postMenuRef = useRef(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.reactions?.likeCount || 0);
+  // Use initial data from API response if available
+  const [likeCount, setLikeCount] = useState(
+    post.reactions?.likeCount ?? 0
+  );
+  const [dislikeCount, setDislikeCount] = useState(
+    post.reactions?.dislikeCount ?? 0
+  );
   const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
   const [openViewer, setOpenViewer] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
-  const [saveCount, setSaveCount] = useState(0);
+  // Use initial saveCount from API response if available
+  const [saveCount, setSaveCount] = useState(post.saveCount || 0);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
   const [hasReported, setHasReported] = useState(false);
@@ -32,106 +53,253 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [tourLinkPreview, setTourLinkPreview] = useState(null);
   const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
+  const userInfoRef = useRef(null);
+  const imageContainerRef = useRef(null);
+  const [imagesInViewport, setImagesInViewport] = useState(isFirstPost);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedText, setTranslatedText] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
+  const [translateError, setTranslateError] = useState('');
+  
+  // Cache for resolved image URLs to avoid repeated processing
+  const imageUrlCache = useRef(new Map());
+  
+  // Resolve image URL helper function
+  const resolveImageUrl = (imgPath) => {
+    if (!imgPath) return '';
+    if (typeof imgPath !== 'string') return '';
+    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
+    
+    // Check cache first
+    if (imageUrlCache.current.has(imgPath)) {
+      return imageUrlCache.current.get(imgPath);
+    }
+    
+    const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+    const resolvedUrl = getImageUrl(normalized);
+    
+    // Cache the resolved URL
+    imageUrlCache.current.set(imgPath, resolvedUrl);
+    return resolvedUrl;
+  };
+  
+  // Resolve image URLs immediately on mount to avoid re-render delay
+  const initialImageSources = useMemo(() => {
+    if (post.images && post.images.length > 0) {
+      return post.images.map((img) => {
+        const imgPath = typeof img === 'string' ? img : img.imgPath;
+        return resolveImageUrl(imgPath);
+      }).filter(Boolean);
+    }
+    return [];
+  }, [post.images]);
+  
+  const [imageSources, setImageSources] = useState(initialImageSources);
+
+  // Update image sources when post images change (e.g., after edit)
+  useEffect(() => {
+    setImageSources(initialImageSources);
+  }, [initialImageSources]);
+
+  // Update state values when post data changes (e.g., after edit)
+  useEffect(() => {
+    // Update reaction counts if provided in post
+    if (post.reactions?.likeCount !== undefined && post.reactions.likeCount !== null) {
+      setLikeCount(post.reactions.likeCount);
+    }
+    if (post.reactions?.dislikeCount !== undefined && post.reactions.dislikeCount !== null) {
+      setDislikeCount(post.reactions.dislikeCount);
+    }
+    
+    // Update save count if provided in post
+    if (post.saveCount !== undefined && post.saveCount !== null) {
+      setSaveCount(post.saveCount);
+    }
+    
+    // Update comment count if provided in post
+    if (post.comments !== undefined) {
+      setCommentCount(post.comments.length || 0);
+    }
+  }, [post.reactions?.likeCount, post.reactions?.dislikeCount, post.saveCount, post.comments?.length]);
+
+  // Reset translation state when post content changes (e.g., after edit)
+  useEffect(() => {
+    setTranslatedText('');
+    setShowTranslated(false);
+    setTranslateError('');
+  }, [post.content]);
 
   useEffect(() => {
-    // Always fetch reaction count and save count for all users (including guests)
-    fetchReactionCount();
-    fetchSaveCount();
+    // Use initial data from API response if available, only fetch if missing
+    const hasReactionData = post.reactions && (
+      (post.reactions.likeCount !== undefined && post.reactions.likeCount !== null) || 
+      (post.reactions.dislikeCount !== undefined && post.reactions.dislikeCount !== null)
+    );
     
-    // Only check user-specific data if user is logged in
+    // Only fetch if we don't have initial data or need user-specific reaction status
+    if (!hasReactionData || (user && !post.reactions?.userReaction)) {
+      fetchReactionSummary();
+    } else if (post.reactions?.userReaction && user) {
+      // Set user reaction from initial data
+      setIsLiked(post.reactions.userReaction === 'LIKE');
+      setIsDisliked(post.reactions.userReaction === 'DISLIKE');
+    }
+    
+    // Only fetch save count if not provided in initial data
+    if (post.saveCount === undefined || post.saveCount === null) {
+      fetchSaveCount();
+    }
+    
+    // Only check user-specific data if user is logged in (defer to avoid blocking)
     if (user) {
-      checkUserReaction();
-      checkIfSaved();
-      checkIfReported();
+      // Use requestIdleCallback to defer non-critical user data fetching
+      const fetchUserData = () => {
+        checkIfSaved();
+        checkIfReported();
+      };
+      
+      if (window.requestIdleCallback) {
+        window.requestIdleCallback(fetchUserData, { timeout: 2000 });
+      } else {
+        setTimeout(fetchUserData, 100);
+      }
     }
   }, [post.forumPostId, user?.email]);
 
-  // Detect tour link via metadata first, fallback to parsing content
+  // Intersection Observer for preloading images - images are already resolved, just preload
   useEffect(() => {
-    const fetchTourPreview = () => {
-      try {
-        const meta = post.metadata || post.meta || null;
-        let match = null;
-        if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
-          const idFromMeta = meta.linkRefId || (String(meta.linkUrl || '').match(/\/tour\/(\d+)/)?.[1]);
-          if (idFromMeta) match = [null, idFromMeta];
-        }
-        if (!match) {
-          const text = String(post.content || '');
-          const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-          const regex = new RegExp(`(?:${escapedBase})?/tour/(\\d+)`);
-          match = text.match(regex);
-        }
-        if (match && match[1]) {
-          const tourId = match[1];
-          setIsLoadingTourPreview(true);
-          // Use requestIdleCallback to avoid blocking main thread
-          if (window.requestIdleCallback) {
-            window.requestIdleCallback(() => {
-              fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
-                .then(r => (r.ok ? r.json() : Promise.reject()))
-                .then(data => {
-                  setTourLinkPreview({
-                    id: tourId,
-                    title: data.title || data.tourName,
-                    summary: data.summary || data.tourDescription,
-                    image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
-                  });
-                })
-                .catch(() => setTourLinkPreview(null))
-                .finally(() => setIsLoadingTourPreview(false));
-            });
-          } else {
-            // Fallback for browsers without requestIdleCallback
-            setTimeout(() => {
-              fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
-                .then(r => (r.ok ? r.json() : Promise.reject()))
-                .then(data => {
-                  setTourLinkPreview({
-                    id: tourId,
-                    title: data.title || data.tourName,
-                    summary: data.summary || data.tourDescription,
-                    image: getImageUrl(data.thumbnailUrl || data.tourImgPath)
-                  });
-                })
-                .catch(() => setTourLinkPreview(null))
-                .finally(() => setIsLoadingTourPreview(false));
-            }, 0);
+    if (isFirstPost || imagesInViewport) {
+      // For first post or already loaded, preload images immediately
+      if (initialImageSources.length > 0) {
+        initialImageSources.forEach((url) => {
+          if (url) {
+            const imagePreload = new Image();
+            imagePreload.src = url;
           }
-        } else {
-          setTourLinkPreview(null);
-          setIsLoadingTourPreview(false);
-        }
-      } catch (_) { 
-        setTourLinkPreview(null);
-        setIsLoadingTourPreview(false);
+        });
+        setImagesInViewport(true);
       }
-    };
-
-    // Debounce the fetch to avoid multiple rapid calls
-    const timeoutId = setTimeout(fetchTourPreview, 200);
-    return () => clearTimeout(timeoutId);
-  }, [post.forumPostId, post.content, post.metadata]);
-
-  // Preload first few images for better performance
-  useEffect(() => {
-    if (post.images && post.images.length > 0) {
-      const firstFewImages = post.images.slice(0, 3);
-      firstFewImages.forEach((img) => {
-        const imgPath = typeof img === 'string' ? img : img.imgPath;
-        if (imgPath) {
-          const resolvedUrl = resolveImageUrl(imgPath);
-          if (resolvedUrl) {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.as = 'image';
-            link.href = resolvedUrl;
-            document.head.appendChild(link);
+      return;
+    }
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Preload all images in parallel when post is about to enter viewport
+            if (initialImageSources.length > 0) {
+              initialImageSources.forEach((url) => {
+                if (url) {
+                  const imagePreload = new Image();
+                  imagePreload.src = url;
+                }
+              });
+              setImageSources(initialImageSources);
+            }
+            setImagesInViewport(true);
+            observer.disconnect();
           }
+        });
+      },
+      {
+        rootMargin: '500px', // Start loading earlier for better UX
+        threshold: 0.01
+      }
+    );
+
+    if (imageContainerRef.current) {
+      observer.observe(imageContainerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isFirstPost, imagesInViewport, initialImageSources]);
+
+  // Extract tour ID immediately on mount (synchronous, no delay)
+  const tourId = useMemo(() => {
+    try {
+      const meta = post.metadata || post.meta || null;
+      let match = null;
+      if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
+        const urlStr = String(meta.linkUrl || '');
+        const idFromMeta = meta.linkRefId || 
+                         urlStr.match(/\/tour\/detail[?&]id=(\d+)/)?.[1] || 
+                         urlStr.match(/\/tour\/(\d+)/)?.[1];
+        if (idFromMeta) return idFromMeta;
+      }
+      const text = String(post.content || '');
+      const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
+      const regexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
+      match = text.match(regexNew) || text.match(regexOld);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  }, [post.content, post.metadata]);
+
+  // Set loading state immediately if tour ID exists (for skeleton display)
+  useEffect(() => {
+    if (tourId) {
+      setIsLoadingTourPreview(true);
+    } else {
+      setIsLoadingTourPreview(false);
+      setTourLinkPreview(null);
+    }
+  }, [tourId]);
+
+  // Load tour preview immediately if tour ID is detected
+  useEffect(() => {
+    if (!tourId) return;
+
+    const loadTourPreview = () => {
+      fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId))
+        .then(r => (r.ok ? r.json() : Promise.reject()))
+        .then(data => {
+          const imageUrl = getImageUrl(data.thumbnailUrl || data.tourImgPath);
+          const preview = {
+            id: tourId,
+            title: data.title || data.tourName,
+            summary: data.summary || data.tourDescription,
+            image: imageUrl
+          };
+          
+          // Preload tour preview image immediately
+          if (imageUrl) {
+            const img = new Image();
+            img.src = imageUrl;
+          }
+          
+          setTourLinkPreview(preview);
+        })
+        .catch(() => setTourLinkPreview(null))
+        .finally(() => setIsLoadingTourPreview(false));
+    };
+    
+    // Load immediately for first post or posts in viewport
+    if (isFirstPost || imagesInViewport) {
+      loadTourPreview();
+    } else {
+      // Use Promise.resolve().then() to load in next microtask - faster than setTimeout
+      Promise.resolve().then(loadTourPreview);
+    }
+  }, [tourId, isFirstPost, imagesInViewport]);
+
+  // Preload images immediately for visible posts
+  useEffect(() => {
+    if (initialImageSources.length > 0 && (isFirstPost || imagesInViewport)) {
+      initialImageSources.forEach((url) => {
+        if (url) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = url;
+          document.head.appendChild(link);
         }
       });
     }
-  }, [post.images]);
+  }, [initialImageSources, isFirstPost, imagesInViewport]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -203,9 +371,18 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           body: JSON.stringify(reactionRequest),
         });
         
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        
         if (response.ok) {
           setIsLiked(true);
-          if (isDisliked) setIsDisliked(false);
+          if (isDisliked) {
+            setIsDisliked(false);
+            setDislikeCount(prev => Math.max(0, prev - 1));
+          }
           setLikeCount(prev => prev + 1);
         }
       }
@@ -238,14 +415,23 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           body: JSON.stringify(removeRequest)
         });
         setIsDisliked(false);
+        setDislikeCount(prev => Math.max(0, prev - 1));
       } else {
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
           headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
+        
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        
         if (response.ok) {
           setIsDisliked(true);
+          setDislikeCount(prev => prev + 1);
           if (isLiked) {
             setIsLiked(false);
             setLikeCount(prev => Math.max(0, prev - 1));
@@ -265,35 +451,27 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     setCommentCount(count);
   };
 
-  const checkUserReaction = async () => {
+  const fetchReactionSummary = async () => {
     try {
-      const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_USER(post.forumPostId, user.email), {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        }
-      });
+      // No authentication required for public reaction summary
+      const userEmail = user?.email || null;
+      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_SUMMARY(post.forumPostId, userEmail));
       if (response.ok) {
-        const hasReacted = await response.json();
-        setIsLiked(hasReacted);
+        const summary = await response.json();
+        setLikeCount(summary.likeCount || 0);
+        setDislikeCount(summary.dislikeCount || 0);
+        
+        // Set user's reaction status if logged in
+        if (user && summary.userReaction) {
+          setIsLiked(summary.userReaction === 'LIKE');
+          setIsDisliked(summary.userReaction === 'DISLIKE');
+        }
       }
     } catch (error) {
-      console.error('Error checking user reaction:', error);
+      // Silently fail - use initial data as fallback
     }
   };
 
-  const fetchReactionCount = async () => {
-    try {
-      // No authentication required for public reaction count
-      const response = await fetch(API_ENDPOINTS.REACTIONS_POST_COUNT(post.forumPostId));
-      if (response.ok) {
-        const count = await response.json();
-        setLikeCount(count);
-      }
-    } catch (error) {
-      console.error('Error fetching reaction count:', error);
-    }
-  };
 
   const checkIfSaved = async () => {
     try {
@@ -311,7 +489,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         setIsSaved(data.result || false);
       }
     } catch (error) {
-      console.error('Error checking if saved:', error);
+      // Silently fail - user can still interact, will update on next check
     }
   };
 
@@ -324,7 +502,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         setSaveCount(data.result || 0);
       }
     } catch (error) {
-      console.error('Error fetching save count:', error);
+      // Silently fail - use initial data as fallback
     }
   };
 
@@ -342,13 +520,12 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         setHasReported(hasReportedResult);
       }
     } catch (error) {
-      console.error('Error checking if reported:', error);
+      // Silently fail - user can still interact
     }
   };
 
   const handleSavePost = async () => {
     if (!user) {
-      console.log('No user found');
       return;
     }
     
@@ -369,6 +546,12 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
           headers: createAuthHeaders(token, { 'User-Email': email })
         });
         
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        
         if (response.ok) {
           setIsSaved(false);
           setSaveCount(prev => Math.max(0, prev - 1));
@@ -383,6 +566,12 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             note: ''
           })
         });
+        
+        // Handle 401 if token expired
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
         
         if (response.ok) {
           setIsSaved(true);
@@ -462,8 +651,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         throw new Error(`${t('forum.modals.report.error')}: ${response.status} - ${errorText}`);
       }
 
-      const result = await response.json();
-      console.log('Report submitted successfully:', result);
+        const result = await response.json();
       
       // Update reported status
       setHasReported(true);
@@ -486,27 +674,6 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
     return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
-  };
-
-  // Cache for resolved image URLs to avoid repeated processing
-  const imageUrlCache = useRef(new Map());
-  
-  const resolveImageUrl = (imgPath) => {
-    if (!imgPath) return '';
-    if (typeof imgPath !== 'string') return '';
-    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
-    
-    // Check cache first
-    if (imageUrlCache.current.has(imgPath)) {
-      return imageUrlCache.current.get(imgPath);
-    }
-    
-    const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
-    const resolvedUrl = getImageUrl(normalized);
-    
-    // Cache the resolved URL
-    imageUrlCache.current.set(imgPath, resolvedUrl);
-    return resolvedUrl;
   };
 
   const defaultAvatar = '/default-avatar.png';
@@ -534,99 +701,152 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     });
   };
 
+  const handleTranslateClick = async () => {
+    if (!post?.content || isTranslating) return;
+
+    // Nếu đã có bản dịch rồi thì chỉ toggle hiển thị
+    if (translatedText) {
+      setShowTranslated(prev => !prev);
+      return;
+    }
+
+    try {
+      setIsTranslating(true);
+      setTranslateError('');
+
+      const response = await fetch(
+        getApiPath('/api/gemini/translate'),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: post.content }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Translate failed with status ${response.status}`);
+      }
+
+      const text = await response.text();
+      setTranslatedText(text || '');
+      setShowTranslated(true);
+    } catch (error) {
+      console.error('Error translating post content:', error);
+      setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const renderImages = () => {
-    // Show loading skeleton for tour link preview
-    if (isLoadingTourPreview) {
-      return (
-        <div className={styles['pc-link-card']} style={{cursor: 'default'}}>
-          <div className={styles['pc-link-thumb']}>
-            <div className={styles['pc-link-thumb-placeholder']} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
-              <div style={{width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px'}}></div>
+    // Show tour preview (with skeleton if loading) or normal images
+    // If tour ID exists, show tour preview area (either loading skeleton or actual preview)
+    if (tourId) {
+      // Show loading skeleton while fetching
+      if (isLoadingTourPreview || !tourLinkPreview) {
+        return (
+          <div className={styles['pc-link-card']} style={{cursor: 'default'}}>
+            <div className={styles['pc-link-thumb']}>
+              <div className={styles['pc-link-thumb-placeholder']} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
+                <div style={{width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px'}}></div>
+              </div>
+            </div>
+            <div className={styles['pc-link-meta']}>
+              <div className={styles['pc-link-title']} style={{backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+              <div className={styles['pc-link-desc']} style={{backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
             </div>
           </div>
-          <div className={styles['pc-link-meta']}>
-            <div className={styles['pc-link-title']} style={{backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
-            <div className={styles['pc-link-desc']} style={{backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+        );
+      }
+      
+      // Show actual tour preview
+      if (tourLinkPreview) {
+        return (
+          <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/detail?id=${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
+            <div className={styles['pc-link-thumb']}>
+              {tourLinkPreview.image ? (
+                <img 
+                  src={tourLinkPreview.image} 
+                  alt={tourLinkPreview.title}
+                  loading={isFirstPost ? "eager" : "lazy"}
+                  decoding="async"
+                  onError={(e) => {
+                    e.target.src = '/default-Tour.jpg';
+                  }}
+                />
+              ) : (
+                <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
+              )}
+            </div>
+            <div className={styles['pc-link-meta']}>
+              <div className={styles['pc-link-title']}>{tourLinkPreview.title}</div>
+              <div className={styles['pc-link-desc']}>{tourLinkPreview.summary}</div>
+            </div>
           </div>
-        </div>
-      );
-    }
-    
-    // If there is a tour link preview, show it as a link card before normal images
-    if (tourLinkPreview) {
-      return (
-        <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
-          <div className={styles['pc-link-thumb']}>
-            {tourLinkPreview.image ? (
-              <img 
-                src={tourLinkPreview.image} 
-                alt={tourLinkPreview.title}
-                loading="eager"
-                decoding="async"
-              />
-            ) : (
-              <div className={styles['pc-link-thumb-placeholder']}>LINK</div>
-            )}
-          </div>
-          <div className={styles['pc-link-meta']}>
-            <div className={styles['pc-link-title']}>{tourLinkPreview.title}</div>
-            <div className={styles['pc-link-desc']}>{tourLinkPreview.summary}</div>
-          </div>
-        </div>
-      );
+        );
+      }
     }
     if (!post.images || post.images.length === 0) return null;
-    const imgs = post.images.map((img) => {
-      // Handle both object format {imgPath: "..."} and string format
-      const imgPath = typeof img === 'string' ? img : img.imgPath;
-      const resolvedUrl = resolveImageUrl(imgPath);
-      return resolvedUrl;
-    }).filter(Boolean);
+    
+    // Use resolved image sources (already resolved in useMemo)
+    const imgs = imageSources.length > 0 ? imageSources : initialImageSources;
     const count = imgs.length;
 
     if (count === 1) {
+      const shouldEagerLoad = isFirstPost || imagesInViewport;
       return (
-        <div className={`${styles['pc-images']} ${styles['one']}`}>
-          <img 
-            src={imgs[0]} 
-            alt="Post image" 
-            className={`${styles['pc-img']} ${styles['main']}`} 
-            loading="eager"
-            decoding="async"
-            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
+        <div className={`${styles['pc-images']} ${styles['one']}`} ref={imageContainerRef}>
+          {imgs[0] ? (
+            <img 
+              src={imgs[0]} 
+              alt="Post image" 
+              className={`${styles['pc-img']} ${styles['main']}`} 
+              loading={shouldEagerLoad ? "eager" : undefined}
+              fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
+              decoding="async"
+              onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : null}
         </div>
       );
     }
 
     if (count === 2) {
+      const shouldEagerLoad = isFirstPost || imagesInViewport;
       return (
-        <div className={`${styles['pc-images']} ${styles['two']}`}>
-          <img 
-            src={imgs[0]} 
-            alt="Post image 1" 
-            className={styles['pc-img']} 
-            loading="eager"
-            decoding="async"
-            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
-          <img 
-            src={imgs[1]} 
-            alt="Post image 2" 
-            className={styles['pc-img']} 
-            loading="eager"
-            decoding="async"
-            onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
+        <div className={`${styles['pc-images']} ${styles['two']}`} ref={imageContainerRef}>
+          {imgs[0] ? (
+            <img 
+              src={imgs[0]} 
+              alt="Post image 1" 
+              className={styles['pc-img']} 
+              loading={shouldEagerLoad ? "eager" : undefined}
+              fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
+              decoding="async"
+              onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : null}
+          {imgs[1] ? (
+            <img 
+              src={imgs[1]} 
+              alt="Post image 2" 
+              className={styles['pc-img']} 
+              loading={shouldEagerLoad ? "eager" : undefined}
+              decoding="async"
+              onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : null}
         </div>
       );
     }
@@ -634,37 +854,43 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     // 3 or more: one big on top, three small below (like collage)
     const rest = imgs.slice(1, 4);
     const remaining = count - 4;
+    const shouldEagerLoad = isFirstPost || imagesInViewport;
     return (
-      <div className={`${styles['pc-images']} ${styles['collage']}`}>
-        <img 
-          src={imgs[0]} 
-          alt="Post image main" 
-          className={`${styles['pc-img']} ${styles['main']}`} 
-          loading="eager"
-          decoding="async"
-          onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
+      <div className={`${styles['pc-images']} ${styles['collage']}`} ref={imageContainerRef}>
+        {imgs[0] ? (
+          <img 
+            src={imgs[0]} 
+            alt="Post image main" 
+            className={`${styles['pc-img']} ${styles['main']}`} 
+            loading={shouldEagerLoad ? "eager" : undefined}
+            fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
+            decoding="async"
+            onClick={() => { setViewerIndex(0); setOpenViewer(true); }}
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        ) : null}
         <div className={styles['pc-thumbs']}>
           {rest.map((src, idx) => (
-            <div key={idx} className={styles['pc-thumb-wrap']}>
-              <img 
-                src={src} 
-                alt={`Post image ${idx + 2}`} 
-                className={`${styles['pc-img']} ${styles['thumb']}`} 
-                loading={idx < 2 ? "eager" : "lazy"}
-                decoding="async"
-                onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              {idx === rest.length - 1 && remaining > 0 && (
-                <div className={styles['pc-more-overlay']}>+{remaining}</div>
-              )}
-            </div>
+            src ? (
+              <div key={idx} className={styles['pc-thumb-wrap']}>
+                <img 
+                  src={src} 
+                  alt={`Post image ${idx + 2}`} 
+                  className={`${styles['pc-img']} ${styles['thumb']}`} 
+                  loading={shouldEagerLoad ? "eager" : undefined}
+                  decoding="async"
+                  onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                {idx === rest.length - 1 && remaining > 0 && (
+                  <div className={styles['pc-more-overlay']}>+{remaining}</div>
+                )}
+              </div>
+            ) : null
           ))}
         </div>
       </div>
@@ -675,7 +901,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     <>
     <div className={styles['post-card']} id={`post-${post.postId}`}>
       <div className={styles['post-header']}>
-        <div className={styles['post-user-info']}>
+        <div className={styles['post-user-info']} ref={userInfoRef}>
           <img 
             src={resolveImageUrl(post.userAvatar) || defaultAvatar} 
             alt={post.username}
@@ -685,6 +911,16 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
             <div className={styles['username']}>{post.username}</div>
             <div className={styles['post-time']}>{formatTime(post.createdAt)}</div>
           </div>
+          <UserHoverCard 
+            user={{
+              username: post.username,
+              userAvatar: post.userAvatar,
+              userEmail: post.userEmail,
+              userId: post.userId
+            }}
+            triggerRef={userInfoRef}
+            position="bottom"
+          />
         </div>
         
         <div className={styles['post-actions-header']}>
@@ -695,15 +931,11 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                 className={`${styles['save-btn']} ${isSaved ? styles['saved'] : ''}`}
                 title={isSaved ? t('forum.post.unsave') : t('forum.post.save')}
               >
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                  className={styles['bookmark-icon']}
-                >
-                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-                </svg>
+                {isSaved ? (
+                  <BookmarkCheck className={styles['bookmark-icon']} strokeWidth={1.6} />
+                ) : (
+                  <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
+                )}
               </button>
             ) : (
               <div 
@@ -711,15 +943,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                 title={t('forum.guest.loginToSave')}
                 onClick={() => setShowLoginRequiredModal(true)}
               >
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                  className={styles['bookmark-icon']}
-                >
-                  <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
-                </svg>
+                <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
               </div>
             )}
             <span className={styles['save-count']}>{saveCount}</span>
@@ -730,7 +954,7 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
               className={styles['menu-btn']}
               onClick={() => setShowMenu(!showMenu)}
             >
-              ⋯
+              <MoreHorizontal className={styles['menu-icon']} strokeWidth={1.7} />
             </button>
             
             {showMenu && (
@@ -738,10 +962,12 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                 {isOwnPost ? (
                   <>
                     <button onClick={handleEdit} className={styles['menu-item']}>
-                      ✏️ {t('forum.post.edit')}
+                      <Edit3 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                      {t('forum.post.edit')}
                     </button>
                     <button onClick={handleDelete} className={`${styles['menu-item']} ${styles['delete']}`}>
-                      🗑️ {t('forum.post.delete')}
+                      <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                      {t('forum.post.delete')}
                     </button>
                   </>
                 ) : (
@@ -750,7 +976,17 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
                     className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
                     disabled={hasReported}
                   >
-                    {hasReported ? `✅ ${t('forum.modals.report.success')}` : `⚠️ ${t('forum.post.report')}`}
+                    {hasReported ? (
+                      <>
+                        <CheckCircle2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                        {t('forum.modals.report.success')}
+                      </>
+                    ) : (
+                      <>
+                        <Flag className={styles['menu-item-icon']} strokeWidth={1.6} />
+                        {t('forum.post.report')}
+                      </>
+                    )}
                   </button>
                 )}
               </div>
@@ -767,10 +1003,43 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
            {renderContentWithLinks(
              String(post.content || '')
                .split(/\n+/)
-               .filter(line => !line.trim().match(new RegExp(`^(?:${BaseURL.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&')})?/tour/\\d+$`)))
+               .filter(line => {
+                 const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
+                 // Match format 1: /tour/123 or http://domain/tour/123
+                 const regexOld = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/\\d+(?:[\\s\\?&#]|$)`);
+                 // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
+                 const regexNew = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=\\d+(?:[\\s&#]|$)`);
+                 return !line.trim().match(regexOld) && !line.trim().match(regexNew);
+               })
                .join('\n')
            )}
          </p>
+        {showTranslated && translatedText && (
+          <div className={styles['post-translate-text']}>
+            {translatedText}
+          </div>
+        )}
+        {post.content && (
+          <div className={styles['post-translate-row']}>
+            <button
+              type="button"
+              className={styles['post-translate-link']}
+              onClick={handleTranslateClick}
+              disabled={isTranslating}
+            >
+              {isTranslating
+                ? t('forum.post.translating')
+                : showTranslated && translatedText
+                  ? t('forum.post.hideTranslation')
+                  : t('forum.post.translate')}
+            </button>
+          </div>
+        )}
+        {translateError && (
+          <div className={styles['post-translate-error']}>
+            {translateError}
+          </div>
+        )}
         
         {post.hashtags && post.hashtags.length > 0 && (
           <div className={styles['post-hashtags']}>
@@ -790,18 +1059,6 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
         {renderImages()}
       </div>
 
-      <div className={styles['post-stats']}>
-        <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{likeCount} {t('forum.post.like')}</span>
-        </div>
-        <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{commentCount} {t('forum.post.comments')}</span>
-        </div>
-        <div className={styles['stat-item']}>
-          <span className={styles['stat-count']}>{saveCount} {t('forum.post.save')}</span>
-        </div>
-      </div>
-
       <div className={styles['post-actions']}>
         {user ? (
           <>
@@ -809,47 +1066,29 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
               className={`${styles['action-btn']} ${styles['like-btn']} ${isLiked ? styles['active'] : ''}`}
               onClick={handleLike}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
-              <span className={styles['action-text']}>{t('forum.post.like')}</span>
+              <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
+              <span className={styles['action-text']}>
+                {t('forum.post.like')} ({likeCount})
+              </span>
             </button>
             <button 
               className={`${styles['action-btn']} ${styles['dislike-btn']} ${isDisliked ? styles['active'] : ''}`}
               onClick={handleDislike}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
-              <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+              <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
+              <span className={styles['action-text']}>
+                {t('forum.post.dislike')} ({dislikeCount})
+              </span>
             </button>
             
             <button 
               className={`${styles['action-btn']} ${styles['comment-btn']}`}
               onClick={() => setShowCommentInput(!showCommentInput)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
-              </svg>
-              <span className={styles['action-text']}>{t('forum.post.comment')}</span>
+              <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
+              <span className={styles['action-text']}>
+                {t('forum.post.comment')} ({commentCount})
+              </span>
             </button>
           </>
         ) : (
@@ -859,48 +1098,30 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
               title={t('forum.guest.loginToReact')}
               onClick={() => setShowLoginRequiredModal(true)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
-              <span className={styles['action-text']}>{t('forum.post.like')}</span>
+              <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
+              <span className={styles['action-text']}>
+                {t('forum.post.like')} ({likeCount})
+              </span>
             </div>
             <div 
               className={`${styles['action-btn-disabled']} ${styles['dislike-btn-disabled']}`} 
               title={t('forum.guest.loginToReact')}
               onClick={() => setShowLoginRequiredModal(true)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 016 15.375c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558-.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23h-.777zM2.331 10.977a11.969 11.969 0 00-.831 4.398 12 12 0 00.52 3.507c.26.85 1.084 1.368 1.973 1.368H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 01-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227z"/>
-              </svg>
-              <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+              <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
+              <span className={styles['action-text']}>
+                {t('forum.post.dislike')} ({dislikeCount})
+              </span>
             </div>
             <div 
               className={`${styles['action-btn-disabled']} ${styles['comment-btn-disabled']}`} 
               title={t('forum.guest.loginToComment')}
               onClick={() => setShowLoginRequiredModal(true)}
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-                className={styles['action-icon']}
-              >
-                <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
-              </svg>
-              <span className={styles['action-text']}>{t('forum.post.comment')}</span>
+              <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
+              <span className={styles['action-text']}>
+                {t('forum.post.comment')} ({commentCount})
+              </span>
             </div>
           </div>
         )}
@@ -946,6 +1167,55 @@ const PostCard = ({ post, onPostDeleted, onEdit, onHashtagClick }) => {
     />
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Return true if props are equal (skip re-render), false if different (re-render)
+  if (prevProps.post.forumPostId !== nextProps.post.forumPostId) return false;
+  if (prevProps.isFirstPost !== nextProps.isFirstPost) return false;
+  
+  // Compare post content fields (important for edit updates)
+  if (prevProps.post.title !== nextProps.post.title) return false;
+  if (prevProps.post.content !== nextProps.post.content) return false;
+  
+  // Compare hashtags
+  const prevHashtags = prevProps.post.hashtags || [];
+  const nextHashtags = nextProps.post.hashtags || [];
+  if (prevHashtags.length !== nextHashtags.length) return false;
+  const prevHashtagContents = prevHashtags.map(h => h.content || h).sort().join(',');
+  const nextHashtagContents = nextHashtags.map(h => h.content || h).sort().join(',');
+  if (prevHashtagContents !== nextHashtagContents) return false;
+  
+  // Compare metadata (for link previews)
+  const prevMetadata = prevProps.post.metadata || prevProps.post.meta;
+  const nextMetadata = nextProps.post.metadata || nextProps.post.meta;
+  if (JSON.stringify(prevMetadata) !== JSON.stringify(nextMetadata)) return false;
+  
+  // Compare images
+  const prevImages = prevProps.post.images || [];
+  const nextImages = nextProps.post.images || [];
+  if (prevImages.length !== nextImages.length) return false;
+  const prevImagePaths = prevImages.map(img => typeof img === 'string' ? img : img.imgPath).sort().join(',');
+  const nextImagePaths = nextImages.map(img => typeof img === 'string' ? img : img.imgPath).sort().join(',');
+  if (prevImagePaths !== nextImagePaths) return false;
+  
+  // Compare reactions
+  const prevReactions = prevProps.post.reactions;
+  const nextReactions = nextProps.post.reactions;
+  if (prevReactions?.likeCount !== nextReactions?.likeCount) return false;
+  if (prevReactions?.dislikeCount !== nextReactions?.dislikeCount) return false;
+  
+  // Compare save count
+  if (prevProps.post.saveCount !== nextProps.post.saveCount) return false;
+  
+  // Compare comment count (approximate)
+  const prevCommentCount = prevProps.post.comments?.length || 0;
+  const nextCommentCount = nextProps.post.comments?.length || 0;
+  if (prevCommentCount !== nextCommentCount) return false;
+  
+  // Props are equal, skip re-render
+  return true;
+});
+
+PostCard.displayName = 'PostCard';
 
 export default PostCard;

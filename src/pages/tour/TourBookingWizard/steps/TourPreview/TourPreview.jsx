@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useToursAPI } from '../../../../../hooks/useToursAPI';
+import { getTourImageUrl } from '../../../../../config/api';
+import {
+  Clock4,
+  MapPin,
+  Bus,
+  Tag,
+  CalendarClock,
+  ScrollText
+} from 'lucide-react';
 import styles from './TourPreview.module.css';
 
-const TourPreview = () => {
-  const { id: tourId } = useParams();
+const TourPreview = ({ createdAt = null }) => {
+  const [searchParams] = useSearchParams();
+  const tourId = searchParams.get('id');
   const { fetchTourById, loading, error } = useToursAPI();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tour, setTour] = useState(null);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,11 +83,37 @@ const TourPreview = () => {
 
   // formatPrice function removed as it's not used in this component
 
+  // tour.image is already a full URL from useToursAPI (processed by getTourImageUrl)
+  // So we can use it directly without additional processing
   const getImageUrl = (imagePath) => {
     if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/uploads/tours/thumbnails/${imagePath}`;
+    // If it's already a full URL (from useToursAPI), return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // If it starts with /uploads, it's already a path, use getTourImageUrl
+    if (imagePath.startsWith('/uploads')) {
+      return getTourImageUrl(imagePath, '');
+    }
+    // Otherwise, assume it's a relative path and prepend the uploads path
+    return getTourImageUrl(`/uploads/tours/thumbnails/${imagePath}`, '');
   };
+
+  const formatCreatedAt = (value) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    try {
+      return new Intl.DateTimeFormat(i18n.language || 'vi', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(date);
+    } catch {
+      return date.toLocaleString();
+    }
+  };
+
+  const createdAtDisplay = formatCreatedAt(createdAt);
 
   if (isLoading || loading) {
     return (
@@ -101,6 +137,21 @@ const TourPreview = () => {
     image: null
   };
 
+  const renderDetailItem = (IconComponent, label, value, options = {}) => {
+    const { isBlock = false } = options;
+    return (
+      <div className={styles['detail-item']}>
+        <div className={styles['detail-label-wrapper']}>
+          <IconComponent className={styles['detail-icon']} />
+          <span className={styles['detail-label']}>{label}</span>
+        </div>
+        <span className={`${styles['detail-value']} ${isBlock ? styles['detail-value-block'] : ''}`}>
+          {value}
+        </span>
+      </div>
+    );
+  };
+
   if (hasError || error) {
     // Show fallback data when API fails
     return (
@@ -122,39 +173,20 @@ const TourPreview = () => {
             <h3 className={styles['tour-preview-title']}>{fallbackTour.title}</h3>
             
             <div className={styles['tour-details-list']}>
-              <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.code')}</span>
-                <span className={styles['detail-value']}>{fallbackTour.id}</span>
-              </div>
-              
-              <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.duration')}</span>
-                <span className={styles['detail-value']}>{fallbackTour.duration}</span>
-              </div>
-              
-              <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.departure')}</span>
-                <span className={styles['detail-value']}>{getDepartureLabel(fallbackTour.tourDeparturePoint)}</span>
-              </div>
-              
-              <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.vehicle')}</span>
-                <span className={styles['detail-value']}>{getVehicleLabel(fallbackTour.tourVehicle)}</span>
-              </div>
-              
-              <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.category')}</span>
-                <span className={styles['detail-value']}>{getCategoryLabel(fallbackTour.category)}</span>
-              </div>
-              
-              <div className={styles['detail-item']}>
-                <span className={styles['detail-label']}>{t('booking.tourPreview.labels.schedule')}</span>
-                <span className={styles['detail-value']}>
-                  <div className={styles['schedule-content']}>
-                    {t('booking.tourPreview.fallback.schedule')}
-                  </div>
-                </span>
-              </div>
+              {renderDetailItem(Clock4, t('booking.tourPreview.labels.duration'), fallbackTour.duration)}
+              {renderDetailItem(MapPin, t('booking.tourPreview.labels.departure'), getDepartureLabel(fallbackTour.tourDeparturePoint))}
+              {renderDetailItem(Bus, t('booking.tourPreview.labels.vehicle'), getVehicleLabel(fallbackTour.tourVehicle))}
+              {renderDetailItem(Tag, t('booking.tourPreview.labels.category'), getCategoryLabel(fallbackTour.category))}
+              {createdAtDisplay &&
+                renderDetailItem(CalendarClock, t('booking.tourPreview.labels.createdAt'), createdAtDisplay)}
+              {renderDetailItem(
+                ScrollText,
+                t('booking.tourPreview.labels.schedule'),
+                <div className={styles['schedule-content']}>
+                  {t('booking.tourPreview.fallback.schedule')}
+                </div>,
+                { isBlock: true }
+              )}
             </div>
             
             <div className={styles['api-error-notice']}>
@@ -189,6 +221,9 @@ const TourPreview = () => {
               src={getImageUrl(tour.image)} 
               alt={tour.title}
               className={styles['tour-thumbnail']}
+              onError={(e) => {
+                e.target.src = '/default-Tour.jpg';
+              }}
             />
           ) : (
             <div className={styles['tour-placeholder']}>
@@ -206,58 +241,38 @@ const TourPreview = () => {
           <h3 className={styles['tour-preview-title']}>{tour.title}</h3>
           
           <div className={styles['tour-details-list']}>
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.code')}</span>
-              <span className={styles['detail-value']}>{tour.id || t('booking.tourPreview.labels.notAvailable')}</span>
-            </div>
-            
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.duration')}</span>
-              <span className={styles['detail-value']}>
-                {(() => {
-                  const v = (tour.duration || '').toString();
-                  // Try parse patterns like "5 ngày 4 đêm", "5 days 4 nights", "5일 4박"
-                  const vi = v.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
-                  const en = v.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
-                  const ko = v.match(/(\d+)\s*일\s*(\d+)\s*박/i);
-                  const m = vi || en || ko;
-                  if (m) {
-                    const days = parseInt(m[1], 10);
-                    const nights = parseInt(m[2], 10);
-                    return t('booking.tourPreview.durationTemplate', { days, nights });
-                  }
-                  return v || t('booking.tourPreview.labels.notAvailable');
-                })()}
-              </span>
-            </div>
-            
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.departure')}</span>
-              <span className={styles['detail-value']}>{getDepartureLabel(tour.tourDeparturePoint)}</span>
-            </div>
-            
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.vehicle')}</span>
-              <span className={styles['detail-value']}>{getVehicleLabel(tour.tourVehicle)}</span>
-            </div>
-            
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.category')}</span>
-              <span className={styles['detail-value']}>{getCategoryLabel(tour.category || 'Standard')}</span>
-            </div>
-            
-            <div className={styles['detail-item']}>
-              <span className={styles['detail-label']}>{t('booking.tourPreview.labels.schedule')}</span>
-              <span className={styles['detail-value']}>
-                {tour.tourSchedule ? (
-                  <div className={styles['schedule-content']}>
-                    {tour.tourSchedule}
-                  </div>
-                ) : (
-                  <span className={styles['no-schedule']}>{t('booking.tourPreview.labels.noSchedule')}</span>
-                )}
-              </span>
-            </div>
+            {renderDetailItem(
+              Clock4,
+              t('booking.tourPreview.labels.duration'),
+              (() => {
+                const v = (tour.duration || '').toString();
+                const vi = v.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
+                const en = v.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
+                const ko = v.match(/(\d+)\s*일\s*(\d+)\s*박/i);
+                const m = vi || en || ko;
+                if (m) {
+                  const days = parseInt(m[1], 10);
+                  const nights = parseInt(m[2], 10);
+                  return t('booking.tourPreview.durationTemplate', { days, nights });
+                }
+                return v || t('booking.tourPreview.labels.notAvailable');
+              })()
+            )}
+            {renderDetailItem(MapPin, t('booking.tourPreview.labels.departure'), getDepartureLabel(tour.tourDeparturePoint))}
+            {renderDetailItem(Bus, t('booking.tourPreview.labels.vehicle'), getVehicleLabel(tour.tourVehicle))}
+            {renderDetailItem(Tag, t('booking.tourPreview.labels.category'), getCategoryLabel(tour.category || 'Standard'))}
+            {createdAtDisplay &&
+              renderDetailItem(CalendarClock, t('booking.tourPreview.labels.createdAt'), createdAtDisplay)}
+            {renderDetailItem(
+              ScrollText,
+              t('booking.tourPreview.labels.schedule'),
+              tour.tourSchedule ? (
+                <div className={styles['schedule-content']}>{tour.tourSchedule}</div>
+              ) : (
+                <span className={styles['no-schedule']}>{t('booking.tourPreview.labels.noSchedule')}</span>
+              ),
+              { isBlock: true }
+            )}
           </div>
         </div>
       </div>

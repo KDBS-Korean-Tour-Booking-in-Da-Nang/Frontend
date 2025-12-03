@@ -1,12 +1,46 @@
+/* 1) Body & html cho phép scroll */
+:global(html), :global(body) {
+  background: transparent !important;
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto; /* đừng dùng visible */
+}
+
+/* 2) Wrapper ở flow bình thường, gradient vẽ bằng ::before cố định full viewport */
+.wizard-fullscreen-bg {
+  position: relative;          /* KHÔNG dùng fixed ở wrapper */
+  z-index: 0;                  /* stacking bình thường */
+}
+
+.wizard-fullscreen-bg::before {
+  content: "";
+  position: fixed;             /* gradient phủ full màn hình và không cuộn */
+  inset: 0;                    /* top/right/bottom/left: 0 */
+  /* Đồng bộ background với Homepage & AboutUs */
+  background: linear-gradient(to bottom, #fefefe, #f8f6ff, #f3fbff);
+  pointer-events: none;        /* không ăn click */
+  z-index: -1;                 /* đứng sau toàn bộ nội dung trang */
+}
+
 .tour-booking-wizard {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
+  z-index: 1;                  /* nổi hơn wrapper */
+  background: transparent;
+  min-height: 100svh;  /* an toàn trên mobile */
+  pointer-events: auto;
 }
 
 /* Progress Bar */
 .progress-container {
+  margin-top: 10px;
   margin-bottom: 40px;
+  position: relative;
+  z-index: 2; 
+  pointer-events: auto;
 }
 
 .progress-bar {
@@ -146,6 +180,9 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   margin-bottom: 32px;
   min-height: 500px;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 /* Navigation Buttons */
@@ -154,6 +191,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 0;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .btn-primary, .btn-secondary, .btn-success {
@@ -430,6 +470,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .progress-container {
+    margin-top: 60px;
+  }
+  
   .tour-booking-wizard .progress-steps {
     flex-direction: column;
     gap: 12px;

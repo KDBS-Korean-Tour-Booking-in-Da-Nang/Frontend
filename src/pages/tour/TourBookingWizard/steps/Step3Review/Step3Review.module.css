@@ -1,7 +1,33 @@
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.member-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* Step 3 Review Styles */
 .review-form {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+}
+
+.summary-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
@@ -36,9 +62,21 @@
   border-radius: 2px;
 }
 
+.title-icon {
+  width: 20px;
+  height: 20px;
+  color: #10b981;
+}
+
 .review-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.guests-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 
@@ -46,6 +84,18 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.contact-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.contact-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .review-label {
@@ -57,6 +107,18 @@
 .review-value {
   color: #1f2937;
   font-weight: 500;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.item-icon {
+  width: 18px;
+  height: 18px;
+  color: #6b7280;
 }
 
 /* Members Table */
@@ -82,6 +144,35 @@
 
 .members-table td {
   color: #1f2937;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.table-header-icon {
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+}
+
+.gender-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.gender-icon.table-header-icon {
+  width: auto;
+  height: auto;
+}
+
+.gender-icon svg {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
 }
 
 /* Price Summary */
@@ -147,6 +238,10 @@
 @media (max-width: 768px) {
   .review-grid {
     grid-template-columns: 1fr;
+  }
+
+  .guests-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .members-table {

@@ -2,52 +2,63 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_ENDPOINTS, createAuthFormHeaders } from '../config/api';
 import { useAuth } from '../contexts/AuthContext';
 
-const hasBookedTour = (bookingSummary, tourId) => {
-  if (!Array.isArray(bookingSummary)) return false;
-  return bookingSummary.some((b) => String(b.tourId) === String(tourId) || String(b.tour?.tourId) === String(tourId));
+const isCompletedBooking = (booking) => {
+  const status = String(booking?.status || '').toUpperCase();
+  const txStatus = String(booking?.transactionStatus || '').toUpperCase();
+  // Consider completed when transaction succeeded, or status marked as purchased/confirmed
+  return txStatus === 'SUCCESS' || status === 'PURCHASED' || status === 'CONFIRMED';
 };
+
+// Helper: Kiểm tra JWT hết hạn (UNIX timestamp)
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp && payload.exp < Date.now() / 1000;
+  } catch {
+    return true;
+  }
+}
 
 export const useTourRated = (tourId) => {
   const { user, getToken } = useAuth();
   const [ratings, setRatings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [bookingSummary, setBookingSummary] = useState([]);
   const [ratedByMe, setRatedByMe] = useState(false);
 
   const canRate = useMemo(() => {
     if (!user) return false;
     if (!tourId) return false;
-    const booked = hasBookedTour(bookingSummary, tourId);
     const possibleMyIds = [user.userId, user.id, user.user_id].filter(Boolean);
     const alreadyRated = ratings.some((r) => possibleMyIds.some((mid) => String(r.userId) === String(mid)));
-    const finalRated = ratedByMe || alreadyRated;
-    return booked && !finalRated;
-  }, [user, tourId, bookingSummary, ratings, ratedByMe]);
+    return !alreadyRated;
+  }, [user, tourId, ratings, ratedByMe]);
 
   const fetchRatingsByTour = useCallback(async () => {
     if (!tourId) return;
+    let shouldSendToken = false;
+    let token = null;
+    if (user && getToken) {
+      token = getToken();
+      shouldSendToken = token && !isTokenExpired(token);
+    }
     try {
       setLoading(true);
       setError(null);
-      const token = getToken && getToken();
-      let res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(tourId), {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      if (res.status === 401 && !token) {
-        // Retry with token if available later
-        const retryToken = getToken && getToken();
-        if (retryToken) {
-          res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(tourId), {
-            headers: { Authorization: `Bearer ${retryToken}` },
-          });
-        }
+      let fetchOptions = {};
+      if (shouldSendToken) {
+        fetchOptions.headers = createAuthFormHeaders(token);
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let res = await fetch(API_ENDPOINTS.TOUR_RATED_BY_TOUR(tourId), fetchOptions);
+      if (!res.ok) {
+        setRatings([]);
+        setRatedByMe(false);
+        return;
+      }
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
       setRatings(list);
-      // Update ratedByMe based on fetched list
       const possibleMyIds = [user?.userId, user?.id, user?.user_id].filter(Boolean);
       const hasMine = list.some((r) => possibleMyIds.some((mid) => String(r.userId) === String(mid)));
       setRatedByMe(hasMine);
@@ -56,7 +67,7 @@ export const useTourRated = (tourId) => {
     } finally {
       setLoading(false);
     }
-  }, [tourId, getToken]);
+  }, [tourId, getToken, user]);
 
   const refresh = useCallback(async () => {
     await fetchRatingsByTour();
@@ -135,27 +146,6 @@ export const useTourRated = (tourId) => {
   useEffect(() => {
     fetchRatingsByTour();
   }, [fetchRatingsByTour]);
-
-  useEffect(() => {
-    // Fetch booking summary for eligibility check
-    const fetchBookingSummary = async () => {
-      if (!user?.email) return setBookingSummary([]);
-      try {
-        const token = getToken();
-        if (!token) return;
-        const res = await fetch(
-          `${API_ENDPOINTS.BOOKING_SUMMARY_BY_EMAIL(user.email)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setBookingSummary(Array.isArray(data) ? data : []);
-      } catch {
-        setBookingSummary([]);
-      }
-    };
-    fetchBookingSummary();
-  }, [user, getToken]);
 
   const myRating = useMemo(() => {
     if (!user) return null;

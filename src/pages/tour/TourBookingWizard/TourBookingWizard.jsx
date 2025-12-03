@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { TourBookingProvider, useBooking } from '../../../contexts/TourBookingContext';
 import { formatBookingData, validateBookingData } from '../../../utils/bookingFormatter';
+import { useBookingAPI } from '../../../hooks/useBookingAPI';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { useBookingStepValidation } from '../../../hooks/useBookingStepValidation';
@@ -20,133 +21,44 @@ const STEPS = [
 
 // Inner component that uses the booking context
 const BookingWizardContent = () => {
-  const { id: tourId } = useParams();
+  const [searchParams] = useSearchParams();
+  const tourId = searchParams.get('id');
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const { showError, showBatch } = useToast();
+  const { showBatch, showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
-  const { 
-    resetBooking, 
-    contact, 
-    plan, 
+    const {
+    resetBooking,
+    contact,
+    plan,
     booking,
     setContact,
     setDate,
     setPax,
     setMember,
-    recalcTotal
+    rebuildMembers,
+    recalcTotal,
+    setBookingLoading,
+    setBookingError,
+    setBookingSuccess,
+    clearBookingStatus
   } = useBooking();
+  
+  // Track if we've restored data to avoid duplicate restores
+  const hasRestoredRef = useRef(false);
+  const { createBookingAPI } = useBookingAPI();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
+  const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 1
+  const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 2
   
-  // Check if we're returning from payment page
-  useEffect(() => {
-    const locationState = location.state;
-    if (locationState && locationState.returnFromPayment) {
-      setCurrentStep(3); // Navigate to Step 3 when returning from payment
-      
-      // Clear confirmed leave flag when returning from payment
-      try {
-        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
-      } catch (error) {
-        console.error('Error clearing confirmed leave flag:', error);
-      }
-      
-      // Try to restore booking data from localStorage
-      try {
-        const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
-        if (savedBookingData) {
-          const parsedData = JSON.parse(savedBookingData);
-          
-          // Restore contact data
-          if (parsedData.contact) {
-            setContact(parsedData.contact);
-          }
-          
-          // Restore plan data
-          if (parsedData.plan) {
-            // Restore date
-            if (parsedData.plan.date) {
-              setDate(parsedData.plan.date);
-            }
-            
-            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
-            if (parsedData.plan.pax) {
-              setPax(parsedData.plan.pax);
-            }
-            
-            // Restore members
-            if (parsedData.plan.members) {
-              // Restore adult members
-              if (parsedData.plan.members.adult) {
-                parsedData.plan.members.adult.forEach((member, index) => {
-                  setMember('adult', index, member);
-                });
-              }
-              
-              // Restore child members
-              if (parsedData.plan.members.child) {
-                parsedData.plan.members.child.forEach((member, index) => {
-                  setMember('child', index, member);
-                });
-              }
-              
-              // Restore infant members
-              if (parsedData.plan.members.infant) {
-                parsedData.plan.members.infant.forEach((member, index) => {
-                  setMember('infant', index, member);
-                });
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error restoring booking data:', error);
-      }
-    }
-  }, [setContact, setDate, setMember]);
+  // Removed showError ref - using setBookingError instead
   
-  // Load tour prices and trigger price calculation when returning from payment
-  useEffect(() => {
-    const locationState = location.state;
-    if (locationState && locationState.returnFromPayment) {
-      // Load tour prices from API
-      const loadTourPrices = async () => {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-          const response = await fetch(`${API_BASE_URL}/api/tour/${tourId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          const tourData = await response.json();
-          
-          // Trigger price calculation with loaded prices
-          const prices = {
-            adult: tourData.adultPrice,
-            child: tourData.childrenPrice,
-            infant: tourData.babyPrice
-          };
-          
-          recalcTotal(prices);
-        } catch (error) {
-          console.error('Error loading tour prices for restoration:', error);
-        }
-      };
-      
-      loadTourPrices();
-    }
-  }, [location.state, tourId, recalcTotal]);
+  // Removed VNPay return handling effect
   
   // Auto-save booking data when contact or plan changes
   useEffect(() => {
@@ -162,7 +74,7 @@ const BookingWizardContent = () => {
         };
           localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
       } catch (error) {
-        console.error('Error auto-saving booking data:', error);
+        // Error auto-saving booking data
       }
     }
   }, [contact, plan, tourId]);
@@ -171,16 +83,20 @@ const BookingWizardContent = () => {
   useEffect(() => {
     const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
                    plan && (plan.date || plan.pax);
-    
+
     const handler = (e) => {
       if (!hasData) return;
       e.preventDefault();
       e.returnValue = '';
+      try {
+        // Mark as confirmed leave so next mount clears data
+        localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
+      } catch (_) {}
     };
-    
+
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [contact, plan]);
+  }, [contact, plan, tourId]);
 
   // Intercept clicks on navigation links like TourWizard
   useEffect(() => {
@@ -209,7 +125,14 @@ const BookingWizardContent = () => {
   // Use custom hook for step validation
   const { getStepErrors, isStepCompleted, stepValidations } = useBookingStepValidation({ contact, plan, user });
 
-  // Authentication guard
+  // Reset step1ValidationAttempted when step1 becomes valid
+  useEffect(() => {
+    if (currentStep === 1 && stepValidations.step1?.isValid) {
+      setStep1ValidationAttempted(false);
+    }
+  }, [currentStep, stepValidations.step1?.isValid]);
+
+  // Authentication and role guard
   useEffect(() => {
     if (!authLoading && !user) {
       // Store current URL to return after login
@@ -218,13 +141,61 @@ const BookingWizardContent = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Block COMPANY role from booking
+  useEffect(() => {
+    if (!authLoading && user && user.role === 'COMPANY') {
+      setBookingError(t('bookingWizard.toast.companyNotAllowedError') || 'Tài khoản công ty không thể đặt tour');
+    }
+  }, [authLoading, user]);
+
   // Reset booking when component mounts or tourId changes
   useEffect(() => {
-    if (user) {
+    // Reset restore flag when tourId changes
+    hasRestoredRef.current = false;
+  }, [tourId]);
+  
+  // Handle navigation state (step, clearExistingData)
+  useEffect(() => {
+    // If clearExistingData flag is set (from payment page), clear all data
+    if (location.state?.clearExistingData) {
+      try {
+        localStorage.removeItem(`bookingData_${tourId}`);
+        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+        localStorage.removeItem(`existingBookingId_${tourId}`);
+        resetBooking();
+        setCurrentStep(1);
+        hasRestoredRef.current = true;
+      } catch (error) {
+        // Error clearing existing booking data
+      }
+      return;
+    }
+    
+    // Handle step from navigation state
+    if (location.state?.step && location.state.step >= 1 && location.state.step <= 3) {
+      setCurrentStep(location.state.step);
+    }
+  }, [location, tourId, resetBooking]);
+  
+  useEffect(() => {
+    if (user && !hasRestoredRef.current) {
+      // Check if clearExistingData was set - if so, skip restore
+      if (location.state?.clearExistingData) {
+        hasRestoredRef.current = true;
+        return;
+      }
+      
       // Check if user has confirmed to leave before
       const hasConfirmedLeaveFlag = localStorage.getItem(`hasConfirmedLeave_${tourId}`);
       if (hasConfirmedLeaveFlag === 'true') {
         resetBooking();
+        // Clear the flag after processing so reload can restore data
+        try {
+          localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+        } catch (error) {
+          // Error clearing hasConfirmedLeave flag
+        }
+        hasRestoredRef.current = true;
         return;
       }
       
@@ -251,40 +222,62 @@ const BookingWizardContent = () => {
               setPax(parsedData.plan.pax);
             }
 
-            // Restore members
-            if (parsedData.plan.members) {
-              // Restore adult members
-              if (parsedData.plan.members.adult) {
-                parsedData.plan.members.adult.forEach((member, index) => {
-                  setMember('adult', index, member);
-                });
-              }
+            // Wait for pax to be set and members to be rebuilt before restoring member data
+            // Use setTimeout to ensure pax state update and rebuildMembers have processed
+            setTimeout(() => {
+              // Rebuild members based on pax first
+              rebuildMembers();
               
-              // Restore child members
-              if (parsedData.plan.members.child) {
-                parsedData.plan.members.child.forEach((member, index) => {
-                  setMember('child', index, member);
-                });
-              }
-              
-              // Restore infant members
-              if (parsedData.plan.members.infant) {
-                parsedData.plan.members.infant.forEach((member, index) => {
-                  setMember('infant', index, member);
-                });
-              }
-            }
+              // Then restore members data
+              setTimeout(() => {
+                if (parsedData.plan.members) {
+                  // Restore adult members (only if they have data)
+                  if (parsedData.plan.members.adult && Array.isArray(parsedData.plan.members.adult)) {
+                    parsedData.plan.members.adult.forEach((member, index) => {
+                      // Only set member if it has meaningful data
+                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
+                        setMember('adult', index, member);
+                      }
+                    });
+                  }
+                  
+                  // Restore child members (only if they have data)
+                  if (parsedData.plan.members.child && Array.isArray(parsedData.plan.members.child)) {
+                    parsedData.plan.members.child.forEach((member, index) => {
+                      // Only set member if it has meaningful data
+                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
+                        setMember('child', index, member);
+                      }
+                    });
+                  }
+                  
+                  // Restore infant members (only if they have data)
+                  if (parsedData.plan.members.infant && Array.isArray(parsedData.plan.members.infant)) {
+                    parsedData.plan.members.infant.forEach((member, index) => {
+                      // Only set member if it has meaningful data
+                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
+                        setMember('infant', index, member);
+                      }
+                    });
+                  }
+                }
+              }, 50);
+            }, 50);
           }
         } else {
           // No saved data, reset to initial state
           resetBooking();
         }
+        
+        // Mark as restored to avoid duplicate restores
+        hasRestoredRef.current = true;
       } catch (error) {
-        console.error('Error restoring booking data:', error);
+        // Error restoring booking data
         resetBooking();
+        hasRestoredRef.current = true;
       }
     }
-  }, [tourId, resetBooking, user, setContact, setDate, setMember]);
+  }, [tourId, resetBooking, user, setContact, setDate, setMember, setPax, rebuildMembers]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -293,84 +286,188 @@ const BookingWizardContent = () => {
       const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
       
       if (!isCurrentStepValid) {
-        // Get validation errors for current step
-        const errors = getStepErrors(currentStep);
-        
-        if (errors.length > 0) {
-          const messages = errors.map(errorKey => {
-            // Check if it's a toast message key (contains 'toast')
-            if (errorKey.includes('toast')) {
-              return { i18nKey: errorKey };
-            } else {
-              // It's a field name, use the required toast format
-              const fieldName = t(errorKey);
-              return { i18nKey: 'toast.required', values: { field: fieldName } };
-            }
-          });
+        // For step 1, find the first missing (unfilled) field and show only 1 toast
+        if (currentStep === 1) {
+          // Mark that user has attempted validation for Step 1
+          setStep1ValidationAttempted(true);
+          // Trigger validation in Step1Contact to show inline error messages
+          window.dispatchEvent(new CustomEvent('validateStep1'));
+        } else if (currentStep === 2) {
+          // Mark that user has attempted validation for Step 2
+          setStep2ValidationAttempted(true);
           
-          // Queue this batch; if another click happens, the next batch will wait until this one is done
-          showBatch(messages, 'error', 5000);
+          // Trigger validation in Step2Details to show error messages for missing fields
+          window.dispatchEvent(new CustomEvent('validateStep2'));
+        } else {
+          // For other steps, use the original batch toast logic
+          const errors = getStepErrors(currentStep);
+          
+          if (errors.length > 0) {
+            const messages = errors.map(errorKey => {
+              // Check if it's a toast message key (contains 'toast')
+              if (errorKey.includes('toast')) {
+                return { i18nKey: errorKey };
+              } else {
+                // It's a field name, use the required toast format
+                const fieldName = t(errorKey);
+                return { i18nKey: 'toast.required', values: { field: fieldName } };
+              }
+            });
+            
+            // Queue this batch; if another click happens, the next batch will wait until this one is done
+            showBatch(messages, 'error', 5000);
+          }
         }
       } else {
-        
-        // Save booking data to localStorage before moving to next step
-        try {
-          const bookingData = {
-            contact,
-            plan,
-            timestamp: Date.now(),
-            tourId: tourId
-          };
-          localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
-        } catch (error) {
-          console.error('Error saving booking data:', error);
+        // Special handling when moving from step 1 to step 2
+        if (currentStep === 1) {
+          // Reset members array and ensure we have 1 empty adult passenger
+          // Clear all existing members first
+          if (plan.members.adult.length > 0) {
+            // Clear all adult members
+            for (let i = plan.members.adult.length - 1; i >= 0; i--) {
+              setMember('adult', i, {
+                fullName: '',
+                dob: '',
+                gender: '',
+                nationality: '',
+                idNumber: ''
+              });
+            }
+          }
+          
+          // Ensure we have exactly 1 adult passenger
+          if (plan.pax.adult < 1) {
+            setPax({ ...plan.pax, adult: 1 });
+          }
+          
+          // Rebuild members to ensure we have 1 empty adult
+          setTimeout(() => {
+            rebuildMembers();
+          }, 0);
+          
+          // Save booking data before moving to step 2
+          try {
+            const bookingData = {
+              contact,
+              plan,
+              timestamp: Date.now(),
+              tourId: tourId
+            };
+            localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+          } catch (error) {
+            // Error saving booking data
+          }
+
+          // Reset Step 1 validation attempted state when leaving Step 1
+          setStep1ValidationAttempted(false);
+          // Reset Step 2 validation attempted state when entering Step 2
+          setStep2ValidationAttempted(false);
+          setCurrentStep(2);
+        } else {
+          // For other steps, save and move forward normally
+          // Save booking data to localStorage before moving to next step
+          try {
+            const bookingData = {
+              contact,
+              plan,
+              timestamp: Date.now(),
+              tourId: tourId
+            };
+            localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
+          } catch (error) {
+            // Error saving booking data
+          }
+          
+          // Reset Step 2 validation attempted state when leaving Step 2
+          if (currentStep === 2) {
+            setStep2ValidationAttempted(false);
+          }
+          
+          setCurrentStep(currentStep + 1);
         }
-        
-        setCurrentStep(currentStep + 1);
       }
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
+      // Reset validation attempted state when going back
+      if (currentStep === 2) {
+        setStep2ValidationAttempted(false);
+      } else if (currentStep === 1) {
+        setStep1ValidationAttempted(false);
+      }
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const handleConfirm = () => {
-    // Get current language for date format conversion
+  const handleConfirm = async () => {
     const currentLanguage = (i18n && i18n.language) ? i18n.language : 'vi';
-    
-    // Validate booking data before proceeding to payment
-    const bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage);
+
+    let bookingData;
+    try {
+      bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
+    } catch (error) {
+      // Failed to format booking data
+      setBookingError(error?.message || t('bookingWizard.toast.formatDataError') || 'Lỗi định dạng dữ liệu');
+      return;
+    }
+
     const validation = validateBookingData(bookingData);
-    
     if (!validation.isValid) {
-      showError(`Dữ liệu không hợp lệ: ${validation.errors.join(', ')}`);
+      setBookingError(t('bookingWizard.toast.validationError', { errors: validation.errors.join(', ') }) || 'Dữ liệu không hợp lệ');
       return;
     }
     
-    // Save final booking data to localStorage before payment
+    // Clear error if validation passes
+    setBookingError('');
+
     try {
       const finalBookingData = {
         contact,
         plan,
         timestamp: Date.now(),
-        tourId: tourId,
-        status: 'pending_payment'
+        tourId
       };
       localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(finalBookingData));
     } catch (error) {
-      console.error('Error saving final booking data:', error);
+      // Error saving final booking data
     }
-    
-    // Navigate to payment page with booking data (not yet created in DB)
-    navigate('/payment/vnpay', {
-      state: {
-        bookingData: bookingData, // Use formatted data, not created booking
-        tourId: tourId
+
+    clearBookingStatus();
+    setBookingLoading(true);
+
+    try {
+      const createdBooking = await createBookingAPI(bookingData);
+      setBookingSuccess(createdBooking);
+
+      try {
+        localStorage.removeItem(`bookingData_${tourId}`);
+        localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
+      } catch (_) {}
+
+      resetBooking();
+
+      showSuccess(t('bookingWizard.toast.bookingSuccess'));
+
+      navigate(`/booking/payment?id=${createdBooking.bookingId}`, {
+        state: {
+          bookingId: createdBooking.bookingId,
+          userEmail: createdBooking.contactEmail || bookingData.userEmail,
+          booking: createdBooking
+        }
+      });
+    } catch (error) {
+      // Create booking failed
+      const message = error?.message || t('bookingWizard.toast.bookingError') || 'Đặt tour thất bại';
+      setBookingError(message);
+      if (message === 'Unauthenticated') {
+        navigate('/login');
       }
-    });
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   const isStepCompletedByValidation = (stepId) => {
@@ -380,6 +477,13 @@ const BookingWizardContent = () => {
   const handleStepClick = (stepId) => {
     // Only allow clicking on completed steps or current step
     if (isStepCompletedByValidation(stepId) || stepId === currentStep) {
+      // Reset validation attempted state when leaving a step
+      if (currentStep === 1 && stepId !== 1) {
+        setStep1ValidationAttempted(false);
+      }
+      if (currentStep === 2 && stepId !== 2) {
+        setStep2ValidationAttempted(false);
+      }
       setCurrentStep(stepId);
     }
   };
@@ -412,7 +516,7 @@ const BookingWizardContent = () => {
       localStorage.removeItem(`bookingData_${tourId}`);
       localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
     } catch (error) {
-      console.error('Error clearing booking data:', error);
+      // Error clearing booking data
     }
     
     if (pendingNavigation) {
@@ -442,11 +546,13 @@ const BookingWizardContent = () => {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className={styles['tour-booking-wizard']}>
-        <div className={styles['step-content']}>
-          <div className={styles['loading-container']}>
-            <div className={styles['loading-spinner']}></div>
-            <p>{t('bookingWizard.auth.checking')}</p>
+      <div className={styles['wizard-fullscreen-bg']}>
+        <div className={styles['tour-booking-wizard']}>
+          <div className={styles['step-content']}>
+            <div className={styles['loading-container']}>
+              <div className={styles['loading-spinner']}></div>
+              <p>Đang kiểm tra xác thực...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -456,18 +562,43 @@ const BookingWizardContent = () => {
   // Show login required message if not authenticated
   if (!user) {
     return (
-      <div className={styles['tour-booking-wizard']}>
-        <div className={styles['step-content']}>
-          <div className={styles['auth-required']}>
-            <h2>🔒 {t('bookingWizard.auth.loginRequiredTitle')}</h2>
-            <p>{t('bookingWizard.auth.loginRequiredMessage')}</p>
-            <button 
-              type="button"
-              className={styles['btn-primary']}
-              onClick={() => navigate('/login')}
-            >
-              {t('bookingWizard.auth.loginButton')}
-            </button>
+      <div className={styles['wizard-fullscreen-bg']}>
+        <div className={styles['tour-booking-wizard']}>
+          <div className={styles['step-content']}>
+            <div className={styles['auth-required']}>
+              <h2>🔒 {t('bookingWizard.auth.loginRequiredTitle')}</h2>
+              <p>{t('bookingWizard.auth.loginRequiredMessage')}</p>
+              <button 
+                type="button"
+                className={styles['btn-primary']}
+                onClick={() => navigate('/login')}
+              >
+                {t('bookingWizard.auth.loginButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If COMPANY user, show blocked message and no wizard actions
+  if (user && user.role === 'COMPANY') {
+    return (
+      <div className={styles['wizard-fullscreen-bg']}>
+        <div className={styles['tour-booking-wizard']}>
+          <div className={styles['step-content']}>
+            <div className={styles['auth-required']}>
+              <h2>🚫 {t('bookingWizard.auth.accessDeniedTitle')}</h2>
+              <p>{t('bookingWizard.auth.companyNotAllowed')}</p>
+              <button 
+                type="button"
+                className={styles['btn-primary']}
+                onClick={() => navigate(`/tour/detail?id=${tourId}`)}
+              >
+                {t('bookingWizard.navigation.backtoTour')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -477,90 +608,123 @@ const BookingWizardContent = () => {
   // Note: Success and error handling is now done via redirect to SuccessPage/FailPage
 
   return (
-    <div className={styles['tour-booking-wizard']}>
-      {/* Progress Bar */}
-      <div className={styles['progress-container']}>
-        <div className={styles['progress-bar']}>
-          <div 
-            className={styles['progress-fill']} 
-            style={{ width: `${(currentStep / 3) * 100}%` }}
-          />
+    <div className={styles['wizard-fullscreen-bg']}>
+      <div className={styles['tour-booking-wizard']}>
+        {/* Progress Bar */}
+        <div className={styles['progress-container']}>
+          <div className={styles['progress-bar']}>
+            <div 
+              className={styles['progress-fill']} 
+              style={{ width: `${(currentStep / 3) * 100}%` }}
+            />
+          </div>
+          <div className={styles['progress-steps']}>
+            {STEPS.map((step) => (
+              <button 
+                key={step.id} 
+                type="button"
+                className={(() => {
+                  const base = styles['progress-step'];
+                  if (currentStep === step.id) return `${base} ${styles.active}`;
+                  if (isStepCompletedByValidation(step.id)) return `${base} ${styles.completed}`;
+                  return base;
+                })()}
+                onClick={() => handleStepClick(step.id)}
+              >
+                <div className={styles['step-number']}>{step.id}</div>
+                <div className={styles['step-info']}>
+                  <div className={styles['step-title']}>{t(step.titleKey)}</div>
+                  <div className={styles['step-description']}>{t(step.descKey)}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className={styles['progress-steps']}>
-          {STEPS.map((step) => (
+
+        {/* Step Content */}
+        <div className={styles['step-content']}>
+          {renderCurrentStep()}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className={styles['step-navigation']}>
+          <button 
+            type="button" 
+            className={styles['btn-secondary']} 
+            onClick={handleBack}
+            disabled={currentStep === 1}
+          >
+            {t('bookingWizard.navigation.back')}
+          </button>
+          
+          {currentStep < 3 ? (
             <button 
-              key={step.id} 
-              type="button"
-              className={(() => {
-                const base = styles['progress-step'];
-                if (currentStep === step.id) return `${base} ${styles.active}`;
-                if (isStepCompletedByValidation(step.id)) return `${base} ${styles.completed}`;
-                return base;
+              type="button" 
+              className={styles['btn-primary']} 
+              onClick={handleNext}
+              disabled={(() => {
+                // For Step 1: only disable after user has attempted validation and form is still invalid
+                if (currentStep === 1) {
+                  if (!step1ValidationAttempted) {
+                    // Allow clicking before validation attempt
+                    return false;
+                  }
+                  // After validation attempt, disable if form is still invalid
+                  const currentStepKey = `step${currentStep}`;
+                  const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                  return !isCurrentStepValid;
+                }
+                
+                // For Step 2: only disable after user has attempted validation and form is still invalid
+                if (currentStep === 2) {
+                  if (!step2ValidationAttempted) {
+                    // Allow clicking before validation attempt
+                    return false;
+                  }
+                  // After validation attempt, disable if form is still invalid
+                  const currentStepKey = `step${currentStep}`;
+                  const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                  return !isCurrentStepValid;
+                }
+                
+                // For other steps, use default validation
+                const currentStepKey = `step${currentStep}`;
+                const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                return !isCurrentStepValid;
               })()}
-              onClick={() => handleStepClick(step.id)}
             >
-              <div className={styles['step-number']}>{step.id}</div>
-              <div className={styles['step-info']}>
-                <div className={styles['step-title']}>{t(step.titleKey)}</div>
-                <div className={styles['step-description']}>{t(step.descKey)}</div>
-              </div>
+              {t('bookingWizard.navigation.next')}
             </button>
-          ))}
+          ) : (
+            <button 
+              type="button" 
+              className={styles['btn-success']} 
+              onClick={handleConfirm}
+              disabled={booking.loading || !!booking.error}
+            >
+              {(() => {
+                if (booking.loading) {
+                  return (
+                    <>
+                      <span className={styles['loading-spinner-small']}></span>
+                      {' '}{t('bookingWizard.processing')}
+                    </>
+                  );
+                }
+                return t('bookingWizard.navigation.confirm');
+              })()}
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Step Content */}
-      <div className={styles['step-content']}>
-        {renderCurrentStep()}
-      </div>
+        {/* Confirm Leave Modal */}
+        <ConfirmLeaveModal
+          open={showLeaveModal}
+          onCancel={handleCancelLeave}
+          onConfirm={handleConfirmLeave}
+        />
 
-      {/* Navigation Buttons */}
-      <div className={styles['step-navigation']}>
-        <button 
-          type="button" 
-          className={styles['btn-secondary']} 
-          onClick={handleBack}
-          disabled={currentStep === 1}
-        >
-          {t('bookingWizard.navigation.back')}
-        </button>
-        
-        {currentStep < 3 ? (
-          <button 
-            type="button" 
-            className={styles['btn-primary']} 
-            onClick={handleNext}
-          >
-            {t('bookingWizard.navigation.next')}
-          </button>
-        ) : (
-          <button 
-            type="button" 
-            className={styles['btn-success']} 
-            onClick={handleConfirm}
-            disabled={booking.loading}
-          >
-            {(() => {
-              if (booking.loading) {
-                return (
-                  <>
-                    <span className={styles['loading-spinner-small']}></span>
-                    {' '}{t('bookingWizard.processing')}
-                  </>
-                );
-              }
-              return t('bookingWizard.navigation.confirm');
-            })()}
-          </button>
-        )}
       </div>
-
-      {/* Confirm Leave Modal */}
-      <ConfirmLeaveModal
-        open={showLeaveModal}
-        onCancel={handleCancelLeave}
-        onConfirm={handleConfirmLeave}
-      />
     </div>
   );
 };

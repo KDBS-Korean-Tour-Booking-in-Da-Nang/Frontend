@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../../contexts/ToastContext';
 import { KeyIcon } from '@heroicons/react/24/outline';
+import { Icon } from '@iconify/react';
+import { getApiPath } from '../../../config/api';
 import styles from './forgotPassword.module.css';
 
 const ForgotPassword = () => {
@@ -15,26 +17,31 @@ const ForgotPassword = () => {
   const [sent, setSent] = useState(false);
   const [verified, setVerified] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const { showError, showSuccess } = useToast();
+  const [emailError, setEmailError] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [generalError, setGeneralError] = useState('');
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setEmailError('');
+    setGeneralError('');
 
     if (!email.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.email') } });
+      setEmailError(t('toast.required', { field: t('auth.common.email') }) || 'Email là bắt buộc');
       setLoading(false);
       return;
     }
     if (!email.includes('@')) {
-      showError(t('auth.common.form.email.invalid'));
+      setEmailError(t('auth.common.form.email.invalid') || 'Email không đúng định dạng');
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/auth/forgot-password/request', {
+      const response = await fetch(getApiPath('/api/auth/forgot-password/request'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,11 +57,43 @@ const ForgotPassword = () => {
         showSuccess('toast.auth.password_reset_email_sent');
         setSent(true);
         setCountdown(60);
+        // Mark user as having password if forgot password succeeds (user has real password)
+        if (email) {
+          try {
+            localStorage.setItem(`hasPassword_${email}`, 'true');
+            localStorage.removeItem(`isOAuthOnly_${email}`);
+          } catch {}
+        }
       } else {
-        showError(data.message || 'toast.auth.general_error');
+        // Check if it's an OAuth-only user error
+        const errorMessage = data.message || '';
+        // If backend returns error for OAuth-only users, show specific message and don't proceed
+        if (errorMessage.toLowerCase().includes('oauth') || 
+            errorMessage.toLowerCase().includes('social') ||
+            errorMessage.toLowerCase().includes('google') ||
+            errorMessage.toLowerCase().includes('naver') ||
+            errorMessage.toLowerCase().includes('không có mật khẩu') ||
+            errorMessage.toLowerCase().includes('does not have a password') ||
+            errorMessage.toLowerCase().includes('비밀번호가 없습니다') ||
+            errorMessage.toLowerCase().includes('cannot reset password') ||
+            errorMessage.toLowerCase().includes('không thể đặt lại mật khẩu') ||
+            data.code === 1001 || // Assuming backend uses specific error code
+            response.status === 400) {
+          
+          // Save OAuth-only status to localStorage
+          if (email) {
+            try {
+              localStorage.setItem(`isOAuthOnly_${email}`, 'true');
+            } catch {}
+          }
+          
+          setGeneralError(data.message || t('auth.forgot.errors.oauthOnly') || 'Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver.');
+        } else {
+          setGeneralError(data.message || t('toast.auth.general_error') || 'Có lỗi xảy ra');
+        }
       }
     } catch (err) {
-      showError('toast.auth.general_error');
+      setGeneralError(t('toast.auth.general_error') || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -79,20 +118,22 @@ const ForgotPassword = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setOtpLoading(true);
+    setOtpError('');
+    setGeneralError('');
 
     if (!otp.trim()) {
-      showError({ i18nKey: 'toast.required', values: { field: t('auth.common.otp') } });
+      setOtpError(t('toast.required', { field: t('auth.common.otp') }) || 'OTP là bắt buộc');
       setOtpLoading(false);
       return;
     }
     if (otp.length !== 6) {
-      showError(t('auth.verify.error'));
+      setOtpError(t('auth.verify.error') || 'OTP phải có 6 chữ số');
       setOtpLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(`/api/auth/forgot-password/verify-otp?email=${encodeURIComponent(email)}&otpCode=${encodeURIComponent(otp)}`, {
+      const response = await fetch(getApiPath(`/api/auth/forgot-password/verify-otp?email=${encodeURIComponent(email)}&otpCode=${encodeURIComponent(otp)}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,10 +153,10 @@ const ForgotPassword = () => {
           }
         });
       } else {
-        showError(data.message || 'toast.auth.general_error');
+        setOtpError(data.message || t('toast.auth.general_error') || 'Xác thực OTP thất bại');
       }
     } catch (err) {
-      showError('toast.auth.general_error');
+      setOtpError(t('toast.auth.general_error') || 'Xác thực OTP thất bại');
     } finally {
       setOtpLoading(false);
     }
@@ -125,7 +166,7 @@ const ForgotPassword = () => {
     setResendLoading(true);
 
     try {
-      const response = await fetch('/api/auth/forgot-password/request', {
+      const response = await fetch(getApiPath('/api/auth/forgot-password/request'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,11 +183,34 @@ const ForgotPassword = () => {
         
         // Reset countdown
         setCountdown(60);
+        // Mark user as having password if resend succeeds (user has real password)
+        if (email) {
+          try {
+            localStorage.setItem(`hasPassword_${email}`, 'true');
+            localStorage.removeItem(`isOAuthOnly_${email}`);
+          } catch {}
+        }
       } else {
-        showError(data.message || 'toast.auth.general_error');
+        // Check if it's an OAuth-only user error
+        const errorMessage = data.message || '';
+        if (errorMessage.toLowerCase().includes('oauth') || 
+            errorMessage.toLowerCase().includes('social') ||
+            errorMessage.toLowerCase().includes('google') ||
+            errorMessage.toLowerCase().includes('naver') ||
+            errorMessage.toLowerCase().includes('không có mật khẩu') ||
+            errorMessage.toLowerCase().includes('does not have a password')) {
+          
+          // Save OAuth-only status to localStorage
+          if (email) {
+            try {
+              localStorage.setItem(`isOAuthOnly_${email}`, 'true');
+            } catch {}
+          }
+        }
+        setGeneralError(data.message || t('toast.auth.general_error') || 'Gửi lại OTP thất bại');
       }
     } catch (err) {
-      showError('toast.auth.general_error');
+      setGeneralError(t('toast.auth.general_error') || 'Gửi lại OTP thất bại');
     } finally {
       setResendLoading(false);
     }
@@ -155,12 +219,13 @@ const ForgotPassword = () => {
   // Show OTP form after email is sent
   if (sent && !verified) {
     return (
-      <div className={styles['forgot-container']}>
-        <div className={styles['forgot-content']}>
-          <div className={styles['forgot-form-section']}>
-            <div className={styles['forgot-header']}>
+      <div className="page-gradient">
+        <div className={`${styles['forgot-container']} min-h-screen flex items-center justify-center py-8`}>
+          <div className={`${styles['forgot-content']} w-full max-w-[450px] px-4`}>
+            <div className={styles['forgot-form-section']}>
+              <div className={styles['forgot-header']}>
               <div className={styles['forgot-logo']}>
-                <KeyIcon className="h-8 w-8 text-white" />
+                <KeyIcon className="h-6 w-6" strokeWidth={1.5} />
               </div>
               <h2 className={styles['forgot-title']}>
                 {t('auth.verify.title')}
@@ -168,23 +233,32 @@ const ForgotPassword = () => {
               <p className={styles['forgot-subtitle']}>
                 {t('auth.verify.subtitle', { email })}
               </p>
-            </div>
+              </div>
             <form className={styles['forgot-form']} onSubmit={handleVerifyOTP}>
-              <div className={styles['form-group']}>
-                <label htmlFor="otp" className={styles['form-label']}>
-                  {t('auth.common.otp')}
-                </label>
+            <div className={styles['form-group']}>
+              <label htmlFor="otp" className={styles['form-label']}>
+                <Icon icon="lucide:key" className={styles['form-label-icon']} />
+                {t('auth.common.otp')}
+              </label>
                 <input
                   id="otp"
                   name="otp"
                   type="text"
                   required
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className={`${styles['form-input']} ${styles['otp-input']}`}
+                  onChange={(e) => {
+                    setOtp(e.target.value);
+                    setOtpError('');
+                  }}
+                  className={`${styles['form-input']} ${styles['otp-input']} ${otpError ? styles['input-error'] : ''}`}
                   placeholder={t('auth.common.otpPlaceholder')}
                   maxLength="6"
                 />
+                {otpError && (
+                  <div className={styles['field-error']}>
+                    {otpError}
+                  </div>
+                )}
                 <p className={styles['forgot-subtitle']}>{t('auth.verify.helper')}</p>
               </div>
 
@@ -228,19 +302,21 @@ const ForgotPassword = () => {
                 {t('auth.common.backToForgot')}
               </button>
             </div>
-          </div>
+        </div>
         </div>
       </div>
+    </div>
     );
   }
 
   return (
-    <div className={styles['forgot-container']}>
-      <div className={styles['forgot-content']}>
-        <div className={styles['forgot-form-section']}>
-          <div className={styles['forgot-header']}>
-            <div className={styles['forgot-logo']}>
-              <KeyIcon className="h-8 w-8 text-white" />
+    <div className="page-gradient">
+      <div className={`${styles['forgot-container']} min-h-screen flex items-center justify-center py-8`}>
+        <div className={`${styles['forgot-content']} w-full max-w-[450px] px-4`}>
+          <div className={styles['forgot-form-section']}>
+            <div className={styles['forgot-header']}>
+              <div className={styles['forgot-logo']}>
+              <KeyIcon className="h-6 w-6" strokeWidth={1.5} />
             </div>
             <h2 className={styles['forgot-title']}>
               {t('auth.forgot.title')}
@@ -252,6 +328,7 @@ const ForgotPassword = () => {
           <form className={styles['forgot-form']} onSubmit={handleSubmit}>
             <div className={styles['form-group']}>
               <label htmlFor="email" className={styles['form-label']}>
+                <Icon icon="lucide:mail" className={styles['form-label-icon']} />
                 {t('auth.common.email')}
               </label>
               <input
@@ -261,11 +338,25 @@ const ForgotPassword = () => {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={styles['form-input']}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                className={`${styles['form-input']} ${emailError ? styles['input-error'] : ''}`}
                 placeholder="user@example.com"
               />
+              {emailError && (
+                <div className={styles['field-error']}>
+                  {emailError}
+                </div>
+              )}
             </div>
+
+            {generalError && (
+              <div className={styles['field-error']} style={{ marginBottom: '1rem' }}>
+                {generalError}
+              </div>
+            )}
 
             <button
               type="submit"
@@ -284,6 +375,7 @@ const ForgotPassword = () => {
               {t('auth.common.backToLogin')}
             </Link>
           </div>
+        </div>
         </div>
       </div>
     </div>

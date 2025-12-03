@@ -1,13 +1,33 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBooking } from '../../../../../contexts/TourBookingContext';
-import { formatPrice } from '../../../../../utils/priceRules';
 import TourPreview from '../TourPreview/TourPreview';
+import {
+  UserCircle2,
+  Users,
+  ClipboardList,
+  MapPin,
+  Phone,
+  Mail,
+  Home,
+  StickyNote,
+  Calendar,
+  User,
+  Info,
+  Baby,
+  UserRound,
+  CalendarDays,
+  Globe2,
+  IdCard,
+  Venus,
+  Mars
+} from 'lucide-react';
 import styles from './Step3Review.module.css';
 
 const Step3Review = () => {
   const { contact, plan } = useBooking();
   const { t } = useTranslation();
+  const bookingCreatedAtRef = useRef(new Date().toISOString());
 
   const formatDate = (dateObj) => {
     if (!dateObj.day || !dateObj.month || !dateObj.year) {
@@ -44,23 +64,49 @@ const Step3Review = () => {
     return countryName !== `booking.step2.countries.${nationalityCode}` ? countryName : nationalityCode;
   };
 
+  const memberTypeIcons = {
+    adult: UserCircle2,
+    child: UserRound,
+    infant: Baby
+  };
+
+const GenderIcon = ({ className = '' }) => (
+  <span className={`${styles['gender-icon']} ${className}`}>
+    <Mars />
+    <Venus />
+  </span>
+);
+
+  const memberTableHeaders = [
+    { key: 'index', label: t('booking.step3.table.index'), icon: null },
+    { key: 'fullName', label: t('booking.step3.table.fullName'), icon: UserRound },
+    { key: 'dob', label: t('booking.step3.table.dob'), icon: CalendarDays },
+    { key: 'gender', label: t('booking.step3.table.gender'), icon: GenderIcon },
+    { key: 'nationality', label: t('booking.step3.table.nationality'), icon: Globe2 },
+    { key: 'id', label: t('booking.step3.table.idNumber'), icon: IdCard }
+  ];
+
   const renderMembersTable = (memberType, members) => {
     if (members.length === 0) return null;
+    const MemberIcon = memberTypeIcons[memberType] || Users;
 
     return (
       <div key={memberType} className={styles['review-section']}>
-        <h4 className={styles['review-title']}>
+        <h4 className={styles['member-title']}>
+          <MemberIcon className={styles['title-icon']} />
           {getMemberTypeLabel(memberType)} ({members.length})
         </h4>
         <table className={styles['members-table']}>
           <thead>
             <tr>
-              <th>{t('booking.step3.table.index')}</th>
-              <th>{t('booking.step3.table.fullName')}</th>
-              <th>{t('booking.step3.table.dob')}</th>
-              <th>{t('booking.step3.table.gender')}</th>
-              <th>{t('booking.step3.table.nationality')}</th>
-              <th>{t('booking.step3.table.idNumber')}</th>
+              {memberTableHeaders.map(({ key, label, icon: HeaderIcon }) => (
+                <th key={key}>
+                  <div className={styles['table-header']}>
+                    {HeaderIcon && <HeaderIcon className={styles['table-header-icon']} />}
+                    <span>{label}</span>
+                  </div>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -85,107 +131,126 @@ const Step3Review = () => {
   return (
     <div className={styles['review-form']}>
       {/* Tour Preview */}
-      <TourPreview />
+      <TourPreview createdAt={bookingCreatedAtRef.current} />
       
-      {/* Contact Information Review */}
-      <div className={styles['review-section']}>
-        <h3 className={styles['review-title']}>{t('booking.step3.sections.contact')}</h3>
-        <div className={styles['review-grid']}>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.fullName')}</span>
-            <span className={styles['review-value']}>{contact.fullName}</span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.phone')}</span>
-            <span className={styles['review-value']}>{contact.phone}</span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.email')}</span>
-            <span className={styles['review-value']}>{contact.email}</span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.address')}</span>
-            <span className={styles['review-value']}>{contact.address}</span>
-          </div>
-          {contact.pickupPoint && (
-            <div className={styles['review-item']} style={{}}>
-              <span className={styles['review-label']}>{t('booking.step3.labels.pickupPoint')}</span>
-              <span className={styles['review-value']}>{contact.pickupPoint}</span>
+      <div className={styles['summary-columns']}>
+        {/* Contact Information Review */}
+        <div className={styles['review-section']}>
+          <h3 className={styles['review-title']}>
+            <UserCircle2 className={styles['title-icon']} />
+            {t('booking.step3.sections.contact')}
+          </h3>
+        <div className={styles['contact-columns']}>
+          <div className={styles['contact-column']}>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <Calendar className={styles['item-icon']} />
+              <span className={styles['review-label']}>{t('booking.step3.labels.departureDate')}</span>
+              </div>
+              <span className={styles['review-value']}>{formatDate(plan.date)}</span>
             </div>
-          )}
-          {contact.note && (
-            <div className={styles['review-item']} style={{ gridColumn: '1 / -1' }}>
-              <span className={styles['review-label']}>{t('booking.step3.labels.note')}</span>
-              <span className={styles['review-value']}>{contact.note}</span>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <User className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.fullName')}</span>
+              </div>
+              <span className={styles['review-value']}>{contact.fullName}</span>
             </div>
-          )}
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <Phone className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.phone')}</span>
+              </div>
+              <span className={styles['review-value']}>{contact.phone}</span>
+            </div>
+          </div>
+          <div className={styles['contact-column']}>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <Mail className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.email')}</span>
+              </div>
+              <span className={styles['review-value']}>{contact.email}</span>
+            </div>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <Home className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.address')}</span>
+              </div>
+              <span className={styles['review-value']}>{contact.address}</span>
+            </div>
+            {contact.pickupPoint && (
+              <div className={styles['review-item']}>
+                <div className={styles['item-header']}>
+                  <MapPin className={styles['item-icon']} />
+                  <span className={styles['review-label']}>{t('booking.step3.labels.pickupPoint')}</span>
+                </div>
+                <span className={styles['review-value']}>{contact.pickupPoint}</span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+        {contact.note && (
+          <div className={styles['review-item']} style={{ marginTop: '1rem' }}>
+            <div className={styles['item-header']}>
+              <StickyNote className={styles['item-icon']} />
+              <span className={styles['review-label']}>{t('booking.step3.labels.note')}</span>
+            </div>
+            <span className={styles['review-value']}>{contact.note}</span>
+          </div>
+        )}
+        </div>
 
-      {/* Tour Details Review */}
-      <div className={styles['review-section']}>
-        <h3 className={styles['review-title']}>{t('booking.step3.sections.tour')}</h3>
-        <div className={styles['review-grid']}>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.departureDate')}</span>
-            <span className={styles['review-value']}>{formatDate(plan.date)}</span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.totalGuests')}</span>
-            <span className={styles['review-value']}>
-              {plan.pax.adult + plan.pax.child + plan.pax.infant}
-            </span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.adult')}</span>
-            <span className={styles['review-value']}>{plan.pax.adult}</span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.child')}</span>
-            <span className={styles['review-value']}>{plan.pax.child}</span>
-          </div>
-          <div className={styles['review-item']}>
-            <span className={styles['review-label']}>{t('booking.step3.labels.infant')}</span>
-            <span className={styles['review-value']}>{plan.pax.infant}</span>
+        {/* Guests Information Review */}
+        <div className={styles['review-section']}>
+          <h3 className={styles['review-title']}>
+            <Users className={styles['title-icon']} />
+            {t('booking.step3.sections.guests')}
+          </h3>
+          <div className={styles['guests-grid']}>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <ClipboardList className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.totalGuests')}</span>
+              </div>
+              <span className={styles['review-value']}>
+                {plan.pax.adult + plan.pax.child + plan.pax.infant}
+              </span>
+            </div>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <User className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.adult')}</span>
+              </div>
+              <span className={styles['review-value']}>{plan.pax.adult}</span>
+            </div>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <UserRound className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.child')}</span>
+              </div>
+              <span className={styles['review-value']}>{plan.pax.child}</span>
+            </div>
+            <div className={styles['review-item']}>
+              <div className={styles['item-header']}>
+                <Baby className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.infant')}</span>
+              </div>
+              <span className={styles['review-value']}>{plan.pax.infant}</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Members List Review */}
       <div className={styles['form-section']}>
-        <h3 className={styles['section-title']}>{t('booking.step3.sections.members')}</h3>
+        <h3 className={styles['section-title']}>
+          <Users className={styles['title-icon']} />
+          {t('booking.step3.sections.members')}
+        </h3>
         {renderMembersTable('adult', plan.members.adult)}
         {renderMembersTable('child', plan.members.child)}
         {renderMembersTable('infant', plan.members.infant)}
-      </div>
-
-      {/* Price Summary Review */}
-      <h3 className={styles['review-title']}>{t('booking.step3.sections.price')}</h3>
-      <div className={styles['price-summary']}>
-        <div className={styles['price-breakdown']}>
-          {plan.pax.adult > 0 && (
-            <div className={styles['price-item']}>
-              <span className={styles['price-label']}>{t('booking.step3.labels.adult')} ({plan.pax.adult})</span>
-              <span className={styles['price-value']}>{formatPrice(plan.price.adult)}</span>
-            </div>
-          )}
-          {plan.pax.child > 0 && (
-            <div className={styles['price-item']}>
-              <span className={styles['price-label']}>{t('booking.step3.labels.child')} ({plan.pax.child})</span>
-              <span className={styles['price-value']}>{formatPrice(plan.price.child)}</span>
-            </div>
-          )}
-          {plan.pax.infant > 0 && (
-            <div className={styles['price-item']}>
-              <span className={styles['price-label']}>{t('booking.step3.labels.infant')} ({plan.pax.infant})</span>
-              <span className={styles['price-value']}>{formatPrice(plan.price.infant)}</span>
-            </div>
-          )}
-        </div>
-        <div className={styles['price-total']}>
-          <span className={styles['price-total-label']}>{t('booking.step3.labels.totalPrice')}</span>
-          <span className={styles['price-total-value']}>{formatPrice(plan.price.total)}</span>
-        </div>
       </div>
 
       {/* Navigation is handled by parent component */}

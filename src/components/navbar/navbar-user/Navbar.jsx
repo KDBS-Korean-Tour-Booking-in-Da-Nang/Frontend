@@ -1,30 +1,72 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useChat } from '../../../contexts/ChatContext';
 import {
   Bars3Icon,
   XMarkIcon,
   BellIcon,
-  ChatBubbleLeftRightIcon,
-  PlusIcon,
-  StarIcon
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
-import PremiumModal from '../../../pages/user/premium/PremiumModal';
-import { API_ENDPOINTS } from '../../../config/api';
+import NotificationDropdown from '../../NotificationDropdown';
+import ChatBox from '../../ChatBox';
+import ChatDropdown from '../../ChatDropdown';
+import WebSocketStatus from '../../WebSocketStatus';
+import { useNotifications } from '../../../contexts/NotificationContext';
+ 
 
 const Navbar = () => {
   const { user, logout, getToken } = useAuth();
+  const { unreadCount, fetchList, fetchUnreadCount } = useNotifications();
+  const fetchListRef = useRef(fetchList);
+  useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
+
+  // Fetch unread count on mount and when user changes
+  useEffect(() => {
+    if (user?.email && fetchUnreadCount) {
+      fetchUnreadCount();
+    }
+  }, [user?.email, fetchUnreadCount]);
+  
+  // Add error boundary for chat context
+  let chatState, chatActions;
+  try {
+    const chatContext = useChat();
+    chatState = chatContext.state;
+    chatActions = chatContext.actions;
+  } catch (error) {
+    // Provide fallback values
+    chatState = { isChatDropdownOpen: false, isChatBoxOpen: false };
+    chatActions = { 
+      toggleChatDropdown: () => {}, 
+      closeChatDropdown: () => {},
+      closeChatBox: () => {}
+    };
+  }
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const [premiumStatus, setPremiumStatus] = useState(null);
+  
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
+
+  // Set default language to English for USER role and GUEST (not logged in)
+  useEffect(() => {
+    const currentLang = i18n.language;
+    // For USER role or GUEST (no user), default to English
+    if (!user || user.role === 'USER') {
+      if (!currentLang || currentLang === 'vi') {
+        // Set default to English, or switch from Vietnamese to English
+        i18n.changeLanguage('en');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role, i18n.language]); // Check both role and language changes
 
   const handleLogout = () => {
     logout();
@@ -32,76 +74,63 @@ const Navbar = () => {
   };
 
   const changeLanguage = (lng) => {
+    // Prevent USER and GUEST from selecting Vietnamese
+    if ((!user || user.role === 'USER') && lng === 'vi') {
+      return;
+    }
     i18n.changeLanguage(lng);
   };
 
-  // Fetch premium status
-  useEffect(() => {
-    const fetchPremiumStatus = async () => {
-      // Skip premium check for STAFF and ADMIN roles
-      if (user && (user.role === 'STAFF' || user.role === 'ADMIN')) {
-        console.log('Skipping premium check for staff/admin user');
-        return;
-      }
+  // USER/GUEST navbar - Vietnamese is never shown
+  const showVietnamese = false;
 
-      try {
-        const token = getToken();
-        if (!token) {
-          console.log('No token available for premium status check');
-          return;
-        }
+  const toggleNotification = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+    // Don't close chat when opening notification
+  };
 
-        const response = await fetch(API_ENDPOINTS.PREMIUM_STATUS, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
+  const toggleChat = () => {
+    chatActions.toggleChatDropdown();
+    // Don't close notification when opening chat
+  };
 
-        if (response.ok) {
-          const data = await response.json();
-          // Backend trả về format: { message: "...", result: { isPremium: true/false, expirationDate: "..." } }
-          setPremiumStatus(data.result);
-        } else {
-          console.error('Failed to fetch premium status:', response.status);
-        }
-      } catch (error) {
-        console.error('Error fetching premium status:', error);
-      }
-    };
-
-    if (user) {
-      fetchPremiumStatus();
-    }
-  }, [user, getToken]);
+  
 
   // Handle scroll behavior
+  // On forum page: always visible (like NavbarCompany)
+  // On other pages: hide when scrolling down, show when scrolling up
   useEffect(() => {
+    const isForumPage = location.pathname === '/forum' || location.pathname.startsWith('/forum/');
+    
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Show navbar when at top
-      if (currentScrollY < 10) {
+      if (isForumPage) {
+        // Forum page: always visible, only update scrolled state for styling
         setIsVisible(true);
-        setIsScrolled(false);
+        setIsScrolled(currentScrollY > 10);
       } else {
-        setIsScrolled(true);
-
-        // Hide navbar when scrolling down, show when scrolling up
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          setIsVisible(false);
-        } else {
+        // Other pages: hide/show behavior
+        if (currentScrollY < 10) {
           setIsVisible(true);
-        }
-      }
+          setIsScrolled(false);
+        } else {
+          setIsScrolled(true);
 
-      setLastScrollY(currentScrollY);
+          // Hide navbar when scrolling down, show when scrolling up
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            setIsVisible(false);
+          } else {
+            setIsVisible(true);
+          }
+        }
+        setLastScrollY(currentScrollY);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, location.pathname]);
 
   // Check if current path is active
   const isActive = (path) => {
@@ -109,12 +138,22 @@ const Navbar = () => {
       // For tour, also check if we're on tour detail page
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
     }
-    if (path === '/news') {
-      // For news, also check if we're on news detail page
-      return location.pathname === '/news' || location.pathname.startsWith('/news/');
+    if (path === '/article') {
+      // For article, also check if we're on article detail page
+      return location.pathname === '/article' || location.pathname.startsWith('/article/');
+    }
+    if (path === '/about') {
+      return location.pathname === '/about';
     }
     return location.pathname === path;
   };
+
+  // USER/GUEST navbar - no company pending logic needed
+  const isLockedToCompanyInfo = false;
+  const disabledClass = '';
+
+  const hasUnreadNotifications = unreadCount > 0;
+  const hasUnreadMessages = !!chatState?.hasUnreadMessages;
 
   return (
     <>
@@ -124,57 +163,21 @@ const Navbar = () => {
           <div className={styles['logo-section']}>
             <Link to="/" className={styles['logo-section']}>
               <img
-                src="/logo.jpg"
+                src="/logoKDBS.png"
                 alt="KDBS Logo"
                 className={styles.logo}
               />
-              <span className={styles['brand-name']}>{t('brand')}</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className={styles['nav-links']} style={{ overflow: 'visible' }}>
-            <Link
-              to="/"
-              className={`${styles['nav-link']} ${isActive('/') ? styles.active : ''}`}
-            >
-              {t('nav.home')}
-            </Link>
-
-            <Link
-              to="/forum"
-              className={`${styles['nav-link']} ${isActive('/forum') ? styles.active : ''}`}
-            >
-              {t('nav.forum')}
-            </Link>
-
-            <Link
-              to="/tour"
-              className={`${styles['nav-link']} ${isActive('/tour') ? styles.active : ''}`}
-            >
-              {t('nav.tours')}
-            </Link>
-
-            <Link
-              to="/news"
-              className={`${styles['nav-link']} ${isActive('/news') ? styles.active : ''}`}
-            >
-              {t('nav.news')}
-            </Link>
-
-            <Link
-              to="/self-travel"
-              className={`${styles['nav-link']} ${isActive('/self-travel') ? styles.active : ''}`}
-            >
-              {t('nav.selfTravel')}
-            </Link>
-
-            <Link
-              to="/contact"
-              className={`${styles['nav-link']} ${isActive('/contact') ? styles.active : ''}`}
-            >
-              {t('nav.contact')}
-            </Link>
+            <Link to="/" className={styles['nav-link']}>{t('nav.home')}</Link>
+            <Link to="/forum" className={styles['nav-link']}>{t('nav.forum')}</Link>
+            <Link to="/tour" className={styles['nav-link']}>{t('nav.tourBooking')}</Link>
+            <Link to="/article" className={styles['nav-link']}>{t('nav.article')}</Link>
+            <Link to="/about" className={styles['nav-link']}>{t('nav.about')}</Link>
+            <Link to="/contact" className={styles['nav-link']}>{t('nav.contact')}</Link>
           </div>
 
           {/* Right Section */}
@@ -182,23 +185,44 @@ const Navbar = () => {
             {user ? (
               <>
                 {/* Notifications */}
-                <div className={styles['notification-icon']}>
-                  <BellIcon />
-                  <span className={styles['notification-badge']}>1</span>
+                <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
+                  <button 
+                    className={styles['notification-button']}
+                    onClick={toggleNotification}
+                    data-notification-button
+                  >
+                    <BellIcon />
+                    {hasUnreadNotifications && (
+                      <span className={styles['notification-dot']} />
+                    )}
+                  </button>
+                  <NotificationDropdown 
+                    isOpen={isNotificationOpen} 
+                    onClose={() => setIsNotificationOpen(false)} 
+                  />
                 </div>
 
                 {/* Messages */}
-                <div className={styles['notification-icon']}>
-                  <ChatBubbleLeftRightIcon />
-                  <span className={styles['notification-badge']}>1</span>
+                <div className={`${styles['notification-icon']} ${styles['notification-container']}`}>
+                  <button 
+                    className={styles['notification-button']}
+                    onClick={toggleChat}
+                    data-chat-button
+                  >
+                    <ChatBubbleLeftRightIcon />
+                    {hasUnreadMessages && (
+                      <span className={styles['notification-dot']} />
+                    )}
+                  </button>
+                  <ChatDropdown 
+                    isOpen={chatState.isChatDropdownOpen} 
+                    onClose={chatActions.closeChatDropdown} 
+                  />
                 </div>
 
-                {/* Balance */}
-                <div className={styles['balance-container']}>
-                  <span className={styles['balance-amount']}>10.000</span>
-                  <button className={styles['balance-add']}>
-                    <PlusIcon />
-                  </button>
+                {/* WebSocket Status */}
+                <div style={{ display: 'none' }}>
+                  <WebSocketStatus />
                 </div>
 
                 {/* User Profile */}
@@ -225,27 +249,20 @@ const Navbar = () => {
                       <div className={styles['dropdown-user-info']}>
                         <div className={styles['user-info-row']}>
                           <h4>{user.name || user.email}</h4>
-                          <button 
-                            className={`${styles['premium-icon']} ${premiumStatus?.isPremium ? styles['premium-active'] : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsPremiumModalOpen(true);
-                            }}
-                            title={premiumStatus?.isPremium ? t('premium.title') : t('premium.title')}
-                          >
-                            <StarIcon />
-                          </button>
+                          
                         </div>
-                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})} {premiumStatus?.isPremium && <span className={styles['premium-badge']}>{t('premium.title')}</span>}</p>
+                        <p>{t(`profileRole.${user.role || 'USER'}`, user.role ? undefined : {})}</p>
                       </div>
                     </div>
 
-                    <Link to="/profile" className={styles['dropdown-item']}>
+                    <Link 
+                      to="/profile" 
+                      className={styles['dropdown-item']}
+                    >
                       {t('nav.profileFull')}
                     </Link>
-                    <Link to="/business-info" className={styles['dropdown-item']}>
-                      {t('nav.businessInfo')}
-                    </Link>
+                    
+                    {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}
                     </button>
@@ -254,10 +271,16 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className={styles['nav-link']}>
+                <Link 
+                  to="/login" 
+                  className={`${styles['login-button']} ${isActive('/login') ? styles['login-active'] : ''}`}
+                >
                   {t('nav.login')}
                 </Link>
-                <Link to="/register" className={styles['nav-link']}>
+                <Link 
+                  to="/register" 
+                  className={`${styles['register-button']} ${isActive('/register') ? styles['register-active'] : ''}`}
+                >
                   {t('nav.register')}
                 </Link>
               </>
@@ -266,17 +289,25 @@ const Navbar = () => {
             {/* Language Switcher */}
             <div className={styles['language-switcher']}>
               <button className={styles['language-button']}>
-                {i18n.language?.toUpperCase() || 'VI'}
+                {i18n.language === 'vi' && <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />}
+                {i18n.language === 'en' && <img src="/EN.png" alt="English" className={styles['language-flag']} />}
+                {i18n.language === 'ko' && <img src="/KR.png" alt="Korean" className={styles['language-flag']} />}
+                {!i18n.language && (showVietnamese ? <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} /> : <img src="/EN.png" alt="English" className={styles['language-flag']} />)}
               </button>
               <div className={styles['language-dropdown']}>
-                <button onClick={() => changeLanguage('vi')} className={styles['language-option']}>
-                  {t('lang.vi')}
+                {showVietnamese && (
+                  <button onClick={() => changeLanguage('vi')} className={`${styles['language-option']} ${i18n.language === 'vi' ? 'active ' + styles['active'] : ''}`}>
+                    <img src="/VN.png" alt="Vietnam" className={styles['language-flag']} />
+                    <span className={styles['language-text']}>{t('lang.vi')}</span>
+                  </button>
+                )}
+                <button onClick={() => changeLanguage('en')} className={`${styles['language-option']} ${i18n.language === 'en' ? 'active ' + styles['active'] : ''}`}>
+                  <img src="/EN.png" alt="English" className={styles['language-flag']} />
+                  <span className={styles['language-text']}>{t('lang.en')}</span>
                 </button>
-                <button onClick={() => changeLanguage('en')} className={styles['language-option']}>
-                  {t('lang.en')}
-                </button>
-                <button onClick={() => changeLanguage('ko')} className={styles['language-option']}>
-                  {t('lang.ko')}
+                <button onClick={() => changeLanguage('ko')} className={`${styles['language-option']} ${i18n.language === 'ko' ? 'active ' + styles['active'] : ''}`}>
+                  <img src="/KR.png" alt="Korean" className={styles['language-flag']} />
+                  <span className={styles['language-text']}>{t('lang.ko')}</span>
                 </button>
               </div>
             </div>
@@ -297,7 +328,7 @@ const Navbar = () => {
         <div className={styles['mobile-nav-links']}>
           <Link
             to="/"
-            className={`${styles['mobile-nav-link']} ${isActive('/') ? styles.active : ''}`}
+            className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
             {t('nav.home')}
@@ -305,7 +336,7 @@ const Navbar = () => {
 
           <Link
             to="/forum"
-            className={`${styles['mobile-nav-link']} ${isActive('/forum') ? styles.active : ''}`}
+            className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
             {t('nav.forum')}
@@ -313,31 +344,31 @@ const Navbar = () => {
 
           <Link
             to="/tour"
-            className={`${styles['mobile-nav-link']} ${isActive('/tour') ? styles.active : ''}`}
+            className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
-            {t('nav.tours')}
+            {t('nav.tourBooking')}
           </Link>
 
           <Link
-            to="/news"
-            className={`${styles['mobile-nav-link']} ${isActive('/news') ? styles.active : ''}`}
+            to="/article"
+            className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
-            {t('nav.news')}
+            {t('nav.article')}
           </Link>
 
           <Link
-            to="/self-travel"
-            className={`${styles['mobile-nav-link']} ${isActive('/self-travel') ? styles.active : ''}`}
+            to="/about"
+            className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
-            {t('nav.selfTravel')}
+            {t('nav.about')}
           </Link>
 
           <Link
             to="/contact"
-            className={`${styles['mobile-nav-link']} ${isActive('/contact') ? styles.active : ''}`}
+            className={styles['mobile-nav-link']}
             onClick={() => setIsMenuOpen(false)}
           >
             {t('nav.contact')}
@@ -363,11 +394,12 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Premium Modal */}
-      <PremiumModal 
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
+      {/* Chat Box */}
+      <ChatBox 
+        isOpen={chatState.isChatBoxOpen} 
+        onClose={chatActions.closeChatBox} 
       />
+      
     </>
   );
 };
