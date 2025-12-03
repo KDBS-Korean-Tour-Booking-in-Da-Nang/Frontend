@@ -1719,8 +1719,17 @@ const Step2Details = () => {
 
   // Special handler for date input to ensure proper validation
   const handleDateChange = (memberType, globalIndex, value) => {
-    // No representative anymore, so localIndex = globalIndex for all member types
-    const localIndex = globalIndex;
+    // Convert globalIndex -> localIndex to avoid creating extra ghost members
+    let localIndex;
+    if (memberType === 'adult') {
+      localIndex = globalIndex;
+    } else if (memberType === 'child') {
+      localIndex = globalIndex - (plan.members?.adult?.length || 0);
+    } else if (memberType === 'infant') {
+      localIndex = globalIndex - (plan.members?.adult?.length || 0) - (plan.members?.child?.length || 0);
+    } else {
+      localIndex = globalIndex;
+    }
     
     // Always store the value as-is (display format)
     setMember(memberType, localIndex, { dob: value });
