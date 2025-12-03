@@ -24,9 +24,6 @@ const Login = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Note: Toast messages from navigation state are handled in App.jsx
-  // No need to handle them here to avoid duplicate toasts
-
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
@@ -614,8 +611,6 @@ const Login = () => {
                 {t('auth.login.registerNow')}
               </Link>
             </div>
-
-            {/* Staff/Admin quick login link removed as requested */}
           </div>
 
           {/* Illustration Section */}

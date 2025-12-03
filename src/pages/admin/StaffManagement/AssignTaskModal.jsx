@@ -51,7 +51,7 @@ const AssignTaskModal = ({ isOpen, onClose, staff, onConfirm }) => {
       await onConfirm(selectedTask);
       onClose();
     } catch (error) {
-      console.error('Error assigning task:', error);
+      // Silently handle error assigning task
     } finally {
       setIsSubmitting(false);
     }

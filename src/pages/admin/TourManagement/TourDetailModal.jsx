@@ -28,6 +28,30 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
     });
   };
 
+  const formatDuration = (duration) => {
+    if (!duration) return t('admin.tourDetailModal.fields.duration') || 'N/A';
+    const raw = String(duration);
+    
+    // Try to parse "X ngày Y đêm" or "X days Y nights" or "X일 Y박" format
+    const viMatch = raw.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
+    const enMatch = raw.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
+    const koMatch = raw.match(/(\d+)\s*일\s*(\d+)\s*박/i);
+    const genericMatch = raw.match(/(\d+)\D+(\d+)/);
+    
+    const match = viMatch || enMatch || koMatch || genericMatch;
+    
+    if (match) {
+      const days = parseInt(match[1], 10);
+      const nights = parseInt(match[2], 10);
+      if (Number.isFinite(days) && Number.isFinite(nights)) {
+        return t('admin.tourManagement.durationTemplate', { days, nights });
+      }
+    }
+    
+    // If can't parse, return as is
+    return raw;
+  };
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
@@ -121,10 +145,10 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
               <div className="bg-purple-50 rounded-[24px] p-4 border border-purple-100">
                 <div className="flex items-center gap-3 mb-2">
                   <ClockIcon className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
-                  <p className="text-sm text-gray-500">Thời gian</p>
+                  <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.duration')}</p>
                 </div>
                 <p className="text-base font-medium text-gray-900">
-                  {tour.duration || tour.tourDuration}
+                  {formatDuration(tour.duration || tour.tourDuration)}
                 </p>
               </div>
             )}

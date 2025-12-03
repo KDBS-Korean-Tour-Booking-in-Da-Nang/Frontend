@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { API_ENDPOINTS, getImageUrl } from '../../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, normalizeToRelativePath } from '../../../../../config/api';
 import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../contexts/ToastContext';
@@ -161,7 +161,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         
         if (response.ok) {
           const imageUrl = await response.text();
-          return imageUrl;
+          // Normalize về relative path để đảm bảo không lưu BaseURL vào HTML content
+          return normalizeToRelativePath(imageUrl);
         } else {
           const errorText = await response.text();
           throw new Error('Upload failed: ' + errorText);

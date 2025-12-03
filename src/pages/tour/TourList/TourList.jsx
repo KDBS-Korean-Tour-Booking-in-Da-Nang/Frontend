@@ -139,7 +139,7 @@ const TourList = () => {
 
         setTop3Tours(sorted);
       } catch (error) {
-        console.error("Error calculating top 3 tours:", error);
+        // Silently handle error calculating top 3 tours
         setTop3Tours([]);
       } finally {
         setTop3Loading(false);

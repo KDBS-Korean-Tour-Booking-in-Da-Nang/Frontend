@@ -49,7 +49,7 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(0);
       }
     } catch (err) {
-      console.error('Error fetching notifications:', err);
+      // Silently handle error fetching notifications
       setError(err.message || 'Failed to fetch notifications');
       setNotifications([]);
       setUnreadCount(0);
@@ -71,8 +71,7 @@ export const NotificationProvider = ({ children }) => {
       const count = await NotificationAPI.getUnreadCount(userEmail);
       setUnreadCount(count || 0);
     } catch (err) {
-      console.error('Error fetching unread count:', err);
-      // Don't set error for unread count, just log it
+      // Silently handle error fetching unread count
     }
   }, [userEmail]);
 
@@ -97,7 +96,7 @@ export const NotificationProvider = ({ children }) => {
       // Update unread count
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      // Silently handle error marking notification as read
       setError(err.message || 'Failed to mark notification as read');
       // Re-fetch to sync with server
       await fetchList();
@@ -142,7 +141,7 @@ export const NotificationProvider = ({ children }) => {
       );
       setUnreadCount(0);
     } catch (err) {
-      console.error('Error marking all as read:', err);
+      // Silently handle error marking all as read
       setError(err.message || 'Failed to mark all as read');
       // Re-fetch to sync with server
       await fetchList();

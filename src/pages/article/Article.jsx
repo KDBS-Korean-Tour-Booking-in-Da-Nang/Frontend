@@ -6,6 +6,7 @@ import Slider from 'react-slick';
 import { ArrowPathIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import articleService from '../../services/articleService';
 import { getArticleSummary, extractFirstImageUrl } from '../../utils/htmlConverter';
+import { getImageUrl } from '../../config/api';
 import styles from './Article.module.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -64,8 +65,7 @@ const Article = () => {
       const sorted = sortArticlesByOrder(data || [], sortOrder);
       setArticles(sorted);
     } catch (error) {
-      console.error('Error loading approved articles:', error);
-      // Fallback to mock data if API fails
+      // Silently handle error loading approved articles
       setArticles([]);
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ const Article = () => {
       // For now, we'll just reload the current articles
       await loadApprovedArticles();
     } catch (error) {
-      console.error('Error loading more articles:', error);
+      // Silently handle error loading more articles
     } finally {
       setLoadingMore(false);
     }
@@ -179,7 +179,9 @@ const Article = () => {
                   const localizedDescription = getLocalizedArticleField(article, 'articleDescription') || article.articleDescription || '';
                   const localizedTitle = getLocalizedArticleField(article, 'articleTitle') || article.articleTitle || '';
 
-                  const thumbnail = article.articleThumbnail || extractFirstImageUrl(localizedContent || '');
+                  const rawThumbnail = article.articleThumbnail || extractFirstImageUrl(localizedContent || '');
+                  // Normalize thumbnail URL using getImageUrl helper to handle both relative and absolute URLs
+                  const thumbnail = rawThumbnail ? getImageUrl(rawThumbnail) : null;
                   const summary = localizedDescription || getArticleSummary(localizedContent || '', 150);
                   
                   return (
@@ -369,7 +371,7 @@ const Article = () => {
 
         </div>
       </div>
-    </div>
+     </div>
     </div>
   );
 };

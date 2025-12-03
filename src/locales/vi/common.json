@@ -1,4 +1,4 @@
-﻿{
+{
   "brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
   "nav": {
     "home": "Trang chủ",
@@ -954,7 +954,13 @@
       "detailLoadError": "Đã xảy ra lỗi khi tải chi tiết báo cáo",
       "noReason": "Không có lý do",
       "approveNote": "Báo cáo đã được duyệt và xử lý",
-      "rejectNote": "Báo cáo đã bị từ chối"
+      "rejectNote": "Báo cáo đã bị từ chối",
+      "approveConfirm": {
+        "title": "Duyệt báo cáo",
+        "message": "Bạn có chắc chắn muốn duyệt báo cáo #{{id}}? Hành động này sẽ đánh dấu báo cáo là đã xử lý.",
+        "confirm": "Duyệt",
+        "cancel": "Hủy"
+      }
     },
     "reportDetailModal": {
       "title": "Chi tiết báo cáo",
@@ -1301,7 +1307,20 @@
       "rejectSuccess": "Từ chối tour thành công!",
       "approveError": "Lỗi khi phê duyệt tour: {{error}}",
       "rejectError": "Lỗi khi từ chối tour: {{error}}",
-      "detailError": "Đã xảy ra lỗi khi tải chi tiết tour"
+      "detailError": "Đã xảy ra lỗi khi tải chi tiết tour",
+      "approveConfirm": {
+        "title": "Phê duyệt Tour",
+        "message": "Bạn có chắc chắn muốn phê duyệt tour \"{{name}}\"? Hành động này sẽ làm tour hiển thị công khai.",
+        "confirm": "Phê duyệt",
+        "cancel": "Hủy"
+      },
+      "rejectConfirm": {
+        "title": "Từ chối Tour",
+        "message": "Bạn có chắc chắn muốn từ chối tour \"{{name}}\"? Hành động này sẽ vô hiệu hóa tour.",
+        "confirm": "Từ chối",
+        "cancel": "Hủy"
+      },
+      "durationTemplate": "{{days}} ngày {{nights}} đêm"
     },
     "tourDetailModal": {
       "title": "Chi tiết Tour",
@@ -1326,7 +1345,8 @@
         "reject": "Từ chối",
         "confirmApprove": "Bạn có chắc chắn muốn phê duyệt tour này?",
         "confirmReject": "Bạn có chắc chắn muốn từ chối tour này?"
-      }
+      },
+      "durationTemplate": "{{days}} ngày {{nights}} đêm"
     },
     "tourApproval": {
       "title": "Quản lý Tour",
@@ -1399,6 +1419,18 @@
       "confirm": {
         "approve": "Bạn có chắc chắn muốn phê duyệt tour này?",
         "reject": "Bạn có chắc chắn muốn từ chối tour này?"
+      },
+      "approveConfirm": {
+        "title": "Phê duyệt Tour",
+        "message": "Bạn có chắc chắn muốn phê duyệt tour \"{{name}}\"? Hành động này sẽ làm tour hiển thị công khai.",
+        "confirm": "Phê duyệt",
+        "cancel": "Hủy"
+      },
+      "rejectConfirm": {
+        "title": "Từ chối Tour",
+        "message": "Bạn có chắc chắn muốn từ chối tour \"{{name}}\"? Hành động này sẽ vô hiệu hóa tour.",
+        "confirm": "Từ chối",
+        "cancel": "Hủy"
       },
       "success": {
         "approve": "Phê duyệt tour thành công!",
@@ -1769,6 +1801,18 @@
         "approve": "Bạn có chắc chắn muốn phê duyệt công ty \"{{name}}\"?",
         "reject": "Bạn có chắc chắn muốn từ chối công ty \"{{name}}\"?"
       },
+      "approveConfirm": {
+        "title": "Phê duyệt công ty",
+        "message": "Bạn có chắc chắn muốn phê duyệt công ty \"{{name}}\"? Hành động này sẽ kích hoạt tài khoản công ty.",
+        "confirm": "Phê duyệt",
+        "cancel": "Hủy"
+      },
+      "rejectConfirm": {
+        "title": "Từ chối công ty",
+        "message": "Bạn có chắc chắn muốn từ chối công ty \"{{name}}\"? Hành động này sẽ từ chối đăng ký công ty.",
+        "confirm": "Từ chối",
+        "cancel": "Hủy"
+      },
       "success": {
         "approve": "Phê duyệt công ty thành công!",
         "reject": "Từ chối công ty thành công!"
@@ -1986,6 +2030,14 @@
         "confirm": {
           "approve": "Bạn có chắc chắn muốn duyệt báo cáo này?",
           "reject": "Bạn có chắc chắn muốn từ chối báo cáo này?"
+        },
+        "confirmModal": {
+          "approve": {
+            "title": "Duyệt báo cáo",
+            "message": "Bạn có chắc chắn muốn duyệt báo cáo #{{id}}? Hành động này sẽ đánh dấu báo cáo là đã xử lý.",
+            "confirm": "Duyệt",
+            "cancel": "Hủy"
+          }
         },
         "success": {
           "approve": "Duyệt báo cáo thành công!",

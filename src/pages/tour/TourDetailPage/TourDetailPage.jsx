@@ -165,7 +165,7 @@ const TourDetailPage = () => {
           setTour(tourData);
         }
       } catch (error) {
-        console.error("Error loading tour:", error);
+        // Silently handle error loading tour
         if (isMounted) {
           navigate("/tour");
         }

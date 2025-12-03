@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import styles from './BookingManagement.module.css';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { API_ENDPOINTS, getImageUrl } from '../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthHeaders } from '../../../config/api';
 import { getAllBookings, getBookingsByTourId, getBookingTotal, companyConfirmTourCompletion } from '../../../services/bookingAPI';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import { 
@@ -99,9 +99,33 @@ const BookingManagement = () => {
       setApprovingBookingId(bookingItem.bookingId);
       await companyConfirmTourCompletion(bookingItem.bookingId);
       showSuccessRef.current?.(t('companyBookingWizard.success.bookingPending'));
+      
+      // Refresh balance after confirmation
+      // Check if booking status changed to BOOKING_SUCCESS (both confirmed)
       await refreshBookings();
+      
+      // Refresh user balance to get updated balance
+      if (user?.email) {
+        try {
+          const remembered = localStorage.getItem('rememberMe') === 'true';
+          const storage = remembered ? localStorage : sessionStorage;
+          const token = storage.getItem('token');
+          if (token) {
+            const response = await fetch(API_ENDPOINTS.GET_USER(user.email), {
+              headers: createAuthHeaders(token)
+            });
+            if (response.ok) {
+              const userData = await response.json();
+              // Trigger balance update event
+              window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: userData.balance || 0 } }));
+            }
+          }
+        } catch {
+          // Silently handle error refreshing balance
+        }
+      }
     } catch (error) {
-      console.error('Error approving booking completion:', error);
+      // Silently handle error approving booking completion
     } finally {
       setApprovingBookingId(null);
     }
@@ -208,7 +232,7 @@ const BookingManagement = () => {
       setAllBookings(bookingsWithTotals);
       setCurrentPage(1);
     } catch (e) {
-      console.error('Error fetching all bookings:', e);
+      // Silently handle error fetching all bookings
       setAllBookings([]);
       showSuccessRef.current?.('Không thể tải danh sách booking');
     } finally {
@@ -247,7 +271,7 @@ const BookingManagement = () => {
       setAllBookings(bookingsWithTotals);
       setCurrentPage(1);
     } catch (e) {
-      console.error('Error fetching bookings:', e);
+      // Silently handle error fetching bookings
       setAllBookings([]);
       showSuccessRef.current?.('Không thể tải danh sách booking');
     } finally {

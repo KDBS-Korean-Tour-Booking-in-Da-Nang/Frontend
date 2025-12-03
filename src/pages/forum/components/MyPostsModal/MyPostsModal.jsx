@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
 import { DeleteConfirmModal } from '../../../../components';
 import styles from './MyPostsModal.module.css';
 
@@ -44,18 +44,16 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
         setPosts(data.content || []);
         setTotalPages(data.totalPages || 0);
       } else {
-        console.error('Failed to fetch my posts');
+        // Silently handle failed fetch
       }
     } catch (error) {
-      console.error('Error fetching my posts:', error);
+      // Silently handle error fetching my posts
     } finally {
       setLoading(false);
     }
   };
 
   const handlePostClick = (post) => {
-    console.log('MyPostsModal handlePostClick - post object:', post);
-    console.log('MyPostsModal handlePostClick - post.forumPostId:', post.forumPostId);
     if (onPostClick) {
       onPostClick(post.forumPostId);
     }
@@ -86,11 +84,10 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
         setShowDeleteModal(false);
         setPostToDelete(null);
       } else {
-        console.error('Failed to delete post');
         alert(t('forum.post.deleteError'));
       }
     } catch (error) {
-      console.error('Error deleting post:', error);
+      // Silently handle error deleting post
       alert(t('forum.post.deleteError'));
     }
   };

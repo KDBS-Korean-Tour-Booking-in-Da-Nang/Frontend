@@ -76,7 +76,7 @@ const TourDetailPage = () => {
         const tourData = await fetchTourById(parseInt(id));
         setTour(tourData);
       } catch (error) {
-        console.error('Error loading tour:', error);
+        // Silently handle error loading tour
         navigate('/tour');
       }
     };

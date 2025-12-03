@@ -353,7 +353,6 @@ const Forum = () => {
     window.dispatchEvent(new Event('refresh-popular-hashtags'));
   }, [buildPostsUrl]);
 
-
   const handlePostDeleted = useCallback((postId) => {
     // Xóa post khỏi danh sách hiện tại
     setPosts(prev => prev.filter(post => post.forumPostId !== postId));

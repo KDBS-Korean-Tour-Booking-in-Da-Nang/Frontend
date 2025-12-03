@@ -48,7 +48,7 @@ const ComplaintManagement = () => {
       setAllComplaints(Array.isArray(data) ? data : []);
       setComplaints(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error loading complaints:', err);
+      // Silently handle error loading complaints
       setError(err?.message || 'Failed to load complaints.');
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ const ComplaintManagement = () => {
         setError(t('admin.complaintManagement.errors.notFound'));
       }
     } catch (err) {
-      console.error('Error fetching complaint:', err);
+      // Silently handle error fetching complaint
       setError(err?.message || t('admin.complaintManagement.errors.loadError'));
       setComplaints([]);
     } finally {
@@ -176,7 +176,7 @@ const ComplaintManagement = () => {
       await loadAllComplaints();
       handleCloseResolveModal();
     } catch (err) {
-      console.error('Error resolving complaint:', err);
+      // Silently handle error resolving complaint
       setError(err?.message || t('admin.complaintManagement.errors.resolveError'));
     } finally {
       setResolvingId(null);

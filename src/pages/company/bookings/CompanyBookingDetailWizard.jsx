@@ -61,7 +61,7 @@ const CompanyBookingDetailWizard = () => {
         };
       }
     } catch (err) {
-      console.error('Error loading wizard progress:', err);
+      // Silently handle error loading wizard progress
     }
     return { step: 1, completed: new Set() };
   };
@@ -75,7 +75,7 @@ const CompanyBookingDetailWizard = () => {
         completedSteps: Array.from(completed)
       }));
     } catch (err) {
-      console.error('Error saving wizard progress:', err);
+      // Silently handle error saving wizard progress
     }
   };
 
@@ -85,7 +85,7 @@ const CompanyBookingDetailWizard = () => {
       const progressKey = `booking_wizard_progress_${bookingId}`;
       localStorage.removeItem(progressKey);
     } catch (err) {
-      console.error('Error clearing wizard progress:', err);
+      // Silently handle error clearing wizard progress
     }
   };
 
@@ -158,7 +158,7 @@ const CompanyBookingDetailWizard = () => {
         
         setCurrentStep(initialStep);
       } catch (err) {
-        console.error('Error fetching booking:', err);
+        // Silently handle error fetching booking
         setError(err.message || t('companyBookingWizard.error.loadFailed'));
         if (err.message === 'Unauthenticated') {
           navigate('/login');
@@ -188,7 +188,7 @@ const CompanyBookingDetailWizard = () => {
         const refreshedBooking = await getBookingById(bookingId);
         setBooking(refreshedBooking);
       } catch (err) {
-        console.error('Error refreshing booking:', err);
+        // Silently handle error refreshing booking
       }
     }
   };

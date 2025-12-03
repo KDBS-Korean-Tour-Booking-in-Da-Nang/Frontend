@@ -62,6 +62,35 @@ export const htmlToJsx = (html) => {
 };
 
 /**
+ * Normalize image URLs in HTML content to handle relative paths from backend
+ * This function processes img src attributes to ensure they work correctly when deployed
+ * @param {string} html - HTML string with image tags
+ * @param {Function} imageUrlNormalizer - Function to normalize image URLs (e.g., getImageUrl from api.js)
+ * @returns {string} - HTML with normalized image URLs
+ */
+export const normalizeImageUrlsInHtml = (html, imageUrlNormalizer) => {
+  if (!html || !imageUrlNormalizer) return html;
+  
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Find all img tags and normalize their src attributes
+  const images = tempDiv.querySelectorAll('img');
+  images.forEach(img => {
+    const originalSrc = img.getAttribute('src');
+    if (originalSrc) {
+      // Only normalize if it's not already a full URL
+      if (!originalSrc.startsWith('http://') && !originalSrc.startsWith('https://')) {
+        const normalizedSrc = imageUrlNormalizer(originalSrc);
+        img.setAttribute('src', normalizedSrc);
+      }
+    }
+  });
+  
+  return tempDiv.innerHTML;
+};
+
+/**
  * Extract image URL from HTML content
  * @param {string} html - HTML string to extract from
  * @returns {string|null} - First image URL found, or null if none

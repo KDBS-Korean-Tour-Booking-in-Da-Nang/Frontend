@@ -113,7 +113,7 @@ const CustomerManagement = () => {
       // Fetch booking data for each customer (optional, can be done in background)
       fetchBookingDataForUsers(customerUsers.map(u => u.email));
     } catch (err) {
-      console.error('Error fetching customers:', err);
+      // Silently handle error fetching customers
       setError('Không thể tải danh sách khách hàng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
@@ -160,7 +160,7 @@ const CustomerManagement = () => {
               };
             }
           } catch (err) {
-            console.error(`Error fetching bookings for ${email}:`, err);
+            // Silently handle error fetching bookings
           }
         })
       );
@@ -186,7 +186,7 @@ const CustomerManagement = () => {
         };
       }));
     } catch (err) {
-      console.error('Error fetching booking data:', err);
+      // Silently handle error fetching booking data
     }
   };
 
@@ -295,7 +295,7 @@ const CustomerManagement = () => {
         setSelectedCustomerForBan(null);
       }
     } catch (err) {
-      console.error('Error toggling customer status:', err);
+      // Silently handle error toggling customer status
       alert(err.message || 'Không thể cập nhật trạng thái khách hàng. Vui lòng thử lại.');
     }
   };

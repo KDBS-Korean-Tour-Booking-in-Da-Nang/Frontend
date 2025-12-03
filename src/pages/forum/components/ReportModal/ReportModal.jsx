@@ -48,7 +48,7 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
       setDescription('');
       onClose();
     } catch (error) {
-      console.error('Error reporting post:', error);
+      // Silently handle error reporting post
       alert(t('forum.modals.report.submitError'));
     } finally {
       setIsSubmitting(false);

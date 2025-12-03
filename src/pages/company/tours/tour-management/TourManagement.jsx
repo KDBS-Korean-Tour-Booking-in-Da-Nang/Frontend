@@ -81,7 +81,7 @@ const TourManagement = () => {
         setError(t('toast.tour.load_failed') || 'Không thể tải danh sách tour');
       }
     } catch (error) {
-      console.error('Error fetching tours:', error);
+      // Silently handle error fetching tours
       setError(t('toast.tour.load_error') || 'Lỗi khi tải tour');
     } finally {
       setLoading(false);
@@ -178,7 +178,7 @@ const TourManagement = () => {
         setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
       }
     } catch (error) {
-      console.error('Error deleting tour:', error);
+      // Silently handle error deleting tour
       setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
     } finally {
       setDeleteModalOpen(false);

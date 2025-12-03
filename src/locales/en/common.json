@@ -955,7 +955,13 @@
 			"detailLoadError": "An error occurred while loading report details",
 			"noReason": "No reason",
 			"approveNote": "Report has been approved and processed",
-			"rejectNote": "Report has been rejected"
+			"rejectNote": "Report has been rejected",
+			"approveConfirm": {
+				"title": "Approve Report",
+				"message": "Are you sure you want to approve report #{{id}}? This action will mark the report as resolved.",
+				"confirm": "Approve",
+				"cancel": "Cancel"
+			}
 		},
 		"reportDetailModal": {
 			"title": "Report details",
@@ -1302,7 +1308,20 @@
 			"rejectSuccess": "Tour rejected successfully!",
 			"approveError": "Error approving tour: {{error}}",
 			"rejectError": "Error rejecting tour: {{error}}",
-			"detailError": "An error occurred while loading tour details"
+			"detailError": "An error occurred while loading tour details",
+			"approveConfirm": {
+				"title": "Approve Tour",
+				"message": "Are you sure you want to approve tour \"{{name}}\"? This action will make the tour publicly visible.",
+				"confirm": "Approve",
+				"cancel": "Cancel"
+			},
+			"rejectConfirm": {
+				"title": "Reject Tour",
+				"message": "Are you sure you want to reject tour \"{{name}}\"? This action will disable the tour.",
+				"confirm": "Reject",
+				"cancel": "Cancel"
+			},
+			"durationTemplate": "{{days}} days {{nights}} nights"
 		},
 		"tourDetailModal": {
 			"title": "Tour Details",
@@ -1327,7 +1346,8 @@
 				"reject": "Reject",
 				"confirmApprove": "Are you sure you want to approve this tour?",
 				"confirmReject": "Are you sure you want to reject this tour?"
-			}
+			},
+			"durationTemplate": "{{days}} days {{nights}} nights"
 		},
 		"tourApproval": {
 			"title": "Tour Management",
@@ -1400,6 +1420,18 @@
 			"confirm": {
 				"approve": "Are you sure you want to approve this tour?",
 				"reject": "Are you sure you want to reject this tour?"
+			},
+			"approveConfirm": {
+				"title": "Approve Tour",
+				"message": "Are you sure you want to approve tour \"{{name}}\"? This action will make the tour publicly visible.",
+				"confirm": "Approve",
+				"cancel": "Cancel"
+			},
+			"rejectConfirm": {
+				"title": "Reject Tour",
+				"message": "Are you sure you want to reject tour \"{{name}}\"? This action will disable the tour.",
+				"confirm": "Reject",
+				"cancel": "Cancel"
 			},
 			"success": {
 				"approve": "Tour approved successfully!",
@@ -1734,6 +1766,18 @@
 				"approve": "Are you sure you want to approve company \"{{name}}\"?",
 				"reject": "Are you sure you want to reject company \"{{name}}\"?"
 			},
+			"approveConfirm": {
+				"title": "Approve Company",
+				"message": "Are you sure you want to approve company \"{{name}}\"? This action will activate the company account.",
+				"confirm": "Approve",
+				"cancel": "Cancel"
+			},
+			"rejectConfirm": {
+				"title": "Reject Company",
+				"message": "Are you sure you want to reject company \"{{name}}\"? This action will reject the company registration.",
+				"confirm": "Reject",
+				"cancel": "Cancel"
+			},
 			"success": {
 				"approve": "Company approved successfully!",
 				"reject": "Company rejected successfully!"
@@ -1952,6 +1996,14 @@
 			"confirm": {
 				"approve": "Are you sure you want to approve this report?",
 				"reject": "Are you sure you want to reject this report?"
+			},
+			"confirmModal": {
+				"approve": {
+					"title": "Approve Report",
+					"message": "Are you sure you want to approve report #{{id}}? This action will mark the report as resolved.",
+					"confirm": "Approve",
+					"cancel": "Cancel"
+				}
 			},
 			"success": {
 				"approve": "Report approved successfully!",

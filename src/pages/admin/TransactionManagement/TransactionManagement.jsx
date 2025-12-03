@@ -59,11 +59,6 @@ const TransactionManagement = () => {
       const data = await response.json();
       const transactionsList = Array.isArray(data) ? data : [];
       
-      // Debug: Log first transaction to check orderInfo
-      if (transactionsList.length > 0) {
-        console.log('Sample transaction from API:', transactionsList[0]);
-      }
-      
       // Map TransactionResponse to frontend format
       const mappedTransactions = transactionsList.map((txn) => {
         // Map status: SUCCESS -> completed, PENDING -> pending, FAILED -> failed
@@ -94,7 +89,7 @@ const TransactionManagement = () => {
 
       setTransactions(mappedTransactions);
     } catch (err) {
-      console.error('Error fetching transactions:', err);
+      // Silently handle error fetching transactions
       setError(t('admin.transactionManagement.error'));
     } finally {
       setLoading(false);

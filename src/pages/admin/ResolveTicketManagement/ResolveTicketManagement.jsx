@@ -49,7 +49,7 @@ const ResolveTicketManagement = () => {
       setAllTickets(Array.isArray(data) ? data : []);
       setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Error loading tickets:', err);
+      // Silently handle error loading tickets
       setError(err?.message || t('admin.resolveTicketManagement.errors.loadError'));
     } finally {
       setLoading(false);
@@ -141,7 +141,7 @@ const ResolveTicketManagement = () => {
       setTickets([]);
       setError(t('admin.resolveTicketManagement.errors.notFound'));
     } catch (err) {
-      console.error('Error fetching ticket:', err);
+      // Silently handle error fetching ticket
       setError(err?.message || t('admin.resolveTicketManagement.errors.loadError'));
       setTickets([]);
     } finally {
@@ -180,7 +180,7 @@ const ResolveTicketManagement = () => {
       await loadAllTickets();
       handleCloseResolveModal();
     } catch (err) {
-      console.error('Error resolving ticket:', err);
+      // Silently handle error resolving ticket
       setError(err?.message || t('admin.resolveTicketManagement.errors.resolveError'));
     } finally {
       setResolvingId(null);

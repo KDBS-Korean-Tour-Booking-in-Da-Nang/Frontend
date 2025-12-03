@@ -13,10 +13,8 @@ import {
   UserCircleIcon,
   ShieldCheckIcon,
   PlusIcon,
-  PencilIcon,
   TrashIcon,
   EyeIcon,
-  CheckIcon,
   XMarkIcon,
   FunnelIcon,
   ArrowDownTrayIcon,
@@ -138,7 +136,7 @@ const StaffManagement = () => {
 
       setStaffList(mappedStaff);
     } catch (err) {
-      console.error('Error fetching staff list:', err);
+      // Silently handle error fetching staff list
       setError(t('admin.staffManagement.error'));
     } finally {
       setLoading(false);
@@ -223,7 +221,7 @@ const StaffManagement = () => {
       setError(''); // Clear error on success
       showSuccess(t('admin.staffManagement.deleteSuccess'));
     } catch (err) {
-      console.error('Error deleting staff:', err);
+      // Silently handle error deleting staff
       setError(err.message || t('admin.staffManagement.deleteError'));
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
@@ -369,7 +367,7 @@ const StaffManagement = () => {
       setError(''); // Clear error on success
       showSuccess(t('admin.assignTaskModal.updateSuccess'));
     } catch (err) {
-      console.error('Error updating staff task:', err);
+      // Silently handle error updating staff task
       setError(err.message || t('admin.assignTaskModal.updateError'));
       throw err; // Re-throw to let modal handle it
     }
@@ -623,28 +621,6 @@ const StaffManagement = () => {
                           <ClipboardDocumentListIcon className="h-4 w-4" />
                         </button>
                         <button 
-                          onClick={() => handleEditStaff(staff)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                          title={t('admin.staffManagement.actions.edit')}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleStatusToggle(staff.userId)}
-                          className={`p-2 rounded-full border border-gray-200 transition ${
-                            staff.status === 'active' 
-                              ? 'text-gray-500 hover:text-red-600 hover:border-red-200' 
-                              : 'text-gray-500 hover:text-green-600 hover:border-green-200'
-                          }`}
-                          title={staff.status === 'active' ? t('admin.staffManagement.actions.ban') : t('admin.staffManagement.actions.unban')}
-                        >
-                          {staff.status === 'active' ? (
-                            <XMarkIcon className="h-4 w-4" />
-                          ) : (
-                            <CheckIcon className="h-4 w-4" />
-                          )}
-                        </button>
-                        <button 
                           onClick={() => handleDeleteStaff(staff)}
                           className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
                           title={t('admin.staffManagement.actions.delete')}
@@ -706,11 +682,11 @@ const StaffManagement = () => {
           setStaffToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
-        title="Xóa nhân viên"
+        title="Delete staff"
         message={t('admin.staffManagement.deleteConfirm.message', { name: staffToDelete?.username })}
         itemName={staffToDelete?.username}
-        confirmText="Xóa"
-        cancelText="Hủy"
+        confirmText="Delete"
+        cancelText="Cancel"
         danger={true}
       />
     </div>

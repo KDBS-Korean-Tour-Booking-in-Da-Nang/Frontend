@@ -37,7 +37,9 @@ export const ToastProvider = ({ children }) => {
       if (typeof input === 'string' && i18n?.exists?.(input)) {
         return i18n.t(input);
       }
-    } catch (_) {}
+    } catch {
+      // Silently handle error resolving message
+    }
     return String(input ?? '');
   };
 
