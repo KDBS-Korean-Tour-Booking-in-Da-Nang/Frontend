@@ -1,0 +1,59 @@
+.clm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.clm-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.clm-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.clm-message {
+  margin: 0 0 16px 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+.clm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.clm-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clm-btn-cancel {
+  background: #f3f4f6;
+  color: #111827;
+}
+.clm-btn-cancel:hover { background: #e5e7eb; }
+
+.clm-btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+}
+.clm-btn-danger:hover { background: #dc2626; }
+
+
