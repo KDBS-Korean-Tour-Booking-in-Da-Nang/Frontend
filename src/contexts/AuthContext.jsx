@@ -403,17 +403,29 @@ export const AuthProvider = ({ children }) => {
 
       const userData = await getUserByEmail(user.email, token);
       if (userData) {
+        // IMPORTANT:
+        //  - Cho phép backend trả về null/"" để xóa dữ liệu (phone, dob, gender, address, avatar, ...)
+        //  - Vì vậy KHÔNG được dùng toán tử `||` vì nó sẽ fallback về giá trị cũ khi field = '' hoặc null
+        //  - Thay vào đó, chỉ fallback khi field === undefined (không có trong response)
         const updatedUser = {
           ...user,
-          username: userData.username || userData.name || user.username,
-          name: userData.username || userData.name || user.name,
-          phone: userData.phone || user.phone,
-          dob: userData.dob || user.dob,
-          gender: userData.gender || user.gender,
-          address: userData.address || user.address,
-          avatar: userData.avatar || user.avatar,
-          status: userData.status || user.status,
-          role: userData.role || user.role
+          // username / name: nếu backend không gửi thì giữ nguyên, còn nếu gửi (kể cả rỗng/null) thì dùng giá trị đó
+          username:
+            userData.username !== undefined
+              ? (userData.username ?? userData.name ?? '')
+              : user.username,
+          name:
+            userData.username !== undefined || userData.name !== undefined
+              ? (userData.username ?? userData.name ?? '')
+              : user.name,
+          // Các field có thể bị xóa hoàn toàn
+          phone: userData.phone !== undefined ? userData.phone : user.phone,
+          dob: userData.dob !== undefined ? userData.dob : user.dob,
+          gender: userData.gender !== undefined ? userData.gender : user.gender,
+          address: userData.address !== undefined ? userData.address : user.address,
+          avatar: userData.avatar !== undefined ? userData.avatar : user.avatar,
+          status: userData.status !== undefined ? userData.status : user.status,
+          role: userData.role !== undefined ? userData.role : user.role
         };
         updateUser(updatedUser);
         return updatedUser;

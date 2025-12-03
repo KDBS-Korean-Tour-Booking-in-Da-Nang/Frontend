@@ -118,6 +118,16 @@
       "oauthErrorNaver": "Không thể kết nối với Naver. Vui lòng thử lại.",
       "successMessage": "Đăng nhập thành công!"
     },
+    "banned": {
+      "title": "Tài khoản bị khóa",
+      "subtitle": "Tài khoản của bạn đã bị tạm khóa bởi quản trị viên",
+      "description": "Vì lý do vi phạm quy định hoặc hành vi bất thường, tài khoản của bạn đã bị khóa. Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ bộ phận hỗ trợ hoặc quản trị viên hệ thống để được xem xét lại.",
+      "info": "Bạn hiện không thể tiếp tục sử dụng hệ thống với tài khoản này. Vui lòng đăng nhập bằng một tài khoản khác hoặc liên hệ hỗ trợ để biết thêm chi tiết.",
+      "backToLogin": "Về trang đăng nhập",
+      "backToHome": "Về trang chủ",
+      "ariaBackToLogin": "Quay lại trang đăng nhập",
+      "ariaBackToHome": "Về trang chủ"
+    },
     "register": {
       "title": "Đăng ký tài khoản",
       "headerSubtitle": "Tạo tài khoản mới để bắt đầu hành trình",

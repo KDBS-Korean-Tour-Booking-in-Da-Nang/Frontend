@@ -299,6 +299,13 @@ const Login = () => {
 
       const data = await response.json();
 
+      // Handle banned user (ErrorCode.USER_IS_BANNED: code 1012, message \"User is banned.\")
+      if (response.status === 403 && data?.code === 1012) {
+        setGeneralError(t('auth.login.banned') || 'Tài khoản của bạn đã bị khóa bởi quản trị viên.');
+        navigate('/banned', { replace: true });
+        return;
+      }
+
       if ((data.code === 1000 || data.code === 0) && data.result) {
         const token = data.result.token;
         

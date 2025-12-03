@@ -28,9 +28,14 @@ export const updateUserProfile = async (userData, token) => {
     if (userData.name && userData.name.trim()) {
       updateData.username = userData.name.trim(); // Backend expects 'username' field
     }
-    // Always include phone (even if empty) to allow clearing
+    // Phone: optional. If user leaves it empty, don't send it to avoid false PHONE_EXISTED conflicts.
+    // (Clearing phone in DB will require a small backend change.)
     if (userData.phone !== undefined && userData.phone !== null) {
-      updateData.phone = userData.phone.trim();
+      const trimmedPhone = String(userData.phone).trim();
+      if (trimmedPhone) {
+        updateData.phone = trimmedPhone;
+      }
+      // If trimmedPhone is empty, we intentionally omit phone from updateData
     }
     // Only include DOB if it's valid (non-empty and normalized)
     if (userData.dob && userData.dob.trim()) {

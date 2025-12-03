@@ -509,10 +509,28 @@ export const ChatProvider = ({ children }) => {
   };
   
   const [state, dispatch] = useReducer(chatReducer, initialStateWithCache);
-  const { user: authUser, getToken } = useAuth();
+  const { user: authUser, getToken, refreshUser } = useAuth();
   
   // Use ref to store current user for WebSocket handlers
   const currentUserRef = useRef(null);
+  const hasRequestedProfileRef = useRef(false);
+
+  // Ensure we always have a username available for chat endpoints/websocket
+  useEffect(() => {
+    if (!authUser) {
+      hasRequestedProfileRef.current = false;
+      return;
+    }
+
+    const hasUsername = Boolean(authUser.username || authUser.userName);
+    if (!hasUsername && typeof refreshUser === 'function' && !hasRequestedProfileRef.current) {
+      hasRequestedProfileRef.current = true;
+      refreshUser()
+        .catch(() => {
+          hasRequestedProfileRef.current = false;
+        });
+    }
+  }, [authUser?.userId, authUser?.username, authUser?.userName, refreshUser]);
 
   // Initialize connection function
   const initializeConnection = async () => {
@@ -533,6 +551,17 @@ export const ChatProvider = ({ children }) => {
             }
           } catch (e) {
             // Ignore parse errors
+          }
+        }
+        
+        if (userData && !(userData.username || userData.userName) && typeof refreshUser === 'function') {
+          try {
+            const refreshed = await refreshUser();
+            if (refreshed) {
+              userData = refreshed;
+            }
+          } catch (refreshError) {
+            // Ignore refresh failures - we'll fallback to whatever data we have
           }
         }
         

@@ -37,6 +37,7 @@ const StaffManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [error, setError] = useState('');
+  const [modalError, setModalError] = useState('');
   const [formErrors, setFormErrors] = useState({});
   const [staffForm, setStaffForm] = useState({
     username: '',
@@ -270,7 +271,7 @@ const StaffManagement = () => {
   };
 
   const handleSubmitStaff = async (formData) => {
-    setError('');
+    setModalError('');
     setFormErrors({});
 
     try {
@@ -278,7 +279,7 @@ const StaffManagement = () => {
       const token = getToken();
       
       if (!token) {
-        setError(t('common.errors.loginRequired'));
+        setModalError(t('common.errors.loginRequired'));
         return;
       }
 
@@ -300,7 +301,7 @@ const StaffManagement = () => {
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
-          setError(t('common.errors.sessionExpired'));
+          setModalError(t('common.errors.sessionExpired'));
           return;
         }
         const errorData = await response.json();
@@ -313,10 +314,10 @@ const StaffManagement = () => {
       await fetchStaffList();
       setIsModalOpen(false);
       setStaffForm({ username: '', password: '', staffTask: '' });
-      setError(''); // Clear error on success
+      setModalError(''); // Clear modal error on success
       showSuccess(t('admin.addStaffModal.createSuccess'));
     } catch (err) {
-      setError(err.message || t('admin.addStaffModal.createError'));
+      setModalError(err.message || t('admin.addStaffModal.createError'));
       throw err; // Re-throw to let modal handle it
     } finally {
       setSubmitting(false);
@@ -420,28 +421,13 @@ const StaffManagement = () => {
     admin: 0 // Only showing STAFF role users, so admin count is 0
   };
 
-  if (loading) {
+  // Chỉ hiển thị màn hình loading toàn trang khi lần load đầu tiên chưa có dữ liệu
+  if (loading && staffList.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
           <p className="mt-4 text-gray-600">{t('admin.staffManagement.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={fetchStaffList}
-            className="px-4 py-2 bg-[#4c9dff] text-white rounded-lg hover:bg-[#3f85d6] transition-all duration-200 shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
-          >
-            {t('admin.staffManagement.retry')}
-          </button>
         </div>
       </div>
     );
@@ -692,12 +678,12 @@ const StaffManagement = () => {
         onClose={() => {
           setIsModalOpen(false);
           setStaffForm({ username: '', password: '', staffTask: '' });
-          setError('');
+          setModalError('');
           setFormErrors({});
         }}
         onSubmit={handleSubmitStaff}
         submitting={submitting}
-        error={error}
+        error={modalError}
         formErrors={formErrors}
       />
 

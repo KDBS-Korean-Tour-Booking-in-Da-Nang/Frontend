@@ -120,6 +120,16 @@
 			"oauthErrorNaver": "Naver 연결 실패. 다시 시도해주세요.",
 			"successMessage": "성공적으로 로그인되었습니다!"
 		},
+		"banned": {
+			"title": "계정이 차단되었습니다",
+			"subtitle": "관리자에 의해 계정이 일시적으로 차단되었습니다",
+			"description": "이용 약관 위반 또는 이상 행위로 인해 계정이 차단되었습니다. 오류라고 생각되면 고객센터 또는 시스템 관리자에게 문의하여 다시 심사받으시기 바랍니다.",
+			"info": "현재 이 계정으로는 시스템을 계속 이용하실 수 없습니다. 다른 계정으로 로그인하시거나, 자세한 안내를 위해 고객센터에 문의해주세요.",
+			"backToLogin": "로그인 페이지로",
+			"backToHome": "홈으로",
+			"ariaBackToLogin": "로그인 페이지로 돌아가기",
+			"ariaBackToHome": "홈으로 돌아가기"
+		},
 		"register": {
 			"title": "계정 만들기",
 			"headerSubtitle": "새 계정을 만들어 시작하세요",

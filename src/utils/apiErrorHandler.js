@@ -98,8 +98,49 @@ export const handleApiError = async (response, autoRedirect = false) => {
     return new Error('Session expired. Please login again.');
   }
 
-  // Handle 403 Forbidden - not enough permissions
+  // Handle 403 Forbidden - not enough permissions or banned user
   if (status === 403) {
+    // Try to detect banned user (ErrorCode.USER_IS_BANNED: code 1012, message \"User is banned.\")
+    let apiCode = null;
+    let apiMessage = null;
+    try {
+      const text = await response.clone().text();
+      if (text) {
+        try {
+          const obj = JSON.parse(text);
+          apiCode = obj?.code ?? null;
+          apiMessage = obj?.message ?? null;
+        } catch {
+          apiMessage = text;
+        }
+      }
+    } catch {
+      // ignore parsing errors, fallback to generic handling
+    }
+
+    const isBanned =
+      apiCode === 1012 ||
+      (typeof apiMessage === 'string' &&
+        apiMessage.toLowerCase().includes('user is banned'));
+
+    if (isBanned) {
+      // Banned user: force logout and redirect to banned page
+      if (logoutCallback) {
+        try {
+          logoutCallback();
+        } catch (e) {
+          console.error('Error calling logout callback for banned user:', e);
+        }
+      }
+      if (navigateCallback) {
+        navigateCallback('/banned', { replace: true });
+      }
+      const error = new Error(apiMessage || 'Tài khoản của bạn đã bị khóa.');
+      error.status = 403;
+      error.code = apiCode;
+      return error;
+    }
+
     if (autoRedirect) {
       redirectToErrorPage(403, true);
     }

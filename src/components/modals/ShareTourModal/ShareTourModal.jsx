@@ -12,7 +12,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  // Removed showError - errors will be handled in UI
+  const { showError } = useToast();
 
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState(null);
@@ -120,17 +120,24 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       const token = getToken();
       const formData = new FormData();
       formData.append('userEmail', user.email);
-      // Body: caption + linkUrl (để FE nhận diện và render preview), FE sẽ ẩn dòng link khi hiển thị
-      formData.append('title', '');
+      
+      // Title: Use tour name from preview or default title (backend requires @NotBlank)
+      const title = preview?.title || t('forum.shareTour.title') || 'Chia sẻ tour';
+      formData.append('title', title);
+      
+      // Content: caption + linkUrl (để FE nhận diện và render preview), FE sẽ ẩn dòng link khi hiển thị
       const parts = [];
       if ((caption || '').trim()) parts.push((caption || '').trim());
       if ((preview?.linkUrl || '').trim()) parts.push(preview.linkUrl.trim());
       const content = parts.join('\n');
-      formData.append('content', content || ' ');
+      // Backend requires @NotBlank, so ensure content is not empty or just whitespace
+      formData.append('content', content.trim() || title);
+      
       // Append hashtags like Post modal
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);
       });
+      
       // Embed link metadata into content fields so backend stores them as normal post
       formData.append('metadata', JSON.stringify({
         linkType: 'TOUR',
@@ -147,15 +154,33 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           const imgRes = await fetch(preview.thumbnailUrl);
           const blob = await imgRes.blob();
           const file = new File([blob], 'thumbnail.jpg', { type: blob.type || 'image/jpeg' });
-          formData.append('imageUrls', file);
+          // Fix: Use 'images' instead of 'imageUrls' to match backend ForumPostRequest
+          formData.append('images', file);
         } catch (e) {
           // Failed to fetch thumbnail, continue without image
+          console.warn('Failed to fetch thumbnail image:', e);
         }
       }
 
       const headers = createAuthFormHeaders(token);
       const res = await fetch(API_ENDPOINTS.POSTS, { method: 'POST', headers, body: formData });
-      if (!res.ok) throw new Error('create post failed');
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Failed to create post:', res.status, errorText);
+        let errorMessage = t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.';
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.message) {
+            errorMessage = errorJson.message;
+          }
+        } catch {
+          // If errorText is not JSON, use default message
+        }
+        showError(errorMessage);
+        throw new Error(`Failed to create post: ${res.status} ${errorText}`);
+      }
+      
       const post = await res.json();
       
       // Call onShared callback if provided
@@ -169,7 +194,12 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
         navigate('/forum');
       }, 100);
     } catch (e) {
-      // Error creating post - handled silently or in UI
+      // Error creating post - log for debugging
+      console.error('Error creating post:', e);
+      // Error toast already shown in the res.ok check above
+      if (!e.message || !e.message.includes('Failed to create post:')) {
+        showError(t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }

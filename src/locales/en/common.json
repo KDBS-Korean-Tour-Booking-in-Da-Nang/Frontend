@@ -119,6 +119,16 @@
 			"oauthErrorNaver": "Cannot connect to Naver. Please try again.",
 			"successMessage": "Login successful!"
 		},
+		"banned": {
+			"title": "Account banned",
+			"subtitle": "Your account has been temporarily banned by the administrator",
+			"description": "Due to policy violations or suspicious activities, your account has been banned. If you believe this is a mistake, please contact support or the system administrator for further review.",
+			"info": "You can no longer continue using the system with this account. Please log in with another account or contact support for more details.",
+			"backToLogin": "Back to login",
+			"backToHome": "Back to homepage",
+			"ariaBackToLogin": "Go back to login page",
+			"ariaBackToHome": "Go back to homepage"
+		},
 		"register": {
 			"title": "Create account",
 			"headerSubtitle": "Create a new account to get started",

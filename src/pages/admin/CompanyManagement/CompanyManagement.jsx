@@ -321,7 +321,8 @@ const CompanyManagement = () => {
     }
   };
 
-  if (loading) {
+  // Chỉ hiển thị màn hình loading toàn trang khi lần load đầu tiên chưa có dữ liệu
+  if (loading && companies.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -332,24 +333,19 @@ const CompanyManagement = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+  return (
+    <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+          <span>{error}</span>
           <button
             onClick={fetchCompanies}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="ml-4 px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
           >
             {t('admin.companyManagement.retry')}
           </button>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
+      )}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">{t('admin.companyManagement.title')}</p>

@@ -406,6 +406,28 @@ const UserProfile = () => {
     return clean;
   };
 
+  // Determine if profile form has any changes compared to current user data
+  const getUserProfileBaseline = () => ({
+    name: user?.username || user?.name || '',
+    phone: user?.phone || '',
+    dob: user?.dob ? formatDateFromNormalizedSafe(user.dob) : '',
+    gender: user?.gender || '',
+    address: user?.address || ''
+  });
+
+  const hasProfileChanges = () => {
+    if (!user) return false;
+    const baseline = getUserProfileBaseline();
+    if ((baseline.name || '') !== (editForm.name || '')) return true;
+    if ((baseline.phone || '') !== (editForm.phone || '')) return true;
+    if ((baseline.dob || '') !== (editForm.dob || '')) return true;
+    if ((baseline.gender || '') !== (editForm.gender || '')) return true;
+    if ((baseline.address || '') !== (editForm.address || '')) return true;
+    // Any newly selected avatar file also counts as a change
+    if (avatarFile) return true;
+    return false;
+  };
+
   
 
   const sidebarMenuItems = [
@@ -1265,7 +1287,7 @@ const UserProfile = () => {
             <button
               type="submit"
               className={styles['btn-primary']}
-              disabled={isUpdating}
+              disabled={isUpdating || !hasProfileChanges()}
             >
               {isUpdating ? (
                 <div className="flex items-center">

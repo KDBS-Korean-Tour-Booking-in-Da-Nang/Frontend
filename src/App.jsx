@@ -12,6 +12,7 @@ import CozeChat from './components/CozeChat';
 import { useAuth } from './contexts/AuthContext';
 import { setNavigateCallback } from './utils/apiErrorHandler';
 import Homepage from './pages/home/homepage/homepage';
+import BannedPage from './pages/home/bannedPage/bannedPage';
 import Login from './pages/authentication/login/login';
 import StaffLogin from './pages/authentication/staffLogin/staffLogin';
 import AdminLogin from './pages/authentication/adminLogin/adminLogin';
@@ -81,7 +82,8 @@ function AppContent() {
   const isErrorPage = location.pathname === '/error/404' || 
                       location.pathname === '/error/403' || 
                       location.pathname === '/error/500' ||
-                      location.pathname === '/error/401';
+                      location.pathname === '/error/401' ||
+                      location.pathname === '/banned';
   const authenticationPaths = [
     '/login',
     '/staff/login',
@@ -276,6 +278,7 @@ function AppContent() {
                   <Route path="/error/403" element={<Error403 />} />
                   <Route path="/error/500" element={<Error500 />} />
                   <Route path="/error/401" element={<Error401 />} />
+                  <Route path="/banned" element={<BannedPage />} />
                   {/* Catch-all route for 404 - must be last */}
                   <Route path="*" element={<Error404 />} />
         </Routes>
