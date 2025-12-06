@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { NoSymbolIcon } from '@heroicons/react/24/solid';
 
@@ -8,6 +9,28 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
   const [selectedReason, setSelectedReason] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modalContainerRef = useRef(null);
+  const bodyOverflowRef = useRef('');
+
+  // Resolve portal container once on mount
+  useEffect(() => {
+    if (!modalContainerRef.current) {
+      const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+      modalContainerRef.current = root || (typeof document !== 'undefined' ? document.body : null);
+    }
+  }, []);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!modalContainerRef.current || typeof document === 'undefined') return;
+    if (isOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = bodyOverflowRef.current || '';
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen || !customer) return null;
 
@@ -54,9 +77,9 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
       onClick={onClose}
     >
       <div 
@@ -151,6 +174,13 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
       </div>
     </div>
   );
+
+  // Render modal using portal to escape container constraints
+  // Always use portal if container is available, otherwise render directly (fallback)
+  return modalContainerRef.current 
+    ? createPortal(modalContent, modalContainerRef.current)
+    : modalContent;
 };
 
 export default BanReasonModal;
+

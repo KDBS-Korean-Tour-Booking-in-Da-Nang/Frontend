@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { TourBookingProvider, useBooking } from '../../../contexts/TourBookingContext';
+import { useTourBooking } from '../../../hooks/useTourBooking';
 import { formatBookingData, validateBookingData } from '../../../utils/bookingFormatter';
 import { useBookingAPI } from '../../../hooks/useBookingAPI';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -42,8 +42,9 @@ const BookingWizardContent = () => {
     setBookingLoading,
     setBookingError,
     setBookingSuccess,
-    clearBookingStatus
-  } = useBooking();
+    clearBookingStatus,
+    restoreBookingData
+  } = useTourBooking();
   
   // Track if we've restored data to avoid duplicate restores
   const hasRestoredRef = useRef(false);
@@ -60,24 +61,42 @@ const BookingWizardContent = () => {
   
   // Removed VNPay return handling effect
   
+  // Serialize contact and plan for stable dependencies to prevent infinite loops
+  const contactKey = useMemo(() => contact ? JSON.stringify(contact) : '', [contact]);
+  const planKey = useMemo(() => plan ? JSON.stringify(plan) : '', [plan]);
+  const lastSavedRef = useRef('');
+  const isRestoringRef = useRef(false); // Flag to disable auto-save during restore
+  const skipNextAutoSaveRef = useRef(false); // Flag to skip next auto-save after restore
+  
   // Auto-save booking data when contact or plan changes
   useEffect(() => {
+    // Skip auto-save if we're currently restoring data or should skip next one
+    if (isRestoringRef.current || skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false; // Reset flag after skipping once
+      return;
+    }
+    
     // Only save if we have meaningful data (not initial empty state)
-    if (contact && (contact.fullName || contact.phone || contact.email) && 
-        plan && (plan.date || plan.pax)) {
-      try {
-        const bookingData = {
-          contact,
-          plan,
-          timestamp: Date.now(),
-          tourId: tourId
-        };
+    if (contactKey && planKey && tourId) {
+      const currentKey = `${contactKey}_${planKey}_${tourId}`;
+      
+      // Only save if data actually changed (prevent infinite loop)
+      if (currentKey !== lastSavedRef.current && currentKey !== '___') {
+        try {
+          const bookingData = {
+            contact,
+            plan,
+            timestamp: Date.now(),
+            tourId: tourId
+          };
           localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
-      } catch (error) {
-        // Error auto-saving booking data
+          lastSavedRef.current = currentKey;
+        } catch (error) {
+          // Error auto-saving booking data
+        }
       }
     }
-  }, [contact, plan, tourId]);
+  }, [contactKey, planKey, tourId]);
   
   // Simple beforeunload handler like TourWizard
   useEffect(() => {
@@ -85,7 +104,7 @@ const BookingWizardContent = () => {
                    plan && (plan.date || plan.pax);
 
     const handler = (e) => {
-      if (!hasData) return;
+      if (!hasData || !tourId) return;
       e.preventDefault();
       e.returnValue = '';
       try {
@@ -96,7 +115,7 @@ const BookingWizardContent = () => {
 
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [contact, plan, tourId]);
+  }, [contactKey, planKey, tourId]);
 
   // Intercept clicks on navigation links like TourWizard
   useEffect(() => {
@@ -119,7 +138,7 @@ const BookingWizardContent = () => {
     
     document.addEventListener('click', onClick, true);
     return () => document.removeEventListener('click', onClick, true);
-  }, [contact, plan]);
+  }, [contactKey, planKey]);
   
   
   // Use custom hook for step validation
@@ -211,65 +230,30 @@ const BookingWizardContent = () => {
         const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
         if (savedBookingData) {
           const parsedData = JSON.parse(savedBookingData);
-        
-          // Restore contact data
-          if (parsedData.contact) {
-            setContact(parsedData.contact);
-          }
           
-          // Restore plan data
-          if (parsedData.plan) {
-            // Restore date
-            if (parsedData.plan.date) {
-              setDate(parsedData.plan.date);
-            }
+          // Set flag to disable auto-save during restore
+          isRestoringRef.current = true;
+          
+          // Restore all data in one batch action to prevent infinite loops
+          if (parsedData.contact || parsedData.plan) {
+            // Set flag to disable auto-save and skip next auto-save
+            isRestoringRef.current = true;
+            skipNextAutoSaveRef.current = true;
             
-            // Restore pax BEFORE members so arrays are rebuilt to correct sizes
-            if (parsedData.plan.pax) {
-              setPax(parsedData.plan.pax);
-            }
-
-            // Wait for pax to be set and members to be rebuilt before restoring member data
-            // Use setTimeout to ensure pax state update and rebuildMembers have processed
+            // Restore everything in one action - restoreBookingData handles pax and members
+            restoreBookingData({
+              contact: parsedData.contact || null,
+              plan: parsedData.plan || null
+            });
+            
+            // Update lastSavedRef immediately to prevent auto-save
+            const savedKey = `${JSON.stringify(parsedData.contact || {})}_${JSON.stringify(parsedData.plan || {})}_${tourId}`;
+            lastSavedRef.current = savedKey;
+            
+            // Re-enable auto-save after restore completes (delay to ensure state is updated)
             setTimeout(() => {
-              // Rebuild members based on pax first
-              rebuildMembers();
-              
-              // Then restore members data
-              setTimeout(() => {
-                if (parsedData.plan.members) {
-                  // Restore adult members (only if they have data)
-                  if (parsedData.plan.members.adult && Array.isArray(parsedData.plan.members.adult)) {
-                    parsedData.plan.members.adult.forEach((member, index) => {
-                      // Only set member if it has meaningful data
-                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
-                        setMember('adult', index, member);
-                      }
-                    });
-                  }
-                  
-                  // Restore child members (only if they have data)
-                  if (parsedData.plan.members.child && Array.isArray(parsedData.plan.members.child)) {
-                    parsedData.plan.members.child.forEach((member, index) => {
-                      // Only set member if it has meaningful data
-                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
-                        setMember('child', index, member);
-                      }
-                    });
-                  }
-                  
-                  // Restore infant members (only if they have data)
-                  if (parsedData.plan.members.infant && Array.isArray(parsedData.plan.members.infant)) {
-                    parsedData.plan.members.infant.forEach((member, index) => {
-                      // Only set member if it has meaningful data
-                      if (member && (member.fullName || member.dob || member.gender || member.nationality || member.idNumber)) {
-                        setMember('infant', index, member);
-                      }
-                    });
-                  }
-                }
-              }, 50);
-            }, 50);
+              isRestoringRef.current = false;
+            }, 500);
           }
         } else {
           // No saved data, reset to initial state
@@ -280,11 +264,13 @@ const BookingWizardContent = () => {
         hasRestoredRef.current = true;
       } catch (error) {
         // Error restoring booking data
+        isRestoringRef.current = false;
         resetBooking();
         hasRestoredRef.current = true;
       }
     }
-  }, [tourId, resetBooking, user, setContact, setDate, setMember, setPax, rebuildMembers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourId, user]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -736,13 +722,9 @@ const BookingWizardContent = () => {
   );
 };
 
-// Main component with provider
+// Main component - Redux store is already provided at App level
 const TourBookingWizard = () => {
-  return (
-    <TourBookingProvider>
-      <BookingWizardContent />
-    </TourBookingProvider>
-  );
+  return <BookingWizardContent />;
 };
 
 export default TourBookingWizard;

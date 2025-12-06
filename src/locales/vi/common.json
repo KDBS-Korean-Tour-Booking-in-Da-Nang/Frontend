@@ -35,6 +35,7 @@
     "item": "mục này",
     "sendMessage": "Gửi tin nhắn",
     "understand": "Đã hiểu",
+    "actions": "Thao tác",
     "modal": {
       "confirmLeave": {
         "title": "Rời khỏi trình tạo tour?",
@@ -311,6 +312,35 @@
     },
     "copyright": "© 2024 KDBS. Tất cả quyền được bảo lưu.",
     "rights": "Tất cả quyền được bảo lưu."
+  },
+  "supportTicket": {
+    "title": "Yêu cầu hỗ trợ",
+    "description": "Chọn loại yêu cầu hỗ trợ của bạn:",
+    "categories": {
+      "booking": "Vấn đề về đặt tour",
+      "payment": "Vấn đề về thanh toán",
+      "account": "Vấn đề về tài khoản",
+      "other": "Khác"
+    },
+    "otherPlaceholder": "Mô tả chi tiết yêu cầu hỗ trợ của bạn...",
+    "submit": "Gửi yêu cầu",
+    "submitting": "Đang gửi...",
+    "success": "Gửi yêu cầu hỗ trợ thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.",
+    "errors": {
+      "selectCategory": "Vui lòng chọn một yêu cầu hỗ trợ",
+      "enterMessage": "Vui lòng nhập mô tả yêu cầu hỗ trợ",
+      "submitError": "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại."
+    },
+    "loginRequired": {
+      "title": "Yêu cầu đăng nhập",
+      "message": "Vui lòng đăng nhập để gửi yêu cầu hỗ trợ."
+    },
+    "open": "Mở yêu cầu hỗ trợ",
+    "close": "Đóng",
+    "tooltip": {
+      "open": "Gửi yêu cầu hỗ trợ",
+      "close": "Đóng yêu cầu hỗ trợ"
+    }
   },
   "pending": {
     "title": "Đang chờ duyệt",
@@ -1080,6 +1110,7 @@
       },
       "actions": {
         "viewDetails": "View details",
+        "message": "Tin nhắn",
         "resolve": "Resolve ticket"
       },
       "noTickets": "No tickets available",
@@ -1094,22 +1125,24 @@
         "noPermission": "You do not have permission to resolve tickets.",
         "selectResolution": "Please select a resolution type."
       },
-      "modal": {
-        "title": "Ticket Details",
-        "ticketId": "Ticket ID: #{{id}}",
-        "close": "Close",
-        "subject": "Subject",
-        "message": "Message",
-        "status": "Status",
-        "priority": "Priority",
-        "createdAt": "Created At",
-        "resolvedAt": "Resolved At"
-      },
-      "resolveModal": {
-        "title": "Resolve Ticket",
-        "ticketId": "Ticket ID: #{{id}}",
-        "close": "Close",
-        "ticketSubject": "Ticket Subject",
+			"modal": {
+				"title": "Chi tiết Ticket",
+				"ticketId": "Ticket ID: #{{id}}",
+				"close": "Đóng",
+				"subject": "Chủ đề",
+				"message": "Tin nhắn",
+				"reasons": "Lý do",
+				"status": "Trạng thái",
+				"priority": "Ưu tiên",
+				"createdAt": "Ngày tạo",
+				"resolvedAt": "Ngày giải quyết"
+			},
+			"resolveModal": {
+				"title": "Giải quyết Ticket",
+				"ticketId": "Ticket ID: #{{id}}",
+				"close": "Đóng",
+				"ticketSubject": "Chủ đề Ticket",
+				"ticketMessage": "Tin nhắn Ticket",
         "resolutionType": "Resolution Type",
         "required": "*",
         "resolutionOptions": {
@@ -1499,6 +1532,11 @@
         "email": "Email:",
         "transactionInfo": "Thông tin giao dịch",
         "time": "Thời gian"
+      },
+      "status": {
+        "completed": "Hoàn thành",
+        "pending": "Đang chờ",
+        "failed": "Thất bại"
       }
     },
     "userManagement": {
@@ -1560,6 +1598,12 @@
         "deleteConfirm": "Are you sure you want to delete this user?"
       }
     }
+  },
+  "profileRole": {
+    "ADMIN": "Quản trị viên",
+    "STAFF": "Nhân viên",
+    "COMPANY": "Công ty",
+    "USER": "Người dùng"
   },
   "profile": {
     "loginRequired": "Vui lòng đăng nhập để xem hồ sơ",
@@ -1683,24 +1727,6 @@
       "justNow": "Vừa xong",
       "minutesAgo": "{{count}} phút",
       "hoursAgo": "{{count}} giờ"
-    }
-  },
-  "staffLogin": {
-    "title": "Đăng nhập Staff/Admin",
-    "subtitle": "Truy cập hệ thống quản lý",
-    "username": "Username",
-    "email": "Email",
-    "password": "Mật khẩu",
-    "submit": "Đăng nhập",
-    "submitting": "Đang đăng nhập...",
-    "or": "Hoặc",
-    "loginUserBusiness": "Đăng nhập cho User/Business",
-    "error": "Đăng nhập thất bại. Vui lòng thử lại.",
-    "demo": {
-      "title": "Thông tin demo:",
-      "admin": "Admin:",
-      "staff": "Staff:",
-      "password": "Mật khẩu: (bất kỳ)"
     }
   },
   "staff": {
@@ -1938,6 +1964,7 @@
         "title": "Forum Report Management",
         "subtitle": "Quản lý báo cáo từ forum",
         "description": "Xem xét và duyệt các báo cáo từ người dùng về nội dung vi phạm trên forum.",
+        "backToDashboard": "Quay lại Dashboard",
         "permissionDenied": {
           "title": "Không có quyền truy cập",
           "message": "Bạn không có quyền quản lý báo cáo forum. Vui lòng liên hệ admin để được phân quyền.",
@@ -1995,6 +2022,13 @@
           "noResults": "Không tìm thấy báo cáo phù hợp với bộ lọc hiện tại."
         },
         "reportTypes": {
+          "post": "Bài viết",
+          "comment": "Bình luận"
+        },
+        "viewPost": "Xem bài viết",
+        "viewComment": "Xem bình luận",
+        "backToDashboard": "Quay lại Dashboard",
+        "status": {
           "post": "Bài viết",
           "comment": "Bình luận"
         },
@@ -2200,7 +2234,8 @@
       "removeFromHistory": "Xóa khỏi lịch sử",
       "by": "bởi",
       "user": "người dùng",
-      "posts": "bài viết"
+      "posts": "bài viết",
+      "viewMoreHashtags": "Xem thêm hashtag"
     },
     "filter": {
       "clearAll": "Xóa tất cả bộ lọc",
@@ -2210,7 +2245,8 @@
       "clickToFilter": "Nhấp để lọc bài viết theo hashtag này",
       "headerTitle": "Lọc theo hashtag",
       "postCount": "bài viết",
-      "backToForum": "Quay lại diễn đàn"
+      "backToForum": "Quay lại diễn đàn",
+      "showLess": "Thu gọn"
     },
     "sidebar": {
       "savedPosts": "Bài viết đã lưu",
@@ -2238,7 +2274,7 @@
     },
     "modals": {
       "savedPosts": {
-        "title": "📚 Bài viết đã lưu",
+        "title": "Bài viết đã lưu",
         "noSavedPosts": "Bạn chưa lưu bài viết nào",
         "noSavedPostsDesc": "Hãy lưu những bài viết hay để xem lại sau!",
         "close": "Đóng",
@@ -2398,6 +2434,7 @@
       "otp_resend_failed": "Không thể gửi lại mã OTP. Vui lòng thử lại.",
       "password_reset_email_sent": "Email đặt lại mật khẩu đã được gửi!",
       "otp_verify_success": "Xác thực OTP thành công!",
+      "wrong_otp": "Mã OTP không đúng. Vui lòng thử lại.",
       "general_error": "Có lỗi xảy ra. Vui lòng thử lại.",
       "email_not_found": "Đăng nhập thất bại. vui lòng kiểm tra email.",
       "wrong_password": "Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.",
@@ -2445,8 +2482,8 @@
       "fields": {
         "tourName": "Tên tour",
         "tourType": "Loại hình tour",
-        "departurePoint": "Điểm khởi hành *",
-        "vehicle": "Phương tiện *",
+        "departurePoint": "Điểm khởi hành",
+        "vehicle": "Phương tiện",
         "duration": "Số ngày",
         "nights": "Số đêm",
         "maxCapacity": "Số tour tối đa",
@@ -3119,6 +3156,7 @@
     },
     "card": {
       "bookingId": "Mã đặt tour",
+      "tourName": "Tên tour",
       "departureDate": "Ngày khởi hành",
       "totalGuests": "Số khách",
       "guests": "khách",
@@ -3165,7 +3203,11 @@
     "sections": {
       "tourInfo": "Thông tin tour",
       "contactInfo": "Thông tin liên hệ",
+      "guests": "Thông tin hành khách",
       "email": "Email"
+    },
+    "guests": {
+      "viewAll": "Xem tất cả {{count}} hành khách"
     },
     "actions": {
       "editBooking": "Chỉnh sửa booking",
@@ -3277,28 +3319,6 @@
     "duration": {
       "template": "{{days}} ngày {{nights}} đêm"
     }
-  },
-  "businessNav": {
-    "brandSuffix": "Business",
-    "title": "Quản lý Business",
-    "roleSuffix": "Business",
-    "mobileSectionTitle": "Quản lý Business",
-    "dropdown": {
-      "manageToursTitle": "Quản lý Tours",
-      "manageToursDesc": "Tạo và quản lý tours",
-      "analyticsTitle": "Thống kê & Báo cáo",
-      "analyticsDesc": "Xem doanh thu và thống kê",
-      "ordersTitle": "Quản lý Đơn hàng",
-      "ordersDesc": "Xem và xử lý đơn hàng"
-    }
-  },
-  "profileRole": {
-    "USER": "Người dùng",
-    "COMPANY": "Công ty",
-    "BUSINESS": "Doanh nghiệp",
-    "ADMIN": "Quản trị viên",
-    "STAFF": "Nhân viên",
-    "UNKNOWN": "Không xác định"
   },
   "booking": {
     "step1": {
@@ -3867,41 +3887,35 @@
     "suggestionContactSupportIfIssue": "Liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn",
     "technicalDetails": "Chi tiết kỹ thuật (Development)"
   },
-  "premium": {
-    "title": "Premium",
-    "subscriptionTitle": "Đăng ký Premium",
-    "plans": {
-      "1month": "1 tháng",
-      "3months": "3 tháng"
-    },
-    "price": "{{amount}} vnđ",
-    "purchase": "Mua gói Premium",
-    "validUntil": "Hiệu lực đến",
-    "activeNoExpiry": "Đang kích hoạt Premium - Không có ngày hết hạn",
-    "na": "N/A",
-    "errors": {
-      "noToken": "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.",
-      "noEmail": "Không tìm thấy email người dùng. Vui lòng đăng nhập lại.",
-      "missingPayUrl": "Không tìm thấy liên kết thanh toán VNPay trong phản hồi",
-      "error": "Lỗi"
-    }
-  },
   "article": {
     "title": "Bài viết",
     "hero": {
       "title": "Những thông tin du lịch hấp dẫn về các địa danh điểm đến hấp dẫn",
-      "subtitle": "Cung cấp thông tin hữu ích cho du khách về các điểm đến, hoạt động du lịch và trải nghiệm đặc sắc"
+      "subtitle": "Cung cấp thông tin hữu ích cho du khách về các điểm đến, hoạt động du lịch và trải nghiệm đặc sắc",
+      "eyebrow": "Nhật ký du lịch",
+      "slide2Title": "Thông tin du lịch thú vị",
+      "slide2Subtitle": "Khám phá các điểm đến hấp dẫn và lịch trình được tuyển chọn được thiết kế cho những chuyến đi nhẹ nhàng, dễ dàng.",
+      "slide2Eyebrow": "Điểm nổi bật điểm đến",
+      "slide3Title": "Trải nghiệm độc đáo",
+      "slide3Subtitle": "Cung cấp những mẹo hữu ích về các hoạt động, sự kiện và khoảnh khắc văn hóa đáng trân trọng.",
+      "slide3Eyebrow": "Khoảnh khắc truyền cảm hứng"
     },
     "loading": "Đang tải bài báo...",
     "loadingMore": "Đang tải...",
     "loadMore": "Xem thêm",
     "noArticles": "Chưa có bài báo nào",
     "noArticlesDesc": "Hãy quay lại sau để xem các bài báo mới nhất!",
+    "noArticlesSearch": "Không tìm thấy bài viết phù hợp với từ khóa này.",
     "noImage": "Không có hình ảnh",
     "category": "Bài viết",
     "readMore": "Chi tiết",
+    "searchPlaceholder": "Tìm kiếm bài báo",
     "sidebar": {
       "title": "DANH MỤC TOUR",
+      "filterTitle": "Lọc & Sắp xếp",
+      "sortBy": "Sắp xếp theo",
+      "sortNewest": "Mới nhất trước",
+      "sortOldest": "Cũ nhất trước",
       "domestic": {
         "title": "Tour trong nước",
         "north": "Tour Miền Bắc",
@@ -3964,6 +3978,17 @@
     "viewMoreNews": "← Xem thêm bài viết",
     "contentUpdating": "Nội dung bài báo đang được cập nhật..."
   },
+  "article": {
+    "comments": {
+      "placeholder": "Viết bình luận...",
+      "submit": "Gửi",
+      "submitting": "Đang gửi...",
+      "count": "bình luận",
+      "showMore": "Xem thêm bình luận",
+      "showLess": "Ẩn bớt bình luận",
+      "empty": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!"
+    }
+  },
   "articleManagement": {
     "title": "Quản lý Bài viết",
     "subtitle": "Cào và quản lý các bài viết từ các nguồn khác nhau",
@@ -4025,6 +4050,11 @@
       "title": "Quản lý bài báo ({{count}} bài)",
       "selectAll": "Chọn tất cả",
       "selectedCount": "Đã chọn {{count}} bài báo"
+    },
+    "sort": {
+      "label": "Sắp xếp:",
+      "newest": "Mới nhất",
+      "oldest": "Cũ nhất"
     },
     "pagination": {
       "showing": "Hiển thị {{start}} đến {{end}} trong tổng số {{total}} bài báo",

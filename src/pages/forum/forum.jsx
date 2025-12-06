@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_ENDPOINTS, getAvatarUrl } from '../../config/api';
 import PostModal from './components/PostModal/PostModal';
@@ -37,6 +38,7 @@ const upsertPostInCollection = (collection = [], post, maxItems) => {
 const Forum = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPostModal, setShowPostModal] = useState(false);
@@ -52,6 +54,10 @@ const Forum = () => {
   const [singlePost, setSinglePost] = useState(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [highlightPostId, setHighlightPostId] = useState(null);
+  const [highlightCommentId, setHighlightCommentId] = useState(null);
+  const [isAdminStaffView, setIsAdminStaffView] = useState(false);
+  const [returnPath, setReturnPath] = useState(null);
   const observerRef = useRef();
   const lastPostElementRef = useRef();
   const leftSlotRef = useRef(null);
@@ -140,6 +146,88 @@ const Forum = () => {
     
     setIsSearchMode(savedSearchMode);
   }, []);
+
+  // Handle query params for highlighting post/comment and admin/staff view
+  useEffect(() => {
+    const postId = searchParams.get('postId');
+    const commentId = searchParams.get('commentId');
+    const fromAdmin = searchParams.get('fromAdmin') === 'true';
+    const fromStaff = searchParams.get('fromStaff') === 'true';
+    
+    // Check if user is admin/staff and coming from admin/staff page
+    const isAdminStaffMode = (fromAdmin && user?.role === 'ADMIN') || (fromStaff && user?.role === 'STAFF');
+    
+    if (isAdminStaffMode) {
+      setIsAdminStaffView(true);
+      if (fromAdmin) {
+        setReturnPath('/admin/forum-reports');
+      } else if (fromStaff) {
+        setReturnPath('/staff/tasks');
+      }
+    }
+
+    if (postId) {
+      const postIdNum = Number(postId);
+      setHighlightPostId(postIdNum);
+      showSinglePost(postIdNum);
+      // Scroll to post after a short delay to ensure it's rendered
+      setTimeout(() => {
+        const postElement = document.getElementById(`post-${postIdNum}`);
+        if (postElement) {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Remove highlight after 5 seconds (only if not in admin/staff view)
+          if (!isAdminStaffMode) {
+            setTimeout(() => {
+              setHighlightPostId(null);
+              const newParams = new URLSearchParams(searchParams);
+              newParams.delete('postId');
+              setSearchParams(newParams);
+            }, 5000);
+          }
+        }
+      }, 500);
+    }
+
+    if (commentId) {
+      const commentIdNum = Number(commentId);
+      setHighlightCommentId(commentIdNum);
+      // Fetch comment to get its post ID
+      fetch(`${API_ENDPOINTS.COMMENTS}/${commentIdNum}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(comment => {
+          if (comment && comment.forumPostId) {
+            showSinglePost(comment.forumPostId);
+            // Scroll to comment after post is loaded - wait longer for comments to render
+            setTimeout(() => {
+              const commentElement = document.getElementById(`comment-${commentIdNum}`);
+              if (commentElement) {
+                commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Remove highlight after 5 seconds (only if not in admin/staff view)
+                if (!isAdminStaffMode) {
+                  setTimeout(() => {
+                    setHighlightCommentId(null);
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.delete('commentId');
+                    setSearchParams(newParams);
+                  }, 5000);
+                }
+              } else {
+                // Retry if comment not found yet (might be nested or still loading)
+                setTimeout(() => {
+                  const retryElement = document.getElementById(`comment-${commentIdNum}`);
+                  if (retryElement) {
+                    retryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 2000);
+              }
+            }, 1500);
+          }
+        })
+        .catch(() => {
+          // Silently handle error
+        });
+    }
+  }, [searchParams, showSinglePost, setSearchParams, user]);
 
   // Detect narrow screen (≤1024px)
   useEffect(() => {
@@ -502,12 +590,15 @@ const Forum = () => {
         onEdit={openEditModal}
         onHashtagClick={handleHashtagFilter}
         isFirstPost={index === 0}
+        highlightPostId={highlightPostId}
+        highlightCommentId={highlightCommentId}
+        isAdminStaffView={isAdminStaffView}
       />
     ));
-  }, [posts, handleCreatePost, handlePostDeleted, openEditModal, handleHashtagFilter]);
+  }, [posts, handleCreatePost, handlePostDeleted, openEditModal, handleHashtagFilter, highlightPostId, highlightCommentId]);
 
   return (
-    <div className={styles.pageRoot}>
+    <div className={styles.pageRoot} data-admin-staff-view={isAdminStaffView ? 'true' : 'false'}>
       <div className={styles.pageBackground} aria-hidden="true"></div>
       <div className={styles['forum-container']}>
         <div className={styles['forum-content']}>
@@ -586,6 +677,7 @@ const Forum = () => {
               onSearch={handleSearch}
               onHashtagFilter={handleHashtagFilter}
               selectedHashtags={selectedHashtags}
+              isAdminStaffView={isAdminStaffView}
             />
           </div>
         )}
@@ -706,11 +798,27 @@ const Forum = () => {
           <>
             {selectedPostId && singlePost ? (
               <div className={styles['single-post-view']}>
-                <div className={styles['back-button-container']}>
-                  <button className={styles['back-button']} onClick={backToAllPosts}>
-                    {t('forum.post.backToList')}
-                  </button>
-                </div>
+                {/* Admin/Staff View - Back Button */}
+                {isAdminStaffView && returnPath && (
+                  <div className={styles['admin-back-button-container']}>
+                    <button
+                      onClick={() => window.location.href = returnPath}
+                      className={styles['admin-back-button']}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                      </svg>
+                      {user?.role === 'ADMIN' ? t('admin.forumReportManagement.backToDashboard') : t('staff.forumReportManagement.backToDashboard')}
+                    </button>
+                  </div>
+                )}
+                {!isAdminStaffView && (
+                  <div className={styles['back-button-container']}>
+                    <button className={styles['back-button']} onClick={backToAllPosts}>
+                      {t('forum.post.backToList')}
+                    </button>
+                  </div>
+                )}
                 <div className={styles['posts-feed']}>
                   <Suspense fallback={
                     <div className={styles['loading-container']}>
@@ -725,6 +833,9 @@ const Forum = () => {
                       onPostDeleted={handlePostDeleted}
                       onEdit={openEditModal}
                       onHashtagClick={handleHashtagFilter}
+                      highlightPostId={highlightPostId}
+                      highlightCommentId={highlightCommentId}
+                      isAdminStaffView={isAdminStaffView}
                     />
                   </Suspense>
                 </div>
@@ -801,6 +912,7 @@ const Forum = () => {
           onSearch={handleSearch}
           onHashtagFilter={handleHashtagFilter}
           selectedHashtags={selectedHashtags}
+          isAdminStaffView={isAdminStaffView}
         />
       )}
       </div>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getTourById } from '../../../../utils/companyToursStorage';
+import { getTourImageUrl } from '../../../../config/api';
 
 export default function CompanyTourDetail() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function CompanyTourDetail() {
 
       {tour.thumbnailUrl ? (
         <img 
-          src={tour.thumbnailUrl} 
+          src={getTourImageUrl(tour.thumbnailUrl)} 
           alt={tour.title} 
           className="w-full h-64 object-cover rounded mb-4"
           onError={(e) => {

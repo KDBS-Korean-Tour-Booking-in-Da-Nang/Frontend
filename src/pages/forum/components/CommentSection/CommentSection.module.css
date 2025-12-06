@@ -111,6 +111,35 @@
   border-bottom: none;
 }
 
+.comment-item[data-highlight="true"] {
+  animation: highlightCommentPulse 2s ease-in-out;
+  background: rgba(76, 157, 255, 0.1);
+  border-left: 4px solid #4c9dff;
+  padding-left: 14px;
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+.comment-item[data-highlight="true"][data-admin-staff-view="true"] {
+  border: 3px solid #4c9dff !important;
+  border-left: 4px solid #4c9dff !important;
+  box-shadow: 0 0 0 2px rgba(76, 157, 255, 0.2), 0 4px 12px rgba(76, 157, 255, 0.15) !important;
+  background: rgba(76, 157, 255, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 18px 14px !important;
+  margin: 8px 0 !important;
+  animation: none;
+}
+
+@keyframes highlightCommentPulse {
+  0%, 100% {
+    background: rgba(76, 157, 255, 0.1);
+  }
+  50% {
+    background: rgba(76, 157, 255, 0.2);
+  }
+}
+
 .comment-left {
   grid-column: 1 / 2;
   display: flex;
@@ -189,6 +218,51 @@
   color: #475569;
   word-wrap: break-word;
   white-space: pre-wrap;
+}
+
+/* Comment translation styles */
+.comment-translate-row {
+  margin: 6px 0 0 0;
+}
+
+.comment-translate-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2563eb;
+  cursor: pointer;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  text-decoration: none;
+}
+
+.comment-translate-link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.comment-translate-link:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.comment-translate-text {
+  margin: 8px 0 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #0f172a;
+  white-space: pre-wrap;
+}
+
+.comment-translate-error {
+  margin: 6px 0 0 0;
+  font-size: 12px;
+  color: #b91c1c;
 }
 
 /* Meta/actions line đặt ngay dưới bubble */
@@ -452,6 +526,11 @@
 .dropdown-item.delete-item:hover {
   background-color: rgba(254, 215, 170, 0.35);
   color: #b45309;
+}
+
+.dropdown-item.ban-item:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
 }
 
 .dropdown-item.report-item:hover {

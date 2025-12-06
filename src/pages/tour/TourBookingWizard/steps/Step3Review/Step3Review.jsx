@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useBooking } from '../../../../../contexts/TourBookingContext';
+import { useTourBooking } from '../../../../../hooks/useTourBooking';
 import TourPreview from '../TourPreview/TourPreview';
 import {
   UserCircle2,
@@ -25,7 +25,7 @@ import {
 import styles from './Step3Review.module.css';
 
 const Step3Review = () => {
-  const { contact, plan } = useBooking();
+  const { contact, plan } = useTourBooking();
   const { t } = useTranslation();
   const bookingCreatedAtRef = useRef(new Date().toISOString());
 

@@ -1,7 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
+import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
+import Tooltip from '../../../components/tooltip';
 import {
   TicketIcon,
   MagnifyingGlassIcon,
@@ -9,11 +13,13 @@ import {
   ClockIcon,
   EyeIcon,
   XMarkIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 const ResolveTicketManagement = () => {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, getToken } = useAuth();
   const [searchInput, setSearchInput] = useState('');
   const [searchType, setSearchType] = useState('all'); // 'all' or 'ticketId'
   const [allTickets, setAllTickets] = useState([]);
@@ -30,39 +36,91 @@ const ResolveTicketManagement = () => {
   const [ticketToResolve, setTicketToResolve] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
+  const [userMap, setUserMap] = useState(new Map()); // Map userId -> user info
 
   const isAdmin = user && user.role === 'ADMIN';
+  const isStaff = user && user.role === 'STAFF';
+  const isAdminOrStaff = isAdmin || isStaff;
 
-  // Load all tickets on mount
+  // Load all tickets and users on mount
   useEffect(() => {
     loadAllTickets();
+    loadAllUsers();
   }, []);
 
   const loadAllTickets = async () => {
     setLoading(true);
     setError('');
     try {
-      // TODO: Replace with actual API endpoint when available
-      // const data = await getAllTickets();
-      // For now, use placeholder empty array
-      const data = [];
-      setAllTickets(Array.isArray(data) ? data : []);
-      setTickets(Array.isArray(data) ? data : []);
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TICKETS, {
+        headers: createAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        throw new Error(t('admin.resolveTicketManagement.errors.loadError'));
+      }
+
+      const apiResponse = await response.json();
+      const tickets = Array.isArray(apiResponse?.result) ? apiResponse.result : [];
+      setAllTickets(tickets);
+      setTickets(tickets);
     } catch (err) {
-      // Silently handle error loading tickets
       setError(err?.message || t('admin.resolveTicketManagement.errors.loadError'));
     } finally {
       setLoading(false);
     }
   };
 
+  const loadAllUsers = async () => {
+    try {
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.USERS, {
+        headers: createAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        // Silently fail if can't load users - will show userId instead
+        return;
+      }
+
+      const apiResponse = await response.json();
+      const users = Array.isArray(apiResponse?.result) ? apiResponse.result : [];
+      
+      // Create map: userId -> user info
+      const newUserMap = new Map();
+      users.forEach((user) => {
+        if (user.userId) {
+          newUserMap.set(user.userId, {
+            username: user.username || user.name || '',
+            email: user.email || '',
+            userId: user.userId
+          });
+        }
+      });
+      setUserMap(newUserMap);
+    } catch (err) {
+      // Silently fail if can't load users - will show userId instead
+    }
+  };
+
   // Filter tickets based on search and status
+  // Note: Backend doesn't have status field, so all tickets are considered PENDING
   const filteredTickets = useMemo(() => {
     let filtered = [...allTickets];
 
-    // Filter by status
+    // Filter by status (Backend doesn't have status, so all are PENDING)
+    // This filter is kept for future use when status field is added
     if (filterStatus === 'pending') {
-      filtered = filtered.filter((t) => !t.resolutionType || t.status === 'PENDING');
+      filtered = filtered.filter((t) => !t.resolutionType && !t.status);
     } else if (filterStatus === 'resolved') {
       filtered = filtered.filter((t) => t.resolutionType || t.status === 'RESOLVED');
     }
@@ -77,10 +135,9 @@ const ResolveTicketManagement = () => {
           filtered = [];
         }
       } else {
-        // Search in subject or message
+        // Search in message
         const searchLower = searchInput.toLowerCase();
         filtered = filtered.filter((t) =>
-          t.subject?.toLowerCase().includes(searchLower) ||
           t.message?.toLowerCase().includes(searchLower)
         );
       }
@@ -105,6 +162,7 @@ const ResolveTicketManagement = () => {
 
   const stats = useMemo(() => {
     const total = allTickets.length;
+    // Backend doesn't have status field, so all tickets are considered PENDING
     const resolved = allTickets.filter((t) => t.resolutionType || t.status === 'RESOLVED').length;
     const pending = total - resolved;
     return { total, resolved, pending };
@@ -126,22 +184,37 @@ const ResolveTicketManagement = () => {
     setLoading(true);
     setError('');
     try {
-      // TODO: Replace with actual API endpoint when available
-      // const ticket = await getTicketById(id);
-      // if (ticket) {
-      //   const exists = allTickets.some((t) => t.ticketId === ticket.ticketId);
-      //   if (!exists) {
-      //     setAllTickets([...allTickets, ticket]);
-      //   }
-      //   setTickets([ticket]);
-      // } else {
-      //   setTickets([]);
-      //   setError('Ticket not found.');
-      // }
-      setTickets([]);
-      setError(t('admin.resolveTicketManagement.errors.notFound'));
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TICKET_BY_ID(id), {
+        headers: createAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
+        if (response.status === 404) {
+          setError(t('admin.resolveTicketManagement.errors.notFound'));
+          setTickets([]);
+          return;
+        }
+        throw new Error(t('admin.resolveTicketManagement.errors.loadError'));
+      }
+
+      const apiResponse = await response.json();
+      const ticket = apiResponse?.result;
+      if (ticket) {
+        const exists = allTickets.some((t) => t.ticketId === ticket.ticketId);
+        if (!exists) {
+          setAllTickets([...allTickets, ticket]);
+        }
+        setTickets([ticket]);
+      } else {
+        setTickets([]);
+        setError(t('admin.resolveTicketManagement.errors.notFound'));
+      }
     } catch (err) {
-      // Silently handle error fetching ticket
       setError(err?.message || t('admin.resolveTicketManagement.errors.loadError'));
       setTickets([]);
     } finally {
@@ -150,7 +223,7 @@ const ResolveTicketManagement = () => {
   };
 
   const handleOpenResolveModal = (ticket) => {
-    if (!isAdmin) {
+    if (!isAdminOrStaff) {
       setError(t('admin.resolveTicketManagement.errors.noPermission'));
       return;
     }
@@ -190,9 +263,14 @@ const ResolveTicketManagement = () => {
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
     try {
-      return new Date(value).toLocaleString();
+      // Handle different field names (createdAt, created_at, createAt)
+      const dateValue = value.createdAt || value.created_at || value.createAt || value;
+      if (!dateValue) return 'N/A';
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleString();
     } catch {
-      return value;
+      return 'N/A';
     }
   };
 
@@ -255,7 +333,6 @@ const ResolveTicketManagement = () => {
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={searchType === 'ticketId' ? t('admin.resolveTicketManagement.search.placeholderId') : t('admin.resolveTicketManagement.search.placeholderAll')}
                 className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled
               />
             </div>
             <select
@@ -265,7 +342,6 @@ const ResolveTicketManagement = () => {
                 setSearchInput('');
               }}
               className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled
             >
               <option value="all">{t('admin.resolveTicketManagement.search.all')}</option>
               <option value="ticketId">{t('admin.resolveTicketManagement.search.byTicketId')}</option>
@@ -276,7 +352,6 @@ const ResolveTicketManagement = () => {
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled
               >
                 <option value="all">{t('admin.resolveTicketManagement.search.all')}</option>
                 <option value="pending">{t('admin.resolveTicketManagement.search.pending')}</option>
@@ -329,7 +404,7 @@ const ResolveTicketManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {['ID', 'Subject', 'Created at', 'Status', 'Priority', 'Action'].map((header) => (
+                {['ID', 'User', 'Message', 'Created at', 'Status', 'Action'].map((header) => (
                   <th
                     key={header}
                     className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
@@ -360,46 +435,86 @@ const ResolveTicketManagement = () => {
                     <td className="px-6 py-4 text-sm text-gray-600 font-semibold">
                       #{ticket.ticketId}
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {(() => {
+                        const userInfo = ticket.userId ? userMap.get(ticket.userId) : null;
+                        if (userInfo) {
+                          return (
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">
+                                {userInfo.username || userInfo.email || `User #${userInfo.userId}`}
+                              </span>
+                              {userInfo.email && userInfo.username && (
+                                <span className="text-xs text-gray-500 mt-0.5">{userInfo.email}</span>
+                              )}
+                            </div>
+                          );
+                        } else if (ticket.userId) {
+                          return <span className="text-gray-600">User #{ticket.userId}</span>;
+                        } else {
+                          return <span className="text-gray-400">N/A</span>;
+                        }
+                      })()}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {ticket.subject || 'N/A'}
+                      <div className="max-w-md truncate" title={ticket.message || 'N/A'}>
+                        {ticket.message || 'N/A'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDateTime(ticket.createdAt)}
+                      {formatDateTime(ticket.createdAt || ticket.created_at || ticket.createAt)}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <StatusBadge status={ticket.status || ticket.resolutionType} />
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {ticket.priority || 'N/A'}
+                      <StatusBadge status={ticket.status || ticket.resolutionType || 'PENDING'} />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleViewDetail(ticket)}
-                          className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-all duration-200"
-                          title={t('admin.resolveTicketManagement.actions.viewDetails')}
-                        >
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
+                        <Tooltip text={t('admin.resolveTicketManagement.actions.viewDetails')} position="top">
+                          <button
+                            type="button"
+                            onClick={() => handleViewDetail(ticket)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                         {ticket.resolutionType || ticket.status === 'RESOLVED' ? (
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
                             {t('admin.resolveTicketManagement.status.resolved')}
                           </span>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenResolveModal(ticket)}
-                            disabled={resolvingId === ticket.ticketId || !isAdmin}
-                            className="p-2 rounded-lg bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                            title={t('admin.resolveTicketManagement.actions.resolve')}
-                          >
-                            {resolvingId === ticket.ticketId ? (
-                              <ClockIcon className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <CheckCircleIcon className="h-5 w-5" />
-                            )}
-                          </button>
+                          <>
+                            <Tooltip text={t('admin.resolveTicketManagement.actions.resolve')} position="top">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenResolveModal(ticket)}
+                                disabled={resolvingId === ticket.ticketId || !isAdminOrStaff}
+                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                              >
+                                {resolvingId === ticket.ticketId ? (
+                                  <ClockIcon className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CheckCircleIcon className="h-4 w-4" />
+                                )}
+                              </button>
+                            </Tooltip>
+                            <Tooltip text={t('admin.resolveTicketManagement.actions.message')} position="top">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Navigate to Customer Contact and open chat with user
+                                  if (ticket.userId) {
+                                    navigate(`/admin/contact?userId=${ticket.userId}`);
+                                  } else {
+                                    handleViewDetail(ticket);
+                                  }
+                                }}
+                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
+                              >
+                                <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                              </button>
+                            </Tooltip>
+                          </>
                         )}
                       </div>
                     </td>
@@ -426,6 +541,7 @@ const ResolveTicketManagement = () => {
       {isModalOpen && selectedTicket && (
         <TicketDetailModal
           ticket={selectedTicket}
+          userMap={userMap}
           onClose={handleCloseModal}
         />
       )}
@@ -489,7 +605,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const TicketDetailModal = ({ ticket, onClose }) => {
+const TicketDetailModal = ({ ticket, userMap, onClose }) => {
   const { t, i18n } = useTranslation();
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
@@ -500,6 +616,8 @@ const TicketDetailModal = ({ ticket, onClose }) => {
       return value;
     }
   };
+
+  const userInfo = ticket.userId ? userMap.get(ticket.userId) : null;
 
   return (
     <div 
@@ -530,15 +648,41 @@ const TicketDetailModal = ({ ticket, onClose }) => {
         {/* Content */}
         <div className="px-6 py-6 overflow-y-auto flex-1">
           <div className="space-y-6">
-            {/* Subject Section */}
+            {/* User Information Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.resolveTicketManagement.modal.subject')}
+                User Information
               </label>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
-                <p className="text-sm text-gray-800 leading-relaxed">
-                  {ticket.subject || 'N/A'}
-                </p>
+                {userInfo ? (
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-xs text-gray-500">Username: </span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {userInfo.username || userInfo.email || 'N/A'}
+                      </span>
+                    </div>
+                    {userInfo.email && userInfo.username && (
+                      <div>
+                        <span className="text-xs text-gray-500">Email: </span>
+                        <span className="text-sm text-gray-700">{userInfo.email}</span>
+                      </div>
+                    )}
+                    {userInfo.userId && (
+                      <div>
+                        <span className="text-xs text-gray-500">User ID: </span>
+                        <span className="text-sm text-gray-700">#{userInfo.userId}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : ticket.userId ? (
+                  <div>
+                    <span className="text-xs text-gray-500">User ID: </span>
+                    <span className="text-sm font-medium text-gray-900">#{ticket.userId}</span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">N/A</p>
+                )}
               </div>
             </div>
 
@@ -554,6 +698,29 @@ const TicketDetailModal = ({ ticket, onClose }) => {
               </div>
             </div>
 
+            {/* Reasons Section */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                {t('admin.resolveTicketManagement.modal.reasons')}
+              </label>
+              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+                {ticket.reasons && ticket.reasons.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {ticket.reasons.map((reason, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-blue-50 text-blue-700"
+                      >
+                        {reason.ticketReasonType || reason}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">N/A</p>
+                )}
+              </div>
+            </div>
+
             {/* Status Information */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -561,15 +728,7 @@ const TicketDetailModal = ({ ticket, onClose }) => {
                   {t('admin.resolveTicketManagement.modal.status')}
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <StatusBadge status={ticket.status || ticket.resolutionType} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {t('admin.resolveTicketManagement.modal.priority')}
-                </label>
-                <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <p className="text-sm text-gray-700">{ticket.priority || 'N/A'}</p>
+                  <StatusBadge status={ticket.status || ticket.resolutionType || 'PENDING'} />
                 </div>
               </div>
             </div>
@@ -580,7 +739,7 @@ const TicketDetailModal = ({ ticket, onClose }) => {
                   {t('admin.resolveTicketManagement.modal.createdAt')}
                 </label>
                 <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
-                  <p className="text-sm text-gray-700">{formatDateTime(ticket.createdAt)}</p>
+                  <p className="text-sm text-gray-700">{formatDateTime(ticket.createdAt || ticket.created_at || ticket.createAt)}</p>
                 </div>
               </div>
               {ticket.resolvedAt && (
@@ -672,11 +831,11 @@ const ResolveTicketModal = ({
             {/* Ticket Preview */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                {t('admin.resolveTicketManagement.resolveModal.ticketSubject')}
+                {t('admin.resolveTicketManagement.resolveModal.ticketMessage')}
               </label>
               <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
                 <p className="text-sm text-gray-800 leading-relaxed line-clamp-4">
-                  {ticket.subject || 'N/A'}
+                  {ticket.message || 'N/A'}
                 </p>
               </div>
             </div>

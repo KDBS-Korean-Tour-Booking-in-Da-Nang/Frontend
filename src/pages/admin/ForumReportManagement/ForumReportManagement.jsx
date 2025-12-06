@@ -1,10 +1,12 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import ReportDetailModal from './ReportDetailModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import Tooltip from '../../../components/tooltip';
 import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
@@ -19,6 +21,7 @@ import {
 const ForumReportManagement = () => {
   const { t, i18n } = useTranslation();
   const { getToken, user } = useAuth();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
@@ -374,13 +377,21 @@ const ForumReportManagement = () => {
                       {currentPage * pageSize + index + 1}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center text-sm px-3 py-1.5 rounded font-semibold ${
-                        report.targetType === 'POST' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'bg-purple-100 text-purple-700'
-                      }`}>
+                      <a
+                        href={`/forum?${report.targetType === 'POST' ? 'postId' : 'commentId'}=${report.targetId}&fromAdmin=true`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/forum?${report.targetType === 'POST' ? 'postId' : 'commentId'}=${report.targetId}&fromAdmin=true`);
+                        }}
+                        className={`inline-flex items-center text-sm px-3 py-1.5 rounded font-semibold cursor-pointer transition-all hover:shadow-md hover:scale-105 no-underline ${
+                          report.targetType === 'POST' 
+                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                            : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                        }`}
+                        title={report.targetType === 'POST' ? t('admin.forumReportManagement.viewPost') : t('admin.forumReportManagement.viewComment')}
+                      >
                         {report.targetType === 'POST' ? t('admin.forumReportManagement.reportTypes.post') : t('admin.forumReportManagement.reportTypes.comment')}
-                      </span>
+                      </a>
                     </td>
                     <td className="px-6 py-4">
                         <p className="text-sm font-medium text-gray-900">{report.reporterName || 'N/A'}</p>
@@ -396,29 +407,32 @@ const ForumReportManagement = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => handleViewDetails(report.reportId)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                          title={t('admin.forumReportManagement.actions.viewDetails')}
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                        </button>
+                        <Tooltip text={t('admin.forumReportManagement.actions.viewDetails')} position="top">
+                          <button 
+                            onClick={() => handleViewDetails(report.reportId)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                         {(report.status === 'PENDING' || report.status === 'INVESTIGATING') && (
                           <>
-                            <button 
-                              onClick={() => handleApprove(report.reportId)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition" 
-                              title={t('admin.forumReportManagement.actions.approve')}
-                            >
-                              <CheckCircleIcon className="h-4 w-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleReject(report.reportId)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                              title={t('admin.forumReportManagement.actions.reject')}
-                            >
-                              <XCircleIcon className="h-4 w-4" />
-                            </button>
+                            <Tooltip text={t('admin.forumReportManagement.actions.approve')} position="top">
+                              <button 
+                                onClick={() => handleApprove(report.reportId)}
+                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                              >
+                                <CheckCircleIcon className="h-4 w-4" />
+                              </button>
+                            </Tooltip>
+                            <Tooltip text={t('admin.forumReportManagement.actions.reject')} position="top">
+                              <button 
+                                onClick={() => handleReject(report.reportId)}
+                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                              >
+                                <XCircleIcon className="h-4 w-4" />
+                              </button>
+                            </Tooltip>
                           </>
                         )}
                       </div>

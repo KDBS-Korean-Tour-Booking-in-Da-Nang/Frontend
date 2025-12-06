@@ -176,8 +176,24 @@ const getStatusIcon = (iconColor) => {
         <div className={styles['booking-id-section']}>
           <DocumentTextIcon className={styles['id-icon']} />
           <div>
-            <div className={styles['booking-id-label']}>{t('bookingHistory.card.bookingId')}</div>
-            <div className={styles['booking-id']}>#{booking.bookingId}</div>
+            <div className={styles['booking-main-row']}>
+              <div className={styles['booking-field']}>
+                <div className={styles['booking-id-label']}>
+                  {t('bookingHistory.card.bookingId')}
+                </div>
+                <div className={styles['booking-id']}>#{booking.bookingId}</div>
+              </div>
+              {booking.tourName && (
+                <div className={styles['booking-field']}>
+                  <div className={styles['booking-tour-label']}>
+                    {t('bookingHistory.card.tourName')}
+                  </div>
+                  <div className={styles['booking-tour-name']}>
+                    {booking.tourName}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div

@@ -194,17 +194,40 @@ const StaffLayout = ({ children }) => {
                               <span className="h-2 w-2 rounded-full bg-blue-400" />
                               <span>{t('staff.taskManagement.sidebar.dashboardOverview')}</span>
                             </NavLink>
-                            {taskMenuItems.map((task) => (
-                              <NavLink
-                                key={task.id}
-                                to={`/staff/tasks?section=${task.id}`}
-                                className={taskLinkClasses(task.id)}
-                                onClick={() => setSidebarOpen(false)}
-                              >
-                                <span className={`h-2 w-2 rounded-full ${task.color}`} />
-                                <span>{task.label}</span>
-                              </NavLink>
-                            ))}
+                            {taskMenuItems.map((task) => {
+                              // Special handling for resolve-ticket: navigate to dedicated route
+                              if (task.id === 'resolve-ticket') {
+                                return (
+                                  <NavLink
+                                    key={task.id}
+                                    to="/staff/resolve-tickets"
+                                    className={({ isActive }) =>
+                                      [
+                                        'flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all no-underline',
+                                        isActive || location.pathname === '/staff/resolve-tickets'
+                                          ? 'bg-blue-100 text-blue-600'
+                                          : 'text-gray-700 hover:bg-blue-50 hover:text-blue-500'
+                                      ].join(' ')
+                                    }
+                                    onClick={() => setSidebarOpen(false)}
+                                  >
+                                    <span className={`h-2 w-2 rounded-full ${task.color}`} />
+                                    <span>{task.label}</span>
+                                  </NavLink>
+                                );
+                              }
+                              return (
+                                <NavLink
+                                  key={task.id}
+                                  to={`/staff/tasks?section=${task.id}`}
+                                  className={taskLinkClasses(task.id)}
+                                  onClick={() => setSidebarOpen(false)}
+                                >
+                                  <span className={`h-2 w-2 rounded-full ${task.color}`} />
+                                  <span>{task.label}</span>
+                                </NavLink>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

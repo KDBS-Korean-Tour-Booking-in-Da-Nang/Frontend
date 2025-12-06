@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useBooking } from '../../../../../contexts/TourBookingContext';
+import { useTourBooking } from '../../../../../hooks/useTourBooking';
 import { formatPrice } from '../../../../../utils/priceRules';
 import { getApiPath } from '../../../../../config/api';
 import { DatePicker } from 'react-rainbow-components';
@@ -43,7 +43,7 @@ const Step2Details = () => {
     rebuildMembers, 
     recalcTotal,
     contact
-  } = useBooking();
+  } = useTourBooking();
 
   const [errors, setErrors] = useState({});
   const [confirmedNationalities, setConfirmedNationalities] = useState({});

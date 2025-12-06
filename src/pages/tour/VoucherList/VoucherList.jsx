@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useVoucher } from '../../../hooks/useVoucher';
 import { getAllVouchers } from '../../../services/voucherAPI';
 import { getCompanyNames } from '../../../utils/companyUtils';
 import styles from './VoucherList.module.css';
@@ -48,15 +49,28 @@ const VoucherList = () => {
   const navigate = useNavigate();
   const { showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
-  const [vouchers, setVouchers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Use Redux hook for state management
+  const {
+    vouchers,
+    loading,
+    error,
+    filters,
+    setVouchers,
+    setLoading,
+    setError,
+    setFilterType,
+    setSortBy,
+    resetVouchers
+  } = useVoucher();
+  
+  // Local state (UI only)
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY);
-  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [_companyNamesMap, setCompanyNamesMap] = useState(new Map());
-  // Filter states
-  const [filterType, setFilterType] = useState('ALL'); // 'ALL' | 'PERCENT' | 'AMOUNT'
-  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest'
+  
+  const filterType = filters.filterType;
+  const sortBy = filters.sortBy;
 
   // Redirect to login if user is not authenticated
   useEffect(() => {
@@ -149,7 +163,7 @@ const VoucherList = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [setLoading, setError, setVouchers, t]);
 
   useEffect(() => {
     // Chỉ fetch vouchers nếu user đã đăng nhập

@@ -5,6 +5,7 @@ import { API_ENDPOINTS, createAuthHeaders, getTourImageUrl } from '../../../conf
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import TourDetailModal from './TourDetailModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import Tooltip from '../../../components/tooltip';
 import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X } from 'lucide-react';
 import {
   MagnifyingGlassIcon,
@@ -443,31 +444,34 @@ const TourManagement = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleViewDetails(tour.tourId || tour.id)}
-                          disabled={loadingDetail}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          title={t('admin.tourManagement.actions.viewDetails')}
-                        >
-                          <Eye className="h-4 w-4" strokeWidth={1.5} />
-                        </button>
-                        {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
+                        <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
                           <button
-                            onClick={() => handleApproveTour(tour.tourId || tour.id)}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
-                            title={t('admin.tourManagement.actions.approve')}
+                            onClick={() => handleViewDetails(tour.tourId || tour.id)}
+                            disabled={loadingDetail}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                            <Eye className="h-4 w-4" strokeWidth={1.5} />
                           </button>
+                        </Tooltip>
+                        {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
+                          <Tooltip text={t('admin.tourManagement.actions.approve')} position="top">
+                            <button
+                              onClick={() => handleApproveTour(tour.tourId || tour.id)}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                            >
+                              <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
                         )}
                         {(tour.tourStatus || tour.status || '').toUpperCase() !== 'DISABLED' && (
-                          <button
-                            onClick={() => handleRejectTour(tour.tourId || tour.id)}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
-                            title={t('admin.tourManagement.actions.reject')}
-                          >
-                            <XCircle className="h-4 w-4" strokeWidth={1.5} />
-                          </button>
+                          <Tooltip text={t('admin.tourManagement.actions.reject')} position="top">
+                            <button
+                              onClick={() => handleRejectTour(tour.tourId || tour.id)}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                            >
+                              <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
                         )}
                       </div>
                     </td>

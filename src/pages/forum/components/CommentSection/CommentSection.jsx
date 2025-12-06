@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../config/api';
+import { API_ENDPOINTS, getAvatarUrl, createAuthHeaders, getApiPath, BaseURL } from '../../../../config/api';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
 import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import DeleteConfirmModal from '../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import BanReasonModal from '../../../../components/modals/BanReasonModal/BanReasonModal';
 import styles from './CommentSection.module.css';
 import {
   Send,
@@ -17,10 +18,11 @@ import {
   Edit3,
   Trash2,
   Flag,
-  CheckCircle2
+  CheckCircle2,
+  ShieldOff
 } from 'lucide-react';
 
-const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
+const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle, highlightCommentId = null, isAdminStaffView = false }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   
@@ -282,10 +284,19 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       }
       
       if (response.ok) {
-        if (!deleteTarget.parentCommentId) {
-          setComments(prev => prev.filter(c => c.forumCommentId !== deleteTarget.forumCommentId));
+        // Reload all comments to get updated structure after reassignment
+        // This ensures that replies that were reassigned to a new parent are displayed correctly
+        await loadComments();
+        if (onCountChange) {
+          // Reload to get accurate count
+          const countResponse = await fetch(API_ENDPOINTS.COMMENTS_BY_POST(post.forumPostId));
+          if (countResponse.ok) {
+            const allComments = await countResponse.json();
+            onCountChange(allComments.length);
+          } else {
+            onCountChange(prev => prev - 1);
+          }
         }
-        if (onCountChange) onCountChange(prev => prev - 1);
       } else {
         alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
       }
@@ -355,8 +366,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
               onCommentDeleted={(commentId) => setComments(prev => prev.filter(c => c.forumCommentId !== commentId))}
               onReportComment={(c) => { setReportTarget(c); setShowReportModal(true); }}
               onRequestDelete={requestDeleteComment}
+              onReloadComments={loadComments}
               reportedComments={reportedComments}
               setReportedComments={setReportedComments}
+              highlightCommentId={highlightCommentId}
+              isAdminStaffView={isAdminStaffView}
             />
           ))}
         </div>
@@ -412,7 +426,13 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 };
 
 // Individual Comment Component
-const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentReported, onLoginRequired, onCountChange, post, isReply = false, onCommentDeleted, onReportComment, onRequestDelete, reportedComments, setReportedComments }) => {
+const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentReported, onLoginRequired, onCountChange, post, isReply = false, onCommentDeleted, onReportComment, onRequestDelete, onReloadComments, reportedComments, setReportedComments, highlightCommentId = null, isAdminStaffView = false }) => {
+  const { user: authUser } = useAuth();
+  
+  // Check if user can manage forum reports (admin or staff with FORUM_REPORT_AND_BOOKING_COMPLAINT task)
+  const canManageForumReports = authUser?.role === 'ADMIN' || 
+    (authUser?.role === 'STAFF' && authUser?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT');
+  
   const [replies, setReplies] = useState([]);
   const [showReplies, setShowReplies] = useState(false);
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -423,6 +443,14 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
   const [localDeleteOpen, setLocalDeleteOpen] = useState(false);
+  const [hasUserAddedReply, setHasUserAddedReply] = useState(false); // Track if user has added replies in this session
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedText, setTranslatedText] = useState('');
+  const [showTranslated, setShowTranslated] = useState(false);
+  const [translateError, setTranslateError] = useState('');
+  const [totalRepliesCount, setTotalRepliesCount] = useState(0); // Total replies including nested
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [deleteCommentModalOpen, setDeleteCommentModalOpen] = useState(false);
 
   const dropdownRef = useRef(null);
   const userInfoRef = useRef(null);
@@ -432,6 +460,13 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     loadReplies();
     loadReaction();
   }, [comment.forumCommentId]);
+
+  // Reset translation state when comment content changes (e.g., after edit)
+  useEffect(() => {
+    setTranslatedText('');
+    setShowTranslated(false);
+    setTranslateError('');
+  }, [comment.content]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -451,12 +486,44 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     };
   }, [showDropdown]);
 
+  // Recursive function to count all replies including nested ones
+  const countAllReplies = async (commentId) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.COMMENT_REPLIES(commentId));
+      if (response.ok) {
+        const directReplies = await response.json();
+        let total = directReplies.length;
+        
+        // Recursively count nested replies
+        for (const reply of directReplies) {
+          const nestedCount = await countAllReplies(reply.forumCommentId);
+          total += nestedCount;
+        }
+        
+        return total;
+      }
+    } catch (error) {
+      // Silently handle error
+    }
+    return 0;
+  };
+
   const loadReplies = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.COMMENT_REPLIES(comment.forumCommentId));
       if (response.ok) {
         const data = await response.json();
         setReplies(data);
+        
+        // Count total replies including nested ones
+        const totalCount = await countAllReplies(comment.forumCommentId);
+        setTotalRepliesCount(totalCount);
+        
+        // Auto-show replies if user has added replies in this session
+        // Otherwise, keep showReplies state as is (will show "Show replies" button if false)
+        if (data.length > 0 && hasUserAddedReply) {
+          setShowReplies(true);
+        }
         
         // Load reported status for replies if user is logged in
         if (user && data.length > 0) {
@@ -590,6 +657,20 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
   // Handle reply
   const handleReply = () => {
     setShowReplyInput(!showReplyInput);
+    // Auto-show replies when user clicks reply button (if replies exist)
+    if (!showReplyInput && replies.length > 0) {
+      setShowReplies(true);
+    }
+  };
+
+  // Handle Enter key for reply input
+  const handleReplyKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (replyText.trim() && !isSubmittingReply) {
+        handleSubmitReply();
+      }
+    }
   };
 
   // Submit reply
@@ -623,10 +704,18 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       if (response.ok) {
         const newReply = await response.json();
         setReplies(prev => [newReply, ...prev]);
+        setTotalRepliesCount(prev => prev + 1);
         setReplyText('');
         setShowReplyInput(false);
+        // Auto-show replies after user submits a reply
+        setShowReplies(true);
+        setHasUserAddedReply(true);
         if (onCountChange) {
           onCountChange(prev => prev + 1);
+        }
+        // If this is a nested reply, reload parent's replies to update total count
+        if (onReloadComments) {
+          await onReloadComments();
         }
       } else {
         // Handle error response
@@ -711,10 +800,22 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       }
 
       if (response.ok) {
-        // Cập nhật list ở component cha (top-level hoặc replies)
+        // After deletion, backend reassigns child comments to the deleted comment's parent
+        // We need to reload to get the updated structure
+        // Always reload replies to ensure we see reassigned comments in the correct place
+        await loadReplies();
+        
+        // If parent component has reload callback, use it to reload all comments
+        // This ensures top-level comments are also refreshed and totalRepliesCount is updated
+        if (onReloadComments) {
+          await onReloadComments();
+        }
+        
+        // Remove from local state as fallback
         if (onCommentDeleted) {
           onCommentDeleted(comment.forumCommentId);
         }
+        
         // Cập nhật tổng số comment phía post card
         if (onCountChange) {
           onCountChange(prev => prev - 1);
@@ -744,8 +845,127 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
     setShowDropdown(false);
   };
 
+  // Handle ban user (admin/staff only)
+  const handleBan = () => {
+    setBanModalOpen(true);
+    setShowDropdown(false);
+  };
+
+  const handleBanConfirm = async (banReason) => {
+    if (!comment?.userId || !authUser) return;
+    
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
+      const response = await fetch(`${BaseURL}/api/staff/ban-user/${comment.userId}`, {
+        method: 'PUT',
+        headers: createAuthHeaders(token),
+        body: JSON.stringify({
+          ban: true,
+          banReason: banReason || null
+        })
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        alert(t('admin.customerManagement.banSuccess') || 'Đã ban người dùng thành công');
+        setBanModalOpen(false);
+      } else {
+        const errorText = await response.text();
+        alert(t('admin.customerManagement.banError', { error: errorText }) || 'Có lỗi xảy ra khi ban người dùng');
+      }
+    } catch (error) {
+      alert(t('admin.customerManagement.banError') || 'Có lỗi xảy ra khi ban người dùng');
+    }
+  };
+
+  // Handle delete comment (admin/staff only)
+  const handleAdminDelete = () => {
+    setDeleteCommentModalOpen(true);
+    setShowDropdown(false);
+  };
+
+  const handleAdminDeleteConfirm = async () => {
+    if (!comment || !authUser) return;
+    
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || sessionStorage.getItem('token');
+      const response = await fetch(`${API_ENDPOINTS.COMMENTS}/${comment.forumCommentId}?userEmail=${authUser.email}`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(token),
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Reload comments after deletion
+        if (onReloadComments) {
+          await onReloadComments();
+        }
+        if (onCommentDeleted) {
+          onCommentDeleted(comment.forumCommentId);
+        }
+        if (onCountChange) {
+          onCountChange(prev => prev - 1);
+        }
+        setDeleteCommentModalOpen(false);
+        alert(t('forum.comments.deleteSuccess') || 'Đã xóa bình luận thành công');
+      } else {
+        alert(t('forum.comments.deleteError') || 'Có lỗi xảy ra khi xóa bình luận');
+      }
+    } catch (error) {
+      alert(t('forum.comments.deleteError') || 'Có lỗi xảy ra khi xóa bình luận');
+    }
+  };
+
+  // Handle translate comment
+  const handleTranslateClick = async () => {
+    if (!comment?.content || isTranslating) return;
+
+    // Nếu đã có bản dịch rồi thì chỉ toggle hiển thị
+    if (translatedText) {
+      setShowTranslated(prev => !prev);
+      return;
+    }
+
+    try {
+      setIsTranslating(true);
+      setTranslateError('');
+
+      const response = await fetch(
+        getApiPath('/api/gemini/translate'),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: comment.content }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Translate failed with status ${response.status}`);
+      }
+
+      const text = await response.text();
+      setTranslatedText(text || '');
+      setShowTranslated(true);
+    } catch (error) {
+      // Silently handle error translating comment content
+      setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   return (
-    <div className={`${styles['comment-item']} ${isReply ? styles['reply-item'] : ''}`}>
+    <div className={`${styles['comment-item']} ${isReply ? styles['reply-item'] : ''}`} id={`comment-${comment.forumCommentId}`} data-highlight={highlightCommentId && String(highlightCommentId) === String(comment.forumCommentId) ? 'true' : 'false'} data-admin-staff-view={isAdminStaffView ? 'true' : 'false'}>
       {/* LEFT: Avatar only (hover on avatar) */}
       <div className={styles['comment-left']} ref={userInfoRef}>
         <img 
@@ -784,6 +1004,25 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                   {showDropdown && (
                     <div className={`${styles['comment-dropdown']} ${styles['show']}`}>
                       {(() => {
+                        // Admin/Staff view: show Ban and Delete comment
+                        if (isAdminStaffView && canManageForumReports) {
+                          return (
+                            <>
+                              <button className={`${styles['dropdown-item']} ${styles['ban-item']}`}
+                                      onClick={(e) => { e.stopPropagation(); handleBan(); }}>
+                                <ShieldOff className={styles['dropdown-icon']} strokeWidth={1.6} />
+                                {t('admin.customerManagement.actions.banUser') || 'Ban'}
+                              </button>
+                              <button className={`${styles['dropdown-item']} ${styles['delete-item']}`}
+                                      onClick={(e) => { e.stopPropagation(); handleAdminDelete(); }}>
+                                <Trash2 className={styles['dropdown-icon']} strokeWidth={1.6} />
+                                {t('forum.comments.delete')}
+                              </button>
+                            </>
+                          );
+                        }
+                        
+                        // Normal user view: show edit/delete for owner, report for others
                         const isOwner = isCommentOwner(comment);
                         const isReported = reportedComments && reportedComments.has(comment.forumCommentId);
                         return isOwner ? (
@@ -836,68 +1075,98 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
               </div>
             </div>
           ) : (
-            <div className={styles['comment-text']}>{comment.content}</div>
+            <>
+              <div className={styles['comment-text']}>{comment.content}</div>
+              {showTranslated && translatedText && (
+                <div className={styles['comment-translate-text']}>
+                  {translatedText}
+                </div>
+              )}
+              {comment.content && (
+                <div className={styles['comment-translate-row']}>
+                  <button
+                    type="button"
+                    className={styles['comment-translate-link']}
+                    onClick={handleTranslateClick}
+                    disabled={isTranslating}
+                  >
+                    {isTranslating
+                      ? t('forum.post.translating')
+                      : showTranslated && translatedText
+                        ? t('forum.post.hideTranslation')
+                        : t('forum.post.translate')}
+                  </button>
+                </div>
+              )}
+              {translateError && (
+                <div className={styles['comment-translate-error']}>
+                  {translateError}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Meta row: chỉ còn actions (like/dislike/reply) */}
-        <div className={styles['comment-meta-row']}>
-          {user ? (
-            <div className={styles['comment-actions']}>
-              <button 
-                className={`${styles['comment-action-btn']} ${styles['like-btn']} ${reaction.userReaction === 'LIKE' ? styles['active'] : ''}`}
-                onClick={() => handleReaction('LIKE')}
-              >
-                <ThumbsUp className={styles['action-icon']} strokeWidth={1.6} />
-                <span className={styles['action-text']}>{t('forum.post.like')}</span>
-              </button>
-              <button 
-                className={`${styles['comment-action-btn']} ${styles['dislike-btn']} ${reaction.userReaction === 'DISLIKE' ? styles['active'] : ''}`}
-                onClick={() => handleReaction('DISLIKE')}
-              >
-                <ThumbsDown className={styles['action-icon']} strokeWidth={1.6} />
-                <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
-              </button>
-              <button className={styles['comment-action-btn']} onClick={handleReply}>
-                <MessageCircle className={styles['action-icon']} strokeWidth={1.6} />
-                <span className={styles['action-text']}>{t('forum.post.reply')}</span>
-              </button>
-            </div>
-          ) : (
-            <div className={styles['comment-actions']}>
-              <div 
-                className={`${styles['comment-action-btn-disabled']} ${styles['like-btn-disabled']}`} 
-                title={t('forum.guest.loginToReact')} 
-                onClick={() => onLoginRequired && onLoginRequired()}
-              >
-                <ThumbsUp className={styles['action-icon']} strokeWidth={1.6} />
-                <span className={styles['action-text']}>{t('forum.post.like')}</span>
+        {/* Meta row: chỉ còn actions (like/dislike/reply) - Hide for admin/staff view */}
+        {!isAdminStaffView && (
+          <div className={styles['comment-meta-row']}>
+            {user ? (
+              <div className={styles['comment-actions']}>
+                <button 
+                  className={`${styles['comment-action-btn']} ${styles['like-btn']} ${reaction.userReaction === 'LIKE' ? styles['active'] : ''}`}
+                  onClick={() => handleReaction('LIKE')}
+                >
+                  <ThumbsUp className={styles['action-icon']} strokeWidth={1.6} />
+                  <span className={styles['action-text']}>{t('forum.post.like')}</span>
+                </button>
+                <button 
+                  className={`${styles['comment-action-btn']} ${styles['dislike-btn']} ${reaction.userReaction === 'DISLIKE' ? styles['active'] : ''}`}
+                  onClick={() => handleReaction('DISLIKE')}
+                >
+                  <ThumbsDown className={styles['action-icon']} strokeWidth={1.6} />
+                  <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+                </button>
+                <button className={styles['comment-action-btn']} onClick={handleReply}>
+                  <MessageCircle className={styles['action-icon']} strokeWidth={1.6} />
+                  <span className={styles['action-text']}>{t('forum.post.reply')}</span>
+                </button>
               </div>
-              <div 
-                className={`${styles['comment-action-btn-disabled']} ${styles['dislike-btn-disabled']}`} 
-                title={t('forum.guest.loginToReact')} 
-                onClick={() => onLoginRequired && onLoginRequired()}
-              >
-                <ThumbsDown className={styles['action-icon']} strokeWidth={1.6} />
-                <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+            ) : (
+              <div className={styles['comment-actions']}>
+                <div 
+                  className={`${styles['comment-action-btn-disabled']} ${styles['like-btn-disabled']}`} 
+                  title={t('forum.guest.loginToReact')} 
+                  onClick={() => onLoginRequired && onLoginRequired()}
+                >
+                  <ThumbsUp className={styles['action-icon']} strokeWidth={1.6} />
+                  <span className={styles['action-text']}>{t('forum.post.like')}</span>
+                </div>
+                <div 
+                  className={`${styles['comment-action-btn-disabled']} ${styles['dislike-btn-disabled']}`} 
+                  title={t('forum.guest.loginToReact')} 
+                  onClick={() => onLoginRequired && onLoginRequired()}
+                >
+                  <ThumbsDown className={styles['action-icon']} strokeWidth={1.6} />
+                  <span className={styles['action-text']}>{t('forum.post.dislike')}</span>
+                </div>
+                <div 
+                  className={styles['comment-action-btn-disabled']} 
+                  title={t('forum.guest.loginToComment')} 
+                  onClick={() => onLoginRequired && onLoginRequired()}
+                >
+                  <MessageCircle className={styles['action-icon']} strokeWidth={1.6} />
+                  <span className={styles['action-text']}>{t('forum.post.reply')}</span>
+                </div>
               </div>
-              <div 
-                className={styles['comment-action-btn-disabled']} 
-                title={t('forum.guest.loginToComment')} 
-                onClick={() => onLoginRequired && onLoginRequired()}
-              >
-                <MessageCircle className={styles['action-icon']} strokeWidth={1.6} />
-                <span className={styles['action-text']}>{t('forum.post.reply')}</span>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
-        {/* Replies toggle */}
-        {replies.length > 0 && (
+        {/* Replies toggle - Only show when replies exist and user hasn't added replies in this session */}
+        {totalRepliesCount > 0 && !hasUserAddedReply && (
           <div className={styles['reply-toggle-row']}>
             <button className={styles['show-more-btn']} onClick={() => setShowReplies(!showReplies)}>
-              {showReplies ? t('forum.post.hideReplies') : `${t('forum.post.showReplies')} ${replies.length}`}
+              {showReplies ? t('forum.post.hideReplies') : `${t('forum.post.showReplies')} ${totalRepliesCount}`}
             </button>
           </div>
         )}
@@ -920,10 +1189,18 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
                 isReply={true}
                 onCommentDeleted={(commentId) => {
                   setReplies(prev => prev.filter(reply => reply.forumCommentId !== commentId));
+                  // Reload replies to update totalRepliesCount
+                  loadReplies();
                 }}
                 onReportComment={onReportComment}
+                onReloadComments={async () => {
+                  // Reload replies of the current comment to get updated structure
+                  await loadReplies();
+                }}
                 reportedComments={reportedComments}
                 setReportedComments={setReportedComments}
+                highlightCommentId={highlightCommentId}
+                isAdminStaffView={isAdminStaffView}
               />
             ))}
           </div>
@@ -937,7 +1214,9 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
               value={replyText}
               placeholder={t('forum.comments.replyPlaceholder')}
               onChange={(e) => setReplyText(e.target.value)}
+              onKeyDown={handleReplyKeyDown}
               className={styles['comment-input']}
+              disabled={isSubmittingReply}
             />
             <button 
               className={styles['comment-submit-btn']} 
@@ -961,6 +1240,29 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         confirmText={t('forum.comments.delete')}
         cancelText={t('forum.comments.cancel')}
       />
+      {/* Ban Reason Modal for admin/staff */}
+      {isAdminStaffView && canManageForumReports && (
+        <BanReasonModal
+          isOpen={banModalOpen}
+          onClose={() => setBanModalOpen(false)}
+          customer={{ userId: comment?.userId, name: comment?.username, email: comment?.userEmail }}
+          onConfirm={handleBanConfirm}
+        />
+      )}
+      {/* Delete Comment Modal for admin/staff */}
+      {isAdminStaffView && canManageForumReports && (
+        <DeleteConfirmModal
+          isOpen={deleteCommentModalOpen}
+          onClose={() => setDeleteCommentModalOpen(false)}
+          onConfirm={handleAdminDeleteConfirm}
+          title={t('forum.comments.deleteConfirm') || 'Xóa bình luận'}
+          message={t('forum.comments.deleteConfirmMessage') || 'Bạn có chắc chắn muốn xóa bình luận này?'}
+          itemName={t('forum.comments.comment') || 'bình luận'}
+          confirmText={t('forum.comments.delete') || 'Xóa'}
+          cancelText={t('forum.comments.cancel') || 'Hủy'}
+          danger={true}
+        />
+      )}
     </div>
   );
 };

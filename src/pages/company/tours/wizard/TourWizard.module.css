@@ -93,6 +93,7 @@
 
 .step-info {
   flex: 1;
+  text-align: center;
 }
 
 .step-title {
@@ -100,21 +101,24 @@
   font-size: 14px;
   color: #374151;
   margin-bottom: 2px;
+  text-align: center;
 }
 
 .step-description {
   font-size: 12px;
   color: #6b7280;
+  text-align: center;
 }
 
-/* Step Content */
+/* Step Content - Minimal Soft Korean Style */
 .step-content {
-  background-color: white;
-  border-radius: 16px;
+  background: linear-gradient(180deg, #fefefe 0%, #fafafa 100%);
+  border-radius: 28px;
   padding: 32px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
   margin-bottom: 32px;
   min-height: 500px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
 }
 
 /* Navigation Buttons */
@@ -126,14 +130,15 @@
 }
 
 .btn-primary, .btn-secondary, .btn-success {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  padding: 16px 32px;
+  border-radius: 24px;
+  font-weight: 500;
+  font-size: 0.95rem;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   min-width: 120px;
+  letter-spacing: 0.2px;
 }
 
 .btn-primary {
@@ -141,21 +146,26 @@
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary {
-  background-color: #6b7280;
-  color: white;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.75);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #4b5563;
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .btn-secondary:disabled {
-  background-color: #d1d5db;
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.3);
   cursor: not-allowed;
 }
 
@@ -164,8 +174,10 @@
   color: white;
 }
 
-.btn-success:hover {
+.btn-success:hover:not(:disabled) {
   background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 /* Form Styles */
@@ -264,7 +276,7 @@
   .step-content {
     padding: 24px;
     min-height: 400px;
-    border-radius: 20px;
+    border-radius: 24px;
   }
   
   .step-navigation {
@@ -319,7 +331,7 @@
   .step-content {
     padding: 20px 16px;
     min-height: 350px;
-    border-radius: 16px;
+    border-radius: 20px;
   }
 
   .btn-primary,

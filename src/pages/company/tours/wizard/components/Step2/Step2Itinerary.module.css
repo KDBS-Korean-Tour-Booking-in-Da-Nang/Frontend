@@ -1,6 +1,6 @@
-/* Step2Itinerary.css */
+/* Step2Itinerary.css - Minimal Soft Korean Style */
 .step2-container {
-  padding: 20px;
+  padding: 24px;
   max-width: 100%;
   width: 100%;
   margin: 0;
@@ -8,20 +8,23 @@
 
 .step-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 48px;
 }
 
 .step-title {
-  color: #2c3e50;
-  font-size: 1.8rem;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 2rem;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
 }
 
 .step-subtitle {
-  color: #7f8c8d;
+  color: rgba(0, 0, 0, 0.7);
   font-size: 1rem;
+  font-weight: 400;
   margin-bottom: 20px;
+  letter-spacing: 0.2px;
 }
 
 .form-group {
@@ -31,77 +34,131 @@
 .form-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 10px;
   font-weight: 600;
-  color: #2c3e50;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 0.95rem;
+  letter-spacing: 0.1px;
 }
 
 .label-icon {
-  color: #64748b;
+  color: rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
+  stroke-width: 1.5;
 }
 
 .form-input {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
+  padding: 16px 20px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
 }
 
 .form-textarea {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
+  padding: 16px 20px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
   resize: vertical;
   min-height: 120px;
   font-family: inherit;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 .form-textarea:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 1);
 }
 
 .form-select {
   width: 100%;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  background-color: white;
+  padding: 16px 20px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 .form-select:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
 }
 
 .form-help {
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 5px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.65);
+  margin-top: 8px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+}
+
+.error-message {
+  color: rgba(231, 76, 60, 0.9);
+  font-size: 0.85rem;
+  margin-top: 8px;
+  font-weight: 500;
+  display: block;
+  letter-spacing: 0.1px;
+}
+
+.form-input.error,
+.form-textarea.error {
+  border-color: rgba(231, 76, 60, 0.3);
+  box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.08);
+}
+
+.form-input.error:focus,
+.form-textarea.error:focus {
+  border-color: rgba(231, 76, 60, 0.4);
+  box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.12);
+}
+
+.required-asterisk {
+  color: #e74c3c;
+  margin-left: 0.5rem;
+  font-weight: 600;
 }
 
 .tiny-editor {
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  margin-top: 5px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  margin-top: 10px;
+  overflow: hidden;
 }
 
 .tiny-editor:focus-within {
-  border-color: #3498db;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
 }
 
 .itinerary-section {
@@ -162,11 +219,12 @@
 }
 
 .day-card {
-  border: 2px solid #ecf0f1;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  background-color: #fafafa;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: 28px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.7);
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .day-header-bar {
@@ -197,43 +255,48 @@
 
 .day-actions .btn-add-small,
 .day-actions .btn-remove-small {
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 20px;
   border: none;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   width: auto;
   height: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+  letter-spacing: 0.2px;
 }
 
 .day-actions .btn-add-small {
   background: linear-gradient(135deg, #10b981, #059669);
-  color: #ffffff;
+  color: white;
 }
 
 .itinerary-section .day-actions .btn-add-small:hover {
   background: linear-gradient(135deg, #047857, #065f46) !important;
-  color: #ffffff !important;
+  color: white !important;
   opacity: 1 !important;
   filter: none !important;
   box-shadow: 0 6px 16px rgba(6, 95, 70, 0.35) !important;
+  transform: translateY(-1px) !important;
 }
 
 .day-actions .btn-remove-small {
   background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #ffffff;
+  color: white;
 }
 
 .itinerary-section .day-actions .btn-remove-small:hover {
   background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
-  color: #ffffff !important;
+  color: white !important;
   opacity: 1 !important;
   filter: none !important;
   box-shadow: 0 6px 16px rgba(185, 28, 28, 0.35) !important;
+  transform: translateY(-1px) !important;
 }
 
 /* Override tiny icon-size styles from other contexts */
@@ -242,15 +305,7 @@
   min-width: 120px;
 }
 
-.day-actions .btn-add-small:hover {
-  background: #ecfeff;
-  border-color: #06b6d4;
-}
-
-.day-actions .btn-remove-small:hover {
-  background: #fee2e2;
-  border-color: #ef4444;
-}
+/* Removed duplicate hover style - using itinerary-section hover instead */
 
 .single-day-title-container {
   flex: 1;
@@ -649,11 +704,11 @@
 
 /* Services Section */
 .services-section {
-  margin-top: 20px;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  margin-top: 24px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
 }
 
 .services-header {
@@ -671,22 +726,23 @@
 }
 
 .btn-add-small {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
+  border-radius: 20px;
+  padding: 12px 24px;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  transition: all 0.25s ease;
+  letter-spacing: 0.2px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .btn-add-small:hover {
-  background: linear-gradient(135deg, #218838, #1e7e34);
+  background: linear-gradient(135deg, #047857, #065f46);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+  box-shadow: 0 6px 16px rgba(6, 95, 70, 0.35);
 }
 
 .service-item {
@@ -738,26 +794,26 @@
 }
 
 .btn-remove-small {
-  background: linear-gradient(135deg, #dc3545, #c82333);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   border: none;
-  border-radius: 4px;
-  width: 32px;
-  height: 32px;
+  border-radius: 20px;
+  padding: 12px 24px;
   font-size: 0.9rem;
-  font-weight: bold;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
+  transition: all 0.25s ease;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+  letter-spacing: 0.2px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .btn-remove-small:hover {
-  background: linear-gradient(135deg, #c82333, #bd2130);
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.35);
 }
 
 /* Responsive for services */
@@ -952,11 +1008,12 @@
 
 /* Additional missing classes */
 .tour-description-section {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  margin-bottom: 32px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 28px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .tour-description-section h3,
@@ -964,27 +1021,35 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: rgba(0, 0, 0, 0.85);
+  letter-spacing: -0.3px;
 }
 
 .section-icon {
-  color: #64748b;
+  color: rgba(0, 0, 0, 0.4);
   flex-shrink: 0;
+  stroke-width: 1.5;
 }
 
 .tour-schedule-section {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  margin-bottom: 32px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 28px;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .section-description {
-  color: #6c757d;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
   font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.1px;
 }
 
 .itinerary-section {
@@ -1152,33 +1217,42 @@
 }
 
 .btn-add-small {
-  background: #28a745;
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s ease;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  letter-spacing: 0.2px;
 }
 
 .btn-add-small:hover {
-  background: #218838;
+  background: linear-gradient(135deg, #047857, #065f46);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(6, 95, 70, 0.35);
 }
 
 .btn-remove-small {
-  background: #dc3545;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 12px 24px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s ease;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  letter-spacing: 0.2px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .btn-remove-small:hover {
-  background: #c82333;
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.35);
 }
 
 .image-preview {

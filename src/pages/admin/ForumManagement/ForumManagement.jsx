@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import Tooltip from '../../../components/tooltip';
 import { 
   EyeIcon,
   XMarkIcon,
@@ -443,13 +444,14 @@ const ForumManagement = () => {
                       </div>
                     </div>
                     <div className="ml-4">
-                      <button
-                        onClick={() => handleViewReportDetails(report)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
-                        title={t('admin.forumManagement.actions.viewDetails')}
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
+                      <Tooltip text={t('admin.forumManagement.actions.viewDetails')} position="top">
+                        <button
+                          onClick={() => handleViewReportDetails(report)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
@@ -584,13 +586,14 @@ const ForumManagement = () => {
                             {formatDate(post.createdAt)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => handleView(post)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
-                              title={t('admin.forumManagement.actions.viewDetails')}
-                            >
-                              <EyeIcon className="h-4 w-4" />
-                            </button>
+                            <Tooltip text={t('admin.forumManagement.actions.viewDetails')} position="top">
+                              <button
+                                onClick={() => handleView(post)}
+                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                              >
+                                <EyeIcon className="h-4 w-4" />
+                              </button>
+                            </Tooltip>
                           </td>
                         </tr>
                       ))

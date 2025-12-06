@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useBooking } from '../../../../../contexts/TourBookingContext';
+import { useTourBooking } from '../../../../../hooks/useTourBooking';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { DatePicker } from 'react-rainbow-components';
@@ -13,12 +13,13 @@ import {
   PenSquare,
   CalendarDays,
   StickyNote,
-  UserCheck
+  UserCheck,
+  Info
 } from 'lucide-react';
 import styles from './Step1Contact.module.css';
 
 const Step1Contact = () => {
-  const { contact, setContact } = useBooking();
+  const { contact, setContact } = useTourBooking();
   const { user, refreshUser, loading: authLoading } = useAuth();
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language || 'vi';
@@ -1378,7 +1379,9 @@ const Step1Contact = () => {
           
           {usePersonalInfo && (
             <div className={styles['auto-fill-notice']}>
-              <span className={styles['notice-icon']}>ℹ️</span>
+              <span className={styles['notice-icon']}>
+                <Info className={styles['notice-icon-svg']} />
+              </span>
               <span className={styles['notice-text']}>
                 {t('booking.step1.autoFillNotice')}
               </span>

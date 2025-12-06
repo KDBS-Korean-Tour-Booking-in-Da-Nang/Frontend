@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useChat } from '../../../../contexts/ChatContext';
 import { getAvatarUrl } from '../../../../config/api';
+import chatApiService from '../../../../services/chatApiService';
 import styles from './UserHoverCard.module.css';
 import { MessageCircle } from 'lucide-react';
 
 const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
-  const { actions } = useChat();
+  const { state, actions } = useChat();
   const [isVisible, setIsVisible] = useState(false);
   const [cardPosition, setCardPosition] = useState({ top: 0, left: 0 });
   const cardRef = useRef(null);
@@ -216,17 +217,97 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
   const handleSendMessage = async () => {
     if (!currentUser || !user) return;
 
-    // Prepare user object for chat
+    // Get userId from user object or find it from allUsers if not available
+    let userId = user.userId || user.id;
+    
+    // If userId is not available, try to find it from allUsers by username or email
+    if (!userId) {
+      const username = user.username || user.userName || user.name;
+      const email = user.userEmail || user.email;
+      
+      // First, try to find in current allUsers state
+      if (state?.allUsers && state.allUsers.length > 0) {
+        const foundUser = state.allUsers.find(u => 
+          (username && (u.username === username || u.userName === username || u.name === username)) ||
+          (email && (u.email === email || u.userEmail === email))
+        );
+        if (foundUser) {
+          userId = foundUser.userId || foundUser.id;
+        }
+      }
+      
+      // If still not found, load all users and try again
+      if (!userId && actions?.loadAllUsers) {
+        await actions.loadAllUsers();
+        // Wait a bit for state to update
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Try to find again after loading (state should be updated by now)
+        // We need to re-read state, but since React state is async, we'll use a workaround:
+        // Check conversations which might have user info, or try to get from API
+        if (state?.allUsers && state.allUsers.length > 0) {
+          const foundUser = state.allUsers.find(u => 
+            (username && (u.username === username || u.userName === username || u.name === username)) ||
+            (email && (u.email === email || u.userEmail === email))
+          );
+          if (foundUser) {
+            userId = foundUser.userId || foundUser.id;
+          }
+        }
+      }
+    }
+
+    // If still no userId, try to find in conversations
+    if (!userId && state?.conversations && state.conversations.length > 0) {
+      const username = user.username || user.userName || user.name;
+      const email = user.userEmail || user.email;
+      
+      const foundConv = state.conversations.find(conv => {
+        const convUser = conv.user;
+        return (username && (convUser?.username === username || convUser?.userName === username)) ||
+               (email && (convUser?.userEmail === email || convUser?.email === email));
+      });
+      
+      if (foundConv?.user) {
+        userId = foundConv.user.userId || foundConv.user.id;
+      }
+    }
+
+    // Final check - if still no userId, try to get from API by email
+    if (!userId) {
+      const email = user.userEmail || user.email;
+      if (email) {
+        try {
+          const userInfo = await chatApiService.getUserByEmail(email);
+          if (userInfo && (userInfo.userId || userInfo.id)) {
+            userId = userInfo.userId || userInfo.id;
+          }
+        } catch (error) {
+          // Error handled silently
+        }
+      }
+    }
+
+    // If still no userId after all attempts, we cannot proceed
+    if (!userId) {
+      alert('Không thể tìm thấy ID người dùng. Vui lòng thử lại sau hoặc liên hệ admin.');
+      return;
+    }
+
+    // Prepare user object for chat with all necessary fields
     const chatUser = {
-      userName: user.username || user.userName,
-      username: user.username || user.userName,
-      avatar: user.userAvatar || user.avatar,
-      userId: user.userId || user.id,
-      userEmail: user.userEmail || user.email
+      userId: userId,
+      id: userId,
+      userName: user.username || user.userName || user.name || '',
+      username: user.username || user.userName || user.name || '',
+      avatar: user.userAvatar || user.avatar || null,
+      userAvatar: user.userAvatar || user.avatar || null,
+      userEmail: user.userEmail || user.email || null,
+      email: user.email || user.userEmail || null
     };
 
-    // Open chat with user (this doesn't create a conversation yet)
-    // Conversation will only be created when a message is actually sent
+    // Open chat with user - this will load existing conversation if any
+    // If no conversation exists, it will be created when first message is sent
     await actions.openChatWithUser(chatUser);
     
     // Close the hover card
@@ -251,9 +332,13 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
     >
       <div className={styles['card-header']}>
         <img 
-          src={avatarUrl} 
+          src={avatarUrl || '/default-avatar.png'} 
           alt={displayName}
           className={styles['card-avatar']}
+          onError={(e) => {
+            e.target.src = '/default-avatar.png';
+            e.target.onerror = null; // Prevent infinite loop
+          }}
         />
         <div className={styles['card-user-info']}>
           <div className={styles['card-username']}>{displayName}</div>

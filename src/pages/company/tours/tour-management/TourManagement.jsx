@@ -223,11 +223,16 @@ const TourManagement = () => {
 
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
-    if (tourImgPath.startsWith('http')) return tourImgPath;
+    // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+    const trimmed = tourImgPath.trim();
+    if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+      return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
     // Normalize inconsistent stored values: sometimes full "/uploads/...", sometimes only filename
-    const normalized = tourImgPath.startsWith('/uploads')
-      ? tourImgPath
-      : `/uploads/tours/thumbnails/${tourImgPath}`;
+    const normalized = trimmed.startsWith('/uploads')
+      ? trimmed
+      : `/uploads/tours/thumbnails/${trimmed.split('/').pop()}`;
     return getImageUrl(normalized);
   };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,7 @@ const ArticleManagement = () => {
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [lastArticleCount, setLastArticleCount] = useState(0);
   const [error, setError] = useState('');
+  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'oldest'
 
   const softUI = {
     pageBg: 'bg-gradient-to-b from-[#fefefe] via-[#f8f6ff] to-[#f3fbff]',
@@ -40,22 +41,16 @@ const ArticleManagement = () => {
       // Don't auto redirect on 401 when called from background polling
       const data = await articleService.getAllArticles(!isBackgroundPoll);
       const newArticles = data || [];
-      const sortedArticles = [...newArticles].sort((a, b) => {
-        const aPending = a.articleStatus !== 'APPROVED';
-        const bPending = b.articleStatus !== 'APPROVED';
-        if (aPending !== bPending) return aPending ? -1 : 1;
-        const aTime = new Date(a.articleCreatedDate).getTime() || 0;
-        const bTime = new Date(b.articleCreatedDate).getTime() || 0;
-        return bTime - aTime;
-      });
       
+      // Check for new articles from auto-crawling (only if count increased)
       if (showNewArticlesNotification && lastArticleCount > 0 && newArticles.length > lastArticleCount) {
         const newCount = newArticles.length - lastArticleCount;
         showSuccess(t('articleManagement.messages.autoCrawlSuccess', { count: newCount }));
       }
       
-      setArticles(sortedArticles);
-      setLastArticleCount(sortedArticles.length);
+      // Store raw articles, sorting will be handled by useMemo based on sortOrder
+      setArticles(newArticles);
+      setLastArticleCount(newArticles.length);
       setError(''); // Clear error on success
     } catch (error) {
       // Don't show error or logout if it's a 401 from background polling
@@ -68,6 +63,33 @@ const ArticleManagement = () => {
       setLoadingArticles(false);
     }
   }, [showSuccess, lastArticleCount, t]);
+  
+  // Sort articles based on sortOrder
+  const sortedArticles = useMemo(() => {
+    if (!articles || articles.length === 0) return [];
+    
+    return [...articles].sort((a, b) => {
+      // First, sort by pending status (pending first)
+      const aPending = a.articleStatus !== 'APPROVED';
+      const bPending = b.articleStatus !== 'APPROVED';
+      if (aPending !== bPending) return aPending ? -1 : 1;
+      
+      // Then sort by date
+      const aTime = new Date(a.articleCreatedDate).getTime() || 0;
+      const bTime = new Date(b.articleCreatedDate).getTime() || 0;
+      
+      if (sortOrder === 'newest') {
+        return bTime - aTime; // Newest first
+      } else {
+        return aTime - bTime; // Oldest first
+      }
+    });
+  }, [articles, sortOrder]);
+  
+  // Reset to page 1 when sort order changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortOrder]);
 
   useEffect(() => {
     if (user && (user.role === 'ADMIN' || user.role === 'STAFF')) {
@@ -113,10 +135,10 @@ const ArticleManagement = () => {
     );
   };
 
-  const totalPages = Math.ceil(articles.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedArticles.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentArticles = articles.slice(startIndex, endIndex);
+  const currentArticles = sortedArticles.slice(startIndex, endIndex);
 
   const handleSelectAll = () => {
     const currentPageArticleIds = currentArticles.map(article => article.articleId);
@@ -247,20 +269,33 @@ const ArticleManagement = () => {
           </button>
         </div>
 
-        {articles.length > 0 && (
+        {sortedArticles.length > 0 && (
           <div className={`${softUI.card} p-8 space-y-6`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <p className="text-sm uppercase tracking-[0.3em] text-[#b7b3ab]">
-                {t('articleManagement.articles.title', { count: articles.length })}
+                {t('articleManagement.articles.title', { count: sortedArticles.length })}
               </p>
-              <div className="flex items-center gap-2 text-sm text-[#6f7680]">
-                <input
-                  type="checkbox"
-                  checked={currentArticles.every(article => selectedArticles.includes(article.articleId)) && currentArticles.length > 0}
-                  onChange={handleSelectAll}
-                  className="rounded-full border-[#d8d2c6] text-[#4c9dff] focus:ring-[#4c9dff]"
-                />
-                <span>{t('articleManagement.articles.selectAll')}</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-[#6f7680]">
+                  <input
+                    type="checkbox"
+                    checked={currentArticles.every(article => selectedArticles.includes(article.articleId)) && currentArticles.length > 0}
+                    onChange={handleSelectAll}
+                    className="rounded-full border-[#d8d2c6] text-[#4c9dff] focus:ring-[#4c9dff]"
+                  />
+                  <span>{t('articleManagement.articles.selectAll')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-[#6f7680]">{t('articleManagement.sort.label') || 'Sắp xếp:'}</label>
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="px-3 py-1.5 rounded-full border border-[#d8d2c6] text-sm text-[#4c9dff] bg-white/80 focus:outline-none focus:ring-2 focus:ring-[#4c9dff] focus:border-transparent"
+                  >
+                    <option value="newest">{t('articleManagement.sort.newest') || 'Mới nhất'}</option>
+                    <option value="oldest">{t('articleManagement.sort.oldest') || 'Cũ nhất'}</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -402,7 +437,7 @@ const ArticleManagement = () => {
             {totalPages > 1 && (
               <div className="pt-4 border-t border-[#ece7de] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="text-sm text-[#7a7f8a]">
-                  {t('articleManagement.pagination.showing', { start: startIndex + 1, end: Math.min(endIndex, articles.length), total: articles.length })}
+                  {t('articleManagement.pagination.showing', { start: startIndex + 1, end: Math.min(endIndex, sortedArticles.length), total: sortedArticles.length })}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -440,7 +475,7 @@ const ArticleManagement = () => {
           </div>
         )}
 
-        {articles.length === 0 && !loadingArticles && (
+        {sortedArticles.length === 0 && !loadingArticles && (
           <div className={`${softUI.card} p-10 text-center`}>
             <div className="w-16 h-16 mx-auto rounded-[22px] bg-[#f2f4f8] flex items-center justify-center text-[#9ba4b5] mb-4">
               <FileText className="h-7 w-7" />

@@ -15,6 +15,7 @@ const Article = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
@@ -120,6 +121,18 @@ const Article = () => {
     cssEase: 'linear'
   };
 
+  const filteredArticles = (articles || []).filter((article) => {
+    const query = (searchQuery || '').trim().toLowerCase();
+    if (!query) return true;
+
+    const localizedContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
+    const localizedDescription = getLocalizedArticleField(article, 'articleDescription') || article.articleDescription || '';
+    const localizedTitle = getLocalizedArticleField(article, 'articleTitle') || article.articleTitle || '';
+
+    const haystack = `${localizedTitle} ${localizedDescription} ${localizedContent}`.toLowerCase();
+    return haystack.includes(query);
+  });
+
   return (
     <div className={styles.pageRoot} style={{ marginTop: '5px', paddingTop: '0' }}>
       <div className={styles.pageBackground} aria-hidden="true" />
@@ -149,6 +162,40 @@ const Article = () => {
             </div>
           </div>
 
+          {/* Search bar under carousel */}
+          <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen -mt-6 mb-4 md:mb-6">
+            <div className="w-full px-3 sm:px-6 lg:px-10">
+              <div className={`${styles.searchContainer} flex items-center justify-center`}>
+                <div className="w-full flex justify-center">
+                  <div className="flex items-center gap-2 w-full max-w-2xl rounded-2xl border border-gray-200 bg-white/90 px-4 py-2.5 shadow-sm focus-within:ring-2 focus-within:ring-primary/60 focus-within:border-primary/60">
+                    <span className="text-gray-400 flex items-center justify-center">
+                      <svg
+                        className="h-4 w-4 md:h-5 md:w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.8"
+                          d="M21 21l-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t('article.searchPlaceholder')}
+                      className="flex-1 bg-transparent border-none outline-none text-sm md:text-base placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Mobile/Tablet Filter & Sort Toggle */}
           <div className="w-full lg:hidden -mt-4 mb-6 px-2 sm:px-4 flex justify-end">
             <button
@@ -172,9 +219,9 @@ const Article = () => {
                 <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-200 border-t-primary"></div>
                 <span className="ml-3 text-gray-600">{t('article.loading')}</span>
               </div>
-            ) : articles.length > 0 ? (
+            ) : filteredArticles.length > 0 ? (
               <div className="space-y-6">
-                {articles.map((article, index) => {
+                {filteredArticles.map((article, index) => {
                   const localizedContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
                   const localizedDescription = getLocalizedArticleField(article, 'articleDescription') || article.articleDescription || '';
                   const localizedTitle = getLocalizedArticleField(article, 'articleTitle') || article.articleTitle || '';
@@ -256,7 +303,7 @@ const Article = () => {
                       </div>
                       
                       {/* Separator */}
-                      {index < articles.length - 1 && (
+                      {index < filteredArticles.length - 1 && (
                         <div className={`${styles.subtleDivider}`}></div>
                       )}
                     </div>
@@ -271,7 +318,13 @@ const Article = () => {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('article.noArticles')}</h3>
-                <p className="text-gray-500">{t('article.noArticlesDesc')}</p>
+                <p className="text-gray-500">
+                  {searchQuery
+                    ? t('article.noArticlesSearch', {
+                        defaultValue: 'Không tìm thấy bài viết phù hợp với từ khóa này.'
+                      })
+                    : t('article.noArticlesDesc')}
+                </p>
               </div>
             )}
             

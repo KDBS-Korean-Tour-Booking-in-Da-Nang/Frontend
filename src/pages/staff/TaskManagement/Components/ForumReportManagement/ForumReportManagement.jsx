@@ -414,13 +414,21 @@ const ForumReportManagement = () => {
                       {currentPage * pageSize + index + 1}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center text-sm px-3 py-1.5 rounded font-semibold ${
-                        report.targetType === 'POST' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'bg-purple-100 text-purple-700'
-                      }`}>
+                      <a
+                        href={`/forum?${report.targetType === 'POST' ? 'postId' : 'commentId'}=${report.targetId}&fromStaff=true`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/forum?${report.targetType === 'POST' ? 'postId' : 'commentId'}=${report.targetId}&fromStaff=true`);
+                        }}
+                        className={`inline-flex items-center text-sm px-3 py-1.5 rounded font-semibold cursor-pointer transition-all hover:shadow-md hover:scale-105 no-underline ${
+                          report.targetType === 'POST' 
+                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                            : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                        }`}
+                        title={report.targetType === 'POST' ? t('staff.forumReportManagement.viewPost') : t('staff.forumReportManagement.viewComment')}
+                      >
                         {report.targetType === 'POST' ? t('staff.forumReportManagement.reportTypes.post') : t('staff.forumReportManagement.reportTypes.comment')}
-                      </span>
+                      </a>
                     </td>
                     <td className="px-6 py-4">
                         <p className="text-sm font-medium text-gray-900">{report.reporterName || t('staff.forumReportManagement.status.na')}</p>
