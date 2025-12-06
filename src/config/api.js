@@ -28,6 +28,11 @@ export const API_ENDPOINTS = {
   COMMENTS_BY_POST: (postId) => `${BaseURL}/api/comments/post/${postId}`,
   COMMENT_REPLIES: (commentId) => `${BaseURL}/api/comments/${commentId}/replies`,
   
+  // Article Comments
+  ARTICLE_COMMENTS: `${BaseURL}/api/article-comments`,
+  ARTICLE_COMMENTS_BY_ARTICLE: (articleId) => `${BaseURL}/api/article-comments/article/${articleId}`,
+  ARTICLE_COMMENT_BY_ID: (commentId) => `${BaseURL}/api/article-comments/${commentId}`,
+  
   // Reactions
   REACTIONS_ADD: `${BaseURL}/api/reactions/add`,
   REACTIONS_DELETE: `${BaseURL}/api/reactions/delete`,

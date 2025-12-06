@@ -413,6 +413,15 @@
   font-weight: 600;
 }
 
+/* Remove underline from article links */
+.articleCard a {
+  text-decoration: none;
+}
+
+.articleCard a:hover {
+  text-decoration: none;
+}
+
 @media (max-width: 1024px) {
   .contentWrap {
     padding: 1.25rem 1rem;

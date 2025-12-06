@@ -291,7 +291,7 @@ const Article = () => {
                             </span>
                             <Link
                               to={`/article/detail?id=${article.articleId}`}
-                              className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-semibold text-sm md:text-base transition-colors"
+                              className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-semibold text-sm md:text-base transition-colors no-underline"
                             >
                               {t('article.readMore')}
                               <svg className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 transform group-hover:translate-x-1 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
