@@ -268,14 +268,21 @@ const CompanyManagement = () => {
 
       // Construct file URLs from file names using getImageUrl helper
       // Backend stores files in /uploads/business/registrationFile and /uploads/idcard/front, /uploads/idcard/back
+      // Check if filename is already a full URL (from Azure Blob Storage)
       const businessLicenseUrl = uploadStatus.businessLicenseFileName 
-        ? getImageUrl(`/uploads/business/registrationFile/${uploadStatus.businessLicenseFileName}`)
+        ? (uploadStatus.businessLicenseFileName.startsWith('http://') || uploadStatus.businessLicenseFileName.startsWith('https://'))
+          ? getImageUrl(uploadStatus.businessLicenseFileName)
+          : getImageUrl(`/uploads/business/registrationFile/${uploadStatus.businessLicenseFileName}`)
         : null;
       const idCardFrontUrl = uploadStatus.idCardFrontFileName
-        ? getImageUrl(`/uploads/idcard/front/${uploadStatus.idCardFrontFileName}`)
+        ? (uploadStatus.idCardFrontFileName.startsWith('http://') || uploadStatus.idCardFrontFileName.startsWith('https://'))
+          ? getImageUrl(uploadStatus.idCardFrontFileName)
+          : getImageUrl(`/uploads/idcard/front/${uploadStatus.idCardFrontFileName}`)
         : null;
       const idCardBackUrl = uploadStatus.idCardBackFileName
-        ? getImageUrl(`/uploads/idcard/back/${uploadStatus.idCardBackFileName}`)
+        ? (uploadStatus.idCardBackFileName.startsWith('http://') || uploadStatus.idCardBackFileName.startsWith('https://'))
+          ? getImageUrl(uploadStatus.idCardBackFileName)
+          : getImageUrl(`/uploads/idcard/back/${uploadStatus.idCardBackFileName}`)
         : null;
 
       setFileData({
