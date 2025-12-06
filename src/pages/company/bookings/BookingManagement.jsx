@@ -615,10 +615,23 @@ const BookingManagement = () => {
 
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
-    if (tourImgPath.startsWith('http')) return tourImgPath;
-    const normalized = tourImgPath.startsWith('/uploads')
-      ? tourImgPath
-      : `/uploads/tours/thumbnails/${tourImgPath}`;
+    
+    // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
+    const trimmed = tourImgPath.trim();
+    if (trimmed.includes('https://') || trimmed.includes('http://')) {
+      // Extract the full URL from the path
+      const httpsIndex = trimmed.indexOf('https://');
+      const httpIndex = trimmed.indexOf('http://');
+      const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
+      if (urlStartIndex >= 0) {
+        return trimmed.substring(urlStartIndex);
+      }
+    }
+    
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    const normalized = trimmed.startsWith('/uploads')
+      ? trimmed
+      : `/uploads/tours/thumbnails/${trimmed}`;
     return getImageUrl(normalized);
   };
 
