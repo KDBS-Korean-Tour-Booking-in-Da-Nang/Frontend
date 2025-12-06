@@ -225,6 +225,18 @@ const TourManagement = () => {
     if (!tourImgPath) return '';
     // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
     const trimmed = tourImgPath.trim();
+    
+    // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
+    if (trimmed.includes('https://') || trimmed.includes('http://')) {
+      // Extract the full URL from the path
+      const httpsIndex = trimmed.indexOf('https://');
+      const httpIndex = trimmed.indexOf('http://');
+      const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
+      if (urlStartIndex >= 0) {
+        return trimmed.substring(urlStartIndex);
+      }
+    }
+    
     if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
       return trimmed.substring(1); // Loại bỏ dấu / ở đầu
     }
