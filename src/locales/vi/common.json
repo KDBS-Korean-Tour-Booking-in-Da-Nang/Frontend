@@ -566,6 +566,7 @@
         "businessLicense": "Giấy phép kinh doanh",
         "businessLicenseDesc": "File PDF",
         "openInNewTab": "Mở trong tab mới",
+        "download": "Tải xuống",
         "noFile": "Không có file",
         "idCardFront": "CCCD mặt trước",
         "idCardFrontDesc": "Ảnh chụp",
@@ -1856,6 +1857,7 @@
           "title": "Giấy phép kinh doanh",
           "desc": "File PDF",
           "openInNewTab": "Mở trong tab mới",
+          "download": "Tải xuống",
           "noFile": "Không có file"
         },
         "idCard": {

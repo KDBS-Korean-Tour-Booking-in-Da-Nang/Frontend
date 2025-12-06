@@ -267,23 +267,52 @@ const CompanyManagement = () => {
       }
 
       // Construct file URLs from file names using getImageUrl helper
-      // Backend stores files in /uploads/business/registrationFile and /uploads/idcard/front, /uploads/idcard/back
-      // Check if filename is already a full URL (from Azure Blob Storage)
-      const businessLicenseUrl = uploadStatus.businessLicenseFileName 
-        ? (uploadStatus.businessLicenseFileName.startsWith('http://') || uploadStatus.businessLicenseFileName.startsWith('https://'))
-          ? getImageUrl(uploadStatus.businessLicenseFileName)
-          : getImageUrl(`/uploads/business/registrationFile/${uploadStatus.businessLicenseFileName}`)
-        : null;
-      const idCardFrontUrl = uploadStatus.idCardFrontFileName
-        ? (uploadStatus.idCardFrontFileName.startsWith('http://') || uploadStatus.idCardFrontFileName.startsWith('https://'))
-          ? getImageUrl(uploadStatus.idCardFrontFileName)
-          : getImageUrl(`/uploads/idcard/front/${uploadStatus.idCardFrontFileName}`)
-        : null;
-      const idCardBackUrl = uploadStatus.idCardBackFileName
-        ? (uploadStatus.idCardBackFileName.startsWith('http://') || uploadStatus.idCardBackFileName.startsWith('https://'))
-          ? getImageUrl(uploadStatus.idCardBackFileName)
-          : getImageUrl(`/uploads/idcard/back/${uploadStatus.idCardBackFileName}`)
-        : null;
+      // Backend behavior:
+      // - Local: Returns relative path like "/uploads/business/registrationFile/filename.pdf"
+      // - Azure: Returns full Azure Blob Storage URL like "https://kdbsstorage.blob.core.windows.net/..."
+      // getImageUrl will:
+      // - Extract full Azure URL if it's embedded in the path
+      // - Convert relative paths to absolute URLs (BaseURL + path) for local files
+      const getFileUrl = (fileName, basePath) => {
+        if (!fileName) return null;
+        
+        // Trim whitespace
+        const trimmed = fileName.trim();
+        if (!trimmed) return null;
+        
+        // Case 1: Already a full URL (starts with http:// or https://)
+        // This happens when backend returns Azure Blob Storage URL directly
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+          return trimmed; // Return as-is, it's already a full URL
+        }
+        
+        // Case 2: Contains full URL embedded in path (e.g., "/uploads/path/https://...")
+        // This can happen if backend incorrectly prefixes Azure URL with a path
+        if (trimmed.includes('https://') || trimmed.includes('http://')) {
+          const httpsIndex = trimmed.indexOf('https://');
+          const httpIndex = trimmed.indexOf('http://');
+          const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
+          if (urlStartIndex >= 0) {
+            return trimmed.substring(urlStartIndex); // Extract full URL
+          }
+        }
+        
+        // Case 3: Starts with / (relative path from backend)
+        // This happens in local development
+        if (trimmed.startsWith('/')) {
+          // Use getImageUrl to convert to absolute URL (BaseURL + path)
+          return getImageUrl(trimmed);
+        }
+        
+        // Case 4: Just a filename (no path prefix)
+        // Prepend the appropriate base path and convert to absolute URL
+        const fullPath = `${basePath}/${trimmed}`;
+        return getImageUrl(fullPath);
+      };
+
+      const businessLicenseUrl = getFileUrl(uploadStatus.businessLicenseFileName, '/uploads/business/registrationFile');
+      const idCardFrontUrl = getFileUrl(uploadStatus.idCardFrontFileName, '/uploads/idcard/front');
+      const idCardBackUrl = getFileUrl(uploadStatus.idCardBackFileName, '/uploads/idcard/back');
 
       setFileData({
         businessLicenseUrl,
@@ -311,22 +340,95 @@ const CompanyManagement = () => {
   };
 
   const handleOpenPdf = (url) => {
-    if (url) {
-      // Mở PDF trong tab mới thay vì tải xuống
+    if (!url) return;
+    
+    try {
+      // Đảm bảo URL là absolute URL (không phải relative)
+      // Azure URLs đã là absolute, nhưng local URLs có thể cần kiểm tra
+      let absoluteUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // Nếu là relative URL, convert thành absolute
+        absoluteUrl = url.startsWith('/') ? `${BaseURL}${url}` : `${BaseURL}/${url}`;
+      }
+      
+      // Mở PDF trong tab mới
       // Sử dụng window.open với noopener và noreferrer để bảo mật
-      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-      // Nếu browser block popup, thử cách khác
+      const newWindow = window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+      
+      // Kiểm tra nếu browser block popup hoặc window không mở được
       if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
         // Fallback: tạo link và click programmatically để mở trong tab mới
+        // Cách này thường hoạt động tốt hơn với Azure URLs và các trình duyệt chặn popup
         const link = document.createElement('a');
-        link.href = url;
+        link.href = absoluteUrl;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         // KHÔNG thêm attribute 'download' để browser hiển thị PDF thay vì tải
+        link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        // Clean up sau một chút để đảm bảo click được xử lý
+        setTimeout(() => {
+          document.body.removeChild(link);
+        }, 100);
+      } else {
+        // Focus vào window mới nếu mở thành công
+        newWindow.focus();
       }
+    } catch (error) {
+      console.error('Error opening PDF:', error);
+      // Fallback cuối cùng: thử mở trực tiếp
+      try {
+        window.location.href = url;
+      } catch (e) {
+        alert(t('admin.companyManagement.modal.openPdfError') || 'Không thể mở PDF. Vui lòng thử lại.');
+      }
+    }
+  };
+
+  const handleDownloadPdf = async (url) => {
+    if (!url) return;
+    
+    try {
+      const token = getToken();
+      if (!token) {
+        alert(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
+        return;
+      }
+
+      // Fetch file với authentication headers
+      const headers = createAuthHeaders(token);
+      const response = await fetch(url, { 
+        headers,
+        method: 'GET'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      // Get filename from URL or use default
+      const urlParts = url.split('/');
+      const filename = urlParts[urlParts.length - 1].split('?')[0] || 'business-license.pdf';
+      
+      // Convert response to blob
+      const blob = await response.blob();
+      
+      // Create blob URL and download
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert(t('admin.companyManagement.modal.downloadError') || 'Không thể tải file. Vui lòng thử lại.');
     }
   };
 
@@ -577,13 +679,23 @@ const CompanyManagement = () => {
                             </div>
                           </div>
                           {fileData.businessLicenseUrl && (
-                            <button
-                              onClick={() => handleOpenPdf(fileData.businessLicenseUrl)}
-                              className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
-                            >
-                              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                              {t('admin.companyManagement.modal.openInNewTab')}
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleOpenPdf(fileData.businessLicenseUrl)}
+                                className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
+                              >
+                                <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                                {t('admin.companyManagement.modal.openInNewTab')}
+                              </button>
+                              <button
+                                onClick={() => handleDownloadPdf(fileData.businessLicenseUrl)}
+                                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-[20px] hover:bg-gray-200 transition-all duration-200 text-sm font-medium flex items-center gap-2"
+                                title={t('admin.companyManagement.modal.download') || 'Tải xuống'}
+                              >
+                                <ArrowDownTrayIcon className="h-4 w-4" />
+                                {t('admin.companyManagement.modal.download') || 'Tải xuống'}
+                              </button>
+                            </div>
                           )}
                         </div>
                         {!fileData.businessLicenseUrl && (

@@ -566,6 +566,7 @@
 				"businessLicense": "Business license",
 				"businessLicenseDesc": "PDF file",
 				"openInNewTab": "Open in new tab",
+				"download": "Download",
 				"noFile": "No file",
 				"idCardFront": "ID card front",
 				"idCardFrontDesc": "Photo",
@@ -1841,6 +1842,7 @@
 					"title": "Business license",
 					"desc": "PDF file",
 					"openInNewTab": "Open in new tab",
+					"download": "Download",
 					"noFile": "No file"
 				},
 				"idCard": {
