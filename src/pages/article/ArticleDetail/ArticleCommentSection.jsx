@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getAvatarUrl } from '../../../config/api';
 import { Send, MessageCircle } from 'lucide-react';
+import articleCommentService from '../../../services/articleCommentService';
 import styles from './ArticleCommentSection.module.css';
 
 const ArticleCommentSection = ({ articleId }) => {
@@ -11,57 +12,45 @@ const ArticleCommentSection = ({ articleId }) => {
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mockup data - sẽ thay thế bằng API call sau
-  const [comments] = useState([
-    {
-      id: 1,
-      username: 'Nguyễn Văn A',
-      userAvatar: null,
-      userEmail: 'user1@example.com',
-      content: 'Bài viết rất hay và hữu ích! Cảm ơn tác giả đã chia sẻ những thông tin chi tiết về Đà Nẵng.',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      react: 5
-    },
-    {
-      id: 2,
-      username: 'Trần Thị B',
-      userAvatar: null,
-      userEmail: 'user2@example.com',
-      content: 'Tôi đã từng đến đây và thực sự ấn tượng với cảnh đẹp. Bài viết mô tả rất chính xác!',
-      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-      react: 3
-    },
-    {
-      id: 3,
-      username: 'Lê Văn C',
-      userAvatar: null,
-      userEmail: 'user3@example.com',
-      content: 'Có ai biết thêm thông tin về tour này không? Tôi muốn đặt tour vào cuối tuần này.',
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      react: 1
-    },
-    {
-      id: 4,
-      username: 'Phạm Thị D',
-      userAvatar: null,
-      userEmail: 'user4@example.com',
-      content: 'Rất mong chờ được trải nghiệm những địa điểm này. Cảm ơn bạn đã chia sẻ!',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      react: 0
-    },
-    {
-      id: 5,
-      username: 'Hoàng Văn E',
-      userAvatar: null,
-      userEmail: 'user5@example.com',
-      content: 'Bài viết rất chi tiết và có nhiều hình ảnh đẹp. Tôi sẽ lưu lại để tham khảo cho chuyến đi sắp tới.',
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      react: 8
+  const loadComments = useCallback(async () => {
+    if (!articleId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await articleCommentService.getCommentsByArticleId(articleId);
+      // Filter out replies - only show parent comments (parentCommentId is null)
+      const parentComments = data.filter(comment => !comment.parentCommentId);
+      // Sort by createdAt descending (newest first)
+      parentComments.sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB - dateA;
+      });
+      setComments(parentComments);
+    } catch (err) {
+      console.error('Error loading comments:', err);
+      setError(err.message || 'Không thể tải bình luận');
+      setComments([]);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, [articleId]);
 
-  const formatTime = (date) => {
+  // Fetch comments when articleId changes
+  useEffect(() => {
+    if (articleId) {
+      loadComments();
+    }
+  }, [articleId, loadComments]);
+
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     
@@ -73,17 +62,24 @@ const ArticleCommentSection = ({ articleId }) => {
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
-    if (!commentText.trim() || !user) return;
+    if (!commentText.trim() || !user || !articleId) return;
 
     setIsSubmitting(true);
-    // Mockup: Simulate API call
-    setTimeout(() => {
-      // In real implementation, this would be an API call
-      // For now, just clear the input
+    try {
+      await articleCommentService.createComment({
+        articleId: articleId,
+        content: commentText.trim(),
+      });
+      
+      // Clear input and reload comments
       setCommentText('');
+      await loadComments();
+    } catch (err) {
+      console.error('Error submitting comment:', err);
+      setError(err.message || 'Không thể gửi bình luận');
+    } finally {
       setIsSubmitting(false);
-      // Show success message or add comment to list
-    }, 500);
+    }
   };
 
   const displayedComments = showAllComments ? comments : comments.slice(0, 3);
@@ -120,8 +116,26 @@ const ArticleCommentSection = ({ articleId }) => {
         </div>
       )}
 
+      {/* Loading State */}
+      {loading && (
+        <div className={styles['empty-comments']}>
+          <p className={styles['empty-text']}>
+            {t('article.comments.loading', { defaultValue: 'Đang tải bình luận...' })}
+          </p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className={styles['empty-comments']}>
+          <p className={styles['empty-text']} style={{ color: '#ef4444' }}>
+            {error}
+          </p>
+        </div>
+      )}
+
       {/* Comments List */}
-      {displayedComments.length > 0 && (
+      {!loading && !error && displayedComments.length > 0 && (
         <div className={styles['comments-list']}>
           <div className={styles['comments-header']}>
             <MessageCircle className={styles['comments-icon']} />
@@ -131,7 +145,7 @@ const ArticleCommentSection = ({ articleId }) => {
           </div>
           
           {displayedComments.map((comment) => (
-            <div key={comment.id} className={styles['comment-item']}>
+            <div key={comment.articleCommentId} className={styles['comment-item']}>
               <div className={styles['comment-left']}>
                 <img 
                   src={getAvatarUrl(comment.userAvatar)} 
@@ -143,7 +157,7 @@ const ArticleCommentSection = ({ articleId }) => {
               <div className={styles['comment-right']}>
                 <div className={styles['comment-bubble']}>
                   <div className={styles['comment-header']}>
-                    <span className={styles['comment-username']}>{comment.username}</span>
+                    <span className={styles['comment-username']}>{comment.username || comment.userEmail}</span>
                     <span className={styles['comment-time']}>{formatTime(comment.createdAt)}</span>
                   </div>
                   <div className={styles['comment-text']}>{comment.content}</div>
@@ -179,7 +193,7 @@ const ArticleCommentSection = ({ articleId }) => {
       )}
 
       {/* Empty State */}
-      {comments.length === 0 && (
+      {!loading && !error && comments.length === 0 && (
         <div className={styles['empty-comments']}>
           <MessageCircle className={styles['empty-icon']} />
           <p className={styles['empty-text']}>
