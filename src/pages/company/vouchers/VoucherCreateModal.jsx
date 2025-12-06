@@ -15,7 +15,6 @@ const defaultState = {
   totalQuantity: '',
   startDate: '',
   endDate: '',
-  status: 'ACTIVE',
   tourIds: []
 };
 
@@ -100,7 +99,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
         totalQuantity: Number(form.totalQuantity),
         startDate: form.startDate ? form.startDate : null, // Backend expects LocalDateTime format (YYYY-MM-DDTHH:mm)
         endDate: form.endDate ? form.endDate : null,
-        status: form.status,
+        status: 'ACTIVE', // Default status - always ACTIVE when creating
         tourIds: form.tourIds && form.tourIds.length > 0 ? form.tourIds : null // null or empty array means apply to all tours
       };
 
@@ -311,7 +310,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             )}
           </div>
 
-          <div className={styles['form-grid-3']}>
+          <div className={styles['form-grid']}>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>
                 {t('voucherCreate.fields.totalQuantity')}
@@ -335,18 +334,6 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                 value={form.minOrderValue || ''} 
                 onChange={(e) => handleChange('minOrderValue', e.target.value)} 
               />
-            </div>
-            <div className={styles['form-group']}>
-              <label className={styles['form-label']}>{t('voucherCreate.fields.status')}</label>
-              <select 
-                className={styles['form-select']} 
-                value={form.status} 
-                onChange={(e) => handleChange('status', e.target.value)}
-              >
-                <option value="ACTIVE">{t('voucherManagement.status.ACTIVE')}</option>
-                <option value="INACTIVE">{t('voucherManagement.status.INACTIVE')}</option>
-                <option value="EXPIRED">{t('voucherManagement.status.EXPIRED')}</option>
-              </select>
             </div>
           </div>
 

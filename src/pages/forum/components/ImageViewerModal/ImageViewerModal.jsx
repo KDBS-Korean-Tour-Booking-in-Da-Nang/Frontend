@@ -17,8 +17,13 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
 
   const imgs = ((post && post.images) ? post.images : []).map(i => {
     const p = i.imgPath || '';
-    if (p.startsWith('http')) return p;
-    return getImageUrl(p);
+    // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+    const trimmed = p.trim();
+    if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+      return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    return getImageUrl(trimmed);
   });
   const imageIds = ((post && post.images) ? post.images : []).map(i => i.postImgId);
   const imgCount = imgs.length;

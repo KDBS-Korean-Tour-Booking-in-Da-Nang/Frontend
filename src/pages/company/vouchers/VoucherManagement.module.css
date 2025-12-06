@@ -233,6 +233,16 @@
   font-weight: 600;
 }
 
+.quantity-highlight {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.remaining-highlight {
+  color: #6b7280;
+  font-weight: 600;
+}
+
 /* Tours List */
 .voucher-tours {
   font-size: 13px;

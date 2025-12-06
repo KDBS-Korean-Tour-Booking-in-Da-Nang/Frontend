@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../Pagination';
+import Tooltip from '../../../components/tooltip';
 import { 
   UsersIcon,
   PlusIcon,
@@ -282,35 +283,38 @@ const UserManagement = () => {
                       {new Date(user.lastLogin).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title={t('admin.userManagement.actions.edit')}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleStatusToggle(user.id)}
-                        className={`${
-                          user.status === 'active' 
-                            ? 'text-red-600 hover:text-red-900' 
-                            : 'text-green-600 hover:text-green-900'
-                        }`}
-                        title={user.status === 'active' ? t('admin.userManagement.actions.deactivate') : t('admin.userManagement.actions.activate')}
-                      >
-                        {user.status === 'active' ? (
-                          <XMarkIcon className="h-4 w-4" />
-                        ) : (
-                          <CheckIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-900"
-                        title={t('admin.userManagement.actions.delete')}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      <Tooltip text={t('admin.userManagement.actions.edit')} position="top">
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip text={user.status === 'active' ? t('admin.userManagement.actions.deactivate') : t('admin.userManagement.actions.activate')} position="top">
+                        <button
+                          onClick={() => handleStatusToggle(user.id)}
+                          className={`${
+                            user.status === 'active' 
+                              ? 'text-red-600 hover:text-red-900' 
+                              : 'text-green-600 hover:text-green-900'
+                          }`}
+                        >
+                          {user.status === 'active' ? (
+                            <XMarkIcon className="h-4 w-4" />
+                          ) : (
+                            <CheckIcon className="h-4 w-4" />
+                          )}
+                        </button>
+                      </Tooltip>
+                      <Tooltip text={t('admin.userManagement.actions.delete')} position="top">
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
                     </td>
                   </tr>
                 ))}

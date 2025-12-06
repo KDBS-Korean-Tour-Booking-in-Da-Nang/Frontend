@@ -59,8 +59,12 @@ const shouldShowDateHeader = (messages, currentIndex) => {
   return currentDate !== previousDate;
 };
 
-const resolveUserAvatar = (user) =>
-  getAvatarUrl(user?.avatar || user?.userAvatar || user?.avatarUrl || '');
+const resolveUserAvatar = (user) => {
+  const avatar = user?.avatar || user?.userAvatar || user?.avatarUrl;
+  if (!avatar) return '/default-avatar.png';
+  const avatarUrl = getAvatarUrl(avatar);
+  return avatarUrl || '/default-avatar.png';
+};
 
 const ChatBox = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -114,11 +118,22 @@ const ChatBox = ({ isOpen, onClose }) => {
 
   // Helper to get active chat key
   const getActiveChatKey = () =>
-    state.activeChatUser?.userId ?? state.activeChatUser?.username ?? 'unknown';
-  const activeChatAvatar = state.activeChatUser ? resolveUserAvatar(state.activeChatUser) : '/default-avatar.png';
+    state.activeChatUser?.userId ?? state.activeChatUser?.id ?? 'unknown';
+  
+  // Memoize activeChatAvatar to avoid recalculating on every render
+  const activeChatAvatar = React.useMemo(() => {
+    if (!state.activeChatUser) return '/default-avatar.png';
+    return resolveUserAvatar(state.activeChatUser);
+  }, [state.activeChatUser?.userId, state.activeChatUser?.id, state.activeChatUser?.avatar, state.activeChatUser?.userAvatar]);
+  
+  // Lazy load allUsers only when needed (defer to avoid blocking UI)
   useEffect(() => {
     if (isOpen && (!state.allUsers || state.allUsers.length === 0)) {
-      actions.loadAllUsers?.();
+      // Defer loading to avoid blocking UI render
+      const timer = setTimeout(() => {
+        actions.loadAllUsers?.();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, state.allUsers?.length]);
 
@@ -134,7 +149,8 @@ const ChatBox = ({ isOpen, onClose }) => {
   };
 
   // Handle scroll events for infinite scroll
-  const handleScroll = (e) => {
+  // Use throttling for better performance in Chrome
+  const handleScroll = React.useCallback((e) => {
     const container = e.target;
     const scrollTop = container.scrollTop;
     const scrollHeight = container.scrollHeight;
@@ -184,7 +200,7 @@ const ChatBox = ({ isOpen, onClose }) => {
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
     }, 1000);
-  };
+  }, [state.hasMoreMessages, state.isLoadingMoreMessages, actions]);
 
   // Handle scroll position when new messages are prepended
   const maintainScrollPosition = () => {
@@ -290,21 +306,24 @@ const ChatBox = ({ isOpen, onClose }) => {
           actions.openChatWithUser(activeChatUser);
         }
       } catch (error) {
-        console.error('Error parsing saved chat state:', error);
         localStorage.removeItem('chatBoxState');
       }
     }
   }, [state.currentUser]); // Depend on currentUser
 
   // Effect: whenever chatbox opens or messages arrive while open, ensure we are at the bottom
+  // Use requestAnimationFrame for smoother scrolling performance
   useEffect(() => {
     if (!isOpen || state.loadingMessages) return;
 
     if (state.messages.length > 0) {
-      const s = messagesContainerRef.current;
-      if (s) {
-        s.scrollTop = s.scrollHeight; // instant scroll to bottom on open/reopen
-      }
+      // Use requestAnimationFrame to defer scroll until after render (performance optimization)
+      requestAnimationFrame(() => {
+        const s = messagesContainerRef.current;
+        if (s) {
+          s.scrollTop = s.scrollHeight; // instant scroll to bottom on open/reopen
+        }
+      });
     }
   }, [isOpen, state.loadingMessages, state.activeChatUser, state.messages.length]);
 
@@ -355,7 +374,7 @@ const ChatBox = ({ isOpen, onClose }) => {
         // Scroll to bottom when sending a message
         setShouldScrollToBottom(true);
       } catch (error) {
-        console.error('Error sending message:', error);
+        // Error handled silently
       }
     }
   };
@@ -433,7 +452,14 @@ const ChatBox = ({ isOpen, onClose }) => {
           <div className={styles.chatInfo}>
             <div className={styles.avatar}>
               {state.activeChatUser ? (
-                <img src={activeChatAvatar} alt={state.activeChatUser.userName || state.activeChatUser.username || 'user'} />
+                <img 
+                  src={activeChatAvatar} 
+                  alt={state.activeChatUser.userName || state.activeChatUser.username || 'user'}
+                  onError={(e) => {
+                    e.target.src = '/default-avatar.png';
+                    e.target.onerror = null; // Prevent infinite loop
+                  }}
+                />
               ) : (
                 <UserIcon className="w-6 h-6" />
               )}
@@ -580,7 +606,7 @@ const ChatBox = ({ isOpen, onClose }) => {
             <button 
               className={styles.sendBtn}
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() || !state.activeChatUser}
+              disabled={!newMessage.trim() || !state.activeChatUser || !(state.activeChatUser?.userId || state.activeChatUser?.id)}
               title={t('chat.send')}
             >
               <PaperAirplaneIcon className="w-4 h-4" />
@@ -592,9 +618,9 @@ const ChatBox = ({ isOpen, onClose }) => {
       {/* Multiple ChatBubbles - Minimized */}
       {(state.minimizedChats || []).map((minimizedChat, index) => {
         // Only hide the bubble if it's the currently active chat user
+        const activeChatUserId = state.activeChatUser?.userId || state.activeChatUser?.id;
         const isCurrentActiveChat = state.activeChatUser && 
-          (state.activeChatUser.userName === minimizedChat.userId || 
-           state.activeChatUser.username === minimizedChat.userId);
+          activeChatUserId === minimizedChat.userId;
         const bubbleAvatar = resolveUserAvatar(minimizedChat.user);
         
         // Tính toán vị trí bottom: bubble đầu tiên ở 100px (tránh Coze), các bubble tiếp theo cách nhau 80px
@@ -613,7 +639,14 @@ const ChatBox = ({ isOpen, onClose }) => {
           >
           <div className={styles.bubbleAvatar}>
             {minimizedChat.user ? (
-              <img src={bubbleAvatar} alt={minimizedChat.user.userName || minimizedChat.user.username || 'user'} />
+              <img 
+                src={bubbleAvatar || '/default-avatar.png'} 
+                alt={minimizedChat.user.userName || minimizedChat.user.username || 'user'}
+                onError={(e) => {
+                  e.target.src = '/default-avatar.png';
+                  e.target.onerror = null; // Prevent infinite loop
+                }}
+              />
             ) : (
               <UserIcon className="w-6 h-6" />
             )}

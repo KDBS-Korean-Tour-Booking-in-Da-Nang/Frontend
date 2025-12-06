@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useChat } from '../../../contexts/ChatContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getAvatarUrl } from '../../../config/api';
@@ -17,6 +18,7 @@ import {
 
 const CustomerContact = () => {
   const { t, i18n } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { state, actions } = useChat();
   const { user: authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,11 +28,11 @@ const CustomerContact = () => {
   const inputRef = useRef(null);
   const hasLoadedUsersRef = useRef(false);
   const retryCountRef = useRef(0);
+  const hasOpenedChatFromUrlRef = useRef(false);
 
-  // Resolve current user's login name
-  const currentLoginName = (() => {
-    const n = state.currentUser?.userName || state.currentUser?.username || state.currentUser?.name || authUser?.username || authUser?.userName || authUser?.name || '';
-    return (n || '').toLowerCase();
+  // Resolve current user's ID
+  const currentUserId = (() => {
+    return state.currentUser?.userId || state.currentUser?.id || authUser?.userId || authUser?.id || null;
   })();
 
   // Load users with error handling and retry
@@ -77,6 +79,25 @@ const CustomerContact = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-open chat with user from URL query params
+  useEffect(() => {
+    const userIdFromUrl = searchParams.get('userId');
+    if (userIdFromUrl && !hasOpenedChatFromUrlRef.current && state.allUsers?.length > 0) {
+      const userId = parseInt(userIdFromUrl, 10);
+      if (!isNaN(userId)) {
+        // Find user by userId
+        const targetUser = state.allUsers.find(u => (u.userId || u.id) === userId);
+        if (targetUser) {
+          hasOpenedChatFromUrlRef.current = true;
+          actions.openChatWithUser(targetUser);
+          // Remove userId from URL after opening chat
+          searchParams.delete('userId');
+          setSearchParams(searchParams, { replace: true });
+        }
+      }
+    }
+  }, [searchParams, state.allUsers, actions, setSearchParams]);
   
   // Re-subscribe to WebSocket messages when active chat changes
   useEffect(() => {
@@ -160,9 +181,9 @@ const CustomerContact = () => {
       return true;
     })
     .filter(user => {
-      // Exclude current user
-      const uname = (user.username || user.userName || '').toLowerCase();
-      return uname && uname !== currentLoginName;
+      // Exclude current user (using userId)
+      const userId = user.userId || user.id;
+      return userId && userId !== currentUserId;
     })
     .filter(user => {
       // Apply search filter
@@ -176,8 +197,8 @@ const CustomerContact = () => {
   const mergedUserList = (() => {
     const convMap = new Map();
     (state.conversations || []).forEach(conv => {
-      const key = (conv.user?.username || conv.user?.userName || '').toLowerCase();
-      if (!key || key === currentLoginName) return;
+      const key = conv.user?.userId || conv.user?.id;
+      if (!key || key === currentUserId) return;
       const existing = convMap.get(key);
       const currentTs = new Date(conv.lastMessage?.timestamp || 0).getTime();
       const existingTs = existing ? new Date(existing.lastMessage?.timestamp || 0).getTime() : -1;
@@ -187,7 +208,7 @@ const CustomerContact = () => {
     });
 
     const list = filteredUsers.map(user => {
-      const key = (user.username || user.userName || '').toLowerCase();
+      const key = user.userId || user.id;
       const conv = convMap.get(key) || null;
       return { user, lastMessage: conv?.lastMessage || null };
     });
@@ -265,14 +286,16 @@ const CustomerContact = () => {
           ) : (
             mergedUserList.map((item) => {
               const user = item.user;
+              const userId = user.userId || user.id;
               const userName = user.username || user.userName || user.name || 'N/A';
               const userAvatar = user.avatar || user.userAvatar;
               const lastMessage = item.lastMessage;
-              const isActive = activeUserName.toLowerCase() === userName.toLowerCase();
+              const activeUserId = activeUser?.userId || activeUser?.id;
+              const isActive = activeUserId === userId;
 
               return (
                  <div
-                   key={userName}
+                   key={userId || userName}
                    onClick={() => handleUserSelect(user)}
                    onKeyDown={(e) => {
                      if (e.key === 'Enter' || e.key === ' ') {
@@ -292,10 +315,13 @@ const CustomerContact = () => {
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
                       <img
-                        src={getAvatarUrl(userAvatar)}
+                        src={getAvatarUrl(userAvatar) || '/default-avatar.png'}
                         alt={userName}
                         className="w-12 h-12 rounded-full object-cover"
-                        onError={(e) => { e.target.src = '/default-avatar.png'; }}
+                        onError={(e) => {
+                          e.target.src = '/default-avatar.png';
+                          e.target.onerror = null; // Prevent infinite loop
+                        }}
                       />
                       <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
@@ -304,9 +330,9 @@ const CustomerContact = () => {
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="font-semibold text-gray-900 truncate">{userName}</p>
                       {lastMessage && (() => {
-                        // Determine if message is from current user
-                        const lastMessageSender = lastMessage.senderName || lastMessage.sender?.userName || lastMessage.sender?.username || '';
-                        const isFromMe = lastMessage.isOwn || (lastMessageSender.toLowerCase() === currentLoginName);
+                        // Determine if message is from current user (using userId)
+                        const lastMessageSenderId = lastMessage.senderId || lastMessage.sender?.userId || lastMessage.sender?.id;
+                        const isFromMe = lastMessage.isOwn || (lastMessageSenderId === currentUserId);
                         const prefix = isFromMe ? t('admin.customerContact.you') : t('admin.customerContact.me');
                         return (
                           <p className="text-sm text-gray-500 truncate line-clamp-1">
@@ -338,10 +364,13 @@ const CustomerContact = () => {
             <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src={getAvatarUrl(activeUser.avatar || activeUser.userAvatar)}
+                  src={getAvatarUrl(activeUser.avatar || activeUser.userAvatar) || '/default-avatar.png'}
                   alt={activeUserName}
                   className="w-10 h-10 rounded-full object-cover"
-                  onError={(e) => { e.target.src = '/default-avatar.png'; }}
+                  onError={(e) => {
+                    e.target.src = '/default-avatar.png';
+                    e.target.onerror = null; // Prevent infinite loop
+                  }}
                 />
                 <div>
                   <p className="font-semibold text-gray-900">{activeUserName}</p>
@@ -387,9 +416,9 @@ const CustomerContact = () => {
                    {(() => {
                      const isSameSender = (a, b) => {
                        if (!a || !b) return false;
-                       return a.isOwn === b.isOwn && 
-                         (a.sender?.userName || a.sender?.username || a.senderName) === 
-                         (b.sender?.userName || b.sender?.username || b.senderName);
+                       const aSenderId = a.sender?.userId || a.sender?.id || a.senderId;
+                       const bSenderId = b.sender?.userId || b.sender?.id || b.senderId;
+                       return a.isOwn === b.isOwn && aSenderId === bSenderId;
                      };
 
                      const isFirstInGroup = (msgs, i) => {

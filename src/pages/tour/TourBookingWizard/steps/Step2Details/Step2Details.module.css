@@ -2,7 +2,7 @@
 .details-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
 /* Loading Container */
@@ -38,10 +38,11 @@
 }
 
 .form-section {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #edf0f7;
+  border-radius: 24px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
 .section-title {
@@ -206,12 +207,12 @@
 }
 
 .form-select {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #e1e4ee;
+  border-radius: 18px;
+  font-size: 0.98rem;
   transition: all 0.2s ease;
-  background-color: white;
+  background-color: #fbfcff;
   color: #1f2937;
   appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
@@ -226,12 +227,12 @@
 .form-select:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
 
 .form-select.error {
   border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
 }
 
 /* Style cho option được chọn */
@@ -276,10 +277,10 @@
 }
 
 .pax-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #edf0f7;
+  border-radius: 20px;
+  padding: 1.1rem 1rem;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -406,10 +407,10 @@
 }
 
 .member-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #edf0f7;
+  border-radius: 20px;
+  padding: 1.25rem 1.1rem;
   margin-bottom: 1rem;
 }
 
@@ -457,24 +458,24 @@
 }
 
 .form-input {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;  /* Mặc định xám nhạt, chỉ đỏ khi có lỗi */
-  border-radius: 8px;         /* Bo góc như trong hình */
-  font-size: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #e1e4ee;  /* Mặc định xám nhạt, chỉ đỏ khi có lỗi */
+  border-radius: 18px;        /* Bo góc lớn, mềm mại */
+  font-size: 0.98rem;
   transition: all 0.2s ease;
-  background-color: white;
+  background-color: #fbfcff;
   color: #1f2937;
 }
 
 .form-input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
 
 .form-input.error {
   border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
 }
 
 .form-input.disabled,

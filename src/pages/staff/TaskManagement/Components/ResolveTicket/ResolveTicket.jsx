@@ -9,6 +9,7 @@ import {
   ClockIcon,
   XMarkIcon,
   ExclamationTriangleIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 const ResolveTicket = () => {
@@ -47,6 +48,20 @@ const ResolveTicket = () => {
   );
 
   const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+
+  const formatDateTime = (value) => {
+    if (!value) return 'N/A';
+    try {
+      // Handle different field names (createdAt, created_at, createAt)
+      const dateValue = value.createdAt || value.created_at || value.createAt || value;
+      if (!dateValue) return 'N/A';
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleString();
+    } catch {
+      return 'N/A';
+    }
+  };
 
   // Check if user has permission
   if (user && !canManageResolveTicket) {
@@ -208,7 +223,7 @@ const ResolveTicket = () => {
                       {ticket.subject || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {ticket.createdAt || 'N/A'}
+                      {formatDateTime(ticket.createdAt || ticket.created_at || ticket.createAt)}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700">
@@ -219,14 +234,30 @@ const ResolveTicket = () => {
                       {ticket.priority || 'N/A'}
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        type="button"
-                        disabled
-                        className="p-2 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed transition-all duration-200"
-                        title="Coming soon"
-                      >
-                        <CheckCircleIcon className="h-5 w-5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled
+                          className="p-2 rounded-full border border-gray-200 text-gray-400 cursor-not-allowed transition-all duration-200"
+                          title="Resolve ticket (Coming soon)"
+                        >
+                          <CheckCircleIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Navigate to Customer Contact and open chat with user
+                            if (ticket.userId) {
+                              navigate(`/staff/contact?userId=${ticket.userId}`);
+                            }
+                          }}
+                          disabled={!ticket.userId}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 disabled:text-gray-400 disabled:cursor-not-allowed transition-all duration-200"
+                          title={ticket.userId ? "Message user" : "User ID not available"}
+                        >
+                          <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -193,13 +193,13 @@ const chatReducer = (state, action) => {
           return false;
         }
         
-        const existingSender = (existing.sender?.userName || existing.senderName || '').toLowerCase();
-        const incomingSender = (incoming.sender?.userName || incoming.senderName || '').toLowerCase();
-        const existingReceiver = (existing.receiver?.userName || existing.receiverName || '').toLowerCase();
-        const incomingReceiver = (incoming.receiver?.userName || incoming.receiverName || '').toLowerCase();
+        const existingSenderId = existing.sender?.userId || existing.sender?.id || existing.senderId;
+        const incomingSenderId = incoming.sender?.userId || incoming.sender?.id || incoming.senderId;
+        const existingReceiverId = existing.receiver?.userId || existing.receiver?.id || existing.receiverId;
+        const incomingReceiverId = incoming.receiver?.userId || incoming.receiver?.id || incoming.receiverId;
         
-        // Check same direction (sender->receiver)
-        const sameDirection = existingSender === incomingSender && existingReceiver === incomingReceiver;
+        // Check same direction (sender->receiver) using userId
+        const sameDirection = existingSenderId === incomingSenderId && existingReceiverId === incomingReceiverId;
         
         return sameDirection;
       });
@@ -212,9 +212,9 @@ const chatReducer = (state, action) => {
       let shouldFlagUnread = state.hasUnreadMessages;
       
       if (!incoming.isOwn) {
-        const incomingSender = (incoming.sender?.userName || incoming.senderName || incoming.sender?.username || incoming.sender?.name || '').toLowerCase();
-        const activeChatUserName = (state.activeChatUser?.userName || state.activeChatUser?.username || state.activeChatUser?.name || '').toLowerCase();
-        const isActiveChat = state.isChatBoxOpen && incomingSender && activeChatUserName && incomingSender === activeChatUserName;
+        const incomingSenderId = incoming.sender?.userId || incoming.sender?.id || incoming.senderId;
+        const activeChatUserId = state.activeChatUser?.userId || state.activeChatUser?.id;
+        const isActiveChat = state.isChatBoxOpen && incomingSenderId && activeChatUserId && incomingSenderId === activeChatUserId;
         const isChatListOpen = state.isChatDropdownOpen;
         if (!isActiveChat && !isChatListOpen) {
           shouldFlagUnread = true;
@@ -248,11 +248,11 @@ const chatReducer = (state, action) => {
           const eTs = new Date(e.timestamp).getTime();
           const mTs = new Date(msg.timestamp).getTime();
           const closeInTime = Math.abs(eTs - mTs) <= 5000;
-          const eSender = e.sender?.userName || e.senderName || '';
-          const mSender = msg.sender?.userName || msg.senderName || '';
-          const eReceiver = e.receiver?.userName || e.receiverName || '';
-          const mReceiver = msg.receiver?.userName || msg.receiverName || '';
-          const sameDirection = eSender === mSender && eReceiver === mReceiver;
+          const eSenderId = e.sender?.userId || e.sender?.id || e.senderId;
+          const mSenderId = msg.sender?.userId || msg.sender?.id || msg.senderId;
+          const eReceiverId = e.receiver?.userId || e.receiver?.id || e.receiverId;
+          const mReceiverId = msg.receiver?.userId || msg.receiver?.id || msg.receiverId;
+          const sameDirection = eSenderId === mSenderId && eReceiverId === mReceiverId;
           return sameOwnership && sameContent && closeInTime && sameDirection;
         });
         return !existsSimilar;
@@ -316,17 +316,20 @@ const chatReducer = (state, action) => {
     case ActionTypes.UPDATE_CONVERSATION:
       return {
         ...state,
-        conversations: state.conversations.map(conv => 
-          conv.user.userName === action.payload.user.userName 
-            ? action.payload 
-            : conv
-        )
+        conversations: state.conversations.map(conv => {
+          const convUserId = conv.user.userId || conv.user.id;
+          const payloadUserId = action.payload.user.userId || action.payload.user.id;
+          return convUserId === payloadUserId ? action.payload : conv;
+        })
       };
 
     case ActionTypes.UPSERT_CONVERSATION: {
       const payload = action.payload;
-      const key = payload.user.userName || payload.user.username;
-      const existingIndex = state.conversations.findIndex(c => (c.user.userName || c.user.username) === key);
+      const key = payload.user.userId || payload.user.id;
+      const existingIndex = state.conversations.findIndex(c => {
+        const cUserId = c.user.userId || c.user.id;
+        return cUserId === key;
+      });
       let updated = [];
       if (existingIndex >= 0) {
         updated = state.conversations.map((c, i) => i === existingIndex ? { ...c, ...payload } : c);
@@ -580,27 +583,30 @@ export const ChatProvider = ({ children }) => {
           currentUserRef.current = currentUser;
           
           try {
-            // Connect to WebSocket with current user's username
-            const username = currentUser.userName || currentUser.username || currentUser.name || 'unknown';
+            // Connect to WebSocket with current user's userId
+            const userId = currentUser.userId || currentUser.id;
+            if (!userId) {
+              throw new Error('User ID is required for WebSocket connection');
+            }
             
             // Only connect if not already connected (to avoid duplicate connections)
             if (!websocketService.getConnectionStatus()) {
-              await websocketService.connect(username);
+              await websocketService.connect(userId);
             }
             dispatch({ type: ActionTypes.SET_CONNECTED });
             // Set websocketAvailable to true when connection succeeds
             dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
             
-            // Subscribe to user messages - use the exact username used for connection
-            const subscriptionResult = websocketService.subscribeToUserMessages(username, (message) => {
+            // Subscribe to user messages - use userId for subscription
+            const subscriptionResult = websocketService.subscribeToUserMessages(userId, (message) => {
               // Get fresh currentUser from ref (updated when user changes)
               const freshCurrentUser = currentUserRef.current || currentUser;
-              const currentUserName = freshCurrentUser.userName || freshCurrentUser.username || freshCurrentUser.name;
-              // Backend sends ChatMessageRequest with senderName field directly
-              const messageSenderName = message.senderName || message.sender?.userName || message.sender?.username || message.sender?.name;
+              const currentUserId = freshCurrentUser.userId || freshCurrentUser.id;
+              // Backend sends ChatMessageRequest with senderId field
+              const messageSenderId = message.senderId || message.sender?.userId || message.sender?.id;
               
               // Filter out messages from current user to avoid duplicates
-              if (messageSenderName !== currentUserName) {
+              if (messageSenderId !== currentUserId) {
                 // Add isOwn field for display
                 const messageWithOwnership = {
                   ...message,
@@ -609,16 +615,27 @@ export const ChatProvider = ({ children }) => {
                 };
                 dispatch({ type: ActionTypes.ADD_MESSAGE, payload: messageWithOwnership });
 
-                // Upsert conversation for sender
-                const rawOther = messageWithOwnership.senderName || messageWithOwnership.sender?.userName || messageSenderName;
-                const otherUserName = resolveLoginUsername(rawOther);
+                // Upsert conversation for sender - need to get username from allUsers
+                const otherUserId = messageSenderId;
+                // Get username from allUsers if available, otherwise use userId as fallback
+                const otherUser = (state.allUsers || []).find(u => (u.userId || u.id) === otherUserId);
+                const otherUsername = otherUser?.username || otherUser?.userName || otherUser?.name || String(otherUserId);
+                const currentUsername = freshCurrentUser.userName || freshCurrentUser.username || freshCurrentUser.name || String(currentUserId);
+                
                 const conversation = {
-                  user: { userName: otherUserName, username: otherUserName, avatar: messageWithOwnership.sender?.avatar },
+                  user: { 
+                    userId: otherUserId,
+                    id: otherUserId,
+                    userName: otherUsername, 
+                    username: otherUsername, 
+                    avatar: messageWithOwnership.sender?.avatar || otherUser?.avatar || otherUser?.userAvatar,
+                    userEmail: otherUser?.userEmail || otherUser?.email || null
+                  },
                   lastMessage: {
                     content: messageWithOwnership.content,
                     timestamp: messageWithOwnership.timestamp,
-                    senderName: otherUserName,
-                    receiverName: currentUserName,
+                    senderId: otherUserId,
+                    receiverId: currentUserId,
                     isOwn: false, // Message from other user
                     sender: messageWithOwnership.sender
                   },
@@ -657,6 +674,8 @@ export const ChatProvider = ({ children }) => {
   const pickMinimalUser = (user) => {
     if (!user) return null;
     const minimal = {
+      userId: user.userId || user.id || null,
+      id: user.id || user.userId || null,
       userName: user.userName || user.username || user.name || '',
       username: user.username || user.userName || '',
       avatar: user.avatar || null,
@@ -726,32 +745,32 @@ export const ChatProvider = ({ children }) => {
     
     // Check if user is logged in (by token, not just authUser object)
     if (token) {
-      // Get username from authUser if available, otherwise try to get from storage
-      let username = null;
+      // Get userId from authUser if available, otherwise try to get from storage
+      let userId = null;
       if (authUser) {
-        username = authUser.username || authUser.userName || authUser.name;
+        userId = authUser.userId || authUser.id;
       } else {
-        // Try to get username from storage if authUser not yet loaded
+        // Try to get userId from storage if authUser not yet loaded
         try {
           const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
           if (savedUser) {
             const parsedUser = JSON.parse(savedUser);
-            username = parsedUser.username || parsedUser.userName || parsedUser.name;
+            userId = parsedUser.userId || parsedUser.id;
           }
         } catch (e) {
           // Ignore parse errors
         }
       }
       
-      // If we have token and username, connect immediately
-      if (username) {
+      // If we have token and userId, connect immediately
+      if (userId) {
         // Small delay to ensure cleanup completes before re-initializing
         const timer = setTimeout(() => {
           initializeConnection();
         }, 100);
         return () => clearTimeout(timer);
       } else if (authUser) {
-        // If we have authUser but no username yet, wait a bit and retry
+        // If we have authUser but no userId yet, wait a bit and retry
         const timer = setTimeout(() => {
           initializeConnection();
         }, 500);
@@ -764,7 +783,7 @@ export const ChatProvider = ({ children }) => {
       websocketService.disconnect();
       dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
     }
-  }, [authUser?.userId, authUser?.username, authUser?.userName, authUser?.name, getToken]); // Re-initialize when user changes
+  }, [authUser?.userId, authUser?.id, getToken]); // Re-initialize when user changes
 
   // Restore minimized chats when currentUser is set (backup restore in case initialState didn't work)
   // Note: minimizedChats should already be restored in initialState, but this is a safety net
@@ -886,7 +905,11 @@ export const ChatProvider = ({ children }) => {
     connect: async () => {
       try {
         dispatch({ type: ActionTypes.SET_CONNECTING });
-        await websocketService.connect(state.currentUser?.userName);
+        const userId = state.currentUser?.userId || state.currentUser?.id;
+        if (!userId) {
+          throw new Error('User ID is required');
+        }
+        await websocketService.connect(userId);
         dispatch({ type: ActionTypes.SET_CONNECTED });
       } catch (error) {
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
@@ -903,7 +926,7 @@ export const ChatProvider = ({ children }) => {
       try {
         // If there's already an active chat, minimize it first
         if (state.activeChatUser && state.messages.length > 0) {
-          const currentUserId = state.activeChatUser.userName || state.activeChatUser.username;
+          const currentUserId = state.activeChatUser.userId || state.activeChatUser.id;
           
           // Check if this chat is already minimized
           const existingChat = (state.minimizedChats || []).find(chat => chat.userId === currentUserId);
@@ -925,66 +948,101 @@ export const ChatProvider = ({ children }) => {
           }
         }
         
-        // Set new active chat user
+        // Set new active chat user - do this first for instant UI update
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: user });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false }); // Ensure chatbox is visible
         dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
         dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
         
-        // Save chat state to localStorage for persistence
-        const minimalUser = pickMinimalUser(user);
-        localStorage.setItem('chatBoxState', JSON.stringify({
-          isOpen: true,
-          activeChatUser: minimalUser
-        }));
-        
-        // Load conversation from API with pagination (latest messages first)
-        dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: true });
+        // Set empty messages immediately for instant UI render
+        dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
         dispatch({ type: ActionTypes.SET_CURRENT_PAGE, payload: 0 });
         dispatch({ type: ActionTypes.SET_HAS_MORE_MESSAGES, payload: true });
         
-        const liveUser = getLiveCurrentUser();
-        let receiver = resolveLoginUsername(user);
-        let messages = await chatApiService.getConversation(
-          liveUser.userName, 
-          receiver,
-          0, // page 0 for latest messages
-          25 // size 25 for initial load
-        );
-        // Defensive: if other user just renamed and backend rejects old name → reload users and retry once
-        if (!Array.isArray(messages)) {
-          // no-op; typical backend returns array. Keep as-is.
-        }
-        const formattedMessages = chatApiService.formatConversation(messages, liveUser);
+        // Save chat state to localStorage for persistence (defer to avoid blocking)
+        setTimeout(() => {
+          const minimalUser = pickMinimalUser(user);
+          localStorage.setItem('chatBoxState', JSON.stringify({
+            isOpen: true,
+            activeChatUser: minimalUser
+          }));
+        }, 0);
         
-        // Sort messages by timestamp (oldest first for display - newest at bottom)
-        const sortedMessages = formattedMessages.sort((a, b) => 
-          new Date(a.timestamp) - new Date(b.timestamp)
-        );
-        
-        dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
-        
-      } catch (error) {
-        // One-shot retry with refreshed users in case receiver renamed mid-session
-        try {
-          await actions.loadAllUsers();
+        // Defer loading conversation to allow UI to render first (performance optimization)
+        // This prevents lag when opening chatbox
+        setTimeout(async () => {
+          dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: true });
+          
           const liveUser = getLiveCurrentUser();
-          const receiver = resolveLoginUsername(user);
-          const messages = await chatApiService.getConversation(
-            liveUser.userName,
-            receiver,
-            0,
-            25
-          );
-          const formattedMessages = chatApiService.formatConversation(messages, liveUser);
-          const sortedMessages = formattedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-          dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
-        } catch (e2) {
-          // Silently handle error opening chat with user
-          dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
-          dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
-        }
+          const senderId = liveUser.userId || liveUser.id;
+          const receiverId = user.userId || user.id;
+          
+          if (!senderId || !receiverId) {
+            // Still set messages to empty array so user can start chatting
+            dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
+            return;
+          }
+          
+          try {
+            let messages = await chatApiService.getConversation(
+              senderId, 
+              receiverId,
+              0, // page 0 for latest messages
+              25 // size 25 for initial load
+            );
+            
+            // Ensure messages is an array
+            if (!Array.isArray(messages)) {
+              messages = [];
+            }
+            
+            const formattedMessages = chatApiService.formatConversation(messages, liveUser, state.allUsers || []);
+            
+            // Sort messages by timestamp (oldest first for display - newest at bottom)
+            const sortedMessages = formattedMessages.sort((a, b) => 
+              new Date(a.timestamp) - new Date(b.timestamp)
+            );
+            
+            dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
+            dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
+          } catch (error) {
+            // One-shot retry with refreshed users in case receiver renamed mid-session
+            try {
+              await actions.loadAllUsers();
+              const liveUser = getLiveCurrentUser();
+              const senderId = liveUser.userId || liveUser.id;
+              const receiverId = user.userId || user.id;
+              
+              if (!senderId || !receiverId) {
+                throw new Error('User IDs are required');
+              }
+              
+              const messages = await chatApiService.getConversation(
+                senderId,
+                receiverId,
+                0,
+                25
+              );
+              
+              // Ensure messages is an array
+              const messagesArray = Array.isArray(messages) ? messages : [];
+              const formattedMessages = chatApiService.formatConversation(messagesArray, liveUser, state.allUsers || []);
+              const sortedMessages = formattedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+              dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
+              dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
+            } catch (e2) {
+              // Even if loading conversation fails, allow user to start chatting
+              // Set empty messages array so user can send first message
+              dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
+              dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
+            }
+          }
+        }, 50); // Small delay to allow UI to render first
+      } catch (error) {
+        // If there's any error, still allow user to start chatting
+        dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
+        dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
       }
     },
 
@@ -995,8 +1053,15 @@ export const ChatProvider = ({ children }) => {
 
       try {
         const liveUser2 = getLiveCurrentUser();
-        const senderName = liveUser2?.userName || liveUser2?.username || liveUser2?.name || 'unknown';
-        const receiverName = state.activeChatUser?.userName || state.activeChatUser?.username || state.activeChatUser?.name || 'unknown';
+        const senderId = liveUser2?.userId || liveUser2?.id;
+        const receiverId = state.activeChatUser?.userId || state.activeChatUser?.id;
+        
+        if (!senderId || !receiverId) {
+          throw new Error('User IDs are required. Please ensure both users have valid IDs.');
+        }
+        
+        const senderUsername = liveUser2?.userName || liveUser2?.username || liveUser2?.name || String(senderId);
+        const receiverUsername = state.activeChatUser?.userName || state.activeChatUser?.username || state.activeChatUser?.name || String(receiverId);
         
         // Add message to local state immediately (optimistic update)
         const tempMessage = {
@@ -1004,13 +1069,15 @@ export const ChatProvider = ({ children }) => {
           content: content.trim(),
           timestamp: new Date().toISOString(),
           sender: {
-            userId: state.currentUser?.userId || liveUser2?.userId,
-            userName: senderName,
+            userId: senderId,
+            userName: senderUsername,
+            username: senderUsername,
             userEmail: state.currentUser?.userEmail || liveUser2?.userEmail
           },
           receiver: {
-            userId: state.activeChatUser?.userId,
-            userName: receiverName,
+            userId: receiverId,
+            userName: receiverUsername,
+            username: receiverUsername,
             userEmail: state.activeChatUser?.userEmail
           },
           isOwn: true
@@ -1018,14 +1085,26 @@ export const ChatProvider = ({ children }) => {
         
         dispatch({ type: ActionTypes.ADD_MESSAGE, payload: tempMessage });
 
+        // Get receiver username from allUsers if available for better display
+        const receiverUser = (state.allUsers || []).find(u => (u.userId || u.id) === receiverId);
+        const finalReceiverUsername = receiverUser?.username || receiverUser?.userName || receiverUser?.name || receiverUsername;
+        const finalReceiverAvatar = receiverUser?.avatar || receiverUser?.userAvatar || state.activeChatUser?.avatar;
+        
         // Update conversations immediately so dropdown shows latest preview and reorders to top
         const upsertForSelf = {
-          user: { userName: receiverName, username: receiverName, avatar: state.activeChatUser?.avatar },
+          user: { 
+            userId: receiverId,
+            id: receiverId,
+            userName: finalReceiverUsername, 
+            username: finalReceiverUsername, 
+            avatar: finalReceiverAvatar,
+            userEmail: receiverUser?.userEmail || receiverUser?.email || state.activeChatUser?.userEmail
+          },
           lastMessage: {
             content: tempMessage.content,
             timestamp: tempMessage.timestamp,
-            senderName: senderName,
-            receiverName: receiverName,
+            senderId: senderId,
+            receiverId: receiverId,
             isOwn: true, // Message from current user
             sender: tempMessage.sender
           },
@@ -1034,8 +1113,8 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.UPSERT_CONVERSATION, payload: upsertForSelf });
         
         const messageData = {
-          senderName: senderName,
-          receiverName: receiverName,
+          senderId: parseInt(senderId),
+          receiverId: parseInt(receiverId),
           content: content.trim()
         };
 
@@ -1048,14 +1127,22 @@ export const ChatProvider = ({ children }) => {
           
           if (success) {
             // Message already added to local state, WebSocket will handle delivery
+            // Reload conversations to ensure new conversation appears in dropdown
+            setTimeout(() => {
+              actions.loadConversations();
+            }, 500);
             return;
           }
         }
         
         // Fallback to API if WebSocket fails or not available
         try {
-          await chatApiService.sendMessage(messageData.senderName, messageData.receiverName, messageData.content);
+          await chatApiService.sendMessage(senderId, receiverId, content.trim());
           // Message already added to local state via optimistic update
+          // Reload conversations to ensure new conversation appears in dropdown
+          setTimeout(() => {
+            actions.loadConversations();
+          }, 500);
         } catch (apiError) {
           // Silently handle API send failed error
           // Remove the temporary message if API also fails
@@ -1101,7 +1188,7 @@ export const ChatProvider = ({ children }) => {
     closeChatBox: () => {
       // Close the corresponding minimized chat bubble if exists
       if (state.activeChatUser) {
-        const userId = state.activeChatUser.userName || state.activeChatUser.username;
+        const userId = state.activeChatUser.userId || state.activeChatUser.id;
         dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
         
         // Update localStorage - remove only this chat from minimizedChats
@@ -1126,7 +1213,7 @@ export const ChatProvider = ({ children }) => {
 
     minimizeChatBox: () => {
       if (state.activeChatUser) {
-        const userId = state.activeChatUser.userName || state.activeChatUser.username;
+        const userId = state.activeChatUser.userId || state.activeChatUser.id;
         
         // Check if this chat is already minimized
         const existingChat = (state.minimizedChats || []).find(chat => chat.userId === userId);
@@ -1172,7 +1259,7 @@ export const ChatProvider = ({ children }) => {
         
         // If there's already an active chat, minimize it first (same logic as openChatWithUser)
         if (state.activeChatUser && state.messages.length > 0) {
-          const currentUserId = state.activeChatUser.userName || state.activeChatUser.username;
+          const currentUserId = state.activeChatUser.userId || state.activeChatUser.id;
           
           // Check if this chat is already minimized
           const existingChat = finalMinimizedChats.find(chat => chat.userId === currentUserId);
@@ -1273,8 +1360,14 @@ export const ChatProvider = ({ children }) => {
         
         // Load fresh data from API in background
         const liveUser = getLiveCurrentUser();
-        const messages = await chatApiService.getAllMessagesFromUser(liveUser.userName);
-        const conversations = chatApiService.getConversationsList(messages, liveUser);
+        const userId = liveUser.userId || liveUser.id;
+        
+        if (!userId) {
+          throw new Error('User ID is required');
+        }
+        
+        const messages = await chatApiService.getAllMessagesFromUser(userId);
+        const conversations = chatApiService.getConversationsList(messages, liveUser, state.allUsers || []);
         
         // Save to cache
         try {
@@ -1310,11 +1403,15 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: user });
         
         const liveUser = getLiveCurrentUser();
-        const senderName = liveUser.userName || liveUser.username || liveUser.name;
-        const receiverName = resolveLoginUsername(user);
+        const senderId = liveUser.userId || liveUser.id;
+        const receiverId = user.userId || user.id;
         
-        const messages = await chatApiService.getConversationLegacy(senderName, receiverName);
-        const formattedMessages = chatApiService.formatConversation(messages, liveUser);
+        if (!senderId || !receiverId) {
+          throw new Error('User IDs are required');
+        }
+        
+        const messages = await chatApiService.getConversationLegacy(senderId, receiverId);
+        const formattedMessages = chatApiService.formatConversation(messages, liveUser, state.allUsers || []);
         
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: formattedMessages });
         
@@ -1338,12 +1435,16 @@ export const ChatProvider = ({ children }) => {
         
         const nextPage = state.currentPage + 1;
         const liveUser = getLiveCurrentUser();
-        const senderName = liveUser.userName || liveUser.username || liveUser.name;
-        const receiverName = resolveLoginUsername(state.activeChatUser);
+        const senderId = liveUser.userId || liveUser.id;
+        const receiverId = state.activeChatUser.userId || state.activeChatUser.id;
+        
+        if (!senderId || !receiverId) {
+          throw new Error('User IDs are required');
+        }
         
         const messages = await chatApiService.getConversation(
-          senderName, 
-          receiverName,
+          senderId, 
+          receiverId,
           nextPage,
           25
         );
@@ -1352,7 +1453,7 @@ export const ChatProvider = ({ children }) => {
           // No more messages
           dispatch({ type: ActionTypes.SET_HAS_MORE_MESSAGES, payload: false });
         } else {
-          const formattedMessages = chatApiService.formatConversation(messages, state.currentUser);
+          const formattedMessages = chatApiService.formatConversation(messages, state.currentUser, state.allUsers || []);
           
           // Sort older messages by timestamp (oldest first for prepending)
           const sortedOlderMessages = formattedMessages.sort((a, b) => 
@@ -1400,8 +1501,9 @@ export const ChatProvider = ({ children }) => {
         // Load fresh data from API
         const users = await chatApiService.getAllUsers();
         // Filter out current user from the list
+        const currentUserId = state.currentUser?.userId || state.currentUser?.id;
         const filteredUsers = (users || [])
-          .filter(user => user.username !== state.currentUser?.userName);
+          .filter(user => (user.userId || user.id) !== currentUserId);
         
         // Save to cache
         try {
@@ -1495,12 +1597,16 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: currentUser });
         
         // Connect to WebSocket
-        await websocketService.connect(currentUser.userName);
+        const userId = currentUser.userId || currentUser.id;
+        if (!userId) {
+          throw new Error('User ID is required');
+        }
+        await websocketService.connect(userId);
         dispatch({ type: ActionTypes.SET_CONNECTED });
         
         // Subscribe to user messages
-        websocketService.subscribeToUserMessages(currentUser.userName, (message) => {
-          const formattedMessage = chatApiService.formatMessage(message, currentUser);
+        websocketService.subscribeToUserMessages(userId, (message) => {
+          const formattedMessage = chatApiService.formatMessage(message, currentUser, state.allUsers || []);
           dispatch({ type: ActionTypes.ADD_MESSAGE, payload: formattedMessage });
         });
         

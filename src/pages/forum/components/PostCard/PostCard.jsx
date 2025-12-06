@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import styles from './PostCard.module.css';
 
-const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPost = false }) => {
+const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPost = false, highlightPostId = null, highlightCommentId = null, isAdminStaffView = false }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
   const navigate = useNavigate();
@@ -60,6 +60,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const [translatedText, setTranslatedText] = useState('');
   const [showTranslated, setShowTranslated] = useState(false);
   const [translateError, setTranslateError] = useState('');
+  const [showAllHashtags, setShowAllHashtags] = useState(false);
   
   // Cache for resolved image URLs to avoid repeated processing
   const imageUrlCache = useRef(new Map());
@@ -68,14 +69,20 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const resolveImageUrl = (imgPath) => {
     if (!imgPath) return '';
     if (typeof imgPath !== 'string') return '';
-    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
+    
+    // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+    const trimmed = imgPath.trim();
+    if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+      return trimmed.substring(1); // Loại bỏ dấu / ở đầu và return luôn
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
     
     // Check cache first
     if (imageUrlCache.current.has(imgPath)) {
       return imageUrlCache.current.get(imgPath);
     }
     
-    const normalized = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+    const normalized = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
     const resolvedUrl = getImageUrl(normalized);
     
     // Cache the resolved URL
@@ -676,6 +683,11 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
   const defaultAvatar = '/default-avatar.png';
 
+  const allHashtags = Array.isArray(post.hashtags) ? post.hashtags : [];
+  const MAX_VISIBLE_HASHTAGS = 6;
+  const visibleHashtags = showAllHashtags ? allHashtags : allHashtags.slice(0, MAX_VISIBLE_HASHTAGS);
+  const hasMoreHashtags = allHashtags.length > MAX_VISIBLE_HASHTAGS;
+
   // Function to render content with clickable links
   const renderContentWithLinks = (content) => {
     if (!content) return '';
@@ -897,7 +909,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
   return (
     <>
-    <div className={styles['post-card']} id={`post-${post.postId}`}>
+    <div className={styles['post-card']} id={`post-${post.forumPostId}`} data-highlight={highlightPostId && String(highlightPostId) === String(post.forumPostId) ? 'true' : 'false'} data-admin-staff-view={isAdminStaffView ? 'true' : 'false'}>
       <div className={styles['post-header']}>
         <div className={styles['post-user-info']} ref={userInfoRef}>
           <img 
@@ -1039,9 +1051,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           </div>
         )}
         
-        {post.hashtags && post.hashtags.length > 0 && (
+        {allHashtags.length > 0 && (
           <div className={styles['post-hashtags']}>
-            {post.hashtags.map((tag, index) => (
+            {visibleHashtags.map((tag, index) => (
               <span 
                 key={index} 
                 className={styles['hashtag']}
@@ -1051,6 +1063,24 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                 #{tag.content}
               </span>
             ))}
+            {!showAllHashtags && hasMoreHashtags && (
+              <button
+                type="button"
+                className={styles['hashtag-more']}
+                onClick={() => setShowAllHashtags(true)}
+              >
+                ...
+              </button>
+            )}
+            {showAllHashtags && hasMoreHashtags && (
+              <button
+                type="button"
+                className={styles['hashtag-more']}
+                onClick={() => setShowAllHashtags(false)}
+              >
+                {t('forum.hashtag.showLess') || 'Thu gọn'}
+              </button>
+            )}
           </div>
         )}
         
@@ -1131,7 +1161,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         onCountChange={handleCommentCountChange}
         onLoginRequired={() => setShowLoginRequiredModal(true)}
         showCommentInput={showCommentInput}
+        highlightCommentId={highlightCommentId}
         onCommentInputToggle={setShowCommentInput}
+        isAdminStaffView={isAdminStaffView}
       />
     </div>
     <ImageViewerModal open={openViewer} onClose={() => setOpenViewer(false)} post={post} initialIndex={viewerIndex} />

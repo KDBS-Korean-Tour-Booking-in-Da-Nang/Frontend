@@ -1,9 +1,9 @@
-/* Step4Media.css */
+/* Step4Media.css - Minimal Soft Korean Style */
 .step4-container {
   max-width: 100%;
   width: 100%;
   margin: 0;
-  padding: 20px;
+  padding: 24px;
 }
 
 .media-section {
@@ -11,20 +11,21 @@
 }
 
 .section-title {
-  color: #2c3e50;
+  color: rgba(0, 0, 0, 0.85);
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   text-align: center;
+  letter-spacing: -0.3px;
 }
 
 .upload-area {
-  border: 2px dashed #3498db;
-  border-radius: 12px;
-  padding: 40px 20px;
+  border: 1.5px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 28px;
+  padding: 48px 24px;
   text-align: center;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.25s ease;
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -33,56 +34,60 @@
 }
 
 .upload-area:hover {
-  border-color: #2980b9;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .upload-area.dragover {
-  border-color: #2980b9;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  transform: scale(1.02);
+  border-color: rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  transform: scale(1.01);
 }
 
 .upload-icon {
   font-size: 3rem;
-  color: #3498db;
-  margin-bottom: 15px;
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 16px;
   display: block;
+  stroke-width: 1.5;
 }
 
 .upload-text {
-  color: #2c3e50;
+  color: rgba(0, 0, 0, 0.85);
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 10px;
+  letter-spacing: 0.1px;
 }
 
 .upload-subtext {
-  color: #7f8c8d;
+  color: rgba(0, 0, 0, 0.6);
   font-size: 0.9rem;
   margin-bottom: 20px;
+  font-weight: 300;
+  letter-spacing: 0.1px;
 }
 
 .upload-btn {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.85);
   border: none;
-  padding: 12px 30px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 16px 32px;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+  text-transform: none;
+  letter-spacing: 0.3px;
 }
 
 .upload-btn:hover {
-  background: linear-gradient(135deg, #2980b9, #1f618d);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+  background: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .file-input {
@@ -119,9 +124,9 @@
 .thumbnail-image {
   max-width: 250px;
   max-height: 150px;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  margin-bottom: 10px;
+  border-radius: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
   object-fit: cover;
 }
 
@@ -259,29 +264,38 @@
 }
 
 .prev-btn {
-  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-  color: white;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.75);
+  border-radius: 24px;
+  padding: 16px 32px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 .prev-btn:hover {
-  background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .complete-btn {
-  background: linear-gradient(135deg, #27ae60, #229954);
-  color: white;
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.85);
+  border-radius: 24px;
+  padding: 16px 32px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
-.complete-btn:hover {
-  background: linear-gradient(135deg, #229954, #1e8449);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+.complete-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .complete-btn:disabled {
-  background: linear-gradient(135deg, #bdc3c7, #a6acaf);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.3);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;

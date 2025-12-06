@@ -93,7 +93,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-red-50/30">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-[20px] bg-red-100 flex items-center justify-center">
+            <div className="h-10 w-10 flex items-center justify-center">
               <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
             </div>
             <div>
@@ -114,7 +114,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
           {/* Status & Target Type Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gray-50 border border-gray-200">
-              <div className="h-10 w-10 rounded-[12px] bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <div className="h-10 w-10 flex items-center justify-center flex-shrink-0">
                 <TagIcon className="w-5 h-5 text-amber-600" />
               </div>
               <div className="flex-1 min-w-0">
@@ -124,11 +124,9 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
             </div>
 
             <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gray-50 border border-gray-200">
-              <div className={`h-10 w-10 rounded-[12px] flex items-center justify-center flex-shrink-0 ${
-                report.targetType === 'POST' ? 'bg-blue-100' : 'bg-purple-100'
-              }`}>
+              <div className="h-10 w-10 flex items-center justify-center flex-shrink-0">
                 {report.targetType === 'POST' ? (
-                  <DocumentTextIcon className={`w-5 h-5 ${report.targetType === 'POST' ? 'text-blue-600' : 'text-purple-600'}`} />
+                  <DocumentTextIcon className="w-5 h-5 text-blue-600" />
                 ) : (
                   <ChatBubbleLeftRightIcon className="w-5 h-5 text-purple-600" />
                 )}
@@ -148,7 +146,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
           {/* Reporter & Violation Type Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3 p-4 rounded-[20px] bg-gray-50 border border-gray-200">
-              <div className="h-10 w-10 rounded-[12px] bg-green-100 flex items-center justify-center flex-shrink-0">
+              <div className="h-10 w-10 flex items-center justify-center flex-shrink-0">
                 <UserIcon className="w-5 h-5 text-green-600" />
               </div>
               <div className="flex-1 min-w-0">
@@ -161,7 +159,7 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
             </div>
 
             <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gray-50 border border-gray-200">
-              <div className="h-10 w-10 rounded-[12px] bg-orange-100 flex items-center justify-center flex-shrink-0">
+              <div className="h-10 w-10 flex items-center justify-center flex-shrink-0">
                 <InformationCircleIcon className="w-5 h-5 text-orange-600" />
               </div>
               <div className="flex-1 min-w-0">
@@ -173,23 +171,23 @@ const ReportDetailModal = ({ isOpen, onClose, report, onApprove, onReject }) => 
 
           {/* Dates Row */}
           <div className={`grid gap-4 ${report.resolvedAt ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
-            <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-              <div className="h-10 w-10 rounded-[12px] bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gray-50 border border-gray-200">
+              <div className="h-10 w-10 flex items-center justify-center flex-shrink-0">
                 <CalendarIcon className="w-5 h-5 text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-blue-600 font-semibold uppercase mb-1">{t('staff.forumReportManagement.modal.fields.reportDate')}</p>
-                <p className="text-sm font-semibold text-gray-900">{formatDate(report.reportedAt || report.createdAt)}</p>
+                <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.reportDate')}</p>
+                <p className="text-sm font-medium text-gray-900">{formatDate(report.reportedAt || report.createdAt)}</p>
               </div>
             </div>
             {report.resolvedAt && (
-              <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                <div className="h-10 w-10 rounded-[12px] bg-green-100 flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center gap-3 p-4 rounded-[20px] bg-gray-50 border border-gray-200">
+                <div className="h-10 w-10 flex items-center justify-center flex-shrink-0">
                   <CheckCircleOutlineIcon className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-green-600 font-semibold uppercase mb-1">{t('staff.forumReportManagement.modal.fields.resolvedDate')}</p>
-                  <p className="text-sm font-semibold text-gray-900">{formatDate(report.resolvedAt)}</p>
+                  <p className="text-xs text-gray-500 mb-1">{t('staff.forumReportManagement.modal.fields.resolvedDate')}</p>
+                  <p className="text-sm font-medium text-gray-900">{formatDate(report.resolvedAt)}</p>
                 </div>
               </div>
             )}

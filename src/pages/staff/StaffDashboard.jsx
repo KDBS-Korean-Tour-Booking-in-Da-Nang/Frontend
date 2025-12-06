@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import StaffLayout from './StaffLayout';
 import CustomerContact from './CustomerContact/CustomerContact';
 import TaskManagement from './TaskManagement/TaskManagement';
+import ResolveTicketManagement from '../admin/ResolveTicketManagement/ResolveTicketManagement';
 
 const StaffDashboard = () => {
   const { user, loading } = useAuth();
@@ -43,6 +44,7 @@ const StaffDashboard = () => {
       <Routes>
         <Route path="/tasks" element={<TaskManagement />} />
         <Route path="/contact" element={<CustomerContact />} />
+        <Route path="/resolve-tickets" element={<ResolveTicketManagement />} />
         <Route path="*" element={<Navigate to="/staff/tasks" replace />} />
       </Routes>
     </StaffLayout>

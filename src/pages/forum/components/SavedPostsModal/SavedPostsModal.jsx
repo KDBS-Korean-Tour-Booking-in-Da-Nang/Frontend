@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../../config/api';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
-import { X, User, Calendar, Bookmark, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { X, User, Calendar, Bookmark, BookmarkCheck, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import styles from './SavedPostsModal.module.css';
 
 const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
@@ -149,7 +149,12 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     <div className={styles['saved-posts-overlay']}>
       <div className={styles['saved-posts-modal']}>
         <div className={styles['saved-posts-header']}>
-          <h2>{t('forum.modals.savedPosts.title')}</h2>
+          <h2 className={styles['saved-posts-title']}>
+            <span className={styles['saved-posts-title-icon']}>
+              <BookmarkCheck size={20} strokeWidth={1.8} />
+            </span>
+            <span>{t('forum.modals.savedPosts.title')}</span>
+          </h2>
           <button className={styles['close-btn']} onClick={onClose}>
             <X size={20} strokeWidth={1.5} />
           </button>

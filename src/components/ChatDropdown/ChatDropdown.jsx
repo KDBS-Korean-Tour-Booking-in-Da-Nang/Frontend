@@ -104,10 +104,11 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   };
 
   const filteredConversations = (state.conversations || [])
-    // Exclude current user from conversations list (can happen after rename)
+    // Exclude current user from conversations list (using userId)
     .filter(conv => {
-      const other = (conv.user?.username || conv.user?.userName || '').toLowerCase();
-      return other && other !== currentLoginName;
+      const currentUserId = state.currentUser?.userId || state.currentUser?.id;
+      const otherUserId = conv.user?.userId || conv.user?.id;
+      return otherUserId && otherUserId !== currentUserId;
     })
     .filter(conv => {
       const userName = conv.user?.username || conv.user?.userName || '';
@@ -142,22 +143,28 @@ const ChatDropdown = ({ isOpen, onClose }) => {
             </p>
           </div>
         ) : (
-          mergedUserList.map((item) => (
+          mergedUserList.map((item) => {
+            const userId = item.user?.userId || item.user?.id;
+            const userName = item.user?.username || item.user?.userName || '';
+            return (
             <div 
-              key={(item.user?.userId) || (item.user?.username || item.user?.userName)}
+              key={userId || userName}
               className={styles.conversationItem}
               onClick={() => handleUserSelect(item.user)}
             >
               <div className={styles.userAvatar}>
-                {item.user?.avatar ? (
-                  <img src={item.user.avatar} alt={item.user.username || item.user.userName} />
-                ) : (
-                  <UserIcon className="w-6 h-6" />
-                )}
+                <img 
+                  src={resolveAvatar(item.user, item.lastMessage?.sender) || '/default-avatar.png'} 
+                  alt={userName}
+                  onError={(e) => {
+                    e.target.src = '/default-avatar.png';
+                    e.target.onerror = null; // Prevent infinite loop
+                  }}
+                />
               </div>
               <div className={styles.conversationContent}>
                 <div className={styles.conversationHeader}>
-                  <h4 className={styles.userName}>{item.user?.username || item.user?.userName}</h4>
+                  <h4 className={styles.userName}>{userName}</h4>
                   {item.lastMessage?.timestamp && (
                     <span className={styles.timestamp}>{formatTime(item.lastMessage.timestamp)}</span>
                   )}
@@ -167,7 +174,8 @@ const ChatDropdown = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
     );

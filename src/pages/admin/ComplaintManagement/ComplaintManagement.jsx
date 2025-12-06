@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getAllComplaints, getComplaintById, resolveBookingComplaint } from '../../../services/bookingAPI';
 import Pagination from '../Pagination';
+import Tooltip from '../../../components/tooltip';
 import {
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
@@ -363,32 +364,34 @@ const ComplaintManagement = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleViewDetail(complaint)}
-                          className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-all duration-200"
-                          title={t('admin.complaintManagement.actions.viewDetails')}
-                        >
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
+                        <Tooltip text={t('admin.complaintManagement.actions.viewDetails')} position="top">
+                          <button
+                            type="button"
+                            onClick={() => handleViewDetail(complaint)}
+                            className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-all duration-200"
+                          >
+                            <EyeIcon className="h-5 w-5" />
+                          </button>
+                        </Tooltip>
                         {complaint.resolutionType ? (
                           <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
                             {t('admin.complaintManagement.status.resolved')}
                           </span>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenResolveModal(complaint)}
-                            disabled={resolvingId === complaint.complaintId || !isAdminOrStaff}
-                            className="p-2 rounded-lg bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-                            title={t('admin.complaintManagement.actions.resolve')}
-                          >
-                            {resolvingId === complaint.complaintId ? (
-                              <ClockIcon className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <CheckCircleIcon className="h-5 w-5" />
-                            )}
-                          </button>
+                          <Tooltip text={t('admin.complaintManagement.actions.resolve')} position="top">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenResolveModal(complaint)}
+                              disabled={resolvingId === complaint.complaintId || !isAdminOrStaff}
+                              className="p-2 rounded-lg bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                            >
+                              {resolvingId === complaint.complaintId ? (
+                                <ClockIcon className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <CheckCircleIcon className="h-5 w-5" />
+                              )}
+                            </button>
+                          </Tooltip>
                         )}
                       </div>
                     </td>

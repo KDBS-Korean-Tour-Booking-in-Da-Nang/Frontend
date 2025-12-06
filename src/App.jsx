@@ -8,7 +8,8 @@ import { ChatProvider } from './contexts/ChatContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConditionalNavbar } from './components';
 import Footer from './components/Footer/Footer';
-import CozeChat from './components/CozeChat';
+import CozeChat from './components/CozeChat/CozeChat';
+import SupportTicketBubble from './components/SupportTicketBubble/SupportTicketBubble';
 import { useAuth } from './contexts/AuthContext';
 import { setNavigateCallback } from './utils/apiErrorHandler';
 import Homepage from './pages/home/homepage/homepage';
@@ -63,6 +64,12 @@ function AppContent() {
   // Check if current path is staff/admin pages (include root paths)
   const isStaffAdminPage = location.pathname.startsWith('/staff') || 
                           location.pathname.startsWith('/admin');
+  
+  // Check if forum page is accessed from admin/staff (via query params)
+  const searchParams = new URLSearchParams(location.search);
+  const fromAdmin = searchParams.get('fromAdmin') === 'true';
+  const fromStaff = searchParams.get('fromStaff') === 'true';
+  const isForumFromAdminStaff = location.pathname === '/forum' && (fromAdmin || fromStaff);
   
   // Check if current path is company dashboard pages
   const isBusinessDashboardPage = location.pathname.startsWith('/company/');
@@ -223,10 +230,26 @@ function AppContent() {
     return role === 'USER' || role === 'COMPANY';
   };
 
+  // Kiểm tra xem có nên hiển thị SupportTicketBubble hay không
+  // Chỉ hiển thị ở trang home (/) và chỉ cho USER hoặc GUEST
+  const shouldShowSupportTicketBubble = () => {
+    if (loading) return false; // Đang load thì chưa hiển thị
+    
+    // Chỉ hiển thị ở trang home
+    if (location.pathname !== '/') return false;
+    
+    // Nếu không có user (GUEST - không đăng nhập) thì hiển thị
+    if (!user) return true;
+    
+    const role = user?.role;
+    // Chỉ hiển thị cho USER
+    return role === 'USER';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {!isStaffAdminPage && <ConditionalNavbar />}
-      <main className={isStaffAdminPage ? "" : "pt-16"}>
+      {!isStaffAdminPage && !isForumFromAdminStaff && <ConditionalNavbar />}
+      <main className={isStaffAdminPage || isForumFromAdminStaff ? "" : "pt-16"}>
         <Routes>
                   <Route path="/" element={<Homepage />} />
                   <Route path="/login" element={<Login />} />
@@ -284,7 +307,8 @@ function AppContent() {
         </Routes>
       </main>
       {shouldShowFooter && isPageReady && <Footer />}
-      {!isStaffAdminPage && shouldShowCozeChat() && <CozeChat />}
+      {!isStaffAdminPage && !isForumFromAdminStaff && shouldShowCozeChat() && <CozeChat />}
+      {!isStaffAdminPage && !isForumFromAdminStaff && shouldShowSupportTicketBubble() && <SupportTicketBubble />}
     </div>
   );
 }

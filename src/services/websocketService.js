@@ -11,7 +11,7 @@ class WebSocketService {
     this.disconnectionHandlers = new Set();
   }
 
-  connect(username) {
+  connect(userId) {
     // Always disconnect first if connected to ensure clean reconnection
     if (this.isConnected && this.stompClient) {
       this.disconnect();
@@ -133,12 +133,14 @@ class WebSocketService {
     }
   }
 
-  subscribeToUserMessages(username, callback) {
+  subscribeToUserMessages(userId, callback) {
     if (!this.isConnected || !this.stompClient) {
       return null;
     }
 
-    const subscription = this.stompClient.subscribe(`/user/${username}/queue/messages`, (message) => {
+    // Backend uses userId as string for routing
+    const userIdStr = String(userId);
+    const subscription = this.stompClient.subscribe(`/user/${userIdStr}/queue/messages`, (message) => {
       try {
         const messageData = JSON.parse(message.body);
         this.notifyMessageHandlers(messageData);
@@ -150,7 +152,7 @@ class WebSocketService {
       }
     });
 
-    this.subscriptions.set(`/user/${username}/queue/messages`, subscription);
+    this.subscriptions.set(`/user/${userIdStr}/queue/messages`, subscription);
     return subscription;
   }
 

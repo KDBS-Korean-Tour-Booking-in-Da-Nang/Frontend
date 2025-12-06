@@ -8,6 +8,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getImageUrl, createAuthHeaders } from '../../../config/api';
 import { getAllBookings, getBookingsByTourId, getBookingTotal, companyConfirmTourCompletion } from '../../../services/bookingAPI';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
+import Tooltip from '../../../components/tooltip';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
@@ -17,6 +18,18 @@ import {
   CheckCircleIcon,
   XCircleIcon
 } from '@heroicons/react/24/outline';
+import {
+  User,
+  Calendar,
+  Clock,
+  MapPin,
+  DollarSign,
+  FileText,
+  Timer,
+  Users,
+  Phone,
+  Mail
+} from 'lucide-react';
 
 const BookingManagement = () => {
   const { t } = useTranslation();
@@ -45,6 +58,7 @@ const BookingManagement = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [viewingBooking, setViewingBooking] = useState(null);
   const [approvingBookingId, setApprovingBookingId] = useState(null);
+  const [tourBookingCounts, setTourBookingCounts] = useState(new Map()); // Map tourId -> bookingCount
   const modalContainerRef = useRef(null);
   const bodyOverflowRef = useRef('');
 
@@ -361,7 +375,10 @@ const BookingManagement = () => {
         setTours([]);
       } else {
         const data = await res.json();
-        setTours(Array.isArray(data) ? data : []);
+        const allTours = Array.isArray(data) ? data : [];
+        // Filter to only show tours with PUBLIC status
+        const publicTours = allTours.filter(tour => tour.tourStatus === 'PUBLIC');
+        setTours(publicTours);
         setCurrentTourPage(1); // Reset to first page when tours are loaded
       }
     } catch (e) {
@@ -372,6 +389,24 @@ const BookingManagement = () => {
   }, []);
 
   useEffect(() => { fetchCompanyTours(); }, [fetchCompanyTours]);
+
+  // Calculate booking counts for each tour
+  useEffect(() => {
+    if (!allBookings || allBookings.length === 0) {
+      setTourBookingCounts(new Map());
+      return;
+    }
+
+    const countsMap = new Map();
+    allBookings.forEach((booking) => {
+      const tourId = getBookingTourId(booking);
+      if (tourId) {
+        const currentCount = countsMap.get(tourId) || 0;
+        countsMap.set(tourId, currentCount + 1);
+      }
+    });
+    setTourBookingCounts(countsMap);
+  }, [allBookings]);
 
   useEffect(() => {
     filterAndPaginateBookings();
@@ -605,54 +640,202 @@ const BookingManagement = () => {
 
   const modalDurationDays = viewingBooking ? getTourDurationDays(viewingBooking) : null;
   const modalEndDate = viewingBooking ? calculateTourEndDate(viewingBooking) : null;
+  const modalDepartureDate = viewingBooking?.departureDate ? new Date(viewingBooking.departureDate) : null;
+
+  // Countdown timer component - chỉ đếm ngược khi tour đã bắt đầu
+  const CountdownTimer = ({ departureDate, endDate }) => {
+    const [timeLeft, setTimeLeft] = useState(null);
+
+    useEffect(() => {
+      if (!departureDate || !endDate) {
+        setTimeLeft(null);
+        return;
+      }
+
+      const calculateTimeLeft = () => {
+        const now = new Date();
+        const departure = new Date(departureDate);
+        const end = new Date(endDate);
+
+        // Nếu tour chưa bắt đầu (now < departureDate)
+        if (now < departure) {
+          return { notStarted: true };
+        }
+
+        // Nếu tour đã kết thúc (now >= endDate)
+        if (now >= end) {
+          return { expired: true };
+        }
+
+        // Tour đang diễn ra - đếm ngược đến khi kết thúc
+        const difference = end - now;
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        return { days, hours, minutes, seconds, expired: false, notStarted: false };
+      };
+
+      setTimeLeft(calculateTimeLeft());
+      const interval = setInterval(() => {
+        setTimeLeft(calculateTimeLeft());
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }, [departureDate, endDate]);
+
+    if (!timeLeft) return null;
+
+    // Tour chưa bắt đầu
+    if (timeLeft.notStarted) {
+      return (
+        <div className={styles['countdown-not-started']}>
+          <Calendar className={styles['countdown-icon']} strokeWidth={2} />
+          <span>{t('bookingManagement.modal.tourNotStarted', { defaultValue: 'Tour chưa bắt đầu' })}</span>
+        </div>
+      );
+    }
+
+    // Tour đã kết thúc
+    if (timeLeft.expired) {
+      return (
+        <div className={styles['countdown-expired']}>
+          <Timer className={styles['countdown-icon']} strokeWidth={2} />
+          <span>{t('bookingManagement.modal.tourEnded', { defaultValue: 'Tour đã kết thúc' })}</span>
+        </div>
+      );
+    }
+
+    // Tour đang diễn ra - hiển thị countdown
+    return (
+      <div className={styles['countdown-timer']}>
+        <Timer className={styles['countdown-icon']} strokeWidth={2} />
+        <div className={styles['countdown-content']}>
+          <span className={styles['countdown-label']}>
+            {t('bookingManagement.modal.timeUntilEnd', { defaultValue: 'Còn lại' })}:
+          </span>
+          <div className={styles['countdown-values']}>
+            {timeLeft.days > 0 && (
+              <span className={styles['countdown-item']}>
+                <strong>{timeLeft.days}</strong> {t('bookingManagement.modal.days', { defaultValue: 'ngày' })}
+              </span>
+            )}
+            <span className={styles['countdown-item']}>
+              <strong>{String(timeLeft.hours).padStart(2, '0')}</strong> {t('bookingManagement.modal.hours', { defaultValue: 'giờ' })}
+            </span>
+            <span className={styles['countdown-item']}>
+              <strong>{String(timeLeft.minutes).padStart(2, '0')}</strong> {t('bookingManagement.modal.minutes', { defaultValue: 'phút' })}
+            </span>
+            <span className={styles['countdown-item']}>
+              <strong>{String(timeLeft.seconds).padStart(2, '0')}</strong> {t('bookingManagement.modal.seconds', { defaultValue: 'giây' })}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const modalNode = isDetailModalOpen && viewingBooking ? (
     <div className={styles['modal-backdrop']} onClick={handleCloseDetailModal}>
       <div className={styles['modal']} onClick={(e) => e.stopPropagation()}>
         <div className={styles['modal-header']}>
-          <div>
-            <h3>{t('bookingManagement.modal.title')}{viewingBooking.bookingId}</h3>
-            <p>{t('bookingManagement.modal.tour')} {viewingBooking.tourName || '-'}</p>
+          <div className={styles['modal-header-content']}>
+            <div className={styles['modal-title-section']}>
+              <h3 className={styles['modal-title']}>
+                {t('bookingManagement.modal.title')}{viewingBooking.bookingId}
+              </h3>
+              <div className={styles['modal-tour-name']}>
+                <MapPin className={styles['modal-tour-icon']} strokeWidth={2} />
+                <span className={styles['tour-name-highlight']}>
+                  {viewingBooking.tourName || '-'}
+                </span>
+              </div>
+            </div>
+            {modalDepartureDate && modalEndDate && (
+              <div className={styles['modal-countdown-wrapper']}>
+                <CountdownTimer departureDate={modalDepartureDate} endDate={modalEndDate} />
+              </div>
+            )}
           </div>
-          <button type="button" className={styles['modal-close']} onClick={handleCloseDetailModal}>
-            <XCircleIcon className={styles['modal-close-icon']} />
-          </button>
+          <div className={styles['modal-header-right']}>
+            <button type="button" className={styles['modal-close']} onClick={handleCloseDetailModal}>
+              <XCircleIcon className={styles['modal-close-icon']} />
+            </button>
+            <div className={styles['modal-status-header']}>
+              <span 
+                className={styles['modal-status-badge']}
+                style={{ 
+                  color: getStatusColor(viewingBooking.bookingStatus),
+                  backgroundColor: `${getStatusColor(viewingBooking.bookingStatus)}15`,
+                  borderColor: `${getStatusColor(viewingBooking.bookingStatus)}30`
+                }}
+              >
+                {formatStatusDisplay(viewingBooking.bookingStatus || '')}
+              </span>
+            </div>
+            <div className={styles['modal-duration-wrapper']}>
+              <Clock className={styles['modal-duration-icon']} strokeWidth={2} />
+              <span className={styles['modal-duration-text']}>
+                {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
+              </span>
+            </div>
+          </div>
         </div>
         <div className={styles['modal-body']}>
           <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.customer')}</span>
+            <div className={styles['modal-row-label']}>
+              <User className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.customer')}</span>
+            </div>
             <span className={styles['modal-value']}>{viewingBooking.contactName || '-'}</span>
           </div>
           <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.status')}</span>
-            <span className={styles['modal-value']}>{formatStatusDisplay(viewingBooking.bookingStatus || '')}</span>
+            <div className={styles['modal-row-label']}>
+              <Phone className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.phone', { defaultValue: 'Phone' })}</span>
+            </div>
+            <span className={styles['modal-value']}>{viewingBooking.contactPhone || '-'}</span>
           </div>
           <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.departureDate')}</span>
+            <div className={styles['modal-row-label']}>
+              <Mail className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.email', { defaultValue: 'Email' })}</span>
+            </div>
+            <span className={styles['modal-value']}>{viewingBooking.contactEmail || '-'}</span>
+          </div>
+          <div className={styles['modal-row']}>
+            <div className={styles['modal-row-label']}>
+              <Calendar className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.departureDate')}</span>
+            </div>
             <span className={styles['modal-value']}>
               {viewingBooking.departureDate ? new Date(viewingBooking.departureDate).toLocaleDateString('vi-VN') : '-'}
             </span>
           </div>
           <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.tourDuration')}</span>
-            <span className={styles['modal-value']}>
-              {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
-            </span>
-          </div>
-          <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.expectedEndDate')}</span>
+            <div className={styles['modal-row-label']}>
+              <Calendar className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.expectedEndDate')}</span>
+            </div>
             <span className={styles['modal-value']}>
               {modalEndDate ? modalEndDate.toLocaleDateString('vi-VN') : '-'}
             </span>
           </div>
           <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
-            <span className={styles['modal-value']}>
+            <div className={styles['modal-row-label']}>
+              <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
+            </div>
+            <span className={styles['modal-value']} style={{ color: '#16a34a', fontWeight: 700 }}>
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.totalAmount || 0)}
             </span>
           </div>
           <div className={styles['modal-row']}>
-            <span className={styles['modal-label']}>{t('bookingManagement.modal.createdAt')}</span>
+            <div className={styles['modal-row-label']}>
+              <Clock className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.createdAt')}</span>
+            </div>
             <span className={styles['modal-value']}>
               {viewingBooking.createdAt ? new Date(viewingBooking.createdAt).toLocaleString('vi-VN') : '-'}
             </span>
@@ -687,6 +870,7 @@ const BookingManagement = () => {
               {paginatedTours.map((tour) => {
                 const normalizedTourId = tour?.id != null ? tour.id.toString() : '';
                 const isSelected = selectedTourId === normalizedTourId;
+                const bookingCount = tourBookingCounts.get(normalizedTourId) || 0;
 
                 return (
                   <button
@@ -710,7 +894,13 @@ const BookingManagement = () => {
                     {/* Fixed content height so cards align */}
                     <div className={styles['tour-card-content']}>
                       <div className={styles['tour-card-name']} title={tour.tourName || ''}>{tour.tourName}</div>
-                      <div className={styles['tour-card-id']}>{t('bookingManagement.tourSelector.tourCode')} {tour.id}</div>
+                      {/* Booking count - displayed below tour name */}
+                      <div className={styles['tour-card-booking-count']}>
+                        <Users className={styles['booking-count-icon']} strokeWidth={2} />
+                        <span className={styles['booking-count-text']}>
+                          {bookingCount} {t('bookingManagement.tourSelector.bookings', { defaultValue: 'booking' })}
+                        </span>
+                      </div>
                     </div>
                   </button>
                 );
@@ -840,7 +1030,7 @@ const BookingManagement = () => {
                 <th>{t('bookingManagement.table.amount')}</th>
                 <th>{t('bookingManagement.table.status')}</th>
                 <th>{t('bookingManagement.table.createdAt')}</th>
-                <th>{t('common.actions', { defaultValue: 'Thao tác' })}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -874,35 +1064,44 @@ const BookingManagement = () => {
                     <td>{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
                     <td>
                       <div className={styles['action-group']}>
-                        <button
-                          type="button"
-                          title={t('bookingManagement.actions.viewQuick')}
-                          onClick={() => handleViewBooking(b)}
-                          className={styles['action-btn']}
-                        >
-                          <EyeIcon className={styles['action-icon']} />
-                        </button>
-                        {!isUnderComplaint && (
+                        <Tooltip text={t('bookingManagement.actions.viewQuick')} position="top">
                           <button
                             type="button"
-                            title={t('bookingManagement.actions.editBooking')}
-                            onClick={() => handleEditBooking(b)}
-                            className={`${styles['action-btn']} ${(!canEdit || isPendingBooking) ? styles['action-btn-disabled'] : ''}`}
-                            disabled={!canEdit || isPendingBooking}
+                            onClick={() => handleViewBooking(b)}
+                            className={styles['action-btn']}
                           >
-                            <PencilSquareIcon className={styles['action-icon']} />
+                            <EyeIcon className={styles['action-icon']} />
                           </button>
+                        </Tooltip>
+                        {!isUnderComplaint && (
+                          <Tooltip 
+                            text={t('bookingManagement.actions.editBooking')} 
+                            position="top"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleEditBooking(b)}
+                              className={`${styles['action-btn']} ${(!canEdit || isPendingBooking) ? styles['action-btn-disabled'] : ''}`}
+                              disabled={!canEdit || isPendingBooking}
+                            >
+                              <PencilSquareIcon className={styles['action-icon']} />
+                            </button>
+                          </Tooltip>
                         )}
                         {canShowApproveButton && (
-                          <button
-                            type="button"
-                            title={t('bookingManagement.actions.confirmTourCompletion')}
-                            onClick={() => handleApproveBooking(b)}
-                            className={`${styles['action-btn']} ${(isApproving || isCompanyConfirmed) ? styles['action-btn-disabled'] : ''}`}
-                            disabled={isApproving || isCompanyConfirmed}
+                          <Tooltip 
+                            text={t('bookingManagement.actions.confirmTourCompletion')} 
+                            position="top"
                           >
-                            <CheckCircleIcon className={styles['action-icon']} />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleApproveBooking(b)}
+                              className={`${styles['action-btn']} ${(isApproving || isCompanyConfirmed) ? styles['action-btn-disabled'] : ''}`}
+                              disabled={isApproving || isCompanyConfirmed}
+                            >
+                              <CheckCircleIcon className={styles['action-icon']} />
+                            </button>
+                          </Tooltip>
                         )}
                       </div>
                     </td>

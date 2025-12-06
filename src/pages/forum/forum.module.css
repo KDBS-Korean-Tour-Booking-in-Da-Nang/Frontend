@@ -167,6 +167,83 @@
   transform: translateY(-1px);
 }
 
+/* Admin/Staff View Styles - Dim everything except highlighted post/comment */
+.pageRoot[data-admin-staff-view="true"] .forum-header,
+.pageRoot[data-admin-staff-view="true"] .forum-sidebar,
+.pageRoot[data-admin-staff-view="true"] .search-results-header {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Disable SearchSidebar when in admin/staff view - only target SearchSidebar, not highlighted posts/comments */
+.pageRoot[data-admin-staff-view="true"] .search-sidebar[data-admin-staff-view="true"] {
+  opacity: 0.3 !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease;
+}
+
+.pageRoot[data-admin-staff-view="true"] .post-card:not([data-highlight="true"]) {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.pageRoot[data-admin-staff-view="true"] .post-card[data-highlight="true"] {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  border: 3px solid #4c9dff !important;
+  box-shadow: 0 0 0 4px rgba(76, 157, 255, 0.2), 0 0 0 8px rgba(76, 157, 255, 0.1), 0 35px 60px rgba(15, 23, 42, 0.12) !important;
+  border-radius: 28px !important;
+}
+
+.pageRoot[data-admin-staff-view="true"] .post-card[data-highlight="true"] .comment-item:not([data-highlight="true"]) {
+  opacity: 0.5;
+}
+
+.pageRoot[data-admin-staff-view="true"] .comment-item[data-highlight="true"] {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  border: 3px solid #4c9dff !important;
+  border-left: 4px solid #4c9dff !important;
+  box-shadow: 0 0 0 2px rgba(76, 157, 255, 0.2), 0 4px 12px rgba(76, 157, 255, 0.15) !important;
+  background: rgba(76, 157, 255, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 18px 14px !important;
+  margin: 8px 0 !important;
+}
+
+.admin-back-button-container {
+  margin: 0 auto 20px auto;
+  padding: 0 20px;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.admin-back-button {
+  background-color: #4c9dff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(76, 157, 255, 0.3);
+}
+
+.admin-back-button:hover {
+  background-color: #3f85d6;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(76, 157, 255, 0.4);
+}
+
 /* Guest notice styles */
 .guest-notice {
   text-align: center;
@@ -286,6 +363,9 @@
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .loading-spinner {
@@ -505,6 +585,7 @@
   
   .loading-container {
     padding: 40px 16px;
+    max-width: 100%;
   }
   
   .no-posts {

@@ -79,9 +79,18 @@ export const normalizeImageUrlsInHtml = (html, imageUrlNormalizer) => {
   images.forEach(img => {
     const originalSrc = img.getAttribute('src');
     if (originalSrc) {
-      // Only normalize if it's not already a full URL
-      if (!originalSrc.startsWith('http://') && !originalSrc.startsWith('https://')) {
-        const normalizedSrc = imageUrlNormalizer(originalSrc);
+      // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+      const trimmed = originalSrc.trim();
+      // Check if it's a full URL (with or without leading /)
+      if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+        // Loại bỏ dấu / ở đầu và giữ nguyên URL
+        img.setAttribute('src', trimmed.substring(1));
+      } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        // Already a full URL, keep it as is
+        img.setAttribute('src', trimmed);
+      } else {
+        // Relative path, normalize it
+        const normalizedSrc = imageUrlNormalizer(trimmed);
         img.setAttribute('src', normalizedSrc);
       }
     }

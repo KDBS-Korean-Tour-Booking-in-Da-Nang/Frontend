@@ -23,6 +23,105 @@ const VerifyEmail = () => {
   const email = location.state?.email;
   const role = location.state?.role;
 
+  // Map OTP error messages from backend to i18n keys
+  const mapOTPErrorToI18nKey = (message) => {
+    // Handle null, undefined, empty string, or string "null"
+    if (!message || message === 'null' || message === null || message === undefined || String(message).trim() === '') {
+      return { i18nKey: 'toast.auth.wrong_otp', defaultMessage: 'Mã OTP không đúng. Vui lòng thử lại.' };
+    }
+
+    const originalMessage = String(message);
+    const originalMsgLower = originalMessage.toLowerCase();
+
+    // If message contains "null" anywhere, it's likely an OTP error
+    if (originalMsgLower.includes('null')) {
+      return { i18nKey: 'toast.auth.wrong_otp', defaultMessage: 'Mã OTP không đúng. Vui lòng thử lại.' };
+    }
+
+    // Clean message: remove ": null" suffix and trim
+    let cleanMessage = originalMessage.trim();
+    // Remove ": null", ":null", " null", "null" at the end
+    cleanMessage = cleanMessage.replace(/:\s*null\s*$/i, '').replace(/\s+null\s*$/i, '').trim();
+    
+    // If after cleaning, message is empty or just "null", return default OTP error
+    if (!cleanMessage || cleanMessage === 'null' || cleanMessage.toLowerCase() === 'null') {
+      return { i18nKey: 'toast.auth.wrong_otp', defaultMessage: 'Mã OTP không đúng. Vui lòng thử lại.' };
+    }
+
+    const msg = cleanMessage.toLowerCase();
+
+    // Check if message contains "failed to verify email" or similar verification failure messages
+    // If it ends with null or contains null, it's likely an OTP error
+    if (
+      msg.includes('failed to verify') ||
+      msg.includes('verify email') ||
+      msg.includes('verification failed') ||
+      msg.includes('email verification failed')
+    ) {
+      // If the original message contained null, it's likely an OTP error
+      if (originalMsgLower.includes('null')) {
+        return { i18nKey: 'toast.auth.wrong_otp', defaultMessage: 'Mã OTP không đúng. Vui lòng thử lại.' };
+      }
+    }
+
+    // Tập từ khóa đa ngôn ngữ cho OTP
+    const otpKeywords = [
+      'otp', 'code', 'verification code', 'invalid code',
+      // VI
+      'mã otp', 'mã xác thực', 'otp không đúng', 'otp sai', 'mã không đúng', 'mã sai',
+      'không đúng', 'sai mã', 'mã xác thực không đúng',
+      // KO
+      'otp', '코드', '인증 코드', 'otp가 올바르지', 'otp가 틀렸', '코드가 올바르지'
+    ];
+
+    const hasOTPKeyword = otpKeywords.some(k => msg.includes(k));
+
+    // 1) OTP sai - mở rộng các biến thể
+    if (
+      msg.includes('invalid otp') ||
+      msg.includes('wrong otp') ||
+      msg.includes('otp not match') ||
+      msg.includes('otp incorrect') ||
+      msg.includes('otp is incorrect') ||
+      msg.includes('otp does not match') ||
+      msg.includes('verification code is incorrect') ||
+      msg.includes('verification code does not match') ||
+      // VI
+      msg.includes('otp không đúng') ||
+      msg.includes('otp sai') ||
+      msg.includes('mã otp không đúng') ||
+      msg.includes('mã xác thực không đúng') ||
+      msg.includes('mã không đúng') ||
+      msg.includes('sai mã') ||
+      // KO
+      msg.includes('otp가 올바르지') ||
+      msg.includes('otp가 틀렸') ||
+      msg.includes('코드가 올바르지') ||
+      msg.includes('인증 코드가 올바르지') ||
+      hasOTPKeyword
+    ) {
+      return { i18nKey: 'toast.auth.wrong_otp', defaultMessage: 'Mã OTP không đúng. Vui lòng thử lại.' };
+    }
+
+    // 2) OTP hết hạn
+    if (
+      msg.includes('otp expired') ||
+      msg.includes('otp has expired') ||
+      msg.includes('verification code expired') ||
+      // VI
+      msg.includes('otp đã hết hạn') ||
+      msg.includes('mã đã hết hạn') ||
+      // KO
+      msg.includes('otp가 만료') ||
+      msg.includes('코드가 만료')
+    ) {
+      return { i18nKey: 'auth.verify.error', defaultMessage: 'Mã OTP đã hết hạn. Vui lòng thử lại.' };
+    }
+
+    // fallback to generic error
+    return null;
+  };
+
   useEffect(() => {
     if (!email) {
       navigate('/register');
@@ -136,7 +235,26 @@ const VerifyEmail = () => {
           }
         }, 2000);
       } else {
-        setError(data.message || t('toast.auth.email_verify_failed') || 'Xác thực email thất bại');
+        // Map error message to i18n key
+        const mapped = mapOTPErrorToI18nKey(data.message);
+        if (mapped) {
+          setError(t(mapped.i18nKey) || mapped.defaultMessage);
+        } else {
+          // Check if message contains null (even if not mapped)
+          const messageStr = String(data.message || '').trim();
+          if (!messageStr || 
+              messageStr === 'null' || 
+              messageStr.toLowerCase() === 'null' ||
+              messageStr.toLowerCase().endsWith(': null') ||
+              messageStr.toLowerCase().endsWith(' null') ||
+              messageStr.toLowerCase().includes(': null')) {
+            // If message is null or contains null, show OTP error
+            setError(t('toast.auth.wrong_otp') || 'Mã OTP không đúng. Vui lòng thử lại.');
+          } else {
+            // Use the message if it's valid
+            setError(messageStr);
+          }
+        }
         setLoading(false);
       }
     } catch (err) {
@@ -196,8 +314,12 @@ const VerifyEmail = () => {
         setError(''); // Clear any previous errors
         showSuccess('toast.auth.otp_sent_success');
       } else {
-        // Show detailed error message from backend
-        const errorMessage = data.message || data.error || t('toast.auth.otp_resend_failed') || 'Gửi lại OTP thất bại';
+        // Show detailed error message from backend, handle null/undefined
+        const errorMessage = (data.message && data.message !== 'null' && data.message !== null)
+          ? data.message
+          : ((data.error && data.error !== 'null' && data.error !== null)
+            ? data.error
+            : (t('toast.auth.otp_resend_failed') || 'Gửi lại OTP thất bại'));
         setError(errorMessage);
       }
     } catch (err) {
@@ -235,7 +357,13 @@ const VerifyEmail = () => {
                 type="text"
                 required
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={(e) => {
+                  setOtp(e.target.value);
+                  // Clear error when user starts typing
+                  if (error) {
+                    setError('');
+                  }
+                }}
                 className={`${styles['form-input']} ${styles['otp-input']}`}
                 placeholder={t('auth.common.otpPlaceholder')}
                 maxLength="6"

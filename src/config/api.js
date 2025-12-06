@@ -102,27 +102,47 @@ export const API_ENDPOINTS = {
   TRANSACTIONS: `${BaseURL}/api/transactions`,
   TRANSACTIONS_BY_USER_ID: (userId) => `${BaseURL}/api/transactions/${userId}`,
   TRANSACTIONS_CHANGE_STATUS: `${BaseURL}/api/transactions/change-status`,
+  
+  // Tickets
+  TICKET_CREATE: `${BaseURL}/api/ticket/create`,
+  TICKETS: `${BaseURL}/api/ticket`,
+  TICKET_BY_ID: (ticketId) => `${BaseURL}/api/ticket/${ticketId}`,
 };
 
 // Helper function để xử lý avatar URLs
 export const getAvatarUrl = (avatar) => {
   if (!avatar) return '/default-avatar.png';
-  if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
-  return joinUrl(BaseURL, avatar);
+  // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+  const trimmed = avatar.trim();
+  if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+    return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return joinUrl(BaseURL, trimmed);
 };
 
 // Helper function để xử lý image URLs
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '';
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
-  return joinUrl(BaseURL, imagePath);
+  // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+  const trimmed = imagePath.trim();
+  if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+    return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return joinUrl(BaseURL, trimmed);
 };
 
 // Helper function để xử lý tour image URLs với fallback về default tour image
 export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') => {
   if (!imagePath) return defaultImage;
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
-  return joinUrl(BaseURL, imagePath);
+  // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+  const trimmed = imagePath.trim();
+  if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+    return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return joinUrl(BaseURL, trimmed);
 };
 
 // Helper function để normalize URL về relative path khi lưu (loại bỏ BaseURL nếu có)

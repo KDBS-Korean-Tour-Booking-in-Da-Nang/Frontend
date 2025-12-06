@@ -32,11 +32,11 @@ class ChatApiService {
     };
   }
 
-  // Get conversation between two users with pagination
-  async getConversation(user1, user2, page = 0, size = 25) {
+  // Get conversation between two users with pagination (using userId)
+  async getConversation(userId1, userId2, page = 0, size = 25) {
     try {
-      const u1 = this.encodePath(user1);
-      const u2 = this.encodePath(user2);
+      const u1 = this.encodePath(userId1);
+      const u2 = this.encodePath(userId2);
       const response = await fetch(
         `${this.baseURL}/api/chat/conversation/${u1}/${u2}?page=${page}&size=${size}`,
         {
@@ -61,11 +61,11 @@ class ChatApiService {
     }
   }
 
-  // Get conversation between two users (legacy - for backward compatibility)
-  async getConversationLegacy(user1, user2) {
+  // Get conversation between two users (legacy - for backward compatibility, using userId)
+  async getConversationLegacy(userId1, userId2) {
     try {
-      const u1 = this.encodePath(user1);
-      const u2 = this.encodePath(user2);
+      const u1 = this.encodePath(userId1);
+      const u2 = this.encodePath(userId2);
       const response = await fetch(
         `${this.baseURL}/api/chat/conversation/${u1}/${u2}`,
         {
@@ -90,11 +90,11 @@ class ChatApiService {
     }
   }
 
-  // Get all messages from a user
-  async getAllMessagesFromUser(username) {
+  // Get all messages from a user (using userId)
+  async getAllMessagesFromUser(userId) {
     try {
       const response = await fetch(
-        `${this.baseURL}/api/chat/all/${username}`,
+        `${this.baseURL}/api/chat/all/${userId}`,
         {
           method: 'GET',
           headers: this.getAuthHeaders()
@@ -117,8 +117,8 @@ class ChatApiService {
     }
   }
 
-  // Send message (Test API only)
-  async sendMessage(senderName, receiverName, content) {
+  // Send message (using senderId and receiverId)
+  async sendMessage(senderId, receiverId, content) {
     try {
       const response = await fetch(
         `${this.baseURL}/api/chat/send`,
@@ -126,8 +126,8 @@ class ChatApiService {
           method: 'POST',
           headers: this.getAuthHeaders(),
           body: JSON.stringify({
-            senderName,
-            receiverName,
+            senderId: parseInt(senderId),
+            receiverId: parseInt(receiverId),
             content
           })
         }
@@ -204,36 +204,80 @@ class ChatApiService {
     }
   }
 
-  // Format message for display
-  formatMessage(message, currentUser) {
-    const currentUserName = currentUser?.userName || currentUser?.username || currentUser?.name;
-    const isOwn = message.senderName === currentUserName;
+  // Get user by email
+  async getUserByEmail(email) {
+    try {
+      const encodedEmail = encodeURIComponent(email);
+      const response = await fetch(
+        `${this.baseURL}/api/users/${encodedEmail}`,
+        {
+          method: 'GET',
+          headers: this.getAuthHeaders()
+        }
+      );
+
+      if (!response.ok) {
+        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+        const wasHandled = await checkAndHandleApiError(response, true);
+        if (wasHandled) {
+          return; // Đã redirect, không cần xử lý tiếp
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Helper: Get username from userId using allUsers map
+  getUsernameFromUserId(userId, allUsers = []) {
+    if (!userId) return '';
+    const user = allUsers.find(u => (u.userId || u.id) === parseInt(userId));
+    return user?.username || user?.userName || user?.name || '';
+  }
+
+  // Format message for display (using userId, map to username for display)
+  formatMessage(message, currentUser, allUsers = []) {
+    const currentUserId = currentUser?.userId || currentUser?.id;
+    const isOwn = message.senderId === currentUserId;
+    
+    const senderUsername = this.getUsernameFromUserId(message.senderId, allUsers);
+    const receiverUsername = this.getUsernameFromUserId(message.receiverId, allUsers);
     
     return {
       id: message.messageId,
       content: message.content,
       timestamp: message.timestamp,
       sender: {
-        userName: message.senderName,
-        username: message.senderName
+        userId: message.senderId,
+        userName: senderUsername,
+        username: senderUsername
       },
       receiver: {
-        userName: message.receiverName,
-        username: message.receiverName
+        userId: message.receiverId,
+        userName: receiverUsername,
+        username: receiverUsername
       },
       isOwn: isOwn
     };
   }
 
-  // Format conversation for display
-  formatConversation(messages, currentUser) {
+  // Format conversation for display (using userId, map to username for display)
+  formatConversation(messages, currentUser, allUsers = []) {
     if (!messages || !Array.isArray(messages)) {
       return [];
     }
     
+    const currentUserId = currentUser?.userId || currentUser?.id;
+    
     return messages.map((message, index) => {
-      const currentUserName = currentUser?.userName || currentUser?.username || currentUser?.name;
-      const isOwn = message.senderName === currentUserName;
+      const isOwn = message.senderId === currentUserId;
+      
+      const senderUsername = this.getUsernameFromUserId(message.senderId, allUsers);
+      const receiverUsername = this.getUsernameFromUserId(message.receiverId, allUsers);
       
       // Ensure we have proper content and timestamp
       const formattedMessage = {
@@ -241,12 +285,14 @@ class ChatApiService {
         content: message.content || '',
         timestamp: message.timestamp || new Date().toISOString(),
         sender: {
-          userName: message.senderName,
-          username: message.senderName
+          userId: message.senderId,
+          userName: senderUsername,
+          username: senderUsername
         },
         receiver: {
-          userName: message.receiverName,
-          username: message.receiverName
+          userId: message.receiverId,
+          userName: receiverUsername,
+          username: receiverUsername
         },
         isOwn: isOwn
       };
@@ -255,23 +301,25 @@ class ChatApiService {
     });
   }
 
-  // Get conversations list (grouped by other user)
-  getConversationsList(messages, currentUser) {
+  // Get conversations list (grouped by other user, using userId)
+  getConversationsList(messages, currentUser, allUsers = []) {
     const conversationsMap = new Map();
-    const currentUserName = currentUser?.userName || currentUser?.username || currentUser?.name;
+    const currentUserId = currentUser?.userId || currentUser?.id;
 
     messages.forEach(message => {
-      const otherUserName = message.senderName === currentUserName 
-        ? message.receiverName 
-        : message.senderName;
+      const otherUserId = message.senderId === currentUserId 
+        ? message.receiverId 
+        : message.senderId;
       
-      const conversationKey = otherUserName;
+      const conversationKey = otherUserId;
       
       if (!conversationsMap.has(conversationKey)) {
+        const otherUsername = this.getUsernameFromUserId(otherUserId, allUsers);
         conversationsMap.set(conversationKey, {
           user: {
-            userName: otherUserName,
-            username: otherUserName
+            userId: otherUserId,
+            userName: otherUsername,
+            username: otherUsername
           },
           lastMessage: message,
           unreadCount: 0
