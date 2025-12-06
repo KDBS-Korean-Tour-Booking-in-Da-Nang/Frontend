@@ -2,14 +2,18 @@
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
+  padding: 1.5rem 1.25rem;
+  background: #fdfdfd; /* pastel white base */
+  border-radius: 24px;
 }
 
 .form-section {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #edf0f7;
+  border-radius: 24px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04); /* soft, diffused shadow */
 }
 
 .section-title {
@@ -66,18 +70,19 @@
 .form-input,
 .form-select,
 .form-textarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #e1e4ee;
+  border-radius: 18px;
+  font-size: 0.98rem;
   transition: all 0.2s ease;
-  background-color: white;
+  background-color: #fbfcff;
 }
 
 .form-input:hover,
 .form-select:hover,
 .form-textarea:hover {
-  border-color: #9ca3af;
+  border-color: #cfd4e5;
+  background-color: #ffffff;
 }
 
 .form-input:focus,
@@ -85,14 +90,14 @@
 .form-textarea:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
 }
 
 .form-input.error,
 .form-select.error,
 .form-textarea.error {
   border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
 }
 
 .form-input.error:hover,
@@ -106,20 +111,20 @@
 .form-input:not(.error),
 .form-select:not(.error),
 .form-textarea:not(.error) {
-  border-color: #d1d5db !important;
+  border-color: #e1e4ee !important;
 }
 
 .form-input:not(.error):hover,
 .form-select:not(.error):hover,
 .form-textarea:not(.error):hover {
-  border-color: #9ca3af !important;
+  border-color: #cfd4e5 !important;
 }
 
 .form-input:not(.error):focus,
 .form-select:not(.error):focus,
 .form-textarea:not(.error):focus {
   border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08) !important;
 }
 
 .form-error {
@@ -136,10 +141,10 @@
 /* Personal Info Checkbox */
 .personal-info-option {
   margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-radius: 8px;
-  border: 1px solid #0ea5e9;
+  padding: 1.1rem 1rem;
+  background: linear-gradient(135deg, #f8fbff 0%, #f4f6ff 100%);
+  border-radius: 20px;
+  border: 1px solid #cfe4ff;
 }
 
 .checkbox-label {
@@ -176,8 +181,8 @@
 .auto-fill-notice {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(14, 165, 233, 0.1);
-  border-radius: 6px;
+  background: rgba(14, 165, 233, 0.06);
+  border-radius: 14px;
   border-left: 3px solid #0ea5e9;
   display: flex;
   align-items: flex-start;
@@ -185,9 +190,21 @@
 }
 
 .notice-icon {
-  font-size: 1.1rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-top: 0.1rem;
+  margin-top: 0.05rem;
+}
+
+.notice-icon-svg {
+  width: 16px;
+  height: 16px;
+  color: #0ea5e9;
 }
 
 .notice-text {

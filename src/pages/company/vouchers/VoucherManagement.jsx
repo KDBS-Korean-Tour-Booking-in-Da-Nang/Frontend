@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { useVoucher } from '../../../hooks/useVoucher';
 import { getVouchersByCompanyId, getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 import VoucherCreateModal from './VoucherCreateModal';
@@ -22,15 +23,30 @@ const VoucherManagement = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { showSuccess } = useToast();
-  const [vouchers, setVouchers] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Use Redux hook for state management
+  const {
+    vouchers,
+    loading,
+    error,
+    pagination,
+    tours,
+    allToursMap,
+    setVouchers,
+    setLoading,
+    setError,
+    setCurrentPage,
+    resetPagination,
+    setTours,
+    setAllToursMap
+  } = useVoucher();
+  
+  // Local state (UI only)
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [tours, setTours] = useState([]); // Tours for dropdown in modal
-  const [allToursMap, setAllToursMap] = useState(new Map()); // Map tourId -> tour name for display
-  const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState(null);
   const [hasAttemptedCompanyId, setHasAttemptedCompanyId] = useState(false);
-  const [error, setError] = useState('');
+  
+  const currentPage = pagination.currentPage;
 
   // Get token for authentication
   const getToken = () => {
@@ -74,23 +90,23 @@ const VoucherManagement = () => {
         }));
         setTours(toursForDropdown);
         
-        // Create a map of tourId -> tour name for quick lookup
-        const toursMap = new Map();
+        // Create a map of tourId -> tour name for quick lookup (convert Map to Object for Redux)
+        const toursMapObj = {};
         toursList.forEach(tour => {
           const tourId = tour.id || tour.tourId;
           const tourName = tour.tourName || tour.name || `Tour #${tourId}`;
           if (tourId) {
-            toursMap.set(tourId, tourName);
+            toursMapObj[tourId] = tourName;
           }
         });
-        setAllToursMap(toursMap);
+        setAllToursMap(toursMapObj);
       }
     } catch (error) {
       // Silently handle error fetching tours
       // Don't set loading false here - tours are optional for voucher creation
     }
     return Promise.resolve();
-  }, []);
+  }, [setTours, setAllToursMap]);
 
   // Fetch tours when companyId is available (for dropdown in modal)
   useEffect(() => {
@@ -132,7 +148,7 @@ const VoucherManagement = () => {
         tourIds: v.tourIds || [] // Include tourIds from backend response
       })) : [];
       setVouchers(mappedVouchers);
-      setCurrentPage(1); // Reset to first page when data changes
+      resetPagination(); // Reset to first page when data changes
     } catch (error) {
       // Silently handle error fetching vouchers
       setError(error.message || 'Không thể tải danh sách voucher');
@@ -140,7 +156,7 @@ const VoucherManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setLoading, setVouchers, setError, resetPagination]);
 
   // Get companyId from user or vouchers
   // Priority: user.companyId > user.id (for COMPANY role) > fetch from vouchers
@@ -241,7 +257,7 @@ const VoucherManagement = () => {
         setLoading(false);
         setHasAttemptedCompanyId(true);
       });
-  }, [user]);
+  }, [user, setLoading]);
 
   // Fetch vouchers when companyId is available
   useEffect(() => {
@@ -251,12 +267,7 @@ const VoucherManagement = () => {
       // If we've attempted to get companyId but still don't have it, stop loading
       setLoading(false);
     }
-  }, [companyId, fetchVouchers, hasAttemptedCompanyId]);
-
-  useEffect(() => {
-    if (user) {
-    }
-  }, [user]);
+  }, [companyId, fetchVouchers, hasAttemptedCompanyId, setLoading]);
 
   const totalPages = Math.max(1, Math.ceil((vouchers?.length || 0) / PAGE_SIZE));
   const pageData = useMemo(() => {
@@ -349,7 +360,17 @@ const VoucherManagement = () => {
                         <h3 className={styles['voucher-name']}>{v.name}</h3>
                         <div className={styles['voucher-info']}>{t('voucherManagement.card.type')} {v.discountType === 'PERCENT' ? t('voucherManagement.discountTypes.percent') : v.discountType === 'FIXED' ? t('voucherManagement.discountTypes.fixed') : t('voucherManagement.discountTypes.fixed')}</div>
                         <div className={styles['voucher-info']}>{t('voucherManagement.card.value')} {renderDiscount(v)}</div>
-                        <div className={styles['voucher-info']}>{t('voucherManagement.card.quantity')} {v.totalQuantity} {v.remainingQuantity !== undefined ? `(${t('voucherManagement.card.remaining')} ${v.remainingQuantity})` : ''}</div>
+                        <div className={styles['voucher-info']}>
+                          {t('voucherManagement.card.quantity')}{' '}
+                          <span className={styles['quantity-highlight']}>
+                            {v.totalQuantity}
+                          </span>
+                          {v.remainingQuantity !== undefined && (
+                            <span className={styles['remaining-highlight']}>
+                              {' '}({t('voucherManagement.card.remaining')} {v.remainingQuantity})
+                            </span>
+                          )}
+                        </div>
                         <div className={styles['voucher-status']}>
                           {t('voucherManagement.card.status')}{' '}
                           <span className={
@@ -367,7 +388,7 @@ const VoucherManagement = () => {
                             <span className={styles['tours-label']}>{t('voucherManagement.card.appliedTo')}</span>
                             <div className={styles['tours-list']}>
                               {v.tourIds.map((tourId, idx) => {
-                                const tourName = allToursMap.get(tourId) || `Tour #${tourId}`;
+                                const tourName = allToursMap[tourId] || `Tour #${tourId}`;
                                 return (
                                   <div key={idx} className={styles['tour-item']}>
                                     • {tourName}

@@ -378,9 +378,6 @@ const TourList = () => {
                 <h2 className={styles["top-tours-title"]}>
                   {t("tourList.topTours.title")}
                 </h2>
-                <p className={styles["top-tours-subtitle"]}>
-                  {t("tourList.topTours.subtitle")}
-                </p>
               </div>
               <div className={styles["top-tours-grid"]}>
                 {showTop3Skeleton

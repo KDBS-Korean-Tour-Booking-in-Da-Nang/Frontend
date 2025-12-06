@@ -285,6 +285,24 @@
   line-height: 1.6;
 }
 
+.searchContainer {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 30px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px);
+  padding: 1rem 1.25rem;
+  min-height: 72px;
+}
+
+@media (max-width: 640px) {
+  .searchContainer {
+    border-radius: 0;
+    padding: 0.9rem 0.9rem;
+    min-height: 64px;
+  }
+}
+
 @media (max-width: 768px) {
   .heroSlide {
     height: clamp(220px, 65vw, 360px);

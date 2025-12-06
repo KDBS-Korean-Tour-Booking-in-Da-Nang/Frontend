@@ -1235,10 +1235,16 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                             src={(() => {
                               const imgPath = formData.tourImgPath;
                               if (!imgPath) return '';
-                              if (imgPath.startsWith('blob:') || imgPath.startsWith('http')) return imgPath;
-                              const normalized = imgPath.startsWith('/uploads')
-                                ? imgPath
-                                : `/uploads/tours/thumbnails/${imgPath.split('/').pop()}`;
+                              // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
+                              const trimmed = imgPath.trim();
+                              if (trimmed.startsWith('blob:')) return trimmed;
+                              if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
+                                return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+                              }
+                              if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+                              const normalized = trimmed.startsWith('/uploads')
+                                ? trimmed
+                                : `/uploads/tours/thumbnails/${trimmed.split('/').pop()}`;
                               return getImageUrl(normalized);
                             })()} 
                             alt="Current cover" 

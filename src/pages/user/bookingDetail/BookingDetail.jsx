@@ -97,6 +97,7 @@ const BookingDetail = () => {
   const [showCompletionConfirmModal, setShowCompletionConfirmModal] = useState(false);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [complaintMessage, setComplaintMessage] = useState('');
+  const [showGuestsModal, setShowGuestsModal] = useState(false);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -404,7 +405,7 @@ const BookingDetail = () => {
               </div>
               <div className={styles['info-value']}>{booking.contactName}</div>
             </div>
-              <div className={styles['info-item']}>
+            <div className={styles['info-item']}>
               <div className={styles['info-label']}>
                 <PhoneIcon className={styles['item-icon']} />
                 <span>{t('bookingHistory.card.contactPhone')}</span>
@@ -420,6 +421,94 @@ const BookingDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Guests Information */}
+        {guests && guests.length > 0 && (
+          <div className={styles['info-section']}>
+            <div className={styles['section-header']}>
+              <UserGroupIcon className={styles['section-icon']} />
+              <h2 className={styles['section-title']}>{t('bookingDetail.sections.guests')}</h2>
+            </div>
+            <div className={styles['guests-list']}>
+              {(guests.length > 3 ? guests.slice(0, 3) : guests).map((guest, index) => (
+                <div key={guest.bookingGuestId || index} className={styles['guest-card']}>
+                  <div className={styles['guest-header']}>
+                    <span className={styles['guest-index']}>{index + 1}</span>
+                    <span className={styles['guest-name']}>{guest.fullName || '-'}</span>
+                  </div>
+                  <div className={styles['guest-info-grid']}>
+                    {guest.bookingGuestType && (
+                      <div className={styles['guest-info-item']}>
+                        <div className={styles['guest-info-label']}>
+                          <UserGroupIcon className={styles['guest-item-icon']} />
+                          <span>Type</span>
+                        </div>
+                        <div className={styles['guest-info-value']}>
+                          {guest.bookingGuestType}
+                        </div>
+                      </div>
+                    )}
+                    {guest.birthDate && (
+                      <div className={styles['guest-info-item']}>
+                        <div className={styles['guest-info-label']}>
+                          <CalendarIcon className={styles['guest-item-icon']} />
+                          <span>DOB</span>
+                        </div>
+                        <div className={styles['guest-info-value']}>
+                          {new Date(guest.birthDate).toLocaleDateString('vi-VN')}
+                        </div>
+                      </div>
+                    )}
+                    {guest.gender && (
+                      <div className={styles['guest-info-item']}>
+                        <div className={styles['guest-info-label']}>
+                          <UserIcon className={styles['guest-item-icon']} />
+                          <span>Gender</span>
+                        </div>
+                        <div className={styles['guest-info-value']}>
+                          {guest.gender}
+                        </div>
+                      </div>
+                    )}
+                    {guest.nationality && (
+                      <div className={styles['guest-info-item']}>
+                        <div className={styles['guest-info-label']}>
+                          <MapPinIcon className={styles['guest-item-icon']} />
+                          <span>Nationality</span>
+                        </div>
+                        <div className={styles['guest-info-value']}>
+                          {guest.nationality}
+                        </div>
+                      </div>
+                    )}
+                    {guest.idNumber && (
+                      <div className={styles['guest-info-item']}>
+                        <div className={styles['guest-info-label']}>
+                          <DocumentTextIcon className={styles['guest-item-icon']} />
+                          <span>ID No.</span>
+                        </div>
+                        <div className={styles['guest-info-value']}>
+                          {guest.idNumber}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {guests.length > 3 && (
+              <div className={styles['guests-footer']}>
+                <button
+                  type="button"
+                  className={styles['guests-view-all-btn']}
+                  onClick={() => setShowGuestsModal(true)}
+                >
+                  {t('bookingDetail.guests.viewAll', { count: guests.length })}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -546,6 +635,102 @@ const BookingDetail = () => {
           onConfirm={handleSubmitComplaint}
           bookingId={booking?.bookingId}
         />
+      )}
+
+      {/* Guests Modal - full list */}
+      {showGuestsModal && guests && guests.length > 0 && (
+        <div
+          className={styles['guests-modal-overlay']}
+          onClick={() => setShowGuestsModal(false)}
+        >
+          <div
+            className={styles['guests-modal']}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles['guests-modal-header']}>
+              <h3 className={styles['guests-modal-title']}>
+                {t('bookingDetail.sections.guests')} ({guests.length})
+              </h3>
+              <button
+                type="button"
+                className={styles['guests-modal-close']}
+                onClick={() => setShowGuestsModal(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles['guests-modal-body']}>
+              <div className={styles['guests-list']}>
+                {guests.map((guest, index) => (
+                  <div key={guest.bookingGuestId || index} className={styles['guest-card']}>
+                    <div className={styles['guest-header']}>
+                      <span className={styles['guest-index']}>{index + 1}</span>
+                      <span className={styles['guest-name']}>{guest.fullName || '-'}</span>
+                    </div>
+                    <div className={styles['guest-info-grid']}>
+                      {guest.bookingGuestType && (
+                        <div className={styles['guest-info-item']}>
+                          <div className={styles['guest-info-label']}>
+                            <UserGroupIcon className={styles['guest-item-icon']} />
+                            <span>Type</span>
+                          </div>
+                          <div className={styles['guest-info-value']}>
+                            {guest.bookingGuestType}
+                          </div>
+                        </div>
+                      )}
+                      {guest.birthDate && (
+                        <div className={styles['guest-info-item']}>
+                          <div className={styles['guest-info-label']}>
+                            <CalendarIcon className={styles['guest-item-icon']} />
+                            <span>DOB</span>
+                          </div>
+                          <div className={styles['guest-info-value']}>
+                            {new Date(guest.birthDate).toLocaleDateString('vi-VN')}
+                          </div>
+                        </div>
+                      )}
+                      {guest.gender && (
+                        <div className={styles['guest-info-item']}>
+                          <div className={styles['guest-info-label']}>
+                            <UserIcon className={styles['guest-item-icon']} />
+                            <span>Gender</span>
+                          </div>
+                          <div className={styles['guest-info-value']}>
+                            {guest.gender}
+                          </div>
+                        </div>
+                      )}
+                      {guest.nationality && (
+                        <div className={styles['guest-info-item']}>
+                          <div className={styles['guest-info-label']}>
+                            <MapPinIcon className={styles['guest-item-icon']} />
+                            <span>Nationality</span>
+                          </div>
+                          <div className={styles['guest-info-value']}>
+                            {guest.nationality}
+                          </div>
+                        </div>
+                      )}
+                      {guest.idNumber && (
+                        <div className={styles['guest-info-item']}>
+                          <div className={styles['guest-info-label']}>
+                            <DocumentTextIcon className={styles['guest-item-icon']} />
+                            <span>ID No.</span>
+                          </div>
+                          <div className={styles['guest-info-value']}>
+                            {guest.idNumber}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

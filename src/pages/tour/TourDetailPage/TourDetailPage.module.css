@@ -911,7 +911,7 @@
   .voucher-value-text { font-size: 24px; }
 }
 
-/* Itinerary - KHÔNG BO VIỀN */
+/* Itinerary */
 .tour-itinerary {
   margin-top: 48px;
   grid-column: 1 / -1;
@@ -922,7 +922,7 @@
 .itinerary-header {
   background: linear-gradient(135deg, #2979FF, #1976D2);
   padding: 20px 30px;
-  border-radius: 0;
+  border-radius: 20px 20px 0 0;
   margin-bottom: 0;
 }
 
@@ -941,7 +941,7 @@
   flex-direction: column;
   gap: 0;
   background: white;
-  border-radius: 0;
+  border-radius: 0 0 20px 20px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }

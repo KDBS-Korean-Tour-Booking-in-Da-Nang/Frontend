@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
-import BanReasonModal from './BanReasonModal';
+import BanReasonModal from '../../../components/modals/BanReasonModal/BanReasonModal';
 import CustomerDetailModal from './CustomerDetailModal';
 import Pagination from '../Pagination';
+import Tooltip from '../../../components/tooltip';
 import {
   UsersIcon,
   UserCircleIcon,
@@ -443,24 +444,26 @@ const CustomerManagement = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleViewDetail(customer)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition" 
-                        title={t('admin.customerManagement.actions.viewDetails')}
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleBanClick(customer)}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                        title={customer.status === 'active' ? t('admin.customerManagement.actions.banUser') : t('admin.customerManagement.actions.unbanUser')}
-                      >
-                        {customer.status === 'active' ? (
-                          <NoSymbolIcon className="h-4 w-4" />
-                        ) : (
-                          <ShieldExclamationIcon className="h-4 w-4" />
-                        )}
-                      </button>
+                      <Tooltip text={t('admin.customerManagement.actions.viewDetails')} position="top">
+                        <button 
+                          onClick={() => handleViewDetail(customer)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip text={customer.status === 'active' ? t('admin.customerManagement.actions.banUser') : t('admin.customerManagement.actions.unbanUser')} position="top">
+                        <button 
+                          onClick={() => handleBanClick(customer)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                        >
+                          {customer.status === 'active' ? (
+                            <NoSymbolIcon className="h-4 w-4" />
+                          ) : (
+                            <ShieldExclamationIcon className="h-4 w-4" />
+                          )}
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

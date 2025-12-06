@@ -8,6 +8,7 @@ import AssignTaskModal from './AssignTaskModal';
 import AddStaffModal from './AddStaffModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import Pagination from '../Pagination';
+import Tooltip from '../../../components/tooltip';
 import { 
   UserGroupIcon,
   UserCircleIcon,
@@ -613,20 +614,22 @@ const StaffManagement = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => handleAssignTask(staff)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition" 
-                          title={t('admin.staffManagement.actions.assignTask')}
-                        >
-                          <ClipboardDocumentListIcon className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteStaff(staff)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
-                          title={t('admin.staffManagement.actions.delete')}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        <Tooltip text={t('admin.staffManagement.actions.assignTask')} position="top">
+                          <button 
+                            onClick={() => handleAssignTask(staff)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition"
+                          >
+                            <ClipboardDocumentListIcon className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text={t('admin.staffManagement.actions.delete')} position="top">
+                          <button 
+                            onClick={() => handleDeleteStaff(staff)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </td>
                   </tr>

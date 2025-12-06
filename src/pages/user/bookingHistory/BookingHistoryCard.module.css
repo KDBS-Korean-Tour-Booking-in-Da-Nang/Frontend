@@ -54,12 +54,42 @@
   letter-spacing: 0.2px;
 }
 
+.booking-main-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.booking-field {
+  min-width: 0;
+}
+
 .booking-id {
   font-size: 20px;
   font-weight: 700;
   color: #1f2937;
   letter-spacing: -0.3px;
   line-height: 1.2;
+}
+
+.booking-tour-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 4px;
+  letter-spacing: 0.2px;
+}
+
+.booking-tour-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Status Badge */

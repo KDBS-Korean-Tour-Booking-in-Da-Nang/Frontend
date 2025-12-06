@@ -449,39 +449,14 @@ const Step2Itinerary = () => {
       <div className={styles['step-header']}>
         <h2 className={styles['step-title']}>{t('tourWizard.step2.title')}</h2>
         <p className={styles['step-subtitle']}>{t('tourWizard.step2.subtitle')}</p>
-        <div className={styles['step-instructions']}>
-          <p><strong>💡 {t('tourWizard.step2.instructions.title')}</strong> {t('tourWizard.step2.instructions.description')}</p>
-          <div className={styles['title-examples']}>
-            <p><strong>🔧 {t('tourWizard.step2.instructions.customizable')}</strong></p>
-            <ul>
-              <li><strong>{t('tourWizard.step2.instructions.sectionTitle')}</strong></li>
-              <li><strong>{t('tourWizard.step2.instructions.dayTitle')}</strong></li>
-            </ul>
-            <p><strong>📝 {t('tourWizard.step2.instructions.examples')}</strong></p>
-            <ul>
-              <li>
-                {`"${t('tourWizard.step2.prefix.day', { n: 1 })} - ${t('tourWizard.step2.examples.c1')}"`}
-              </li>
-              <li>
-                {`"${t('tourWizard.step2.prefix.day', { n: 1 })} - ${t('tourWizard.step2.examples.c2')}"`}
-              </li>
-              <li>
-                {`"${t('tourWizard.step2.prefix.chapter', { n: 1 })} - ${t('tourWizard.step2.examples.c3')}"`}
-              </li>
-              <li>
-                {`"${t('tourWizard.step2.prefix.session', { n: 1 })} - ${t('tourWizard.step2.examples.c4')}"`}
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
 
       {/* Tour Description */}
       <div className={styles['tour-description-section']}>
         <h3>
-          <FileText className={styles['section-icon']} size={20} />
+          <FileText className={styles['section-icon']} size={20} strokeWidth={1.5} />
           {t('tourWizard.step2.tourDescription.title')}
-          {fieldErrors.tourDescription && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+          <span className={styles['required-asterisk']}>*</span>
         </h3>
         <p className={styles['section-description']}>
           {t('tourWizard.step2.tourDescription.description')}
@@ -517,18 +492,16 @@ const Step2Itinerary = () => {
           }}
         />
         {fieldErrors.tourDescription && (
-          <div className={styles['error-message']} style={{ marginTop: '0.5rem', color: '#e11d48', fontSize: '0.875rem' }}>
-            {fieldErrors.tourDescription}
-          </div>
+          <span className={styles['error-message']}>{fieldErrors.tourDescription}</span>
         )}
       </div>
 
       {/* Tour Schedule Summary */}
       <div className={styles['tour-schedule-section']}>
         <h3>
-          <Clock className={styles['section-icon']} size={20} />
+          <Clock className={styles['section-icon']} size={20} strokeWidth={1.5} />
           {t('tourWizard.step2.fields.tourSchedule')}
-          {fieldErrors.tourSchedule && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+          <span className={styles['required-asterisk']}>*</span>
         </h3>
         <p className={styles['section-description']}>
           {t('tourWizard.step2.tourSchedule.description')}
@@ -560,9 +533,7 @@ const Step2Itinerary = () => {
           className={`${styles['form-input']} ${fieldErrors.tourSchedule ? styles['error'] : ''}`}
         />
         {fieldErrors.tourSchedule && (
-          <div className={styles['error-message']} style={{ marginTop: '0.5rem', color: '#e11d48', fontSize: '0.875rem' }}>
-            {fieldErrors.tourSchedule}
-          </div>
+          <span className={styles['error-message']}>{fieldErrors.tourSchedule}</span>
         )}
       </div>
 
@@ -850,7 +821,6 @@ const Step2Itinerary = () => {
                     )}
                   </div>
                 </div>
-                <span className={styles['day-description']}>({day.dayDescription || t('tourWizard.step2.day.defaultMeal')})</span>
                 <div className={styles['color-picker-container']}>
                   <div className={styles['color-presets']}>
                     {[

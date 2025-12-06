@@ -5,6 +5,7 @@ import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
 import TransactionDetailModal from './TransactionDetailModal';
+import Tooltip from '../../../components/tooltip';
 import {
   CurrencyDollarIcon,
   ArrowTrendingUpIcon,
@@ -275,16 +276,17 @@ const TransactionManagement = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <button 
-                      onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setIsDetailModalOpen(true);
-                      }}
-                      className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
-                      title={t('admin.transactionManagement.actions.viewDetails')}
-                    >
-                      <EyeIcon className="h-4 w-4" />
-                    </button>
+                    <Tooltip text={t('admin.transactionManagement.actions.viewDetails')} position="top">
+                      <button 
+                        onClick={() => {
+                          setSelectedTransaction(transaction);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                      </button>
+                    </Tooltip>
                   </td>
                 </tr>
               )))}

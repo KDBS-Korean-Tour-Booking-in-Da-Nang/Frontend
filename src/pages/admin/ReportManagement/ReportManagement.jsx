@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Pagination from '../Pagination';
+import Tooltip from '../../../components/tooltip';
 import { 
   DocumentTextIcon,
   ChartBarIcon,
@@ -12,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ReportManagement = () => {
+  const { t } = useTranslation();
   const [selectedReport, setSelectedReport] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -286,29 +289,32 @@ const ReportManagement = () => {
                       {report.downloads}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleViewReport(report)}
-                        className="text-[#4c9dff] hover:text-[#2563eb]"
-                        title="View Details"
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
+                      <Tooltip text={t('admin.reportManagement.actions.viewDetails')} position="top">
+                        <button
+                          onClick={() => handleViewReport(report)}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
                       {report.status === 'completed' ? (
-                        <button
-                          onClick={() => handleDownloadReport(report.id)}
-                          className="text-green-600 hover:text-green-900"
-                          title="Download"
-                        >
-                          <ArrowDownTrayIcon className="h-4 w-4" />
-                        </button>
+                        <Tooltip text={t('admin.reportManagement.actions.download')} position="top">
+                          <button
+                            onClick={() => handleDownloadReport(report.id)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                          >
+                            <ArrowDownTrayIcon className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                       ) : (
-                        <button
-                          onClick={() => handleGenerateReport(report.id)}
-                          className="text-[#4c9dff] hover:text-[#2563eb]"
-                          title="Generate"
-                        >
-                          <ChartBarIcon className="h-4 w-4" />
-                        </button>
+                        <Tooltip text={t('admin.reportManagement.actions.generate')} position="top">
+                          <button
+                            onClick={() => handleGenerateReport(report.id)}
+                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                          >
+                            <ChartBarIcon className="h-4 w-4" />
+                          </button>
+                        </Tooltip>
                       )}
                     </td>
                   </tr>

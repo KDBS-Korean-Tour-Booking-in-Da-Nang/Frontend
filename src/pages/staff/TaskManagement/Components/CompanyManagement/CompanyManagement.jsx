@@ -547,7 +547,7 @@ const CompanyManagement = () => {
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-gradient-to-br from-white via-gray-50/40 to-slate-50/50 rounded-[32px] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-100/50">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-b border-gray-200/30 px-8 py-5 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-b border-gray-200/30 px-8 py-3 flex items-center justify-between z-10">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-800">{t('staff.companyManagement.modal.title')}</h2>
                 <p className="text-gray-600 text-sm mt-1 font-medium">{selectedCompany?.name}</p>
@@ -572,7 +572,7 @@ const CompanyManagement = () => {
                 <>
                   {!fileData.businessLicenseUrl && !fileData.idCardFrontUrl && !fileData.idCardBackUrl ? (
                     <div className="text-center py-20">
-                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-[24px] bg-gray-100/60 mb-5">
+                      <div className="inline-flex items-center justify-center w-20 h-20 mb-5">
                         <DocumentTextIcon className="h-10 w-10 text-gray-400" />
                       </div>
                       <p className="text-gray-700 text-lg font-semibold mb-2">{t('staff.companyManagement.modal.noFiles.title')}</p>
@@ -586,7 +586,7 @@ const CompanyManagement = () => {
                       <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-gray-200/50 shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-4">
-                            <div className="p-3 bg-gray-100/60 rounded-[20px]">
+                            <div className="p-3">
                               <DocumentTextIcon className="h-6 w-6 text-gray-500" />
                             </div>
                             <div>
@@ -614,7 +614,7 @@ const CompanyManagement = () => {
                         {/* ID Card Front */}
                         <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-purple-200/50 shadow-sm p-5">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="p-3 bg-purple-100/60 rounded-[20px]">
+                            <div className="p-3">
                               <EyeIcon className="h-5 w-5 text-purple-500" />
                             </div>
                             <div>
@@ -648,7 +648,7 @@ const CompanyManagement = () => {
                         {/* ID Card Back */}
                         <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-orange-200/50 shadow-sm p-5">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="p-3 bg-orange-100/60 rounded-[20px]">
+                            <div className="p-3">
                               <EyeIcon className="h-5 w-5 text-orange-500" />
                             </div>
                             <div>
@@ -686,7 +686,7 @@ const CompanyManagement = () => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-t border-gray-200/30 px-8 py-5 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-t border-gray-200/30 px-8 py-4 flex justify-end gap-3">
               {selectedCompany?.approvalStatus === 'pending' && (
                 <>
                   <button

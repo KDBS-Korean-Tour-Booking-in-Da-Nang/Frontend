@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from '../../../../config/api';
 import { Search, Hash, User, FileText, TrendingUp, X, Check, History } from 'lucide-react';
 import styles from './SearchSidebar.module.css';
 
-const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags }) => {
+const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFilter, selectedHashtags: externalSelectedHashtags, isAdminStaffView = false }) => {
   const { t } = useTranslation();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [popularHashtags, setPopularHashtags] = useState([]);
@@ -23,6 +23,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
   const [searchHistory, setSearchHistory] = useState([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [selectedHashtags, setSelectedHashtags] = useState([]);
+  const [showAllHashtags, setShowAllHashtags] = useState(false);
   const isInternalUpdate = useRef(false);
   const pendingFilterUpdate = useRef(null);
 
@@ -87,7 +88,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
 
   const fetchPopularHashtags = async () => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.HASHTAGS_POPULAR}?limit=8`);
+      const response = await fetch(`${API_ENDPOINTS.HASHTAGS_POPULAR}?limit=30`);
       if (response.ok) {
         const hashtags = await response.json();
         setPopularHashtags(hashtags.map(h => ({
@@ -440,11 +441,16 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     };
   }, []);
 
+  const visibleHashtags = showAllHashtags
+    ? popularHashtags
+    : popularHashtags.slice(0, 8);
+
   return (
     <div
-      className={`${styles['search-sidebar']} ${mode === 'fixed' ? styles['fixed'] : ''}`}
+      className={`${styles['search-sidebar']} search-sidebar ${mode === 'fixed' ? styles['fixed'] : ''}`}
       style={mode === 'fixed' ? fixedStyle : undefined}
       ref={rootRef}
+      data-admin-staff-view={isAdminStaffView ? 'true' : 'false'}
     >
       <div className={styles['search-section']}>
         <h3 className={styles['sidebar-title']}>{t('forum.search.title')}</h3>
@@ -574,7 +580,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
           )}
         </div>
         <div className={styles['hashtags-list']}>
-          {popularHashtags.map((hashtag, index) => {
+          {visibleHashtags.map((hashtag, index) => {
             const isSelected = selectedHashtags.includes(hashtag.content);
             return (
               <button
@@ -593,6 +599,15 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
             );
           })}
         </div>
+        {!showAllHashtags && popularHashtags.length >= 8 && (
+          <button
+            type="button"
+            className={styles['view-more-hashtags-btn']}
+            onClick={() => setShowAllHashtags(true)}
+          >
+            {t('forum.search.viewMoreHashtags')}
+          </button>
+        )}
       </div>
 
     </div>

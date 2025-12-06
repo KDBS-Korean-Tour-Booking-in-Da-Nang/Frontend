@@ -34,6 +34,7 @@
 		"processing": "Processing...",
 		"item": "item",
 		"sendMessage": "Send Message",
+		"actions": "Actions",
 		"modal": {
 			"confirmLeave": {
 				"title": "Leave the tour wizard?",
@@ -310,8 +311,36 @@
 			"emailPlaceholder": "Enter your email",
 			"subscribe": "Subscribe"
 		},
-		"copyright": "© 2024 KDBS. All rights reserved.",
-		"rights": "All rights reserved."
+		"copyright": "© 2024 KDBS. All rights reserved."
+	},
+	"supportTicket": {
+		"title": "Support Request",
+		"description": "Select your support request type:",
+		"categories": {
+			"booking": "Tour booking issue",
+			"payment": "Payment issue",
+			"account": "Account issue",
+			"other": "Other"
+		},
+		"otherPlaceholder": "Please describe your support request in detail...",
+		"submit": "Submit Request",
+		"submitting": "Submitting...",
+		"success": "Support request submitted successfully! We will contact you soon.",
+		"errors": {
+			"selectCategory": "Please select a support category",
+			"enterMessage": "Please enter your support request description",
+			"submitError": "An error occurred while submitting the request. Please try again."
+		},
+		"loginRequired": {
+			"title": "Login Required",
+			"message": "Please login to submit a support request."
+		},
+		"open": "Open support request",
+		"close": "Close",
+		"tooltip": {
+			"open": "Send support request",
+			"close": "Close support request"
+		}
 	},
 	"pending": {
 		"title": "Pending Approval",
@@ -876,6 +905,7 @@
 		"forumReportManagement": {
 			"title": "Forum report management",
 			"subtitle": "Review and approve user reports about violating content on the forum.",
+			"backToDashboard": "Back to Dashboard",
 			"advancedFilter": "Advanced filter",
 			"exportReport": "Export report",
 			"stats": {
@@ -915,6 +945,8 @@
 				"post": "Post",
 				"comment": "Comment"
 			},
+			"viewPost": "View post",
+			"viewComment": "View comment",
 			"status": {
 				"pending": "Pending approval",
 				"investigating": "Investigating",
@@ -1081,6 +1113,7 @@
 			},
 			"actions": {
 				"viewDetails": "View details",
+				"message": "Message",
 				"resolve": "Resolve ticket"
 			},
 			"noTickets": "No tickets available",
@@ -1101,6 +1134,7 @@
 				"close": "Close",
 				"subject": "Subject",
 				"message": "Message",
+				"reasons": "Reasons",
 				"status": "Status",
 				"priority": "Priority",
 				"createdAt": "Created At",
@@ -1111,6 +1145,7 @@
 				"ticketId": "Ticket ID: #{{id}}",
 				"close": "Close",
 				"ticketSubject": "Ticket Subject",
+				"ticketMessage": "Ticket Message",
 				"resolutionType": "Resolution Type",
 				"required": "*",
 				"resolutionOptions": {
@@ -1500,6 +1535,11 @@
 				"email": "Email:",
 				"transactionInfo": "Transaction information",
 				"time": "Time"
+			},
+			"status": {
+				"completed": "Completed",
+				"pending": "Pending",
+				"failed": "Failed"
 			}
 		},
 		"userManagement": {
@@ -1561,6 +1601,12 @@
 				"deleteConfirm": "Are you sure you want to delete this user?"
 			}
 		}
+	},
+	"profileRole": {
+		"ADMIN": "Admin",
+		"STAFF": "Staff",
+		"COMPANY": "Company",
+		"USER": "User"
 	},
 	"profile": {
 		"loginRequired": "Please login to view your profile",
@@ -1904,6 +1950,7 @@
 			"title": "Forum Report Management",
 			"subtitle": "Forum report management",
 			"description": "Review and approve user reports about violating content on the forum.",
+			"backToDashboard": "Back to Dashboard",
 			"permissionDenied": {
 				"title": "Access Denied",
 				"message": "You do not have permission to manage forum reports. Please contact admin to get permission.",
@@ -1964,6 +2011,8 @@
 				"post": "Post",
 				"comment": "Comment"
 			},
+			"viewPost": "View post",
+			"viewComment": "View comment",
 			"status": {
 				"pending": "Pending approval",
 				"investigating": "Investigating",
@@ -2060,24 +2109,6 @@
       "hoursAgo": "{{count}} hr"
     }
   },
-	"staffLogin": {
-		"title": "Staff/Admin Login",
-		"subtitle": "Access the management system",
-		"username": "Username",
-		"email": "Email",
-		"password": "Password",
-		"submit": "Login",
-		"submitting": "Logging in...",
-		"or": "Or",
-		"loginUserBusiness": "Login for User/Business",
-		"error": "Login failed. Please try again.",
-		"demo": {
-			"title": "Demo Credentials:",
-			"admin": "Admin:",
-			"staff": "Staff:",
-			"password": "Password: (any)"
-		}
-	},
 	"forum": {
 		"title": "Forum",
 		"shareTour": {
@@ -2198,7 +2229,8 @@
 			"clearRecent": "Clear History",
 			"by": "by",
 			"user": "user",
-			"posts": "posts"
+			"posts": "posts",
+			"viewMoreHashtags": "View more hashtags"
 		},
 		"sidebar": {
 			"savedPosts": "Saved Posts",
@@ -2226,7 +2258,7 @@
 		},
 		"modals": {
 			"savedPosts": {
-				"title": "📚 Saved Posts",
+				"title": "Saved Posts",
 				"noSavedPosts": "You haven't saved any posts yet",
 				"noSavedPostsDesc": "Save interesting posts to view them later!",
 				"close": "Close",
@@ -2312,7 +2344,8 @@
 			"clickToFilter": "Click to filter posts by this hashtag",
 			"headerTitle": "Filter by Hashtag",
 			"postCount": "posts",
-			"backToForum": "Back to Forum"
+			"backToForum": "Back to Forum",
+			"showLess": "Show less"
 		},
 		"errors": {
 			"loadPosts": "Unable to load posts. Please try again.",
@@ -2396,6 +2429,7 @@
 			"otp_resend_failed": "Unable to resend OTP code. Please try again.",
 			"password_reset_email_sent": "Password reset email has been sent!",
 			"otp_verify_success": "OTP verification successful!",
+			"wrong_otp": "Invalid OTP. Please try again.",
 			"general_error": "An error occurred. Please try again.",
 			"email_not_found": "Login failed. Please check your email.",
 			"wrong_password": "Login failed. Please check your password.",
@@ -2443,8 +2477,8 @@
             "fields": {
                 "tourName": "Tour Name",
                 "tourType": "Tour Type",
-                "departurePoint": "Departure Point *",
-                "vehicle": "Vehicle *",
+                "departurePoint": "Departure Point",
+                "vehicle": "Vehicle",
                 "duration": "Duration (Days)",
                 "nights": "Nights",
                 "maxCapacity": "Max Tours",
@@ -3103,6 +3137,7 @@
 		},
 		"card": {
 			"bookingId": "Booking ID",
+      "tourName": "Tour Name",
 			"departureDate": "Departure Date",
 			"totalGuests": "Total Guests",
 			"guests": "guests",
@@ -3146,7 +3181,11 @@
     "sections": {
       "tourInfo": "Tour Information",
       "contactInfo": "Contact Information",
+      "guests": "Passenger information",
       "email": "Email"
+    },
+    "guests": {
+      "viewAll": "View all {{count}} passengers"
     },
     "actions": {
       "editBooking": "Edit booking",
@@ -3260,28 +3299,6 @@
 			"template": "{{days}} day{{daysSuffix}} {{nights}} night{{nightsSuffix}}"
 		}
 	},
-	"businessNav": {
-		"brandSuffix": "Business",
-		"title": "Business Management",
-		"roleSuffix": "Business",
-		"mobileSectionTitle": "Business Management",
-		"dropdown": {
-			"manageToursTitle": "Manage Tours",
-			"manageToursDesc": "Create and manage tours",
-			"analyticsTitle": "Analytics & Reports",
-			"analyticsDesc": "View revenue and stats",
-			"ordersTitle": "Manage Orders",
-			"ordersDesc": "View and process orders"
-		}
-	},
-  "profileRole": {
-    "USER": "User",
-    "COMPANY": "Company",
-    "BUSINESS": "Business",
-    "ADMIN": "Admin",
-    "STAFF": "Staff",
-    "UNKNOWN": "Unknown"
-  },
 	"booking": {
         "step1": {
           "fields": {
@@ -3836,41 +3853,35 @@
 		}
 	}
   ,
-  "premium": {
-    "title": "Premium",
-    "subscriptionTitle": "Premium Subscription",
-    "plans": {
-      "1month": "1 month",
-      "3months": "3 months"
-    },
-    "price": "{{amount}} VND",
-    "purchase": "Purchase Premium",
-    "validUntil": "Valid until",
-    "activeNoExpiry": "Active Premium - No expiration date available",
-    "na": "N/A",
-    "errors": {
-      "noToken": "No authentication token found. Please login again.",
-      "noEmail": "User email not found. Please login again.",
-      "missingPayUrl": "VNPay payment URL not found in response",
-      "error": "Error"
-    }
-  },
   "article": {
     "title": "Articles",
     "hero": {
       "title": "Exciting Travel Information About Attractive Destinations",
-      "subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences"
+      "subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences",
+      "eyebrow": "Travel Journal",
+      "slide2Title": "Exciting Travel Information",
+      "slide2Subtitle": "Discover attractive destinations and curated itineraries designed for soft, effortless journeys.",
+      "slide2Eyebrow": "Destination Highlights",
+      "slide3Title": "Unique Experiences",
+      "slide3Subtitle": "Providing useful tips about activities, events, and cultural moments worth cherishing.",
+      "slide3Eyebrow": "Inspired Moments"
     },
     "loading": "Loading articles...",
     "loadingMore": "Loading...",
     "loadMore": "Load More",
     "noArticles": "No articles yet",
     "noArticlesDesc": "Please come back later to see the latest articles!",
+    "noArticlesSearch": "No articles found matching this keyword.",
     "noImage": "No image",
-    "category": "Articles",
-    "readMore": "Details",
-    "sidebar": {
+		"category": "Articles",
+		"readMore": "Details",
+		"searchPlaceholder": "Search articles",
+		"sidebar": {
       "title": "TOUR CATEGORIES",
+      "filterTitle": "Filter & Sort",
+      "sortBy": "Sort by",
+      "sortNewest": "Newest first",
+      "sortOldest": "Oldest first",
       "domestic": {
         "title": "Domestic Tours",
         "north": "Northern Tours",
@@ -3915,6 +3926,15 @@
         "tet": "Tet Tour",
         "festival": "Festival Tour"
       }
+    },
+    "comments": {
+      "placeholder": "Write a comment...",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "count": "comments",
+      "showMore": "Show more comments",
+      "showLess": "Show less comments",
+      "empty": "No comments yet. Be the first to comment!"
     }
   },
   "articleDetail": {
@@ -3994,6 +4014,11 @@
       "title": "Article Management ({{count}} articles)",
       "selectAll": "Select All",
       "selectedCount": "{{count}} articles selected"
+    },
+    "sort": {
+      "label": "Sort:",
+      "newest": "Newest",
+      "oldest": "Oldest"
     },
     "pagination": {
       "showing": "Showing {{start}} to {{end}} of {{total}} articles",

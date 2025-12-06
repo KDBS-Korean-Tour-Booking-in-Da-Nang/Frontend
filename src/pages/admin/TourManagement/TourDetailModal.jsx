@@ -102,7 +102,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
           </div>
 
           {/* Tour ID */}
-          <div className="bg-gray-50 rounded-[24px] p-4">
+          <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
             <p className="text-sm text-gray-500 mb-1">{t('admin.tourDetailModal.fields.tourId')}</p>
             <p className="text-lg font-semibold text-gray-900">#{tour.tourId || tour.id}</p>
           </div>
@@ -110,7 +110,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4">
             {tour.departurePoint && (
-              <div className="bg-blue-50 rounded-[24px] p-4 border border-blue-100">
+              <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
                 <div className="flex items-center gap-3 mb-2">
                   <MapPinIcon className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
                   <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.departurePoint')}</p>
@@ -120,12 +120,12 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
             )}
 
             {(tour.price || tour.adultPrice) && (
-              <div className="bg-green-50 rounded-[24px] p-4 border border-green-100">
+              <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
                 <div className="flex items-center gap-3 mb-2">
                   <CurrencyDollarIcon className="w-5 h-5 text-green-600" strokeWidth={1.5} />
                   <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.adultPrice')}</p>
                 </div>
-                <p className="text-base font-semibold text-green-700">
+                <p className="text-base font-medium text-gray-900">
                   {formatPrice(tour.price || tour.adultPrice)}
                 </p>
                 {tour.childrenPrice && (
@@ -142,7 +142,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
             )}
 
             {(tour.duration || tour.tourDuration) && (
-              <div className="bg-purple-50 rounded-[24px] p-4 border border-purple-100">
+              <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
                 <div className="flex items-center gap-3 mb-2">
                   <ClockIcon className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
                   <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.duration')}</p>
@@ -154,7 +154,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
             )}
 
             {tour.createdAt && (
-              <div className="bg-amber-50 rounded-[24px] p-4 border border-amber-100">
+              <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
                 <div className="flex items-center gap-3 mb-2">
                   <CalendarIcon className="w-5 h-5 text-amber-600" strokeWidth={1.5} />
                   <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.createdAt')}</p>
@@ -172,19 +172,19 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
               <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.additionalInfo')}</h4>
               <div className="grid grid-cols-2 gap-3">
                 {tour.tourVehicle && (
-                  <div className="bg-gray-50 rounded-[20px] p-3">
+                  <div className="bg-gray-50 rounded-[20px] p-3 border border-gray-200">
                     <p className="text-xs text-gray-500 mb-1">{t('admin.tourDetailModal.fields.vehicle')}</p>
                     <p className="text-sm font-medium text-gray-900">{tour.tourVehicle}</p>
                   </div>
                 )}
                 {tour.tourType && (
-                  <div className="bg-gray-50 rounded-[20px] p-3">
+                  <div className="bg-gray-50 rounded-[20px] p-3 border border-gray-200">
                     <p className="text-xs text-gray-500 mb-1">{t('admin.tourDetailModal.fields.tourType')}</p>
                     <p className="text-sm font-medium text-gray-900">{tour.tourType}</p>
                   </div>
                 )}
                 {tour.amount && (
-                  <div className="bg-gray-50 rounded-[20px] p-3">
+                  <div className="bg-gray-50 rounded-[20px] p-3 border border-gray-200">
                     <p className="text-xs text-gray-500 mb-1">{t('admin.tourDetailModal.fields.amount')}</p>
                     <p className="text-sm font-medium text-gray-900">{t('admin.tourDetailModal.fields.amountPeople', { amount: tour.amount })}</p>
                   </div>
@@ -195,7 +195,7 @@ const TourDetailModal = ({ isOpen, onClose, tour }) => {
 
           {/* Company Info */}
           {tour.companyEmail && (
-            <div className="bg-indigo-50 rounded-[24px] p-4 border border-indigo-100">
+            <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
               <div className="flex items-center gap-3 mb-2">
                 <UserIcon className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
                 <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.company')}</p>

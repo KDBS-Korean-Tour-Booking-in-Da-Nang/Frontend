@@ -5,6 +5,7 @@ import { CalendarIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/
 import articleService from '../../../services/articleService';
 import { htmlToJsx, normalizeImageUrlsInHtml } from '../../../utils/htmlConverter';
 import { getImageUrl } from '../../../config/api';
+import ArticleCommentSection from './ArticleCommentSection';
 import styles from './ArticleDetail.module.css';
 
 const ArticleDetail = () => {
@@ -207,6 +208,9 @@ const ArticleDetail = () => {
                 </div>
               )}
             </div>
+
+            {/* Comment Section */}
+            <ArticleCommentSection articleId={article.articleId} />
 
             {/* Article Footer */}
             <div className={`${styles.articleFooter} px-8 py-6 border-t border-gray-200`}>
