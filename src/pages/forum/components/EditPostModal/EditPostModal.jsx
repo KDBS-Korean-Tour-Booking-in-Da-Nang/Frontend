@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
-import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, FrontendURL } from '../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, FrontendURL, normalizeToRelativePath } from '../../../../config/api';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import { X, Image, Loader2 } from 'lucide-react';
 import styles from './EditPostModal.module.css';
@@ -145,12 +145,14 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
         if (response.ok) {
           const preview = await response.json();
+          // Normalize thumbnailUrl về relative path để không lưu BaseURL vào metadata
+          const rawThumbnail = preview.thumbnailUrl || preview.tourImgPath;
           setLinkPreview({
             type: 'TOUR',
             id: tourId,
             title: preview.title || preview.tourName,
             summary: preview.summary || preview.tourDescription,
-            thumbnailUrl: preview.thumbnailUrl || preview.tourImgPath,
+            thumbnailUrl: normalizeToRelativePath(rawThumbnail),
             linkUrl: `${FrontendURL}/tour/detail?id=${tourId}`
           });
           previewFromMetadataRef.current = false; // This preview is from content detection, not metadata
@@ -159,7 +161,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
           previewFromMetadataRef.current = false;
         }
       } catch (error) {
-        console.error('Error fetching tour preview:', error);
+        // Silently handle error fetching tour preview
         setLinkPreview(null);
         previewFromMetadataRef.current = false;
       } finally {
@@ -247,12 +249,13 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
 
       // Add link preview metadata if available
       if (linkPreview) {
+        // Normalize thumbnailUrl để đảm bảo không lưu BaseURL vào database
         formData.append('metadata', JSON.stringify({
           linkType: linkPreview.type,
           linkRefId: linkPreview.id,
           title: linkPreview.title,
           summary: linkPreview.summary,
-          thumbnailUrl: linkPreview.thumbnailUrl,
+          thumbnailUrl: normalizeToRelativePath(linkPreview.thumbnailUrl),
           linkUrl: linkPreview.linkUrl
         }));
       }
@@ -278,12 +281,13 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         
         // Ensure metadata is properly set if we had a link preview
         if (linkPreview && !result.metadata) {
+          // Normalize thumbnailUrl để đảm bảo không lưu BaseURL vào database
           result.metadata = {
             linkType: linkPreview.type,
             linkRefId: linkPreview.id,
             title: linkPreview.title,
             summary: linkPreview.summary,
-            thumbnailUrl: linkPreview.thumbnailUrl,
+            thumbnailUrl: normalizeToRelativePath(linkPreview.thumbnailUrl),
             linkUrl: linkPreview.linkUrl
           };
         }

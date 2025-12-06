@@ -76,4 +76,3 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
 
 export default ImageViewerModal;
 
-

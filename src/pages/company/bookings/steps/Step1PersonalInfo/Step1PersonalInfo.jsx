@@ -204,7 +204,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
         onBack();
       }, 1500);
     } catch (error) {
-      console.error('Error rejecting booking:', error);
+      // Silently handle error rejecting booking
       setError(error.message || 'Không thể từ chối booking');
     } finally {
       setLoading(false);
@@ -228,7 +228,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
         onBack();
       }, 1500);
     } catch (error) {
-      console.error('Error requesting update:', error);
+      // Silently handle error requesting update
       setError(error.message || 'Không thể gửi yêu cầu cập nhật');
     } finally {
       setLoading(false);

@@ -2,12 +2,10 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useToast } from '../../../contexts/ToastContext';
 
 const OAuthCallback = () => {
   const { t } = useTranslation();
   const { login } = useAuth();
-  const { showSuccess } = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const processedRef = useRef(false);
@@ -93,7 +91,9 @@ const OAuthCallback = () => {
         try {
           const parsed = JSON.parse(savedUser);
           finalStatus = parsed.status;
-        } catch {}
+        } catch (err) {
+          // Silently handle JSON parse errors
+        }
       }
       
       if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && finalStatus === 'COMPANY_PENDING') {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Editor } from '@tinymce/tinymce-react';
 import { useToast } from '../../../../../../contexts/ToastContext';
 import { useTourWizardContext } from '../../../../../../contexts/TourWizardContext';
-import { getApiPath } from '../../../../../../config/api';
+import { getApiPath, normalizeToRelativePath } from '../../../../../../config/api';
 import {
   DollarSign,
   User,
@@ -74,13 +74,14 @@ const Step3Pricing = () => {
         
         if (response.ok) {
           const imageUrl = await response.text();
-          return imageUrl;
+          // Normalize về relative path để đảm bảo không lưu BaseURL vào HTML content
+          return normalizeToRelativePath(imageUrl);
         } else {
           const errorText = await response.text();
           throw new Error('Upload failed: ' + errorText);
         }
       } catch (error) {
-        console.error('Image upload error:', error);
+        // Silently handle image upload error
         throw new Error('Không thể upload ảnh. Vui lòng thử lại.');
       }
     },

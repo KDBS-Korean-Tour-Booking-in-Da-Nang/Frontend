@@ -83,7 +83,7 @@ export const useToursAPI = () => {
       setTours(transformedTours);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching tours:', err);
+      // Silently handle error fetching tours
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export const useToursAPI = () => {
       return transformTour(tour);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching tour:', err);
+      // Silently handle error fetching tour
       throw err;
     } finally {
       setLoading(false);
@@ -202,7 +202,7 @@ export const useToursAPI = () => {
         return { items: [], totalPages: 0, totalElements: 0, pageNumber: 0, pageSize: size };
       }
       setError(err.message);
-      console.error('Error searching tours:', err);
+      // Silently handle error searching tours
       return { items: [], totalPages: 0, totalElements: 0, pageNumber: 0, pageSize: size };
     } finally {
       setLoading(false);

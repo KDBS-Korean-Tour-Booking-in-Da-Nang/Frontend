@@ -114,7 +114,7 @@ const CustomerContact = () => {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      // Silently handle error sending message
     }
   };
 

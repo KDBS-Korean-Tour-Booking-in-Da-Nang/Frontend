@@ -123,7 +123,9 @@ const VerifyEmail = () => {
                 }
               }
             }
-          } catch {}
+          } catch (err) {
+            // Silently handle auto-login errors
+          }
           
           // Fallback navigation if auto-login fails
           if (role === 'business') {

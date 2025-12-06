@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import StaffLayout from './StaffLayout';
 import CustomerContact from './CustomerContact/CustomerContact';
@@ -6,7 +6,6 @@ import TaskManagement from './TaskManagement/TaskManagement';
 
 const StaffDashboard = () => {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   // Avoid flicker on refresh: wait for auth to finish
   if (loading) {

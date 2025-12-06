@@ -66,7 +66,7 @@ const TourPreview = ({ createdAt = null }) => {
           setIsLoading(false);
         }
       } catch (err) {
-        console.error('Error loading tour for preview:', err);
+        // Silently handle error loading tour for preview
         if (isMounted) {
           setHasError(true);
           setIsLoading(false);

@@ -956,7 +956,13 @@
 			"detailLoadError": "신고 상세를 로딩하는 중 오류가 발생했습니다",
 			"noReason": "사유 없음",
 			"approveNote": "신고가 승인되어 처리되었습니다",
-			"rejectNote": "신고가 거부되었습니다"
+			"rejectNote": "신고가 거부되었습니다",
+			"approveConfirm": {
+				"title": "신고 승인",
+				"message": "신고 #{{id}}을(를) 승인하시겠습니까? 이 작업은 신고를 해결됨으로 표시합니다.",
+				"confirm": "승인",
+				"cancel": "취소"
+			}
 		},
 		"reportDetailModal": {
 			"title": "신고 상세",
@@ -1303,7 +1309,20 @@
 			"rejectSuccess": "투어 거절 성공!",
 			"approveError": "투어 승인 오류: {{error}}",
 			"rejectError": "투어 거절 오류: {{error}}",
-			"detailError": "투어 상세를 로딩하는 중 오류가 발생했습니다"
+			"detailError": "투어 상세를 로딩하는 중 오류가 발생했습니다",
+			"approveConfirm": {
+				"title": "투어 승인",
+				"message": "투어 \"{{name}}\"을(를) 승인하시겠습니까? 이 작업은 투어를 공개적으로 표시합니다.",
+				"confirm": "승인",
+				"cancel": "취소"
+			},
+			"rejectConfirm": {
+				"title": "투어 거절",
+				"message": "투어 \"{{name}}\"을(를) 거절하시겠습니까? 이 작업은 투어를 비활성화합니다.",
+				"confirm": "거절",
+				"cancel": "취소"
+			},
+			"durationTemplate": "{{days}}일 {{nights}}박"
 		},
 		"tourDetailModal": {
 			"title": "투어 상세",
@@ -1328,7 +1347,8 @@
 				"reject": "거절",
 				"confirmApprove": "이 투어를 승인하시겠습니까?",
 				"confirmReject": "이 투어를 거절하시겠습니까?"
-			}
+			},
+			"durationTemplate": "{{days}}일 {{nights}}박"
 		},
 		"tourApproval": {
 			"title": "투어 관리",
@@ -1401,6 +1421,18 @@
 			"confirm": {
 				"approve": "이 투어를 승인하시겠습니까?",
 				"reject": "이 투어를 거절하시겠습니까?"
+			},
+			"approveConfirm": {
+				"title": "투어 승인",
+				"message": "투어 \"{{name}}\"을(를) 승인하시겠습니까? 이 작업은 투어를 공개적으로 표시합니다.",
+				"confirm": "승인",
+				"cancel": "취소"
+			},
+			"rejectConfirm": {
+				"title": "투어 거절",
+				"message": "투어 \"{{name}}\"을(를) 거절하시겠습니까? 이 작업은 투어를 비활성화합니다.",
+				"confirm": "거절",
+				"cancel": "취소"
 			},
 			"success": {
 				"approve": "투어 승인 성공!",
@@ -1735,6 +1767,18 @@
 				"approve": "\"{{name}}\" 회사를 승인하시겠습니까?",
 				"reject": "\"{{name}}\" 회사를 거절하시겠습니까?"
 			},
+			"approveConfirm": {
+				"title": "회사 승인",
+				"message": "\"{{name}}\" 회사를 승인하시겠습니까? 이 작업은 회사 계정을 활성화합니다.",
+				"confirm": "승인",
+				"cancel": "취소"
+			},
+			"rejectConfirm": {
+				"title": "회사 거절",
+				"message": "\"{{name}}\" 회사를 거절하시겠습니까? 이 작업은 회사 등록을 거절합니다.",
+				"confirm": "거절",
+				"cancel": "취소"
+			},
 			"success": {
 				"approve": "회사 승인 성공!",
 				"reject": "회사 거절 성공!"
@@ -1953,6 +1997,14 @@
 			"confirm": {
 				"approve": "이 신고를 승인하시겠습니까?",
 				"reject": "이 신고를 거절하시겠습니까?"
+			},
+			"confirmModal": {
+				"approve": {
+					"title": "신고 승인",
+					"message": "신고 #{{id}}을(를) 승인하시겠습니까? 이 작업은 신고를 해결됨으로 표시합니다.",
+					"confirm": "승인",
+					"cancel": "취소"
+				}
 			},
 			"success": {
 				"approve": "신고 승인 성공!",

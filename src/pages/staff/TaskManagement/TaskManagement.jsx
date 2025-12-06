@@ -67,7 +67,7 @@ const TaskManagement = () => {
             setForumReportsCount(data.totalElements || 0);
           }
         } catch (error) {
-          console.error('Error loading forum reports count:', error);
+          // Silently handle error loading forum reports count
         }
 
         // Load booking complaints count
@@ -78,9 +78,7 @@ const TaskManagement = () => {
           setBookingComplaintsCount(pending.length);
         } catch (error) {
           // Don't log error if it's a 401 - it will be handled by the service
-          if (error?.status !== 401) {
-            console.error('Error loading booking complaints count:', error);
-          }
+          // Silently handle error loading booking complaints count
         }
       }
 
@@ -103,7 +101,7 @@ const TaskManagement = () => {
             setCompanyRequestsCount(pending.length);
           }
         } catch (error) {
-          console.error('Error loading company requests count:', error);
+          // Silently handle error loading company requests count
         }
       }
 
@@ -122,7 +120,7 @@ const TaskManagement = () => {
             setPendingToursCount(pending.length);
           }
         } catch (error) {
-          console.error('Error loading pending tours count:', error);
+          // Silently handle error loading pending tours count
         }
       }
 
@@ -137,16 +135,12 @@ const TaskManagement = () => {
           setPendingArticlesCount(pending.length);
         } catch (error) {
           // Don't log error if it's a 401 - it will be handled by the service
-          if (error?.status !== 401) {
-            console.error('Error loading pending articles count:', error);
-          }
+          // Silently handle error loading pending articles count
         }
       }
     } catch (error) {
       // Don't log error if it's a 401 - it will be handled by the service
-      if (error?.status !== 401) {
-        console.error('Error loading summary data:', error);
-      }
+      // Silently handle error loading summary data
     }
   }, [canHandleForumReports, canHandleCompanyRequests, canHandleTours, canHandleArticles, getToken]);
 

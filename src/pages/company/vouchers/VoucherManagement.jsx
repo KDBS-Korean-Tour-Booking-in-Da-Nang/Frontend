@@ -86,7 +86,7 @@ const VoucherManagement = () => {
         setAllToursMap(toursMap);
       }
     } catch (error) {
-      console.error('Error fetching tours:', error);
+      // Silently handle error fetching tours
       // Don't set loading false here - tours are optional for voucher creation
     }
     return Promise.resolve();
@@ -134,7 +134,7 @@ const VoucherManagement = () => {
       setVouchers(mappedVouchers);
       setCurrentPage(1); // Reset to first page when data changes
     } catch (error) {
-      console.error('Error fetching vouchers:', error);
+      // Silently handle error fetching vouchers
       setError(error.message || 'Không thể tải danh sách voucher');
       setVouchers([]);
     } finally {

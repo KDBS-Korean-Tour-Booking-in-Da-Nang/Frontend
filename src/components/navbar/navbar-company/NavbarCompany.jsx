@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -36,6 +36,45 @@ const NavbarCompany = () => {
     }
   }, [user?.email, fetchUnreadCount]);
 
+  // Function to refresh balance from API
+  const refreshBalance = useCallback(async () => {
+    if (!user || user.role !== 'COMPANY') {
+      setBalance(null);
+      return;
+    }
+
+    setIsLoadingBalance(true);
+    try {
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.GET_USER(user.email), {
+        headers: createAuthHeaders(token)
+      });
+
+      if (response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const userData = await response.json();
+        const newBalance = userData.balance || 0;
+        setBalance(newBalance);
+        // Also update user object in AuthContext if balance changed
+        if (user.balance !== newBalance) {
+          // Trigger balance update event
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: newBalance } }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading balance:', error);
+      setBalance(0);
+    } finally {
+      setIsLoadingBalance(false);
+    }
+  }, [user, getToken]);
+
   // Fetch balance from API
   useEffect(() => {
     const loadBalance = async () => {
@@ -44,39 +83,67 @@ const NavbarCompany = () => {
         return;
       }
 
-      // First try to use balance from user object if available
+      // Always fetch balance from API to get the latest value
+      // Use user.balance as temporary value while loading if available
       if (user.balance !== undefined && user.balance !== null) {
         setBalance(user.balance);
-        return;
       }
 
-      // If not in user object, fetch from API
-      setIsLoadingBalance(true);
-      try {
-        const token = getToken();
-        const response = await fetch(API_ENDPOINTS.GET_USER(user.email), {
-          headers: createAuthHeaders(token)
-        });
-
-        if (response.status === 401) {
-          await checkAndHandle401(response);
-          return;
-        }
-
-        if (response.ok) {
-          const userData = await response.json();
-          setBalance(userData.balance || 0);
-        }
-      } catch (error) {
-        console.error('Error loading balance:', error);
-        setBalance(0);
-      } finally {
-        setIsLoadingBalance(false);
-      }
+      // Always fetch from API to ensure we have the latest balance
+      refreshBalance();
     };
 
     loadBalance();
-  }, [user?.email, user?.balance, getToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, getToken, refreshBalance]);
+
+  // Listen for balance update events
+  useEffect(() => {
+    if (!user || user.role !== 'COMPANY') {
+      return;
+    }
+
+    const handleBalanceUpdate = async (event) => {
+      if (event.detail?.balance !== undefined) {
+        // If balance is provided in event, use it directly
+        setBalance(event.detail.balance);
+      } else {
+        // If no balance in event, refresh from API
+        // Force refresh by calling the API directly
+        setIsLoadingBalance(true);
+        try {
+          const token = getToken();
+          if (token) {
+            const response = await fetch(API_ENDPOINTS.GET_USER(user.email), {
+              headers: createAuthHeaders(token)
+            });
+
+            if (response.status === 401) {
+              await checkAndHandle401(response);
+              return;
+            }
+
+            if (response.ok) {
+              const userData = await response.json();
+              const newBalance = userData.balance || 0;
+              setBalance(newBalance);
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing balance:', error);
+        } finally {
+          setIsLoadingBalance(false);
+        }
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('balanceUpdated', handleBalanceUpdate);
+      return () => {
+        window.removeEventListener('balanceUpdated', handleBalanceUpdate);
+      };
+    }
+  }, [user?.email, user?.role, getToken]);
 
   // Format balance with proper decimal places (precision 15, scale 2)
   const formatBalance = (bal) => {

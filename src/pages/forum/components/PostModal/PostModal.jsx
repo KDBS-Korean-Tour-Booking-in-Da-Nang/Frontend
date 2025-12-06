@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
-import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, createAuthHeaders, FrontendURL } from '../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthFormHeaders, createAuthHeaders, FrontendURL, normalizeToRelativePath } from '../../../../config/api';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
-import { X, Image, Hash, Loader2, Link2, XCircle } from 'lucide-react';
+import { X, Image, Loader2 } from 'lucide-react';
 import styles from './PostModal.module.css';
 
 const PostModal = ({ isOpen, onClose, onPostCreated }) => {
@@ -149,19 +149,21 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
         if (response.ok) {
           const preview = await response.json();
+          // Normalize thumbnailUrl về relative path để không lưu BaseURL vào metadata
+          const rawThumbnail = preview.thumbnailUrl || preview.tourImgPath;
           setLinkPreview({
             type: 'TOUR',
             id: tourId,
             title: preview.title || preview.tourName,
             summary: preview.summary || preview.tourDescription,
-            thumbnailUrl: preview.thumbnailUrl || preview.tourImgPath,
+            thumbnailUrl: normalizeToRelativePath(rawThumbnail),
             linkUrl: `${FrontendURL}/tour/detail?id=${tourId}`
           });
         } else {
           setLinkPreview(null);
         }
       } catch (error) {
-        console.error('Error fetching tour preview:', error);
+        // Silently handle error fetching tour preview
         setLinkPreview(null);
       } finally {
         setIsLoadingPreview(false);
@@ -177,17 +179,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     // Check for any HTTP/HTTPS links
     const urlRegex = /https?:\/\/[^\s]+/gi;
     return urlRegex.test(text);
-  };
-
-  // Function to check if content contains tour links
-  const hasTourLinksInContent = (text) => {
-    if (!text) return false;
-    const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    // Match format 1: /tour/123 or http://domain/tour/123
-    const tourRegexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
-    // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
-    const tourRegexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
-    return tourRegexOld.test(text) || tourRegexNew.test(text);
   };
 
   // Debounced preview detection
@@ -304,12 +295,13 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         
         // Ensure metadata is properly set if we had a link preview
         if (linkPreview && !result.metadata) {
+          // Normalize thumbnailUrl để đảm bảo không lưu BaseURL vào database
           result.metadata = {
             linkType: linkPreview.type,
             linkRefId: linkPreview.id,
             title: linkPreview.title,
             summary: linkPreview.summary,
-            thumbnailUrl: linkPreview.thumbnailUrl,
+            thumbnailUrl: normalizeToRelativePath(linkPreview.thumbnailUrl),
             linkUrl: linkPreview.linkUrl
           };
         }
@@ -333,7 +325,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
               }
             }
           } catch (fetchError) {
-            console.error('Error fetching post after creation:', fetchError);
+            // Silently handle error fetching post after creation
           }
         }
 

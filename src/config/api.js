@@ -125,6 +125,27 @@ export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') =
   return joinUrl(BaseURL, imagePath);
 };
 
+// Helper function để normalize URL về relative path khi lưu (loại bỏ BaseURL nếu có)
+// Chỉ dùng khi LƯU vào database/state, KHÔNG dùng khi HIỂN THỊ
+// Đảm bảo khi deploy, không lưu full URL với backend domain vào database
+export const normalizeToRelativePath = (url) => {
+  if (!url) return '';
+  // Nếu đã là relative path (bắt đầu với /), giữ nguyên
+  if (url.startsWith('/')) return url;
+  // Nếu là absolute URL từ BaseURL, chuyển về relative path
+  if (url.startsWith(BaseURL)) {
+    const relativePath = url.replace(BaseURL, '');
+    // Đảm bảo bắt đầu với /
+    return relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+  }
+  // Nếu là absolute URL từ domain khác (external URL), giữ nguyên
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url; // Giữ nguyên external URLs (ví dụ: từ crawl articles)
+  }
+  // Nếu không có prefix, thêm / để thành relative path
+  return url.startsWith('/') ? url : `/${url}`;
+};
+
 // Helper function để tạo headers với auth token
 const normalizeBearer = (token) => {
   if (!token) return undefined;

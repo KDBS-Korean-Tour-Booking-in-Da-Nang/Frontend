@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useToursAPI } from '../../../hooks/useToursAPI';
+import { getTourImageUrl } from '../../../config/api';
 import './TourPreview.css';
 
 const TourPreview = () => {
@@ -30,7 +31,7 @@ const TourPreview = () => {
           setIsLoading(false);
         }
       } catch (err) {
-        console.error('Error loading tour for preview:', err);
+        // Silently handle error loading tour for preview
         if (isMounted) {
           setHasError(true);
           setIsLoading(false);
@@ -47,10 +48,10 @@ const TourPreview = () => {
 
   // formatPrice function removed as it's not used in this component
 
+  // Use getTourImageUrl from api.js for consistency with other parts of the app
+  // This ensures proper URL handling in both local and production environments
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/uploads/tours/thumbnails/${imagePath}`;
+    return getTourImageUrl(imagePath);
   };
 
   if (isLoading || loading) {

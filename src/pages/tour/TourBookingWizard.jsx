@@ -50,9 +50,7 @@ const BookingWizardContent = () => {
       status: 'confirmed'
     };
 
-    // Log to console as requested
-    console.log('Booking Confirmed:', bookingData);
-    
+    // Booking confirmed - silently handle
     setIsConfirmed(true);
     showToast('Đã xác nhận đặt tour thành công! (Demo - Frontend only)', 'success');
     

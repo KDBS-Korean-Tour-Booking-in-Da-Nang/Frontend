@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Chart from 'react-apexcharts';
 import {
@@ -18,8 +18,9 @@ import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState(null);
   const [stats, setStats] = useState({
     totalTours: 0,
     totalBookings: 0,
@@ -32,6 +33,50 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [period, setPeriod] = useState('thisMonth');
 
+  // Fetch balance from API (same as navbar)
+  const fetchBalance = useCallback(async () => {
+    if (!user || user.role !== 'COMPANY') {
+      setBalance(null);
+      return;
+    }
+
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await fetch(API_ENDPOINTS.GET_USER(user.email), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const userData = await response.json();
+        setBalance(userData.balance || 0);
+      }
+    } catch (error) {
+      console.error('Error loading balance:', error);
+      setBalance(0);
+    }
+  }, [user, getToken]);
+
+  // Listen for balance update events
+  useEffect(() => {
+    const handleBalanceUpdate = () => {
+      fetchBalance();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('balanceUpdated', handleBalanceUpdate);
+      return () => {
+        window.removeEventListener('balanceUpdated', handleBalanceUpdate);
+      };
+    }
+  }, [user?.email, getToken, fetchBalance]);
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -42,6 +87,9 @@ const Dashboard = () => {
         const token = storage.getItem('token');
 
         if (!token) return;
+
+        // Fetch balance first
+        await fetchBalance();
 
         // Fetch tours
         const toursRes = await fetch(API_ENDPOINTS.TOURS, {
@@ -84,7 +132,7 @@ const Dashboard = () => {
               bookingsArray = Array.isArray(bookings) ? bookings : [];
             }
           } catch (e) {
-            console.error('Error fetching bookings:', e);
+            // Silently handle error fetching bookings
           }
         }
         if (bookingsArray.length === 0) {
@@ -114,10 +162,9 @@ const Dashboard = () => {
         const completedBookings = bookingsArray.filter(b => b.status === 'COMPLETED').length;
         const cancelledBookings = bookingsArray.filter(b => b.status === 'CANCELLED').length;
         
-        // Calculate revenue (sum of all booking totals)
-        const totalRevenue = bookingsArray.reduce((sum, b) => {
-          return sum + (b.totalPrice || 0);
-        }, 0);
+        // Total Revenue should use balance from API (same as navbar)
+        // Balance is already fetched in fetchBalance() above
+        const totalRevenue = balance !== null ? balance : 0;
 
         // Generate revenue data for last 12 months
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -142,14 +189,14 @@ const Dashboard = () => {
         });
         setRevenueData(revenueByMonth);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        // Silently handle error fetching dashboard data
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [user]);
+  }, [user, balance, getToken]);
 
   // Stats cards data
   const statsCards = [

@@ -1,5 +1,5 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { useLocation, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import AdminLayout from './AdminLayout';
@@ -23,7 +23,6 @@ const TourManagement = lazy(() => import('./TourManagement/TourManagement'));
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   // Avoid flicker: wait for auth to resolve before role-checking
   if (loading) {

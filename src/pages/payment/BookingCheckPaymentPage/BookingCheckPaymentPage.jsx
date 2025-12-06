@@ -124,7 +124,9 @@ const BookingCheckPaymentPage = () => {
         setTotalAmount(safeComputed);
         setDiscountAmount(0);
         setVoucherApplied(false);
-      } catch (_) {}
+      } catch {
+        // Silently handle error computing from booking snapshot
+      }
     };
 
     // Tính toán tổng tiền từ booking snapshot nếu chưa có originalTotal

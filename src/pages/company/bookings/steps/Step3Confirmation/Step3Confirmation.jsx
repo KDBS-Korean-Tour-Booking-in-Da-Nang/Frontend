@@ -220,7 +220,7 @@ useEffect(() => {
         navigateToBookingManagement();
       }, 1500);
     } catch (error) {
-      console.error('Error confirming booking:', error);
+      // Silently handle error confirming booking
       showSuccess(error.message || 'Không thể xác nhận booking');
     } finally {
       setConfirmingBooking(false);

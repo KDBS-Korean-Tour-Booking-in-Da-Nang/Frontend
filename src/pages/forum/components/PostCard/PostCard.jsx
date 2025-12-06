@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL, getApiPath } from '../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL, getApiPath } from '../../../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentSection from '../CommentSection/CommentSection';
@@ -387,7 +387,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (error) {
-      console.error('Error handling reaction:', error);
+      // Silently handle error handling reaction
     }
   };
 
@@ -439,7 +439,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (e) {
-      console.error('Error handling dislike:', e);
+      // Silently handle error handling dislike
     }
   };
 
@@ -579,7 +579,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (error) {
-      console.error('Error saving/unsaving post:', error);
+      // Silently handle error saving/unsaving post
     }
   };
 
@@ -604,12 +604,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       if (response.ok) {
         onPostDeleted(post.forumPostId);
       } else {
-        const text = await response.text().catch(()=> '');
-        console.error('Delete post failed:', response.status, text);
         throw new Error('Failed to delete post');
       }
     } catch (error) {
-      console.error('Error deleting post:', error);
+      // Silently handle error deleting post
       alert(t('forum.post.deleteError'));
     }
   };
@@ -660,7 +658,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setShowReportSuccess(true);
       
     } catch (error) {
-      console.error('Error reporting post:', error);
+      // Silently handle error reporting post
       throw error;
     }
   };
@@ -733,7 +731,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setTranslatedText(text || '');
       setShowTranslated(true);
     } catch (error) {
-      console.error('Error translating post content:', error);
+      // Silently handle error translating post content
       setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
     } finally {
       setIsTranslating(false);

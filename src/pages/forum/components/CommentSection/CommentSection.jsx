@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { BaseURL, API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../config/api';
+import { API_ENDPOINTS, getAvatarUrl, createAuthHeaders } from '../../../../config/api';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentReportModal from './CommentReportModal';
 import CommentReportSuccessModal from './CommentReportSuccessModal';
@@ -22,7 +22,7 @@ import {
 
 const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, showCommentInput, onCommentInputToggle }) => {
   const { t } = useTranslation();
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
   
   // Main states
   const [comments, setComments] = useState([]);
@@ -75,7 +75,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
               replies.forEach(reply => allCommentIds.push(reply.forumCommentId));
             }
           } catch (error) {
-            console.error('Error loading replies for reported check:', error);
+            // Silently handle error loading replies
           }
         }
       };
@@ -94,13 +94,13 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
             }
           }
         } catch (error) {
-          console.error('Error checking report status:', error);
+          // Silently handle error checking report status
         }
       }
       
       setReportedComments(prev => new Set([...prev, ...reportedIds]));
     } catch (error) {
-      console.error('Error loading reported comments:', error);
+      // Silently handle error loading reported comments
     }
   };
 
@@ -121,7 +121,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         }
       }
     } catch (error) {
-      console.error('Error loading comments:', error);
+      // Silently handle error loading comments
     }
   };
 
@@ -162,7 +162,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         if (onCountChange) onCountChange(comments.length + 1);
       }
     } catch (error) {
-      console.error('Error submitting comment:', error);
+      // Silently handle error submitting comment
     } finally {
       setIsSubmitting(false);
     }
@@ -250,7 +250,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
       }
     } catch (error) {
-      console.error('Error submitting report:', error);
+      // Silently handle error submitting report
       alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
     }
   };
@@ -464,7 +464,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         }
       }
     } catch (error) {
-      console.error('Error loading replies:', error);
+      // Silently handle error loading replies
     }
   };
 
@@ -484,7 +484,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
             }
           }
         } catch (error) {
-          console.error('Error checking report status for reply:', error);
+          // Silently handle error checking report status for reply
         }
       }
       
@@ -493,7 +493,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         setReportedComments(prev => new Set([...prev, ...reportedIds]));
       }
     } catch (error) {
-      console.error('Error loading reported status for replies:', error);
+      // Silently handle error loading reported status for replies
     }
   };
 
@@ -510,7 +510,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         });
       }
     } catch (error) {
-      console.error('Error loading reaction:', error);
+      // Silently handle error loading reaction
     }
   };
 
@@ -630,12 +630,10 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         }
       } else {
         // Handle error response
-        const errorText = await response.text().catch(() => '');
-        console.error('Error submitting reply:', response.status, errorText);
         alert('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại.');
       }
     } catch (error) {
-      console.error('Error submitting reply:', error);
+      // Silently handle error submitting reply
       alert('Có lỗi xảy ra khi gửi phản hồi. Vui lòng thử lại.');
     } finally {
       setIsSubmittingReply(false);
@@ -676,11 +674,10 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
         setEditText('');
         setShowDropdown(false);
       } else {
-        console.error('Failed to update comment:', response.status);
         alert('Có lỗi xảy ra khi cập nhật bình luận. Vui lòng thử lại.');
       }
     } catch (error) {
-      console.error('Error updating comment:', error);
+      // Silently handle error updating comment
       alert('Có lỗi xảy ra khi cập nhật bình luận. Vui lòng thử lại.');
     }
   };
