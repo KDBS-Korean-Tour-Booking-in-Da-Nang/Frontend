@@ -567,6 +567,7 @@
 				"businessLicense": "사업자 등록증",
 				"businessLicenseDesc": "PDF 파일",
 				"openInNewTab": "새 탭에서 열기",
+				"download": "다운로드",
 				"noFile": "파일 없음",
 				"idCardFront": "신분증 앞면",
 				"idCardFrontDesc": "사진",
@@ -1839,6 +1840,7 @@
 					"title": "사업자 등록증",
 					"desc": "PDF 파일",
 					"openInNewTab": "새 탭에서 열기",
+					"download": "다운로드",
 					"noFile": "파일 없음"
 				},
 				"idCard": {
