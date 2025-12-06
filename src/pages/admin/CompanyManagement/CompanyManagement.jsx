@@ -312,7 +312,21 @@ const CompanyManagement = () => {
 
   const handleOpenPdf = (url) => {
     if (url) {
-      window.open(url, '_blank');
+      // Mở PDF trong tab mới thay vì tải xuống
+      // Sử dụng window.open với noopener và noreferrer để bảo mật
+      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+      // Nếu browser block popup, thử cách khác
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // Fallback: tạo link và click programmatically để mở trong tab mới
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        // KHÔNG thêm attribute 'download' để browser hiển thị PDF thay vì tải
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     }
   };
 
