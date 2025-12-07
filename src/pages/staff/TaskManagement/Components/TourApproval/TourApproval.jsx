@@ -647,6 +647,7 @@ const TourApproval = () => {
         confirmText={t('admin.tourApproval.approveConfirm.confirm')}
         cancelText={t('admin.tourApproval.approveConfirm.cancel')}
         danger={false}
+        icon={<CheckCircle size={36} strokeWidth={1.5} />}
       />
 
       {/* Reject Confirmation Modal */}
@@ -663,6 +664,7 @@ const TourApproval = () => {
         confirmText={t('admin.tourApproval.rejectConfirm.confirm')}
         cancelText={t('admin.tourApproval.rejectConfirm.cancel')}
         danger={true}
+        icon={<XCircle size={36} strokeWidth={1.5} />}
       />
     </div>
   );

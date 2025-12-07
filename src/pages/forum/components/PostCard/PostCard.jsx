@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL, getApiPath } from '../../../../config/api';
+import { API_ENDPOINTS, getImageUrl, createAuthHeaders, FrontendURL, getApiPath, BaseURL } from '../../../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { checkAndHandle401 } from '../../../../utils/apiErrorHandler';
 import CommentSection from '../CommentSection/CommentSection';
@@ -10,6 +10,7 @@ import ReportModal from '../ReportModal/ReportModal';
 import ReportSuccessModal from '../ReportSuccessModal/ReportSuccessModal';
 import UserHoverCard from '../UserHoverCard/UserHoverCard';
 import { DeleteConfirmModal, LoginRequiredModal } from '../../../../components';
+import BanReasonModal from '../../../../components/modals/BanReasonModal/BanReasonModal';
 import {
   Bookmark,
   BookmarkCheck,
@@ -20,7 +21,8 @@ import {
   CheckCircle2,
   ThumbsUp,
   ThumbsDown,
-  MessageCircle
+  MessageCircle,
+  ShieldOff
 } from 'lucide-react';
 import styles from './PostCard.module.css';
 
@@ -51,6 +53,8 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [showAdminDeleteModal, setShowAdminDeleteModal] = useState(false);
   const [tourLinkPreview, setTourLinkPreview] = useState(null);
   const [isLoadingTourPreview, setIsLoadingTourPreview] = useState(false);
   const userInfoRef = useRef(null);
@@ -344,6 +348,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     (post.username && user.username && post.username.toLowerCase() === user.username.toLowerCase())
   );
 
+  // Check if user can manage forum reports (admin/staff)
+  const canManageForumReports = user?.role === 'ADMIN' || 
+    (user?.role === 'STAFF' && user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT');
+
   const handleLike = async () => {
     try {
       const token = getToken();
@@ -616,6 +624,76 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     } catch (error) {
       // Silently handle error deleting post
       alert(t('forum.post.deleteError'));
+    }
+  };
+
+  // Handle ban user (admin/staff only)
+  const handleBan = () => {
+    setBanModalOpen(true);
+    setShowMenu(false);
+  };
+
+  const handleBanConfirm = async (banReason) => {
+    if (!post?.userId || !user) return;
+    
+    try {
+      const token = getToken();
+      const response = await fetch(`${BaseURL}/api/staff/ban-user/${post.userId}`, {
+        method: 'PUT',
+        headers: createAuthHeaders(token),
+        body: JSON.stringify({
+          ban: true,
+          banReason: banReason || null
+        })
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        alert(t('admin.customerManagement.banSuccess') || 'Đã ban người dùng thành công');
+        setBanModalOpen(false);
+      } else {
+        const errorText = await response.text();
+        alert(t('admin.customerManagement.banError', { error: errorText }) || 'Có lỗi xảy ra khi ban người dùng');
+      }
+    } catch (error) {
+      alert(t('admin.customerManagement.banError') || 'Có lỗi xảy ra khi ban người dùng');
+    }
+  };
+
+  // Handle delete post (admin/staff only)
+  const handleAdminDelete = () => {
+    setShowAdminDeleteModal(true);
+    setShowMenu(false);
+  };
+
+  const handleAdminDeleteConfirm = async () => {
+    if (!post || !user) return;
+    
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_ENDPOINTS.POST_BY_ID(post.forumPostId)}?userEmail=${encodeURIComponent(user.email)}`, {
+        method: 'DELETE',
+        headers: createAuthHeaders(token),
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        onPostDeleted(post.forumPostId);
+        setShowAdminDeleteModal(false);
+        alert(t('forum.post.deleteSuccess') || 'Đã xóa bài viết thành công');
+      } else {
+        alert(t('forum.post.deleteError') || 'Có lỗi xảy ra khi xóa bài viết');
+      }
+    } catch (error) {
+      alert(t('forum.post.deleteError') || 'Có lỗi xảy ra khi xóa bài viết');
     }
   };
 
@@ -969,36 +1047,61 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             
             {showMenu && (
               <div className={styles['menu-dropdown']}>
-                {isOwnPost ? (
-                  <>
-                    <button onClick={handleEdit} className={styles['menu-item']}>
-                      <Edit3 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                      {t('forum.post.edit')}
-                    </button>
-                    <button onClick={handleDelete} className={`${styles['menu-item']} ${styles['delete']}`}>
-                      <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                      {t('forum.post.delete')}
-                    </button>
-                  </>
-                ) : (
-                  <button 
-                    onClick={handleReport} 
-                    className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
-                    disabled={hasReported}
-                  >
-                    {hasReported ? (
+                {(() => {
+                  // Admin/Staff view: show Ban and Delete post
+                  if (isAdminStaffView && canManageForumReports) {
+                    return (
                       <>
-                        <CheckCircle2 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                        {t('forum.modals.report.success')}
+                        <button className={`${styles['menu-item']} ${styles['ban-item']}`}
+                                onClick={(e) => { e.stopPropagation(); handleBan(); }}>
+                          <ShieldOff className={styles['menu-item-icon']} strokeWidth={1.6} />
+                          {t('admin.customerManagement.actions.banUser') || 'Ban user'}
+                        </button>
+                        <button className={`${styles['menu-item']} ${styles['delete']}`}
+                                onClick={(e) => { e.stopPropagation(); handleAdminDelete(); }}>
+                          <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                          {t('forum.post.delete')}
+                        </button>
                       </>
-                    ) : (
+                    );
+                  }
+                  
+                  // Normal user view: show edit/delete for owner, report for others
+                  if (isOwnPost) {
+                    return (
                       <>
-                        <Flag className={styles['menu-item-icon']} strokeWidth={1.6} />
-                        {t('forum.post.report')}
+                        <button onClick={handleEdit} className={styles['menu-item']}>
+                          <Edit3 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                          {t('forum.post.edit')}
+                        </button>
+                        <button onClick={handleDelete} className={`${styles['menu-item']} ${styles['delete']}`}>
+                          <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                          {t('forum.post.delete')}
+                        </button>
                       </>
-                    )}
-                  </button>
-                )}
+                    );
+                  }
+                  
+                  return (
+                    <button 
+                      onClick={handleReport} 
+                      className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
+                      disabled={hasReported}
+                    >
+                      {hasReported ? (
+                        <>
+                          <CheckCircle2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                          {t('forum.modals.report.success')}
+                        </>
+                      ) : (
+                        <>
+                          <Flag className={styles['menu-item-icon']} strokeWidth={1.6} />
+                          {t('forum.post.report')}
+                        </>
+                      )}
+                    </button>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -1195,6 +1298,31 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       // Sử dụng text đa ngôn ngữ mặc định trong common.deleteConfirm.*
       itemName={t('forum.post.title')}
     />
+    
+    {/* Ban Reason Modal for admin/staff */}
+    {isAdminStaffView && canManageForumReports && (
+      <BanReasonModal
+        isOpen={banModalOpen}
+        onClose={() => setBanModalOpen(false)}
+        customer={{ userId: post?.userId, name: post?.username, email: post?.userEmail }}
+        onConfirm={handleBanConfirm}
+      />
+    )}
+    
+    {/* Delete Post Modal for admin/staff */}
+    {isAdminStaffView && canManageForumReports && (
+      <DeleteConfirmModal
+        isOpen={showAdminDeleteModal}
+        onClose={() => setShowAdminDeleteModal(false)}
+        onConfirm={handleAdminDeleteConfirm}
+        title={t('forum.post.deleteConfirm') || 'Xóa bài viết'}
+        message={t('forum.post.deleteConfirmMessage') || 'Bạn có chắc chắn muốn xóa bài viết này?'}
+        itemName={t('forum.post.title') || 'bài viết'}
+        confirmText={t('forum.post.delete') || 'Xóa'}
+        cancelText={t('forum.post.cancel') || 'Hủy'}
+        danger={true}
+      />
+    )}
     </>
   );
 }, (prevProps, nextProps) => {

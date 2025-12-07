@@ -350,6 +350,11 @@ const BookingManagement = () => {
 
   // Load company tours first
   const fetchCompanyTours = useCallback(async () => {
+    if (!companyId) {
+      setTours([]);
+      setToursLoading(false);
+      return;
+    }
     try {
       setToursLoading(true);
       const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -360,7 +365,7 @@ const BookingManagement = () => {
         setToursLoading(false);
         return;
       }
-      const res = await fetch(API_ENDPOINTS.TOURS, {
+      const res = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -386,9 +391,13 @@ const BookingManagement = () => {
     } finally {
       setToursLoading(false);
     }
-  }, []);
+  }, [companyId]);
 
-  useEffect(() => { fetchCompanyTours(); }, [fetchCompanyTours]);
+  useEffect(() => { 
+    if (companyId) {
+      fetchCompanyTours(); 
+    }
+  }, [companyId, fetchCompanyTours]);
 
   // Calculate booking counts for each tour
   useEffect(() => {

@@ -7,6 +7,7 @@ import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl, getImageUrl } 
 import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import Pagination from '../../../../admin/Pagination';
 import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import { CheckCircle, XCircle } from 'lucide-react';
 import {
   BuildingOfficeIcon,
   ClockIcon,
@@ -366,38 +367,55 @@ const CompanyManagement = () => {
         absoluteUrl = url.startsWith('/') ? `${BaseURL}${url}` : `${BaseURL}/${url}`;
       }
       
-      // Mở PDF trong tab mới
-      // Sử dụng window.open với noopener và noreferrer để bảo mật
-      const newWindow = window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+      // Kiểm tra nếu là Azure Blob Storage URL
+      const isAzureUrl = absoluteUrl.includes('blob.core.windows.net');
       
-      // Kiểm tra nếu browser block popup hoặc window không mở được
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        // Fallback: tạo link và click programmatically để mở trong tab mới
-        // Cách này thường hoạt động tốt hơn với Azure URLs và các trình duyệt chặn popup
+      // Đối với Azure URLs: Mở trực tiếp trong tab mới
+      // Vì URL gốc đã hiển thị đúng khi mở trực tiếp, không cần thêm query parameter
+      if (isAzureUrl) {
+        // Vấn đề: Khi mở từ JavaScript event, browser có thể treat như download
+        // Giải pháp: Tạo một link thật sự và trigger click event với user gesture
         const link = document.createElement('a');
         link.href = absoluteUrl;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        // KHÔNG thêm attribute 'download' để browser hiển thị PDF thay vì tải
+        // Quan trọng: KHÔNG thêm download attribute
+        // Thêm vào DOM trước khi click để browser nhận diện đúng
         link.style.display = 'none';
         document.body.appendChild(link);
-        link.click();
-        // Clean up sau một chút để đảm bảo click được xử lý
-        setTimeout(() => {
-          document.body.removeChild(link);
-        }, 100);
+        
+        // Sử dụng requestAnimationFrame để đảm bảo link đã được thêm vào DOM
+        requestAnimationFrame(() => {
+          // Trigger click event
+          link.click();
+          
+          // Clean up sau một chút
+          setTimeout(() => {
+            if (document.body.contains(link)) {
+              document.body.removeChild(link);
+            }
+          }, 100);
+        });
       } else {
-        // Focus vào window mới nếu mở thành công
-        newWindow.focus();
+        // Đối với local URLs, mở trong tab mới
+        const newWindow = window.open(absoluteUrl, '_blank', 'noopener,noreferrer');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          const link = document.createElement('a');
+          link.href = absoluteUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            document.body.removeChild(link);
+          }, 100);
+        } else {
+          newWindow.focus();
+        }
       }
     } catch (error) {
-      console.error('Error opening PDF:', error);
-      // Fallback cuối cùng: thử mở trực tiếp
-      try {
-        window.location.href = url;
-      } catch (e) {
-        showError(t('staff.companyManagement.modal.openPdfError') || 'Không thể mở PDF. Vui lòng thử lại.');
-      }
+      showError(t('staff.companyManagement.modal.openPdfError') || 'Không thể mở PDF. Vui lòng thử lại.');
     }
   };
 
@@ -405,44 +423,137 @@ const CompanyManagement = () => {
     if (!url) return;
     
     try {
-      const token = getToken();
-      if (!token) {
-        showError(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
-        return;
+      // Đảm bảo URL là absolute URL
+      let absoluteUrl = url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        absoluteUrl = url.startsWith('/') ? `${BaseURL}${url}` : `${BaseURL}/${url}`;
       }
-
-      // Fetch file với authentication headers
-      const headers = createAuthHeaders(token);
-      const response = await fetch(url, { 
-        headers,
-        method: 'GET'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to download file');
-      }
-
+      
+      // Kiểm tra nếu là Azure Blob Storage URL
+      const isAzureUrl = absoluteUrl.includes('blob.core.windows.net');
+      
       // Get filename from URL or use default
-      const urlParts = url.split('/');
-      const filename = urlParts[urlParts.length - 1].split('?')[0] || 'business-license.pdf';
+      let filename = 'business-license.pdf';
+      if (isAzureUrl) {
+        try {
+          // Lấy phần path từ URL (trước dấu ?)
+          const pathPart = absoluteUrl.split('?')[0];
+          // Decode URL để lấy path thật
+          const decodedPath = decodeURIComponent(pathPart);
+          // Lấy tên file cuối cùng từ path
+          const pathParts = decodedPath.split('/');
+          const lastPart = pathParts[pathParts.length - 1];
+          // Lấy tên file (loại bỏ timestamp prefix nếu có, format: timestamp_filename)
+          if (lastPart && lastPart.includes('_')) {
+            const parts = lastPart.split('_');
+            // Bỏ phần đầu (timestamp), lấy phần còn lại
+            filename = parts.slice(1).join('_');
+          } else if (lastPart) {
+            filename = lastPart;
+          }
+        } catch (e) {
+          // Error extracting filename, using default
+        }
+      } else {
+        const urlParts = absoluteUrl.split('/');
+        filename = urlParts[urlParts.length - 1].split('?')[0] || 'business-license.pdf';
+      }
       
-      // Convert response to blob
-      const blob = await response.blob();
-      
-      // Create blob URL and download
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = filename;
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up blob URL
-      window.URL.revokeObjectURL(blobUrl);
+      if (isAzureUrl) {
+        // Đối với Azure URLs: Không thể fetch do CORS, dùng response-content-disposition=attachment
+        let downloadUrl = absoluteUrl;
+        
+        // Loại bỏ response-content-disposition cũ nếu có (có thể là inline từ button Open)
+        const urlParts = downloadUrl.split('?');
+        const baseUrl = urlParts[0];
+        let queryString = urlParts[1] || '';
+        
+        if (queryString) {
+          const params = new URLSearchParams(queryString);
+          params.delete('response-content-disposition');
+          queryString = params.toString();
+        }
+        
+        // Thêm response-content-disposition=attachment để force download
+        // Chỉ encode filename, không encode cả path
+        const encodedFilename = encodeURIComponent(filename);
+        const newParam = `response-content-disposition=attachment%3Bfilename%3D${encodedFilename}`;
+        
+        if (queryString) {
+          downloadUrl = `${baseUrl}?${queryString}&${newParam}`;
+        } else {
+          downloadUrl = `${baseUrl}?${newParam}`;
+        }
+        
+        // Vì Azure Blob Storage có thể chặn embedding và CORS,
+        // cách tốt nhất là mở trong tab mới với response-content-disposition=attachment
+        // Browser sẽ tự động download nếu header được set đúng
+        // Nếu không, user có thể right-click > Save As
+        
+        // Thử dùng iframe ẩn trước (có thể không hoạt động nếu Azure chặn)
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        iframe.style.position = 'absolute';
+        iframe.style.left = '-9999px';
+        iframe.src = downloadUrl;
+        document.body.appendChild(iframe);
+        
+        // Listen for iframe load/error
+        iframe.onerror = () => {
+          // Fallback: mở trong tab mới
+          window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+        };
+        
+        // Clean up iframe sau 3 giây
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+          
+          // Nếu iframe không trigger download, thử mở trong tab mới
+          // User có thể right-click > Save As nếu cần
+          const newWindow = window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+        }, 3000);
+      } else {
+        // Đối với local URLs, cần authentication headers
+        const token = getToken();
+        if (!token) {
+          showError(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
+          return;
+        }
+
+        const headers = createAuthHeaders(token);
+        const response = await fetch(absoluteUrl, { 
+          headers,
+          method: 'GET'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
+
+        // Convert response to blob
+        const blob = await response.blob();
+        
+        // Create blob URL and download
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up blob URL
+        setTimeout(() => {
+          window.URL.revokeObjectURL(blobUrl);
+        }, 100);
+      }
     } catch (error) {
-      console.error('Error downloading PDF:', error);
       showError(t('staff.companyManagement.modal.downloadError') || 'Không thể tải file. Vui lòng thử lại.');
     }
   };
@@ -719,13 +830,37 @@ const CompanyManagement = () => {
                           </div>
                           {fileData.businessLicenseUrl && (
                             <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleOpenPdf(fileData.businessLicenseUrl)}
-                                className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
-                              >
-                                <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                                {t('staff.companyManagement.modal.businessLicense.openInNewTab')}
-                              </button>
+                              {fileData.businessLicenseUrl.includes('blob.core.windows.net') ? (
+                                // Azure URLs: Dùng link thật với response-content-disposition=inline để force hiển thị
+                                (() => {
+                                  // Thêm query parameter để force inline display (hiển thị thay vì download)
+                                  let openUrl = fileData.businessLicenseUrl;
+                                  if (!openUrl.includes('response-content-disposition')) {
+                                    const separator = openUrl.includes('?') ? '&' : '?';
+                                    openUrl = `${openUrl}${separator}response-content-disposition=inline`;
+                                  }
+                                  return (
+                                    <a
+                                      href={openUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                                      {t('staff.companyManagement.modal.businessLicense.openInNewTab')}
+                                    </a>
+                                  );
+                                })()
+                              ) : (
+                                // Local URLs: Dùng button với onClick (có thể cần authentication)
+                                <button
+                                  onClick={() => handleOpenPdf(fileData.businessLicenseUrl)}
+                                  className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
+                                >
+                                  <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                                  {t('staff.companyManagement.modal.businessLicense.openInNewTab')}
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleDownloadPdf(fileData.businessLicenseUrl)}
                                 className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-[20px] hover:bg-gray-200 transition-all duration-200 text-sm font-medium flex items-center gap-2"
@@ -863,6 +998,7 @@ const CompanyManagement = () => {
         confirmText={t('staff.companyManagement.approveConfirm.confirm')}
         cancelText={t('staff.companyManagement.approveConfirm.cancel')}
         danger={false}
+        icon={<CheckCircle size={36} strokeWidth={1.5} />}
       />
 
       {/* Reject Confirmation Modal */}
@@ -879,6 +1015,7 @@ const CompanyManagement = () => {
         confirmText={t('staff.companyManagement.rejectConfirm.confirm')}
         cancelText={t('staff.companyManagement.rejectConfirm.cancel')}
         danger={true}
+        icon={<XCircle size={36} strokeWidth={1.5} />}
       />
     </div>
   );

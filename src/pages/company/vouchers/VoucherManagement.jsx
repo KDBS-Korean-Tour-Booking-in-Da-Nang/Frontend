@@ -60,13 +60,17 @@ const VoucherManagement = () => {
   // NOTE: TourResponse does NOT include companyId, so we cannot get companyId from tours
   // We get companyId from user.id (for COMPANY role users)
   const fetchTours = useCallback(async () => {
+    if (!companyId) {
+      return Promise.resolve();
+    }
+    
     const token = getToken();
     if (!token) {
       return Promise.resolve();
     }
 
     try {
-      const response = await fetch(API_ENDPOINTS.TOURS, {
+      const response = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -106,7 +110,7 @@ const VoucherManagement = () => {
       // Don't set loading false here - tours are optional for voucher creation
     }
     return Promise.resolve();
-  }, [setTours, setAllToursMap]);
+  }, [companyId, setTours, setAllToursMap]);
 
   // Fetch tours when companyId is available (for dropdown in modal)
   useEffect(() => {
