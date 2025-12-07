@@ -7,6 +7,7 @@ import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl, getImageUrl } 
 import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import Pagination from '../../../../admin/Pagination';
 import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import { CheckCircle, XCircle } from 'lucide-react';
 import {
   BuildingOfficeIcon,
   ClockIcon,
@@ -997,6 +998,7 @@ const CompanyManagement = () => {
         confirmText={t('staff.companyManagement.approveConfirm.confirm')}
         cancelText={t('staff.companyManagement.approveConfirm.cancel')}
         danger={false}
+        icon={<CheckCircle size={36} strokeWidth={1.5} />}
       />
 
       {/* Reject Confirmation Modal */}
@@ -1013,6 +1015,7 @@ const CompanyManagement = () => {
         confirmText={t('staff.companyManagement.rejectConfirm.confirm')}
         cancelText={t('staff.companyManagement.rejectConfirm.cancel')}
         danger={true}
+        icon={<XCircle size={36} strokeWidth={1.5} />}
       />
     </div>
   );

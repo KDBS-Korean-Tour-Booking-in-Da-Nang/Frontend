@@ -6,6 +6,7 @@ import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
 import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import ReportDetailModal from './ReportDetailModal';
 import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
+import { CheckCircle } from 'lucide-react';
 import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
@@ -530,6 +531,7 @@ const ForumReportManagement = () => {
         confirmText={t('staff.forumReportManagement.confirmModal.approve.confirm')}
         cancelText={t('staff.forumReportManagement.confirmModal.approve.cancel')}
         danger={false}
+        icon={<CheckCircle size={36} strokeWidth={1.5} />}
       />
     </div>
   );

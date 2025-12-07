@@ -21,6 +21,7 @@ const Dashboard = () => {
   const { user, getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
   const [stats, setStats] = useState({
     totalTours: 0,
     totalBookings: 0,
@@ -63,6 +64,30 @@ const Dashboard = () => {
     }
   }, [user, getToken]);
 
+  // Derive companyId from user
+  useEffect(() => {
+    if (!user) {
+      setCompanyId(null);
+      return;
+    }
+
+    const isCompanyUser = user.role === 'COMPANY' || user.role === 'BUSINESS';
+    if (!isCompanyUser) {
+      setCompanyId(null);
+      return;
+    }
+
+    const derivedCompanyId =
+      user.companyId ??
+      user.companyID ??
+      user.company?.companyId ??
+      user.company?.id ??
+      user.id ??
+      null;
+
+    setCompanyId(derivedCompanyId ?? null);
+  }, [user]);
+
   // Listen for balance update events
   useEffect(() => {
     const handleBalanceUpdate = () => {
@@ -80,6 +105,11 @@ const Dashboard = () => {
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!companyId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -92,7 +122,7 @@ const Dashboard = () => {
         await fetchBalance();
 
         // Fetch tours
-        const toursRes = await fetch(API_ENDPOINTS.TOURS, {
+        const toursRes = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -196,7 +226,7 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
-  }, [user, balance, getToken]);
+  }, [companyId, user, balance, getToken, fetchBalance]);
 
   // Stats cards data
   const statsCards = [
