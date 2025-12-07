@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, NavLink, useLocation } from 'react-router-dom';
+import EditProfileModal from '../../components/modals/EditProfileModal/EditProfileModal';
 import { 
   ChartBarIcon, 
   UsersIcon, 
@@ -35,6 +36,7 @@ const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const languageRef = useRef(null);
   const userRef = useRef(null);
 
@@ -42,6 +44,21 @@ const AdminLayout = ({ children }) => {
     i18n.changeLanguage(lng);
     setShowLanguageDropdown(false);
   };
+
+  // Set default language to English for ADMIN role
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      const currentLang = i18n.language;
+      const savedLang = localStorage.getItem('i18nextLng');
+      // If no language is set or language is Vietnamese, set to English
+      // Only auto-set to English if user hasn't explicitly chosen a non-Vietnamese language
+      if ((!savedLang || savedLang === 'vi' || savedLang.startsWith('vi')) && 
+          (!currentLang || currentLang === 'vi' || currentLang.startsWith('vi'))) {
+        i18n.changeLanguage('en');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role, user]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -246,32 +263,20 @@ const AdminLayout = ({ children }) => {
                         </div>
                         <div className="min-w-0">
                           <div className="text-sm font-semibold text-gray-900 truncate">{user?.name || t('admin.adminLayout.adminUser')}</div>
-                          <div className="text-xs text-gray-500 truncate">{user?.email || 'admin@example.com'}</div>
                         </div>
                       </div>
                     </div>
                     {/* Actions */}
                     <div className="py-2">
                       <button
-                        onClick={() => { setShowUserDropdown(false); navigate('/profile'); }}
+                        onClick={() => { 
+                          setShowUserDropdown(false); 
+                          setIsProfileModalOpen(true);
+                        }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <UserCircleIcon className="h-5 w-5 text-gray-500" />
                         <span>{t('admin.adminLayout.profile')}</span>
-                      </button>
-                      <button
-                        onClick={() => { setShowUserDropdown(false); navigate('/settings'); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Cog6ToothIcon className="h-5 w-5 text-gray-500" />
-                        <span>{t('admin.adminLayout.accountSettings')}</span>
-                      </button>
-                      <button
-                        onClick={() => { setShowUserDropdown(false); navigate('/support'); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <LifebuoyIcon className="h-5 w-5 text-gray-500" />
-                        <span>{t('admin.adminLayout.support')}</span>
                       </button>
                       <div className="my-2 border-t border-gray-100" />
                       <button
@@ -298,6 +303,12 @@ const AdminLayout = ({ children }) => {
       </main>
 
       {/* Mobile sidebar overlay removed temporarily for lint debug */}
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 };

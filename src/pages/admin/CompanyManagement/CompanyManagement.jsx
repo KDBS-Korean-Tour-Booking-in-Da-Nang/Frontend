@@ -6,6 +6,7 @@ import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import Tooltip from '../../../components/tooltip';
+import { CheckCircle, XCircle } from 'lucide-react';
 import {
   BuildingOfficeIcon,
   ClockIcon,
@@ -40,7 +41,9 @@ const CompanyManagement = () => {
     loading: false
   });
   const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [companyToApprove, setCompanyToApprove] = useState(null);
+  const [companyToReject, setCompanyToReject] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
@@ -214,24 +217,33 @@ const CompanyManagement = () => {
     }
   };
 
-  const handleReject = async (company) => {
+  const handleReject = (company) => {
+    setCompanyToReject(company);
+    setRejectModalOpen(true);
+  };
+
+  const confirmReject = async () => {
+    if (!companyToReject) return;
+    
     try {
       const token = getToken();
       if (!token) {
         alert(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
-        return;
-      }
-
-      if (!confirm(t('admin.companyManagement.confirmReject', { name: company.name }))) {
+        setRejectModalOpen(false);
+        setCompanyToReject(null);
         return;
       }
 
       // Từ chối: chỉ thông báo, không đổi status/bann user ở đây
       alert(t('admin.companyManagement.rejectSuccess'));
       setModalOpen(false);
+      setRejectModalOpen(false);
+      setCompanyToReject(null);
     } catch (err) {
       // Silently handle error rejecting company
       alert(err.message || t('admin.companyManagement.rejectError'));
+      setRejectModalOpen(false);
+      setCompanyToReject(null);
     }
   };
 
@@ -962,6 +974,23 @@ const CompanyManagement = () => {
         confirmText={t('admin.companyManagement.actions.approve')}
         cancelText={t('common.cancel')}
         danger={false}
+        icon={<CheckCircle size={36} strokeWidth={1.5} />}
+      />
+
+      {/* Modal xác nhận từ chối công ty */}
+      <DeleteConfirmModal
+        isOpen={rejectModalOpen}
+        onClose={() => {
+          setRejectModalOpen(false);
+          setCompanyToReject(null);
+        }}
+        onConfirm={confirmReject}
+        title={t('admin.companyManagement.title')}
+        message={t('admin.companyManagement.confirmReject', { name: companyToReject?.name || '' })}
+        confirmText={t('admin.companyManagement.actions.reject')}
+        cancelText={t('common.cancel')}
+        danger={true}
+        icon={<XCircle size={36} strokeWidth={1.5} />}
       />
     </div>
   );

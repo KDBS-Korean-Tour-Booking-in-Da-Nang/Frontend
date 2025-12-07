@@ -37,12 +37,41 @@ const TourManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8); // 2 rows x 4 columns
   const [error, setError] = useState('');
+  const [companyId, setCompanyId] = useState(null);
 
   // Check if user has business role
   const isBusinessUser = user && user.role === 'COMPANY';
+
+  // Derive companyId from user
+  useEffect(() => {
+    if (!user) {
+      setCompanyId(null);
+      return;
+    }
+
+    const isCompanyUser = user.role === 'COMPANY' || user.role === 'BUSINESS';
+    if (!isCompanyUser) {
+      setCompanyId(null);
+      return;
+    }
+
+    const derivedCompanyId =
+      user.companyId ??
+      user.companyID ??
+      user.company?.companyId ??
+      user.company?.id ??
+      user.id ??
+      null;
+
+    setCompanyId(derivedCompanyId ?? null);
+  }, [user]);
   
   const fetchTours = useCallback(async () => {
-    if (!user?.email) return;
+    if (!companyId) {
+      setAllTours([]);
+      setLoading(false);
+      return;
+    }
     
     // Get token for authentication
     const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -57,7 +86,7 @@ const TourManagement = () => {
     
     try {
       setLoading(true);
-      const response = await fetch(API_ENDPOINTS.TOURS, {
+      const response = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -86,13 +115,13 @@ const TourManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.email]);
+  }, [companyId, t]);
 
   useEffect(() => {
-    if (isBusinessUser) {
+    if (isBusinessUser && companyId) {
       fetchTours();
     }
-  }, [isBusinessUser, fetchTours]);
+  }, [isBusinessUser, companyId, fetchTours]);
 
   // Pagination logic
   useEffect(() => {

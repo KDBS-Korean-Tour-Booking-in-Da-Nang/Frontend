@@ -84,6 +84,33 @@
   color: #ef4444;
 }
 
+.kdbs-modal .icon-wrapper.icon-success {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.kdbs-modal .icon-wrapper.icon-success svg {
+  color: #16a34a;
+}
+
+.kdbs-modal .icon-wrapper.icon-danger {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.kdbs-modal .icon-wrapper.icon-danger svg {
+  color: #ef4444;
+}
+
+.kdbs-modal .icon-wrapper.icon-warning {
+  background: #fffbeb;
+  color: #f59e0b;
+}
+
+.kdbs-modal .icon-wrapper.icon-warning svg {
+  color: #f59e0b;
+}
+
 .kdbs-modal .modal-title {
   margin: 0;
   font-size: 20px;

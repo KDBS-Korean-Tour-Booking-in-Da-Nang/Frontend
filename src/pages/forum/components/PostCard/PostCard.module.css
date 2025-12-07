@@ -213,6 +213,11 @@
   color: #e74c3c;
 }
 
+.menu-item.ban-item:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
 .menu-item.saved {
   color: #f39c12;
   background-color: #fef9e7;

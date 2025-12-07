@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, CheckCircle, XCircle } from 'lucide-react';
 import styles from './DeleteConfirmModal.module.css';
 
 /**
@@ -116,8 +116,18 @@ const DeleteConfirmModal = ({
           </button>
           
           <div className={styles['modal-content']}>
-            <div className={styles['icon-wrapper']}>
-              <AlertTriangle size={36} strokeWidth={1.5} />
+            <div className={`${styles['icon-wrapper']} ${
+              !danger && icon ? styles['icon-success'] : 
+              danger ? styles['icon-danger'] : 
+              styles['icon-warning']
+            }`}>
+              {typeof icon === 'string' ? (
+                <span style={{ fontSize: '36px' }}>{icon}</span>
+              ) : icon ? (
+                icon
+              ) : (
+                <AlertTriangle size={36} strokeWidth={1.5} />
+              )}
             </div>
             <h2 id="confirm-title" className={styles['modal-title']}>
               {title || t('common.deleteConfirm.title')}
