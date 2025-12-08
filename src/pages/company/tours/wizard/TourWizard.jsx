@@ -31,8 +31,7 @@ const TourWizardContent = () => {
   // Use custom hook for step validation
   const { isStepCompleted, getStepErrors, stepValidations } = useStepValidation(tourData);
 
-  // Calculate if Next button should be disabled using useMemo
-  // Button is enabled by default, only disabled when there are validation errors
+  // Calculate if Next button should be disabled based on step validation errors
   const isNextButtonDisabled = useMemo(() => {
     if (currentStep >= 4) return false;
     
@@ -67,11 +66,8 @@ const TourWizardContent = () => {
     return false;
   }, [currentStep, stepValidations, stepHasErrors]);
 
-  // Reset validation attempted state and errors when entering a new step
-  // This ensures button Next is enabled when entering a new step
+  // Reset validation state when entering a new step to enable Next button
   useEffect(() => {
-    // Reset validation attempted state and errors for the current step when entering it
-    // This only runs when currentStep changes, ensuring button is enabled on step entry
     if (currentStep === 1) {
       setStep1ValidationAttempted(false);
       setStepHasErrors(prev => ({ ...prev, [1]: false }));
@@ -89,11 +85,10 @@ const TourWizardContent = () => {
     window.dispatchEvent(new CustomEvent('clearStepErrors', { detail: { step: currentStep } }));
   }, [currentStep]);
 
-  // Reset stepValidationAttempted when step becomes valid (only for current step)
+  // Reset validation attempted state when step becomes valid
   useEffect(() => {
     const stepKey = `step${currentStep}`;
     if (stepValidations[stepKey]?.isValid) {
-      // Only reset if step is actually valid and user has attempted validation
       if (currentStep === 1 && step1ValidationAttempted) {
         setStep1ValidationAttempted(false);
         setStepHasErrors(prev => ({ ...prev, [1]: false }));
@@ -110,7 +105,7 @@ const TourWizardContent = () => {
     }
   }, [currentStep, stepValidations, step1ValidationAttempted, step2ValidationAttempted, step3ValidationAttempted, step4ValidationAttempted]);
 
-  // Clear submitError automatically when user fixes missing thumbnail on Step 4
+  // Clear submit error when user adds thumbnail on Step 4
   useEffect(() => {
     if (currentStep === 4 && tourData.thumbnail && submitError) {
       setSubmitError('');
@@ -124,11 +119,10 @@ const TourWizardContent = () => {
     { id: 4, title: t('tourWizard.steps.step4.title'), description: t('tourWizard.steps.step4.description') }
   ];
 
-  // Determine if the form has any user-entered data
+  // Check if form has any user-entered data (for unsaved changes warning)
   const isDirty = useMemo(() => {
     const hasText = (v) => typeof v === 'string' && v.trim().length > 0;
     const hasList = (v) => Array.isArray(v) && v.length > 0;
-    // Only consider fields that user actually types/selects. Ignore defaults like departurePoint.
     return (
       hasText(tourData.tourName) ||
       hasText(tourData.duration) ||
@@ -147,7 +141,7 @@ const TourWizardContent = () => {
     );
   }, [tourData]);
 
-  // Warn on browser/tab close only when dirty
+  // Warn user when closing browser/tab if form has unsaved changes
   useEffect(() => {
     const handler = (e) => {
       if (!isDirty) return;
@@ -158,16 +152,14 @@ const TourWizardContent = () => {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
-  // Intercept in-app route changes (links/back) only when dirty
+  // Intercept navigation (browser back button and link clicks) when form has unsaved changes
   useEffect(() => {
     const onPopState = () => {
       if (isDirty) {
-        // Immediately push state forward to keep user on page
         try { window.history.pushState(null, ''); } catch (_) {}
         setShowLeaveConfirm(true);
         pendingNavigationRef.current = { type: 'back' };
       } else {
-        // Not dirty: allow normal back navigation by removing our listener before going back
         window.removeEventListener('popstate', onPopState);
         navigate(-1);
         return;
@@ -175,7 +167,7 @@ const TourWizardContent = () => {
     };
     window.addEventListener('popstate', onPopState);
 
-    // Intercept clicks on <a> links inside the wizard container
+    // Intercept link clicks to show leave confirmation when form is dirty
     const onClick = (ev) => {
       if (!isDirty) return; // allow normal nav if not dirty
       const anchor = ev.target.closest('a');
@@ -196,8 +188,8 @@ const TourWizardContent = () => {
     };
   }, [isDirty, navigate]);
 
+  // Handle user confirmation to leave wizard (navigate to pending route)
   const handleConfirmLeave = () => {
-    // Allow closing tab without prompt
     window.removeEventListener('beforeunload', () => {});
     const pending = pendingNavigationRef.current;
     setShowLeaveConfirm(false);
@@ -208,6 +200,7 @@ const TourWizardContent = () => {
     }
   };
 
+  // Cancel leaving wizard - stay on current page
   const handleCancelLeave = () => {
     setShowLeaveConfirm(false);
   };
@@ -228,55 +221,44 @@ const TourWizardContent = () => {
     };
   }, []);
 
+  // Navigate to next step after validating current step
   const nextStep = () => {
     if (currentStep < 4) {
-      // Check if current step is valid using stepValidations
       const stepKey = `step${currentStep}`;
       const isCurrentStepValid = stepValidations[stepKey]?.isValid;
       
       if (!isCurrentStepValid) {
-        // Mark that user has attempted validation
+        // Trigger validation events to show error messages
         if (currentStep === 1) {
           setStep1ValidationAttempted(true);
-          // Trigger validation in Step1BasicInfo to show inline error messages
           window.dispatchEvent(new CustomEvent('validateStep1'));
         } else if (currentStep === 2) {
           setStep2ValidationAttempted(true);
-          // Trigger validation in Step2Itinerary to show error messages for missing fields
           window.dispatchEvent(new CustomEvent('validateStep2'));
         } else if (currentStep === 3) {
           setStep3ValidationAttempted(true);
-          // Trigger validation in Step3Pricing to show error messages for missing fields
           window.dispatchEvent(new CustomEvent('validateStep3'));
         } else {
-          // For other steps, use the original validation event
           const errors = getStepErrors(currentStep);
           window.dispatchEvent(new CustomEvent('validateStep', { detail: { step: currentStep, errors } }));
         }
-        
-        // Don't move to next step if there are errors
-        // stepHasErrors will be updated by the validation event from step components
         return;
       } else {
-        // Special handling when moving from step 1 to step 2
+        // Move to next step and reset validation state
         if (currentStep === 1) {
-          // Reset Step 2 validation attempted state when entering Step 2
           setStep2ValidationAttempted(false);
           setCurrentStep(2);
         } else if (currentStep === 2) {
-          // Reset Step 3 validation attempted state when entering Step 3
           setStep3ValidationAttempted(false);
           setCurrentStep(3);
         } else if (currentStep === 3) {
-          // Reset Step 4 validation attempted state when entering Step 4
           setStep4ValidationAttempted(false);
           setCurrentStep(4);
         } else {
-          // For other steps, move forward normally
           setCurrentStep(currentStep + 1);
         }
         
-        // Clear errors when moving to next step by dispatching clear event
+        // Clear errors for current step
         window.dispatchEvent(new CustomEvent('clearStepErrors', { detail: { step: currentStep } }));
         setStepHasErrors(prev => ({
           ...prev,
@@ -295,9 +277,9 @@ const TourWizardContent = () => {
     }
   };
 
+  // Navigate to previous step and reset validation state
   const prevStep = () => {
     if (currentStep > 1) {
-      // Reset validation attempted state when going back
       if (currentStep === 2) {
         setStep2ValidationAttempted(false);
       } else if (currentStep === 3) {
@@ -309,19 +291,17 @@ const TourWizardContent = () => {
     }
   };
 
+  // Submit tour creation form: validate data, prepare FormData, and call API
   const handleSubmit = async () => {
-    // Prevent double submission
     if (isSubmitting) {
       return;
     }
     
     try {
       setIsSubmitting(true);
-      
-      // Clear previous errors
       setSubmitError('');
       
-      // Validate final data
+      // Validate required fields before submission
       if (!tourData.tourName || !tourData.thumbnail) {
         const missingFieldLabel = !tourData.tourName
           ? t('tourWizard.step1.fields.tourName')
@@ -334,10 +314,10 @@ const TourWizardContent = () => {
         return;
       }
 
-      // Create FormData for multipart upload
+      // Prepare FormData for multipart/form-data upload
       const formData = new FormData();
       
-      // Get current user data from localStorage/sessionStorage (same logic as AuthContext)
+      // Get user authentication data from storage
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const savedUser = storage.getItem('user');
@@ -367,12 +347,12 @@ const TourWizardContent = () => {
         return;
       }
 
-      // Tính tourIntDuration = Max(days, nights)
-      // duration là số ngày (days), nights là số đêm
+      // Calculate tourIntDuration as max of days and nights
       const days = parseInt(tourData.duration) || 0;
       const nights = parseInt(tourData.nights) || 0;
       const tourIntDuration = Math.max(days, nights);
 
+      // Parse and validate deadline days against expiration date
       const parseDeadline = (deadlineValue, expirationDate) => {
         if (deadlineValue === undefined || deadlineValue === null || deadlineValue === '') return null;
         const parsed = parseInt(deadlineValue, 10);
@@ -391,6 +371,7 @@ const TourWizardContent = () => {
         return clamped >= leadDays ? Math.max(0, leadDays - 1) : clamped;
       };
 
+      // Validate expiration date and deadline
       const expirationDate = tourData.tourExpirationDate || null;
       const deadlineDays = parseDeadline(tourData.tourDeadline, expirationDate);
 
@@ -422,7 +403,7 @@ const TourWizardContent = () => {
         return;
       }
 
-      // Add tour data as JSON - Complete data with all wizard fields
+      // Build tour request object with all wizard data
       const tourRequest = {
         companyEmail: userEmail, // Use current user's email
         tourName: tourData.tourName,
@@ -441,8 +422,6 @@ const TourWizardContent = () => {
         babyPrice: parseFloat(tourData.babyPrice) || 0,
         tourDeadline: deadlineDays,
         tourExpirationDate: expirationDate,
-        
-        // Additional fields from wizard (bookingDeadline/surcharges removed)
         availableDates: tourData.availableDates || [],
         gallery: [], // Removed for testing
         attachments: [], // Removed for testing
@@ -456,39 +435,26 @@ const TourWizardContent = () => {
         }))
       };
 
-      // Append JSON as a Blob with explicit content type so Spring binds @RequestPart correctly
+      // Append tour data as JSON blob for Spring @RequestPart binding
       formData.append('data', new Blob([JSON.stringify(tourRequest)], { type: 'application/json' }));
       
-      // Ensure we have a valid image file
+      // Handle tour thumbnail image (use placeholder if not provided)
       if (tourData.thumbnail && tourData.thumbnail instanceof File) {
         formData.append('tourImage', tourData.thumbnail);
       } else {
-        // Create a minimal 1x1 transparent PNG placeholder
+        // Create transparent PNG placeholder if no thumbnail provided
         const base64PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-        
-        // Convert base64 to binary
         const binaryString = atob(base64PNG);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-        
-        // Create blob and file with explicit MIME type
-        const blob = new Blob([bytes], { 
-          type: 'image/png'
-        });
-        
-        // Create file with explicit type and proper extension
-        const imageFile = new File([blob], 'placeholder.png', { 
-          type: 'image/png',
-          lastModified: Date.now()
-        });
-        
+        const blob = new Blob([bytes], { type: 'image/png' });
+        const imageFile = new File([blob], 'placeholder.png', { type: 'image/png', lastModified: Date.now() });
         formData.append('tourImage', imageFile);
       }
 
-
-      // Call backend API to create tour with Bearer token authentication
+      // Call API to create tour
       const response = await fetch(getApiPath('/api/tour/create'), {
         method: 'POST',
         headers: {
@@ -505,17 +471,15 @@ const TourWizardContent = () => {
       }
       
       if (response.ok) {
-        setSubmitError(''); // Clear error on success
+        setSubmitError('');
         showSuccess('toast.tour.create_success');
         navigate('/company/tours');
       } else {
           let errorData;
           try {
             errorData = await response.json();
-            // Silently handle tour creation error
             setSubmitError(errorData.message || t('toast.save_error') || 'Lưu thất bại');
           } catch (e) {
-            // If JSON parsing fails, get text response
             const textResponse = await response.text();
             setSubmitError(t('toast.save_error') || 'Lưu thất bại');
           }
@@ -527,8 +491,7 @@ const TourWizardContent = () => {
     }
   };
 
-
-  // Handle step click
+  // Handle step navigation via step indicator click
   const handleStepClick = (stepId) => {
     // Only allow clicking on completed steps or current step
     if (isStepCompleted(stepId) || stepId === currentStep) {
@@ -536,6 +499,7 @@ const TourWizardContent = () => {
     }
   };
 
+  // Render component for current step
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:

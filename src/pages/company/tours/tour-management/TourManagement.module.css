@@ -133,18 +133,6 @@
   margin-bottom: 24px;
 }
 
-@media (min-width: 640px) {
-  .tours-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .tours-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
 /* Tour Card */
 .tour-card {
   background: #ffffff;
@@ -779,5 +767,21 @@
   .detail-icon {
     width: 14px;
     height: 14px;
+  }
+}
+
+@media (min-width: 640px) {
+  .tours-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pagination {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tours-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }

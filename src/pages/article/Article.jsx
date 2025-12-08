@@ -19,7 +19,7 @@ const Article = () => {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' | 'oldest'
+  const [sortOrder, setSortOrder] = useState('newest');
 
   // Prevent background scroll when mobile categories panel is open
   useEffect(() => {
@@ -31,6 +31,7 @@ const Article = () => {
     };
   }, [showCategories]);
 
+  // Sort articles by creation date (newest or oldest first)
   const sortArticlesByOrder = (list, order) => {
     const sorted = [...(list || [])];
     sorted.sort((a, b) => {
@@ -41,10 +42,12 @@ const Article = () => {
     return sorted;
   };
 
+  // Reload articles when sort order changes
   useEffect(() => {
     loadApprovedArticles();
   }, [sortOrder]);
 
+  // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
   const getLocalizedArticleField = (article, baseField) => {
     if (!article) return '';
     const lang = (i18n.language || 'vi').toLowerCase();
@@ -59,6 +62,7 @@ const Article = () => {
     return vi || en || kr || '';
   };
 
+  // Load approved articles from API and sort them
   const loadApprovedArticles = async () => {
     setLoading(true);
     try {
@@ -66,21 +70,18 @@ const Article = () => {
       const sorted = sortArticlesByOrder(data || [], sortOrder);
       setArticles(sorted);
     } catch (error) {
-      // Silently handle error loading approved articles
       setArticles([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle load more button click (currently reloads articles, pagination can be implemented later)
   const handleLoadMore = async () => {
     setLoadingMore(true);
     try {
-      // In a real implementation, you would load more articles with pagination
-      // For now, we'll just reload the current articles
       await loadApprovedArticles();
     } catch (error) {
-      // Silently handle error loading more articles
     } finally {
       setLoadingMore(false);
     }
@@ -121,6 +122,7 @@ const Article = () => {
     cssEase: 'linear'
   };
 
+  // Filter articles by search query (searches in title, description, and content)
   const filteredArticles = (articles || []).filter((article) => {
     const query = (searchQuery || '').trim().toLowerCase();
     if (!query) return true;
@@ -227,7 +229,6 @@ const Article = () => {
                   const localizedTitle = getLocalizedArticleField(article, 'articleTitle') || article.articleTitle || '';
 
                   const rawThumbnail = article.articleThumbnail || extractFirstImageUrl(localizedContent || '');
-                  // Normalize thumbnail URL using getImageUrl helper to handle both relative and absolute URLs
                   const thumbnail = rawThumbnail ? getImageUrl(rawThumbnail) : null;
                   const summary = localizedDescription || getArticleSummary(localizedContent || '', 150);
                   

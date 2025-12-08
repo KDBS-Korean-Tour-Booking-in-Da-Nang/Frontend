@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getAllComplaints, getComplaintById, resolveBookingComplaint } from '../../../services/bookingAPI';
 import Pagination from '../Pagination';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import {
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,

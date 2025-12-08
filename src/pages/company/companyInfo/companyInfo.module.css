@@ -8,12 +8,6 @@
   padding: 1.5rem 0;
 }
 
-@media (min-width: 640px) {
-  .container {
-    padding: 3rem 0;
-  }
-}
-
 .backgroundBlobs {
   position: absolute;
   inset: 0;
@@ -65,18 +59,6 @@
   padding: 0 0.75rem;
 }
 
-@media (min-width: 640px) {
-  .contentWrapper {
-    padding: 0 1rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .contentWrapper {
-    padding: 0 2rem;
-  }
-}
-
 .card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(24px);
@@ -95,26 +77,8 @@
   padding: 0.75rem 0.75rem 1rem;
 }
 
-@media (min-width: 640px) {
-  .cardContent {
-    padding: 1rem 1rem 1.25rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .cardContent {
-    padding: 1.5rem;
-  }
-}
-
 .header {
   margin-bottom: 1rem;
-}
-
-@media (min-width: 640px) {
-  .header {
-    margin-bottom: 1.5rem;
-  }
 }
 
 .title {
@@ -125,22 +89,10 @@
   letter-spacing: -0.025em;
 }
 
-@media (min-width: 640px) {
-  .title {
-    font-size: 1.5rem;
-  }
-}
-
 .subtitle {
   font-size: 0.875rem;
   color: #4a5568;
   line-height: 1.6;
-}
-
-@media (min-width: 640px) {
-  .subtitle {
-    font-size: 1rem;
-  }
 }
 
 .alert {
@@ -169,12 +121,6 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-@media (min-width: 640px) {
-  .form {
-    gap: 1.5rem;
-  }
 }
 
 .formGroup {
@@ -281,23 +227,11 @@
   padding: 0.75rem 1rem;
 }
 
-@media (min-width: 640px) {
-  .infoBox {
-    padding: 1rem;
-  }
-}
-
 .infoTitle {
   font-size: 0.75rem;
   font-weight: 500;
   color: #3182ce;
   margin-bottom: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .infoTitle {
-    font-size: 0.875rem;
-  }
 }
 
 .infoList {
@@ -309,12 +243,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-@media (min-width: 640px) {
-  .infoList {
-    font-size: 0.875rem;
-  }
 }
 
 .infoList li {
@@ -337,14 +265,6 @@
   margin-top: 1rem;
 }
 
-@media (min-width: 640px) {
-  .buttonGroup {
-    flex-direction: row;
-    gap: 1rem;
-    justify-content: flex-end;
-  }
-}
-
 .primaryButton {
   padding: 0.75rem 1.5rem;
   background: linear-gradient(to bottom, #3182ce, #2563eb);
@@ -363,13 +283,6 @@
   gap: 0.5rem;
   white-space: nowrap;
   font-family: inherit;
-}
-
-@media (min-width: 640px) {
-  .primaryButton {
-    width: auto;
-    padding: 0.75rem 2rem;
-  }
 }
 
 .primaryButton:hover:not(:disabled) {
@@ -412,13 +325,6 @@
   white-space: nowrap;
   font-family: inherit;
   box-shadow: 0 4px 20px rgba(149, 149, 255, 0.08);
-}
-
-@media (min-width: 640px) {
-  .secondaryButton {
-    width: auto;
-    padding: 0.75rem 2rem;
-  }
 }
 
 .secondaryButton:hover {
@@ -534,12 +440,6 @@
   margin-bottom: 1rem;
 }
 
-@media (min-width: 640px) {
-  .submittedItem {
-    margin-bottom: 1.5rem;
-  }
-}
-
 .submittedLabel {
   display: block;
   font-size: 0.875rem;
@@ -574,21 +474,284 @@
   margin: 1rem 0;
 }
 
-@media (min-width: 640px) {
-  .submittedInfoBox {
-    padding: 1rem;
-    margin: 1.5rem 0;
-  }
-}
-
 .submittedInfoText {
   font-size: 0.75rem;
   color: #3182ce;
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0;
+  }
+
+  .contentWrapper {
+    padding: 0 0.5rem;
+  }
+
+  .card {
+    border-radius: 24px;
+  }
+
+  .cardContent {
+    padding: 0.75rem;
+  }
+
+  .header {
+    margin-bottom: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .alert {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .form {
+    gap: 0.875rem;
+  }
+
+  .formLabel {
+    font-size: 0.8125rem;
+  }
+
+  .fileInput {
+    font-size: 0.8125rem;
+  }
+
+  .fileInput::file-selector-button {
+    padding: 0.4375rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .infoBox {
+    padding: 0.625rem 0.875rem;
+    border-radius: 20px;
+  }
+
+  .infoTitle {
+    font-size: 0.6875rem;
+  }
+
+  .infoList {
+    font-size: 0.6875rem;
+  }
+
+  .buttonGroup {
+    gap: 0.625rem;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+
+  .emptyCard {
+    padding: 0 0.75rem;
+  }
+
+  .emptyCardContent {
+    padding: 1.5rem;
+    border-radius: 24px;
+  }
+
+  .emptyTitle {
+    font-size: 1.25rem;
+  }
+
+  .submittedItem {
+    margin-bottom: 0.875rem;
+  }
+
+  .submittedInfoBox {
+    padding: 0.625rem 0.875rem;
+    margin: 0.875rem 0;
+    border-radius: 20px;
+  }
+
+  .submittedInfoText {
+    font-size: 0.6875rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0.75rem 0;
+  }
+
+  .contentWrapper {
+    padding: 0 0.5rem;
+  }
+
+  .cardContent {
+    padding: 0.625rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+  }
+
+  .emptyCardContent {
+    padding: 1.25rem;
+  }
+
+  .emptyTitle {
+    font-size: 1.125rem;
+  }
+
+  .emptyIconWrapper {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .emptyIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem 0;
+  }
+
+  .contentWrapper {
+    padding: 0 0.375rem;
+  }
+
+  .card {
+    border-radius: 20px;
+  }
+
+  .cardContent {
+    padding: 0.5rem;
+  }
+
+  .title {
+    font-size: 0.9375rem;
+  }
+
+  .subtitle {
+    font-size: 0.6875rem;
+  }
+
+  .formLabel {
+    font-size: 0.75rem;
+  }
+
+  .fileInput {
+    font-size: 0.75rem;
+  }
+
+  .fileInput::file-selector-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 0.5625rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .emptyCardContent {
+    padding: 1rem;
+  }
+
+  .emptyTitle {
+    font-size: 1rem;
+  }
+}
+
 @media (min-width: 640px) {
+  .container {
+    padding: 3rem 0;
+  }
+
+  .contentWrapper {
+    padding: 0 1rem;
+  }
+
+  .cardContent {
+    padding: 1rem 1rem 1.25rem;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .form {
+    gap: 1.5rem;
+  }
+
+  .infoBox {
+    padding: 1rem;
+  }
+
+  .infoTitle {
+    font-size: 0.875rem;
+  }
+
+  .infoList {
+    font-size: 0.875rem;
+  }
+
+  .buttonGroup {
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+
+  .primaryButton {
+    width: auto;
+    padding: 0.75rem 2rem;
+  }
+
+  .secondaryButton {
+    width: auto;
+    padding: 0.75rem 2rem;
+  }
+
+  .submittedItem {
+    margin-bottom: 1.5rem;
+  }
+
+  .submittedInfoBox {
+    padding: 1rem;
+    margin: 1.5rem 0;
+  }
+
   .submittedInfoText {
     font-size: 0.875rem;
   }
 }
 
+@media (min-width: 1024px) {
+  .contentWrapper {
+    padding: 0 2rem;
+  }
+
+  .cardContent {
+    padding: 1.5rem;
+  }
+}

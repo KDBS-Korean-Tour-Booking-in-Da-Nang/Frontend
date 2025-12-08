@@ -1,0 +1,407 @@
+.booking-wizard {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Header */
+.wizard-header {
+  margin-bottom: 30px;
+}
+
+.wizard-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* Loading and Error States */
+.loading,
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+.spinner {
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #dc2626;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.error p {
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #b91c1c;
+}
+
+/* Progress Bar */
+.progress-container {
+  margin-bottom: 40px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #f9fafb;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.progress-step.hoverable {
+  cursor: pointer;
+}
+
+.progress-step.hoverable:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.15);
+}
+
+.progress-step.hoverable:hover .step-number {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.progress-step.active {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.progress-step.active:hover {
+  border-color: #2563eb;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
+}
+
+.progress-step.active:hover .step-number {
+  background-color: #2563eb;
+}
+
+.progress-step.completed {
+  background-color: #f0fdf4;
+  border-color: #10b981;
+  cursor: pointer;
+}
+
+.progress-step.completed:hover {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.progress-step:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-step.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.progress-step.active .step-number {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.progress-step.completed .step-number {
+  background-color: #10b981;
+  color: white;
+}
+
+.step-info {
+  flex: 1;
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.step-description {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Step Content */
+.step-content {
+  background-color: white;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  min-height: 500px;
+}
+
+/* Navigation Buttons */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.btn-primary, .btn-secondary, .btn-success {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-primary:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+.btn-secondary:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.btn-success {
+  background-color: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #059669;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .booking-wizard {
+    padding: 20px 16px;
+  }
+
+  .progress-steps {
+    gap: 16px;
+  }
+
+  .progress-step {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-wizard {
+    padding: 16px 12px;
+  }
+
+  .wizard-header {
+    margin-bottom: 24px;
+  }
+
+  .wizard-title {
+    font-size: 24px;
+  }
+
+  .progress-container {
+    margin-bottom: 32px;
+  }
+
+  .progress-bar {
+    margin-bottom: 24px;
+  }
+
+  .progress-steps {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .progress-step {
+    flex-direction: row;
+    text-align: left;
+    padding: 14px 16px;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  .step-title {
+    font-size: 13px;
+  }
+
+  .step-description {
+    font-size: 11px;
+  }
+  
+  .step-content {
+    padding: 16px;
+    min-height: 400px;
+  }
+  
+  .step-navigation {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 0;
+  }
+  
+  .step-navigation button {
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    min-width: 100%;
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-wizard {
+    padding: 12px 8px;
+  }
+
+  .wizard-title {
+    font-size: 20px;
+  }
+
+  .progress-steps {
+    gap: 10px;
+  }
+
+  .progress-step {
+    padding: 12px;
+  }
+
+  .step-number {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .step-title {
+    font-size: 12px;
+  }
+
+  .step-description {
+    font-size: 10px;
+  }
+
+  .step-content {
+    padding: 12px;
+    min-height: 350px;
+    border-radius: 12px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+

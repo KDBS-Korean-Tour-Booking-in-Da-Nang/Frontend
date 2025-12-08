@@ -12,7 +12,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const email = location.state?.email;
   const verified = location.state?.verified;
-  const otpCode = location.state?.otpCode; // Lấy OTP đã verify
+  const otpCode = location.state?.otpCode;
 
   const [formData, setFormData] = useState({
     newPassword: '',
@@ -25,7 +25,7 @@ const ResetPassword = () => {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
-  // When success becomes true, redirect to login after a short delay
+  // Redirect to login page after successful password reset
   useEffect(() => {
     if (!success) return;
     setRedirectCountdown(5);
@@ -41,19 +41,19 @@ const ResetPassword = () => {
     };
   }, [success, navigate]);
 
+  // Block space character input in password
   const handlePasswordBeforeInput = (e) => {
     const { data } = e;
     if (data == null) return;
-    // Block space character
     if (data === ' ' || data === '\u00A0') {
       e.preventDefault();
     }
   };
 
+  // Handle paste in password: remove spaces and trigger validation
   const handlePasswordPaste = (e) => {
     e.preventDefault();
     const pasted = (e.clipboardData || window.clipboardData).getData('text');
-    // Remove all spaces from pasted text
     const cleaned = pasted.replace(/\s/g, '');
     const target = e.target;
     const start = target.selectionStart;
@@ -61,10 +61,8 @@ const ResetPassword = () => {
     const current = target.value;
     const newValue = current.slice(0, start) + cleaned + current.slice(end);
     
-    // Update form data
     setFormData(prev => ({ ...prev, [target.name]: newValue }));
     
-    // Manually trigger validation by creating a synthetic event
     const syntheticEvent = {
       target: { ...target, value: newValue, name: target.name },
       currentTarget: target
@@ -72,10 +70,10 @@ const ResetPassword = () => {
     handleChange(syntheticEvent);
   };
 
+  // Handle input change: real-time password and confirm password validation
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Remove all spaces from password fields
     let cleanedValue = value;
     if (name === 'newPassword' || name === 'confirmPassword') {
       cleanedValue = value.replace(/\s/g, '');
@@ -86,15 +84,12 @@ const ResetPassword = () => {
       [name]: cleanedValue
     }));
 
-    // Real-time password validation
     if (name === 'newPassword') {
-      // Value is already cleaned (no spaces) from handleChange
       if (cleanedValue.length > 0 && cleanedValue.length < 8) {
         setPasswordError(t('auth.reset.errors.passwordMinLength'));
       } else {
         setPasswordError('');
       }
-      // Also check confirm password if it has value
       if (formData.confirmPassword && formData.confirmPassword !== cleanedValue) {
         setConfirmPasswordError(t('auth.reset.errors.passwordMismatch'));
       } else if (formData.confirmPassword && formData.confirmPassword === cleanedValue) {
@@ -102,9 +97,7 @@ const ResetPassword = () => {
       }
     }
 
-    // Real-time confirm password validation
     if (name === 'confirmPassword') {
-      // Value is already cleaned (no spaces) from handleChange
       if (cleanedValue && formData.newPassword && cleanedValue !== formData.newPassword) {
         setConfirmPasswordError(t('auth.reset.errors.passwordMismatch'));
       } else {
@@ -113,13 +106,12 @@ const ResetPassword = () => {
     }
   };
 
+  // Handle reset password form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Validation
-    // Passwords are already cleaned (no spaces) from handleChange
     if (formData.newPassword !== formData.confirmPassword) {
       setError(t('auth.reset.errors.passwordMismatch'));
       setLoading(false);
@@ -133,9 +125,7 @@ const ResetPassword = () => {
     }
 
     try {
-      // Password is already cleaned (no spaces) from handleChange, but trim for safety
       const trimmedPassword = formData.newPassword.trim();
-      // Use the verified OTP from the previous step
       const response = await fetch(getApiPath('/api/auth/forgot-password/reset'), {
         method: 'POST',
         headers: {
@@ -143,7 +133,7 @@ const ResetPassword = () => {
         },
         body: JSON.stringify({
           email: email,
-          otpCode: otpCode, // Use the verified OTP
+          otpCode: otpCode,
           newPassword: trimmedPassword,
         }),
       });

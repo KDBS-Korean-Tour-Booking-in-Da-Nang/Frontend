@@ -14,7 +14,6 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [generalError, setGeneralError] = useState('');
@@ -24,10 +23,9 @@ const Login = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Redirect if already logged in
+  // Redirect if user is already logged in
   useEffect(() => {
     if (!authLoading && user) {
-      // User is already logged in, redirect based on role
       const returnAfterLogin = localStorage.getItem('returnAfterLogin');
       if (returnAfterLogin) {
         localStorage.removeItem('returnAfterLogin');
@@ -50,16 +48,14 @@ const Login = () => {
     const errorParam = searchParams.get('error');
     if (errorParam) {
       setGeneralError(decodeURIComponent(errorParam));
-      // Clear the error parameter from URL
       navigate(location.pathname, { replace: true });
     }
   }, [searchParams, navigate, location.pathname]);
 
-  // GSAP animations
+  // GSAP animations: slide in from right
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     
-    // Animate login form section sliding in from right
     const loginForm = document.querySelector(`.${styles['login-form-section']}`);
     const illustrationSection = document.querySelector(`.${styles['illustration-section']}`);
     
@@ -74,31 +70,30 @@ const Login = () => {
     }
   }, []);
 
+  // Handle email change and clear error
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
-    // Clear email error when user starts typing
     if (emailError) {
       setEmailError('');
     }
-    // Clear general error when user starts typing
     if (generalError) {
       setGeneralError('');
     }
   };
 
+  // Block space character input in password
   const handlePasswordBeforeInput = (e) => {
     const { data } = e;
     if (data == null) return;
-    // Block space character
     if (data === ' ' || data === '\u00A0') {
       e.preventDefault();
     }
   };
 
+  // Handle paste in password: remove spaces
   const handlePasswordPaste = (e) => {
     e.preventDefault();
     const pasted = (e.clipboardData || window.clipboardData).getData('text');
-    // Remove all spaces from pasted text
     const cleaned = pasted.replace(/\s/g, '');
     const target = e.target;
     const start = target.selectionStart;
@@ -106,10 +101,8 @@ const Login = () => {
     const current = target.value;
     const newValue = current.slice(0, start) + cleaned + current.slice(end);
     
-    // Update password state
     setPassword(newValue);
     
-    // Clear errors
     if (passwordError) {
       setPasswordError('');
     }
@@ -118,20 +111,19 @@ const Login = () => {
     }
   };
 
+  // Handle password change: remove spaces
   const handlePasswordChange = (e) => {
-    // Remove all spaces from password
     const cleaned = e.target.value.replace(/\s/g, '');
     setPassword(cleaned);
-    // Clear password error when user starts typing
     if (passwordError) {
       setPasswordError('');
     }
-    // Clear general error when user starts typing
     if (generalError) {
       setGeneralError('');
     }
   };
 
+  // Validate email on blur
   const handleEmailBlur = () => {
     if (email.trim()) {
       const emailValidation = validateEmail(email);
@@ -143,34 +135,28 @@ const Login = () => {
     }
   };
 
+  // Map error message from backend to i18n key for multi-language support
   const mapLoginErrorToI18nKey = (message) => {
     const msg = String(message || '').toLowerCase();
 
-    // Tập từ khóa đa ngôn ngữ cho email/user và password
     const emailKeywords = [
       'email', 'user', 'mail',
-      // VI
       'sai email', 'email không', 'không tồn tại', 'tài khoản', 'người dùng',
-      // KO (đơn giản hoá theo từ gốc)
       '이메일', '사용자', '유저'
     ];
     const passwordKeywords = [
       'password', 'credentials',
-      // VI
       'mật khẩu', 'mat khau', 'sai mật khẩu', 'sai mat khau', 'không đúng',
-      // KO (đơn giản hoá theo từ gốc)
       '비밀번호', '패스워드'
     ];
 
     const hasEmailKeyword = emailKeywords.some(k => msg.includes(k));
     const hasPasswordKeyword = passwordKeywords.some(k => msg.includes(k));
 
-    // 1) Nếu thông điệp chứa đồng thời cả từ khóa email và password → both_invalid
     if (hasEmailKeyword && hasPasswordKeyword) {
       return { i18nKey: 'toast.auth.both_invalid', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email hoặc mật khẩu.' };
     }
 
-    // 2) Email sai - mở rộng các biến thể
     if (
       msg.includes('email has not existed') ||
       msg.includes('email not exist') ||
@@ -178,56 +164,48 @@ const Login = () => {
       msg.includes('user not found') ||
       msg.includes('no such user') ||
       msg.includes('wrong email') ||
-      // VI
       msg.includes('email không tồn tại') ||
       msg.includes('không tìm thấy email') ||
       msg.includes('tài khoản không tồn tại') ||
       msg.includes('người dùng không tồn tại') ||
-      // KO (đơn giản hoá)
       msg.includes('이메일을 찾을 수') ||
       msg.includes('사용자를 찾을 수') ||
-      hasEmailKeyword // fallback nếu chỉ có từ khóa email mà không có password
+      hasEmailKeyword
     ) {
       return { i18nKey: 'toast.auth.email_not_found', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email.' };
     }
 
-    // 3) Password sai - mở rộng các biến thể
     if (
       msg.includes('password not match') ||
       msg.includes('wrong password') ||
       msg.includes('invalid password') ||
       msg.includes('bad credentials') ||
       msg.includes('incorrect password') ||
-      // VI
       msg.includes('sai mật khẩu') ||
       msg.includes('mật khẩu không đúng') ||
-      // KO (đơn giản hoá)
       msg.includes('비밀번호가 올바르지') ||
       msg.includes('비밀번호가 틀렸') ||
-      hasPasswordKeyword // fallback nếu chỉ có từ khóa password mà không có email
+      hasPasswordKeyword
     ) {
       return { i18nKey: 'toast.auth.wrong_password', defaultMessage: 'Đăng nhập thất bại. Vui lòng kiểm tra mật khẩu.' };
     }
 
-    // 4) Trường hợp backend trả thông điệp gộp chuẩn hoá
     if (
       msg.includes('login failed. please check your email or password') ||
       msg.includes('both invalid') ||
       msg.includes('invalid_credentials') ||
       msg.includes('invalid credentials') ||
       msg.includes('check your email or password') ||
-      // VI
       msg.includes('email hoặc mật khẩu') ||
-      // KO (đơn giản hoá)
       msg.includes('이메일 또는 비밀번호')
     ) {
       return { i18nKey: 'toast.auth.both_invalid', defaultMessage: 'Đăng nhập thất bại. vui lòng kiểm tra email hoặc mật khẩu.' };
     }
 
-    // fallback to generic error
     return null;
   };
 
+  // Handle login form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -235,15 +213,10 @@ const Login = () => {
     setPasswordError('');
     setGeneralError('');
 
-    // Check fields in order: email, password
-    // Set error state for all missing (unfilled) fields to show error messages
-    // Don't show error messages for fields that are filled but have validation errors
-
     let firstMissingField = null;
     let hasUnfilledFields = false;
     let hasValidationErrors = false;
 
-    // Check email first
     if (!email.trim()) {
       if (!firstMissingField) {
         firstMissingField = 'email';
@@ -254,7 +227,6 @@ const Login = () => {
     } else {
       const emailValidation = validateEmail(email);
       if (!emailValidation.isValid) {
-        // Email is filled but invalid - set error message
         hasValidationErrors = true;
         if (!firstMissingField) {
           firstMissingField = 'email';
@@ -263,8 +235,6 @@ const Login = () => {
       }
     }
 
-    // Check password
-    // Password is already cleaned (no spaces) from handlePasswordChange
     if (!password) {
       if (!firstMissingField) {
         firstMissingField = 'password';
@@ -274,14 +244,12 @@ const Login = () => {
       hasValidationErrors = true;
     }
 
-    // If there are validation errors
     if (hasValidationErrors) {
       setLoading(false);
       return;
     }
 
     try {
-      // Password is already cleaned (no spaces) from handlePasswordChange, but trim for safety
       const trimmedPassword = password.trim();
       const response = await fetch(getApiPath('/api/auth/login'), {
         method: 'POST',
@@ -296,7 +264,6 @@ const Login = () => {
 
       const data = await response.json();
 
-      // Handle banned user (ErrorCode.USER_IS_BANNED: code 1012, message \"User is banned.\")
       if (response.status === 403 && data?.code === 1012) {
         setGeneralError(t('auth.login.banned') || 'Tài khoản của bạn đã bị khóa bởi quản trị viên.');
         navigate('/banned', { replace: true });
@@ -306,7 +273,6 @@ const Login = () => {
       if ((data.code === 1000 || data.code === 0) && data.result) {
         const token = data.result.token;
         
-        // Use user data from backend response
         if (data.result.user) {
           const user = {
             id: data.result.user.userId,
@@ -321,19 +287,14 @@ const Login = () => {
 
           login(user, token, rememberMe);
           
-          // Clear any stale onboarding flags for non-pending users
           if (!(user.role === 'COMPANY' || user.role === 'BUSINESS') || 
               (user.status !== 'COMPANY_PENDING' && user.status !== 'WAITING_FOR_APPROVAL')) {
             localStorage.removeItem('registration_intent');
             localStorage.removeItem('company_onboarding_pending');
           }
           
-          // Navigate immediately and show toast on the new page
-          // Hard lock for COMPANY/BUSINESS with COMPANY_PENDING or WAITING_FOR_APPROVAL to pending-page
           if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && 
               (user.status === 'COMPANY_PENDING' || user.status === 'WAITING_FOR_APPROVAL')) {
-            // Keep onboarding flags for pending flow
-            // Use window.location.href for pending-page to ensure full page reload
             window.location.href = '/pending-page';
             return;
           }
@@ -348,7 +309,6 @@ const Login = () => {
               });
               return;
             }
-            // Non-company users are sent to homepage
             navigate('/', { 
               replace: true,
               state: { message: 'toast.auth.login_success', type: 'success' }
@@ -356,7 +316,6 @@ const Login = () => {
             return;
           }
 
-          // Default navigation by role - use navigate to avoid page reload
           let targetPath = '/';
           if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
             targetPath = '/company/dashboard';
@@ -369,7 +328,6 @@ const Login = () => {
             state: { message: 'toast.auth.login_success', type: 'success' }
           });
         } else {
-          // Fallback to mock data if user info not available
           const user = {
             id: Date.now(),
             email,
@@ -378,7 +336,6 @@ const Login = () => {
             authProvider: 'LOCAL'
           };
           login(user, token, rememberMe);
-          // Navigate immediately and show toast on the new page
           navigate('/', { 
             replace: true,
             state: { message: 'toast.auth.login_success', type: 'success' }
@@ -387,7 +344,6 @@ const Login = () => {
       } else {
         const mapped = mapLoginErrorToI18nKey(data.message);
         if (mapped) {
-          // Map error to appropriate field or general error
           if (mapped.i18nKey === 'toast.auth.email_not_found') {
             setEmailError('not_found');
           } else if (mapped.i18nKey === 'toast.auth.wrong_password') {
@@ -408,14 +364,13 @@ const Login = () => {
     }
   };
 
+  // Handle Google OAuth login
   const handleGoogleLogin = async () => {
     try {
       const response = await fetch(getApiPath('/api/auth/google/login'));
       const data = await response.json();
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
-        // Redirect to Google OAuth URL
-        // Persist remember-me preference and provider for the callback handler
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         localStorage.setItem('oauth_provider', 'GOOGLE');
         window.location.href = data.result;
@@ -427,14 +382,13 @@ const Login = () => {
     }
   };
 
+  // Handle Naver OAuth login
   const handleNaverLogin = async () => {
     try {
       const response = await fetch(getApiPath('/api/auth/naver/login'));
       const data = await response.json();
       
       if ((data.code === 1000 || data.code === 0) && data.result) {
-        // Redirect to Naver OAuth URL
-        // Persist remember-me preference and provider for the callback handler
         localStorage.setItem('oauth_remember_me', rememberMe ? 'true' : 'false');
         localStorage.setItem('oauth_provider', 'NAVER');
         window.location.href = data.result;

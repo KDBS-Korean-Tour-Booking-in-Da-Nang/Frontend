@@ -247,25 +247,10 @@
   gap: 16px;
 }
 
-@media (min-width: 640px) {
-  .filters-wrapper {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
 .search-box {
   flex: 1;
   min-width: 100%;
   position: relative;
-}
-
-@media (min-width: 640px) {
-  .search-box {
-    min-width: 300px;
-    max-width: 500px;
-  }
 }
 
 .search-icon {
@@ -309,24 +294,11 @@
   flex-wrap: wrap;
 }
 
-@media (min-width: 640px) {
-  .filters-group {
-    width: auto;
-  }
-}
-
 .selectWrapper {
   min-width: 200px;
   position: relative;
   z-index: 10;
   overflow: visible;
-}
-
-@media (max-width: 640px) {
-  .selectWrapper {
-    min-width: 100%;
-    width: 100%;
-  }
 }
 
 .select-container {
@@ -957,93 +929,6 @@
   color: #6b7280;
 }
 
-@media (max-width: 640px) {
-  .modal {
-    width: 100%;
-    max-height: 95vh;
-    border-radius: 20px;
-  }
-
-  .modal-header {
-    padding: 20px 20px 16px;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .modal-status-header {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .modal-header-right {
-    align-items: flex-end;
-    width: 100%;
-  }
-
-  .modal-countdown-wrapper {
-    width: 100%;
-  }
-
-  .modal-duration-wrapper {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .modal-title {
-    font-size: 20px;
-  }
-
-  .modal-tour-name {
-    flex-wrap: wrap;
-  }
-
-  .tour-name-highlight {
-    font-size: 14px;
-    padding: 4px 10px;
-  }
-
-  .modal-body {
-    padding: 20px;
-    gap: 16px;
-  }
-
-  .modal-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 14px 16px;
-  }
-
-  .modal-row-label {
-    width: 100%;
-  }
-
-  .modal-value {
-    text-align: left;
-    width: 100%;
-    padding-left: 32px;
-  }
-
-  .countdown-timer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .countdown-values {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .countdown-item {
-    font-size: 12px;
-  }
-
-  .countdown-item strong {
-    font-size: 16px;
-  }
-}
-
 /* Loading */
 .loading-container {
   display: flex;
@@ -1349,5 +1234,114 @@
 
   .tour-card-name {
     font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .selectWrapper {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 95vh;
+    border-radius: 20px;
+  }
+
+  .modal-header {
+    padding: 20px 20px 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modal-status-header {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .modal-header-right {
+    align-items: flex-end;
+    width: 100%;
+  }
+
+  .modal-countdown-wrapper {
+    width: 100%;
+  }
+
+  .modal-duration-wrapper {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .modal-title {
+    font-size: 20px;
+  }
+
+  .modal-tour-name {
+    flex-wrap: wrap;
+  }
+
+  .tour-name-highlight {
+    font-size: 14px;
+    padding: 4px 10px;
+  }
+
+  .modal-body {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .modal-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 14px 16px;
+  }
+
+  .modal-row-label {
+    width: 100%;
+  }
+
+  .modal-value {
+    text-align: left;
+    width: 100%;
+    padding-left: 32px;
+  }
+
+  .countdown-timer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .countdown-values {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .countdown-item {
+    font-size: 12px;
+  }
+
+  .countdown-item strong {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 640px) {
+  .filters-wrapper {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .search-box {
+    min-width: 300px;
+    max-width: 500px;
+  }
+
+  .filters-group {
+    width: auto;
   }
 }

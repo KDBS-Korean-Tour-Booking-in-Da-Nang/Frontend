@@ -53,7 +53,7 @@ const CompanyInfo = () => {
   });
   const [initialized, setInitialized] = useState(false);
 
-  // Mark onboarding pending so next logins can return here easily
+  // Mark company onboarding as pending in localStorage for easy return on next login
   useEffect(() => {
     try {
       localStorage.setItem('company_onboarding_pending', 'true');
@@ -62,11 +62,12 @@ const CompanyInfo = () => {
     }
   }, []);
 
+  // Initialize component: get user email and check if files have been submitted
   useEffect(() => {
     if (authLoading) {
-      return; // Đợi auth khởi tạo xong để tránh redirect sớm khi login qua OAuth
+      return;
     }
-    // Ưu tiên email của người dùng đang đăng nhập; nếu không có thì dùng email lưu tạm sau bước đăng ký
+    // Get email from logged-in user, fallback to email saved after registration
     let email = user?.email || null;
     if (!email) {
       email = localStorage.getItem('userEmail');
@@ -74,10 +75,9 @@ const CompanyInfo = () => {
     
     if (email) {
       setUserEmail(email);
-      // Kiểm tra trạng thái đã nộp hồ sơ trên thiết bị này
       const statusKey = `businessUploadStatus:${email}`;
       const status = localStorage.getItem(statusKey);
-      // Ưu tiên hỏi backend xem đã từng upload chưa
+      // Check backend first for upload status, fallback to localStorage
       const fetchStatus = async () => {
         try {
           const headers = {};
@@ -86,7 +86,7 @@ const CompanyInfo = () => {
           const res = await fetch(getApiPath(`/api/users/business-upload-status?email=${encodeURIComponent(email)}`), { headers });
           const data = await res.json();
           if ((data.code === 1000 || data.code === 0) && data.result) {
-            // Chỉ coi là đã upload khi vai trò hiện tại là business hoặc backend có dữ liệu
+            // Mark as submitted if backend confirms files were uploaded
             if (data.result.uploaded) {
               setAlreadySubmitted(true);
               setSubmittedData({
@@ -94,7 +94,7 @@ const CompanyInfo = () => {
                 idCardFrontName: data.result.idCardFrontFileName || '',
                 idCardBackName: data.result.idCardBackFileName || ''
               });
-              // Ghi xuống localStorage để tăng tốc lần sau (fallback)
+              // Save to localStorage for faster check next time (fallback cache)
               localStorage.setItem(`businessUploadStatus:${email}`, 'submitted');
               localStorage.setItem(
                 `businessUploadData:${email}`,
@@ -107,7 +107,7 @@ const CompanyInfo = () => {
             }
           }
         } catch (e) {
-          // Fallback sang dữ liệu cục bộ nếu có
+          // Fallback to localStorage data if backend call fails
           if (status === 'submitted') {
             setAlreadySubmitted(true);
             const dataKey = `businessUploadData:${email}`;
@@ -129,11 +129,12 @@ const CompanyInfo = () => {
       };
       fetchStatus().finally(() => setInitialized(true));
     } else {
-      // Không điều hướng ngay; chờ auth hoàn tất và hiển thị UI phù hợp
+      // No email found, mark as initialized to show appropriate UI
       setInitialized(true);
     }
   }, [navigate, user, authLoading]);
 
+  // Handle file selection: validate and store file, clear errors
   const handleFileChange = (e, fileType) => {
     const file = e.target.files[0];
     if (file) {
@@ -141,7 +142,7 @@ const CompanyInfo = () => {
         ...prev,
         [fileType]: file
       }));
-      // Clear error for this specific file when user selects new file
+      // Clear error for this file type when user selects new file
       setFileErrors(prev => ({
         ...prev,
         [fileType]: ''
@@ -150,25 +151,26 @@ const CompanyInfo = () => {
     }
   };
 
+  // Handle form submit: validate files and upload to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (alreadySubmitted) {
-      return; // Đã nộp rồi thì không cho nộp nữa
+      return;
     }
     setLoading(true);
     setError('');
     setSuccess('');
-    // Clear all file errors
+    // Clear all previous file validation errors
     setFileErrors({
       businessLicense: '',
       idCardFront: '',
       idCardBack: ''
     });
 
-    // Collect all validation errors
+    // Collect all validation errors for display
     const errors = [];
 
-    // Validate files
+    // Validate that all required files are selected
     if (!files.businessLicense) {
       errors.push('Vui lòng upload giấy phép kinh doanh');
     }
@@ -179,7 +181,7 @@ const CompanyInfo = () => {
       errors.push('Vui lòng upload mặt sau CCCD');
     }
 
-    // Validate file types
+    // Validate file types match allowed formats
     const allowedTypes = {
       businessLicense: ['application/pdf'],
       idCardFront: ['image/jpeg', 'image/jpg', 'image/png'],
@@ -198,8 +200,8 @@ const CompanyInfo = () => {
       errors.push('File mặt sau CCCD phải là định dạng JPG, JPEG hoặc PNG');
     }
 
-    // Validate file sizes (max 25MB each)
-    const maxSize = 25 * 1024 * 1024; // 25MB
+    // Validate file sizes: maximum 25MB per file
+    const maxSize = 25 * 1024 * 1024;
     if (files.businessLicense && files.businessLicense.size > maxSize) {
       errors.push('File giấy phép kinh doanh không được vượt quá 25MB');
     }
@@ -210,9 +212,9 @@ const CompanyInfo = () => {
       errors.push('File mặt sau CCCD không được vượt quá 25MB');
     }
 
-    // Show all errors if any
+    // Display all validation errors if any found
     if (errors.length > 0) {
-      // Set file errors based on error messages
+      // Map error messages to specific file fields
       const newFileErrors = { businessLicense: '', idCardFront: '', idCardBack: '' };
       errors.forEach((errorMsg) => {
         if (errorMsg.includes('Giấy phép kinh doanh')) {

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../Pagination';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { 
   DocumentTextIcon,
   ChartBarIcon,

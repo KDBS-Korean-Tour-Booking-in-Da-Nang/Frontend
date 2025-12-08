@@ -34,7 +34,7 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [period, setPeriod] = useState('thisMonth');
 
-  // Fetch balance from API (same as navbar)
+  // Fetch user balance from API
   const fetchBalance = useCallback(async () => {
     if (!user || user.role !== 'COMPANY') {
       setBalance(null);
@@ -64,7 +64,7 @@ const Dashboard = () => {
     }
   }, [user, getToken]);
 
-  // Derive companyId from user
+  // Extract companyId from user object (try multiple possible field names)
   useEffect(() => {
     if (!user) {
       setCompanyId(null);
@@ -88,7 +88,7 @@ const Dashboard = () => {
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
 
-  // Listen for balance update events
+  // Listen for balance update events and refresh balance when event is fired
   useEffect(() => {
     const handleBalanceUpdate = () => {
       fetchBalance();
@@ -102,7 +102,7 @@ const Dashboard = () => {
     }
   }, [user?.email, getToken, fetchBalance]);
 
-  // Fetch dashboard data
+  // Fetch all dashboard data: tours, bookings, calculate stats and revenue chart data
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!companyId) {
@@ -126,7 +126,7 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Handle 401 if token expired
+        // Handle 401 unauthorized if token expired
         if (!toursRes.ok && toursRes.status === 401) {
           await checkAndHandle401(toursRes);
           return;
@@ -151,7 +151,7 @@ const Dashboard = () => {
               headers: { Authorization: `Bearer ${token}` }
             });
             
-            // Handle 401 if token expired
+            // Handle 401 unauthorized if token expired
             if (!bookingsRes.ok && bookingsRes.status === 401) {
               await checkAndHandle401(bookingsRes);
               return;
@@ -184,7 +184,7 @@ const Dashboard = () => {
           ];
         }
 
-        // Calculate stats
+        // Calculate dashboard statistics from tours and bookings
         const totalTours = toursArray.length;
         const activeTours = toursArray.filter(t => t.status === 'ACTIVE').length;
         const totalBookings = bookingsArray.length;
@@ -192,11 +192,10 @@ const Dashboard = () => {
         const completedBookings = bookingsArray.filter(b => b.status === 'COMPLETED').length;
         const cancelledBookings = bookingsArray.filter(b => b.status === 'CANCELLED').length;
         
-        // Total Revenue should use balance from API (same as navbar)
-        // Balance is already fetched in fetchBalance() above
+        // Use balance from API as total revenue
         const totalRevenue = balance !== null ? balance : 0;
 
-        // Generate revenue data for last 12 months
+        // Generate revenue chart data by grouping bookings by month
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const revenueByMonth = months.map((month, index) => {
           // Mock data - in real app, group bookings by month

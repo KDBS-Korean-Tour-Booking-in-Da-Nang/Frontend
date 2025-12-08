@@ -5,7 +5,7 @@ import { API_ENDPOINTS, BaseURL, createAuthHeaders, getAvatarUrl, getImageUrl } 
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { CheckCircle, XCircle } from 'lucide-react';
 import {
   BuildingOfficeIcon,

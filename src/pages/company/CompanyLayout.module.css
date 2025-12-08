@@ -8,7 +8,6 @@
   min-height: calc(100vh - 80px); /* Subtract navbar height */
 }
 
-/* Sidebar Styles - Minimal Soft Korean */
 .sidebar {
   width: 280px;
   background: #ffffff;
@@ -241,19 +240,36 @@
   z-index: 999;
 }
 
-/* Responsive Design */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
 @media (max-width: 1200px) {
   .sidebar {
     width: 260px;
-    top: 92px; /* Navbar height + margin */
+    top: 92px;
     left: 12px;
-    height: calc(100vh - 104px); /* 80px navbar + 24px margin */
+    height: calc(100vh - 104px);
     border-radius: 24px;
     padding: 20px 0;
   }
 
   .mainContent {
-    margin-left: 284px; /* 260px sidebar + 24px margin */
+    margin-left: 284px;
   }
 
   .sidebarHeader {
@@ -447,23 +463,4 @@
   .mobileToggle {
     padding: 0.25rem;
   }
-}
-
-/* Scrollbar Styling - Minimal Soft Korean */
-.sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: #f8fafc;
-  border-radius: 10px;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
 }

@@ -217,22 +217,33 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
   const handleSendMessage = async () => {
     if (!currentUser || !user) return;
 
+    const normalize = (val) => (val || '').toString().trim().toLowerCase();
+
     // Get userId from user object or find it from allUsers if not available
-    let userId = user.userId || user.id;
+    let userId = user.userId || user.id || user.userID || user._id;
     
     // If userId is not available, try to find it from allUsers by username or email
     if (!userId) {
       const username = user.username || user.userName || user.name;
       const email = user.userEmail || user.email;
+      const normUsername = normalize(username);
+      const normEmail = normalize(email);
       
       // First, try to find in current allUsers state
       if (state?.allUsers && state.allUsers.length > 0) {
         const foundUser = state.allUsers.find(u => 
-          (username && (u.username === username || u.userName === username || u.name === username)) ||
-          (email && (u.email === email || u.userEmail === email))
+          (normUsername && (
+            normalize(u.username) === normUsername ||
+            normalize(u.userName) === normUsername ||
+            normalize(u.name) === normUsername
+          )) ||
+          (normEmail && (
+            normalize(u.email) === normEmail ||
+            normalize(u.userEmail) === normEmail
+          ))
         );
         if (foundUser) {
-          userId = foundUser.userId || foundUser.id;
+          userId = foundUser.userId || foundUser.id || foundUser.userID || foundUser._id;
         }
       }
       
@@ -245,14 +256,20 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
         // Try to find again after loading (state should be updated by now)
         // We need to re-read state, but since React state is async, we'll use a workaround:
         // Check conversations which might have user info, or try to get from API
-        if (state?.allUsers && state.allUsers.length > 0) {
-          const foundUser = state.allUsers.find(u => 
-            (username && (u.username === username || u.userName === username || u.name === username)) ||
-            (email && (u.email === email || u.userEmail === email))
-          );
-          if (foundUser) {
-            userId = foundUser.userId || foundUser.id;
-          }
+        const refreshedUsers = state?.allUsers || [];
+        const foundUser = refreshedUsers.find(u => 
+          (normUsername && (
+            normalize(u.username) === normUsername ||
+            normalize(u.userName) === normUsername ||
+            normalize(u.name) === normUsername
+          )) ||
+          (normEmail && (
+            normalize(u.email) === normEmail ||
+            normalize(u.userEmail) === normEmail
+          ))
+        );
+        if (foundUser) {
+          userId = foundUser.userId || foundUser.id || foundUser.userID || foundUser._id;
         }
       }
     }
@@ -261,15 +278,49 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
     if (!userId && state?.conversations && state.conversations.length > 0) {
       const username = user.username || user.userName || user.name;
       const email = user.userEmail || user.email;
+      const normUsername = normalize(username);
+      const normEmail = normalize(email);
       
       const foundConv = state.conversations.find(conv => {
         const convUser = conv.user;
-        return (username && (convUser?.username === username || convUser?.userName === username)) ||
-               (email && (convUser?.userEmail === email || convUser?.email === email));
+        return (normUsername && (
+          normalize(convUser?.username) === normUsername ||
+          normalize(convUser?.userName) === normUsername ||
+          normalize(convUser?.name) === normUsername
+        )) ||
+        (normEmail && (
+          normalize(convUser?.userEmail) === normEmail ||
+          normalize(convUser?.email) === normEmail
+        ));
       });
       
       if (foundConv?.user) {
-        userId = foundConv.user.userId || foundConv.user.id;
+        userId = foundConv.user.userId || foundConv.user.id || foundConv.user.userID || foundConv.user._id;
+      }
+    }
+
+    // Fallback: fetch all users directly from API and match by email/username (avoids stale state)
+    if (!userId) {
+      try {
+        const usersFromApi = await chatApiService.getAllUsers();
+        if (Array.isArray(usersFromApi) && usersFromApi.length > 0) {
+          const foundUser = usersFromApi.find(u =>
+            (normEmail && (
+              normalize(u.email) === normEmail ||
+              normalize(u.userEmail) === normEmail
+            )) ||
+            (normUsername && (
+              normalize(u.username) === normUsername ||
+              normalize(u.userName) === normUsername ||
+              normalize(u.name) === normUsername
+            ))
+          );
+          if (foundUser) {
+            userId = foundUser.userId || foundUser.id || foundUser.userID || foundUser._id;
+          }
+        }
+      } catch (error) {
+        // Silent fallback; will warn below if unresolved
       }
     }
 
@@ -280,7 +331,7 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
         try {
           const userInfo = await chatApiService.getUserByEmail(email);
           if (userInfo && (userInfo.userId || userInfo.id)) {
-            userId = userInfo.userId || userInfo.id;
+            userId = userInfo.userId || userInfo.id || userInfo.userID || userInfo._id;
           }
         } catch (error) {
           // Error handled silently
@@ -290,7 +341,7 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
 
     // If still no userId after all attempts, we cannot proceed
     if (!userId) {
-      alert('Không thể tìm thấy ID người dùng. Vui lòng thử lại sau hoặc liên hệ admin.');
+      console.warn('Cannot resolve chat user ID for', user);
       return;
     }
 
@@ -318,6 +369,17 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
 
   const displayName = user.username || user.userName || user.name || 'Unknown User';
   const avatarUrl = getAvatarUrl(user.userAvatar || user.avatar) || '/default-avatar.png';
+  const hasResolvableIdentity = Boolean(
+    user.userId ||
+    user.id ||
+    user.userID ||
+    user._id ||
+    user.userEmail ||
+    user.email ||
+    user.username ||
+    user.userName ||
+    user.name
+  );
 
   const cardContent = (
     <div
@@ -353,6 +415,7 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
           <button 
             className={styles['send-message-btn']}
             onClick={handleSendMessage}
+            disabled={!hasResolvableIdentity}
           >
             <MessageCircle strokeWidth={1.6} />
             {t('common.sendMessage')}

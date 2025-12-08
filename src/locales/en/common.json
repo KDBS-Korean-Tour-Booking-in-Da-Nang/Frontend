@@ -4245,6 +4245,7 @@
       "totalAmount": "Total Amount",
       "createdAt": "Created At",
       "unknown": "Unknown",
+      "day": "day",
       "days": "days"
     }
   },

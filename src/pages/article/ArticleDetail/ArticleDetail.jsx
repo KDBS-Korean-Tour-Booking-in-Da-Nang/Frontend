@@ -5,7 +5,7 @@ import { CalendarIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/
 import articleService from '../../../services/articleService';
 import { htmlToJsx, normalizeImageUrlsInHtml } from '../../../utils/htmlConverter';
 import { getImageUrl } from '../../../config/api';
-import ArticleCommentSection from './ArticleCommentSection';
+import ArticleCommentSection from './ArticleCommentSection/ArticleCommentSection';
 import styles from './ArticleDetail.module.css';
 
 const ArticleDetail = () => {
@@ -18,12 +18,14 @@ const ArticleDetail = () => {
   const [error, setError] = useState('');
   const detailContainerClass = `${styles.pageContainer} ${styles.detailContainer}`;
 
+  // Load article when id changes
   useEffect(() => {
     if (id) {
       loadArticle(id);
     }
   }, [id]);
 
+  // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
   const getLocalizedArticleField = (article, baseField) => {
     if (!article) return '';
     const lang = (i18n.language || 'vi').toLowerCase();
@@ -38,6 +40,7 @@ const ArticleDetail = () => {
     return vi || en || kr || '';
   };
 
+  // Load article by ID from API
   const loadArticle = async (articleId) => {
     if (!articleId || articleId === 'undefined') {
       setError(t('articleDetail.errorMessage'));
@@ -51,7 +54,6 @@ const ArticleDetail = () => {
       const data = await articleService.getArticleById(articleId);
       setArticle(data);
     } catch (error) {
-      // Silently handle error loading article
       setError(t('articleDetail.errorMessage'));
     } finally {
       setLoading(false);
@@ -128,14 +130,12 @@ const ArticleDetail = () => {
     );
   }
 
-  // Convert HTML content to displayable text with styling for introtext and fulltext
   const articleContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
   
-  // Create styled content with different styles for introtext and fulltext
+  // Add CSS classes to introtext and fulltext divs for different styling
   const getStyledContent = (htmlContent) => {
     if (!htmlContent) return '';
     
-    // Add CSS classes to introtext and fulltext divs
     let styledContent = htmlContent
       .replace(/<div class="introtext">/g, '<div class="introtext italic text-lg text-gray-600 border-l-4 border-green-500 pl-4 mb-6">')
       .replace(/<div class="fulltext">/g, '<div class="fulltext text-gray-800 leading-relaxed">');

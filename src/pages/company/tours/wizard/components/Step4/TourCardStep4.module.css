@@ -15,13 +15,6 @@
   height: auto;
 }
 
-@media (min-width: 1024px) {
-  .tour-card {
-    max-width: 400px;
-    width: 100%;
-  }
-}
-
 /* Tour Image */
 .tour-image-container {
   position: relative;
@@ -178,5 +171,12 @@
 
   .detail-item {
     font-size: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tour-card {
+    max-width: 400px;
+    width: 100%;
   }
 }

@@ -6,7 +6,7 @@ import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import ReportDetailModal from './ReportDetailModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { CheckCircle } from 'lucide-react';
 import {
   ExclamationTriangleIcon,

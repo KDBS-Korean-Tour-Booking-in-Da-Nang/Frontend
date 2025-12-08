@@ -39,10 +39,10 @@ const TourManagement = () => {
   const [error, setError] = useState('');
   const [companyId, setCompanyId] = useState(null);
 
-  // Check if user has business role
+  // Check if user has COMPANY role
   const isBusinessUser = user && user.role === 'COMPANY';
 
-  // Derive companyId from user
+  // Extract companyId from user object (try multiple possible field names)
   useEffect(() => {
     if (!user) {
       setCompanyId(null);
@@ -66,6 +66,7 @@ const TourManagement = () => {
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
   
+  // Fetch all tours for company, filtering out DISABLED (soft-deleted) tours
   const fetchTours = useCallback(async () => {
     if (!companyId) {
       setAllTours([]);
@@ -101,7 +102,7 @@ const TourManagement = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // Filter out DISABLED tours - these are soft-deleted tours (tours with bookings)
+        // Filter out DISABLED tours (soft-deleted tours that have bookings)
         const activeTours = Array.isArray(data) 
           ? data.filter(tour => tour.tourStatus !== 'DISABLED')
           : [];
@@ -110,20 +111,20 @@ const TourManagement = () => {
         setError(t('toast.tour.load_failed') || 'Không thể tải danh sách tour');
       }
     } catch (error) {
-      // Silently handle error fetching tours
       setError(t('toast.tour.load_error') || 'Lỗi khi tải tour');
     } finally {
       setLoading(false);
     }
   }, [companyId, t]);
 
+  // Fetch tours when user is COMPANY and companyId is available
   useEffect(() => {
     if (isBusinessUser && companyId) {
       fetchTours();
     }
   }, [isBusinessUser, companyId, fetchTours]);
 
-  // Pagination logic
+  // Calculate paginated tours for current page
   useEffect(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -133,6 +134,7 @@ const TourManagement = () => {
 
   const totalPages = Math.ceil(allTours.length / itemsPerPage);
 
+  // Handle pagination page change and scroll to top
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -140,10 +142,12 @@ const TourManagement = () => {
     }
   };
 
+  // Navigate to tour creation wizard
   const handleCreateTour = () => {
     navigate('/company/tours/wizard');
   };
 
+  // Open edit modal for selected tour
   const handleEditTour = (tourId) => {
     const tour = tours.find(t => t.id === tourId);
     if (tour) {
@@ -152,11 +156,12 @@ const TourManagement = () => {
     }
   };
 
+  // Navigate to tour detail page
   const openTourDetail = (tourId) => {
     navigate(`/tour/detail?id=${tourId}`, { state: { fromManagement: true } });
   };
 
-
+  // Open delete confirmation modal for selected tour
   const handleDeleteTour = (tourId) => {
     const tour = tours.find(t => t.id === tourId);
     if (tour) {
@@ -165,6 +170,7 @@ const TourManagement = () => {
     }
   };
 
+  // Delete tour: backend performs soft delete if tour has bookings, hard delete otherwise
   const confirmDeleteTour = async () => {
     if (!selectedTour) return;
 
@@ -189,16 +195,13 @@ const TourManagement = () => {
       });
 
       if (response.ok) {
-        // Backend logic:
-        // - If tour has bookings: soft delete (sets status to DISABLED) - still in DB
-        // - If tour has no bookings: hard delete (removes from DB)
-        // In both cases, we remove it from the UI as it won't be displayed
+        // Backend: soft delete (DISABLED) if tour has bookings, hard delete otherwise
+        // Remove from UI in both cases as DISABLED tours are filtered out
         showSuccess('toast.tour.delete_success');
-        // Remove tour from local state (works for both soft and hard delete)
         const updatedTours = allTours.filter(tour => tour.id !== selectedTour.id);
         setAllTours(updatedTours);
         
-        // Adjust page if current page becomes empty
+        // Adjust to last page if current page becomes empty after deletion
         const newTotalPages = Math.ceil(updatedTours.length / itemsPerPage);
         if (currentPage > newTotalPages && newTotalPages > 0) {
           setCurrentPage(newTotalPages);
@@ -207,7 +210,6 @@ const TourManagement = () => {
         setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
       }
     } catch (error) {
-      // Silently handle error deleting tour
       setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
     } finally {
       setDeleteModalOpen(false);
@@ -215,30 +217,33 @@ const TourManagement = () => {
     }
   };
 
+  // Refresh tours list after successful edit
   const handleEditSave = () => {
-    // Refresh tours list after edit
     fetchTours();
   };
 
+  // Format price as Vietnamese number format
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN').format(price);
   };
 
+  // Extract number of days from duration string and format
   const formatDuration = (duration) => {
     if (!duration) return t('tourManagement.card.durationZero');
-    // Extract number from duration string like "5 ngày 4 đêm"
+    // Extract number from duration string (e.g., "5 ngày 4 đêm")
     const match = duration.match(/(\d+)/);
     return match ? t('tourManagement.card.durationDays', { days: match[1] }) : duration;
   };
 
+  // Get translated status label with fallback to status value
   const getStatusLabel = (status) => {
     if (!status) return t('tourManagement.statusBadge.UNKNOWN');
     const statusUpper = status.toUpperCase();
     const translationKey = `tourManagement.statusBadge.${statusUpper}`;
-    // Fallback to status if translation doesn't exist
     return t(translationKey, { defaultValue: status });
   };
 
+  // Normalize departure point value to localized Da Nang label
   const localizeDeparturePoint = (value) => {
     if (!value) return t('common.departurePoints.daNang');
     const variants = [
@@ -250,12 +255,12 @@ const TourManagement = () => {
     return variants.includes(String(value).trim()) ? t('common.departurePoints.daNang') : value;
   };
 
+  // Normalize tour image path: handle full URLs, relative paths, and Azure storage URLs
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
-    // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
     const trimmed = tourImgPath.trim();
     
-    // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
+    // Check if path contains full URL (handles cases where backend stores full Azure URL)
     if (trimmed.includes('https://') || trimmed.includes('http://')) {
       // Extract the full URL from the path
       const httpsIndex = trimmed.indexOf('https://');
@@ -270,7 +275,7 @@ const TourManagement = () => {
       return trimmed.substring(1); // Loại bỏ dấu / ở đầu
     }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-    // Normalize inconsistent stored values: sometimes full "/uploads/...", sometimes only filename
+    // Normalize relative paths: handle both "/uploads/..." and filename-only formats
     const normalized = trimmed.startsWith('/uploads')
       ? trimmed
       : `/uploads/tours/thumbnails/${trimmed.split('/').pop()}`;

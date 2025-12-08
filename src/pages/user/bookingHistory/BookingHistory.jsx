@@ -14,7 +14,7 @@ import {
   ChevronDoubleRightIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
-import BookingHistoryCard from './BookingHistoryCard';
+import BookingHistoryCard from './BookingHistoryCard/BookingHistoryCard';
 import styles from './BookingHistory.module.css';
 
 // Booking status helpers
