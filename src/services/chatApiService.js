@@ -1,16 +1,5 @@
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
-
-const getApiBaseUrl = () => {
-  if (import.meta.env.PROD) {
-    // Production: sử dụng current domain
-    return window.location.origin;
-  } else {
-    // Development: sử dụng environment variable hoặc localhost
-    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-  }
-};
-
-const API_BASE_URL = getApiBaseUrl();
+import { BaseURL as API_BASE_URL } from '../config/api';
 
 class ChatApiService {
   constructor() {

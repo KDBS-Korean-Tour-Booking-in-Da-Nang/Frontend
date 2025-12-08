@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import Navbar from '../navbar-user/Navbar';
-import { NavbarCompany } from '../navbar-company';
+import NavbarCompany from '../navbar-company/NavbarCompany';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const ConditionalNavbar = () => {

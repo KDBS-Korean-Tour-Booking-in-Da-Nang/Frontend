@@ -23,6 +23,7 @@ const ForgotPassword = () => {
   const { showSuccess } = useToast();
   const navigate = useNavigate();
 
+  // Handle forgot password request submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -57,19 +58,15 @@ const ForgotPassword = () => {
         showSuccess('toast.auth.password_reset_email_sent');
         setSent(true);
         setCountdown(60);
-        // Mark user as having password if forgot password succeeds (user has real password)
         if (email) {
           try {
             localStorage.setItem(`hasPassword_${email}`, 'true');
             localStorage.removeItem(`isOAuthOnly_${email}`);
           } catch (err) {
-            // Silently handle localStorage errors
           }
         }
       } else {
-        // Check if it's an OAuth-only user error
         const errorMessage = data.message || '';
-        // If backend returns error for OAuth-only users, show specific message and don't proceed
         if (errorMessage.toLowerCase().includes('oauth') || 
             errorMessage.toLowerCase().includes('social') ||
             errorMessage.toLowerCase().includes('google') ||
@@ -79,15 +76,13 @@ const ForgotPassword = () => {
             errorMessage.toLowerCase().includes('비밀번호가 없습니다') ||
             errorMessage.toLowerCase().includes('cannot reset password') ||
             errorMessage.toLowerCase().includes('không thể đặt lại mật khẩu') ||
-            data.code === 1001 || // Assuming backend uses specific error code
+            data.code === 1001 ||
             response.status === 400) {
           
-          // Save OAuth-only status to localStorage
           if (email) {
             try {
               localStorage.setItem(`isOAuthOnly_${email}`, 'true');
             } catch (err) {
-              // Silently handle localStorage errors
             }
           }
           
@@ -103,7 +98,7 @@ const ForgotPassword = () => {
     }
   };
 
-  // Start countdown when OTP is sent
+  // Countdown timer for resend OTP functionality
   useEffect(() => {
     if (sent && countdown > 0) {
       const timer = setInterval(() => {
@@ -119,6 +114,7 @@ const ForgotPassword = () => {
     }
   }, [sent, countdown]);
 
+  // Handle verify OTP from email
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setOtpLoading(true);
@@ -146,7 +142,6 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0) && data.result === true) {
-        // OTP verified successfully, navigate to reset password immediately
         showSuccess('toast.auth.otp_verify_success');
         navigate('/reset-password', {
           replace: true,
@@ -166,6 +161,7 @@ const ForgotPassword = () => {
     }
   };
 
+  // Handle resend OTP
   const handleResendOTP = async () => {
     setResendLoading(true);
 
@@ -184,20 +180,15 @@ const ForgotPassword = () => {
 
       if ((data.code === 1000 || data.code === 0)) {
         showSuccess('toast.auth.otp_sent_success');
-        
-        // Reset countdown
         setCountdown(60);
-        // Mark user as having password if resend succeeds (user has real password)
         if (email) {
           try {
             localStorage.setItem(`hasPassword_${email}`, 'true');
             localStorage.removeItem(`isOAuthOnly_${email}`);
           } catch (err) {
-            // Silently handle localStorage errors
           }
         }
       } else {
-        // Check if it's an OAuth-only user error
         const errorMessage = data.message || '';
         if (errorMessage.toLowerCase().includes('oauth') || 
             errorMessage.toLowerCase().includes('social') ||
@@ -206,12 +197,10 @@ const ForgotPassword = () => {
             errorMessage.toLowerCase().includes('không có mật khẩu') ||
             errorMessage.toLowerCase().includes('does not have a password')) {
           
-          // Save OAuth-only status to localStorage
           if (email) {
             try {
               localStorage.setItem(`isOAuthOnly_${email}`, 'true');
             } catch (err) {
-              // Silently handle localStorage errors
             }
           }
         }
@@ -224,7 +213,6 @@ const ForgotPassword = () => {
     }
   };
 
-  // Show OTP form after email is sent
   if (sent && !verified) {
     return (
       <div className="page-gradient">

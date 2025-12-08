@@ -16,15 +16,14 @@ const AdminLogin = () => {
   const { showSuccess } = useToast();
   const navigate = useNavigate();
 
+  // Handle admin login form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Clear previous errors
     setUsernameError('');
     setPasswordError('');
     setError('');
 
-    // Collect all validation errors
     let hasErrors = false;
 
     if (!username.trim()) {
@@ -58,10 +57,8 @@ const AdminLogin = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle HTTP error status with detailed error info
         let errorMessage = data.message || `HTTP Error: ${response.status}`;
         
-        // Add more specific error messages based on response
         if (response.status === 401) {
           if (data.code === 1008) {
             errorMessage = 'Authentication failed. Please check your username and password.';
@@ -80,7 +77,6 @@ const AdminLogin = () => {
         const token = data.result.token;
         const userData = data.result.user;
 
-        // Check if user has admin role only
         if (userData.role === 'ADMIN') {
           const user = {
             id: userData.userId,
@@ -92,19 +88,15 @@ const AdminLogin = () => {
 
           login(user, token, false);
           showSuccess('Login successful!');
-          
-          // Redirect to admin dashboard
           navigate('/admin');
         } else {
           setError(`This account does not have permission to access admin area. Current role: ${userData.role}. Only ADMIN can log in to this page.`);
         }
       } else {
-        // Handle API error response
         const errorMessage = data.message || 'Login failed. Please check your credentials.';
         setError(errorMessage);
       }
     } catch (err) {
-      // More specific error handling
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
         setError('Cannot connect to server. Please check if the backend is running.');
       } else {

@@ -8,7 +8,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getImageUrl, createAuthHeaders } from '../../../config/api';
 import { getAllBookings, getBookingsByTourId, getBookingTotal, companyConfirmTourCompletion } from '../../../services/bookingAPI';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { 
   MagnifyingGlassIcon,
   ChevronLeftIcon,
@@ -74,11 +74,13 @@ const BookingManagement = () => {
     'BOOKING_UNDER_COMPLAINT'
   ];
 
+  // Check if booking status contains "PENDING"
   const isPendingStatus = (status) => {
     if (!status) return false;
     return status.toUpperCase().includes('PENDING');
   };
 
+  // Navigate to booking detail page for editing
   const handleEditBooking = (bookingItem) => {
     if (!bookingItem) return;
 
@@ -90,7 +92,7 @@ const BookingManagement = () => {
       return;
     }
 
-    // Preserve tourId in URL when navigating to booking detail
+    // Preserve tourId in URL when navigating to booking detail page
     const tourId = selectedTourId || searchParams.get('tourId');
     if (tourId) {
       navigate(`/company/bookings/detail?id=${bookingId}&tourId=${tourId}`);
@@ -99,12 +101,14 @@ const BookingManagement = () => {
     }
   };
 
+  // Open booking detail modal for viewing
   const handleViewBooking = (bookingItem) => {
     if (!bookingItem) return;
     setViewingBooking(bookingItem);
     setIsDetailModalOpen(true);
   };
 
+  // Approve tour completion: confirm booking is completed and refresh balance
   const handleApproveBooking = async (bookingItem) => {
     if (!bookingItem?.bookingId || bookingItem.bookingStatus !== 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED') {
       return;
@@ -114,11 +118,10 @@ const BookingManagement = () => {
       await companyConfirmTourCompletion(bookingItem.bookingId);
       showSuccessRef.current?.(t('companyBookingWizard.success.bookingPending'));
       
-      // Refresh balance after confirmation
-      // Check if booking status changed to BOOKING_SUCCESS (both confirmed)
+      // Refresh bookings list to get updated status
       await refreshBookings();
       
-      // Refresh user balance to get updated balance
+      // Refresh user balance to reflect payment received
       if (user?.email) {
         try {
           const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -130,30 +133,31 @@ const BookingManagement = () => {
             });
             if (response.ok) {
               const userData = await response.json();
-              // Trigger balance update event
+              // Trigger balance update event for navbar and other components
               window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: userData.balance || 0 } }));
             }
           }
         } catch {
-          // Silently handle error refreshing balance
         }
       }
     } catch (error) {
-      // Silently handle error approving booking completion
     } finally {
       setApprovingBookingId(null);
     }
   };
 
+  // Close booking detail modal and clear viewing booking
   const handleCloseDetailModal = () => {
     setIsDetailModalOpen(false);
     setViewingBooking(null);
   };
 
+  // Keep showSuccess ref updated
   useEffect(() => {
     showSuccessRef.current = showSuccess;
   }, [showSuccess]);
 
+  // Extract companyId from user object
   useEffect(() => {
     if (!user) {
       setCompanyId(null);
@@ -177,7 +181,7 @@ const BookingManagement = () => {
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
 
-  // Handle tour selection
+  // Handle tour selection: toggle selection and update URL params
   const handleTourSelect = (tourId) => {
     if (tourId === undefined || tourId === null) return;
     const normalizedId = tourId.toString();
@@ -197,6 +201,7 @@ const BookingManagement = () => {
     setSearchParams(newSearchParams, { replace: true });
   };
 
+  // Enrich bookings array with totalAmount from booking total API
   const enrichBookingsWithTotals = useCallback(async (bookings = []) => {
     return Promise.all(
       bookings.map(async (booking) => {
@@ -246,7 +251,6 @@ const BookingManagement = () => {
       setAllBookings(bookingsWithTotals);
       setCurrentPage(1);
     } catch (e) {
-      // Silently handle error fetching all bookings
       setAllBookings([]);
       showSuccessRef.current?.('Không thể tải danh sách booking');
     } finally {
@@ -254,7 +258,7 @@ const BookingManagement = () => {
     }
   }, [companyId, enrichBookingsWithTotals]);
 
-  // Fetch bookings when tour is selected
+  // Fetch bookings for specific tour ID
   const fetchBookingsByTour = useCallback(async (tourId) => {
     if (!tourId) {
       return;
@@ -285,7 +289,6 @@ const BookingManagement = () => {
       setAllBookings(bookingsWithTotals);
       setCurrentPage(1);
     } catch (e) {
-      // Silently handle error fetching bookings
       setAllBookings([]);
       showSuccessRef.current?.('Không thể tải danh sách booking');
     } finally {
@@ -293,7 +296,7 @@ const BookingManagement = () => {
     }
   }, [companyId, enrichBookingsWithTotals]);
 
-  // Sync selectedTourId with URL params after tours are loaded
+  // Sync selectedTourId with URL params and set tour pagination page
   useEffect(() => {
     if (tours.length === 0 || toursLoading) return;
     
@@ -301,19 +304,18 @@ const BookingManagement = () => {
     
     if (tourIdFromUrl) {
       const tourExists = tours.some(t => t?.id?.toString() === tourIdFromUrl);
-      if (tourExists) {
-        // Only update if different to avoid unnecessary re-renders
-        if (selectedTourId !== tourIdFromUrl) {
-          setSelectedTourId(tourIdFromUrl);
-          // Calculate which page the tour is on
-          const tourIndex = tours.findIndex(t => t?.id?.toString() === tourIdFromUrl);
+        if (tourExists) {
+          if (selectedTourId !== tourIdFromUrl) {
+            setSelectedTourId(tourIdFromUrl);
+            // Calculate which pagination page contains this tour
+            const tourIndex = tours.findIndex(t => t?.id?.toString() === tourIdFromUrl);
           if (tourIndex >= 0) {
             const page = Math.floor(tourIndex / toursPerPage) + 1;
             setCurrentTourPage(page);
           }
         }
       } else {
-        // Tour not found, clear URL param (but don't update selectedTourId here to avoid loop)
+        // Tour not found in list, clear URL param
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('tourId');
         setSearchParams(newSearchParams, { replace: true });
@@ -329,7 +331,7 @@ const BookingManagement = () => {
     }
   }, [searchParams, tours, toursPerPage, toursLoading, selectedTourId, setSearchParams]);
 
-  // Fetch bookings when selectedTourId changes
+  // Fetch bookings when tour selection changes (all bookings or filtered by tour)
   useEffect(() => {
     if (!companyId) return;
 
@@ -340,6 +342,7 @@ const BookingManagement = () => {
     }
   }, [companyId, selectedTourId, fetchAllBookings, fetchBookingsByTour]);
 
+  // Refresh bookings list (either all or filtered by selected tour)
   const refreshBookings = useCallback(async () => {
     if (selectedTourId) {
       await fetchBookingsByTour(selectedTourId);
@@ -348,7 +351,7 @@ const BookingManagement = () => {
     }
   }, [selectedTourId, fetchAllBookings, fetchBookingsByTour]);
 
-  // Load company tours first
+  // Fetch company tours, filtering to show only PUBLIC status tours
   const fetchCompanyTours = useCallback(async () => {
     if (!companyId) {
       setTours([]);
@@ -381,10 +384,10 @@ const BookingManagement = () => {
       } else {
         const data = await res.json();
         const allTours = Array.isArray(data) ? data : [];
-        // Filter to only show tours with PUBLIC status
+        // Filter to show only PUBLIC tours (exclude DRAFT, INACTIVE, etc.)
         const publicTours = allTours.filter(tour => tour.tourStatus === 'PUBLIC');
         setTours(publicTours);
-        setCurrentTourPage(1); // Reset to first page when tours are loaded
+        setCurrentTourPage(1);
       }
     } catch (e) {
       setTours([]);
@@ -393,13 +396,14 @@ const BookingManagement = () => {
     }
   }, [companyId]);
 
+  // Fetch company tours when companyId is available
   useEffect(() => { 
     if (companyId) {
       fetchCompanyTours(); 
     }
   }, [companyId, fetchCompanyTours]);
 
-  // Calculate booking counts for each tour
+  // Calculate booking count per tour for display in tour selector
   useEffect(() => {
     if (!allBookings || allBookings.length === 0) {
       setTourBookingCounts(new Map());
@@ -417,11 +421,12 @@ const BookingManagement = () => {
     setTourBookingCounts(countsMap);
   }, [allBookings]);
 
+  // Filter and paginate bookings when filters, sort, or page changes
   useEffect(() => {
     filterAndPaginateBookings();
   }, [searchQuery, statusFilter, sortBy, currentPage, allBookings]);
 
-  // Resolve portal container once on mount
+  // Resolve modal portal container (modal-root or body)
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -429,7 +434,7 @@ const BookingManagement = () => {
     }
   }, []);
 
-  // Lock body scroll while modal is open
+  // Prevent body scrolling when booking detail modal is open
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isDetailModalOpen) {
@@ -441,6 +446,7 @@ const BookingManagement = () => {
     }
   }, [isDetailModalOpen]);
 
+  // Filter bookings by search query and status, sort them, then paginate
   const filterAndPaginateBookings = () => {
     let filtered = [...allBookings];
 
@@ -489,12 +495,14 @@ const BookingManagement = () => {
     setTotalItems(filtered.length);
   };
 
+  // Handle bookings pagination page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
+  // Handle tour selector pagination page change
   const handleTourPageChange = (page) => {
     const totalTourPages = Math.ceil(tours.length / toursPerPage);
     if (page >= 1 && page <= totalTourPages) {
@@ -502,28 +510,24 @@ const BookingManagement = () => {
     }
   };
 
-  // Calculate paginated tours
+  // Calculate paginated tours for tour selector
   const totalTourPages = Math.ceil(tours.length / toursPerPage);
   const startTourIndex = (currentTourPage - 1) * toursPerPage;
   const endTourIndex = startTourIndex + toursPerPage;
   const paginatedTours = tours.slice(startTourIndex, endTourIndex);
 
-  // format helpers not needed here
-
+  // Get color code for booking status badge
   const getStatusColor = (status) => {
     switch (status) {
       case 'BOOKING_SUCCESS':
         return '#10B981';
       case 'BOOKING_SUCCESS_PENDING':
-        // Đã duyệt nhưng chờ tour diễn ra: teal
         return '#14B8A6';
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
         return '#2563EB';
       case 'BOOKING_UNDER_COMPLAINT':
-        // Đang khiếu nại: vàng tươi
         return '#EAB308';
       case 'PENDING_PAYMENT':
-        // Thanh toán chờ: cam đậm
         return '#F97316';
       case 'WAITING_FOR_APPROVED':
         return '#3B82F6';
@@ -537,15 +541,15 @@ const BookingManagement = () => {
     }
   };
 
+  // Format booking status for display using translation keys
   const formatStatusDisplay = (status = '') => {
     if (!status) return '';
-    // Use translation keys from bookingManagement.status
     const translationKey = `bookingManagement.status.${status}`;
     const translated = t(translationKey);
-    // If translation exists (not the same as key), return it; otherwise format the status
     return translated !== translationKey ? translated : status.replaceAll('_', ' ');
   };
 
+  // Extract tourId from booking object (try multiple possible field names)
   const getBookingTourId = (booking) => {
     if (!booking) return null;
     const candidates = [
@@ -564,6 +568,7 @@ const BookingManagement = () => {
     return null;
   };
 
+  // Find tour object from tours list that matches booking's tourId
   const findTourForBooking = (booking) => {
     const bookingTourId = getBookingTourId(booking);
     if (!bookingTourId) return null;
@@ -577,6 +582,7 @@ const BookingManagement = () => {
     );
   };
 
+  // Extract tour duration in days from booking or associated tour (try multiple field names)
   const getTourDurationDays = (booking) => {
     if (!booking) return null;
     const tour = findTourForBooking(booking);
@@ -605,6 +611,7 @@ const BookingManagement = () => {
     return null;
   };
 
+  // Calculate tour end date: departure date + duration days
   const calculateTourEndDate = (booking) => {
     if (!booking?.departureDate) return null;
     const departure = new Date(booking.departureDate);
@@ -618,14 +625,10 @@ const BookingManagement = () => {
     return endDate;
   };
 
-  // status badge helper not needed; computed inline
-
-  // Optional stats (unused in current UI)
-
+  // Normalize tour image path: handle full URLs, relative paths, and Azure storage URLs
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
-    
-    // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
+    // Check if path contains full URL (handles cases where backend stores full Azure URL)
     const trimmed = tourImgPath.trim();
     if (trimmed.includes('https://') || trimmed.includes('http://')) {
       // Extract the full URL from the path
@@ -638,15 +641,17 @@ const BookingManagement = () => {
     }
     
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    // Normalize relative paths: handle both "/uploads/..." and filename-only formats
     const normalized = trimmed.startsWith('/uploads')
       ? trimmed
       : `/uploads/tours/thumbnails/${trimmed}`;
     return getImageUrl(normalized);
   };
 
+  // Check if booking status allows approval action from list
   const canApproveFromList = (status) => status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
 
-  // Check if booking status allows editing/approval actions
+  // Check if booking status allows editing (exclude completed, rejected, complaint, etc.)
   const canEditBooking = (status) => {
     if (!status) return false;
     const statusUpper = status.toUpperCase();
@@ -660,11 +665,12 @@ const BookingManagement = () => {
     return !disabledStatuses.includes(statusUpper);
   };
 
+  // Calculate values for booking detail modal
   const modalDurationDays = viewingBooking ? getTourDurationDays(viewingBooking) : null;
   const modalEndDate = viewingBooking ? calculateTourEndDate(viewingBooking) : null;
   const modalDepartureDate = viewingBooking?.departureDate ? new Date(viewingBooking.departureDate) : null;
 
-  // Countdown timer component - chỉ đếm ngược khi tour đã bắt đầu
+  // Countdown timer: shows time remaining until tour ends (only counts when tour has started)
   const CountdownTimer = ({ departureDate, endDate }) => {
     const [timeLeft, setTimeLeft] = useState(null);
 
@@ -679,17 +685,17 @@ const BookingManagement = () => {
         const departure = new Date(departureDate);
         const end = new Date(endDate);
 
-        // Nếu tour chưa bắt đầu (now < departureDate)
+        // Tour has not started yet
         if (now < departure) {
           return { notStarted: true };
         }
 
-        // Nếu tour đã kết thúc (now >= endDate)
+        // Tour has ended
         if (now >= end) {
           return { expired: true };
         }
 
-        // Tour đang diễn ra - đếm ngược đến khi kết thúc
+        // Tour is in progress - countdown until end
         const difference = end - now;
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -709,7 +715,7 @@ const BookingManagement = () => {
 
     if (!timeLeft) return null;
 
-    // Tour chưa bắt đầu
+    // Display "Tour not started" message
     if (timeLeft.notStarted) {
       return (
         <div className={styles['countdown-not-started']}>
@@ -719,7 +725,7 @@ const BookingManagement = () => {
       );
     }
 
-    // Tour đã kết thúc
+    // Display "Tour ended" message
     if (timeLeft.expired) {
       return (
         <div className={styles['countdown-expired']}>
@@ -729,7 +735,7 @@ const BookingManagement = () => {
       );
     }
 
-    // Tour đang diễn ra - hiển thị countdown
+    // Display countdown timer showing days, hours, minutes, seconds remaining
     return (
       <div className={styles['countdown-timer']}>
         <Timer className={styles['countdown-icon']} strokeWidth={2} />
@@ -740,7 +746,10 @@ const BookingManagement = () => {
           <div className={styles['countdown-values']}>
             {timeLeft.days > 0 && (
               <span className={styles['countdown-item']}>
-                <strong>{timeLeft.days}</strong> {t('bookingManagement.modal.days', { defaultValue: 'ngày' })}
+                <strong>{timeLeft.days}</strong>{' '}
+                {timeLeft.days === 1
+                  ? t('bookingManagement.modal.day', { defaultValue: 'day' })
+                  : t('bookingManagement.modal.days', { defaultValue: 'days' })}
               </span>
             )}
             <span className={styles['countdown-item']}>
@@ -758,6 +767,8 @@ const BookingManagement = () => {
     );
   };
 
+  const isRejectedBooking = (viewingBooking?.bookingStatus || '').toUpperCase() === 'BOOKING_REJECTED';
+
   const modalNode = isDetailModalOpen && viewingBooking ? (
     <div className={styles['modal-backdrop']} onClick={handleCloseDetailModal}>
       <div className={styles['modal']} onClick={(e) => e.stopPropagation()}>
@@ -774,7 +785,7 @@ const BookingManagement = () => {
                 </span>
               </div>
             </div>
-            {modalDepartureDate && modalEndDate && (
+            {!isRejectedBooking && modalDepartureDate && modalEndDate && (
               <div className={styles['modal-countdown-wrapper']}>
                 <CountdownTimer departureDate={modalDepartureDate} endDate={modalEndDate} />
               </div>
@@ -796,12 +807,14 @@ const BookingManagement = () => {
                 {formatStatusDisplay(viewingBooking.bookingStatus || '')}
               </span>
             </div>
-            <div className={styles['modal-duration-wrapper']}>
-              <Clock className={styles['modal-duration-icon']} strokeWidth={2} />
-              <span className={styles['modal-duration-text']}>
-                {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
-              </span>
-            </div>
+            {!isRejectedBooking && (
+              <div className={styles['modal-duration-wrapper']}>
+                <Clock className={styles['modal-duration-icon']} strokeWidth={2} />
+                <span className={styles['modal-duration-text']}>
+                  {modalDurationDays ? `${modalDurationDays} ${t('bookingManagement.modal.days')}` : t('bookingManagement.modal.unknown')}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div className={styles['modal-body']}>

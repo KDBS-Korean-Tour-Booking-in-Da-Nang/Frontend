@@ -5,7 +5,7 @@ import { API_ENDPOINTS, createAuthHeaders, getTourImageUrl } from '../../../conf
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import TourDetailModal from './TourDetailModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X } from 'lucide-react';
 import {
   MagnifyingGlassIcon,

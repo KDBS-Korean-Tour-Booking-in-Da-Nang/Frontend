@@ -154,14 +154,6 @@
   align-items: start;
 }
 
-@media (min-width: 1024px) {
-  .preview-grid {
-    grid-template-columns: auto 1fr;
-    gap: 32px;
-    align-items: start;
-  }
-}
-
 /* Preview Info - Minimal Soft Korean */
 .preview-info {
   background: #ffffff;
@@ -301,10 +293,27 @@
   box-shadow: none;
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .preview-grid {
-    grid-template-columns: 1fr 1fr;
+/* Responsive */
+@media (max-width: 768px) {
+  .step4-container {
+    padding: 15px;
+  }
+  
+  .upload-area {
+    padding: 30px 15px;
+  }
+  
+  .upload-icon {
+    font-size: 2.5rem;
+  }
+  
+  .step-navigation {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .nav-btn {
+    width: 100%;
   }
 }
 
@@ -348,25 +357,16 @@
   }
 }
 
-@media (max-width: 768px) {
-  .step4-container {
-    padding: 15px;
+@media (min-width: 768px) {
+  .preview-grid {
+    grid-template-columns: 1fr 1fr;
   }
-  
-  .upload-area {
-    padding: 30px 15px;
-  }
-  
-  .upload-icon {
-    font-size: 2.5rem;
-  }
-  
-  .step-navigation {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .nav-btn {
-    width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .preview-grid {
+    grid-template-columns: auto 1fr;
+    gap: 32px;
+    align-items: start;
   }
 }

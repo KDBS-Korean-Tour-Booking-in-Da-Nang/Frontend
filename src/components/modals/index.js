@@ -14,5 +14,5 @@ export { default as VoucherDetailModal } from './VoucherDetailModal/VoucherDetai
 
 export { default as RequestUpdateModal } from './RequestUpdateModal/RequestUpdateModal';
 
-export { default as VoucherListModal } from './VoucherListModal';
+export { default as VoucherListModal } from './VoucherListModal/VoucherListModal';
 

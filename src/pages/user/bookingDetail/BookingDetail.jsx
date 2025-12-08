@@ -7,8 +7,8 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { formatDateForAPI } from '../../../utils/bookingFormatter';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
-import EditBookingModal from './EditBookingModal';
-import ComplaintModal from './ComplaintModal';
+import EditBookingModal from './EditBookingModal/EditBookingModal';
+import ComplaintModal from './ComplaintModal/ComplaintModal';
 import {
   ArrowLeftIcon,
   CreditCardIcon,

@@ -10,10 +10,10 @@ const OAuthCallback = () => {
   const navigate = useNavigate();
   const processedRef = useRef(false);
 
+  // Handle OAuth callback: get info from URL and login user
   useEffect(() => {
     if (processedRef.current) return;
     processedRef.current = true;
-    // Get URL parameters
     const error = searchParams.get('error');
     const token = searchParams.get('token');
     const userId = searchParams.get('userId');
@@ -23,13 +23,11 @@ const OAuthCallback = () => {
     const avatar = searchParams.get('avatar');
     const balance = searchParams.get('balance');
 
-    // If there's an error, redirect to login with error
     if (error) {
       navigate('/login?error=' + encodeURIComponent(error), { replace: true });
       return;
     }
 
-    // If missing required parameters, redirect to login with error
     if (!token || !userId || !email) {
       navigate('/login?error=' + encodeURIComponent(t('oauth.missingInfo')), { replace: true });
       return;
@@ -38,28 +36,22 @@ const OAuthCallback = () => {
     try {
       const decodedToken = decodeURIComponent(token);
       const rememberMe = localStorage.getItem('oauth_remember_me') === 'true';
-      // Clean temp flag
       localStorage.removeItem('oauth_remember_me');
 
-      // Persist remember choice globally for future loads
       localStorage.setItem('rememberMe', rememberMe ? 'true' : 'false');
 
-      // Store token in appropriate storage
       if (rememberMe) {
         localStorage.setItem('token', decodedToken);
-        const expiryAt = Date.now() + 14 * 24 * 60 * 60 * 1000; // 14 days
+        const expiryAt = Date.now() + 14 * 24 * 60 * 60 * 1000;
         localStorage.setItem('tokenExpiry', String(expiryAt));
       } else {
         sessionStorage.setItem('token', decodedToken);
         localStorage.removeItem('tokenExpiry');
       }
 
-      // Resolve provider set prior to redirect
       const provider = localStorage.getItem('oauth_provider');
-      // Clean temp provider flag
       localStorage.removeItem('oauth_provider');
 
-      // Base user object from URL parameters (status may be missing here)
       const baseUser = {
         id: parseInt(userId),
         email: decodeURIComponent(email),
@@ -70,21 +62,16 @@ const OAuthCallback = () => {
         authProvider: provider === 'GOOGLE' || provider === 'NAVER' ? provider : 'OAUTH'
       };
 
-      // Login user with token - user info from URL parameters is sufficient
-      // No need to call additional API endpoints during login flow
       login(baseUser, decodedToken, rememberMe);
       
-      // Clear stale onboarding flags for non-pending users
       const currentUserRole = baseUser.role;
-      const currentUserStatus = undefined; // Status not available from URL params
+      const currentUserStatus = undefined;
       
       if (!((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && currentUserStatus === 'COMPANY_PENDING')) {
         localStorage.removeItem('registration_intent');
         localStorage.removeItem('company_onboarding_pending');
       }
       
-      // Navigate immediately and show toast on the new page
-      // Check for pending status from localStorage if available
       const savedUser = localStorage.getItem('user');
       let finalStatus = currentUserStatus;
       if (savedUser) {
@@ -92,12 +79,10 @@ const OAuthCallback = () => {
           const parsed = JSON.parse(savedUser);
           finalStatus = parsed.status;
         } catch (err) {
-          // Silently handle JSON parse errors
         }
       }
       
       if ((currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') && finalStatus === 'COMPANY_PENDING') {
-        // Use window.location.href for pending-page to ensure full page reload
         window.location.href = '/pending-page';
         return;
       }
@@ -119,7 +104,6 @@ const OAuthCallback = () => {
         return;
       }
 
-      // Default navigation by role - use navigate to avoid page reload
       let targetPath = '/';
       if (currentUserRole === 'COMPANY' || currentUserRole === 'BUSINESS') {
         targetPath = '/company/dashboard';
@@ -133,12 +117,10 @@ const OAuthCallback = () => {
       });
       
     } catch (err) {
-      // If there's an error, redirect to login with error
       navigate('/login?error=' + encodeURIComponent(t('oauth.failed', { message: err.message })), { replace: true });
     }
   }, [searchParams, login, navigate]);
 
-  // Return null to prevent any rendering
   return null;
 };
 

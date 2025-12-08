@@ -19,7 +19,6 @@ const Register = () => {
     role: 'user'
   });
   const [loading, setLoading] = useState(false);
-  // emailError stores an error code, not translated text, so it reacts to language changes
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
@@ -28,11 +27,10 @@ const Register = () => {
   const { showSuccess } = useToast();
   const navigate = useNavigate();
 
-  // GSAP animations
+  // GSAP animations: slide in from left
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     
-    // Register page always slides in from left
     const registerForm = document.querySelector(`.${styles['register-form-section']}`);
     const illustrationSection = document.querySelector(`.${styles['illustration-section']}`);
     
@@ -47,36 +45,36 @@ const Register = () => {
     }
   }, []);
 
+  // Validate username: must start with letter, no special characters
   const isValidUsername = (val) => {
     if (val === undefined || val === null) return false;
     const trimmed = String(val).trim();
-    if (trimmed.length === 0) return true; // allow empty while editing
+    if (trimmed.length === 0) return true;
     const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
     return usernameRegex.test(trimmed);
   };
 
+  // Sanitize username: keep letters (with accents), digits and spaces, ensure doesn't start with digit
   const sanitizeUsername = (val) => {
     const str = String(val || '');
-    // Keep letters (incl. accents), digits, and spaces only
     let cleaned = str.replace(/[^A-Za-zÀ-ỹ\d\s]/g, '');
-    // Ensure first non-space char is a letter; drop leading digits
     cleaned = cleaned.replace(/^\s*\d+/, '');
     return cleaned;
   };
 
+  // Block space character input in password
   const handlePasswordBeforeInput = (e) => {
     const { data } = e;
     if (data == null) return;
-    // Block space character
     if (data === ' ' || data === '\u00A0') {
       e.preventDefault();
     }
   };
 
+  // Handle paste in password: remove spaces and trigger validation
   const handlePasswordPaste = (e) => {
     e.preventDefault();
     const pasted = (e.clipboardData || window.clipboardData).getData('text');
-    // Remove all spaces from pasted text
     const cleaned = pasted.replace(/\s/g, '');
     const target = e.target;
     const start = target.selectionStart;
@@ -84,10 +82,8 @@ const Register = () => {
     const current = target.value;
     const newValue = current.slice(0, start) + cleaned + current.slice(end);
     
-    // Update form data
     setFormData(prev => ({ ...prev, [target.name]: newValue }));
     
-    // Manually trigger validation by creating a synthetic event
     const syntheticEvent = {
       target: { ...target, value: newValue, name: target.name },
       currentTarget: target
@@ -95,6 +91,7 @@ const Register = () => {
     handleChange(syntheticEvent);
   };
 
+  // Handle input change: real-time validation and data sanitization
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'username') {
@@ -114,17 +111,14 @@ const Register = () => {
       }));
     }
     
-    // Clear email error when user starts typing
     if (name === 'email' && emailError) {
       setEmailError('');
     }
 
-    // Clear general error when user starts typing
     if (generalError) {
       setGeneralError('');
     }
 
-    // Real-time username validation
     if (name === 'username') {
       const trimmed = (sanitizeUsername(value) || '').trim();
       if (!trimmed) {
@@ -138,15 +132,12 @@ const Register = () => {
       }
     }
 
-    // Real-time password validation
     if (name === 'password') {
-      // Value is already cleaned (no spaces) from handleChange
       if (value.length > 0 && value.length < 8) {
         setPasswordError(t('auth.register.errors.passwordMinLength'));
       } else {
         setPasswordError('');
       }
-      // Also check confirm password if it has value
       if (formData.confirmPassword && formData.confirmPassword !== value) {
         setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
       } else if (formData.confirmPassword && formData.confirmPassword === value) {
@@ -154,9 +145,7 @@ const Register = () => {
       }
     }
 
-    // Real-time confirm password validation
     if (name === 'confirmPassword') {
-      // Value is already cleaned (no spaces) from handleChange
       if (value && formData.password && value !== formData.password) {
         setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
       } else {
@@ -165,6 +154,7 @@ const Register = () => {
     }
   };
 
+  // Block invalid character input in username
   const handleUsernameBeforeInput = (e) => {
     const { data } = e;
     if (data == null) return;
@@ -179,6 +169,7 @@ const Register = () => {
     }
   };
 
+  // Handle paste in username: sanitize and validate
   const handleUsernamePaste = (e) => {
     const pasted = (e.clipboardData || window.clipboardData).getData('text');
     const target = e.target;
@@ -196,6 +187,7 @@ const Register = () => {
     }
   };
 
+  // Validate email on blur
   const handleEmailBlur = () => {
     if (formData.email.trim()) {
       const emailValidation = validateEmail(formData.email);
@@ -207,6 +199,7 @@ const Register = () => {
     }
   };
 
+  // Handle register form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -216,17 +209,11 @@ const Register = () => {
     setConfirmPasswordError('');
     setGeneralError('');
 
-    // Check fields in order: username, email, password, confirmPassword
-    // Find the first missing (unfilled) field and show only 1 toast for it
-    // Set error state for all missing (unfilled) fields to show error messages
-    // Don't show error messages for fields that are filled but have validation errors
-
     let firstMissingField = null;
     let firstMissingFieldName = '';
     let hasUnfilledFields = false;
     let hasValidationErrors = false;
 
-    // Check username first
     if (!formData.username.trim()) {
       if (!firstMissingField) {
         firstMissingField = 'username';
@@ -239,7 +226,6 @@ const Register = () => {
       const trimmed = formData.username.trim();
       const usernameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
       if (!usernameRegex.test(trimmed)) {
-        // Username is filled but invalid - block submission but don't show error message
         hasValidationErrors = true;
         if (!firstMissingField) {
           firstMissingField = 'username';
@@ -248,7 +234,6 @@ const Register = () => {
       }
     }
 
-    // Check email
     if (!formData.email.trim()) {
       if (!firstMissingField) {
         firstMissingField = 'email';
@@ -260,7 +245,6 @@ const Register = () => {
     } else {
       const emailValidation = validateEmail(formData.email);
       if (!emailValidation.isValid) {
-        // Email is filled but invalid - block submission but don't show error message
         hasValidationErrors = true;
         if (!firstMissingField) {
           firstMissingField = 'email';
@@ -269,8 +253,6 @@ const Register = () => {
       }
     }
 
-    // Check password
-    // Password is already cleaned (no spaces) from handleChange
     if (!formData.password) {
       if (!firstMissingField) {
         firstMissingField = 'password';
@@ -280,7 +262,6 @@ const Register = () => {
       hasUnfilledFields = true;
       hasValidationErrors = true;
     } else if (formData.password.length < 8) {
-      // Password is filled but too short - set error message
       hasValidationErrors = true;
       if (!firstMissingField) {
         firstMissingField = 'password';
@@ -289,10 +270,7 @@ const Register = () => {
       setPasswordError(t('auth.register.errors.passwordMinLength'));
     }
 
-    // Check confirm password
-    // Confirm password is already cleaned (no spaces) from handleChange
     if (formData.password !== formData.confirmPassword) {
-      // Confirm password mismatch - set error message
       hasValidationErrors = true;
       if (!firstMissingField) {
         firstMissingField = 'confirmPassword';
@@ -301,17 +279,13 @@ const Register = () => {
       setConfirmPasswordError(t('auth.register.errors.passwordMismatch'));
     }
 
-    // If there are validation errors
     if (hasValidationErrors) {
-      // Error messages are already set above for each field
       setLoading(false);
       return;
     }
 
     try {
-      // Map frontend role to backend enum
       const backendRole = (formData.role === 'business') ? 'COMPANY' : 'USER';
-      // Password is already cleaned (no spaces) from handleChange, but trim for safety
       const trimmedPassword = formData.password.trim();
       const response = await fetch(getApiPath('/api/users/register'), {
         method: 'POST',
@@ -329,23 +303,16 @@ const Register = () => {
       const data = await response.json();
 
       if ((data.code === 1000 || data.code === 0)) {
-        // Lưu email vào localStorage
         localStorage.setItem('userEmail', formData.email);
-        // Lưu ý định vai trò đã chọn để điều hướng sau xác thực
         localStorage.setItem('registration_intent', formData.role);
-        // Lưu tạm email/password để auto-login sau khi verify (session only)
         try {
           sessionStorage.setItem('post_reg_email', formData.email);
           sessionStorage.setItem('post_reg_password', trimmedPassword);
         } catch (err) {
-          // Silently handle sessionStorage errors
         }
         
-        // Show success message
         showSuccess('toast.auth.register_success');
         
-        // Registration successful, redirect to verification page immediately
-        // Backend already sends OTP automatically during registration
         navigate('/verify-email', { 
           state: { 
             email: formData.email,
@@ -353,7 +320,6 @@ const Register = () => {
           } 
         });
       } else {
-        // Check if it's an email already exists error
         if (data.code === 1001 || data.message?.includes('Email has existed')) {
           setEmailError('exists');
         } else {

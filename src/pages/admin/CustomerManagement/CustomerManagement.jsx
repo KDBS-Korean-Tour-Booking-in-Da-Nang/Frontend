@@ -6,7 +6,7 @@ import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import BanReasonModal from '../../../components/modals/BanReasonModal/BanReasonModal';
 import CustomerDetailModal from './CustomerDetailModal';
 import Pagination from '../Pagination';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import {
   UsersIcon,
   UserCircleIcon,

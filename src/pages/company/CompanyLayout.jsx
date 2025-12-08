@@ -22,7 +22,7 @@ const CompanyLayout = () => {
   const { user } = useAuth();
   const prevLocationRef = useRef(location.pathname);
 
-  // Build sidebar items; show Company Info only while pending
+  // Build sidebar menu items: show Company Info only when status is COMPANY_PENDING
   const menuItems = [
     {
       path: '/company/dashboard',
@@ -58,6 +58,7 @@ const CompanyLayout = () => {
       : [])
   ];
 
+  // Check if menu item is active based on current pathname
   const isActive = (item) => {
     if (item.exact) {
       return location.pathname === item.path;
@@ -65,6 +66,7 @@ const CompanyLayout = () => {
     return location.pathname.startsWith(item.path);
   };
 
+  // Toggle sidebar open/closed state
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -80,13 +82,14 @@ const CompanyLayout = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      // Update content key for smooth transition
+      // Update content key to trigger re-render for smooth transition
       setContentKey(prev => prev + 1);
 
       prevLocationRef.current = location.pathname;
     }
   }, [location.pathname]);
 
+  // Close sidebar when navigation item is clicked (mobile)
   const handleNavClick = () => {
     setSidebarOpen(false);
   };

@@ -1,6 +1,3 @@
-/* Verify Email Page Styles */
-
-/* Email validation error styles */
 .input-error {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
@@ -15,11 +12,8 @@
   gap: 0.25rem;
 }
 
-/* Removed warning icon */
-
 .verify-container {
   min-height: 100vh;
-  /* background removed to use global .page-gradient */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,7 +176,6 @@
   box-shadow: none;
 }
 
-/* Loading state: morph button to circular spinner */
 .loading {
   width: 44px !important;
   height: 44px;
@@ -291,7 +284,6 @@
   text-decoration: underline;
 }
 
-/* Success state styles */
 .success-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #1a8eea 0%, #3ba0f2 100%);
@@ -358,7 +350,6 @@
   margin-bottom: 2rem;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .verify-container {
     padding: 0.5rem;
@@ -487,7 +478,6 @@
   }
 }
 
-/* Large screens optimization */
 @media (min-width: 1920px) {
   .verify-content {
     max-width: 560px;

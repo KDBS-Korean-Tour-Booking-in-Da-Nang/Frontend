@@ -8,7 +8,7 @@ import AssignTaskModal from './AssignTaskModal';
 import AddStaffModal from './AddStaffModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import Pagination from '../Pagination';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { 
   UserGroupIcon,
   UserCircleIcon,

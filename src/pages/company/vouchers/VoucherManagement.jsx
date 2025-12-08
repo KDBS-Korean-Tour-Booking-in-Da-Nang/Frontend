@@ -6,11 +6,12 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useVoucher } from '../../../hooks/useVoucher';
 import { getVouchersByCompanyId, getAllVouchers } from '../../../services/voucherAPI';
 import { API_ENDPOINTS } from '../../../config/api';
-import VoucherCreateModal from './VoucherCreateModal';
+import VoucherCreateModal from './VoucherCreateModal/VoucherCreateModal';
 import styles from './VoucherManagement.module.css';
 
-const PAGE_SIZE = 15; // 3 rows x 5 columns
+const PAGE_SIZE = 15;
 
+// Format number as Vietnamese currency (VND)
 const formatCurrency = (value) => {
   try {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
@@ -48,17 +49,14 @@ const VoucherManagement = () => {
   
   const currentPage = pagination.currentPage;
 
-  // Get token for authentication
+  // Get authentication token from localStorage or sessionStorage
   const getToken = () => {
     const remembered = localStorage.getItem('rememberMe') === 'true';
     const storage = remembered ? localStorage : sessionStorage;
     return storage.getItem('token');
   };
 
-  // Fetch tours for dropdown (only for selecting tours in voucher creation modal)
-  // Also create a map of tourId -> tour name for displaying tour names in voucher list
-  // NOTE: TourResponse does NOT include companyId, so we cannot get companyId from tours
-  // We get companyId from user.id (for COMPANY role users)
+  // Fetch company tours for dropdown selection and create tourId -> tourName map for display
   const fetchTours = useCallback(async () => {
     if (!companyId) {
       return Promise.resolve();
@@ -87,14 +85,13 @@ const VoucherManagement = () => {
         const data = await response.json();
         const toursList = Array.isArray(data) ? data : [];
         // Map tours for dropdown selection in modal
-        // TourResponse does NOT have companyId, so we can't use it to get companyId
         const toursForDropdown = toursList.map(tour => ({ 
           id: tour.id || tour.tourId, 
           name: tour.tourName || tour.name || `Tour #${tour.id || tour.tourId}` 
         }));
         setTours(toursForDropdown);
         
-        // Create a map of tourId -> tour name for quick lookup (convert Map to Object for Redux)
+        // Create a map of tourId -> tour name for quick lookup when displaying voucher tours
         const toursMapObj = {};
         toursList.forEach(tour => {
           const tourId = tour.id || tour.tourId;
@@ -106,20 +103,18 @@ const VoucherManagement = () => {
         setAllToursMap(toursMapObj);
       }
     } catch (error) {
-      // Silently handle error fetching tours
-      // Don't set loading false here - tours are optional for voucher creation
     }
     return Promise.resolve();
   }, [companyId, setTours, setAllToursMap]);
 
-  // Fetch tours when companyId is available (for dropdown in modal)
+  // Fetch tours when companyId is available
   useEffect(() => {
     if (companyId) {
       fetchTours();
     }
   }, [companyId, fetchTours]);
 
-  // Fetch vouchers
+  // Fetch all vouchers for company and map backend response to frontend format
   const fetchVouchers = useCallback(async (cid) => {
     if (!cid) return;
 
@@ -132,8 +127,7 @@ const VoucherManagement = () => {
     try {
       setLoading(true);
       const data = await getVouchersByCompanyId(cid);
-      // Map backend response to frontend format
-      // Include tourIds from VoucherResponse
+      // Map backend VoucherResponse to frontend format, including tourIds array
       const mappedVouchers = Array.isArray(data) ? data.map(v => ({
         id: v.voucherId || v.id,
         companyId: v.companyId,
@@ -149,10 +143,10 @@ const VoucherManagement = () => {
         status: v.status,
         createdAt: v.createdAt,
         updatedAt: v.updatedAt,
-        tourIds: v.tourIds || [] // Include tourIds from backend response
+        tourIds: v.tourIds || []
       })) : [];
       setVouchers(mappedVouchers);
-      resetPagination(); // Reset to first page when data changes
+      resetPagination();
     } catch (error) {
       // Silently handle error fetching vouchers
       setError(error.message || 'Không thể tải danh sách voucher');
@@ -162,8 +156,7 @@ const VoucherManagement = () => {
     }
   }, [setLoading, setVouchers, setError, resetPagination]);
 
-  // Get companyId from user or vouchers
-  // Priority: user.companyId > user.id (for COMPANY role) > fetch from vouchers
+  // Derive companyId from user: try user.companyId, then user.id (for COMPANY role), then fetch from vouchers
   useEffect(() => {
     if (!user) {
       setLoading(false);
@@ -180,14 +173,14 @@ const VoucherManagement = () => {
       return;
     }
 
-    // Priority 1: Use user.companyId if explicitly provided
+    // Priority 1: Use user.companyId field if available
     if (user.companyId) {
       setCompanyId(user.companyId);
       setHasAttemptedCompanyId(true);
       return;
     }
     
-    // Priority 2: For COMPANY role users, user.id IS the companyId
+    // Priority 2: For COMPANY role, user.id equals companyId
     if (user.id) {
       const userIdAsCompanyId = typeof user.id === 'number' ? user.id : parseInt(user.id);
       if (!isNaN(userIdAsCompanyId)) {
@@ -197,9 +190,7 @@ const VoucherManagement = () => {
       }
     }
 
-    // Priority 3: Fallback - Fetch all vouchers and find companyId from vouchers
-    // VoucherResponse HAS companyId field, so we can get it from vouchers
-    // This is useful when user.id is not available or user hasn't created any vouchers yet
+    // Priority 3: Fallback - fetch all vouchers and extract companyId from voucher data
     const token = getToken();
     if (!token) {
       setLoading(false);
@@ -216,8 +207,7 @@ const VoucherManagement = () => {
           return;
         }
 
-        // Strategy 1: If user.id exists, try to find voucher with matching companyId
-        // This confirms that user.id is indeed the companyId
+        // Strategy 1: If user.id exists, find matching voucher to confirm it's the companyId
         if (user.id) {
           const userId = typeof user.id === 'number' ? user.id : parseInt(user.id);
           if (!isNaN(userId)) {
@@ -227,7 +217,7 @@ const VoucherManagement = () => {
               setHasAttemptedCompanyId(true);
               return;
             } else {
-              // user.id exists but no matching voucher - use user.id anyway (user may not have created vouchers yet)
+              // No matching voucher found but user.id exists - use it anyway (user may not have created vouchers yet)
               setCompanyId(userId);
               setHasAttemptedCompanyId(true);
               return;
@@ -235,8 +225,7 @@ const VoucherManagement = () => {
           }
         }
 
-        // Strategy 2: Get companyId from first voucher (last resort)
-        // Only use this if user.id is completely unavailable
+        // Strategy 2: Get companyId from first voucher (last resort when user.id unavailable)
         const firstVoucher = allVouchers[0];
         if (firstVoucher && firstVoucher.companyId) {
           setCompanyId(firstVoucher.companyId);
@@ -244,12 +233,11 @@ const VoucherManagement = () => {
           return;
         }
 
-        // If we get here, something is really wrong
         setLoading(false);
         setHasAttemptedCompanyId(true);
       })
       .catch((error) => {
-        // If user.id exists, use it anyway (user may not have vouchers yet)
+        // Fallback: use user.id if available (user may not have vouchers yet)
         if (user.id) {
           const userId = typeof user.id === 'number' ? user.id : parseInt(user.id);
           if (!isNaN(userId)) {
@@ -263,22 +251,23 @@ const VoucherManagement = () => {
       });
   }, [user, setLoading]);
 
-  // Fetch vouchers when companyId is available
+  // Fetch vouchers when companyId becomes available
   useEffect(() => {
     if (companyId) {
       fetchVouchers(companyId);
     } else if (hasAttemptedCompanyId && !companyId) {
-      // If we've attempted to get companyId but still don't have it, stop loading
       setLoading(false);
     }
   }, [companyId, fetchVouchers, hasAttemptedCompanyId, setLoading]);
 
   const totalPages = Math.max(1, Math.ceil((vouchers?.length || 0) / PAGE_SIZE));
+  // Calculate paginated vouchers for current page
   const pageData = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return vouchers.slice(start, start + PAGE_SIZE);
   }, [vouchers, currentPage]);
 
+  // Handle successful voucher creation: close modal and refresh list
   const handleCreateSuccess = () => {
     setIsCreateOpen(false);
     // Refetch vouchers after creation
@@ -288,12 +277,14 @@ const VoucherManagement = () => {
     showSuccess(t('voucherCreate.success.created'));
   };
 
+  // Handle pagination page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
+  // Format discount value based on type (PERCENT or FIXED)
   const renderDiscount = (v) => {
     if (v.discountType === 'PERCENT') {
       return `${v.discountValue}%`;

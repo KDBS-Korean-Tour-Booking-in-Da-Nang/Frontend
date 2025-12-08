@@ -5,7 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import {
   TicketIcon,
   MagnifyingGlassIcon,

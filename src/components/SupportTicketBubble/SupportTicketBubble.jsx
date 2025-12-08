@@ -5,7 +5,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../config/api';
 import { checkAndHandle401 } from '../../utils/apiErrorHandler';
 import LoginRequiredModal from '../modals/LoginRequiredModal/LoginRequiredModal';
-import Tooltip from '../tooltip/Tooltip';
+import { Tooltip } from '../';
 import { Calendar, CreditCard, User, FileText, MessageCircle, X, Check } from 'lucide-react';
 import styles from './SupportTicketBubble.module.css';
 

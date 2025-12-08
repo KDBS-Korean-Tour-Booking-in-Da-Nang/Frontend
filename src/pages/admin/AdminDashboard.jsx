@@ -2,19 +2,21 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import AdminLayout from './AdminLayout';
-import Dashboard from './Dashboard/Dashboard';
-import StaffManagement from './StaffManagement/StaffManagement';
-import CompanyManagement from './CompanyManagement/CompanyManagement';
-import UserManagement from './UserManagement/UserManagement';
-import CustomerManagement from './CustomerManagement/CustomerManagement';
-import ReportManagement from './ReportManagement/ReportManagement';
-import ForumManagement from './ForumManagement/ForumManagement';
-import ComplaintManagement from './ComplaintManagement/ComplaintManagement';
-import ResolveTicketManagement from './ResolveTicketManagement/ResolveTicketManagement';
-import CustomerContact from './CustomerContact/CustomerContact';
-import ArticleManagement from './ArticleManagement/ArticleManagement';
-import TransactionManagement from './TransactionManagement/TransactionManagement';
+import {
+  AdminLayout,
+  Dashboard,
+  StaffManagement,
+  CompanyManagement,
+  UserManagement,
+  CustomerManagement,
+  ReportManagement,
+  ForumManagement,
+  ComplaintManagement,
+  ResolveTicketManagement,
+  CustomerContact,
+  ArticleManagement,
+  TransactionManagement
+} from './';
 
 // Lazy load components to avoid top-level import issues with useAuth
 const ForumReportManagement = lazy(() => import('./ForumReportManagement/ForumReportManagement'));

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import { 
   EyeIcon,
   XMarkIcon,

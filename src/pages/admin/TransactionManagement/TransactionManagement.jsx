@@ -5,7 +5,7 @@ import { API_ENDPOINTS, BaseURL, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
 import TransactionDetailModal from './TransactionDetailModal';
-import Tooltip from '../../../components/tooltip';
+import { Tooltip } from '../../../components';
 import {
   CurrencyDollarIcon,
   ArrowTrendingUpIcon,

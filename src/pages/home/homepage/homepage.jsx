@@ -10,7 +10,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import { useToursAPI } from '../../../hooks/useToursAPI';
 import { API_ENDPOINTS } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
-import styles from './Homepage.module.css';
+import styles from './homepage.module.css';
 const FALLBACK_GALLERY_IMAGE = '/default-Tour.jpg';
 
 const Homepage = () => {

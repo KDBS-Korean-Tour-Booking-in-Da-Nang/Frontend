@@ -10,10 +10,7 @@ import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import styles from './Navbar.module.css';
-import NotificationDropdown from '../../NotificationDropdown';
-import ChatBox from '../../ChatBox';
-import ChatDropdown from '../../ChatDropdown';
-import WebSocketStatus from '../../WebSocketStatus';
+import { NotificationDropdown, ChatBox, ChatDropdown, WebSocketStatus } from '../../';
 import { useNotifications } from '../../../contexts/NotificationContext';
  
 

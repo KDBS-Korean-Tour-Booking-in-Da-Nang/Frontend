@@ -108,18 +108,6 @@
   gap: 20px;
 }
 
-@media (min-width: 640px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .statsGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
 /* Stat Card */
 .statCard {
   background: #ffffff;
@@ -209,12 +197,6 @@
   gap: 24px;
 }
 
-@media (min-width: 1024px) {
-  .chartsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 /* Chart Card */
 .chartCard {
   background: #ffffff;
@@ -260,12 +242,6 @@
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .infoGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* Info Card */
@@ -427,6 +403,28 @@
   .infoCard {
     padding: 16px;
     border-radius: 20px;
+  }
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .infoGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .chartsGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
