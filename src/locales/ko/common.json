@@ -48,8 +48,7 @@
 			"title": "삭제 확인",
 			"message": "이 {{item}}을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
 			"warning": "이 작업은 되돌릴 수 없습니다."
-		}
-		,
+		},
 		"tourTypes": {
 			"resort": "휴양",
 			"culture": "문화",
@@ -59,8 +58,7 @@
 			"photography": "사진",
 			"religious": "종교",
 			"other": "기타"
-		}
-		,
+		},
 		"departurePoints": {
 			"daNang": "다낭"
 		},
@@ -361,7 +359,7 @@
 		"info_submit_success": "사업자 정보가 성공적으로 제출되었습니다!",
 		"info_submit_failed": "정보 제출 중 오류가 발생했습니다. 다시 시도해주세요."
 	},
-  "company": {
+	"company": {
 		"loading": "로딩 중...",
 		"notFoundTitle": "등록 정보를 찾을 수 없습니다",
 		"backToRegister": "회원가입으로 돌아가기",
@@ -1715,38 +1713,38 @@
 			"updateSuccess": "정보가 성공적으로 업데이트되었습니다!"
 		}
 	},
-  "staff": {
-    "layout": {
-      "sidebar": {
-        "brand": "KDBS Staff",
-        "sections": {
-          "menu": "메뉴",
-          "contact": "연락처"
-        },
-        "taskManagement": "작업 관리",
-        "menuItems": {
-          "forumReportManagement": "포럼 신고 관리",
-          "bookingComplaint": "예약 불만",
-          "companyManagement": "회사 관리",
-          "resolveTicket": "티켓 해결",
-          "tourApproval": "투어 승인",
-          "articleManagement": "기사 관리"
-        },
-        "contactCustomer": "고객 연락처"
-      },
-      "header": {
-        "searchPlaceholder": "검색...",
-        "userDropdown": {
-          "profile": "프로필",
-          "accountSettings": "계정 설정",
-          "support": "지원",
-          "signOut": "로그아웃",
-          "staffUser": "직원",
-          "staffUserFallback": "직원 사용자"
-        }
-      }
-    },
-    "companyManagement": {
+	"staff": {
+		"layout": {
+			"sidebar": {
+				"brand": "KDBS Staff",
+				"sections": {
+					"menu": "메뉴",
+					"contact": "연락처"
+				},
+				"taskManagement": "작업 관리",
+				"menuItems": {
+					"forumReportManagement": "포럼 신고 관리",
+					"bookingComplaint": "예약 불만",
+					"companyManagement": "회사 관리",
+					"resolveTicket": "티켓 해결",
+					"tourApproval": "투어 승인",
+					"articleManagement": "기사 관리"
+				},
+				"contactCustomer": "고객 연락처"
+			},
+			"header": {
+				"searchPlaceholder": "검색...",
+				"userDropdown": {
+					"profile": "프로필",
+					"accountSettings": "계정 설정",
+					"support": "지원",
+					"signOut": "로그아웃",
+					"staffUser": "직원",
+					"staffUserFallback": "직원 사용자"
+				}
+			}
+		},
+		"companyManagement": {
 			"title": "회사 등록 승인",
 			"subtitle": "여행 회사 계정 등록 요청을 관리하고 승인합니다.",
 			"permissionDenied": {
@@ -2099,19 +2097,19 @@
 		"missingInfo": "필수 인증 정보를 받지 못했습니다",
 		"failed": "OAuth 인증 실패: {{message}}"
 	},
-  "chatDropdown": {
-    "title": "채팅",
-    "searchPlaceholder": "메신저에서 검색",
-    "empty": {
-      "search": "사용자를 찾을 수 없습니다",
-      "noUsers": "표시할 사용자가 아직 없습니다"
-    },
-    "time": {
-      "justNow": "방금",
-      "minutesAgo": "{{count}}분",
-      "hoursAgo": "{{count}}시간"
-    }
-  },
+	"chatDropdown": {
+		"title": "채팅",
+		"searchPlaceholder": "메신저에서 검색",
+		"empty": {
+			"search": "사용자를 찾을 수 없습니다",
+			"noUsers": "표시할 사용자가 아직 없습니다"
+		},
+		"time": {
+			"justNow": "방금",
+			"minutesAgo": "{{count}}분",
+			"hoursAgo": "{{count}}시간"
+		}
+	},
 	"forum": {
 		"title": "포럼",
 		"shareTour": {
@@ -2441,11 +2439,11 @@
 			"wrong_password": "로그인에 실패했습니다. 비밀번호를 확인해주세요.",
 			"both_invalid": "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요."
 		},
-    "company": {
-      "info_submit_success": "회사 정보가 성공적으로 제출되었습니다!",
-      "info_submit_failed": "정보 제출 중 오류가 발생했습니다. 다시 시도해주세요."
-    },
-    "forum": {
+		"company": {
+			"info_submit_success": "회사 정보가 성공적으로 제출되었습니다!",
+			"info_submit_failed": "정보 제출 중 오류가 발생했습니다. 다시 시도해주세요."
+		},
+		"forum": {
 			"post_update_success": "게시물이 성공적으로 업데이트되었습니다!",
 			"post_create_success": "게시물이 성공적으로 생성되었습니다!",
 			"post_update_failed": "게시물 업데이트 실패. 다시 시도해주세요.",
@@ -2480,29 +2478,29 @@
 		"step1": {
 			"title": "기본 정보",
 			"subtitle": "투어 기본 정보 입력",
-            "fields": {
-                "tourName": "투어명",
-                "tourType": "투어 유형",
-                "departurePoint": "출발지",
-                "vehicle": "교통수단",
-                "duration": "일수",
-                "nights": "박수",
-                "maxCapacity": "최대 투어",
-                "numberOfAvailableTours": "사용 가능한 투어 수",
-                "tourDeadline": "최소 사전 예약 일수",
-                "tourExpirationDate": "예약 마감일",
-                "checkDays": "확인 일수 (보증금 기간)",
-                "balancePaymentDays": "잔액 결제 일수",
-                "depositPercentage": "보증금 비율",
-                "refundFloor": "환불 최소 비율 (%)"
-            },
+			"fields": {
+				"tourName": "투어명",
+				"tourType": "투어 유형",
+				"departurePoint": "출발지",
+				"vehicle": "교통수단",
+				"duration": "일수",
+				"nights": "박수",
+				"maxCapacity": "최대 투어",
+				"numberOfAvailableTours": "사용 가능한 투어 수",
+				"tourDeadline": "최소 사전 예약 일수",
+				"tourExpirationDate": "예약 마감일",
+				"checkDays": "확인 일수 (보증금 기간)",
+				"balancePaymentDays": "잔액 결제 일수",
+				"depositPercentage": "보증금 비율",
+				"refundFloor": "환불 최소 비율 (%)"
+			},
 			"placeholders": {
 				"tourName": "예: 다낭 - 호이안 3박2일 투어, 한국 5박4일 투어",
 				"duration": "예: 3",
 				"nights": "예: 2",
-                "maxCapacity": "예: 30",
-                "tourDeadline": "예: 7",
-                "tourExpirationDate": "예약 마감일 선택",
+				"maxCapacity": "예: 30",
+				"tourDeadline": "예: 7",
+				"tourExpirationDate": "예약 마감일 선택",
 				"checkDays": "확인(승인) 일수 입력",
 				"balancePaymentDays": "잔금 일수 입력",
 				"depositPercentage": "0 - 100",
@@ -2510,9 +2508,9 @@
 			},
 			"help": {
 				"departurePoint": "모든 투어는 다낭에서 출발합니다",
-                "vehicle": "기본 교통수단: 관광버스",
-                "tourDeadline": "출발일까지 최소 이 일수 이상 남아야 예약 가능합니다",
-                "tourExpirationDate": "이 날짜 이후로는 예약을 받을 수 없습니다",
+				"vehicle": "기본 교통수단: 관광버스",
+				"tourDeadline": "출발일까지 최소 이 일수 이상 남아야 예약 가능합니다",
+				"tourExpirationDate": "이 날짜 이후로는 예약을 받을 수 없습니다",
 				"checkDays": "MinAdvanceDays 중 초기 구간(보증금 기간)",
 				"balancePaymentDays": "자동 = MinAdvanceDays - CheckDays",
 				"depositPercentage": "예약 시 필요한 보증금 비율",
@@ -2535,11 +2533,11 @@
 				"duration": "기간:",
 				"tourIntDuration": "투어 기간:",
 				"tourIntDurationValue": "{{days}}일",
-                "days": "일",
-                "nights": "박",
-                "maxCapacity": "최대 투어:",
-                "tourDeadline": "최소 사전 예약:",
-                "tourExpirationDate": "예약 마감일:",
+				"days": "일",
+				"nights": "박",
+				"maxCapacity": "최대 투어:",
+				"tourDeadline": "최소 사전 예약:",
+				"tourExpirationDate": "예약 마감일:",
 				"checkDays": "체크 일수",
 				"balancePaymentDays": "잔금 일수",
 				"depositPercentage": "보증금",
@@ -2661,8 +2659,8 @@
 			"title": "가격 & 정책",
 			"subtitle": "투어 가격 및 정책 설정",
 			"pricing": {
-                "title": "투어 가격",
-                "adultPrice": "성인 가격 (≥ 12세)",
+				"title": "투어 가격",
+				"adultPrice": "성인 가격 (≥ 12세)",
 				"childrenPrice": "아동 가격 (2-11세)",
 				"babyPrice": "유아 가격 (2세 미만)",
 				"unit": "VND / 명",
@@ -2744,11 +2742,25 @@
 	},
 	"bookingWizard": {
 		"steps": {
-			"step1": { "title": "연락처 정보", "description": "연락처 정보를 입력하세요" },
-			"step2": { "title": "투어 상세", "description": "출발일과 일행 정보를 선택하세요" },
-			"step3": { "title": "확인", "description": "예약 내용을 확인하세요" }
+			"step1": {
+				"title": "연락처 정보",
+				"description": "연락처 정보를 입력하세요"
+			},
+			"step2": {
+				"title": "투어 상세",
+				"description": "출발일과 일행 정보를 선택하세요"
+			},
+			"step3": {
+				"title": "확인",
+				"description": "예약 내용을 확인하세요"
+			}
 		},
-		"navigation": { "back": "뒤로", "next": "다음", "confirm": "예약 확인", "backtoTour": "투어로 돌아가기" },
+		"navigation": {
+			"back": "뒤로",
+			"next": "다음",
+			"confirm": "예약 확인",
+			"backtoTour": "투어로 돌아가기"
+		},
 		"auth": {
 			"checking": "인증 확인 중...",
 			"loginRequiredTitle": "로그인 필요",
@@ -2987,8 +2999,8 @@
 			"gallery": {
 				"title": "투어 갤러리"
 			},
-            "weather": {
-                "title": "해당 지역의 날씨:",
+			"weather": {
+				"title": "해당 지역의 날씨:",
 				"loading": "일기예보 불러오는 중...",
 				"empty": "일기예보 데이터가 없습니다.",
 				"cityRange": "{{city}} — {{days}}일"
@@ -3170,7 +3182,7 @@
 		},
 		"card": {
 			"bookingId": "예약 번호",
-      "tourName": "투어 이름",
+			"tourName": "투어 이름",
 			"departureDate": "출발일",
 			"totalGuests": "총 인원",
 			"guests": "명",
@@ -3181,7 +3193,7 @@
 			"bookedOn": "예약일",
 			"alreadyFeedbacked": "이미 피드백 완료",
 			"transaction": "결제 상태",
-      "cancelBooking": "투어 취소"
+			"cancelBooking": "투어 취소"
 		},
 		"filters": {
 			"status": "상태별 필터",
@@ -3199,20 +3211,20 @@
 			"waitingForUpdate": "업데이트 대기",
 			"bookingSuccessPending": "승인 완료 (투어 대기)",
 			"bookingSuccessWaitForConfirmed": "완료 확인 대기",
-      "bookingUnderComplaint": "이의 제기 중",
+			"bookingUnderComplaint": "이의 제기 중",
 			"bookingSuccess": "예약 완료",
 			"bookingFailed": "예약 실패",
 			"bookingRejected": "예약 거절"
 		},
-    "cancel": {
-      "title": "투어 취소 확인",
-      "message": "이 예약을 정말 취소하시겠습니까? 확인 후 현재 정책에 따라 예상 환불 금액을 계산합니다.",
-      "confirm": "취소 확정",
-      "successTitle": "취소가 접수되었습니다",
-      "successBody": "취소 요청이 접수되었습니다. 예상 환불액",
-      "successTail": "은(는) 원결제 수단으로 환불됩니다.",
-      "note": "주의: 이 화면은 UI 테스트용이며 아직 API와 연동되지 않았습니다. 실제 투어 환불 정책을 확인해주세요."
-    },
+		"cancel": {
+			"title": "투어 취소 확인",
+			"message": "이 예약을 정말 취소하시겠습니까? 확인 후 현재 정책에 따라 예상 환불 금액을 계산합니다.",
+			"confirm": "취소 확정",
+			"successTitle": "취소가 접수되었습니다",
+			"successBody": "취소 요청이 접수되었습니다. 예상 환불액",
+			"successTail": "은(는) 원결제 수단으로 환불됩니다.",
+			"note": "주의: 이 화면은 UI 테스트용이며 아직 API와 연동되지 않았습니다. 실제 투어 환불 정책을 확인해주세요."
+		},
 		"transactionStatus": {
 			"pending": "대기 중",
 			"success": "성공",
@@ -3343,35 +3355,35 @@
 		}
 	},
 	"booking": {
-        "step1": {
-          "fields": {
-            "fullName": "성명",
-            "phone": "전화번호",
-            "email": "이메일",
-            "gender": "성별",
-            "dob": "생년월일",
-            "address": "주소",
-            "pickupPoint": "픽업 지점",
-            "note": "메모"
-          },
-          "gender": {
-            "male": "남성",
-            "female": "여성",
-            "other": "기타"
-          },
-          "placeholders": {
-            "fullName": "성명을 입력하세요",
-            "phone": "0123456789 또는 +84123456789",
-            "chooseGender": "성별을 선택하세요",
-            "address": "주소를 입력하세요",
-            "pickupPoint": "픽업 지점을 입력하세요",
-            "dateFormat": "형식: {format}",
-            "note": "추가 메모 (선택 사항)"
-          },
-          "sectionTitle": "연락처 정보",
-          "usePersonalInfo": "내 계정의 개인 정보를 사용",
-          "autoFillNotice": "투어 예약자가 손님이라면 2단계에서 승객 정보를 다시 입력해 주세요."
-        },
+		"step1": {
+			"fields": {
+				"fullName": "성명",
+				"phone": "전화번호",
+				"email": "이메일",
+				"gender": "성별",
+				"dob": "생년월일",
+				"address": "주소",
+				"pickupPoint": "픽업 지점",
+				"note": "메모"
+			},
+			"gender": {
+				"male": "남성",
+				"female": "여성",
+				"other": "기타"
+			},
+			"placeholders": {
+				"fullName": "성명을 입력하세요",
+				"phone": "0123456789 또는 +84123456789",
+				"chooseGender": "성별을 선택하세요",
+				"address": "주소를 입력하세요",
+				"pickupPoint": "픽업 지점을 입력하세요",
+				"dateFormat": "형식: {format}",
+				"note": "추가 메모 (선택 사항)"
+			},
+			"sectionTitle": "연락처 정보",
+			"usePersonalInfo": "내 계정의 개인 정보를 사용",
+			"autoFillNotice": "투어 예약자가 손님이라면 2단계에서 승객 정보를 다시 입력해 주세요."
+		},
 		"step2": {
 			"loading": "투어 가격을 불러오는 중...",
 			"guestTypes": {
@@ -3389,12 +3401,19 @@
 				"title": "대표자",
 				"label": "대표자"
 			},
-			"summary": { "totalLabel": "총 결제금액" },
+			"summary": {
+				"totalLabel": "총 결제금액"
+			},
 			"common": {
 				"noPrice": "가격 없음",
 				"free": "무료"
 			},
-			"dateDisplay": { "day": "일", "month": "월", "year": "년", "selectedDate": "선택한 날짜" },
+			"dateDisplay": {
+				"day": "일",
+				"month": "월",
+				"year": "년",
+				"selectedDate": "선택한 날짜"
+			},
 			"pax": {
 				"adult": "성인",
 				"child": "아동",
@@ -3606,7 +3625,10 @@
 				"vehicle": "관광 버스",
 				"schedule": "다낭의 아름다운 풍경과 독특한 현지 문화 체험, 전통 음식을 탐험하세요."
 			},
-			"placeholder": { "title": "탐험", "subtitle": "꿈의 여행지" },
+			"placeholder": {
+				"title": "탐험",
+				"subtitle": "꿈의 여행지"
+			},
 			"durationTemplate": "{{days}}일 {{nights}}박",
 			"labels": {
 				"code": "투어 코드:",
@@ -3619,22 +3641,24 @@
 				"noSchedule": "일정 없음",
 				"notAvailable": "없음"
 			},
-			"categories": { "standard": "스탠다드" }
+			"categories": {
+				"standard": "스탠다드"
+			}
 		},
-        "errors": {
-          "fullNameRequired": "성명은 필수입니다",
-          "fullNameInvalid": "성명은 문자, 공백, 하이픈 및 아포스트로피만 포함할 수 있습니다",
-          "phoneRequired": "전화번호는 필수입니다",
-          "phoneInvalid": "유효하지 않은 전화번호 (예: 0123456789 또는 +84 705327671)",
-          "emailRequired": "이메일은 필수입니다",
-          "emailInvalid": "유효하지 않은 이메일",
-          "emailMismatch": "계정 이메일과 일치하지 않습니다. 등록된 이메일을 사용하세요.",
-          "dobRequired": "생년월일은 필수입니다",
-          "dobInvalidFormat": "유효하지 않은 생년월일 형식",
-          "representativeTooYoung": "대표자는 18세 이상이어야 합니다",
-          "addressRequired": "주소는 필수입니다",
-          "pickupPointRequired": "픽업 지점은 필수입니다"
-        }
+		"errors": {
+			"fullNameRequired": "성명은 필수입니다",
+			"fullNameInvalid": "성명은 문자, 공백, 하이픈 및 아포스트로피만 포함할 수 있습니다",
+			"phoneRequired": "전화번호는 필수입니다",
+			"phoneInvalid": "유효하지 않은 전화번호 (예: 0123456789 또는 +84 705327671)",
+			"emailRequired": "이메일은 필수입니다",
+			"emailInvalid": "유효하지 않은 이메일",
+			"emailMismatch": "계정 이메일과 일치하지 않습니다. 등록된 이메일을 사용하세요.",
+			"dobRequired": "생년월일은 필수입니다",
+			"dobInvalidFormat": "유효하지 않은 생년월일 형식",
+			"representativeTooYoung": "대표자는 18세 이상이어야 합니다",
+			"addressRequired": "주소는 필수입니다",
+			"pickupPointRequired": "픽업 지점은 필수입니다"
+		}
 	},
 	"payment": {
 		"processing": "결제 결과를 처리 중입니다...",
@@ -3900,442 +3924,443 @@
 				"initError": "토스 결제 게이트웨이를 초기화할 수 없습니다."
 			}
 		}
-	}
-  ,
-  "article": {
-    "title": "기사",
-    "hero": {
-      "title": "매력적인 여행지에 대한 흥미로운 여행 정보",
-      "subtitle": "여행지, 관광 활동 및 독특한 경험에 대한 유용한 정보 제공",
-      "eyebrow": "여행 일기",
-      "slide2Title": "흥미로운 여행 정보",
-      "slide2Subtitle": "부드럽고 수월한 여행을 위해 설계된 매력적인 여행지와 선별된 여행 일정을 발견하세요.",
-      "slide2Eyebrow": "여행지 하이라이트",
-      "slide3Title": "독특한 경험",
-      "slide3Subtitle": "소중히 여길 가치가 있는 활동, 이벤트 및 문화적 순간에 대한 유용한 팁을 제공합니다.",
-      "slide3Eyebrow": "영감을 주는 순간"
-    },
-    "loading": "로딩 중...",
-    "noImage": "이미지 없음",
-    "category": "카테고리",
-    "readMore": "더 읽기",
-    "searchPlaceholder": "기사 검색",
-    "noArticles": "기사가 없습니다",
-    "noArticlesDesc": "아직 기사가 없습니다. 나중에 다시 확인해주세요.",
-    "noArticlesSearch": "이 키워드와 일치하는 기사를 찾을 수 없습니다.",
-    "loadingMore": "더 많은 기사 로딩 중...",
-    "loadMore": "더 보기",
-    "sidebar": {
-      "title": "관련 정보",
-      "filterTitle": "필터 및 정렬",
-      "sortBy": "정렬 기준",
-      "sortNewest": "최신순",
-      "sortOldest": "오래된순",
-      "domestic": {
-        "title": "국내 투어",
-        "north": "북부",
-        "central": "중부",
-        "south": "남부",
-        "teambuilding": "팀빌딩"
-      },
-      "international": {
-        "title": "해외 투어",
-        "japan": "일본",
-        "singapore": "싱가포르",
-        "thailand": "태국",
-        "taiwan": "대만",
-        "korea": "한국",
-        "china": "중국",
-        "laos": "라오스"
-      },
-      "dayTours": {
-        "title": "일일 투어",
-        "hue": "후에",
-        "baNa": "바나힐",
-        "hoiAn": "호이안",
-        "mySon": "미선",
-        "sonTra": "손트라",
-        "daNangCompany": "다낭 회사 투어",
-        "chamIsland": "챔 아일랜드",
-        "daNangExplore": "다낭 탐험"
-      },
-      "daNangTours": {
-        "title": "다낭 투어",
-        "1day": "1일 투어",
-        "2days": "2일 투어",
-        "3days": "3일 투어",
-        "4days": "4일 투어",
-        "5days": "5일 투어",
-        "6days": "6일 투어",
-        "7days": "7일 투어",
-        "8days": "8일 투어"
-      },
-      "events": {
-        "title": "이벤트",
-        "tet": "설날",
-        "festival": "축제"
-      }
-    },
-    "comments": {
-      "placeholder": "댓글 작성...",
-      "submit": "전송",
-      "submitting": "전송 중...",
-      "count": "댓글",
-      "showMore": "댓글 더 보기",
-      "showLess": "댓글 접기",
-      "empty": "아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!"
-    }
-  },
-  "articleDetail": {
-    "backToNews": "뒤로",
-    "article": "기사",
-    "loading": "로딩 중...",
-    "errorTitle": "오류 발생",
-    "errorMessage": "기사를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.",
-    "retry": "다시 시도",
-    "backToNewsPage": "기사 페이지로 돌아가기",
-    "notFoundTitle": "기사를 찾을 수 없습니다",
-    "notFoundMessage": "요청하신 기사를 찾을 수 없습니다.",
-    "category": "기사",
-    "contentUpdating": "콘텐츠가 업데이트되고 있습니다.",
-    "publishedAt": "발행일",
-    "backToTop": "맨 위로",
-    "viewMoreNews": "더 많은 기사 보기"
-  },
-  "articleManagement": {
-    "title": "기사 관리",
-    "subtitle": "다양한 소스에서 기사를 크롤링하고 관리",
-    "accessDenied": {
-      "title": "접근 거부",
-      "message": "이 페이지에 접근하려면 관리자 또는 스태프 권한이 필요합니다.",
-      "goHome": "홈으로",
-      "staffLogin": "스태프 로그인"
-    },
-    "logout": {
-      "loggingOut": "로그아웃 중..."
-    },
-    "messages": {
-      "autoCrawlSuccess": "{{count}}개의 새로운 기사가 자동으로 크롤링되었습니다!",
-      "crawlSuccess": "{{count}}개의 새로운 기사를 성공적으로 크롤링했습니다!",
-      "crawlError": "기사 크롤링 중 오류가 발생했습니다",
-      "crawlErrorDesc": "기사 크롤링 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
-      "noNewArticles": "새로운 기사가 없습니다!",
-      "noNewArticlesDesc": "새로운 기사가 없습니다. 모든 기사가 업데이트되었거나 시스템에 이미 존재합니다.",
-      "selectArticles": "최소 하나의 기사를 선택해주세요",
-      "approved": "승인됨",
-      "unapproved": "승인 취소됨",
-      "statusUpdateSuccess": "{{count}}개의 기사를 {{action}}했습니다",
-      "statusUpdateError": "상태 업데이트 중 오류가 발생했습니다",
-      "logoutSuccess": "성공적으로 로그아웃되었습니다!"
-    },
-    "buttons": {
-      "crawlNews": "새 기사 크롤링",
-      "crawling": "크롤링 중...",
-      "loading": "로딩 중...",
-      "reloadList": "목록 새로고침",
-      "approve": "승인",
-      "unapprove": "승인 취소",
-      "viewDetails": "상세 보기",
-      "logout": "로그아웃",
-      "backToNews": "기사 페이지로 돌아가기"
-    },
-    "status": {
-      "approved": "승인됨",
-      "pending": "대기 중"
-    },
-    "roles": {
-      "admin": "관리자",
-      "staff": "스태프"
-    },
-    "sidebar": {
-      "title": "관리",
-      "subtitle": "기사 & 콘텐츠",
-      "article": "기사",
-      "statistics": "통계",
-      "settings": "설정"
-    },
-    "welcome": {
-      "title": "환영합니다, {{name}}님!",
-      "description": "웹사이트 기사 관리 및 업데이트",
-      "autoCrawl": "시스템이 매일 00:00에 새로운 기사를 자동으로 크롤링합니다"
-    },
-    "articles": {
-      "title": "기사 관리 ({{count}}개)",
-      "selectAll": "모두 선택",
-      "selectedCount": "{{count}}개의 기사가 선택됨"
-    },
-    "sort": {
-      "label": "정렬:",
-      "newest": "최신순",
-      "oldest": "오래된순"
-    },
-    "pagination": {
-      "showing": "{{start}}부터 {{end}}까지, 총 {{total}}개 기사 표시",
-      "previous": "이전",
-      "next": "다음"
-    },
-    "noArticles": {
-      "message": "아직 기사가 없습니다. 기사를 크롤링하여 시작하세요!"
-    },
-    "instructions": {
-      "title": "사용 안내",
-      "crawlButton": "\"새 기사 크롤링\" 버튼을 눌러 Danangxanh에서 자동으로 기사를 수집하세요",
-      "autoCrawl": "시스템이 매일 00:00에 새로운 기사를 자동으로 크롤링합니다",
-      "noDuplicates": "중복 기사는 시스템에 추가되지 않습니다",
-      "approvedDisplay": "승인된 기사는 공개 기사 페이지에 표시됩니다",
-      "accessControl": "관리자와 스태프만 이 기능을 수행할 수 있습니다"
-    },
-    "modal": {
-      "title": "기사 상세",
-      "source": "기사 출처:",
-      "close": "닫기"
-    }
-  },
-  "companyDashboard": {
-    "sidebar": {
-      "title": "비즈니스 대시보드",
-      "dashboard": "대시보드",
-      "tourManagement": "투어 관리",
-      "bookingManagement": "예약 관리",
-      "voucherManagement": "바우처 관리",
+	},
+	"article": {
+		"title": "기사",
+		"hero": {
+			"title": "매력적인 여행지에 대한 흥미로운 여행 정보",
+			"subtitle": "여행지, 관광 활동 및 독특한 경험에 대한 유용한 정보 제공",
+			"eyebrow": "여행 일기",
+			"slide2Title": "흥미로운 여행 정보",
+			"slide2Subtitle": "부드럽고 수월한 여행을 위해 설계된 매력적인 여행지와 선별된 여행 일정을 발견하세요.",
+			"slide2Eyebrow": "여행지 하이라이트",
+			"slide3Title": "독특한 경험",
+			"slide3Subtitle": "소중히 여길 가치가 있는 활동, 이벤트 및 문화적 순간에 대한 유용한 팁을 제공합니다.",
+			"slide3Eyebrow": "영감을 주는 순간"
+		},
+		"loading": "로딩 중...",
+		"noImage": "이미지 없음",
+		"category": "카테고리",
+		"readMore": "더 읽기",
+		"searchPlaceholder": "기사 검색",
+		"noArticles": "기사가 없습니다",
+		"noArticlesDesc": "아직 기사가 없습니다. 나중에 다시 확인해주세요.",
+		"noArticlesSearch": "이 키워드와 일치하는 기사를 찾을 수 없습니다.",
+		"loadingMore": "더 많은 기사 로딩 중...",
+		"loadMore": "더 보기",
+		"sidebar": {
+			"title": "관련 정보",
+			"filterTitle": "필터 및 정렬",
+			"sortBy": "정렬 기준",
+			"sortNewest": "최신순",
+			"sortOldest": "오래된순",
+			"domestic": {
+				"title": "국내 투어",
+				"north": "북부",
+				"central": "중부",
+				"south": "남부",
+				"teambuilding": "팀빌딩"
+			},
+			"international": {
+				"title": "해외 투어",
+				"japan": "일본",
+				"singapore": "싱가포르",
+				"thailand": "태국",
+				"taiwan": "대만",
+				"korea": "한국",
+				"china": "중국",
+				"laos": "라오스"
+			},
+			"dayTours": {
+				"title": "일일 투어",
+				"hue": "후에",
+				"baNa": "바나힐",
+				"hoiAn": "호이안",
+				"mySon": "미선",
+				"sonTra": "손트라",
+				"daNangCompany": "다낭 회사 투어",
+				"chamIsland": "챔 아일랜드",
+				"daNangExplore": "다낭 탐험"
+			},
+			"daNangTours": {
+				"title": "다낭 투어",
+				"1day": "1일 투어",
+				"2days": "2일 투어",
+				"3days": "3일 투어",
+				"4days": "4일 투어",
+				"5days": "5일 투어",
+				"6days": "6일 투어",
+				"7days": "7일 투어",
+				"8days": "8일 투어"
+			},
+			"events": {
+				"title": "이벤트",
+				"tet": "설날",
+				"festival": "축제"
+			}
+		},
+		"comments": {
+			"placeholder": "댓글 작성...",
+			"submit": "전송",
+			"submitting": "전송 중...",
+			"count": "댓글",
+			"showMore": "댓글 더 보기",
+			"showLess": "댓글 접기",
+			"empty": "아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!"
+		}
+	},
+	"articleDetail": {
+		"backToNews": "뒤로",
+		"article": "기사",
+		"loading": "로딩 중...",
+		"errorTitle": "오류 발생",
+		"errorMessage": "기사를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.",
+		"retry": "다시 시도",
+		"backToNewsPage": "기사 페이지로 돌아가기",
+		"notFoundTitle": "기사를 찾을 수 없습니다",
+		"notFoundMessage": "요청하신 기사를 찾을 수 없습니다.",
+		"category": "기사",
+		"contentUpdating": "콘텐츠가 업데이트되고 있습니다.",
+		"publishedAt": "발행일",
+		"backToTop": "맨 위로",
+		"viewMoreNews": "더 많은 기사 보기"
+	},
+	"articleManagement": {
+		"title": "기사 관리",
+		"subtitle": "다양한 소스에서 기사를 크롤링하고 관리",
+		"accessDenied": {
+			"title": "접근 거부",
+			"message": "이 페이지에 접근하려면 관리자 또는 스태프 권한이 필요합니다.",
+			"goHome": "홈으로",
+			"staffLogin": "스태프 로그인"
+		},
+		"logout": {
+			"loggingOut": "로그아웃 중..."
+		},
+		"messages": {
+			"autoCrawlSuccess": "{{count}}개의 새로운 기사가 자동으로 크롤링되었습니다!",
+			"crawlSuccess": "{{count}}개의 새로운 기사를 성공적으로 크롤링했습니다!",
+			"crawlError": "기사 크롤링 중 오류가 발생했습니다",
+			"crawlErrorDesc": "기사 크롤링 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+			"noNewArticles": "새로운 기사가 없습니다!",
+			"noNewArticlesDesc": "새로운 기사가 없습니다. 모든 기사가 업데이트되었거나 시스템에 이미 존재합니다.",
+			"selectArticles": "최소 하나의 기사를 선택해주세요",
+			"approved": "승인됨",
+			"unapproved": "승인 취소됨",
+			"statusUpdateSuccess": "{{count}}개의 기사를 {{action}}했습니다",
+			"statusUpdateError": "상태 업데이트 중 오류가 발생했습니다",
+			"logoutSuccess": "성공적으로 로그아웃되었습니다!"
+		},
+		"buttons": {
+			"crawlNews": "새 기사 크롤링",
+			"crawling": "크롤링 중...",
+			"loading": "로딩 중...",
+			"reloadList": "목록 새로고침",
+			"approve": "승인",
+			"unapprove": "승인 취소",
+			"viewDetails": "상세 보기",
+			"logout": "로그아웃",
+			"backToNews": "기사 페이지로 돌아가기"
+		},
+		"status": {
+			"approved": "승인됨",
+			"pending": "대기 중"
+		},
+		"roles": {
+			"admin": "관리자",
+			"staff": "스태프"
+		},
+		"sidebar": {
+			"title": "관리",
+			"subtitle": "기사 & 콘텐츠",
+			"article": "기사",
+			"statistics": "통계",
+			"settings": "설정"
+		},
+		"welcome": {
+			"title": "환영합니다, {{name}}님!",
+			"description": "웹사이트 기사 관리 및 업데이트",
+			"autoCrawl": "시스템이 매일 00:00에 새로운 기사를 자동으로 크롤링합니다"
+		},
+		"articles": {
+			"title": "기사 관리 ({{count}}개)",
+			"selectAll": "모두 선택",
+			"selectedCount": "{{count}}개의 기사가 선택됨"
+		},
+		"sort": {
+			"label": "정렬:",
+			"newest": "최신순",
+			"oldest": "오래된순"
+		},
+		"pagination": {
+			"showing": "{{start}}부터 {{end}}까지, 총 {{total}}개 기사 표시",
+			"previous": "이전",
+			"next": "다음"
+		},
+		"noArticles": {
+			"message": "아직 기사가 없습니다. 기사를 크롤링하여 시작하세요!"
+		},
+		"instructions": {
+			"title": "사용 안내",
+			"crawlButton": "\"새 기사 크롤링\" 버튼을 눌러 Danangxanh에서 자동으로 기사를 수집하세요",
+			"autoCrawl": "시스템이 매일 00:00에 새로운 기사를 자동으로 크롤링합니다",
+			"noDuplicates": "중복 기사는 시스템에 추가되지 않습니다",
+			"approvedDisplay": "승인된 기사는 공개 기사 페이지에 표시됩니다",
+			"accessControl": "관리자와 스태프만 이 기능을 수행할 수 있습니다"
+		},
+		"modal": {
+			"title": "기사 상세",
+			"source": "기사 출처:",
+			"close": "닫기"
+		}
+	},
+	"companyDashboard": {
+		"sidebar": {
+			"title": "비즈니스 대시보드",
+			"dashboard": "대시보드",
+			"tourManagement": "투어 관리",
+			"bookingManagement": "예약 관리",
+			"voucherManagement": "바우처 관리",
 			"businessInfo": "비즈니스 정보",
 			"companyInfo": "회사 정보"
-    },
-    "actions": { "download": "보고서 다운로드" },
-    "welcome": {
-      "title": "비즈니스 대시보드에 오신 것을 환영합니다",
-      "subtitle": "투어를 관리하고, 분석을 추적하며, 비즈니스를 성장시키세요",
-      "createTour": "새 투어 만들기"
-    },
-    "analytics": {
-      "sales": "매출",
-      "purchase": "구매",
-      "return": "반품",
-      "marketing": "마케팅",
-      "lastYear": "지난해"
-    },
-    "header": {
-      "subtitle": "개요 및 분석"
-    },
-    "filters": {
-      "thisYear": "올해",
-      "lastYear": "작년",
-      "thisQuarter": "이번 분기",
-      "thisMonth": "이번 달"
-    },
-    "stats": {
-      "totalTours": "총 투어",
-      "totalBookings": "총 예약",
-      "totalRevenue": "총 수익",
-      "totalViews": "총 조회수",
-      "activeTours": "활성 투어"
-    },
-    "dashboard": {
-      "loading": "로딩 중...",
-      "revenueOverview": "수익 개요",
-      "revenueTrends": "월별 수익 추세",
-      "bookingStatus": "예약 상태",
-      "bookingDistribution": "예약 분포",
-      "quickStats": "빠른 통계",
-      "tourStatus": "투어 상태",
-      "pendingBookings": "대기 중인 예약",
-      "completed": "완료됨",
-      "cancelled": "취소됨",
-      "activeTours": "활성 투어",
-      "totalTours": "총 투어",
-      "inactive": "비활성",
-      "chartLabels": {
-        "pending": "대기",
-        "completed": "완료",
-        "active": "활성",
-        "cancelled": "취소",
-        "totalBookings": "총 예약"
-      }
-    },
-    "quickActions": {
-      "title": "빠른 작업",
-      "createTour": "새 투어 만들기",
-      "createTourDesc": "컬렉션에 새 투어 추가",
-      "viewAnalytics": "분석 보기",
-      "viewAnalyticsDesc": "비즈니스 성과 확인",
-      "manageOrders": "주문 관리",
-      "manageOrdersDesc": "예약 보기 및 관리",
-      "businessInfo": "비즈니스 정보",
-      "businessInfoDesc": "비즈니스 세부 정보 업데이트"
-    },
-    "charts": {
-      "period": "보기:",
-      "bookingTrends": "매출 통계",
-      "revenueChart": "수익 차트",
-      "last7Days": "최근 7일",
-      "last30Days": "최근 30일",
-      "last90Days": "최근 90일",
-      "monthly": "월별",
-      "quarterly": "분기별",
-      "yearly": "연간",
-      "chartPlaceholder": "차트가 여기에 표시됩니다"
-    },
-    "panel": {
-      "title": "매출 통계",
-      "subtitle": "마케팅 & 세일즈",
-      "marketing": "마케팅",
-      "sales": "세일즈",
-      "sortBy": "정렬:",
-      "monthly": "월별",
-      "weekly": "주별",
-      "daily": "일별",
-      "yLabel": "총 매출 확보"
-    }
-  },
-  "bookingManagement": {
-    "header": {
-      "title": "투어 예약 관리",
-      "subtitle": "투어별로 모든 예약 보기 및 관리"
-    },
-    "stats": {
-      "totalBookings": "총 예약",
-      "successfulBookings": "성공",
-      "pendingPayment": "결제 대기",
-      "waitingApproval": "승인 대기"
-    },
-    "search": {
-      "placeholder": "투어, 고객 이름 또는 예약 코드로 검색..."
-    },
-    "filters": {
-      "status": "상태:",
-      "allStatuses": "모든 상태",
-      "sortBy": "정렬:"
-    },
-    "sort": {
-      "newest": "최신순",
-      "oldest": "오래된순",
-      "tourAsc": "투어 이름 (A-Z)",
-      "tourDesc": "투어 이름 (Z-A)",
-      "amountDesc": "금액 (높은순)",
-      "amountAsc": "금액 (낮은순)"
-    },
-    "table": {
-      "bookingId": "예약 ID",
-      "tour": "투어",
-      "customer": "고객",
-      "departureDate": "출발일",
-      "guests": "인원",
-      "amount": "금액",
-      "status": "상태",
-      "createdAt": "생성일"
-    },
-    "status": {
-      "PENDING_PAYMENT": "결제 대기",
-      "WAITING_FOR_APPROVAL": "승인 대기",
-      "WAITING_FOR_APPROVED": "승인 대기",
-      "BOOKING_REJECTED": "거절됨",
-      "WAITING_FOR_UPDATE": "업데이트 대기",
-      "BOOKING_FAILED": "실패",
-      "BOOKING_SUCCESS": "성공",
-      "BOOKING_SUCCESS_PENDING": "성공 (대기 중)",
-      "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "성공 (확인 대기)",
-      "BOOKING_UNDER_COMPLAINT": "이의 제기 중"
-    },
-    "guests": {
-      "adults": "성인",
-      "children": "아동",
-      "babies": "유아"
-    },
-    "pagination": {
-      "previous": "이전",
-      "next": "다음",
-      "page": "페이지",
-      "of": "의"
-    },
-    "empty": {
-      "noBookings": "예약을 찾을 수 없습니다"
-    },
-    "errors": {
-      "loadFailed": "예약 목록을 불러올 수 없습니다"
-    },
-    "loading": "예약 로딩 중...",
-    "tourSelector": {
-      "title": "예약을 보려면 투어 선택",
-      "loading": "투어 목록 로딩 중...",
-      "empty": "아직 투어가 없습니다.",
-      "tourCode": "투어 코드:",
-      "pagination": {
-        "showing": "페이지 표시",
-        "of": "의",
-        "tours": "투어"
-      }
-    },
-    "actions": {
-      "viewQuick": "빠른 보기",
-      "editBooking": "예약 수정",
-      "confirmTourCompletion": "투어 완료 확인",
-      "bookingPending": "예약이 대기 상태입니다. 접근할 수 없습니다."
-    },
-    "modal": {
-      "title": "예약 #",
-      "tour": "투어:",
-      "customer": "고객",
-      "status": "상태",
-      "departureDate": "출발일",
-      "tourDuration": "투어 기간",
-      "expectedEndDate": "예상 종료일",
-      "totalAmount": "총 금액",
-      "createdAt": "생성일",
-      "unknown": "알 수 없음",
-      "day": "일",
-      "days": "일"
-    }
-  },
-  "companyBookingWizard": {
-    "steps": {
-      "step1": {
-        "title": "개인 정보",
-        "description": "예약 정보 보기 및 승인"
-      },
-      "step2": {
-        "title": "보험 정보",
-        "description": "보험 상태 관리"
-      },
-      "step3": {
-        "title": "확인",
-        "description": "예약 성공 확인"
-      }
-    },
-    "header": {
-      "title": "예약 관리 #"
-    },
-    "readOnly": {
-      "title": "읽기 전용 모드 - 예약 완료 (BOOKING_SUCCESS)"
-    },
-    "navigation": {
-      "back": "뒤로",
-      "next": "다음",
-      "finish": "완료",
-      "processing": "처리 중...",
-      "close": "닫기"
-    },
-    "confirmModal": {
-      "title": "예약 확인",
-      "message": "예약 #을(를) 확인하시겠습니까?",
-      "confirm": "확인",
-      "cancel": "취소",
-      "description": "예약이 BOOKING_SUCCESS_PENDING 상태로 이동됩니다. 투어가 종료되면 시스템이 회사와 고객 모두에게 완료 확인을 요청합니다."
-    },
-    "loading": {
-      "booking": "예약 정보 로딩 중..."
-    },
-    "error": {
-      "title": "오류",
-      "notFound": "예약을 찾을 수 없습니다",
-      "back": "뒤로"
-    },
-    "stepTooltips": {
-      "rejected": "예약이 거절되었습니다 - 1단계만 볼 수 있습니다",
-      "readOnlyOther": "예약 완료 - 3단계만 표시됩니다",
-      "readOnlyStep3": "예약 완료 (읽기 전용)",
-      "completed": "단계 완료 (돌아갈 수 없음)",
-      "notAccessible": "이 단계는 아직 접근할 수 없습니다"
-    },
+		},
+		"actions": {
+			"download": "보고서 다운로드"
+		},
+		"welcome": {
+			"title": "비즈니스 대시보드에 오신 것을 환영합니다",
+			"subtitle": "투어를 관리하고, 분석을 추적하며, 비즈니스를 성장시키세요",
+			"createTour": "새 투어 만들기"
+		},
+		"analytics": {
+			"sales": "매출",
+			"purchase": "구매",
+			"return": "반품",
+			"marketing": "마케팅",
+			"lastYear": "지난해"
+		},
+		"header": {
+			"subtitle": "개요 및 분석"
+		},
+		"filters": {
+			"thisYear": "올해",
+			"lastYear": "작년",
+			"thisQuarter": "이번 분기",
+			"thisMonth": "이번 달"
+		},
+		"stats": {
+			"totalTours": "총 투어",
+			"totalBookings": "총 예약",
+			"totalRevenue": "총 수익",
+			"totalViews": "총 조회수",
+			"activeTours": "활성 투어"
+		},
+		"dashboard": {
+			"loading": "로딩 중...",
+			"revenueOverview": "수익 개요",
+			"revenueTrends": "월별 수익 추세",
+			"bookingStatus": "예약 상태",
+			"bookingDistribution": "예약 분포",
+			"quickStats": "빠른 통계",
+			"tourStatus": "투어 상태",
+			"pendingBookings": "대기 중인 예약",
+			"completed": "완료됨",
+			"cancelled": "취소됨",
+			"activeTours": "활성 투어",
+			"totalTours": "총 투어",
+			"inactive": "비활성",
+			"chartLabels": {
+				"pending": "대기",
+				"completed": "완료",
+				"active": "활성",
+				"cancelled": "취소",
+				"totalBookings": "총 예약"
+			}
+		},
+		"quickActions": {
+			"title": "빠른 작업",
+			"createTour": "새 투어 만들기",
+			"createTourDesc": "컬렉션에 새 투어 추가",
+			"viewAnalytics": "분석 보기",
+			"viewAnalyticsDesc": "비즈니스 성과 확인",
+			"manageOrders": "주문 관리",
+			"manageOrdersDesc": "예약 보기 및 관리",
+			"businessInfo": "비즈니스 정보",
+			"businessInfoDesc": "비즈니스 세부 정보 업데이트"
+		},
+		"charts": {
+			"period": "보기:",
+			"bookingTrends": "매출 통계",
+			"revenueChart": "수익 차트",
+			"last7Days": "최근 7일",
+			"last30Days": "최근 30일",
+			"last90Days": "최근 90일",
+			"monthly": "월별",
+			"quarterly": "분기별",
+			"yearly": "연간",
+			"chartPlaceholder": "차트가 여기에 표시됩니다"
+		},
+		"panel": {
+			"title": "매출 통계",
+			"subtitle": "마케팅 & 세일즈",
+			"marketing": "마케팅",
+			"sales": "세일즈",
+			"sortBy": "정렬:",
+			"monthly": "월별",
+			"weekly": "주별",
+			"daily": "일별",
+			"yLabel": "총 매출 확보"
+		}
+	},
+	"bookingManagement": {
+		"header": {
+			"title": "투어 예약 관리",
+			"subtitle": "투어별로 모든 예약 보기 및 관리"
+		},
+		"stats": {
+			"totalBookings": "총 예약",
+			"successfulBookings": "성공",
+			"pendingPayment": "결제 대기",
+			"waitingApproval": "승인 대기"
+		},
+		"search": {
+			"placeholder": "투어, 고객 이름 또는 예약 코드로 검색..."
+		},
+		"filters": {
+			"status": "상태:",
+			"allStatuses": "모든 상태",
+			"sortBy": "정렬:"
+		},
+		"sort": {
+			"newest": "최신순",
+			"oldest": "오래된순",
+			"tourAsc": "투어 이름 (A-Z)",
+			"tourDesc": "투어 이름 (Z-A)",
+			"amountDesc": "금액 (높은순)",
+			"amountAsc": "금액 (낮은순)"
+		},
+		"table": {
+			"bookingId": "예약 ID",
+			"tour": "투어",
+			"customer": "고객",
+			"departureDate": "출발일",
+			"guests": "인원",
+			"amount": "금액",
+			"status": "상태",
+			"createdAt": "생성일"
+		},
+		"status": {
+			"PENDING_PAYMENT": "결제 대기",
+			"WAITING_FOR_APPROVAL": "승인 대기",
+			"WAITING_FOR_APPROVED": "승인 대기",
+			"BOOKING_REJECTED": "거절됨",
+			"WAITING_FOR_UPDATE": "업데이트 대기",
+			"BOOKING_FAILED": "실패",
+			"BOOKING_SUCCESS": "성공",
+			"BOOKING_SUCCESS_PENDING": "성공 (대기 중)",
+			"BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "성공 (확인 대기)",
+			"BOOKING_UNDER_COMPLAINT": "이의 제기 중"
+		},
+		"guests": {
+			"adults": "성인",
+			"children": "아동",
+			"babies": "유아"
+		},
+		"pagination": {
+			"previous": "이전",
+			"next": "다음",
+			"page": "페이지",
+			"of": "의"
+		},
+		"empty": {
+			"noBookings": "예약을 찾을 수 없습니다"
+		},
+		"errors": {
+			"loadFailed": "예약 목록을 불러올 수 없습니다"
+		},
+		"loading": "예약 로딩 중...",
+		"tourSelector": {
+			"title": "예약을 보려면 투어 선택",
+			"loading": "투어 목록 로딩 중...",
+			"empty": "아직 투어가 없습니다.",
+			"tourCode": "투어 코드:",
+			"pagination": {
+				"showing": "페이지 표시",
+				"of": "의",
+				"tours": "투어"
+			}
+		},
+		"actions": {
+			"viewQuick": "빠른 보기",
+			"editBooking": "예약 수정",
+			"confirmTourCompletion": "투어 완료 확인",
+			"bookingPending": "예약이 대기 상태입니다. 접근할 수 없습니다."
+		},
+		"modal": {
+			"title": "예약 #",
+			"tour": "투어:",
+			"customer": "고객",
+			"status": "상태",
+			"departureDate": "출발일",
+			"tourDuration": "투어 기간",
+			"expectedEndDate": "예상 종료일",
+			"totalAmount": "총 금액",
+			"createdAt": "생성일",
+			"unknown": "알 수 없음",
+			"day": "일",
+			"days": "일"
+		}
+	},
+	"companyBookingWizard": {
+		"steps": {
+			"step1": {
+				"title": "개인 정보",
+				"description": "예약 정보 보기 및 승인"
+			},
+			"step2": {
+				"title": "보험 정보",
+				"description": "보험 상태 관리"
+			},
+			"step3": {
+				"title": "확인",
+				"description": "예약 성공 확인"
+			}
+		},
+		"header": {
+			"title": "예약 관리 #"
+		},
+		"readOnly": {
+			"title": "읽기 전용 모드 - 예약 완료 (BOOKING_SUCCESS)"
+		},
+		"navigation": {
+			"back": "뒤로",
+			"next": "다음",
+			"finish": "완료",
+			"processing": "처리 중...",
+			"close": "닫기"
+		},
+		"confirmModal": {
+			"title": "예약 확인",
+			"message": "예약 #을(를) 확인하시겠습니까?",
+			"confirm": "확인",
+			"cancel": "취소",
+			"description": "예약이 BOOKING_SUCCESS_PENDING 상태로 이동됩니다. 투어가 종료되면 시스템이 회사와 고객 모두에게 완료 확인을 요청합니다."
+		},
+		"loading": {
+			"booking": "예약 정보 로딩 중..."
+		},
+		"error": {
+			"title": "오류",
+			"notFound": "예약을 찾을 수 없습니다",
+			"back": "뒤로"
+		},
+		"stepTooltips": {
+			"rejected": "예약이 거절되었습니다 - 1단계만 볼 수 있습니다",
+			"readOnlyOther": "예약 완료 - 3단계만 표시됩니다",
+			"readOnlyStep3": "예약 완료 (읽기 전용)",
+			"completed": "단계 완료 (돌아갈 수 없음)",
+			"notAccessible": "이 단계는 아직 접근할 수 없습니다"
+		},
 		"success": {
 			"bookingPending": "예약이 BOOKING_SUCCESS_PENDING 상태로 이동되었습니다. 시스템은 투어 완료를 자동으로 대기한 후 완료 확인을 요청합니다."
 		},
@@ -4506,147 +4531,147 @@
 				"waitingUserNote": "고객이 확인하면 결제가 즉시 이체됩니다. 그렇지 않으면 3일 후( {{date}} 이후 ) 시스템이 자동으로 완료 처리합니다."
 			}
 		}
-  },
-  "voucherManagement": {
-    "title": "바우처 관리",
-    "loading": "로딩 중...",
-    "create": "바우처 만들기",
-    "loadingData": "데이터 로딩 중...",
-    "warning": {
-      "title": "회사 정보를 찾을 수 없습니다.",
-      "message": "COMPANY 역할 계정으로 로그인했는지 확인하고 사용자 정보가 올바르게 업데이트되었는지 확인하세요.",
-      "currentInfo": "현재 정보: 역할 =",
-      "userId": "사용자 ID ="
-    },
-    "empty": {
-      "message": "아직 바우처가 없습니다. 첫 번째 바우처를 만드세요!"
-    },
-    "card": {
-      "code": "코드",
-      "type": "유형:",
-      "value": "값:",
-      "quantity": "수량:",
-      "remaining": "남은 수량:",
-      "status": "상태:",
-      "appliedTo": "적용된 투어:",
-      "allTours": "모든 투어에 적용",
-      "startDate": "시작:",
-      "endDate": "만료:"
-    },
-    "pagination": {
-      "showing": "페이지 표시",
-      "of": "의",
-      "vouchers": "바우처"
-    },
-    "discountTypes": {
-      "percent": "% 할인",
-      "fixed": "금액 할인"
-    },
-    "status": {
-      "ACTIVE": "활성",
-      "INACTIVE": "비활성",
-      "EXPIRED": "만료됨"
-    }
-  },
-  "voucherCreate": {
-    "title": "바우처 만들기",
-    "close": "닫기",
-    "fields": {
-      "code": "바우처 코드",
-      "name": "바우처 이름",
-      "discountType": "할인 유형",
-      "discountValue": "할인 값",
-      "totalQuantity": "수량",
-      "minOrderValue": "최소 주문 (VND)",
-      "status": "상태",
-      "startDate": "시작일",
-      "endDate": "종료일",
-      "applyToTours": "투어에 적용"
-    },
-    "placeholders": {
-      "code": "예: VOUCHER001",
-      "name": "예: 여름 투어 10% 할인",
-      "discountPercent": "% 입력 (1 - 80)",
-      "discountAmount": "VND 금액 입력 (예: 100000은 100k)"
-    },
-    "tourDropdown": {
-      "select": "적용할 투어 선택",
-      "selected": "개 투어 선택됨",
-      "empty": "투어 없음"
-    },
-    "actions": {
-      "cancel": "취소",
-      "create": "만들기",
-      "creating": "만드는 중..."
-    },
-    "errors": {
-      "codeRequired": "바우처 코드를 입력해주세요",
-      "nameRequired": "바우처 이름을 입력해주세요",
-      "discountTypeRequired": "할인 유형을 선택해주세요",
-      "discountValueRequired": "할인 값을 입력해주세요",
-      "discountPercentRange": "비율은 1에서 100 사이여야 합니다",
-      "discountAmountMin": "할인 값은 최소 1 이상이어야 합니다 (예: 100000은 100k)",
-      "totalQuantityRequired": "수량은 0보다 커야 합니다",
-      "startDateRequired": "시작일을 선택해주세요",
-      "endDateRequired": "종료일을 선택해주세요",
-      "endDateAfterStart": "종료일은 시작일 이후여야 합니다",
-      "companyNotFound": "회사 정보를 찾을 수 없습니다",
-      "createFailed": "바우처를 만들 수 없습니다. 다시 시도해주세요."
-    },
-    "success": {
-      "created": "바우처가 성공적으로 생성되었습니다"
-    }
-  },
-  "companyInfo": {
-    "title": "비즈니스 계정",
-    "description": "귀하의 계정이 비즈니스로 확인되었습니다. 비즈니스 기능에 액세스할 수 있습니다.",
-    "goToManagement": "관리 페이지로 이동",
-    "goToHome": "홈으로 이동",
-    "pleaseLogin": "계속하려면 Company 계정으로 등록/로그인하세요.",
-    "registerCompany": "Company 계정 등록",
-    "login": "로그인",
-    "upload": {
-      "title": "예약 코드",
-      "businessLicense": "사업자 등록증 (PDF) *",
-      "idCardFront": "신분증 앞면",
-      "idCardBack": "신분증 뒷면",
-      "selected": "선택됨:",
-      "viewPending": "대기 페이지 보기",
-      "tourName": "투어 이름",
-      "time": "시간",
-      "adultPrice": "성인 가격",
-      "image": "이미지",
-      "status": "상태",
-      "userName": "사용자 이름",
-      "noName": "이름 없음",
-      "noPrice": "가격 없음",
-      "uploaded": "업로드됨",
-      "notAvailable": "사용 불가",
-      "willShowInList": "투어 목록에 표시됩니다"
-    },
-    "errors": {
-      "businessLicenseRequired": "사업자 등록증을 업로드해주세요",
-      "idCardFrontRequired": "신분증 앞면을 업로드해주세요",
-      "idCardBackRequired": "신분증 뒷면을 업로드해주세요",
-      "businessLicenseFormat": "사업자 등록증 파일은 PDF 형식이어야 합니다",
-      "idCardFrontFormat": "신분증 앞면 파일은 JPG, JPEG 또는 PNG 형식이어야 합니다",
-      "idCardBackFormat": "신분증 뒷면 파일은 JPG, JPEG 또는 PNG 형식이어야 합니다",
-      "businessLicenseSize": "사업자 등록증 파일은 25MB를 초과할 수 없습니다",
-      "idCardFrontSize": "신분증 앞면 파일은 25MB를 초과할 수 없습니다",
-      "idCardBackSize": "신분증 뒷면 파일은 25MB를 초과할 수 없습니다",
-      "idCardRecognition": "이미지에서 신분증을 인식할 수 없습니다. 다음을 확인해주세요:\n1) 신분증 이미지가 선명하고 흐리지 않음\n2) 가려지거나 잘리지 않음\n3) 실제 사진 (스크린샷 아님)\n4) 충분한 조명, 반사 없음\n5) 신분증이 온전하고 찢어지지 않음",
-      "idCardProcessing": "신분증 이미지를 처리할 수 없습니다. 유효한 신분증 이미지를 확인하고 업로드해주세요.",
-      "idCardRecognitionGeneric": "이미지에서 신분증을 인식할 수 없습니다. 유효한 신분증 이미지를 업로드해주세요.",
-      "unknown": "알 수 없는 오류",
-      "serverError": "서버 처리 오류. 신분증 이미지를 확인하고 다시 시도해주세요.",
-      "idCardIssue": "신분증 이미지에 문제가 있습니다. 유효한 신분증 이미지를 업로드해주세요.",
-      "submitFailed": "정보 제출에 실패했습니다. 다시 시도해주세요."
-    },
-    "loading": "로딩 중...",
-    "status": {
-      "pending": "승인 대기 중"
-    }
-  },
+	},
+	"voucherManagement": {
+		"title": "바우처 관리",
+		"loading": "로딩 중...",
+		"create": "바우처 만들기",
+		"loadingData": "데이터 로딩 중...",
+		"warning": {
+			"title": "회사 정보를 찾을 수 없습니다.",
+			"message": "COMPANY 역할 계정으로 로그인했는지 확인하고 사용자 정보가 올바르게 업데이트되었는지 확인하세요.",
+			"currentInfo": "현재 정보: 역할 =",
+			"userId": "사용자 ID ="
+		},
+		"empty": {
+			"message": "아직 바우처가 없습니다. 첫 번째 바우처를 만드세요!"
+		},
+		"card": {
+			"code": "코드",
+			"type": "유형:",
+			"value": "값:",
+			"quantity": "수량:",
+			"remaining": "남은 수량:",
+			"status": "상태:",
+			"appliedTo": "적용된 투어:",
+			"allTours": "모든 투어에 적용",
+			"startDate": "시작:",
+			"endDate": "만료:"
+		},
+		"pagination": {
+			"showing": "페이지 표시",
+			"of": "의",
+			"vouchers": "바우처"
+		},
+		"discountTypes": {
+			"percent": "% 할인",
+			"fixed": "금액 할인"
+		},
+		"status": {
+			"ACTIVE": "활성",
+			"INACTIVE": "비활성",
+			"EXPIRED": "만료됨"
+		}
+	},
+	"voucherCreate": {
+		"title": "바우처 만들기",
+		"close": "닫기",
+		"fields": {
+			"code": "바우처 코드",
+			"name": "바우처 이름",
+			"discountType": "할인 유형",
+			"discountValue": "할인 값",
+			"totalQuantity": "수량",
+			"minOrderValue": "최소 주문 (VND)",
+			"status": "상태",
+			"startDate": "시작일",
+			"endDate": "종료일",
+			"applyToTours": "투어에 적용"
+		},
+		"placeholders": {
+			"code": "예: VOUCHER001",
+			"name": "예: 여름 투어 10% 할인",
+			"discountPercent": "% 입력 (1 - 80)",
+			"discountAmount": "VND 금액 입력 (예: 100000은 100k)"
+		},
+		"tourDropdown": {
+			"select": "적용할 투어 선택",
+			"selected": "개 투어 선택됨",
+			"empty": "투어 없음"
+		},
+		"actions": {
+			"cancel": "취소",
+			"create": "만들기",
+			"creating": "만드는 중..."
+		},
+		"errors": {
+			"codeRequired": "바우처 코드를 입력해주세요",
+			"nameRequired": "바우처 이름을 입력해주세요",
+			"discountTypeRequired": "할인 유형을 선택해주세요",
+			"discountValueRequired": "할인 값을 입력해주세요",
+			"discountPercentRange": "비율은 1에서 100 사이여야 합니다",
+			"discountAmountMin": "할인 값은 최소 1 이상이어야 합니다 (예: 100000은 100k)",
+			"totalQuantityRequired": "수량은 0보다 커야 합니다",
+			"startDateRequired": "시작일을 선택해주세요",
+			"endDateRequired": "종료일을 선택해주세요",
+			"endDateAfterStart": "종료일은 시작일 이후여야 합니다",
+			"companyNotFound": "회사 정보를 찾을 수 없습니다",
+			"createFailed": "바우처를 만들 수 없습니다. 다시 시도해주세요."
+		},
+		"success": {
+			"created": "바우처가 성공적으로 생성되었습니다"
+		}
+	},
+	"companyInfo": {
+		"title": "비즈니스 계정",
+		"description": "귀하의 계정이 비즈니스로 확인되었습니다. 비즈니스 기능에 액세스할 수 있습니다.",
+		"goToManagement": "관리 페이지로 이동",
+		"goToHome": "홈으로 이동",
+		"pleaseLogin": "계속하려면 Company 계정으로 등록/로그인하세요.",
+		"registerCompany": "Company 계정 등록",
+		"login": "로그인",
+		"upload": {
+			"title": "예약 코드",
+			"businessLicense": "사업자 등록증 (PDF) *",
+			"idCardFront": "신분증 앞면",
+			"idCardBack": "신분증 뒷면",
+			"selected": "선택됨:",
+			"viewPending": "대기 페이지 보기",
+			"tourName": "투어 이름",
+			"time": "시간",
+			"adultPrice": "성인 가격",
+			"image": "이미지",
+			"status": "상태",
+			"userName": "사용자 이름",
+			"noName": "이름 없음",
+			"noPrice": "가격 없음",
+			"uploaded": "업로드됨",
+			"notAvailable": "사용 불가",
+			"willShowInList": "투어 목록에 표시됩니다"
+		},
+		"errors": {
+			"businessLicenseRequired": "사업자 등록증을 업로드해주세요",
+			"idCardFrontRequired": "신분증 앞면을 업로드해주세요",
+			"idCardBackRequired": "신분증 뒷면을 업로드해주세요",
+			"businessLicenseFormat": "사업자 등록증 파일은 PDF 형식이어야 합니다",
+			"idCardFrontFormat": "신분증 앞면 파일은 JPG, JPEG 또는 PNG 형식이어야 합니다",
+			"idCardBackFormat": "신분증 뒷면 파일은 JPG, JPEG 또는 PNG 형식이어야 합니다",
+			"businessLicenseSize": "사업자 등록증 파일은 25MB를 초과할 수 없습니다",
+			"idCardFrontSize": "신분증 앞면 파일은 25MB를 초과할 수 없습니다",
+			"idCardBackSize": "신분증 뒷면 파일은 25MB를 초과할 수 없습니다",
+			"idCardRecognition": "이미지에서 신분증을 인식할 수 없습니다. 다음을 확인해주세요:\n1) 신분증 이미지가 선명하고 흐리지 않음\n2) 가려지거나 잘리지 않음\n3) 실제 사진 (스크린샷 아님)\n4) 충분한 조명, 반사 없음\n5) 신분증이 온전하고 찢어지지 않음",
+			"idCardProcessing": "신분증 이미지를 처리할 수 없습니다. 유효한 신분증 이미지를 확인하고 업로드해주세요.",
+			"idCardRecognitionGeneric": "이미지에서 신분증을 인식할 수 없습니다. 유효한 신분증 이미지를 업로드해주세요.",
+			"unknown": "알 수 없는 오류",
+			"serverError": "서버 처리 오류. 신분증 이미지를 확인하고 다시 시도해주세요.",
+			"idCardIssue": "신분증 이미지에 문제가 있습니다. 유효한 신분증 이미지를 업로드해주세요.",
+			"submitFailed": "정보 제출에 실패했습니다. 다시 시도해주세요."
+		},
+		"loading": "로딩 중...",
+		"status": {
+			"pending": "승인 대기 중"
+		}
+	},
 	"notifications": {
 		"title": "알림",
 		"markAllRead": "모두 읽음으로 표시",
@@ -4712,271 +4737,271 @@
 			}
 		}
 	},
-  "chat": {
-    "title": "고객 지원",
-    "status": "온라인",
-    "call": "전화",
-    "video": "영상 통화",
-    "more": "더 많은 옵션",
-    "close": "채팅 닫기",
-    "emoji": "이모지 추가",
-    "send": "메시지 보내기",
-    "placeholder": "메시지를 입력하세요..."
-  },
-  "chatAI": {
-    "bubble": {
-      "title": "AI와 채팅"
-    },
-    "box": {
-      "title": "AI 어시스턴트",
-      "greeting": "안녕하세요! 저는 AI 어시스턴트입니다. 오늘 무엇을 도와드릴까요?",
-      "status": {
-        "typing": "입력 중...",
-        "ready": "도움 준비됨"
-      },
-      "actions": {
-        "minimize": "최소화",
-        "close": "닫기",
-        "send": "보내기"
-      },
-      "input": {
-        "placeholder": "메시지를 입력하세요..."
-      },
-      "error": "죄송합니다. 오류가 발생했습니다. 나중에 다시 시도해주세요."
-    }
-  },
-  "userChat": {
-    "time": {
-      "justNow": "방금",
-      "minutesAgo": "{{minutes}}분 전",
-      "hoursAgo": "{{hours}}시간 전",
-      "daysAgo": "{{days}}일 전"
-    },
-    "status": {
-      "active": "활성",
-      "connecting": "연결 중...",
-      "disconnected": "연결 끊김"
-    },
-    "actions": {
-      "minimize": "최소화",
-      "close": "닫기"
-    },
-    "loading": {
-      "olderMessages": "이전 메시지 불러오는 중..."
-    },
-    "empty": {
-      "startConversation": "{{userName}}님과 대화 시작하기",
-      "selectUser": "대화를 시작할 사용자를 선택하세요"
-    },
-    "message": {
-      "sent": "전송됨"
-    }
-  },
-  "about": {
-    "hero": {
-      "title": "한국 × 다낭 투어 관리 스튜디오",
-      "subtitle": "다낭에서 바로 예약 조정, 투어 관리, 결제 처리, 한국 고객 케어를 도와주는 파스텔 플랫폼 – 직관적이고 미니멀하면서도 기술이 풍부합니다.",
-      "highlight1": "실시간 예약 허브",
-      "highlight2": "다낭 투어 워크플로우",
-      "highlight3": "완전한 한국어 대시보드",
-      "since": {
-        "label": "시작",
-        "value": "2018"
-      },
-      "focus": {
-        "label": "집중",
-        "value": "예약 운영"
-      }
-    },
-    "mission": {
-      "title": "투어 예약 운영 시스템",
-      "description": "우리는 다낭의 기업들이 예약 운영, 파트너 조정, 한국 고객 케어를 직관적이고 기술 중심적이며 부드러운 미니멀 기준에 따라 수행할 수 있도록 돕는 한-베 이중 언어 투어 관리 플랫폼을 구축합니다.",
-      "badge": "부드러운 사명"
-    },
-    "values": {
-      "title": "핵심 가치",
-      "subtitle": "얇은 아이콘, 파스텔 팔레트, 넓은 레이아웃으로 부드러운 경험을 형성합니다.",
-      "badge": "핵심 가치",
-      "quality": {
-        "title": "예약 운영 체계",
-        "desc": "파스텔 평면에서 투어 예약, 바우처, 결제 상태를 조정합니다."
-      },
-      "trust": {
-        "title": "준수 센터",
-        "desc": "실시간 경고와 함께 비자, 계약, 한국 파트너 SLA를 추적합니다."
-      },
-      "excellence": {
-        "title": "서울 × 다낭 링크",
-        "desc": "한국 파트너, 현지 공급업체, 다국어 일정을 동기화합니다."
-      },
-      "passion": {
-        "title": "케어 자동화",
-        "desc": "한국 고객 케어 플레이북, 후속 일정, 경험 알림."
-      }
-    },
-    "team": {
-      "title": "바이브 스튜디오 팀",
-      "badge": "인간적 터치",
-      "member1": {
-        "name": "Nguyễn Văn A",
-        "role": "CEO & 창립자",
-        "desc": "10년 이상 이중 문화 여행 제품 창조."
-      },
-      "member2": {
-        "name": "Trần Thị B",
-        "role": "크리에이티브 디렉터",
-        "desc": "시각적이고 감정적인 부드러운 경험 형성."
-      },
-      "member3": {
-        "name": "Lê Văn C",
-        "role": "경험 리드",
-        "desc": "균형 잡힌, 린한 고객 케어 프로세스 표준화."
-      }
-    },
-    "stats": {
-      "customers": "처리된 예약",
-      "tours": "자동화 커버리지",
-      "satisfaction": "리드에서 투어까지 더 빠름",
-      "partners": "한국 파트너"
-    },
-    "timeline": {
-      "badge": "여정",
-      "caption": "미니멀 소프트 코리안 타임라인",
-      "start": {
-        "title": "서울에서 시작",
-        "desc": "첫 한국 전문가들을 다낭을 사랑하는 커뮤니티와 연결."
-      },
-      "expand": {
-        "title": "미니멀 정체성",
-        "desc": "한국 생활 예술을 적용하여 감정적 케어 투어를 재설계."
-      },
-      "partnership": {
-        "title": "국제 표준 파트너",
-        "desc": "휴양 여정을 위한 숙박 체인, 첨단 스파와 파트너십."
-      },
-      "future": {
-        "title": "경험 스튜디오",
-        "desc": "인터랙티브 기술을 갖춘 다낭의 한국 영감 스튜디오 출시."
-      }
-    },
-    "monitor": {
-      "booking": "예약 부하",
-      "operations": "운영 준비도",
-      "experience": "경험 점수"
-    },
-    "metrics": {
-      "korAgents": "한국 에이전트 온라인",
-      "korAgents.caption": "서울 & 부산 파트너",
-      "vnOperators": "다낭 운영자",
-      "vnOperators.caption": "투어 물류 & 운전사",
-      "sla": "SLA 안정성",
-      "sla.caption": "실시간 모니터링"
-    },
-    "control": {
-      "korvn": "한국 × 다낭 인력",
-      "monitor": "실시간 운영 상태",
-      "liveControl": "실시간 제어",
-      "automationPulse": "자동화 펄스"
-    },
-    "heroCard": {
-      "controlHub": "제어 허브",
-      "bookingOpsCloud": "예약 + 운영 클라우드",
-      "realtimeRouting": "실시간 라우팅",
-      "automation": "자동화",
-      "automationValue": "92% 작업",
-      "coverage": "커버리지",
-      "coverageValue": "KOR ↔︎ VN",
-      "live": "라이브",
-      "opsRadar": "운영 레이더 v3.1",
-      "seoul": "서울",
-      "daNang": "다낭"
-    },
-    "workflow": {
-      "badge": "워크플로우",
-      "caption": "한국 - 다낭 투어 운영 사이클",
-      "capture": "리드 포착 및 자격 평가",
-      "capture.detail": "Zalo, KakaoTalk, 웹 예약 양식이 한-베 CRM으로 동기화됩니다.",
-      "design": "여정 설계",
-      "design.detail": "투어 템플릿 선택, 바우처 적용, KRW ↔︎ VND 가격 즉시 계산.",
-      "coordinate": "공급업체 조정",
-      "coordinate.detail": "호텔, 차량, 가이드에 이중 언어 체크리스트와 함께 알림 푸시.",
-      "care": "케어 및 보고",
-      "care.detail": "한국 고객 감정 추적, 파트너를 위한 보고서 자동 생성."
-    },
-    "integrations": {
-      "badge": "연결된 스택",
-      "title": "우리가 사용하는 기술 스택",
-      "badge0": "카카오 비즈니스 API",
-      "badge1": "네이버 / 구글 캘린더",
-      "badge2": "VNPay & 토스 페이먼츠",
-      "badge3": "Zalo OA",
-      "badge4": "에어테이블 동기화",
-      "badge5": "GSAP 마이크로 애니메이션",
-      "kakaoAPI": "카카오 비즈니스 API",
-      "naverCalendar": "네이버 / 구글 캘린더",
-      "vnpayToss": "VNPay & 토스 페이먼츠",
-      "zaloOA": "Zalo OA",
-      "airtableSync": "에어테이블 동기화",
-      "gsapAnimations": "GSAP 마이크로 애니메이션"
-    },
-    "story": {
-      "title": "부드러운 서사",
-      "badge": "부드러운 서사",
-      "paragraph1": "KDBS는 미니멀 소프트 코리안 영감에서 태어났습니다 – 느린 속도, 흰색 빛, 둥근 재료가 마음의 평화를 만드는 곳. 각 투어는 기술과 자연의 리듬으로 편집된 하모니처럼 편집됩니다.",
-      "paragraph2": "우리는 모든 단계에서 정신 건강을 우선시합니다: 허브 스파, 바다 호흡 명상, 감정을 보존하는 확장 현실 경험까지. 기술은 단지 배경일 뿐, 당신의 감정이 중심입니다.",
-      "paragraph3": "다낭의 심장에서 가장 평화로운 버전의 자신에 도달하도록 도와드리겠습니다."
-    }
-  },
-  "contactPage": {
-    "hero": {
-      "badge": "미니멀 소프트 코리안 연락처",
-      "title": "우리는 당신의 모든 감정의 리듬을 듣습니다",
-      "subtitle": "미니멀하고 파스텔하며 부드럽게 둥근 스타일로 스튜디오와 연결하세요 – 모든 한국 × 다낭 여정이 섬세하게 돌봄받도록."
-    },
-    "moments": {
-      "one": "한국 그룹을 위한 부드러운 일정 설계",
-      "two": "비자 절차 및 Toss/VNPay 결제 상담",
-      "three": "다낭에서 감정 케어 팀 활성화"
-    },
-    "channels": {
-      "phoneLabel": "스튜디오 라인",
-      "phoneHint": "09:00 – 21:00 (GMT+7)",
-      "mailLabel": "이메일",
-      "mailHint": "12시간 이내 응답",
-      "chatLabel": "Zalo / Kakao",
-      "chatHint": "즉시 파스텔 지원"
-    },
-    "office": {
-      "hoursTitle": "차분한 사무실 시간",
-      "hoursValue": "Mon – Sat · 08:30 – 19:30",
-      "addressTitle": "스튜디오 주소"
-    },
-    "form": {
-      "title": "파스텔 메시지 보내기",
-      "subtitle": "12시간 이내에 부드럽게 응답하며, 당신의 바이브에 맞는 제안을 드립니다.",
-      "name": "성명",
-      "email": "연락처 이메일",
-      "topic": "부드러운 주제",
-      "topicPlaceholder": "예: 한국 고객을 위한 4박3일 투어",
-      "message": "메시지",
-      "cta": "메시지 보내기",
-      "softInquiry": "부드러운 문의"
-    },
-    "social": {
-      "badge": "소셜 파스텔"
-    },
-    "visit": {
-      "badge": "스튜디오 방문",
-      "title": "스튜디오와 개인 약속 잡기",
-      "subtitle": "허브 차, 한국 무드 보드, 빛나는 예약 조정 데스크가 있는 따뜻한 파스텔 공간.",
-      "map": "지도 보기",
-      "schedule": "파스텔 일정 잡기",
-      "zenTitle": "젠 체크리스트",
-      "zenOne": "사운드 힐링 플레이리스트 528Hz",
-      "zenTwo": "계절별 차 페어링",
-      "zenThree": "32px 둥근 일정 템플릿",
-      "flowTitle": "플로우",
-      "flowCopy": "15분 듣기, 20분 바이브 조정, 5분 여정 확정."
-    }
-  }
+	"chat": {
+		"title": "고객 지원",
+		"status": "온라인",
+		"call": "전화",
+		"video": "영상 통화",
+		"more": "더 많은 옵션",
+		"close": "채팅 닫기",
+		"emoji": "이모지 추가",
+		"send": "메시지 보내기",
+		"placeholder": "메시지를 입력하세요..."
+	},
+	"chatAI": {
+		"bubble": {
+			"title": "AI와 채팅"
+		},
+		"box": {
+			"title": "KDBS Assistant",
+			"greeting": "안녕하세요! KDBS Assistant입니다. 오늘 무엇을 도와드릴까요?",
+			"status": {
+				"typing": "입력 중...",
+				"ready": "도움 준비됨"
+			},
+			"actions": {
+				"minimize": "최소화",
+				"close": "닫기",
+				"send": "보내기"
+			},
+			"input": {
+				"placeholder": "메시지를 입력하세요..."
+			},
+			"error": "죄송합니다. 오류가 발생했습니다. 나중에 다시 시도해주세요."
+		}
+	},
+	"userChat": {
+		"time": {
+			"justNow": "방금",
+			"minutesAgo": "{{minutes}}분 전",
+			"hoursAgo": "{{hours}}시간 전",
+			"daysAgo": "{{days}}일 전"
+		},
+		"status": {
+			"active": "활성",
+			"connecting": "연결 중...",
+			"disconnected": "연결 끊김"
+		},
+		"actions": {
+			"minimize": "최소화",
+			"close": "닫기"
+		},
+		"loading": {
+			"olderMessages": "이전 메시지 불러오는 중..."
+		},
+		"empty": {
+			"startConversation": "{{userName}}님과 대화 시작하기",
+			"selectUser": "대화를 시작할 사용자를 선택하세요"
+		},
+		"message": {
+			"sent": "전송됨"
+		}
+	},
+	"about": {
+		"hero": {
+			"title": "한국 × 다낭 투어 관리 스튜디오",
+			"subtitle": "다낭에서 바로 예약 조정, 투어 관리, 결제 처리, 한국 고객 케어를 도와주는 파스텔 플랫폼 – 직관적이고 미니멀하면서도 기술이 풍부합니다.",
+			"highlight1": "실시간 예약 허브",
+			"highlight2": "다낭 투어 워크플로우",
+			"highlight3": "완전한 한국어 대시보드",
+			"since": {
+				"label": "시작",
+				"value": "2018"
+			},
+			"focus": {
+				"label": "집중",
+				"value": "예약 운영"
+			}
+		},
+		"mission": {
+			"title": "투어 예약 운영 시스템",
+			"description": "우리는 다낭의 기업들이 예약 운영, 파트너 조정, 한국 고객 케어를 직관적이고 기술 중심적이며 부드러운 미니멀 기준에 따라 수행할 수 있도록 돕는 한-베 이중 언어 투어 관리 플랫폼을 구축합니다.",
+			"badge": "부드러운 사명"
+		},
+		"values": {
+			"title": "핵심 가치",
+			"subtitle": "얇은 아이콘, 파스텔 팔레트, 넓은 레이아웃으로 부드러운 경험을 형성합니다.",
+			"badge": "핵심 가치",
+			"quality": {
+				"title": "예약 운영 체계",
+				"desc": "파스텔 평면에서 투어 예약, 바우처, 결제 상태를 조정합니다."
+			},
+			"trust": {
+				"title": "준수 센터",
+				"desc": "실시간 경고와 함께 비자, 계약, 한국 파트너 SLA를 추적합니다."
+			},
+			"excellence": {
+				"title": "서울 × 다낭 링크",
+				"desc": "한국 파트너, 현지 공급업체, 다국어 일정을 동기화합니다."
+			},
+			"passion": {
+				"title": "케어 자동화",
+				"desc": "한국 고객 케어 플레이북, 후속 일정, 경험 알림."
+			}
+		},
+		"team": {
+			"title": "바이브 스튜디오 팀",
+			"badge": "인간적 터치",
+			"member1": {
+				"name": "Nguyễn Văn A",
+				"role": "CEO & 창립자",
+				"desc": "10년 이상 이중 문화 여행 제품 창조."
+			},
+			"member2": {
+				"name": "Trần Thị B",
+				"role": "크리에이티브 디렉터",
+				"desc": "시각적이고 감정적인 부드러운 경험 형성."
+			},
+			"member3": {
+				"name": "Lê Văn C",
+				"role": "경험 리드",
+				"desc": "균형 잡힌, 린한 고객 케어 프로세스 표준화."
+			}
+		},
+		"stats": {
+			"customers": "처리된 예약",
+			"tours": "자동화 커버리지",
+			"satisfaction": "리드에서 투어까지 더 빠름",
+			"partners": "한국 파트너"
+		},
+		"timeline": {
+			"badge": "여정",
+			"caption": "미니멀 소프트 코리안 타임라인",
+			"start": {
+				"title": "서울에서 시작",
+				"desc": "첫 한국 전문가들을 다낭을 사랑하는 커뮤니티와 연결."
+			},
+			"expand": {
+				"title": "미니멀 정체성",
+				"desc": "한국 생활 예술을 적용하여 감정적 케어 투어를 재설계."
+			},
+			"partnership": {
+				"title": "국제 표준 파트너",
+				"desc": "휴양 여정을 위한 숙박 체인, 첨단 스파와 파트너십."
+			},
+			"future": {
+				"title": "경험 스튜디오",
+				"desc": "인터랙티브 기술을 갖춘 다낭의 한국 영감 스튜디오 출시."
+			}
+		},
+		"monitor": {
+			"booking": "예약 부하",
+			"operations": "운영 준비도",
+			"experience": "경험 점수"
+		},
+		"metrics": {
+			"korAgents": "한국 에이전트 온라인",
+			"korAgents.caption": "서울 & 부산 파트너",
+			"vnOperators": "다낭 운영자",
+			"vnOperators.caption": "투어 물류 & 운전사",
+			"sla": "SLA 안정성",
+			"sla.caption": "실시간 모니터링"
+		},
+		"control": {
+			"korvn": "한국 × 다낭 인력",
+			"monitor": "실시간 운영 상태",
+			"liveControl": "실시간 제어",
+			"automationPulse": "자동화 펄스"
+		},
+		"heroCard": {
+			"controlHub": "제어 허브",
+			"bookingOpsCloud": "예약 + 운영 클라우드",
+			"realtimeRouting": "실시간 라우팅",
+			"automation": "자동화",
+			"automationValue": "92% 작업",
+			"coverage": "커버리지",
+			"coverageValue": "KOR ↔︎ VN",
+			"live": "라이브",
+			"opsRadar": "운영 레이더 v3.1",
+			"seoul": "서울",
+			"daNang": "다낭"
+		},
+		"workflow": {
+			"badge": "워크플로우",
+			"caption": "한국 - 다낭 투어 운영 사이클",
+			"capture": "리드 포착 및 자격 평가",
+			"capture.detail": "Zalo, KakaoTalk, 웹 예약 양식이 한-베 CRM으로 동기화됩니다.",
+			"design": "여정 설계",
+			"design.detail": "투어 템플릿 선택, 바우처 적용, KRW ↔︎ VND 가격 즉시 계산.",
+			"coordinate": "공급업체 조정",
+			"coordinate.detail": "호텔, 차량, 가이드에 이중 언어 체크리스트와 함께 알림 푸시.",
+			"care": "케어 및 보고",
+			"care.detail": "한국 고객 감정 추적, 파트너를 위한 보고서 자동 생성."
+		},
+		"integrations": {
+			"badge": "연결된 스택",
+			"title": "우리가 사용하는 기술 스택",
+			"badge0": "카카오 비즈니스 API",
+			"badge1": "네이버 / 구글 캘린더",
+			"badge2": "VNPay & 토스 페이먼츠",
+			"badge3": "Zalo OA",
+			"badge4": "에어테이블 동기화",
+			"badge5": "GSAP 마이크로 애니메이션",
+			"kakaoAPI": "카카오 비즈니스 API",
+			"naverCalendar": "네이버 / 구글 캘린더",
+			"vnpayToss": "VNPay & 토스 페이먼츠",
+			"zaloOA": "Zalo OA",
+			"airtableSync": "에어테이블 동기화",
+			"gsapAnimations": "GSAP 마이크로 애니메이션"
+		},
+		"story": {
+			"title": "부드러운 서사",
+			"badge": "부드러운 서사",
+			"paragraph1": "KDBS는 미니멀 소프트 코리안 영감에서 태어났습니다 – 느린 속도, 흰색 빛, 둥근 재료가 마음의 평화를 만드는 곳. 각 투어는 기술과 자연의 리듬으로 편집된 하모니처럼 편집됩니다.",
+			"paragraph2": "우리는 모든 단계에서 정신 건강을 우선시합니다: 허브 스파, 바다 호흡 명상, 감정을 보존하는 확장 현실 경험까지. 기술은 단지 배경일 뿐, 당신의 감정이 중심입니다.",
+			"paragraph3": "다낭의 심장에서 가장 평화로운 버전의 자신에 도달하도록 도와드리겠습니다."
+		}
+	},
+	"contactPage": {
+		"hero": {
+			"badge": "미니멀 소프트 코리안 연락처",
+			"title": "우리는 당신의 모든 감정의 리듬을 듣습니다",
+			"subtitle": "미니멀하고 파스텔하며 부드럽게 둥근 스타일로 스튜디오와 연결하세요 – 모든 한국 × 다낭 여정이 섬세하게 돌봄받도록."
+		},
+		"moments": {
+			"one": "한국 그룹을 위한 부드러운 일정 설계",
+			"two": "비자 절차 및 Toss/VNPay 결제 상담",
+			"three": "다낭에서 감정 케어 팀 활성화"
+		},
+		"channels": {
+			"phoneLabel": "스튜디오 라인",
+			"phoneHint": "09:00 – 21:00 (GMT+7)",
+			"mailLabel": "이메일",
+			"mailHint": "12시간 이내 응답",
+			"chatLabel": "Zalo / Kakao",
+			"chatHint": "즉시 파스텔 지원"
+		},
+		"office": {
+			"hoursTitle": "차분한 사무실 시간",
+			"hoursValue": "Mon – Sat · 08:30 – 19:30",
+			"addressTitle": "스튜디오 주소"
+		},
+		"form": {
+			"title": "파스텔 메시지 보내기",
+			"subtitle": "12시간 이내에 부드럽게 응답하며, 당신의 바이브에 맞는 제안을 드립니다.",
+			"name": "성명",
+			"email": "연락처 이메일",
+			"topic": "부드러운 주제",
+			"topicPlaceholder": "예: 한국 고객을 위한 4박3일 투어",
+			"message": "메시지",
+			"cta": "메시지 보내기",
+			"softInquiry": "부드러운 문의"
+		},
+		"social": {
+			"badge": "소셜 파스텔"
+		},
+		"visit": {
+			"badge": "스튜디오 방문",
+			"title": "스튜디오와 개인 약속 잡기",
+			"subtitle": "허브 차, 한국 무드 보드, 빛나는 예약 조정 데스크가 있는 따뜻한 파스텔 공간.",
+			"map": "지도 보기",
+			"schedule": "파스텔 일정 잡기",
+			"zenTitle": "젠 체크리스트",
+			"zenOne": "사운드 힐링 플레이리스트 528Hz",
+			"zenTwo": "계절별 차 페어링",
+			"zenThree": "32px 둥근 일정 템플릿",
+			"flowTitle": "플로우",
+			"flowCopy": "15분 듣기, 20분 바이브 조정, 5분 여정 확정."
+		}
+	}
 }

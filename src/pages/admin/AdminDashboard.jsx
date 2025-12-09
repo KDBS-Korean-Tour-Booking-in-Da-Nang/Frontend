@@ -34,27 +34,110 @@ const AdminDashboard = () => {
   // Check if user has admin role
   if (!user || user.role !== 'ADMIN') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px'
+      }}>
+        <div style={{
+          maxWidth: '420px',
+          width: '100%',
+          background: '#ffffff',
+          borderRadius: '24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04)',
+          padding: '48px 40px',
+          textAlign: 'center',
+          border: '1px solid rgba(0, 0, 0, 0.04)'
+        }}>
+          {/* Pastel Red Icon */}
+          <div style={{
+            width: '72px',
+            height: '72px',
+            background: 'linear-gradient(135deg, #fce4e4 0%, #f8d4d4 100%)',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            boxShadow: '0 4px 12px rgba(220, 120, 120, 0.15)'
+          }}>
+            <svg style={{ width: '32px', height: '32px', color: '#d88888' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('admin.adminDashboard.accessDenied')}</h2>
-          <p className="text-gray-600 mb-4">
+
+          <h2 style={{
+            fontSize: '22px',
+            fontWeight: '600',
+            color: '#3d4852',
+            marginBottom: '12px',
+            letterSpacing: '-0.3px'
+          }}>
+            {t('admin.adminDashboard.accessDenied')}
+          </h2>
+
+          <p style={{
+            fontSize: '15px',
+            color: '#718096',
+            marginBottom: '32px',
+            lineHeight: '1.6'
+          }}>
             {t('admin.adminDashboard.accessDeniedMessage')}
           </p>
-          <div className="space-y-2">
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <button
               onClick={() => window.location.href = '/'}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #7eb8e0 0%, #5ba3d4 100%)',
+                color: '#ffffff',
+                padding: '14px 24px',
+                borderRadius: '14px',
+                border: 'none',
+                fontSize: '15px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 12px rgba(91, 163, 212, 0.25)'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(91, 163, 212, 0.35)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(91, 163, 212, 0.25)';
+              }}
             >
               {t('admin.adminDashboard.goToHomepage')}
             </button>
             <button
               onClick={() => window.location.href = '/admin/login'}
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #e8eaed 0%, #dce0e5 100%)',
+                color: '#4a5568',
+                padding: '14px 24px',
+                borderRadius: '14px',
+                border: 'none',
+                fontSize: '15px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)';
+              }}
             >
               {t('admin.adminDashboard.adminLogin')}
             </button>

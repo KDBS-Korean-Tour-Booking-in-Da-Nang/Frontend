@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     SparklesIcon,
@@ -13,20 +13,23 @@ import styles from './ChatBoxAI.module.css';
 const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
     const { t, i18n } = useTranslation();
     const { user } = useAuth();
-    
+
     // Create welcome message with translation (updates when language changes)
+    // Use i18n.language as dependency instead of t to prevent recreation on every render
     const welcomeMessage = useMemo(() => ({
         id: 'welcome-message',
         content: t('chatAI.box.greeting'),
         isAI: true,
         timestamp: new Date()
-    }), [t]);
-    
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), [i18n.language]);
+
     // Helper function to convert history array to messages format
     // Always includes welcome message at the top
-    const historyToMessages = (historyArray) => {
+    // Wrapped in useCallback to prevent recreation on every render (fixes infinite loop)
+    const historyToMessages = useCallback((historyArray) => {
         const messageObjects = [welcomeMessage]; // Always start with welcome message
-        
+
         if (historyArray && historyArray.length > 0) {
             // Reconstruct messages from history (alternating user/AI)
             for (let i = 0; i < historyArray.length; i++) {
@@ -38,10 +41,10 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
                 });
             }
         }
-        
+
         return messageObjects;
-    };
-    
+    }, [welcomeMessage]);
+
     // Initialize history from sessionStorage
     const [history, setHistory] = useState(() => {
         try {
@@ -53,7 +56,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             return [];
         }
     });
-    
+
     // Convert history to messages format for display
     const [messages, setMessages] = useState(() => {
         try {
@@ -68,7 +71,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             return historyToMessages([]);
         }
     });
-    
+
     const [newMessage, setNewMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef(null);
@@ -127,8 +130,8 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
     useEffect(() => {
         setMessages(prev => {
             // Find and update welcome message, keep rest of messages
-            const updated = prev.map(msg => 
-                msg.id === 'welcome-message' 
+            const updated = prev.map(msg =>
+                msg.id === 'welcome-message'
                     ? { ...msg, content: t('chatAI.box.greeting') }
                     : msg
             );
@@ -178,7 +181,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             // Update history: add both user message and AI reply
             const updatedHistory = [...history, userMessageText, assistantReply];
             setHistory(updatedHistory);
-            
+
             // Save to sessionStorage only for logged-in users
             if (user) {
                 sessionStorage.setItem('chat_history', JSON.stringify(updatedHistory));
@@ -194,7 +197,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
             console.error('Error sending message:', error);
-            
+
             // Show error message to user
             const errorMessage = {
                 id: Date.now() + 1,
@@ -236,7 +239,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             <div className={styles.chatHeader}>
                 <div className={styles.chatInfo}>
                     <div className={styles.aiAvatar}>
-                        <SparklesIcon className={styles.aiIcon} />
+                        <img src="/logoKDBS.png" alt="KDBS" className={styles.aiAvatarImg} />
                     </div>
                     <div className={styles.chatDetails}>
                         <h3 className={styles.chatTitle}>{t('chatAI.box.title')}</h3>
@@ -274,7 +277,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
                         >
                             {message.isAI && (
                                 <div className={styles.messageAvatar}>
-                                    <SparklesIcon className={styles.avatarIcon} />
+                                    <img src="/logoKDBS.png" alt="KDBS" className={styles.avatarImg} />
                                 </div>
                             )}
                             <div className={styles.messageContent}>
@@ -287,7 +290,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
                     {isTyping && (
                         <div className={`${styles.message} ${styles.received}`}>
                             <div className={styles.messageAvatar}>
-                                <SparklesIcon className={styles.avatarIcon} />
+                                <img src="/logoKDBS.png" alt="KDBS" className={styles.avatarImg} />
                             </div>
                             <div className={styles.messageContent}>
                                 <div className={styles.typingIndicator}>
