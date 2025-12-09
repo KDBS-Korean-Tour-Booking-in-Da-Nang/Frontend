@@ -45,7 +45,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
       e.discountValue = t('voucherCreate.errors.discountValueRequired');
     } else if (form.discountType === 'PERCENT') {
       const v = Number(form.discountValue);
-      if (isNaN(v) || v < 1 || v > 100) e.discountValue = t('voucherCreate.errors.discountPercentRange');
+      if (isNaN(v) || v < 1 || v > 80) e.discountValue = t('voucherCreate.errors.discountPercentRange');
     } else if (form.discountType === 'AMOUNT') {
       const v = Number(form.discountValue);
       if (isNaN(v) || v < 1) e.discountValue = t('voucherCreate.errors.discountAmountMin');
@@ -79,7 +79,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
       setErrors(prev => ({ ...prev, general: t('voucherCreate.errors.companyNotFound') }));
       return;
     }
-    
+
     setErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors.general;
@@ -214,9 +214,9 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                 {t('voucherCreate.fields.code')}
                 {errors.code && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
-              <input 
+              <input
                 className={`${styles['form-input']} ${errors.code ? styles['error'] : ''}`}
-                value={form.code} 
+                value={form.code}
                 onChange={(e) => handleChange('code', e.target.value)}
                 placeholder={t('voucherCreate.placeholders.code')}
               />
@@ -227,9 +227,9 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                 {t('voucherCreate.fields.name')}
                 {errors.name && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
-              <input 
+              <input
                 className={`${styles['form-input']} ${errors.name ? styles['error'] : ''}`}
-                value={form.name} 
+                value={form.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder={t('voucherCreate.placeholders.name')}
               />
@@ -245,22 +245,22 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
               </label>
               <div className={styles['radio-group']}>
                 <label className={styles['radio-label']}>
-                  <input 
-                    type="radio" 
-                    name="discountType" 
+                  <input
+                    type="radio"
+                    name="discountType"
                     className={styles['radio-input']}
-                    checked={form.discountType === 'AMOUNT'} 
-                    onChange={() => handleChange('discountType', 'AMOUNT')} 
+                    checked={form.discountType === 'AMOUNT'}
+                    onChange={() => handleChange('discountType', 'AMOUNT')}
                   />
                   <span>{t('voucherManagement.discountTypes.fixed')}</span>
                 </label>
                 <label className={styles['radio-label']}>
-                  <input 
-                    type="radio" 
-                    name="discountType" 
+                  <input
+                    type="radio"
+                    name="discountType"
                     className={styles['radio-input']}
-                    checked={form.discountType === 'PERCENT'} 
-                    onChange={() => handleChange('discountType', 'PERCENT')} 
+                    checked={form.discountType === 'PERCENT'}
+                    onChange={() => handleChange('discountType', 'PERCENT')}
                   />
                   <span>{t('voucherManagement.discountTypes.percent')}</span>
                 </label>
@@ -277,7 +277,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                   className={`${styles['form-input']} ${errors.discountValue ? styles['error'] : ''}`}
                   type="number"
                   min={form.discountType === 'PERCENT' ? 1 : 1}
-                  max={form.discountType === 'PERCENT' ? 100 : undefined}
+                  max={form.discountType === 'PERCENT' ? 80 : undefined}
                   step={form.discountType === 'PERCENT' ? 1 : 'any'}
                   placeholder={form.discountType === 'PERCENT' ? t('voucherCreate.placeholders.discountPercent') : t('voucherCreate.placeholders.discountAmount')}
                   value={form.discountValue}
@@ -293,7 +293,17 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                     }
                   }}
                   onChange={(e) => {
-                    const value = e.target.value;
+                    let value = e.target.value;
+                    // For PERCENT type, clamp value to 5-80 range immediately
+                    if (form.discountType === 'PERCENT' && value !== '') {
+                      const num = Number(value);
+                      if (!isNaN(num)) {
+                        if (num > 80) {
+                          value = '80';
+                        }
+                        // Don't clamp min during typing to allow building numbers like "50"
+                      }
+                    }
                     handleChange('discountValue', value);
                   }}
                   onBlur={(e) => {
@@ -301,8 +311,8 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                     if (form.discountType === 'PERCENT') {
                       if (isNaN(numValue) || numValue < 1) {
                         handleChange('discountValue', '1');
-                      } else if (numValue > 100) {
-                        handleChange('discountValue', '100');
+                      } else if (numValue > 80) {
+                        handleChange('discountValue', '80');
                       }
                     } else if (form.discountType === 'AMOUNT') {
                       if (isNaN(numValue) || numValue < 1) {
@@ -322,23 +332,23 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                 {t('voucherCreate.fields.totalQuantity')}
                 {errors.totalQuantity && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
               </label>
-              <input 
+              <input
                 className={`${styles['form-input']} ${errors.totalQuantity ? styles['error'] : ''}`}
-                type="number" 
-                min={1} 
-                value={form.totalQuantity} 
-                onChange={(e) => handleChange('totalQuantity', e.target.value)} 
+                type="number"
+                min={1}
+                value={form.totalQuantity}
+                onChange={(e) => handleChange('totalQuantity', e.target.value)}
               />
               {errors.totalQuantity && <p className={styles['error-message']}>{errors.totalQuantity}</p>}
             </div>
             <div className={styles['form-group']}>
               <label className={styles['form-label']}>{t('voucherCreate.fields.minOrderValue')}</label>
-              <input 
+              <input
                 className={styles['form-input']}
-                type="number" 
-                min={0} 
-                value={form.minOrderValue || ''} 
-                onChange={(e) => handleChange('minOrderValue', e.target.value)} 
+                type="number"
+                min={0}
+                value={form.minOrderValue || ''}
+                onChange={(e) => handleChange('minOrderValue', e.target.value)}
               />
             </div>
           </div>
@@ -385,12 +395,12 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {form.tourIds.length === 0 ? t('voucherCreate.tourDropdown.select') : `${form.tourIds.length} ${t('voucherCreate.tourDropdown.selected')}`}
               </span>
-              <svg 
-                className={`${styles['dropdown-arrow']} ${tourDropdownOpen ? styles['open'] : ''}`} 
-                viewBox="0 0 20 20" 
+              <svg
+                className={`${styles['dropdown-arrow']} ${tourDropdownOpen ? styles['open'] : ''}`}
+                viewBox="0 0 20 20"
                 fill="currentColor"
               >
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/>
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
               </svg>
             </button>
             {tourDropdownOpen && (
@@ -402,9 +412,9 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                   <div className={styles['tour-dropdown-empty']}>{t('voucherCreate.tourDropdown.empty')}</div>
                 ) : (
                   tours?.map((t, i) => (
-                    <label 
-                      key={t.id} 
-                      ref={i === 0 ? firstItemRef : null} 
+                    <label
+                      key={t.id}
+                      ref={i === 0 ? firstItemRef : null}
                       className={styles['tour-dropdown-item']}
                     >
                       <input
@@ -423,17 +433,17 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
         {/* Footer: sticky at bottom */}
         <div className={styles['modal-footer']}>
-          <button 
-            type="button" 
-            onClick={onClose} 
+          <button
+            type="button"
+            onClick={onClose}
             disabled={isSubmitting}
             className={`${styles['footer-btn']} ${styles['btn-cancel']}`}
           >
             {t('voucherCreate.actions.cancel')}
           </button>
-          <button 
-            type="button" 
-            onClick={() => formRef.current?.requestSubmit()} 
+          <button
+            type="button"
+            onClick={() => formRef.current?.requestSubmit()}
             disabled={isSubmitting || !companyId || Object.keys(errors).length > 0}
             className={`${styles['footer-btn']} ${styles['btn-submit']}`}
           >

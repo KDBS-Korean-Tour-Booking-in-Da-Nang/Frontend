@@ -158,7 +158,7 @@ const BookingCheckPaymentPage = () => {
       try {
         // Reset guestsLoadedRef khi load booking mới
         guestsLoadedRef.current = false;
-        
+
         // Load booking, tổng tiền và guests song song
         const [bookingRes, totalRes, guestsRes] = await Promise.allSettled([
           getBookingById(bookingId),
@@ -236,30 +236,30 @@ const BookingCheckPaymentPage = () => {
 
         // Xử lý guests: ưu tiên từ guestsRes API endpoint, fallback từ bookingRes
         let finalGuests = [];
-        
+
         if (guestsRes.status === 'fulfilled' && guestsRes.value) {
           // API endpoint trả về List<BookingGuestResponse> trực tiếp
-          const guestsData = Array.isArray(guestsRes.value) 
-            ? guestsRes.value 
+          const guestsData = Array.isArray(guestsRes.value)
+            ? guestsRes.value
             : (guestsRes.value?.result || guestsRes.value?.guests || guestsRes.value?.data || []);
-          
+
           if (Array.isArray(guestsData)) {
             finalGuests = guestsData;
             guestsLoadedRef.current = true;
           }
         }
-        
+
         // Nếu guests API không có data hoặc failed, thử từ booking response
         if (finalGuests.length === 0 && bookingRes.status === 'fulfilled' && bookingRes.value?.guests) {
-          const bookingGuests = Array.isArray(bookingRes.value.guests) 
-            ? bookingRes.value.guests 
+          const bookingGuests = Array.isArray(bookingRes.value.guests)
+            ? bookingRes.value.guests
             : [];
           if (bookingGuests.length > 0) {
             finalGuests = bookingGuests;
             guestsLoadedRef.current = true;
           }
         }
-        
+
         setGuests(finalGuests);
 
         // Lấy email từ booking hoặc user hiện tại
@@ -317,7 +317,7 @@ const BookingCheckPaymentPage = () => {
 
       try {
         const guestsData = await getGuestsByBookingId(bookingId);
-        
+
         if (!isActive || guestsLoadedRef.current) return;
 
         if (Array.isArray(guestsData) && guestsData.length > 0) {
@@ -371,8 +371,32 @@ const BookingCheckPaymentPage = () => {
           return [];
         }
 
+        // Lọc bỏ voucher đã hết hạn hoặc hết số lượng trước khi normalize
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const validVouchers = vouchers.filter((v) => {
+          // Lọc bỏ voucher hết số lượng (remainingQuantity <= 0)
+          const remaining = v?.remainingQuantity;
+          if (remaining !== null && remaining !== undefined && remaining <= 0) {
+            return false;
+          }
+
+          // Lọc bỏ voucher hết hạn
+          const rawEndDate = v?.endDate || v?.meta?.endDate || v?.expiryDate;
+          if (!rawEndDate) return true; // nếu BE không gửi endDate thì coi như luôn hiển thị
+          const end = new Date(rawEndDate);
+          if (Number.isNaN(end.getTime())) return true;
+          end.setHours(23, 59, 59, 999); // còn hiệu lực đến hết ngày endDate
+          return end >= today;
+        });
+
+        if (validVouchers.length === 0) {
+          setAvailableVouchers([]);
+          return [];
+        }
+
         // Normalize và parse dữ liệu voucher từ API
-        const normalized = vouchers.map((v) => {
+        const normalized = validVouchers.map((v) => {
           // Helper: Parse số từ nhiều format khác nhau (string, number, null, undefined)
           const parsePossibleNumber = (value) => {
             if (value === undefined || value === null) return null;
@@ -389,8 +413,8 @@ const BookingCheckPaymentPage = () => {
                 digitsOnly.includes('.') && digitsOnly.includes(',')
                   ? digitsOnly.replace(/,/g, '')
                   : digitsOnly.includes(',')
-                  ? digitsOnly.replace(/,/g, '.')
-                  : digitsOnly;
+                    ? digitsOnly.replace(/,/g, '.')
+                    : digitsOnly;
               const num = Number(adjusted);
               return Number.isFinite(num) ? num : null;
             }
@@ -401,7 +425,7 @@ const BookingCheckPaymentPage = () => {
           // Parse discountType từ API (có thể là string, object enum, hoặc null)
           let rawType = '';
           let hasDiscountTypeFromAPI = false;
-          
+
           if (v.discountType !== undefined && v.discountType !== null) {
             if (typeof v.discountType === 'string') {
               rawType = v.discountType.trim().toUpperCase();
@@ -423,7 +447,7 @@ const BookingCheckPaymentPage = () => {
               hasDiscountTypeFromAPI = rawType === 'PERCENT' || rawType === 'FIXED';
             }
           }
-          
+
           // Parse các giá trị số từ API
           const discountAmount = parsePossibleNumber(v.discountAmount) ?? 0;
           const finalTotal = parsePossibleNumber(v.finalTotal);
@@ -432,9 +456,9 @@ const BookingCheckPaymentPage = () => {
           if (originalTotal === null && finalTotal !== null && discountAmount > 0) {
             originalTotal = finalTotal + discountAmount;
           }
-          
+
           let discountValue = parsePossibleNumber(v.discountValue);
-          
+
           // Xác định discountType: ưu tiên từ API, mặc định FIXED nếu không có
           let discountType = null;
           if (hasDiscountTypeFromAPI) {
@@ -539,7 +563,7 @@ const BookingCheckPaymentPage = () => {
   const handleVoucherChange = (event) => {
     const newValue = event.target.value;
     setVoucherCode(newValue);
-    
+
     // Nếu xóa hết code, clear voucher selection
     if (!newValue || newValue.trim() === '') {
       // Clear các state liên quan đến voucher (không cần set voucherCode vì đã set ở trên)
@@ -550,7 +574,7 @@ const BookingCheckPaymentPage = () => {
       }
       return;
     }
-    
+
     // Reset trạng thái khi user thay đổi code (nhưng chưa xóa hết)
     setVoucherApplied(false);
     setDiscountAmount(0);
@@ -684,9 +708,9 @@ const BookingCheckPaymentPage = () => {
       // Tìm voucher trong danh sách available
       const normalizedCode = codeToApply.toUpperCase().trim();
       let vouchers = availableVouchers;
-      
+
       let matched = vouchers.find((v) => v.code?.toUpperCase().trim() === normalizedCode);
-      
+
       // Nếu không tìm thấy, refresh danh sách voucher và tìm lại
       if (!matched && loadAvailableVouchersRef.current) {
         const refreshed = await loadAvailableVouchersRef.current(false);
@@ -794,7 +818,7 @@ const BookingCheckPaymentPage = () => {
         defaultValue: 'Tiếp tục thanh toán',
       }),
       // Gọi lại handleSubmit theo cách thủ công với event giả
-      onConfirm: () => handleSubmit({ preventDefault: () => {} }),
+      onConfirm: () => handleSubmit({ preventDefault: () => { } }),
     });
   };
 
@@ -814,7 +838,7 @@ const BookingCheckPaymentPage = () => {
       localStorage.removeItem(`bookingData_${tourId}`);
       localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
       localStorage.removeItem(`existingBookingId_${tourId}`);
-      
+
       // Navigate về wizard với step 1
       navigate(`/tour/booking?id=${tourId}`, {
         state: {
@@ -823,7 +847,7 @@ const BookingCheckPaymentPage = () => {
           clearExistingData: true
         }
       });
-      
+
       setShowBackToWizardModal(false);
       showInfo(t('payment.checkPayment.toast.backToWizardSuccess'));
     } catch (error) {
@@ -1316,11 +1340,10 @@ const BookingCheckPaymentPage = () => {
                       <div
                         key={v.id || v.voucherId || v.code}
                         onClick={() => handleSelectVoucherFromList(v)}
-                        className={`cursor-pointer rounded-[24px] border px-5 py-4 transition ${
-                          isSelected
-                            ? 'border-[#1a8eea] bg-[#EAF3FF]'
-                            : 'border-gray-200 bg-white hover:border-[#1a8eea] hover:bg-gray-50'
-                        }`}
+                        className={`cursor-pointer rounded-[24px] border px-5 py-4 transition ${isSelected
+                          ? 'border-[#1a8eea] bg-[#EAF3FF]'
+                          : 'border-gray-200 bg-white hover:border-[#1a8eea] hover:bg-gray-50'
+                          }`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex-1">
@@ -1332,8 +1355,8 @@ const BookingCheckPaymentPage = () => {
                             <p className="ml-7 text-sm text-gray-500">
                               {discountBadge
                                 ? t('payment.checkPayment.voucherModal.discountLabel', {
-                                    discount: discountBadge.replace(/^-/, ''),
-                                  })
+                                  discount: discountBadge.replace(/^-/, ''),
+                                })
                                 : t('payment.checkPayment.voucherModal.available')}
                             </p>
                           </div>
@@ -1357,11 +1380,10 @@ const BookingCheckPaymentPage = () => {
                                 e.stopPropagation();
                                 handleSelectVoucherFromList(v);
                               }}
-                              className={`inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent px-4 py-2 text-sm font-semibold text-white transition ${
-                                isSelected
-                                  ? 'bg-gray-500 hover:bg-gray-600'
-                                  : 'bg-[#1a8eea] hover:bg-[#1670c4]'
-                              }`}
+                              className={`inline-flex items-center justify-center gap-2 rounded-[18px] border border-transparent px-4 py-2 text-sm font-semibold text-white transition ${isSelected
+                                ? 'bg-gray-500 hover:bg-gray-600'
+                                : 'bg-[#1a8eea] hover:bg-[#1670c4]'
+                                }`}
                             >
                               {isSelected ? t('payment.checkPayment.voucherApplied') : t('payment.checkPayment.voucherModal.apply')}
                             </button>

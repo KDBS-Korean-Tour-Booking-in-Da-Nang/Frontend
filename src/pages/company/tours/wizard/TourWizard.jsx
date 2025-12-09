@@ -352,10 +352,10 @@ const TourWizardContent = () => {
       const nights = parseInt(tourData.nights) || 0;
       const tourIntDuration = Math.max(days, nights);
 
-      // Parse and validate deadline days against expiration date
-      const parseDeadline = (deadlineValue, expirationDate) => {
-        if (deadlineValue === undefined || deadlineValue === null || deadlineValue === '') return null;
-        const parsed = parseInt(deadlineValue, 10);
+      // Parse and validate min advance days against expiration date
+      const parseMinAdvance = (value, expirationDate) => {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = parseInt(value, 10);
         if (Number.isNaN(parsed)) return null;
         const clamped = Math.max(0, parsed);
         if (!expirationDate) return clamped;
@@ -371,11 +371,11 @@ const TourWizardContent = () => {
         return clamped >= leadDays ? Math.max(0, leadDays - 1) : clamped;
       };
 
-      // Validate expiration date and deadline
+      // Validate expiration date and minimum advance days
       const expirationDate = tourData.tourExpirationDate || null;
-      const deadlineDays = parseDeadline(tourData.tourDeadline, expirationDate);
+      const minAdvanceDays = parseMinAdvance(tourData.minAdvancedDays ?? tourData.tourDeadline, expirationDate);
 
-      if (deadlineDays === null || !expirationDate) {
+      if (minAdvanceDays === null || !expirationDate) {
         const fieldLabel = t('tourWizard.step3.title');
         setSubmitError(
           t('toast.fill_missing_field', { field: fieldLabel }) ||
@@ -420,7 +420,17 @@ const TourWizardContent = () => {
         adultPrice: parseFloat(tourData.adultPrice) || 0,
         childrenPrice: parseFloat(tourData.childrenPrice) || 0,
         babyPrice: parseFloat(tourData.babyPrice) || 0,
-        tourDeadline: deadlineDays,
+        minAdvancedDays: minAdvanceDays,
+        tourDeadline: minAdvanceDays, // backward compatibility
+        tourCheckDays: tourData.tourCheckDays !== undefined && tourData.tourCheckDays !== null
+          ? parseInt(tourData.tourCheckDays, 10) || 0
+          : parseInt(tourData.checkDays || 0, 10) || 0,
+        balancePaymentDays: parseInt(tourData.balancePaymentDays || 0, 10) || 0,
+        depositPercentage: parseInt(tourData.depositPercentage || 0, 10) || 0,
+        allowRefundableAfterBalancePayment: !!tourData.allowRefundableAfterBalancePayment,
+        refundFloor: tourData.allowRefundableAfterBalancePayment
+          ? (parseInt(tourData.refundFloor || 0, 10) || 0)
+          : 0,
         tourExpirationDate: expirationDate,
         availableDates: tourData.availableDates || [],
         gallery: [], // Removed for testing

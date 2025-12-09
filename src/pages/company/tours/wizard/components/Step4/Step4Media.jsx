@@ -101,18 +101,20 @@ const Step4Media = () => {
         <h3 className={styles['preview-title']}>{t('tourWizard.step4.preview.title')}</h3>
         
         <div className={styles['preview-grid']}>
-          <TourCardStep4 
-            tour={{
-              tourName: tourData.tourName || t('tourCard.sampleTitle'),
-              tourDuration: `${tourData.duration || '2'} ${t('tourWizard.step1.summary.days')} ${tourData.nights || '1'} ${t('tourWizard.step1.summary.nights')}`,
-              adultPrice: Number(tourData.adultPrice) || 14990000,
-              thumbnail: formData.thumbnail,
-              tourStatus: 'ACTIVE',
-              tourDeparturePoint: tourData.tourDeparturePoint || null,
-              amount: tourData.amount || null
-            }}
-            showActions={false}
-          />
+          <div className={styles['preview-card-wrapper']}>
+            <TourCardStep4 
+              tour={{
+                tourName: tourData.tourName || t('tourCard.sampleTitle'),
+                tourDuration: `${tourData.duration || '2'} ${t('tourWizard.step1.summary.days')} ${tourData.nights || '1'} ${t('tourWizard.step1.summary.nights')}`,
+                adultPrice: Number(tourData.adultPrice) || 14990000,
+                thumbnail: formData.thumbnail,
+                tourStatus: 'ACTIVE',
+                tourDeparturePoint: tourData.tourDeparturePoint || null,
+                amount: tourData.amount || null
+              }}
+              showActions={false}
+            />
+          </div>
           
           <div className={styles['preview-info']}>
             <h5 className={styles['preview-info-title']}>{t('tourWizard.step4.preview.infoTitle')}</h5>
@@ -144,6 +146,60 @@ const Step4Media = () => {
                   {tourData.adultPrice 
                     ? `${new Intl.NumberFormat('vi-VN').format(tourData.adultPrice)} VNĐ` 
                     : t('tourWizard.step4.preview.values.noPrice')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <ClockIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.minAdvanceDays', 'Minimum advance days')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {tourData.minAdvancedDays || tourData.tourDeadline || '0'} {t('tourWizard.step1.summary.days')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <ClockIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.checkDays', 'Check days')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {tourData.checkDays || tourData.tourCheckDays || '0'} {t('tourWizard.step1.summary.days')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <ClockIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.balancePaymentDays', 'Balance payment days')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {tourData.balancePaymentDays || '0'} {t('tourWizard.step1.summary.days')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <CurrencyDollarIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.depositPercentage', 'Deposit %')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {tourData.depositPercentage !== undefined && tourData.depositPercentage !== null && tourData.depositPercentage !== ''
+                    ? `${tourData.depositPercentage}%`
+                    : t('tourWizard.step4.preview.values.noPrice')}
+                </span>
+              </div>
+
+              <div className={styles['preview-info-row']}>
+                <div className={styles['preview-info-label-wrapper']}>
+                  <CheckCircleIcon className={styles['preview-info-icon']} />
+                  <span className={styles['preview-info-label']}>{t('tourWizard.step4.preview.fields.refundable', 'Refundable after balance')}</span>
+                </div>
+                <span className={styles['preview-info-value']}>
+                  {tourData.allowRefundableAfterBalancePayment
+                    ? `${t('tourWizard.step4.preview.fields.refundFloor', 'Refund floor')}: ${(tourData.refundFloor || 0)}%`
+                    : t('tourWizard.step4.preview.values.notUploaded')}
                 </span>
               </div>
 

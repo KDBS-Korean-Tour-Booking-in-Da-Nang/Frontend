@@ -670,6 +670,16 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     setShowMenu(false);
   };
 
+  const handleMenuClick = () => {
+    // Guests should be prompted to log in instead of being unable to open the menu
+    if (!user) {
+      setShowMenu(false);
+      setShowLoginRequiredModal(true);
+      return;
+    }
+    setShowMenu((prev) => !prev);
+  };
+
   const handleAdminDeleteConfirm = async () => {
     if (!post || !user) return;
     
@@ -1040,7 +1050,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           <div className={styles['post-menu']} ref={postMenuRef}>
             <button 
               className={styles['menu-btn']}
-              onClick={() => setShowMenu(!showMenu)}
+              onClick={handleMenuClick}
             >
               <MoreHorizontal className={styles['menu-icon']} strokeWidth={1.7} />
             </button>

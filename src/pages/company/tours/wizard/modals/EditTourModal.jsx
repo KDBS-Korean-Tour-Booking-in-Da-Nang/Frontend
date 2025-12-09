@@ -209,7 +209,12 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     tourVehicle: '',
     tourType: '',
     amount: '',
-    tourDeadline: '',
+    minAdvancedDays: '',
+    tourCheckDays: '',
+    balancePaymentDays: '',
+    depositPercentage: '',
+    refundFloor: '',
+    allowRefundableAfterBalancePayment: false,
     tourExpirationDate: '',
     adultPrice: '',
     childrenPrice: '',
@@ -315,7 +320,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourVehicle: tour.tourVehicle || '',
         tourType: tour.tourType || '',
         amount: tour.amount || '',
-        tourDeadline: tour.tourDeadline !== undefined && tour.tourDeadline !== null ? String(tour.tourDeadline) : '',
+        minAdvancedDays: tour.minAdvancedDays !== undefined && tour.minAdvancedDays !== null
+          ? String(tour.minAdvancedDays)
+          : (tour.tourDeadline !== undefined && tour.tourDeadline !== null ? String(tour.tourDeadline) : ''),
+        tourCheckDays: tour.tourCheckDays !== undefined && tour.tourCheckDays !== null ? String(tour.tourCheckDays) : '',
+        balancePaymentDays: tour.balancePaymentDays !== undefined && tour.balancePaymentDays !== null ? String(tour.balancePaymentDays) : '',
+        depositPercentage: tour.depositPercentage !== undefined && tour.depositPercentage !== null ? String(tour.depositPercentage) : '',
+        refundFloor: tour.refundFloor !== undefined && tour.refundFloor !== null ? String(tour.refundFloor) : '',
+        allowRefundableAfterBalancePayment: !!tour.allowRefundableAfterBalancePayment,
         tourExpirationDate: tour.tourExpirationDate || '',
         adultPrice: tour.adultPrice || '',
         childrenPrice: tour.childrenPrice || '',
@@ -416,10 +428,10 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'tourDeadline') {
+    if (name === 'minAdvancedDays') {
       const digitsOnly = value.replace(/[^0-9]/g, '');
       if (digitsOnly === '') {
-        setFormData(prev => ({ ...prev, tourDeadline: '' }));
+        setFormData(prev => ({ ...prev, minAdvancedDays: '', balancePaymentDays: '', tourCheckDays: prev.tourCheckDays }));
         return;
       }
       let numeric = parseInt(digitsOnly, 10);
@@ -433,14 +445,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
           // Clear error when value is auto-adjusted correctly
           setFormErrors(prev => {
             const newErrors = { ...prev };
-            delete newErrors.tourDeadline;
+            delete newErrors.minAdvancedDays;
             return newErrors;
           });
         } else {
           // Clear error when value is valid
           setFormErrors(prev => {
             const newErrors = { ...prev };
-            delete newErrors.tourDeadline;
+            delete newErrors.minAdvancedDays;
             return newErrors;
           });
         }
@@ -448,14 +460,104 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         // Clear error when no expiration date is set
         setFormErrors(prev => {
           const newErrors = { ...prev };
-          delete newErrors.tourDeadline;
+          delete newErrors.minAdvancedDays;
           return newErrors;
         });
       }
+      const balanced = formData.tourCheckDays !== '' ? Math.max(0, numeric - parseInt(formData.tourCheckDays, 10)) : '';
       setFormData(prev => ({
         ...prev,
-        tourDeadline: String(numeric)
+        minAdvancedDays: String(numeric),
+        balancePaymentDays: balanced === '' ? '' : String(balanced)
       }));
+      return;
+    }
+
+    if (name === 'tourCheckDays') {
+      const digitsOnly = value.replace(/[^0-9]/g, '');
+      if (digitsOnly === '') {
+        setFormData(prev => ({ ...prev, tourCheckDays: '', balancePaymentDays: '' }));
+        return;
+      }
+      let numeric = parseInt(digitsOnly, 10);
+      if (Number.isNaN(numeric)) numeric = 0;
+      numeric = Math.max(0, numeric);
+      const minAdv = formData.minAdvancedDays === '' ? null : parseInt(formData.minAdvancedDays, 10);
+      if (minAdv !== null && !Number.isNaN(minAdv)) {
+        numeric = Math.min(minAdv, numeric);
+      }
+      const balance = minAdv !== null && !Number.isNaN(minAdv) ? Math.max(0, minAdv - numeric) : '';
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.tourCheckDays;
+        delete newErrors.balancePaymentDays;
+        return newErrors;
+      });
+      setFormData(prev => ({
+        ...prev,
+        tourCheckDays: String(numeric),
+        balancePaymentDays: balance === '' ? '' : String(balance)
+      }));
+      return;
+    }
+
+    if (name === 'balancePaymentDays') {
+      const digitsOnly = value.replace(/[^0-9]/g, '');
+      if (digitsOnly === '') {
+        setFormData(prev => ({ ...prev, balancePaymentDays: '' }));
+        return;
+      }
+      let numeric = parseInt(digitsOnly, 10);
+      if (Number.isNaN(numeric)) numeric = 0;
+      numeric = Math.max(0, numeric);
+      const minAdv = formData.minAdvancedDays === '' ? null : parseInt(formData.minAdvancedDays, 10);
+      const check = formData.tourCheckDays === '' ? null : parseInt(formData.tourCheckDays, 10);
+      if (minAdv !== null && !Number.isNaN(minAdv) && check !== null && !Number.isNaN(check)) {
+        numeric = Math.min(numeric, Math.max(0, minAdv - check));
+      }
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.balancePaymentDays;
+        return newErrors;
+      });
+      setFormData(prev => ({
+        ...prev,
+        balancePaymentDays: String(numeric)
+      }));
+      return;
+    }
+
+    if (name === 'depositPercentage' || name === 'refundFloor') {
+      const digitsOnly = value.replace(/[^0-9]/g, '');
+      let numeric = digitsOnly === '' ? '' : parseInt(digitsOnly, 10);
+      if (numeric === '') {
+        setFormData(prev => ({ ...prev, [name]: '' }));
+        return;
+      }
+      if (Number.isNaN(numeric)) numeric = 0;
+      const min = name === 'refundFloor' ? 1 : 0;
+      numeric = Math.max(min, Math.min(100, numeric));
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+      setFormData(prev => ({ ...prev, [name]: String(numeric) }));
+      return;
+    }
+
+    if (name === 'allowRefundableAfterBalancePayment') {
+      const checked = e.target.checked;
+      setFormData(prev => ({
+        ...prev,
+        allowRefundableAfterBalancePayment: checked,
+        refundFloor: checked ? (prev.refundFloor || '20') : '0'
+      }));
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.refundFloor;
+        return newErrors;
+      });
       return;
     }
 
@@ -474,35 +576,43 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       return;
     }
     const leadDays = deriveLeadDaysFromDate(value);
+    const minAdv = formData.minAdvancedDays === '' ? null : parseInt(formData.minAdvancedDays, 10);
     if (leadDays === null) {
       setFormErrors(prev => ({ ...prev, tourExpirationDate: t('toast.field_invalid') || 'Ngày không hợp lệ' }));
       return;
     }
-    let nextDeadline = formData.tourDeadline;
+    if (minAdv !== null && !Number.isNaN(minAdv) && leadDays <= minAdv) {
+      setFormErrors(prev => ({
+        ...prev,
+        tourExpirationDate: t('tourWizard.step1.errors.minAdvancedExceedsCutoff', { cutoff: minAdv }) || 'Ngày khóa đặt tour phải sau số ngày báo trước tối thiểu'
+      }));
+      return;
+    }
+    let nextDeadline = formData.minAdvancedDays;
     if (nextDeadline !== '') {
-        const deadlineNum = parseInt(nextDeadline, 10);
-        if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
-          const adjusted = Math.max(0, leadDays - 1);
-          nextDeadline = String(adjusted);
-          // Clear error when value is auto-adjusted correctly
-          setFormErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors.tourDeadline;
-            return newErrors;
-          });
-        } else {
-          // Clear error when value is valid
-          setFormErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors.tourDeadline;
-            return newErrors;
-          });
-        }
+      const deadlineNum = parseInt(nextDeadline, 10);
+      if (!Number.isNaN(deadlineNum) && deadlineNum >= leadDays) {
+        const adjusted = Math.max(0, leadDays - 1);
+        nextDeadline = String(adjusted);
+        // Clear error when value is auto-adjusted correctly
+        setFormErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.minAdvancedDays;
+          return newErrors;
+        });
+      } else {
+        // Clear error when value is valid
+        setFormErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.minAdvancedDays;
+          return newErrors;
+        });
+      }
     }
     setFormData(prev => ({
       ...prev,
       tourExpirationDate: value,
-      tourDeadline: nextDeadline
+      minAdvancedDays: nextDeadline
     }));
   };
 
@@ -617,7 +727,13 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     if (!isNonEmptyText(formData.tourVehicle)) errors.push('Phương tiện');
     if (!isNonEmptyText(formData.tourType)) errors.push('Loại tour');
     if (!isNonEmptyText(formData.tourSchedule)) errors.push('Tóm tắt lịch trình');
-    if (formData.tourDeadline === '') errors.push('Số ngày báo trước tối thiểu');
+    if (formData.minAdvancedDays === '') errors.push('Số ngày báo trước tối thiểu');
+    if (formData.tourCheckDays === '') errors.push('Số ngày kiểm tra/duyệt tour');
+    if (formData.balancePaymentDays === '') errors.push('Số ngày thanh toán còn lại');
+    if (formData.depositPercentage === '') errors.push('Tỷ lệ đặt cọc');
+    if (formData.allowRefundableAfterBalancePayment && (formData.refundFloor === '' || parseInt(formData.refundFloor, 10) < 1)) {
+      errors.push('Refund floor');
+    }
     if (!isNonEmptyText(formData.tourExpirationDate)) errors.push('Ngày khóa đặt tour');
 
     const amount = parseInt(formData.amount);
@@ -679,11 +795,11 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       const { days, nights } = parseTourDuration(formData.tourDuration);
       const tourIntDuration = Math.max(days, nights);
 
-      const deadlineValue = formData.tourDeadline === '' ? null : parseInt(formData.tourDeadline, 10);
+    const minAdvanceValue = formData.minAdvancedDays === '' ? null : parseInt(formData.minAdvancedDays, 10);
       const expirationDateValue = formData.tourExpirationDate || '';
 
-      if (deadlineValue === null || Number.isNaN(deadlineValue) || !expirationDateValue) {
-        setFormErrors(prev => ({ ...prev, tourDeadline: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
+    if (minAdvanceValue === null || Number.isNaN(minAdvanceValue) || !expirationDateValue) {
+      setFormErrors(prev => ({ ...prev, minAdvancedDays: t('toast.field_invalid') || 'Giá trị không hợp lệ' }));
         setLoading(false);
         return;
       }
@@ -704,7 +820,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         return;
       }
 
-      const normalizedDeadline = Math.max(0, Math.min(deadlineValue, leadDays > 0 ? leadDays - 1 : 0));
+    const normalizedMinAdvance = Math.max(0, Math.min(minAdvanceValue, leadDays > 0 ? leadDays - 1 : 0));
 
       // Prepare tour data
       const tourRequest = {
@@ -716,7 +832,14 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourDeparturePoint: formData.tourDeparturePoint,
         tourVehicle: formData.tourVehicle,
         tourType: formData.tourType,
-        tourDeadline: normalizedDeadline,
+      minAdvancedDays: normalizedMinAdvance,
+      tourCheckDays: formData.tourCheckDays === '' ? 0 : parseInt(formData.tourCheckDays, 10),
+      balancePaymentDays: formData.balancePaymentDays === '' ? 0 : parseInt(formData.balancePaymentDays, 10),
+      depositPercentage: formData.depositPercentage === '' ? 0 : parseInt(formData.depositPercentage, 10),
+      refundFloor: formData.allowRefundableAfterBalancePayment
+        ? (formData.refundFloor === '' ? 0 : parseInt(formData.refundFloor, 10))
+        : 0,
+      allowRefundableAfterBalancePayment: !!formData.allowRefundableAfterBalancePayment,
         tourExpirationDate: expirationDateValue,
         amount: amount,
         adultPrice: adultPrice,
@@ -927,27 +1050,98 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       name="tourExpirationDate"
                       value={formData.tourExpirationDate}
                       onChange={(e) => handleExpirationDateChange(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={(() => {
+                        const minAdv = formData.minAdvancedDays === '' ? null : parseInt(formData.minAdvancedDays, 10);
+                        const base = new Date();
+                        base.setHours(0,0,0,0);
+                        if (minAdv !== null && !Number.isNaN(minAdv)) {
+                          base.setDate(base.getDate() + minAdv + 1); // strictly greater than minAdvanceDays
+                        }
+                        return base.toISOString().split('T')[0];
+                      })()}
                       required
                     />
                     <small className={styles['form-help']}>{t('tourWizard.step1.help.tourExpirationDate')}</small>
                   </div>
 
                   <div className={styles['form-group']}>
-                    <label htmlFor="tourDeadline">{t('tourWizard.step1.fields.tourDeadline')}</label>
+                    <label htmlFor="minAdvancedDays">{t('tourWizard.step1.fields.tourDeadline')}</label>
                     <input
                       type="number"
-                      id="tourDeadline"
-                      name="tourDeadline"
-                      value={formData.tourDeadline}
-                      onChange={handleInputChange}
-                      onKeyDown={preventInvalidNumberKeys}
-                      onWheel={(e) => e.currentTarget.blur()}
+                      id="minAdvancedDays"
+                      name="minAdvancedDays"
+                      value={formData.minAdvancedDays}
+                      readOnly
+                      disabled
                       min="0"
                       max={MAX_LEAD_DAYS}
                       required
                     />
                     <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
+                  </div>
+                </div>
+
+                <div className={styles['form-row']}>
+                  <div className={styles['form-group']}>
+                    <label htmlFor="tourCheckDays">{t('tourWizard.step1.fields.checkDays', 'Check days (deposit window)')}</label>
+                    <input
+                      type="number"
+                      id="tourCheckDays"
+                      name="tourCheckDays"
+                      value={formData.tourCheckDays}
+                      readOnly
+                      disabled
+                      min="0"
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.checkDays', 'Phần đầu của MinAdvanceDays dành cho đặt cọc')}</small>
+                  </div>
+
+                  <div className={styles['form-group']}>
+                    <label htmlFor="balancePaymentDays">{t('tourWizard.step1.fields.balancePaymentDays', 'Balance payment days')}</label>
+                    <input
+                      type="number"
+                      id="balancePaymentDays"
+                      name="balancePaymentDays"
+                      value={formData.balancePaymentDays}
+                      readOnly
+                      disabled
+                      min="0"
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.balancePaymentDays', 'Tự động = MinAdvanceDays - CheckDays')}</small>
+                  </div>
+                </div>
+
+                <div className={styles['form-row']}>
+                  <div className={styles['form-group']}>
+                    <label htmlFor="depositPercentage">{t('tourWizard.step1.fields.depositPercentage', 'Deposit percentage')}</label>
+                    <input
+                      type="number"
+                      id="depositPercentage"
+                      name="depositPercentage"
+                      value={formData.depositPercentage}
+                      readOnly
+                      disabled
+                      min="0"
+                      max="100"
+                      placeholder="0 - 100"
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.depositPercentage', 'Required at booking time.')}</small>
+                  </div>
+
+                  <div className={styles['form-group']}>
+                    <label htmlFor="refundFloor">{t('tourWizard.step1.fields.refundFloor', 'Refund floor (%)')}</label>
+                    <input
+                      type="number"
+                      id="refundFloor"
+                      name="refundFloor"
+                      value={formData.refundFloor}
+                      readOnly
+                      disabled
+                      min="1"
+                      max="100"
+                      placeholder="1 - 100"
+                    />
+                    <small className={styles['form-help']}>{t('tourWizard.step1.help.refundFloor', 'Minimum refundable percentage after balance window.')}</small>
                   </div>
                 </div>
 
