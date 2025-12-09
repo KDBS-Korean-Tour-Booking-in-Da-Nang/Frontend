@@ -67,7 +67,7 @@ const BubbleChatAI = () => {
                 title={t('chatAI.bubble.title')}
             >
                 <div className={styles.bubbleContent}>
-                    <SparklesIcon className={styles.bubbleIcon} />
+                    <img src="/logoKDBS.png" alt="KDBS" className={styles.bubbleImg} />
                 </div>
 
                 {/* Glow effect */}

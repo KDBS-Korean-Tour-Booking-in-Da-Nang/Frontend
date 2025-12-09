@@ -70,6 +70,17 @@
     transform: rotate(15deg);
 }
 
+.bubbleImg {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    transition: all 0.3s ease;
+}
+
+.bubble:hover .bubbleImg {
+    transform: scale(1.1);
+}
+
 /* Glow Effect */
 .bubbleGlow {
     position: absolute;

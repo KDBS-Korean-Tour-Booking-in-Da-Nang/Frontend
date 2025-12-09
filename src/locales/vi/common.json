@@ -160,10 +160,10 @@
       "submit": "Gửi email",
       "sending": "Đang gửi...",
       "success": "OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
-			"error": "Gửi OTP thất bại. Vui lòng thử lại.",
-			"errors": {
-				"oauthOnly": "Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver."
-			}
+      "error": "Gửi OTP thất bại. Vui lòng thử lại.",
+      "errors": {
+        "oauthOnly": "Tài khoản này đăng nhập qua Google/Naver và không có mật khẩu. Vui lòng đăng nhập bằng Google/Naver."
+      }
     },
     "verify": {
       "title": "Xác thực Email",
@@ -1126,24 +1126,24 @@
         "noPermission": "You do not have permission to resolve tickets.",
         "selectResolution": "Please select a resolution type."
       },
-			"modal": {
-				"title": "Chi tiết Ticket",
-				"ticketId": "Ticket ID: #{{id}}",
-				"close": "Đóng",
-				"subject": "Chủ đề",
-				"message": "Tin nhắn",
-				"reasons": "Lý do",
-				"status": "Trạng thái",
-				"priority": "Ưu tiên",
-				"createdAt": "Ngày tạo",
-				"resolvedAt": "Ngày giải quyết"
-			},
-			"resolveModal": {
-				"title": "Giải quyết Ticket",
-				"ticketId": "Ticket ID: #{{id}}",
-				"close": "Đóng",
-				"ticketSubject": "Chủ đề Ticket",
-				"ticketMessage": "Tin nhắn Ticket",
+      "modal": {
+        "title": "Chi tiết Ticket",
+        "ticketId": "Ticket ID: #{{id}}",
+        "close": "Đóng",
+        "subject": "Chủ đề",
+        "message": "Tin nhắn",
+        "reasons": "Lý do",
+        "status": "Trạng thái",
+        "priority": "Ưu tiên",
+        "createdAt": "Ngày tạo",
+        "resolvedAt": "Ngày giải quyết"
+      },
+      "resolveModal": {
+        "title": "Giải quyết Ticket",
+        "ticketId": "Ticket ID: #{{id}}",
+        "close": "Đóng",
+        "ticketSubject": "Chủ đề Ticket",
+        "ticketMessage": "Tin nhắn Ticket",
         "resolutionType": "Resolution Type",
         "required": "*",
         "resolutionOptions": {
@@ -2427,7 +2427,6 @@
       "deactivate_success": "Đã tạm dừng tour",
       "cannot_delete_content": "Không thể xóa nội dung"
     },
-
     "auth": {
       "login_success": "Đăng nhập thành công!",
       "login_failed": "Đăng nhập thất bại. Vui lòng thử lại.",
@@ -3413,12 +3412,19 @@
         "title": "Người đại diện",
         "label": "Người đại diện"
       },
-      "summary": { "totalLabel": "Tổng thanh toán" },
+      "summary": {
+        "totalLabel": "Tổng thanh toán"
+      },
       "common": {
         "noPrice": "Chưa có giá",
         "free": "Miễn phí"
       },
-      "dateDisplay": { "day": "Ngày", "month": "Tháng", "year": "Năm", "selectedDate": "Ngày đã chọn" },
+      "dateDisplay": {
+        "day": "Ngày",
+        "month": "Tháng",
+        "year": "Năm",
+        "selectedDate": "Ngày đã chọn"
+      },
       "pax": {
         "adult": "Người lớn",
         "child": "Trẻ em",
@@ -3639,7 +3645,10 @@
         "vehicle": "Xe Du Lịch",
         "schedule": "Khám phá vùng đất Lệ Giang Shangrila với những cảnh quan thiên nhiên tuyệt đẹp, trải nghiệm văn hóa địa phương độc đáo và thưởng thức ẩm thực truyền thống."
       },
-      "placeholder": { "title": "Khám phá", "subtitle": "Điểm đến mơ ước" },
+      "placeholder": {
+        "title": "Khám phá",
+        "subtitle": "Điểm đến mơ ước"
+      },
       "durationTemplate": "{{days}} ngày {{nights}} đêm",
       "labels": {
         "code": "Mã Tour:",
@@ -3652,7 +3661,9 @@
         "noSchedule": "Chưa có lịch trình",
         "notAvailable": "Chưa có"
       },
-      "categories": { "standard": "Tiêu chuẩn" }
+      "categories": {
+        "standard": "Tiêu chuẩn"
+      }
     },
     "errors": {
       "fullNameRequired": "Họ tên là bắt buộc",
@@ -4134,7 +4145,9 @@
       "businessInfo": "Thông Tin Doanh Nghiệp",
       "companyInfo": "Thông Tin Công Ty"
     },
-    "actions": { "download": "Tải báo cáo" },
+    "actions": {
+      "download": "Tải báo cáo"
+    },
     "welcome": {
       "title": "Chào mừng đến với Bảng Điều Khiển Doanh Nghiệp",
       "subtitle": "Quản lý tour, theo dõi phân tích và phát triển doanh nghiệp của bạn",
@@ -4766,8 +4779,8 @@
       "title": "Chat với AI"
     },
     "box": {
-      "title": "AI Assistant",
-      "greeting": "Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp gì cho bạn hôm nay?",
+      "title": "KDBS Assistant",
+      "greeting": "Xin chào! Tôi là KDBS Assistant. Tôi có thể giúp gì cho bạn hôm nay?",
       "status": {
         "typing": "Đang nhập...",
         "ready": "Sẵn sàng hỗ trợ"

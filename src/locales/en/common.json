@@ -4743,8 +4743,8 @@
       "title": "Chat with AI"
     },
     "box": {
-      "title": "AI Assistant",
-      "greeting": "Hello! I'm your AI assistant. How can I help you today?",
+      "title": "KDBS Assistant",
+      "greeting": "Hello! I'm KDBS Assistant. How can I help you today?",
       "status": {
         "typing": "Typing...",
         "ready": "Ready to help"
