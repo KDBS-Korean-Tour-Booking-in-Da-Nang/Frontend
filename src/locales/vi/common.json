@@ -1702,6 +1702,8 @@
     },
     "errors": {
       "invalidName": "Tên không hợp lệ: không bắt đầu bằng số, không chứa ký tự đặc biệt.",
+      "avatarTooLarge": "Kích thước ảnh không được vượt quá 5MB",
+      "avatarInvalidFormat": "Định dạng ảnh không được hỗ trợ (chỉ chấp nhận JPG, PNG, GIF, WebP)",
       "avatarSize": "Kích thước ảnh không được vượt quá 5MB",
       "avatarFormat": "Định dạng ảnh không được hỗ trợ (chỉ chấp nhận JPG, PNG, GIF, WebP)",
       "tokenMissing": "Không tìm thấy token xác thực",
@@ -2155,6 +2157,7 @@
       "existingImagesRemovedReason": "Hình ảnh đã upload sẽ bị xóa khi bạn nhập link vào nội dung."
     },
     "post": {
+      "title": "bài viết",
       "loading": "Đang tải bài viết...",
       "noPosts": "Không có bài viết nào",
       "noPostsDesc": "Hãy là người đầu tiên chia sẻ điều gì đó!",
@@ -2404,6 +2407,9 @@
     "company_only": "Chỉ tài khoản Company mới có thể thực hiện thao tác này.",
     "field_invalid": "Giá trị không hợp lệ",
     "min_price": "Giá tối thiểu là {{min}} VND",
+    "post": {
+      "create_error": "Không thể tạo bài viết. Vui lòng thử lại."
+    },
     "tour": {
       "upload_image_failed": "Không thể upload ảnh. Vui lòng thử lại.",
       "file_size_exceeded": "Kích thước file không được vượt quá 5MB",
@@ -2489,8 +2495,13 @@
         "duration": "Số ngày",
         "nights": "Số đêm",
         "maxCapacity": "Số tour tối đa",
+        "numberOfAvailableTours": "Số tour tối đa",
         "tourDeadline": "Số ngày báo trước tối thiểu",
-        "tourExpirationDate": "Ngày khóa đặt tour"
+        "tourExpirationDate": "Ngày khóa đặt tour",
+        "checkDays": "Số ngày kiểm tra (cửa sổ đặt cọc)",
+        "balancePaymentDays": "Số ngày thanh toán số dư",
+        "depositPercentage": "Phần trăm đặt cọc",
+        "refundFloor": "Tỷ lệ hoàn tiền tối thiểu (%)"
       },
       "placeholders": {
         "tourName": "Ví dụ: Tour Đà Nẵng - Hội An 3N2Đ, Tour Hàn Quốc 5N4Đ",
@@ -2498,13 +2509,25 @@
         "nights": "Ví dụ: 2",
         "maxCapacity": "Ví dụ: 30",
         "tourDeadline": "Ví dụ: 7",
-        "tourExpirationDate": "Chọn ngày khóa đặt tour"
+        "tourExpirationDate": "Chọn ngày khóa đặt tour",
+        "checkDays": "Nhập số ngày kiểm tra/duyệt",
+        "balancePaymentDays": "Nhập số ngày thanh toán còn lại",
+        "depositPercentage": "0 - 100",
+        "refundFloor": "1 - 100"
       },
       "help": {
         "departurePoint": "Tất cả tour đều khởi hành từ Đà Nẵng",
         "vehicle": "Phương tiện mặc định: Xe Du Lịch",
         "tourDeadline": "Khách phải đặt tour trước ít nhất số ngày này so với ngày khởi hành",
-        "tourExpirationDate": "Tour sẽ ngừng nhận đặt sau ngày này"
+        "tourExpirationDate": "Tour sẽ ngừng nhận đặt sau ngày này",
+        "checkDays": "Phần đầu của MinAdvanceDays dành cho đặt cọc",
+        "balancePaymentDays": "Tự động = MinAdvanceDays - CheckDays",
+        "depositPercentage": "Yêu cầu khi đặt tour.",
+        "refundFloor": "Mức % hoàn tối thiểu sau giai đoạn thanh toán còn lại.",
+        "allowRefundableAfterBalancePayment": "Bật hoàn tiền sau khi đã thanh toán phần còn lại"
+      },
+      "errors": {
+        "minAdvancedExceedsCutoff": "Số ngày đặt tối thiểu không được vượt quá \"{{cutoff}}\" ngày khóa đặt tour. Vui lòng nhập lại Check days và Balance payment days."
       },
       "hints": {
         "nightsSuggestion": "Gợi ý: {{suggest}} đêm (cho {{days}} ngày).",
@@ -2524,6 +2547,11 @@
         "maxCapacity": "Số tour tối đa:",
         "tourDeadline": "Thời gian báo trước tối thiểu:",
         "tourExpirationDate": "Khóa đặt tour vào:",
+        "checkDays": "Số ngày kiểm tra",
+        "balancePaymentDays": "Số ngày thanh toán còn lại",
+        "depositPercentage": "Đặt cọc",
+        "refundRule": "Chính sách hoàn",
+        "refundFloor": "Mức hoàn tối thiểu",
         "notEntered": "Chưa nhập",
         "notSelected": "Chưa chọn",
         "guests": "khách",
@@ -2703,6 +2731,12 @@
           "tourName": "Tên tour:",
           "duration": "Thời gian:",
           "adultPrice": "Giá người lớn:",
+          "minAdvanceDays": "Số ngày báo trước",
+          "checkDays": "Số ngày kiểm tra",
+          "balancePaymentDays": "Số ngày thanh toán còn lại",
+          "depositPercentage": "Đặt cọc %",
+          "refundable": "Hoàn sau thanh toán còn lại",
+          "refundFloor": "Mức hoàn tối thiểu",
           "image": "Hình ảnh:",
           "status": "Trạng thái:"
         },
@@ -3169,6 +3203,7 @@
       "bookedOn": "Đặt ngày",
       "alreadyFeedbacked": "Đã phản hồi",
       "transaction": "Giao dịch",
+      "cancelBooking": "Huỷ tour",
       "resumePayment": "Tiếp tục thanh toán",
       "cancelled": "Đã hủy"
     },
@@ -3193,6 +3228,15 @@
       "bookingSuccess": "Đặt tour thành công",
       "bookingFailed": "Đặt tour thất bại",
       "bookingRejected": "Đặt tour bị từ chối"
+    },
+    "cancel": {
+      "title": "Xác nhận huỷ tour",
+      "message": "Bạn chắc chắn muốn huỷ booking này? Sau khi xác nhận, chúng tôi sẽ tính mức hoàn tiền dự kiến theo chính sách hiện tại.",
+      "confirm": "Xác nhận huỷ",
+      "successTitle": "Huỷ tour thành công",
+      "successBody": "Yêu cầu huỷ đã được ghi nhận. Khoản hoàn tiền tạm tính",
+      "successTail": "sẽ được chuyển theo phương thức thanh toán ban đầu.",
+      "note": "Lưu ý: Đây chỉ là màn thử nghiệm UI, chưa gọi API. Vui lòng kiểm tra chính sách hoàn tiền thực tế của tour."
     },
     "transactionStatus": {
       "pending": "Chờ xử lý",
@@ -4560,7 +4604,7 @@
     "placeholders": {
       "code": "Ví dụ: VOUCHER001",
       "name": "Ví dụ: Giảm 10% cho tour mùa hè",
-      "discountPercent": "Nhập % (1 - 100)",
+      "discountPercent": "Nhập % (1 - 80)",
       "discountAmount": "Nhập số tiền VND (ví dụ: 100000 cho 100k)"
     },
     "tourDropdown": {
@@ -4716,6 +4760,28 @@
     "emoji": "Thêm emoji",
     "send": "Gửi tin nhắn",
     "placeholder": "Nhập tin nhắn của bạn..."
+  },
+  "chatAI": {
+    "bubble": {
+      "title": "Chat với AI"
+    },
+    "box": {
+      "title": "AI Assistant",
+      "greeting": "Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp gì cho bạn hôm nay?",
+      "status": {
+        "typing": "Đang nhập...",
+        "ready": "Sẵn sàng hỗ trợ"
+      },
+      "actions": {
+        "minimize": "Thu nhỏ",
+        "close": "Đóng",
+        "send": "Gửi"
+      },
+      "input": {
+        "placeholder": "Nhập tin nhắn..."
+      },
+      "error": "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau."
+    }
   },
   "userChat": {
     "time": {

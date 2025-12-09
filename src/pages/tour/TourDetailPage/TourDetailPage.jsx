@@ -152,7 +152,7 @@ const TourDetailPage = () => {
 
     let isMounted = true;
     const tourId = parseInt(id);
-    
+
     if (isNaN(tourId)) {
       navigate("/tour");
       return;
@@ -223,7 +223,7 @@ const TourDetailPage = () => {
           setVoucherEmptyReason("");
           setVoucherError(
             t("tourPage.detail.vouchers.sessionExpired") ||
-              "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
           );
           return;
         }
@@ -247,8 +247,8 @@ const TourDetailPage = () => {
           setVoucherEmptyReason("");
           setVoucherError(
             errorData.message ||
-              errorData.error ||
-              t("tourPage.detail.vouchers.errorGeneric")
+            errorData.error ||
+            t("tourPage.detail.vouchers.errorGeneric")
           );
           return;
         }
@@ -257,13 +257,20 @@ const TourDetailPage = () => {
         let vouchers = Array.isArray(data)
           ? data
           : Array.isArray(data?.vouchers)
-          ? data.vouchers
-          : [];
+            ? data.vouchers
+            : [];
 
-        // Lọc bỏ voucher đã hết hạn dựa trên endDate
+        // Lọc bỏ voucher đã hết hạn dựa trên endDate hoặc đã hết số lượng
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         vouchers = vouchers.filter((voucher) => {
+          // Lọc bỏ voucher hết số lượng (remainingQuantity <= 0)
+          const remaining = voucher?.remainingQuantity;
+          if (remaining !== null && remaining !== undefined && remaining <= 0) {
+            return false;
+          }
+
+          // Lọc bỏ voucher hết hạn
           const rawEndDate =
             voucher?.endDate || voucher?.meta?.endDate || voucher?.expiryDate;
           if (!rawEndDate) return true; // nếu BE không gửi endDate thì coi như luôn hiển thị
@@ -271,12 +278,12 @@ const TourDetailPage = () => {
           if (Number.isNaN(end.getTime())) return true;
           end.setHours(23, 59, 59, 999); // còn hiệu lực đến hết ngày endDate
           return end >= today;
-            });
+        });
 
         if (!isSubscribed) return;
         setVoucherSuggestions(vouchers);
         if (!vouchers.length) {
-              setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
+          setVoucherEmptyReason(t("tourPage.detail.vouchers.empty"));
         }
       } catch (error) {
         if (!isSubscribed) return;
@@ -363,15 +370,15 @@ const TourDetailPage = () => {
   const formatDuration = (duration) => {
     if (!duration) return '';
     const raw = String(duration);
-    
+
     // Try to parse "X ngày Y đêm" or "X days Y nights" or "X일 Y박" format
     const viMatch = raw.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
     const enMatch = raw.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
     const koMatch = raw.match(/(\d+)\s*일\s*(\d+)\s*박/i);
     const genericMatch = raw.match(/(\d+)\D+(\d+)/);
-    
+
     const match = viMatch || enMatch || koMatch || genericMatch;
-    
+
     if (match) {
       const days = parseInt(match[1], 10);
       const nights = parseInt(match[2], 10);
@@ -379,7 +386,7 @@ const TourDetailPage = () => {
         return t('tourPage.detail.durationTemplate', { days, nights });
       }
     }
-    
+
     // If can't parse, return as is
     return raw;
   };
@@ -418,8 +425,8 @@ const TourDetailPage = () => {
     const endDate = voucher.endDate
       ? new Date(voucher.endDate)
       : voucher.meta?.endDate
-      ? new Date(voucher.meta.endDate)
-      : null;
+        ? new Date(voucher.meta.endDate)
+        : null;
     const daysLeft = endDate
       ? Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
       : null;
@@ -545,7 +552,7 @@ const TourDetailPage = () => {
                 <div className={styles["meta-item"]}>
                   <Star className={styles["meta-icon"]} />
                   <span>
-                    {ratingStats.total > 0 
+                    {ratingStats.total > 0
                       ? t('tourPage.detail.reviews.ratingFormat', { avg: formatAvg(ratingStats.avg), total: ratingStats.total })
                       : t('tourPage.detail.reviews.noReviews')}
                   </span>
@@ -828,8 +835,8 @@ const TourDetailPage = () => {
                               rawDiscountType === "FIXED"
                                 ? "AMOUNT"
                                 : rawDiscountType === "AMOUNT"
-                                ? "AMOUNT"
-                                : "PERCENT";
+                                  ? "AMOUNT"
+                                  : "PERCENT";
 
                             const voucherCode =
                               voucher.voucherCode ||
@@ -869,11 +876,10 @@ const TourDetailPage = () => {
 
                                 {/* LEFT SECTION (MÀU) */}
                                 <div
-                                  className={`${styles["voucher-left-section"]} ${
-                                    discountType === "PERCENT"
+                                  className={`${styles["voucher-left-section"]} ${discountType === "PERCENT"
                                       ? styles["voucher-header-gradient-percent"]
                                       : styles["voucher-header-gradient-amount"]
-                                  }`}
+                                    }`}
                                 >
                                   <div className={styles["voucher-left-content"]}>
                                     {discountType === "PERCENT" ? (
@@ -940,8 +946,8 @@ const TourDetailPage = () => {
                                         {discountType === "PERCENT"
                                           ? `Giảm ${discountValueDisplay}%`
                                           : `Giảm ${formatCurrency(
-                                              discountValueDisplay
-                                            )}`}
+                                            discountValueDisplay
+                                          )}`}
                                       </div>
                                     </div>
 
@@ -1004,15 +1010,14 @@ const TourDetailPage = () => {
                                           );
                                         }
                                       }}
-                                      className={`${styles["btn-copy"]} ${
-                                        discountType === "PERCENT"
+                                      className={`${styles["btn-copy"]} ${discountType === "PERCENT"
                                           ? styles[
-                                              "voucher-button-gradient-percent"
-                                            ]
+                                          "voucher-button-gradient-percent"
+                                          ]
                                           : styles[
-                                              "voucher-button-gradient-amount"
-                                            ]
-                                      }`}
+                                          "voucher-button-gradient-amount"
+                                          ]
+                                        }`}
                                     >
                                       {t("tourPage.detail.vouchers.copyButton")}
                                     </button>
@@ -1122,10 +1127,10 @@ const TourDetailPage = () => {
                     style={
                       isCompany
                         ? {
-                            pointerEvents: "none",
-                            cursor: "not-allowed",
-                            opacity: 0.6,
-                          }
+                          pointerEvents: "none",
+                          cursor: "not-allowed",
+                          opacity: 0.6,
+                        }
                         : undefined
                     }
                   >
@@ -1158,17 +1163,16 @@ const TourDetailPage = () => {
                     titleFromAPI && titleFromAPI.trim().length > 0
                       ? titleFromAPI
                       : t("tourPage.detail.itinerary.day", {
-                          index: index + 1,
-                        });
+                        index: index + 1,
+                      });
                   return (
                     <div className={styles["itinerary-item"]} key={index}>
                       <div
                         className={styles["itinerary-day-header"]}
                         style={{
                           background: day.dayColor
-                            ? `linear-gradient(135deg, ${
-                                day.dayColor
-                              }, ${shadeColor(day.dayColor, -20)})`
+                            ? `linear-gradient(135deg, ${day.dayColor
+                            }, ${shadeColor(day.dayColor, -20)})`
                             : undefined,
                         }}
                       >
@@ -1186,24 +1190,24 @@ const TourDetailPage = () => {
                       {(day.description ||
                         day.tourContentDescription ||
                         day.activities) && (
-                        <div className={styles["itinerary-content"]}>
-                          <div className={styles["time-schedule"]}>
-                            <div className={styles["time-item"]}>
-                              <span
-                                className={styles["activity"]}
-                                dangerouslySetInnerHTML={{
-                                  __html: sanitizeHtml(
-                                    day.description ||
+                          <div className={styles["itinerary-content"]}>
+                            <div className={styles["time-schedule"]}>
+                              <div className={styles["time-item"]}>
+                                <span
+                                  className={styles["activity"]}
+                                  dangerouslySetInnerHTML={{
+                                    __html: sanitizeHtml(
+                                      day.description ||
                                       day.tourContentDescription ||
                                       day.activities ||
                                       ""
-                                  ),
-                                }}
-                              />
+                                    ),
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   );
                 })

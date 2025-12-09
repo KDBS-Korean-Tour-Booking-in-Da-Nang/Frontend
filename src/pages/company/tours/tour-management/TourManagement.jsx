@@ -235,6 +235,17 @@ const TourManagement = () => {
     return match ? t('tourManagement.card.durationDays', { days: match[1] }) : duration;
   };
 
+  const formatAdvanceDays = (tour) => {
+    const val = tour.minAdvancedDays ?? tour.tourDeadline;
+    if (val === null || val === undefined) return null;
+    return `${val} ${t('tourWizard.step1.summary.days')}`;
+  };
+
+  const formatDeposit = (tour) => {
+    if (tour.depositPercentage === null || tour.depositPercentage === undefined) return null;
+    return `${tour.depositPercentage}%`;
+  };
+
   // Get translated status label with fallback to status value
   const getStatusLabel = (status) => {
     if (!status) return t('tourManagement.statusBadge.UNKNOWN');
@@ -398,6 +409,18 @@ const TourManagement = () => {
                       <ClockIcon className={styles['detail-icon']} />
                       <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
                     </div>
+                    {formatAdvanceDays(tour) && (
+                      <div className={styles['detail-item']}>
+                        <ClockIcon className={styles['detail-icon']} />
+                        <span className={styles['detail-value']}>{formatAdvanceDays(tour)}</span>
+                      </div>
+                    )}
+                    {formatDeposit(tour) && (
+                      <div className={styles['detail-item']}>
+                        <ClockIcon className={styles['detail-icon']} />
+                        <span className={styles['detail-value']}>{t('tourWizard.step4.preview.fields.depositPercentage', 'Deposit')}: {formatDeposit(tour)}</span>
+                      </div>
+                    )}
                     <div className={styles['detail-item']}>
                       <UserGroupIcon className={styles['detail-icon']} />
                       <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>

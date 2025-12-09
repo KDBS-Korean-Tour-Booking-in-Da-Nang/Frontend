@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -102,6 +103,8 @@ const getTransactionStatusColor = (status) => {
 const BookingHistoryCard = ({ booking }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [hasConfirmedCancel, setHasConfirmedCancel] = useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -158,20 +161,102 @@ const getStatusIcon = (iconColor) => {
     handleViewDetails();
   };
 
+  const handleCancelClick = (e) => {
+    e.stopPropagation();
+    setHasConfirmedCancel(false);
+    setShowCancelModal(true);
+  };
+
+  const handleCloseModal = useCallback((e) => {
+    if (e) e.stopPropagation();
+    setShowCancelModal(false);
+    setHasConfirmedCancel(false);
+  }, []);
+
+  const handleConfirmCancel = useCallback((e) => {
+    e.stopPropagation();
+    setHasConfirmedCancel(true);
+  }, []);
+
+  const previewRefundPercent = booking?.refundPreviewPercent ?? 80;
+
+  const modalNode = useMemo(() => {
+    if (!showCancelModal) return null;
+    return createPortal(
+      <div className={styles['modal-overlay']} onClick={handleCloseModal} role="presentation">
+        <div
+          className={styles['modal']}
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+        >
+          {!hasConfirmedCancel ? (
+            <>
+              <div className={styles['modal-header']}>
+                <h3>{t('bookingHistory.cancel.title')}</h3>
+              </div>
+              <p className={styles['modal-text']}>
+                {t(
+                  'bookingHistory.cancel.message',
+                  'Bạn chắc chắn muốn huỷ booking này? Sau khi xác nhận, chúng tôi sẽ tính toán mức hoàn tiền dự kiến theo chính sách hiện tại.'
+                )}
+              </p>
+              <div className={styles['modal-actions']}>
+                <button className={styles['ghost-btn']} onClick={handleCloseModal} type="button">
+                  {t('common.close')}
+                </button>
+                <button className={styles['primary-btn']} onClick={handleConfirmCancel} type="button">
+                  {t('bookingHistory.cancel.confirm')}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles['modal-header']}>
+                <h3>{t('bookingHistory.cancel.successTitle')}</h3>
+              </div>
+              <p className={styles['modal-text']}>
+                {t(
+                  'bookingHistory.cancel.successBody',
+                  'Yêu cầu huỷ đã được ghi nhận. Khoản hoàn tiền tạm tính'
+                )}{' '}
+                <strong>{previewRefundPercent}%</strong>{' '}
+                {t('bookingHistory.cancel.successTail', 'sẽ được chuyển theo phương thức thanh toán ban đầu.')}
+              </p>
+              <div className={styles['refund-note']}>
+                {t(
+                  'bookingHistory.cancel.note',
+                  'Lưu ý: Đây chỉ là màn thử nghiệm UI, chưa gọi API. Vui lòng kiểm tra chính sách hoàn tiền thực tế của tour.'
+                )}
+              </div>
+              <div className={styles['modal-actions']}>
+                <button className={styles['primary-btn']} onClick={handleCloseModal} type="button">
+                  {t('common.close')}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>,
+      document.body
+    );
+  }, [showCancelModal, hasConfirmedCancel, handleCloseModal, handleConfirmCancel, previewRefundPercent, t]);
+
   return (
-    <div 
-      className={styles['booking-card']}
-      onClick={handleCardClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleViewDetails();
-        }
-      }}
-      aria-label={`View details for booking ${booking.bookingId}`}
-    >
+    <>
+      <div 
+        className={styles['booking-card']}
+        onClick={handleCardClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleViewDetails();
+          }
+        }}
+        aria-label={`View details for booking ${booking.bookingId}`}
+      >
       <div className={styles['card-header']}>
         <div className={styles['booking-id-section']}>
           <DocumentTextIcon className={styles['id-icon']} />
@@ -265,15 +350,27 @@ const getStatusIcon = (iconColor) => {
       </div>
 
       <div className={styles['card-footer']}>
-        <button 
-          className={styles['view-details-btn']}
-          onClick={handleButtonClick}
-        >
-          <span>{t('bookingHistory.card.viewDetails')}</span>
-          <ArrowRightIcon className={styles['btn-icon']} />
-        </button>
+        <div className={styles['action-buttons']}>
+          <button 
+            className={styles['cancel-btn']}
+            onClick={handleCancelClick}
+            type="button"
+          >
+            {t('bookingHistory.card.cancelBooking')}
+          </button>
+          <button 
+            className={styles['view-details-btn']}
+            onClick={handleButtonClick}
+            type="button"
+          >
+            <span>{t('bookingHistory.card.viewDetails')}</span>
+            <ArrowRightIcon className={styles['btn-icon']} />
+          </button>
+        </div>
       </div>
-    </div>
+      </div>
+      {modalNode}
+    </>
   );
 };
 

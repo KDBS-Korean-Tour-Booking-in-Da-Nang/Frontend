@@ -1,7 +1,8 @@
 .chatBox {
   position: fixed;
   bottom: 20px;
-  right: 95px; /* Di chuyển sang trái để tạo không gian bên phải cho Coze */
+  right: 5rem;
+  /* Di chuyển sang trái để tạo không gian bên phải cho Coze */
   width: 380px;
   height: 500px;
   background: white;
@@ -134,7 +135,8 @@
   flex-direction: column;
   gap: 0.5rem;
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-  scroll-behavior: auto; /* Ensure no smooth scrolling interference */
+  scroll-behavior: auto;
+  /* Ensure no smooth scrolling interference */
 }
 
 /* Message Styles */
@@ -151,6 +153,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -270,10 +273,14 @@
 }
 
 @keyframes typing {
-  0%, 80%, 100% {
+
+  0%,
+  80%,
+  100% {
     transform: scale(0.8);
     opacity: 0.5;
   }
+
   40% {
     transform: scale(1);
     opacity: 1;
@@ -756,8 +763,10 @@
 /* Chat Bubble - Minimized */
 .chatBubble {
   position: fixed;
-  bottom: 100px; /* Đưa lên cao hơn để tránh bị che bởi Coze bubble (56px + 20px + margin) */
-  right: 25px; /* Di chuyển sang trái để tránh overlap với Coze bubble */
+  bottom: 100px;
+  /* Đưa lên cao hơn để tránh bị che bởi Coze bubble (56px + 20px + margin) */
+  right: 0.625rem;
+  /* Di chuyển sang trái để tránh overlap với Coze bubble */
   width: 60px;
   height: 60px;
   background: #1a8eea;
@@ -820,7 +829,8 @@
   background: #ef4444;
   border: 2px solid white;
   border-radius: 50%;
-  display: none; /* Hidden by default */
+  display: none;
+  /* Hidden by default */
   align-items: center;
   justify-content: center;
   cursor: pointer;

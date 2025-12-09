@@ -11,6 +11,7 @@ import {
   Calendar
 } from 'lucide-react';
 import styles from './Step2Itinerary.module.css';
+import ColorPickerModal from './ColorPickerModal/ColorPickerModal';
 
 // Note: Day titles are fully customized by Company; no default prefix is injected
 
@@ -21,17 +22,17 @@ const adjustColor = (color, percent) => {
   const R = (num >> 16) + amt;
   const G = (num >> 8 & 0x00FF) + amt;
   const B = (num & 0x0000FF) + amt;
-  
+
   const clampColor = (value) => {
     if (value < 0) return 0;
     if (value > 255) return 255;
     return value;
   };
-  
+
   const clampedR = clampColor(R);
   const clampedG = clampColor(G);
   const clampedB = clampColor(B);
-  
+
   return '#' + (0x1000000 + clampedR * 0x10000 + clampedG * 0x100 + clampedB).toString(16).slice(1);
 };
 
@@ -80,16 +81,16 @@ const Step2Itinerary = () => {
     images_upload_handler: async (blobInfo) => {
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
-      
+
       // Get token for authentication
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const token = storage.getItem('token');
-      
+
       if (!token) {
         throw new Error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
       }
-      
+
       try {
         const response = await fetch(getApiPath('/api/tour/content-image'), {
           method: 'POST',
@@ -98,14 +99,14 @@ const Step2Itinerary = () => {
           },
           body: formData
         });
-        
+
         // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           const { checkAndHandle401 } = await import('../../../../../../utils/apiErrorHandler');
           await checkAndHandle401(response);
           throw new Error('Session expired. Please login again.');
         }
-        
+
         if (response.ok) {
           const imageUrl = await response.text();
           // Normalize về relative path để đảm bảo không lưu BaseURL vào HTML content
@@ -132,7 +133,7 @@ const Step2Itinerary = () => {
         input.setAttribute('type', 'file');
         input.setAttribute('accept', 'image/*');
         input.click();
-        
+
         input.onchange = function () {
           const file = this.files[0];
           if (file) {
@@ -158,11 +159,8 @@ const Step2Itinerary = () => {
   });
   const [initialized, setInitialized] = useState(false);
   const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
-  const [customColor, setCustomColor] = useState('#4caf50');
-  const [currentTarget, setCurrentTarget] = useState(null); // 'main' or day index
-  const [currentHue, setCurrentHue] = useState(180); // 0-360
-  const [saturation, setSaturation] = useState(0.8); // 0-1
-  const [brightness, setBrightness] = useState(0.8); // 0-1
+  const [colorPickerInitialColor, setColorPickerInitialColor] = useState('#4caf50');
+  const [currentTarget, setCurrentTarget] = useState(null); // 'main' or day index or 'appendix-N'
   const [newAppendixTitle, setNewAppendixTitle] = useState('PHỤ LỤC / GHI CHÚ');
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -172,45 +170,45 @@ const Step2Itinerary = () => {
       // Use latest values from both formData and tourData to ensure we have the most current values
       const currentTourSchedule = formData.tourSchedule || tourData.tourSchedule || '';
       const currentTourDescription = formData.tourDescription || tourData.tourDescription || '';
-      
+
       // Validate required fields and show errors
       const errors = {};
-      
+
       // Check tourDescription - must be non-empty after trimming
       if (!currentTourDescription || !String(currentTourDescription).trim()) {
         errors.tourDescription = t('toast.required', { field: t('tourWizard.step2.tourDescription.title') }) || 'Mô tả tour là bắt buộc';
       }
-      
+
       // Check tourSchedule (Schedule Summary) - must be non-empty after trimming
       // Detailed Itinerary is optional, no validation needed
       if (!currentTourSchedule || !String(currentTourSchedule).trim()) {
         errors.tourSchedule = t('toast.required', { field: t('tourWizard.step2.fields.tourSchedule') }) || 'Tóm tắt lịch trình là bắt buộc';
       }
-      
+
       // Set errors and ensure they are displayed
       // Force a re-render by setting errors
       setFieldErrors(errors);
-      
+
       // Notify parent about validation status immediately
-      window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-        detail: { step: 2, hasErrors: Object.keys(errors).length > 0 } 
+      window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+        detail: { step: 2, hasErrors: Object.keys(errors).length > 0 }
       }));
-      
+
       // Scroll to first error field if there are errors
       if (Object.keys(errors).length > 0) {
         setTimeout(() => {
           const firstErrorKey = Object.keys(errors)[0];
           let errorElement = null;
-          
+
           // Try to find the element by ID or name
           if (firstErrorKey === 'tourDescription') {
-            errorElement = document.getElementById('tourDescription') || 
-                          document.querySelector('[name="tourDescription"]');
+            errorElement = document.getElementById('tourDescription') ||
+              document.querySelector('[name="tourDescription"]');
           } else if (firstErrorKey === 'tourSchedule') {
-            errorElement = document.getElementById('tourSchedule') || 
-                          document.querySelector('[name="tourSchedule"]');
+            errorElement = document.getElementById('tourSchedule') ||
+              document.querySelector('[name="tourSchedule"]');
           }
-          
+
           if (errorElement) {
             errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             if (errorElement.focus && typeof errorElement.focus === 'function') {
@@ -224,8 +222,8 @@ const Step2Itinerary = () => {
     const handleClearErrors = () => {
       setFieldErrors({});
       // Notify parent that errors are cleared
-      window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-        detail: { step: 2, hasErrors: false } 
+      window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+        detail: { step: 2, hasErrors: false }
       }));
     };
 
@@ -241,63 +239,31 @@ const Step2Itinerary = () => {
     };
   }, [formData, tourData, t]);
 
-  // Helper function to convert HSV to RGB
-  const hsvToRgb = (h, s, v) => {
-    const c = v * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = v - c;
-    
-    let r, g, b;
-    if (h < 60) { r = c; g = x; b = 0; }
-    else if (h < 120) { r = x; g = c; b = 0; }
-    else if (h < 180) { r = 0; g = c; b = x; }
-    else if (h < 240) { r = 0; g = x; b = c; }
-    else if (h < 300) { r = x; g = 0; b = c; }
-    else { r = c; g = 0; b = x; }
-    
-    return {
-      r: Math.round((r + m) * 255),
-      g: Math.round((g + m) * 255),
-      b: Math.round((b + m) * 255)
-    };
-  };
-
-  // Helper function to convert RGB to hex
-  const rgbToHex = (r, g, b) => {
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  };
-
-  // Update color gradient when hue changes
-  useEffect(() => {
-    if (showCustomColorPicker) {
-      const gradientSquare = document.getElementById('color-gradient-square');
-      if (gradientSquare) {
-        const ctx = document.createElement('canvas');
-        ctx.width = 200;
-        ctx.height = 150;
-        const canvas = ctx.getContext('2d');
-        
-        // Create the saturation/brightness gradient with current hue
-        for (let x = 0; x < 200; x++) {
-          for (let y = 0; y < 150; y++) {
-            const sat = x / 200;
-            const bright = 1 - (y / 150);
-            const { r, g, b } = hsvToRgb(currentHue, sat, bright);
-            canvas.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            canvas.fillRect(x, y, 1, 1);
-          }
-        }
-        
-        gradientSquare.style.backgroundImage = `url(${ctx.toDataURL()})`;
-      }
+  // Handler for color picker apply
+  const handleColorApply = (selectedColor) => {
+    if (currentTarget === 'main') {
+      updateFormData('mainSectionColor', selectedColor);
+    } else if (typeof currentTarget === 'number') {
+      updateDay(currentTarget, 'dayColor', selectedColor);
+    } else if (typeof currentTarget === 'string' && currentTarget.startsWith('appendix-')) {
+      const appendixIndex = parseInt(currentTarget.split('-')[1]);
+      const newFormData = {
+        ...formData,
+        appendices: formData.appendices.map((app, i) =>
+          i === appendixIndex ? { ...app, color: selectedColor } : app
+        )
+      };
+      setFormData(newFormData);
+      updateTourData(newFormData);
     }
-  }, [showCustomColorPicker, currentHue]);
+  };
 
-  // Update customColor when saturation/brightness changes
-  useEffect(() => {
-    const { r, g, b } = hsvToRgb(currentHue, saturation, brightness);
-    setCustomColor(rgbToHex(r, g, b));
-  }, [currentHue, saturation, brightness]);
+  // Helper to open color picker with initial color
+  const openColorPicker = (target, initialColor) => {
+    setCurrentTarget(target);
+    setColorPickerInitialColor(initialColor || '#4caf50');
+    setShowCustomColorPicker(true);
+  };
 
   // Initialize once from Step 1 and allow user to customize freely afterwards
   useEffect(() => {
@@ -306,13 +272,13 @@ const Step2Itinerary = () => {
     let newItinerary = Array.isArray(tourData.itinerary) && tourData.itinerary.length > 0
       ? tourData.itinerary
       : Array.from({ length: duration }, (_, i) => ({
-          day: i + 1,
-          activities: '',
-          dayTitle: '',
-          dayDescription: t('tourWizard.step2.day.defaultMeal'),
-          dayColor: '#10b981',
-          titleAlignment: 'left'
-        }));
+        day: i + 1,
+        activities: '',
+        dayTitle: '',
+        dayDescription: t('tourWizard.step2.day.defaultMeal'),
+        dayColor: '#10b981',
+        titleAlignment: 'left'
+      }));
     newItinerary = newItinerary.map((day, index) => ({
       ...day,
       day: index + 1,
@@ -366,7 +332,7 @@ const Step2Itinerary = () => {
   const updateDay = (index, field, value) => {
     const newFormData = {
       ...formData,
-      itinerary: formData.itinerary.map((day, i) => 
+      itinerary: formData.itinerary.map((day, i) =>
         i === index ? { ...day, [field]: value } : day
       )
     };
@@ -386,9 +352,9 @@ const Step2Itinerary = () => {
   // Helper function to clean HTML content
   const cleanHtmlContent = (content) => {
     if (!content) return '';
-    
+
     let cleaned = content;
-    
+
     // Remove all <p> tags and their content, keeping only the text inside
     cleaned = cleaned.replace(/<p[^>]*>(.*?)<\/p>/gs, (match, innerContent) => {
       // If <p> contains only text (no other HTML tags), return just the text
@@ -398,19 +364,19 @@ const Step2Itinerary = () => {
       // If <p> contains other HTML tags, keep the inner content but remove <p>
       return innerContent;
     });
-    
+
     // Remove empty <p> tags
     cleaned = cleaned.replace(/<p[^>]*>\s*<\/p>/g, '');
-    
+
     // Remove multiple consecutive <br> tags
     cleaned = cleaned.replace(/(<br\s*\/?>\s*){2,}/g, '<br>');
-    
+
     // Remove <br> at the beginning and end
     cleaned = cleaned.replace(/^(<br\s*\/?>\s*)+|(<br\s*\/?>\s*)+$/g, '');
-    
+
     // Clean up extra whitespace
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
-    
+
     return cleaned;
   };
 
@@ -479,8 +445,8 @@ const Step2Itinerary = () => {
                 delete newErrors.tourDescription;
                 // Notify parent about validation status change
                 const hasErrors = Object.keys(newErrors).length > 0;
-                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                  detail: { step: 2, hasErrors } 
+                window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+                  detail: { step: 2, hasErrors }
                 }));
                 return newErrors;
               });
@@ -523,8 +489,8 @@ const Step2Itinerary = () => {
                 delete newErrors.tourSchedule;
                 // Notify parent about validation status change
                 const hasErrors = Object.keys(newErrors).length > 0;
-                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                  detail: { step: 2, hasErrors } 
+                window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+                  detail: { step: 2, hasErrors }
                 }));
                 return newErrors;
               });
@@ -541,190 +507,17 @@ const Step2Itinerary = () => {
       <div className={styles['itinerary-section']} data-itinerary-section>
         {/* Main Header hidden as requested */}
 
-        {/* Custom Color Picker Modal */}
-        {showCustomColorPicker && (
-          <div className={styles['custom-color-picker-modal']}>
-            <div className={styles['color-picker-content']}>
-              <div className={styles['color-picker-header']}>
-                <h3>Tùy chỉnh màu sắc</h3>
-                <button 
-                  className={styles['close-picker-btn']}
-                  onClick={() => setShowCustomColorPicker(false)}
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div className={styles['color-picker-body']}>
-                <div className={styles['color-gradient-area']}>
-                  <div 
-                    className={styles['color-gradient-square']} 
-                    id="color-gradient-square"
-                    onMouseDown={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = e.clientX - rect.left;
-                      const y = e.clientY - rect.top;
-                      
-                      const newSaturation = Math.max(0, Math.min(1, x / 200));
-                      const newBrightness = Math.max(0, Math.min(1, 1 - (y / 150)));
-                      
-                      setSaturation(newSaturation);
-                      setBrightness(newBrightness);
-                    }}
-                    onMouseMove={(e) => {
-                      if (e.buttons === 1) { // Left mouse button is pressed
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
-                        
-                        const newSaturation = Math.max(0, Math.min(1, x / 200));
-                        const newBrightness = Math.max(0, Math.min(1, 1 - (y / 150)));
-                        
-                        setSaturation(newSaturation);
-                        setBrightness(newBrightness);
-                      }
-                    }}
-                  >
-                    <div 
-                      className={styles['color-selector']}
-                      style={{
-                        left: `${saturation * 200 - 6}px`,
-                        top: `${(1 - brightness) * 150 - 6}px`
-                      }}
-                    ></div>
-                  </div>
-                  <div className={styles['hue-slider-container']}>
-                    <div 
-                      className={styles['hue-slider']}
-                      onMouseDown={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const newHue = Math.max(0, Math.min(360, (x / rect.width) * 360));
-                        setCurrentHue(newHue);
-                      }}
-                      onMouseMove={(e) => {
-                        if (e.buttons === 1) { // Left mouse button is pressed
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const x = e.clientX - rect.left;
-                          const newHue = Math.max(0, Math.min(360, (x / rect.width) * 360));
-                          setCurrentHue(newHue);
-                        }
-                      }}
-                    >
-                      <div 
-                        className={styles['hue-selector']}
-                        style={{
-                          left: `${(currentHue / 360) * 200 - 8}px`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className={styles['color-tools']}>
-                  <div className={styles['eyedropper-tool']}>
-                    <button className={styles['eyedropper-btn']} title="Eyedropper">
-                      🎯
-                    </button>
-                  </div>
-                  <div className={styles['current-color-swatch']}>
-                    <div 
-                      className={styles['color-swatch']}
-                      style={{ backgroundColor: customColor }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className={styles['rgb-inputs']}>
-                  <div className={styles['rgb-input-group']}>
-                    <label>R</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="255"
-                      value={parseInt(customColor.slice(1, 3), 16)}
-                      onChange={(e) => {
-                        const r = parseInt(e.target.value) || 0;
-                        const g = parseInt(customColor.slice(3, 5), 16);
-                        const b = parseInt(customColor.slice(5, 7), 16);
-                        setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
-                      }}
-                      className={styles['rgb-input']}
-                    />
-                  </div>
-                  <div className={styles['rgb-input-group']}>
-                    <label>G</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="255"
-                      value={parseInt(customColor.slice(3, 5), 16)}
-                      onChange={(e) => {
-                        const r = parseInt(customColor.slice(1, 3), 16);
-                        const g = parseInt(e.target.value) || 0;
-                        const b = parseInt(customColor.slice(5, 7), 16);
-                        setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
-                      }}
-                      className={styles['rgb-input']}
-                    />
-                  </div>
-                  <div className={styles['rgb-input-group']}>
-                    <label>B</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="255"
-                      value={parseInt(customColor.slice(5, 7), 16)}
-                      onChange={(e) => {
-                        const r = parseInt(customColor.slice(1, 3), 16);
-                        const g = parseInt(customColor.slice(3, 5), 16);
-                        const b = parseInt(e.target.value) || 0;
-                        setCustomColor(`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`);
-                      }}
-                      className={styles['rgb-input']}
-                    />
-                  </div>
-                </div>
-                
-                <div className={styles['color-picker-actions']}>
-                  <button 
-                    className={styles['apply-color-btn']}
-                    onClick={() => {
-                      if (currentTarget === 'main') {
-                        updateFormData('mainSectionColor', customColor);
-                      } else if (typeof currentTarget === 'number') {
-                        updateDay(currentTarget, 'dayColor', customColor);
-                      } else if (typeof currentTarget === 'string' && currentTarget.startsWith('appendix-')) {
-                        const appendixIndex = parseInt(currentTarget.split('-')[1]);
-                        const newFormData = {
-                          ...formData,
-                          appendices: formData.appendices.map((app, i) => 
-                            i === appendixIndex ? { ...app, color: customColor } : app
-                          )
-                        };
-                        setFormData(newFormData);
-                        updateTourData(newFormData);
-                      }
-                      setShowCustomColorPicker(false);
-                    }}
-                  >
-                    Áp dụng
-                  </button>
-                  <button 
-                    className={styles['cancel-color-btn']}
-                    onClick={() => setShowCustomColorPicker(false)}
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Color Picker Modal */}
+        <ColorPickerModal
+          isOpen={showCustomColorPicker}
+          onClose={() => setShowCustomColorPicker(false)}
+          onApply={handleColorApply}
+          initialColor={colorPickerInitialColor}
+        />
 
         {formData.itinerary.map((day, index) => (
-          <div 
-            key={`day-${day.day}-${index}`} 
+          <div
+            key={`day-${day.day}-${index}`}
             className={styles['day-card']}
             style={{
               '--day-color': day.dayColor || '#10b981',
@@ -732,7 +525,7 @@ const Step2Itinerary = () => {
             }}
           >
             {/* Day Header - Customizable Color Bar with Editable Title */}
-            <div 
+            <div
               className={styles['day-header-bar']}
               style={{
                 background: `linear-gradient(135deg, ${day.dayColor || '#10b981'}, ${adjustColor(day.dayColor || '#10b981', -20)})`
@@ -740,13 +533,13 @@ const Step2Itinerary = () => {
             >
               <div className={styles['day-header-content']}>
                 <div className={styles['single-day-title-container']}>
-              <input
+                  <input
                     type="text"
                     className={`${styles['single-day-title-input']} ${day.dayTitle ? styles['customized'] : ''}`}
                     value={day.dayTitle || ''}
                     onChange={(e) => updateDay(index, 'dayTitle', e.target.value)}
-                placeholder={t('tourWizard.step2.placeholders.dayTitle')}
-                title={t('tourWizard.step2.titles.editDayTitle')}
+                    placeholder={t('tourWizard.step2.placeholders.dayTitle')}
+                    title={t('tourWizard.step2.titles.editDayTitle')}
                     style={{ textAlign: day.titleAlignment || 'left' }}
                   />
                   <div className={styles['title-controls']}>
@@ -843,11 +636,7 @@ const Step2Itinerary = () => {
                     type="button"
                     className={styles['custom-color-btn']}
                     title={t('tourWizard.step2.color.customize')}
-                    onClick={() => {
-                      setCurrentTarget(index);
-                      setCustomColor(day.dayColor || '#4caf50');
-                      setShowCustomColorPicker(true);
-                    }}
+                    onClick={() => openColorPicker(index, day.dayColor || '#4caf50')}
                   >
                     🎯
                   </button>

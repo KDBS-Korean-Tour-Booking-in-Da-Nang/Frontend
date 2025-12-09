@@ -172,6 +172,8 @@ export const AuthProvider = ({ children }) => {
               sessionStorage.removeItem(tokenKey);
               localStorage.removeItem(userKey);
               localStorage.removeItem(tokenKey);
+              // Clear chat history on logout
+              sessionStorage.removeItem('chat_history');
             } catch {
               // Silently handle error clearing role-specific storage
             }
@@ -186,6 +188,8 @@ export const AuthProvider = ({ children }) => {
           try {
             sessionStorage.removeItem('user');
             sessionStorage.removeItem('token');
+            // Clear chat history on logout
+            sessionStorage.removeItem('chat_history');
           } catch {
             // Silently handle error clearing sessionStorage on logout
           }
@@ -307,6 +311,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = (roleToLogout = null) => {
+    // Helper: clear AI chat state (session + notify UI)
+    const clearAiChat = () => {
+      try {
+        sessionStorage.removeItem('chat_history');
+      } catch {
+        // Silently handle error clearing chat history
+      }
+      try {
+        window.dispatchEvent(new Event('aiChatClear'));
+      } catch {
+        // Silently handle environments without window
+      }
+    };
+
     // Get current role before clearing user state
     const currentRole = user?.role;
     const role = roleToLogout || currentRole;
@@ -330,6 +348,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('tokenExpiry');
         localStorage.removeItem('rememberMe');
         // Note: We don't clear 'accessToken' as it might be used by other roles
+        
+        // Clear chat history on logout
+        clearAiChat();
         
         clearInactivityTimer();
         // Notify other tabs of this role's logout
@@ -359,6 +380,8 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // Silently handle error clearing sessionStorage on logout
     }
+    // Clear chat history on logout
+    clearAiChat();
     clearInactivityTimer();
     // Notify other tabs
     try {

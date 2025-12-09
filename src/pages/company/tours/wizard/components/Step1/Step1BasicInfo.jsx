@@ -7,8 +7,6 @@ import {
   Calendar,
   FileText,
   Layers,
-  MapPin,
-  Bus,
   Clock,
   Moon,
   Users,
@@ -27,17 +25,44 @@ const Step1BasicInfo = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     tourName: '',
-    departurePoint: t('common.departurePoints.daNang'), // Default departure point (i18n)
+    departurePoint: t('common.departurePoints.daNang'), // kept for compatibility but hidden
     vehicle: t('common.vehicles.tourBus'),
     duration: '',
     nights: '',
     tourType: '',
     maxCapacity: '',
     tourDeadline: '',
-    tourExpirationDate: ''
+    minAdvancedDays: '',
+    tourExpirationDate: '',
+    checkDays: '',
+    balancePaymentDays: '',
+    allowRefundableAfterBalancePayment: false,
+    refundFloor: '',
+    depositPercentage: ''
   });
 
   // Helpers
+  const clearFieldError = (name) => {
+    setFieldErrors(prev => {
+      if (!prev[name]) return prev;
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      // Notify parent about validation status change
+      const hasErrors = Object.keys(newErrors).length > 0;
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+          detail: { step: 1, hasErrors } 
+        }));
+      }, 0);
+      return newErrors;
+    });
+  };
+
+  const handleFieldFocus = (e) => {
+    const { name } = e.target;
+    clearFieldError(name);
+  };
+
   const preventInvalidNumberKeys = (e) => {
     const invalidKeys = ['e', 'E', '+', '-', '.'];
     if (invalidKeys.includes(e.key)) {
@@ -66,29 +91,6 @@ const Step1BasicInfo = () => {
     return values.join(', ');
   };
 
-  // Normalize values entered/stored in different languages to current locale label
-  const localizeDeparturePoint = (value) => {
-    if (!value) return '';
-    const variants = [
-      'Đà Nẵng',
-      'Da Nang',
-      '다낭',
-      t('common.departurePoints.daNang')
-    ];
-    return variants.includes(value) ? t('common.departurePoints.daNang') : value;
-  };
-
-  const localizeVehicle = (value) => {
-    if (!value) return '';
-    const variants = [
-      'Xe Du Lịch',
-      'Tour Bus',
-      '관광 버스',
-      t('common.vehicles.tourBus')
-    ];
-    return variants.includes(value) ? t('common.vehicles.tourBus') : value;
-  };
-
 const calculateLeadDays = (isoDate) => {
   if (!isoDate) return null;
   const parsed = new Date(`${isoDate}T00:00:00`);
@@ -100,18 +102,56 @@ const calculateLeadDays = (isoDate) => {
   return diffDays;
 };
 
+  const enforceCutoffLimit = (draft) => {
+    // Validate: Minimum Advance Days must not exceed booking cut-off (tourExpirationDate)
+    if (!draft.tourExpirationDate || draft.minAdvancedDays === '') return draft;
+    const leadDays = calculateLeadDays(draft.tourExpirationDate);
+    if (leadDays === null || leadDays < 0) return draft;
+    const minDaysNum = parseInt(draft.minAdvancedDays, 10);
+    if (Number.isNaN(minDaysNum)) return draft;
+
+    if (minDaysNum > leadDays) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        tourDeadline: t('tourWizard.step1.errors.minAdvancedExceedsCutoff', {
+          cutoff: leadDays
+        }) || `Minimum booking days cannot exceed "${leadDays}" booking closing days. Please re-enter Check days and Balance payment days.`
+      }));
+    } else {
+      // Clear cutoff error if within range
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next.tourDeadline;
+        return next;
+      });
+    }
+    return draft;
+  };
+
   // Update form data when tourData changes
   useEffect(() => {
     setFormData({
       tourName: tourData.tourName || '',
-      departurePoint: tourData.departurePoint || t('common.departurePoints.daNang'), // Default departure point (i18n)
+      departurePoint: tourData.tourDeparturePoint || tourData.departurePoint || t('common.departurePoints.daNang'),
       vehicle: tourData.vehicle || t('common.vehicles.tourBus'),
       duration: tourData.duration || '',
       nights: tourData.nights || '',
       tourType: tourData.tourType || '',
       maxCapacity: tourData.maxCapacity || '',
-      tourDeadline: tourData.tourDeadline !== undefined && tourData.tourDeadline !== null ? String(tourData.tourDeadline) : '',
-      tourExpirationDate: tourData.tourExpirationDate || ''
+      tourDeadline: tourData.minAdvancedDays !== undefined && tourData.minAdvancedDays !== null
+        ? String(tourData.minAdvancedDays)
+        : (tourData.tourDeadline !== undefined && tourData.tourDeadline !== null ? String(tourData.tourDeadline) : ''),
+      minAdvancedDays: tourData.minAdvancedDays !== undefined && tourData.minAdvancedDays !== null
+        ? String(tourData.minAdvancedDays)
+        : (tourData.tourDeadline !== undefined && tourData.tourDeadline !== null ? String(tourData.tourDeadline) : ''),
+      tourExpirationDate: tourData.tourExpirationDate || '',
+      checkDays: tourData.tourCheckDays !== undefined && tourData.tourCheckDays !== null
+        ? String(tourData.tourCheckDays)
+        : (tourData.checkDays !== undefined && tourData.checkDays !== null ? String(tourData.checkDays) : ''),
+      balancePaymentDays: tourData.balancePaymentDays !== undefined && tourData.balancePaymentDays !== null ? String(tourData.balancePaymentDays) : '',
+      allowRefundableAfterBalancePayment: !!tourData.allowRefundableAfterBalancePayment,
+      refundFloor: tourData.refundFloor !== undefined && tourData.refundFloor !== null ? String(tourData.refundFloor) : '',
+      depositPercentage: tourData.depositPercentage !== undefined && tourData.depositPercentage !== null ? String(tourData.depositPercentage) : ''
     });
   }, [tourData]);
 
@@ -125,9 +165,12 @@ const calculateLeadDays = (isoDate) => {
         { key: 'duration', errorKey: 'tourWizard.step1.fields.duration' },
         { key: 'nights', errorKey: 'tourWizard.step1.fields.nights' },
         { key: 'tourType', errorKey: 'tourWizard.step1.fields.tourType' },
-        { key: 'maxCapacity', errorKey: 'tourWizard.step1.fields.maxCapacity' },
+        { key: 'maxCapacity', errorKey: 'tourWizard.step1.fields.numberOfAvailableTours' },
         { key: 'tourDeadline', errorKey: 'tourWizard.step1.fields.tourDeadline', checkEmpty: true },
-        { key: 'tourExpirationDate', errorKey: 'tourWizard.step1.fields.tourExpirationDate' }
+        { key: 'tourExpirationDate', errorKey: 'tourWizard.step1.fields.tourExpirationDate' },
+        { key: 'checkDays', errorKey: 'tourWizard.step1.fields.checkDays' },
+        { key: 'balancePaymentDays', errorKey: 'tourWizard.step1.fields.balancePaymentDays' },
+        { key: 'depositPercentage', errorKey: 'tourWizard.step1.fields.depositPercentage' }
       ];
       
       requiredFields.forEach(({ key, errorKey, checkEmpty }) => {
@@ -143,6 +186,19 @@ const calculateLeadDays = (isoDate) => {
         }
       });
       
+      if (formData.allowRefundableAfterBalancePayment) {
+        if (formData.refundFloor === '' || formData.refundFloor === undefined || formData.refundFloor === null) {
+          errors.refundFloor =
+            t('toast.required', { field: t('tourWizard.step1.fields.refundFloor', 'Refund floor') }) ||
+            `${t('tourWizard.step1.fields.refundFloor', 'Refund floor')} là bắt buộc`;
+        } else {
+          const rf = parseInt(formData.refundFloor, 10);
+          if (Number.isNaN(rf) || rf < 1 || rf > 100) {
+            errors.refundFloor = t('toast.field_invalid') || 'Giá trị không hợp lệ';
+          }
+        }
+      }
+
       setFieldErrors(errors);
       // Notify parent about validation status
       window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
@@ -221,30 +277,55 @@ const calculateLeadDays = (isoDate) => {
   ];
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     // Clear error for this field when user starts typing
     if (fieldErrors[name]) {
-      setFieldErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        // Notify parent about validation status change (use setTimeout to avoid render warning)
-        const hasErrors = Object.keys(newErrors).length > 0;
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-            detail: { step: 1, hasErrors } 
-          }));
-        }, 0);
-        return newErrors;
-      });
+      clearFieldError(name);
     }
-    let nextValue = value;
+    let nextValue = type === 'checkbox' ? checked : value;
 
     // Normalize numeric fields
-  if (['duration', 'nights', 'maxCapacity', 'tourDeadline'].includes(name)) {
+    if (type === 'checkbox') {
+      const updated = { ...formData, [name]: nextValue };
+      // When disabling refundable, clear refund floor to 0
+      if (name === 'allowRefundableAfterBalancePayment' && !nextValue) {
+        updated.refundFloor = '0';
+        setFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.refundFloor;
+          return newErrors;
+        });
+        setFormData(updated);
+        updateTourData(updated);
+        return;
+      }
+      setFormData(updated);
+      updateTourData(updated);
+      return;
+    }
+
+  if (['duration', 'nights', 'maxCapacity', 'checkDays', 'balancePaymentDays', 'depositPercentage', 'refundFloor'].includes(name)) {
       // Strip non-digits
       nextValue = String(nextValue).replace(/[^0-9]/g, '');
       if (nextValue === '') {
         // allow empty while typing
+        if (name === 'checkDays' || name === 'balancePaymentDays') {
+          const updated = {
+            ...formData,
+            [name]: '',
+            minAdvancedDays: '',
+            tourDeadline: '',
+            balancePaymentDays: name === 'balancePaymentDays' ? '' : formData.balancePaymentDays,
+            checkDays: name === 'checkDays' ? '' : formData.checkDays
+          };
+          const adjusted = enforceCutoffLimit(updated);
+          setFormData(adjusted);
+          updateTourData(adjusted);
+          clearFieldError('tourDeadline');
+          clearFieldError('checkDays');
+          clearFieldError('balancePaymentDays');
+          return;
+        }
       } else {
         const num = parseInt(nextValue, 10);
         if (name === 'duration') {
@@ -378,61 +459,54 @@ const calculateLeadDays = (isoDate) => {
             });
           }
           nextValue = clamped;
-        } else if (name === 'tourDeadline') {
-          const clamped = Math.max(0, Math.min(MAX_LEAD_DAYS, num));
-          let adjustedValue = clamped;
-          if (formData.tourExpirationDate) {
-            const leadDays = calculateLeadDays(formData.tourExpirationDate);
-            if (leadDays !== null && adjustedValue >= leadDays) {
-              adjustedValue = Math.max(0, leadDays - 1);
-              // Clear error when value is auto-adjusted correctly
-              setFieldErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors.tourDeadline;
-                const hasErrors = Object.keys(newErrors).length > 0;
-                setTimeout(() => {
-                  window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                    detail: { step: 1, hasErrors } 
-                  }));
-                }, 0);
-                return newErrors;
-              });
-            } else {
-              // Clear error when value is valid
-              setFieldErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors.tourDeadline;
-                const hasErrors = Object.keys(newErrors).length > 0;
-                setTimeout(() => {
-                  window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                    detail: { step: 1, hasErrors } 
-                  }));
-                }, 0);
-                return newErrors;
-              });
-            }
-          } else {
-            // Clear error when no expiration date is set
-            setFieldErrors(prev => {
-              const newErrors = { ...prev };
-              delete newErrors.tourDeadline;
-              const hasErrors = Object.keys(newErrors).length > 0;
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                  detail: { step: 1, hasErrors } 
-                }));
-              }, 0);
-              return newErrors;
-            });
+        } else if (name === 'checkDays' || name === 'balancePaymentDays') {
+          const raw = nextValue; // already digits only
+          // Allow empty while typing
+          if (raw === '') {
+            const updated = {
+              ...formData,
+              [name]: '',
+              minAdvancedDays: '',
+              tourDeadline: ''
+            };
+          const adjusted = enforceCutoffLimit(updated);
+          setFormData(adjusted);
+          updateTourData(adjusted);
+            clearFieldError('checkDays');
+            clearFieldError('balancePaymentDays');
+            clearFieldError('tourDeadline');
+            return;
           }
-          nextValue = String(adjustedValue);
-          const updated = {
+          const numeric = Math.max(0, parseInt(raw, 10));
+          const otherVal = name === 'checkDays' ? formData.balancePaymentDays : formData.checkDays;
+          const otherNum = otherVal === '' ? null : parseInt(otherVal, 10);
+          let computedMin = '';
+          if (otherNum !== null && !Number.isNaN(otherNum)) {
+            computedMin = String(Math.max(0, numeric + otherNum));
+          }
+          let updated = {
             ...formData,
-            [name]: nextValue
+            checkDays: name === 'checkDays' ? String(numeric) : formData.checkDays,
+            balancePaymentDays: name === 'balancePaymentDays' ? String(numeric) : formData.balancePaymentDays,
+            minAdvancedDays: computedMin,
+            tourDeadline: computedMin
           };
+          clearFieldError('checkDays');
+          clearFieldError('balancePaymentDays');
+          clearFieldError('tourDeadline');
+          updated = enforceCutoffLimit(updated);
           setFormData(updated);
           updateTourData(updated);
           return;
+        } else if (name === 'depositPercentage') {
+          const clamped = Math.max(0, Math.min(100, num));
+          nextValue = String(clamped);
+          clearFieldError('depositPercentage');
+        } else if (name === 'refundFloor') {
+          // Only valid when refundable is allowed; clamp 1-100
+          const clamped = Math.max(1, Math.min(100, num));
+          nextValue = String(clamped);
+          clearFieldError('refundFloor');
         }
       }
     }
@@ -497,11 +571,12 @@ const calculateLeadDays = (isoDate) => {
         });
       }
     }
-    const updated = {
+    let updated = {
       ...formData,
       tourExpirationDate: value,
       tourDeadline: nextDeadline
     };
+    updated = enforceCutoffLimit(updated);
     setFormData(updated);
     updateTourData(updated);
   };
@@ -561,43 +636,6 @@ const calculateLeadDays = (isoDate) => {
         </div>
 
         <div className={styles['form-group']}>
-          <label htmlFor="departurePoint" className={styles['form-label']}>
-            <MapPin className={styles['label-icon']} size={18} strokeWidth={1.5} />
-            {t('tourWizard.step1.fields.departurePoint')}
-          </label>
-          <select
-            id="departurePoint"
-            name="departurePoint"
-            value={formData.departurePoint}
-            onChange={handleChange}
-            className={styles['form-select']}
-            disabled
-          >
-            <option value={t('common.departurePoints.daNang')}>{t('common.departurePoints.daNang')}</option>
-          </select>
-          <small className={styles['form-help']}>{t('tourWizard.step1.help.departurePoint')}</small>
-        </div>
-
-        <div className={styles['form-group']}>
-          <label htmlFor="vehicle" className={styles['form-label']}>
-            <Bus className={styles['label-icon']} size={18} strokeWidth={1.5} />
-            {t('tourWizard.step1.fields.vehicle')}
-          </label>
-          <select
-            id="vehicle"
-            name="vehicle"
-            value={formData.vehicle}
-            onChange={handleChange}
-            className={styles['form-select']}
-            disabled
-          >
-            <option value={t('common.vehicles.tourBus')}>{t('common.vehicles.tourBus')}</option>
-          </select>
-          <small className={styles['form-help']}>{t('tourWizard.step1.help.vehicle')}</small>
-        </div>
-
-
-        <div className={styles['form-group']}>
           <label htmlFor="duration" className={styles['form-label']}>
             <Clock className={styles['label-icon']} size={18} strokeWidth={1.5} />
             {t('tourWizard.step1.fields.duration')}
@@ -609,6 +647,7 @@ const calculateLeadDays = (isoDate) => {
             name="duration"
             value={formData.duration}
             onChange={handleChange}
+            onFocus={handleFieldFocus}
             onKeyDown={preventInvalidNumberKeys}
             onWheel={(e) => e.currentTarget.blur()}
             className={styles['form-input']}
@@ -632,6 +671,7 @@ const calculateLeadDays = (isoDate) => {
             name="nights"
             value={formData.nights}
             onChange={handleChange}
+            onFocus={handleFieldFocus}
             onKeyDown={preventInvalidNumberKeys}
             onWheel={(e) => e.currentTarget.blur()}
             className={styles['form-input']}
@@ -654,7 +694,7 @@ const calculateLeadDays = (isoDate) => {
         <div className={styles['form-group']}>
           <label htmlFor="maxCapacity" className={styles['form-label']}>
             <Users className={styles['label-icon']} size={18} strokeWidth={1.5} />
-            {t('tourWizard.step1.fields.maxCapacity')}
+            {t('tourWizard.step1.fields.numberOfAvailableTours', 'Number of available tours')}
             <span className={styles['required-asterisk']}>*</span>
           </label>
           <input
@@ -663,6 +703,7 @@ const calculateLeadDays = (isoDate) => {
             name="maxCapacity"
             value={formData.maxCapacity}
             onChange={handleChange}
+            onFocus={handleFieldFocus}
             onKeyDown={preventInvalidNumberKeys}
             onWheel={(e) => e.currentTarget.blur()}
             className={styles['form-input']}
@@ -686,6 +727,7 @@ const calculateLeadDays = (isoDate) => {
               id="tourExpirationDate"
               readOnly
               value={formData.tourExpirationDate || ''}
+            onFocus={handleFieldFocus}
               className={`${styles['form-input']} ${styles['date-input']}`}
               placeholder={t('tourWizard.step1.placeholders.tourExpirationDate') || 'YYYY-MM-DD'}
             />
@@ -742,6 +784,61 @@ const calculateLeadDays = (isoDate) => {
         </div>
 
         <div className={styles['form-group']}>
+          <label htmlFor="checkDays" className={styles['form-label']}>
+            <CalendarDays className={styles['label-icon']} size={18} strokeWidth={1.5} />
+            {t('tourWizard.step1.fields.checkDays', 'Check days (deposit window)')}
+          </label>
+          <input
+            type="number"
+            id="checkDays"
+            name="checkDays"
+            value={formData.checkDays}
+            onChange={handleChange}
+            onFocus={handleFieldFocus}
+            placeholder={t('tourWizard.step1.placeholders.checkDays', 'Enter check days')}
+            onKeyDown={preventInvalidNumberKeys}
+            onWheel={(e) => e.currentTarget.blur()}
+            min="0"
+            className={styles['form-input']}
+          />
+          {fieldErrors.checkDays && (
+            <span className={styles['error-message']}>{fieldErrors.checkDays}</span>
+          )}
+          {!fieldErrors.checkDays && formData.tourDeadline !== '' && (
+            <small className={styles['form-help']}>
+              {t('tourWizard.step1.help.checkDays', 'Part of MinAdvanceDays; deposit window.')}
+            </small>
+          )}
+        </div>
+
+        <div className={styles['form-group']}>
+          <label htmlFor="balancePaymentDays" className={styles['form-label']}>
+            <Clock className={styles['label-icon']} size={18} strokeWidth={1.5} />
+            {t('tourWizard.step1.fields.balancePaymentDays', 'Balance payment days')}
+          </label>
+          <input
+            type="number"
+            id="balancePaymentDays"
+            name="balancePaymentDays"
+            value={formData.balancePaymentDays}
+            onChange={handleChange}
+            onFocus={handleFieldFocus}
+            onKeyDown={preventInvalidNumberKeys}
+            onWheel={(e) => e.currentTarget.blur()}
+            className={styles['form-input']}
+            placeholder={t('tourWizard.step1.placeholders.balancePaymentDays', 'Enter balance payment days')}
+          />
+          {fieldErrors.balancePaymentDays && (
+            <span className={styles['error-message']}>{fieldErrors.balancePaymentDays}</span>
+          )}
+          {!fieldErrors.balancePaymentDays && formData.minAdvancedDays !== '' && (
+            <small className={styles['form-help']}>
+              {t('tourWizard.step1.help.balancePaymentDays', 'Auto = MinAdvanceDays - CheckDays. Balance payment window.')}
+            </small>
+          )}
+        </div>
+
+        <div className={styles['form-group']}>
           <label htmlFor="tourDeadline" className={styles['form-label']}>
             <CalendarDays className={styles['label-icon']} size={18} strokeWidth={1.5} />
             {t('tourWizard.step1.fields.tourDeadline')}
@@ -752,13 +849,10 @@ const calculateLeadDays = (isoDate) => {
             id="tourDeadline"
             name="tourDeadline"
             value={formData.tourDeadline}
-            onChange={handleChange}
+            readOnly
+            disabled
+            className={`${styles['form-input']} ${styles['form-input-readonly'] || ''}`}
             placeholder={t('tourWizard.step1.placeholders.tourDeadline')}
-            onKeyDown={preventInvalidNumberKeys}
-            onWheel={(e) => e.currentTarget.blur()}
-            min="0"
-            max={MAX_LEAD_DAYS}
-            className={styles['form-input']}
           />
           {fieldErrors.tourDeadline && (
             <span className={styles['error-message']}>{fieldErrors.tourDeadline}</span>
@@ -767,6 +861,84 @@ const calculateLeadDays = (isoDate) => {
             <small className={styles['form-help']}>{t('tourWizard.step1.help.tourDeadline')}</small>
           )}
         </div>
+
+        <div className={styles['form-group']}>
+          <label htmlFor="depositPercentage" className={styles['form-label']}>
+            <Layers className={styles['label-icon']} size={18} strokeWidth={1.5} />
+            {t('tourWizard.step1.fields.depositPercentage', 'Deposit percentage')}
+          </label>
+          <input
+            type="number"
+            id="depositPercentage"
+            name="depositPercentage"
+            value={formData.depositPercentage}
+            onChange={handleChange}
+            onFocus={handleFieldFocus}
+            placeholder={t('tourWizard.step1.placeholders.depositPercentage', '0 - 100')}
+            onKeyDown={preventInvalidNumberKeys}
+            onWheel={(e) => e.currentTarget.blur()}
+            min="0"
+            max="100"
+            className={styles['form-input']}
+          />
+          {fieldErrors.depositPercentage && (
+            <span className={styles['error-message']}>{fieldErrors.depositPercentage}</span>
+          )}
+          {!fieldErrors.depositPercentage && (
+            <small className={styles['form-help']}>
+              {t('tourWizard.step1.help.depositPercentage', 'Required at booking time.')}
+            </small>
+          )}
+        </div>
+
+        <div className={styles['form-group']}>
+          <label className={styles['form-label']} htmlFor="allowRefundableAfterBalancePayment">
+            <ClipboardList className={styles['label-icon']} size={18} strokeWidth={1.5} />
+            {t('tourWizard.step1.fields.allowRefundableAfterBalancePayment', 'Allow refund after balance payment')}
+          </label>
+          <div className={styles['checkbox-row'] || ''}>
+            <input
+              type="checkbox"
+              id="allowRefundableAfterBalancePayment"
+              name="allowRefundableAfterBalancePayment"
+              checked={formData.allowRefundableAfterBalancePayment}
+              onChange={handleChange}
+              onFocus={handleFieldFocus}
+            />
+            <span>{t('tourWizard.step1.help.allowRefundableAfterBalancePayment', 'Enable refundable rules after balance is paid')}</span>
+          </div>
+        </div>
+
+        {formData.allowRefundableAfterBalancePayment && (
+          <div className={styles['form-group']}>
+            <label htmlFor="refundFloor" className={styles['form-label']}>
+              <ClipboardList className={styles['label-icon']} size={18} strokeWidth={1.5} />
+              {t('tourWizard.step1.fields.refundFloor', 'Refund floor (%)')}
+            </label>
+            <input
+              type="number"
+              id="refundFloor"
+              name="refundFloor"
+              value={formData.refundFloor}
+              onChange={handleChange}
+              onFocus={handleFieldFocus}
+              placeholder={t('tourWizard.step1.placeholders.refundFloor', '0 - 100')}
+              onKeyDown={preventInvalidNumberKeys}
+              onWheel={(e) => e.currentTarget.blur()}
+              min="0"
+              max="100"
+              className={styles['form-input']}
+            />
+            {fieldErrors.refundFloor && (
+              <span className={styles['error-message']}>{fieldErrors.refundFloor}</span>
+            )}
+            {!fieldErrors.refundFloor && (
+              <small className={styles['form-help']}>
+                {t('tourWizard.step1.help.refundFloor', 'Minimum refundable percentage after balance window.')}
+              </small>
+            )}
+          </div>
+        )}
       </div>
 
       <div className={styles['step-summary']}>
@@ -784,20 +956,12 @@ const calculateLeadDays = (isoDate) => {
             <strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}
           </p>
           <p>
-            <MapPin className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.departurePoint')}</strong> {localizeDeparturePoint(formData.departurePoint) || t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <Bus className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.vehicle')}</strong> {localizeVehicle(formData.vehicle) || t('common.vehicles.tourBus')}
-          </p>
-          <p>
             <Clock className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
             <strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}
           </p>
           <p>
             <Users className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.maxCapacity')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')} {t('tourWizard.step1.summary.tours')}
+            <strong>{t('tourWizard.step1.summary.numberOfAvailableTours', 'Number of available tours')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')}
           </p>
           <p>
             <Calendar className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
@@ -807,7 +971,42 @@ const calculateLeadDays = (isoDate) => {
             <CalendarDays className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
             <strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}
           </p>
+          <p>
+            <CalendarDays className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+            <strong>{t('tourWizard.step1.summary.checkDays', 'Check days')}</strong> {formData.checkDays !== '' ? formData.checkDays : t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <Clock className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+            <strong>{t('tourWizard.step1.summary.balancePaymentDays', 'Balance payment days')}</strong> {formData.balancePaymentDays !== '' ? formData.balancePaymentDays : t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <Layers className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+            <strong>{t('tourWizard.step1.summary.depositPercentage', 'Deposit')}</strong> {formData.depositPercentage !== '' ? `${formData.depositPercentage}%` : t('tourWizard.step1.summary.notEntered')}
+          </p>
+          <p>
+            <ClipboardList className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+            <strong>{t('tourWizard.step1.summary.refundRule', 'Refund rule')}</strong>{' '}
+            {formData.allowRefundableAfterBalancePayment
+              ? `${t('tourWizard.step1.summary.refundFloor', 'Refund floor')}: ${formData.refundFloor || '0'}%`
+              : t('tourWizard.step1.summary.notSelected')}
+          </p>
         </div>
+      </div>
+
+      <div className={styles['policy-explainer'] || ''}>
+        <h4>{t('tourWizard.step1.explanation.title', 'How the advance / deposit timeline works')}</h4>
+        <p>
+          {t(
+            'tourWizard.step1.explanation.timeline',
+            'MinAdvanceDays defines the total lead time before departure. CheckDays is the first slice (deposit window) and BalancePaymentDays is auto-calculated so both add up to MinAdvanceDays.'
+          )}
+        </p>
+        <p>
+          {t(
+            'tourWizard.step1.explanation.example',
+            'Example: MinAdvanceDays = 10, CheckDays = 3, BalancePaymentDays = 7. From day 1 to day 3 the traveler pays the deposit (e.g., 30%). From day 4 to day 10 they pay the remaining balance. If refundable after balance is enabled with refundFloor = 20%, refunds go 100% in CheckDays, 80% during BalancePaymentDays, then gradually from 80% down to 20% until departure (never below the floor).'
+          )}
+        </p>
       </div>
     </div>
   );

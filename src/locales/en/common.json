@@ -34,6 +34,7 @@
 		"processing": "Processing...",
 		"item": "item",
 		"sendMessage": "Send Message",
+		"understand": "Understood",
 		"actions": "Actions",
 		"modal": {
 			"confirmLeave": {
@@ -1705,6 +1706,8 @@
 		},
 		"errors": {
 			"invalidName": "Invalid name: cannot start with a number or contain special characters.",
+			"avatarTooLarge": "Image size must not exceed 5MB",
+			"avatarInvalidFormat": "Unsupported image format (only JPG, PNG, GIF, WebP are allowed)",
 			"avatarSize": "Image size must not exceed 5MB",
 			"avatarFormat": "Unsupported image format (only JPG, PNG, GIF, WebP are allowed)",
 			"tokenMissing": "Authentication token not found",
@@ -2153,6 +2156,7 @@
 			"existingImagesRemovedReason": "Uploaded images will be removed when you enter links in the content."
 		},
 		"post": {
+			"title": "post",
 			"loading": "Loading posts...",
 			"noPosts": "No posts found",
 			"noPostsDesc": "Be the first to share something!",
@@ -2399,6 +2403,9 @@
 		"company_only": "Only Company accounts can perform this action.",
 		"field_invalid": "Invalid value",
 		"min_price": "Minimum price is {{min}} VND",
+		"post": {
+			"create_error": "Unable to create post. Please try again."
+		},
 		"tour": {
 			"upload_image_failed": "Unable to upload image. Please try again.",
 			"file_size_exceeded": "File size must not exceed 5MB",
@@ -2484,8 +2491,13 @@
                 "duration": "Duration (Days)",
                 "nights": "Nights",
                 "maxCapacity": "Max Tours",
+                "numberOfAvailableTours": "Number of available tours",
                 "tourDeadline": "Minimum Advance Days",
-                "tourExpirationDate": "Booking Cut-off Date"
+                "tourExpirationDate": "Booking Cut-off Date",
+                "checkDays": "Check days (deposit window)",
+                "balancePaymentDays": "Balance payment days",
+                "depositPercentage": "Deposit percentage",
+                "refundFloor": "Refund floor (%)"
             },
 			"placeholders": {
 				"tourName": "Example: Da Nang - Hoi An 3D2N Tour, Korea 5D4N Tour",
@@ -2493,13 +2505,25 @@
 				"nights": "Example: 2",
                 "maxCapacity": "Example: 30",
                 "tourDeadline": "Example: 7",
-                "tourExpirationDate": "Select booking cut-off date"
+                "tourExpirationDate": "Select booking cut-off date",
+				"checkDays": "Enter check days",
+				"balancePaymentDays": "Enter balance payment days",
+				"depositPercentage": "0 - 100",
+				"refundFloor": "1 - 100"
 			},
 			"help": {
 				"departurePoint": "All tours depart from Da Nang",
                 "vehicle": "Default vehicle: Tourist Bus",
                 "tourDeadline": "Guests must book at least this many days before departure",
-                "tourExpirationDate": "Bookings close after this date"
+                "tourExpirationDate": "Bookings close after this date",
+				"checkDays": "Part of MinAdvanceDays; deposit window",
+				"balancePaymentDays": "Auto = MinAdvanceDays - CheckDays",
+				"depositPercentage": "Required at booking time.",
+				"refundFloor": "Minimum refundable % after balance window.",
+				"allowRefundableAfterBalancePayment": "Enable refundable rules after balance is paid"
+			},
+			"errors": {
+				"minAdvancedExceedsCutoff": "Minimum booking days cannot exceed \"{{cutoff}}\" booking closing days. Please re-enter Check days and Balance payment days."
 			},
 			"hints": {
 				"nightsSuggestion": "Suggestion: {{suggest}} night(s) (for {{days}} day(s)).",
@@ -2519,6 +2543,11 @@
 				"maxCapacity": "Max Tours:",
                 "tourDeadline": "Minimum Advance:",
                 "tourExpirationDate": "Booking Closes:",
+				"checkDays": "Check days",
+				"balancePaymentDays": "Balance payment days",
+				"depositPercentage": "Deposit",
+				"refundRule": "Refund rule",
+				"refundFloor": "Refund floor",
 				"notEntered": "Not entered",
 				"notSelected": "Not selected",
 				"guests": "guests",
@@ -2698,6 +2727,12 @@
 					"tourName": "Tour Name:",
 					"duration": "Duration:",
 					"adultPrice": "Adult Price:",
+					"minAdvanceDays": "Minimum advance days",
+					"checkDays": "Check days",
+					"balancePaymentDays": "Balance payment days",
+					"depositPercentage": "Deposit %",
+					"refundable": "Refundable after balance",
+					"refundFloor": "Refund floor",
 					"image": "Image:",
 					"status": "Status:"
 				},
@@ -3149,7 +3184,9 @@
 			"viewDetails": "View Details",
 			"bookedOn": "Booked On",
 			"alreadyFeedbacked": "Already Feedbacked",
-			"transaction": "Transaction"
+      		"transaction": "Transaction",
+     	 	"cancelBooking": "Cancel booking",
+      		"complaint": "Complaint"
 		},
 		"filters": {
 			"status": "Filter by Status",
@@ -3171,6 +3208,15 @@
 			"bookingSuccess": "Booking Successful",
 			"bookingFailed": "Booking Failed",
 			"bookingRejected": "Booking Rejected"
+    },
+    "cancel": {
+      "title": "Confirm cancellation",
+      "message": "Are you sure you want to cancel this booking? After confirmation we will estimate the refundable amount based on the current policy.",
+      "confirm": "Confirm cancel",
+      "successTitle": "Cancellation submitted",
+      "successBody": "Your cancellation request has been recorded. Estimated refund",
+      "successTail": "will be sent via your original payment method.",
+      "note": "Note: UI demo only, API not wired. Please verify the tour's actual refund policy."
     },
     "transactionStatus": {
 			"pending": "Pending",
@@ -3515,6 +3561,12 @@
 				"infantIdRequiredGenericPassport": "Please enter infant passport",
 				"infantIdInvalidFormatGeneric": "Infant ID format is invalid",
 				"infantIdInvalidFormatGenericPassport": "Infant passport format is invalid"
+			}
+		},
+		"modal": {
+			"step2Info": {
+				"title": "Passenger information",
+				"message": "Please fill in all passenger details in step 2. You need to re-enter the passenger information."
 			}
 		},
 		"step3": {
@@ -4529,7 +4581,7 @@
     "placeholders": {
       "code": "Example: VOUCHER001",
       "name": "Example: 10% discount for summer tour",
-      "discountPercent": "Enter % (1 - 100)",
+      "discountPercent": "Enter % (1 - 80)",
       "discountAmount": "Enter amount in VND (e.g., 100000 for 100k)"
     },
     "tourDropdown": {
@@ -4685,6 +4737,28 @@
     "emoji": "Add Emoji",
     "send": "Send Message",
     "placeholder": "Type your message..."
+  },
+  "chatAI": {
+    "bubble": {
+      "title": "Chat with AI"
+    },
+    "box": {
+      "title": "AI Assistant",
+      "greeting": "Hello! I'm your AI assistant. How can I help you today?",
+      "status": {
+        "typing": "Typing...",
+        "ready": "Ready to help"
+      },
+      "actions": {
+        "minimize": "Minimize",
+        "close": "Close",
+        "send": "Send"
+      },
+      "input": {
+        "placeholder": "Type a message..."
+      },
+      "error": "Sorry, an error occurred. Please try again later."
+    }
   },
   "userChat": {
     "time": {

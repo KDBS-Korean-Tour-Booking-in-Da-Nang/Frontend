@@ -12,5 +12,7 @@ export { default as Toast } from './toast/Toast';
 export { default as Tooltip } from './tooltip/Tooltip';
 export { default as WebSocketStatus } from './WebSocketStatus/WebSocketStatus';
 export { default as Footer } from './Footer/Footer';
-export { default as CozeChat } from './CozeChat/CozeChat';
 export { default as SupportTicketBubble } from './SupportTicketBubble/SupportTicketBubble';
+
+// AI Chat components
+export { BubbleChatAI, ChatBoxAI } from './chatAI';

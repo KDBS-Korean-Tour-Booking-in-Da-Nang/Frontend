@@ -24,7 +24,7 @@ const VoucherManagement = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { showSuccess } = useToast();
-  
+
   // Use Redux hook for state management
   const {
     vouchers,
@@ -41,12 +41,12 @@ const VoucherManagement = () => {
     setTours,
     setAllToursMap
   } = useVoucher();
-  
+
   // Local state (UI only)
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [companyId, setCompanyId] = useState(null);
   const [hasAttemptedCompanyId, setHasAttemptedCompanyId] = useState(false);
-  
+
   const currentPage = pagination.currentPage;
 
   // Get authentication token from localStorage or sessionStorage
@@ -61,7 +61,7 @@ const VoucherManagement = () => {
     if (!companyId) {
       return Promise.resolve();
     }
-    
+
     const token = getToken();
     if (!token) {
       return Promise.resolve();
@@ -80,17 +80,22 @@ const VoucherManagement = () => {
         await checkAndHandle401(response);
         return;
       }
-      
+
       if (response.ok) {
         const data = await response.json();
         const toursList = Array.isArray(data) ? data : [];
+        // Only show PUBLIC tours in the Apply Tour dropdown
+        const publicTours = toursList.filter(tour => {
+          const status = (tour.tourStatus || tour.status || '').toUpperCase();
+          return status === 'PUBLIC';
+        });
         // Map tours for dropdown selection in modal
-        const toursForDropdown = toursList.map(tour => ({ 
-          id: tour.id || tour.tourId, 
-          name: tour.tourName || tour.name || `Tour #${tour.id || tour.tourId}` 
+        const toursForDropdown = publicTours.map(tour => ({
+          id: tour.id || tour.tourId,
+          name: tour.tourName || tour.name || `Tour #${tour.id || tour.tourId}`
         }));
         setTours(toursForDropdown);
-        
+
         // Create a map of tourId -> tour name for quick lookup when displaying voucher tours
         const toursMapObj = {};
         toursList.forEach(tour => {
@@ -166,7 +171,7 @@ const VoucherManagement = () => {
 
     // Check if user has COMPANY role
     const isCompanyUser = user.role === 'COMPANY' || user.role === 'BUSINESS';
-    
+
     if (!isCompanyUser) {
       setLoading(false);
       setHasAttemptedCompanyId(true);
@@ -179,7 +184,7 @@ const VoucherManagement = () => {
       setHasAttemptedCompanyId(true);
       return;
     }
-    
+
     // Priority 2: For COMPANY role, user.id equals companyId
     if (user.id) {
       const userIdAsCompanyId = typeof user.id === 'number' ? user.id : parseInt(user.id);
@@ -260,12 +265,33 @@ const VoucherManagement = () => {
     }
   }, [companyId, fetchVouchers, hasAttemptedCompanyId, setLoading]);
 
-  const totalPages = Math.max(1, Math.ceil((vouchers?.length || 0) / PAGE_SIZE));
+  // Filter out expired and out-of-stock vouchers for display
+  const displayVouchers = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (vouchers || []).filter((v) => {
+      // Hide vouchers that are out of stock (remainingQuantity <= 0)
+      const remaining = v?.remainingQuantity;
+      if (remaining !== null && remaining !== undefined && remaining <= 0) {
+        return false;
+      }
+
+      // Hide expired vouchers
+      const rawEndDate = v?.endDate;
+      if (!rawEndDate) return true; // If no endDate, show the voucher
+      const end = new Date(rawEndDate);
+      if (Number.isNaN(end.getTime())) return true;
+      end.setHours(23, 59, 59, 999); // Valid until end of endDate
+      return end >= today;
+    });
+  }, [vouchers]);
+
+  const totalPages = Math.max(1, Math.ceil((displayVouchers?.length || 0) / PAGE_SIZE));
   // Calculate paginated vouchers for current page
   const pageData = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
-    return vouchers.slice(start, start + PAGE_SIZE);
-  }, [vouchers, currentPage]);
+    return displayVouchers.slice(start, start + PAGE_SIZE);
+  }, [displayVouchers, currentPage]);
 
   // Handle successful voucher creation: close modal and refresh list
   const handleCreateSuccess = () => {
@@ -337,7 +363,7 @@ const VoucherManagement = () => {
               </div>
             )}
 
-            {vouchers.length === 0 ? (
+            {displayVouchers.length === 0 ? (
               <div className={styles['empty-state']}>
                 <p className={styles['empty-message']}>{t('voucherManagement.empty.message')}</p>
               </div>
@@ -370,13 +396,13 @@ const VoucherManagement = () => {
                           {t('voucherManagement.card.status')}{' '}
                           <span className={
                             v.status === 'ACTIVE' ? styles['status-active'] :
-                            v.status === 'EXPIRED' ? styles['status-expired'] :
-                            styles['status-inactive']
+                              v.status === 'EXPIRED' ? styles['status-expired'] :
+                                styles['status-inactive']
                           }>
                             {t(`voucherManagement.status.${v.status}`)}
                           </span>
                         </div>
-                        
+
                         {/* Display tours applied to this voucher */}
                         {v.tourIds && v.tourIds.length > 0 ? (
                           <div className={styles['voucher-tours']}>
@@ -409,11 +435,11 @@ const VoucherManagement = () => {
             )}
 
             {/* Pagination - Fixed at bottom */}
-            {totalPages > 1 && !loading && vouchers.length > 0 && (
+            {totalPages > 1 && !loading && displayVouchers.length > 0 && (
               <div className={styles['pagination']}>
                 <div className={styles['pagination-info']}>
                   {t('voucherManagement.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> {t('voucherManagement.pagination.of')}{' '}
-                  <strong>{vouchers.length}</strong> {t('voucherManagement.pagination.vouchers')}
+                  <strong>{displayVouchers.length}</strong> {t('voucherManagement.pagination.vouchers')}
                 </div>
                 <nav className={styles['pagination-nav']} aria-label="Pagination">
                   <button

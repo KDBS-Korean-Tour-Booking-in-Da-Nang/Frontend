@@ -1703,6 +1703,8 @@
 		},
 		"errors": {
 			"invalidName": "이름이 올바르지 않습니다: 숫자로 시작하거나 특수 문자를 포함할 수 없습니다.",
+			"avatarTooLarge": "이미지 크기는 5MB를 초과할 수 없습니다",
+			"avatarInvalidFormat": "지원되지 않는 이미지 형식입니다 (JPG, PNG, GIF, WebP만 허용)",
 			"avatarSize": "이미지 크기는 5MB를 초과할 수 없습니다",
 			"avatarFormat": "지원되지 않는 이미지 형식입니다 (JPG, PNG, GIF, WebP만 허용)",
 			"tokenMissing": "인증 토큰을 찾을 수 없습니다",
@@ -2152,6 +2154,7 @@
 			"existingImagesRemovedReason": "콘텐츠에 링크를 입력하면 업로드된 이미지가 제거됩니다."
 		},
 		"post": {
+			"title": "게시글",
 			"loading": "게시물 로딩 중...",
 			"noPosts": "게시물이 없습니다",
 			"noPostsDesc": "첫 번째로 무언가를 공유해보세요!",
@@ -2398,6 +2401,9 @@
 		"company_only": "회사 계정만 이 작업을 수행할 수 있습니다.",
 		"field_invalid": "유효하지 않은 값",
 		"min_price": "최소 가격은 {{min}} VND입니다",
+		"post": {
+			"create_error": "게시글을 생성할 수 없습니다. 다시 시도해주세요."
+		},
 		"tour": {
 			"upload_image_failed": "이미지를 업로드할 수 없습니다. 다시 시도해주세요.",
 			"file_size_exceeded": "파일 크기는 5MB를 초과할 수 없습니다",
@@ -2482,8 +2488,13 @@
                 "duration": "일수",
                 "nights": "박수",
                 "maxCapacity": "최대 투어",
+                "numberOfAvailableTours": "사용 가능한 투어 수",
                 "tourDeadline": "최소 사전 예약 일수",
-                "tourExpirationDate": "예약 마감일"
+                "tourExpirationDate": "예약 마감일",
+                "checkDays": "확인 일수 (보증금 기간)",
+                "balancePaymentDays": "잔액 결제 일수",
+                "depositPercentage": "보증금 비율",
+                "refundFloor": "환불 최소 비율 (%)"
             },
 			"placeholders": {
 				"tourName": "예: 다낭 - 호이안 3박2일 투어, 한국 5박4일 투어",
@@ -2491,13 +2502,25 @@
 				"nights": "예: 2",
                 "maxCapacity": "예: 30",
                 "tourDeadline": "예: 7",
-                "tourExpirationDate": "예약 마감일 선택"
+                "tourExpirationDate": "예약 마감일 선택",
+				"checkDays": "확인(승인) 일수 입력",
+				"balancePaymentDays": "잔금 일수 입력",
+				"depositPercentage": "0 - 100",
+				"refundFloor": "1 - 100"
 			},
 			"help": {
 				"departurePoint": "모든 투어는 다낭에서 출발합니다",
                 "vehicle": "기본 교통수단: 관광버스",
                 "tourDeadline": "출발일까지 최소 이 일수 이상 남아야 예약 가능합니다",
-                "tourExpirationDate": "이 날짜 이후로는 예약을 받을 수 없습니다"
+                "tourExpirationDate": "이 날짜 이후로는 예약을 받을 수 없습니다",
+				"checkDays": "MinAdvanceDays 중 초기 구간(보증금 기간)",
+				"balancePaymentDays": "자동 = MinAdvanceDays - CheckDays",
+				"depositPercentage": "예약 시 필요한 보증금 비율",
+				"refundFloor": "잔금 구간 이후 최소 환불 비율",
+				"allowRefundableAfterBalancePayment": "잔금 후 환불 규칙을 활성화"
+			},
+			"errors": {
+				"minAdvancedExceedsCutoff": "Minimum booking days가 예약 마감일까지 \"{{cutoff}}\"일을 초과할 수 없습니다. Check days와 Balance payment days를 다시 입력해 주세요."
 			},
 			"hints": {
 				"nightsSuggestion": "추천: {{days}}일 일정에 {{suggest}}박.",
@@ -2517,6 +2540,11 @@
                 "maxCapacity": "최대 투어:",
                 "tourDeadline": "최소 사전 예약:",
                 "tourExpirationDate": "예약 마감일:",
+				"checkDays": "체크 일수",
+				"balancePaymentDays": "잔금 일수",
+				"depositPercentage": "보증금",
+				"refundRule": "환불 규칙",
+				"refundFloor": "최소 환불 비율",
 				"notEntered": "입력 안됨",
 				"notSelected": "선택 안됨",
 				"guests": "명",
@@ -2695,6 +2723,12 @@
 					"tourName": "투어명:",
 					"duration": "기간:",
 					"adultPrice": "성인 가격:",
+					"minAdvanceDays": "최소 사전 일수",
+					"checkDays": "체크 일수",
+					"balancePaymentDays": "잔금 일수",
+					"depositPercentage": "보증금 %",
+					"refundable": "잔금 이후 환불 여부",
+					"refundFloor": "최소 환불 비율",
 					"image": "이미지:",
 					"status": "상태:"
 				},
@@ -3146,7 +3180,8 @@
 			"viewDetails": "상세 보기",
 			"bookedOn": "예약일",
 			"alreadyFeedbacked": "이미 피드백 완료",
-			"transaction": "결제 상태"
+			"transaction": "결제 상태",
+      "cancelBooking": "투어 취소"
 		},
 		"filters": {
 			"status": "상태별 필터",
@@ -3169,6 +3204,15 @@
 			"bookingFailed": "예약 실패",
 			"bookingRejected": "예약 거절"
 		},
+    "cancel": {
+      "title": "투어 취소 확인",
+      "message": "이 예약을 정말 취소하시겠습니까? 확인 후 현재 정책에 따라 예상 환불 금액을 계산합니다.",
+      "confirm": "취소 확정",
+      "successTitle": "취소가 접수되었습니다",
+      "successBody": "취소 요청이 접수되었습니다. 예상 환불액",
+      "successTail": "은(는) 원결제 수단으로 환불됩니다.",
+      "note": "주의: 이 화면은 UI 테스트용이며 아직 API와 연동되지 않았습니다. 실제 투어 환불 정책을 확인해주세요."
+    },
 		"transactionStatus": {
 			"pending": "대기 중",
 			"success": "성공",
@@ -4522,7 +4566,7 @@
     "placeholders": {
       "code": "예: VOUCHER001",
       "name": "예: 여름 투어 10% 할인",
-      "discountPercent": "% 입력 (1 - 100)",
+      "discountPercent": "% 입력 (1 - 80)",
       "discountAmount": "VND 금액 입력 (예: 100000은 100k)"
     },
     "tourDropdown": {
@@ -4678,6 +4722,28 @@
     "emoji": "이모지 추가",
     "send": "메시지 보내기",
     "placeholder": "메시지를 입력하세요..."
+  },
+  "chatAI": {
+    "bubble": {
+      "title": "AI와 채팅"
+    },
+    "box": {
+      "title": "AI 어시스턴트",
+      "greeting": "안녕하세요! 저는 AI 어시스턴트입니다. 오늘 무엇을 도와드릴까요?",
+      "status": {
+        "typing": "입력 중...",
+        "ready": "도움 준비됨"
+      },
+      "actions": {
+        "minimize": "최소화",
+        "close": "닫기",
+        "send": "보내기"
+      },
+      "input": {
+        "placeholder": "메시지를 입력하세요..."
+      },
+      "error": "죄송합니다. 오류가 발생했습니다. 나중에 다시 시도해주세요."
+    }
   },
   "userChat": {
     "time": {

@@ -46,12 +46,12 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
         </div>
         
         <div className={styles['success-content']}>
-          <h3>Báo cáo đã được gửi thành công!</h3>
+          <h3>{t('forum.modals.reportSuccess.title')}</h3>
           <p>
-            Cảm ơn bạn đã báo cáo bình luận này. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.
+            {t('forum.modals.reportSuccess.message')}
           </p>
           <p className={styles['admin-note']}>
-            <strong>Lưu ý:</strong> Đội ngũ quản trị viên sẽ xem xét báo cáo của bạn và thực hiện các biện pháp phù hợp.
+            <strong>{t('forum.modals.reportSuccess.adminNote')}</strong>
           </p>
         </div>
         
@@ -65,12 +65,12 @@ const CommentReportSuccessModal = ({ isOpen, onClose }) => {
               }}
             ></div>
           </div>
-          <div className={styles['progress-text']}>Tự động đóng sau {timeLeft} giây</div>
+          <div className={styles['progress-text']}>{t('forum.modals.reportSuccess.autoClose', { seconds: timeLeft })}</div>
         </div>
         
         <div className={styles['success-actions']}>
           <button className={styles['ok-btn']} onClick={onClose}>
-            Đã hiểu
+            {t('forum.modals.reportSuccess.understood')}
           </button>
         </div>
       </div>

@@ -23,6 +23,17 @@ const Step2Details = () => {
     recalcTotal();
   }, [plan.pax, rebuildMembers, recalcTotal]);
 
+  // Compute earliest selectable date based on Minimum Advance Days (fallback 0)
+  const computeEarliestDate = () => {
+    const minAdvance = Number(plan?.minAdvancedDays ?? 0) || 0;
+    const base = new Date();
+    base.setHours(0, 0, 0, 0);
+    base.setDate(base.getDate() + minAdvance);
+    return base;
+  };
+
+  const earliestDate = computeEarliestDate();
+
   // Validate form
   useEffect(() => {
     const newErrors = {};
@@ -32,11 +43,9 @@ const Step2Details = () => {
       newErrors.date = 'Vui lòng chọn ngày khởi hành';
     } else {
       const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (selectedDate < today) {
-        newErrors.date = 'Không thể chọn ngày trong quá khứ';
+      const minDate = computeEarliestDate();
+      if (selectedDate < minDate) {
+        newErrors.date = `Vui lòng chọn ngày khởi hành từ ${minDate.toLocaleDateString('vi-VN')}`;
       } else {
         delete newErrors.date;
       }
@@ -249,7 +258,7 @@ const Step2Details = () => {
                   setDate({ day: null, month: null, year: null });
                 }
               }}
-              min={new Date().toISOString().split('T')[0]} // Không cho chọn ngày trong quá khứ
+              min={earliestDate.toISOString().split('T')[0]} // Không cho chọn trước Minimum Advance Days
               className={`form-input ${errors.date ? 'error' : ''}`}
             />
           </div>

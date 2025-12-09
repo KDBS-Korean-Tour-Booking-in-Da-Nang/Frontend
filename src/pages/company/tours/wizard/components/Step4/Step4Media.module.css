@@ -149,9 +149,13 @@
 
 .preview-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1.3fr 1fr;
   gap: 24px;
   align-items: start;
+}
+
+.preview-card-wrapper {
+  width: 100%;
 }
 
 /* Preview Info - Minimal Soft Korean */
