@@ -48,8 +48,7 @@
 			"title": "Confirm Delete",
 			"message": "Are you sure you want to delete this {{item}}? This action cannot be undone.",
 			"warning": "This action cannot be undone."
-		}
-		,
+		},
 		"tourTypes": {
 			"resort": "Resort",
 			"culture": "Culture",
@@ -59,8 +58,7 @@
 			"photography": "Photography",
 			"religious": "Religious",
 			"other": "Other"
-		}
-		,
+		},
 		"departurePoints": {
 			"daNang": "Da Nang"
 		},
@@ -134,8 +132,8 @@
 		"register": {
 			"title": "Create account",
 			"headerSubtitle": "Create a new account to get started",
-            "illustrationTitle": "Join KDBS Today",
-            "illustrationSubtitle": "Start your amazing Korea - Da Nang journey",
+			"illustrationTitle": "Join KDBS Today",
+			"illustrationSubtitle": "Start your amazing Korea - Da Nang journey",
 			"username": "Username",
 			"usernamePlaceholder": "Enter username",
 			"password": "Password",
@@ -361,7 +359,7 @@
 		"info_submit_success": "Business information submitted successfully!",
 		"info_submit_failed": "An error occurred while submitting information. Please try again."
 	},
-  "company": {
+	"company": {
 		"loading": "Loading...",
 		"notFoundTitle": "Registration information not found",
 		"backToRegister": "Back to register",
@@ -1358,7 +1356,152 @@
 				"confirm": "Reject",
 				"cancel": "Cancel"
 			},
-			"durationTemplate": "{{days}} days {{nights}} nights"
+			"durationTemplate": "{{days}} days {{nights}} nights",
+			"edit": {
+				"title": "Edit Tour",
+				"tabs": {
+					"basic": "Basic Information",
+					"itinerary": "Itinerary",
+					"pricing": "Pricing",
+					"media": "Photos & Videos"
+				},
+				"basic": {
+					"title": "Basic Information",
+					"priceCapacityTitle": "Price and Capacity",
+					"fields": {
+						"tourName": "Tour Name",
+						"tourDescription": "Tour Description",
+						"tourType": "Tour Type",
+						"amount": "Number of Slots",
+						"tourStatus": "Tour Status",
+						"days": "Days",
+						"nights": "Nights",
+						"tourExpirationDate": "Booking Cutoff Date",
+						"minAdvancedDays": "Minimum Advance Days",
+						"checkDays": "Check/Approval Days",
+						"balancePaymentDays": "Balance Payment Days",
+						"depositPercentage": "Deposit Percentage",
+						"refundFloor": "Minimum Refund Percentage (%)"
+					},
+					"placeholders": {
+						"selectTourType": "Select tour type",
+						"tourDescription": "Enter text description (no images)..."
+					},
+					"help": {
+						"checkDays": "The first part of the advance period for deposit",
+						"balancePaymentDays": "Auto calculated = Min Advance Days - Check Days",
+						"depositPercentage": "Required when booking tour",
+						"refundFloor": "Minimum refund percentage after balance payment period"
+					}
+				},
+				"itinerary": {
+					"title": "Tour Itinerary",
+					"dailyTitle": "Daily Itinerary",
+					"fields": {
+						"dayDescription": "Day Description"
+					},
+					"placeholders": {
+						"dayTitle": "Day {{dayNumber}} Title"
+					},
+					"actions": {
+						"addDay": "+ Add Day",
+						"removeDay": "− Remove Day"
+					}
+				},
+				"pricing": {
+					"title": "Tour Pricing",
+					"fields": {
+						"adultPrice": "Adult Price",
+						"childrenPrice": "Children Price",
+						"babyPrice": "Baby Price"
+					}
+				},
+				"media": {
+					"title": "Cover Image",
+					"coverLabel": "Cover Image",
+					"changeImage": "Change Image",
+					"selectImage": "Select Cover Image",
+					"hint": "Click image to change. Format: JPG, PNG. Max 5MB."
+				},
+				"status": {
+					"active": "Active",
+					"inactive": "Inactive",
+					"draft": "Draft"
+				},
+				"colorPicker": {
+					"title": "Customize Color",
+					"apply": "Apply",
+					"cancel": "Cancel"
+				},
+				"alignment": {
+					"left": "Left Align",
+					"center": "Center Align",
+					"right": "Right Align"
+				},
+				"actions": {
+					"resetTitle": "Reset Title",
+					"customColor": "Custom Color"
+				},
+				"saving": "Saving...",
+				"save": "Save Changes",
+				"errors": {
+					"fillRequired": "Please fill in: {{fields}}",
+					"authTokenMissing": "Authentication token not found. Please login again.",
+					"sessionExpired": "Session expired. Please login again.",
+					"uploadFailed": "Unable to upload image. Please try again."
+				}
+			},
+			"updateRequests": {
+				"button": "Update Requests",
+				"title": "Tour Update Requests",
+				"empty": "No pending update requests.",
+				"tourName": "Tour Name",
+				"status": "Status",
+				"bookingCount": "Bookings",
+				"companyNote": "Company Note",
+				"requestedAt": "Requested Date",
+				"approve": "Approve Update",
+				"reject": "Reject Update",
+				"noteLabel": "Note (optional)",
+				"notePlaceholder": "Enter note for company...",
+				"approveConfirm": {
+					"title": "Approve Tour Update",
+					"message": "Are you sure you want to approve the update request for tour \"{{name}}\"? Changes will be applied immediately.",
+					"confirm": "Approve",
+					"cancel": "Cancel"
+				},
+				"rejectConfirm": {
+					"title": "Reject Tour Update",
+					"message": "Are you sure you want to reject the update request for tour \"{{name}}\"? Tour will remain unchanged.",
+					"confirm": "Reject",
+					"cancel": "Cancel"
+				}
+			},
+			"deleteRequests": {
+				"button": "Delete Requests",
+				"empty": "No pending delete requests",
+				"tourName": "Tour Name",
+				"status": "Status",
+				"bookingCount": "Bookings",
+				"companyNote": "Company Note",
+				"requestedAt": "Requested At",
+				"approve": "Approve",
+				"reject": "Reject",
+				"noteLabel": "Note (optional)",
+				"notePlaceholder": "Enter note for company...",
+				"approveConfirm": {
+					"title": "Approve Delete Request",
+					"message": "Are you sure you want to approve the delete request for tour \"{{name}}\"? Tour will be disabled.",
+					"confirm": "Approve",
+					"cancel": "Cancel"
+				},
+				"rejectConfirm": {
+					"title": "Reject Delete Request",
+					"message": "Are you sure you want to reject the delete request for tour \"{{name}}\"? Tour will remain active.",
+					"confirm": "Reject",
+					"cancel": "Cancel"
+				}
+			}
 		},
 		"tourDetailModal": {
 			"title": "Tour Details",
@@ -2101,19 +2244,19 @@
 		"missingInfo": "Missing required authentication info",
 		"failed": "OAuth verification failed: {{message}}"
 	},
-  "chatDropdown": {
-    "title": "Chats",
-    "searchPlaceholder": "Search in Messenger",
-    "empty": {
-      "search": "No users found",
-      "noUsers": "No users to show yet"
-    },
-    "time": {
-      "justNow": "Just now",
-      "minutesAgo": "{{count}} min",
-      "hoursAgo": "{{count}} hr"
-    }
-  },
+	"chatDropdown": {
+		"title": "Chats",
+		"searchPlaceholder": "Search in Messenger",
+		"empty": {
+			"search": "No users found",
+			"noUsers": "No users to show yet"
+		},
+		"time": {
+			"justNow": "Just now",
+			"minutesAgo": "{{count}} min",
+			"hoursAgo": "{{count}} hr"
+		}
+	},
 	"forum": {
 		"title": "Forum",
 		"shareTour": {
@@ -2421,9 +2564,10 @@
 			"load_error": "An error occurred while loading tour list",
 			"activate_success": "Tour activated",
 			"deactivate_success": "Tour deactivated",
-			"cannot_delete_content": "Cannot delete content"
+			"cannot_delete_content": "Cannot delete content",
+			"update_request_submitted": "Update request submitted and pending approval.",
+			"delete_request_submitted": "Delete request submitted and pending approval."
 		},
-  
 		"auth": {
 			"login_success": "Login successful!",
 			"login_failed": "Login failed. Please try again.",
@@ -2444,11 +2588,11 @@
 			"wrong_password": "Login failed. Please check your password.",
 			"both_invalid": "Login failed. Please check your email or password."
 		},
-    "company": {
-      "info_submit_success": "Company information submitted successfully!",
-      "info_submit_failed": "An error occurred while submitting information. Please try again."
-    },
-    "forum": {
+		"company": {
+			"info_submit_success": "Company information submitted successfully!",
+			"info_submit_failed": "An error occurred while submitting information. Please try again."
+		},
+		"forum": {
 			"post_update_success": "Post updated successfully!",
 			"post_create_success": "Post created successfully!",
 			"post_update_failed": "Failed to update post. Please try again.",
@@ -2483,29 +2627,29 @@
 		"step1": {
 			"title": "Basic Information",
 			"subtitle": "Enter basic tour information",
-            "fields": {
-                "tourName": "Tour Name",
-                "tourType": "Tour Type",
-                "departurePoint": "Departure Point",
-                "vehicle": "Vehicle",
-                "duration": "Duration (Days)",
-                "nights": "Nights",
-                "maxCapacity": "Max Tours",
-                "numberOfAvailableTours": "Number of available tours",
-                "tourDeadline": "Minimum Advance Days",
-                "tourExpirationDate": "Booking Cut-off Date",
-                "checkDays": "Check days (deposit window)",
-                "balancePaymentDays": "Balance payment days",
-                "depositPercentage": "Deposit percentage",
-                "refundFloor": "Refund floor (%)"
-            },
+			"fields": {
+				"tourName": "Tour Name",
+				"tourType": "Tour Type",
+				"departurePoint": "Departure Point",
+				"vehicle": "Vehicle",
+				"duration": "Duration (Days)",
+				"nights": "Nights",
+				"maxCapacity": "Max Tours",
+				"numberOfAvailableTours": "Number of available tours",
+				"tourDeadline": "Minimum Advance Days",
+				"tourExpirationDate": "Booking Cut-off Date",
+				"checkDays": "Check days (deposit window)",
+				"balancePaymentDays": "Balance payment days",
+				"depositPercentage": "Deposit percentage",
+				"refundFloor": "Refund floor (%)"
+			},
 			"placeholders": {
 				"tourName": "Example: Da Nang - Hoi An 3D2N Tour, Korea 5D4N Tour",
 				"duration": "Example: 3",
 				"nights": "Example: 2",
-                "maxCapacity": "Example: 30",
-                "tourDeadline": "Example: 7",
-                "tourExpirationDate": "Select booking cut-off date",
+				"maxCapacity": "Example: 30",
+				"tourDeadline": "Example: 7",
+				"tourExpirationDate": "Select booking cut-off date",
 				"checkDays": "Enter check days",
 				"balancePaymentDays": "Enter balance payment days",
 				"depositPercentage": "0 - 100",
@@ -2513,9 +2657,9 @@
 			},
 			"help": {
 				"departurePoint": "All tours depart from Da Nang",
-                "vehicle": "Default vehicle: Tourist Bus",
-                "tourDeadline": "Guests must book at least this many days before departure",
-                "tourExpirationDate": "Bookings close after this date",
+				"vehicle": "Default vehicle: Tourist Bus",
+				"tourDeadline": "Guests must book at least this many days before departure",
+				"tourExpirationDate": "Bookings close after this date",
 				"checkDays": "Part of MinAdvanceDays; deposit window",
 				"balancePaymentDays": "Auto = MinAdvanceDays - CheckDays",
 				"depositPercentage": "Required at booking time.",
@@ -2541,8 +2685,8 @@
 				"days": "day(s)",
 				"nights": "night(s)",
 				"maxCapacity": "Max Tours:",
-                "tourDeadline": "Minimum Advance:",
-                "tourExpirationDate": "Booking Closes:",
+				"tourDeadline": "Minimum Advance:",
+				"tourExpirationDate": "Booking Closes:",
 				"checkDays": "Check days",
 				"balancePaymentDays": "Balance payment days",
 				"depositPercentage": "Deposit",
@@ -2616,14 +2760,14 @@
 				"c3": "BA NA HILLS - GOLDEN BRIDGE",
 				"c4": "DA NANG CITY TOUR"
 			},
-            "tourDescription": {
-                "title": "Tour Description",
+			"tourDescription": {
+				"title": "Tour Description",
 				"description": "Overall description of the tour, highlights and benefits for customers",
 				"placeholder": "Enter text description (no images)..."
 			},
 			"itinerary": {
 				"mainSectionTitle": "DESTINATIONS & ITINERARY",
-                "activities": "Activities & Locations",
+				"activities": "Activities & Locations",
 				"images": "Illustrative Images (max 5 images)",
 				"services": "Included Services",
 				"addService": "+ Add Service",
@@ -2665,8 +2809,8 @@
 			"title": "Pricing",
 			"subtitle": "Set up tour pricing",
 			"pricing": {
-                "title": "Tour Pricing",
-                "adultPrice": "Adult Price (≥ 12 years)",
+				"title": "Tour Pricing",
+				"adultPrice": "Adult Price (≥ 12 years)",
 				"childrenPrice": "Children Price (2-11 years)",
 				"babyPrice": "Baby Price (under 2 years)",
 				"unit": "VND / person",
@@ -2748,11 +2892,25 @@
 	},
 	"bookingWizard": {
 		"steps": {
-			"step1": { "title": "Contact Information", "description": "Enter your contact information" },
-			"step2": { "title": "Tour Details", "description": "Select date and group information" },
-			"step3": { "title": "Confirm", "description": "Review and confirm booking" }
+			"step1": {
+				"title": "Contact Information",
+				"description": "Enter your contact information"
+			},
+			"step2": {
+				"title": "Tour Details",
+				"description": "Select date and group information"
+			},
+			"step3": {
+				"title": "Confirm",
+				"description": "Review and confirm booking"
+			}
 		},
-		"navigation": { "back": "Back", "next": "Next", "confirm": "Confirm booking", "backtoTour": "Back to tour" },
+		"navigation": {
+			"back": "Back",
+			"next": "Next",
+			"confirm": "Confirm booking",
+			"backtoTour": "Back to tour"
+		},
 		"auth": {
 			"checking": "Checking authentication...",
 			"loginRequiredTitle": "Login Required",
@@ -2833,15 +2991,23 @@
 		},
 		"modals": {
 			"delete": {
-				"title": "Confirm delete tour",
-				"message": "Are you sure you want to delete tour \"{{name}}\"?",
-				"itemName": "this tour"
+				"title": "Confirm delete tour request",
+				"message": "Are you sure you want to submit a delete request for tour \"{{name}}\"? The request will be sent to admin for approval.",
+				"itemName": "this tour",
+				"noteLabel": "Note (optional)",
+				"notePlaceholder": "Enter reason for deletion for admin review...",
+				"confirm": "Send Delete Request"
 			}
 		},
 		"edit": {
 			"title": "Edit tour",
 			"saving": "Saving...",
 			"save": "Save changes",
+			"updateNote": {
+				"label": "Update Note (for Admin Review)",
+				"placeholder": "Enter reasons or descriptions of changes for admin approval...",
+				"disabledHint": "Change tour information above to enable notes..."
+			},
 			"tabs": {
 				"basic": "Basic Info",
 				"itinerary": "Itinerary",
@@ -2991,8 +3157,8 @@
 			"gallery": {
 				"title": "Tour gallery"
 			},
-            "weather": {
-                "title": "Weather in area:",
+			"weather": {
+				"title": "Weather in area:",
 				"loading": "Loading weather...",
 				"empty": "No weather data.",
 				"cityRange": "{{city}} — {{days}} days"
@@ -3155,7 +3321,7 @@
 			"title": "All Tours"
 		}
 	},
-  "bookingHistory": {
+	"bookingHistory": {
 		"title": "Booking History",
 		"subtitle": "View all your tour bookings",
 		"backButton": "Back",
@@ -3174,7 +3340,7 @@
 		},
 		"card": {
 			"bookingId": "Booking ID",
-      "tourName": "Tour Name",
+			"tourName": "Tour Name",
 			"departureDate": "Departure Date",
 			"totalGuests": "Total Guests",
 			"guests": "guests",
@@ -3184,9 +3350,9 @@
 			"viewDetails": "View Details",
 			"bookedOn": "Booked On",
 			"alreadyFeedbacked": "Already Feedbacked",
-      		"transaction": "Transaction",
-     	 	"cancelBooking": "Cancel booking",
-      		"complaint": "Complaint"
+			"transaction": "Transaction",
+			"cancelBooking": "Cancel booking",
+			"complaint": "Complaint"
 		},
 		"filters": {
 			"status": "Filter by Status",
@@ -3204,133 +3370,133 @@
 			"waitingForUpdate": "Waiting for Update",
 			"bookingSuccessPending": "Approved (Awaiting Tour)",
 			"bookingSuccessWaitForConfirmed": "Awaiting Completion Confirmation",
-      "bookingUnderComplaint": "Under Complaint",
+			"bookingUnderComplaint": "Under Complaint",
 			"bookingSuccess": "Booking Successful",
 			"bookingFailed": "Booking Failed",
 			"bookingRejected": "Booking Rejected"
-    },
-    "cancel": {
-      "title": "Confirm cancellation",
-      "message": "Are you sure you want to cancel this booking? After confirmation we will estimate the refundable amount based on the current policy.",
-      "confirm": "Confirm cancel",
-      "successTitle": "Cancellation submitted",
-      "successBody": "Your cancellation request has been recorded. Estimated refund",
-      "successTail": "will be sent via your original payment method.",
-      "note": "Note: UI demo only, API not wired. Please verify the tour's actual refund policy."
-    },
-    "transactionStatus": {
+		},
+		"cancel": {
+			"title": "Confirm cancellation",
+			"message": "Are you sure you want to cancel this booking? After confirmation we will estimate the refundable amount based on the current policy.",
+			"confirm": "Confirm cancel",
+			"successTitle": "Cancellation submitted",
+			"successBody": "Your cancellation request has been recorded. Estimated refund",
+			"successTail": "will be sent via your original payment method.",
+			"note": "Note: UI demo only, API not wired. Please verify the tour's actual refund policy."
+		},
+		"transactionStatus": {
 			"pending": "Pending",
 			"success": "Success",
 			"failed": "Failed",
 			"cancelled": "Cancelled"
 		}
-  },
-  "bookingDetail": {
-    "sections": {
-      "tourInfo": "Tour Information",
-      "contactInfo": "Contact Information",
-      "guests": "Passenger information",
-      "email": "Email"
-    },
-    "guests": {
-      "viewAll": "View all {{count}} passengers"
-    },
-    "actions": {
-      "editBooking": "Edit booking",
-      "complete": "Complete",
-      "complaint": "Submit complaint"
-    },
-    "info": {
-      "successPending": "Your booking has been approved by the company. Please wait until the tour takes place to confirm completion.",
-      "expectedEndDatePrefix": "Expected end date:",
-      "waitingForConfirmation": "The tour has ended. Please confirm you have completed the trip or submit a complaint if there were any issues.",
-      "underComplaint": "Your booking is currently under complaint. Automatic confirmation will be paused until the complaint is resolved."
-    },
-    "completion": {
-      "toastSuccess": "Tour completion has been confirmed. We will notify the company.",
-      "toastError": "Unable to confirm tour completion",
-      "autoConfirmWithDate": "If neither party confirms, the system will automatically confirm after {{date}}.",
-      "autoConfirmDefault": "If neither party confirms, the system will automatically confirm after 3 days from the end of the tour."
-    },
-    "complaint": {
-      "toastSuccess": "Your complaint has been submitted. We will review it as soon as possible.",
-      "toastError": "Unable to submit complaint",
-      "emptyError": "Please enter your complaint details"
-    },
-    "edit": {
-      "toastSuccess": "Booking updated successfully",
-      "toastError": "Unable to update booking"
-    },
-    "modal": {
-      "completionTitle": "Confirm tour completion",
-      "completionMessage": "Do you confirm that you have fully completed this tour itinerary?",
-      "confirm": "Confirm completion",
-      "confirmProcessing": "Confirming..."
-    },
-    "error": {
-      "loadFailed": "Failed to load booking information"
-    }
-  },
-  "complaintModal": {
-    "title": "Submit tour complaint",
-    "bookingIdLabel": "Booking ID:",
-    "instruction": "Please briefly describe the issue you experienced during this tour. Our support team will review and respond as soon as possible.",
-    "placeholder": "Example: The tour guide was late, service quality did not match the commitment...",
-    "actions": {
-      "close": "Close",
-      "submit": "Submit complaint"
-    }
-  },
-  "editBookingModal": {
-    "title": "Edit booking",
-    "tabs": {
-      "contact": "Contact information",
-      "guests": "Guests ({{count}})",
-      "review": "Review"
-    },
-    "contactSection": {
-      "title": "Contact information"
-    },
-    "guestsSection": {
-      "title": "Guests ({{count}})",
-      "empty": "No guest information yet",
-      "guestTitle": "Guest {{index}} - {{type}}",
-      "guestSummary": "Guest {{index}} ({{type}}):"
-    },
-    "guests": {
-      "labelBirthDate": "Date of birth"
-    },
-    "fields": {
-      "nationality": "Nationality",
-      "idNumber": "ID/Passport",
-      "idNumberShort": "ID/Passport"
-    },
-    "placeholders": {
-      "nationality": "Vietnamese"
-    },
-    "reviewSection": {
-      "title": "Review information",
-      "contactInfoTitle": "Contact information",
-      "guestsTitle": "Guests ({{count}})"
-    },
-    "gender": {
-      "male": "Male",
-      "female": "Female",
-      "other": "Other"
-    },
-    "guestTypes": {
-      "adult": "Adult",
-      "child": "Child",
-      "baby": "Infant"
-    },
-    "actions": {
-      "submit": "Confirm update"
-    },
-    "confirmModal": {
-      "title": "Confirm booking update",
-      "message": "Are you sure all information is correct?"
-    }
-  },
+	},
+	"bookingDetail": {
+		"sections": {
+			"tourInfo": "Tour Information",
+			"contactInfo": "Contact Information",
+			"guests": "Passenger information",
+			"email": "Email"
+		},
+		"guests": {
+			"viewAll": "View all {{count}} passengers"
+		},
+		"actions": {
+			"editBooking": "Edit booking",
+			"complete": "Complete",
+			"complaint": "Submit complaint"
+		},
+		"info": {
+			"successPending": "Your booking has been approved by the company. Please wait until the tour takes place to confirm completion.",
+			"expectedEndDatePrefix": "Expected end date:",
+			"waitingForConfirmation": "The tour has ended. Please confirm you have completed the trip or submit a complaint if there were any issues.",
+			"underComplaint": "Your booking is currently under complaint. Automatic confirmation will be paused until the complaint is resolved."
+		},
+		"completion": {
+			"toastSuccess": "Tour completion has been confirmed. We will notify the company.",
+			"toastError": "Unable to confirm tour completion",
+			"autoConfirmWithDate": "If neither party confirms, the system will automatically confirm after {{date}}.",
+			"autoConfirmDefault": "If neither party confirms, the system will automatically confirm after 3 days from the end of the tour."
+		},
+		"complaint": {
+			"toastSuccess": "Your complaint has been submitted. We will review it as soon as possible.",
+			"toastError": "Unable to submit complaint",
+			"emptyError": "Please enter your complaint details"
+		},
+		"edit": {
+			"toastSuccess": "Booking updated successfully",
+			"toastError": "Unable to update booking"
+		},
+		"modal": {
+			"completionTitle": "Confirm tour completion",
+			"completionMessage": "Do you confirm that you have fully completed this tour itinerary?",
+			"confirm": "Confirm completion",
+			"confirmProcessing": "Confirming..."
+		},
+		"error": {
+			"loadFailed": "Failed to load booking information"
+		}
+	},
+	"complaintModal": {
+		"title": "Submit tour complaint",
+		"bookingIdLabel": "Booking ID:",
+		"instruction": "Please briefly describe the issue you experienced during this tour. Our support team will review and respond as soon as possible.",
+		"placeholder": "Example: The tour guide was late, service quality did not match the commitment...",
+		"actions": {
+			"close": "Close",
+			"submit": "Submit complaint"
+		}
+	},
+	"editBookingModal": {
+		"title": "Edit booking",
+		"tabs": {
+			"contact": "Contact information",
+			"guests": "Guests ({{count}})",
+			"review": "Review"
+		},
+		"contactSection": {
+			"title": "Contact information"
+		},
+		"guestsSection": {
+			"title": "Guests ({{count}})",
+			"empty": "No guest information yet",
+			"guestTitle": "Guest {{index}} - {{type}}",
+			"guestSummary": "Guest {{index}} ({{type}}):"
+		},
+		"guests": {
+			"labelBirthDate": "Date of birth"
+		},
+		"fields": {
+			"nationality": "Nationality",
+			"idNumber": "ID/Passport",
+			"idNumberShort": "ID/Passport"
+		},
+		"placeholders": {
+			"nationality": "Vietnamese"
+		},
+		"reviewSection": {
+			"title": "Review information",
+			"contactInfoTitle": "Contact information",
+			"guestsTitle": "Guests ({{count}})"
+		},
+		"gender": {
+			"male": "Male",
+			"female": "Female",
+			"other": "Other"
+		},
+		"guestTypes": {
+			"adult": "Adult",
+			"child": "Child",
+			"baby": "Infant"
+		},
+		"actions": {
+			"submit": "Confirm update"
+		},
+		"confirmModal": {
+			"title": "Confirm booking update",
+			"message": "Are you sure all information is correct?"
+		}
+	},
 	"tourCard": {
 		"welcome": {
 			"explore": "Explore",
@@ -3348,35 +3514,35 @@
 		}
 	},
 	"booking": {
-        "step1": {
-          "fields": {
-            "fullName": "Full Name",
-            "phone": "Phone Number",
-            "email": "Email",
-        "gender": "Gender",
-            "dob": "Date of Birth",
-            "address": "Address",
-            "pickupPoint": "Pickup Point",
-            "note": "Note"
-          },
-          "gender": {
-            "male": "Male",
-            "female": "Female",
-            "other": "Other"
-          },
-          "placeholders": {
-            "fullName": "Enter full name",
-            "phone": "0123456789 or +84123456789",
-        "chooseGender": "Select gender",
-            "address": "Enter full address",
-            "pickupPoint": "Enter pickup point",
-            "dateFormat": "Format: {format}",
-            "note": "Additional note (optional)"
-          },
-          "sectionTitle": "Contact information",
-          "usePersonalInfo": "Use personal info from my account",
-          "autoFillNotice": "If the tour booker is a guest, please re-enter passenger information in Step 2."
-        },
+		"step1": {
+			"fields": {
+				"fullName": "Full Name",
+				"phone": "Phone Number",
+				"email": "Email",
+				"gender": "Gender",
+				"dob": "Date of Birth",
+				"address": "Address",
+				"pickupPoint": "Pickup Point",
+				"note": "Note"
+			},
+			"gender": {
+				"male": "Male",
+				"female": "Female",
+				"other": "Other"
+			},
+			"placeholders": {
+				"fullName": "Enter full name",
+				"phone": "0123456789 or +84123456789",
+				"chooseGender": "Select gender",
+				"address": "Enter full address",
+				"pickupPoint": "Enter pickup point",
+				"dateFormat": "Format: {format}",
+				"note": "Additional note (optional)"
+			},
+			"sectionTitle": "Contact information",
+			"usePersonalInfo": "Use personal info from my account",
+			"autoFillNotice": "If the tour booker is a guest, please re-enter passenger information in Step 2."
+		},
 		"step2": {
 			"loading": "Loading tour prices...",
 			"guestTypes": {
@@ -3394,12 +3560,19 @@
 				"title": "Representative",
 				"label": "Representative"
 			},
-			"summary": { "totalLabel": "Total Payment" },
+			"summary": {
+				"totalLabel": "Total Payment"
+			},
 			"common": {
 				"noPrice": "No price set",
 				"free": "Free"
 			},
-			"dateDisplay": { "day": "Day", "month": "Month", "year": "Year", "selectedDate": "Selected Date" },
+			"dateDisplay": {
+				"day": "Day",
+				"month": "Month",
+				"year": "Year",
+				"selectedDate": "Selected Date"
+			},
 			"pax": {
 				"adult": "Adult",
 				"child": "Children",
@@ -3611,7 +3784,10 @@
 				"vehicle": "Tour Bus",
 				"schedule": "Explore the beautiful landscapes of Da Nang with unique local cultural experiences and traditional cuisine."
 			},
-			"placeholder": { "title": "Explore", "subtitle": "Dream Destination" },
+			"placeholder": {
+				"title": "Explore",
+				"subtitle": "Dream Destination"
+			},
 			"durationTemplate": "{{days}} days {{nights}} nights",
 			"labels": {
 				"code": "Tour Code:",
@@ -3624,22 +3800,24 @@
 				"noSchedule": "No schedule",
 				"notAvailable": "N/A"
 			},
-			"categories": { "standard": "Standard" }
+			"categories": {
+				"standard": "Standard"
+			}
 		},
-        "errors": {
-          "fullNameRequired": "Full name is required",
-          "fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
-          "phoneRequired": "Phone number is required",
-          "phoneInvalid": "Invalid phone number (e.g., 0123456789 or +84 705327671)",
-          "emailRequired": "Email is required",
-          "emailInvalid": "Invalid email",
-          "emailMismatch": "Email does not match your account. Please use the registered email.",
-          "dobRequired": "Date of birth is required",
-          "dobInvalidFormat": "Invalid date of birth format",
-          "representativeTooYoung": "Representative must be ≥ 18 years old",
-          "addressRequired": "Address is required",
-          "pickupPointRequired": "Pickup point is required"
-        }
+		"errors": {
+			"fullNameRequired": "Full name is required",
+			"fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
+			"phoneRequired": "Phone number is required",
+			"phoneInvalid": "Invalid phone number (e.g., 0123456789 or +84 705327671)",
+			"emailRequired": "Email is required",
+			"emailInvalid": "Invalid email",
+			"emailMismatch": "Email does not match your account. Please use the registered email.",
+			"dobRequired": "Date of birth is required",
+			"dobInvalidFormat": "Invalid date of birth format",
+			"representativeTooYoung": "Representative must be ≥ 18 years old",
+			"addressRequired": "Address is required",
+			"pickupPointRequired": "Pickup point is required"
+		}
 	},
 	"payment": {
 		"processing": "Processing payment result...",
@@ -3905,1096 +4083,1094 @@
 				"initError": "Cannot initialize Toss payment gateway."
 			}
 		}
-	}
-  ,
-  "article": {
-    "title": "Articles",
-    "hero": {
-      "title": "Exciting Travel Information About Attractive Destinations",
-      "subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences",
-      "eyebrow": "Travel Journal",
-      "slide2Title": "Exciting Travel Information",
-      "slide2Subtitle": "Discover attractive destinations and curated itineraries designed for soft, effortless journeys.",
-      "slide2Eyebrow": "Destination Highlights",
-      "slide3Title": "Unique Experiences",
-      "slide3Subtitle": "Providing useful tips about activities, events, and cultural moments worth cherishing.",
-      "slide3Eyebrow": "Inspired Moments"
-    },
-    "loading": "Loading articles...",
-    "loadingMore": "Loading...",
-    "loadMore": "Load More",
-    "noArticles": "No articles yet",
-    "noArticlesDesc": "Please come back later to see the latest articles!",
-    "noArticlesSearch": "No articles found matching this keyword.",
-    "noImage": "No image",
+	},
+	"article": {
+		"title": "Articles",
+		"hero": {
+			"title": "Exciting Travel Information About Attractive Destinations",
+			"subtitle": "Providing useful information for tourists about destinations, tourism activities and unique experiences",
+			"eyebrow": "Travel Journal",
+			"slide2Title": "Exciting Travel Information",
+			"slide2Subtitle": "Discover attractive destinations and curated itineraries designed for soft, effortless journeys.",
+			"slide2Eyebrow": "Destination Highlights",
+			"slide3Title": "Unique Experiences",
+			"slide3Subtitle": "Providing useful tips about activities, events, and cultural moments worth cherishing.",
+			"slide3Eyebrow": "Inspired Moments"
+		},
+		"loading": "Loading articles...",
+		"loadingMore": "Loading...",
+		"loadMore": "Load More",
+		"noArticles": "No articles yet",
+		"noArticlesDesc": "Please come back later to see the latest articles!",
+		"noArticlesSearch": "No articles found matching this keyword.",
+		"noImage": "No image",
 		"category": "Articles",
 		"readMore": "Details",
 		"searchPlaceholder": "Search articles",
 		"sidebar": {
-      "title": "TOUR CATEGORIES",
-      "filterTitle": "Filter & Sort",
-      "sortBy": "Sort by",
-      "sortNewest": "Newest first",
-      "sortOldest": "Oldest first",
-      "domestic": {
-        "title": "Domestic Tours",
-        "north": "Northern Tours",
-        "central": "Central Tours",
-        "south": "Southern Tours",
-        "teambuilding": "Team Building Tours"
-      },
-      "international": {
-        "title": "International Tours",
-        "japan": "Japan Tours",
-        "singapore": "Singapore Malaysia Indonesia Tours",
-        "thailand": "Thailand Tours",
-        "taiwan": "Taiwan Tours",
-        "korea": "Korea Tours",
-        "china": "China Tours",
-        "laos": "Laos Cambodia Tours"
-      },
-      "dayTours": {
-        "title": "Day Tours",
-        "hue": "Hue Tour",
-        "baNa": "Ba Na Tour",
-        "hoiAn": "Hoi An Tour",
-        "mySon": "My Son Tour",
-        "sonTra": "Son Tra Tour",
-        "daNangCompany": "Da Nang Company Tour",
-        "chamIsland": "Cham Island Tour",
-        "daNangExplore": "Da Nang Exploration Tour"
-      },
-      "daNangTours": {
-        "title": "Da Nang Tourism Tours",
-        "1day": "Da Nang 1 Day Tour",
-        "2days": "Da Nang 2 Days 1 Night Tour",
-        "3days": "Da Nang 3 Days 2 Nights Tour",
-        "4days": "Da Nang 4 Days 3 Nights Tour",
-        "5days": "Da Nang 5 Days 4 Nights Tour",
-        "6days": "Da Nang 6 Days 5 Nights Tour",
-        "7days": "Da Nang 7 Days 6 Nights Tour",
-        "8days": "Da Nang 8 Days 7 Nights Tour"
-      },
-      "events": {
-        "title": "Featured Event Tours",
-        "tet": "Tet Tour",
-        "festival": "Festival Tour"
-      }
-    },
-    "comments": {
-      "placeholder": "Write a comment...",
-      "submit": "Send",
-      "submitting": "Sending...",
-      "count": "comments",
-      "showMore": "Show more comments",
-      "showLess": "Show less comments",
-      "empty": "No comments yet. Be the first to comment!"
-    }
-  },
-  "articleDetail": {
-    "backToNews": "Back",
-    "article": "Articles",
-    "loading": "Loading article...",
-    "errorTitle": "Error loading article",
-    "errorMessage": "Unable to load article. Please try again later.",
-    "retry": "Retry",
-    "backToNewsPage": "Back to Article Page",
-    "notFoundTitle": "Article not found",
-    "notFoundMessage": "The article you are looking for does not exist or has been deleted.",
-    "category": "Articles",
-    "publishedAt": "Published at",
-    "backToTop": "↑ Back to top",
-    "viewMoreNews": "← View more articles",
-    "contentUpdating": "Article content is being updated..."
-  },
-  "articleManagement": {
-    "title": "Article Management",
-    "subtitle": "Crawl and manage articles from various sources",
-    "accessDenied": {
-      "title": "Access Denied",
-      "message": "You need administrator or staff permissions to access this page.",
-      "goHome": "Go Home",
-      "staffLogin": "Staff Login"
-    },
-    "logout": {
-      "loggingOut": "Logging out..."
-    },
-    "messages": {
-      "autoCrawlSuccess": "Successfully auto-crawled {{count}} new articles!",
-      "crawlSuccess": "Successfully crawled {{count}} new articles!",
-      "crawlError": "Error occurred while crawling articles",
-      "crawlErrorDesc": "Error occurred while crawling articles. Please try again later.",
-      "noNewArticles": "No new articles!",
-      "noNewArticlesDesc": "No new articles. All articles have been updated or already exist in the system.",
-      "selectArticles": "Please select at least one article",
-      "approved": "approved",
-      "unapproved": "unapproved",
-      "statusUpdateSuccess": "{{action}} {{count}} articles",
-      "statusUpdateError": "Error occurred while updating status",
-      "logoutSuccess": "Successfully logged out!"
-    },
-    "buttons": {
-      "crawlNews": "Crawl New Articles",
-      "crawling": "Crawling articles...",
-      "loading": "Loading...",
-      "reloadList": "Reload List",
-      "approve": "Approve",
-      "unapprove": "Unapprove",
-      "viewDetails": "View Details",
-      "logout": "Logout",
-      "backToNews": "Back to Article Page"
-    },
-    "status": {
-      "approved": "Approved",
-      "pending": "Pending"
-    },
-    "roles": {
-      "admin": "Administrator",
-      "staff": "Staff"
-    },
-    "sidebar": {
-      "title": "Management",
-      "subtitle": "Articles & Content",
-      "article": "Articles",
-      "statistics": "Statistics",
-      "settings": "Settings"
-    },
-    "welcome": {
-      "title": "Welcome, {{name}}!",
-      "description": "Manage and update articles for the website",
-      "autoCrawl": "System automatically crawls new articles at 00:00 daily"
-    },
-    "articles": {
-      "title": "Article Management ({{count}} articles)",
-      "selectAll": "Select All",
-      "selectedCount": "{{count}} articles selected"
-    },
-    "sort": {
-      "label": "Sort:",
-      "newest": "Newest",
-      "oldest": "Oldest"
-    },
-    "pagination": {
-      "showing": "Showing {{start}} to {{end}} of {{total}} articles",
-      "previous": "Previous",
-      "next": "Next"
-    },
-    "noArticles": {
-      "message": "No articles yet. Start by crawling articles!"
-    },
-    "instructions": {
-      "title": "Usage Instructions",
-      "crawlButton": "Click \"Crawl New Articles\" button to automatically collect articles from Danangxanh",
-      "autoCrawl": "System automatically crawls new articles at 00:00 daily",
-      "noDuplicates": "Duplicate articles will not be added to the system",
-      "approvedDisplay": "Approved articles will be displayed on the public article page",
-      "accessControl": "Only admins and staff can perform this function"
-    },
-    "modal": {
-      "title": "Article Details",
-      "source": "Article Source:",
-      "close": "Close"
-    },
-    "role": {
-      "admin": "Administrator",
-      "staff": "Staff"
-    },
-    "actions": {
-      "crawlNews": "Crawl New Articles",
-      "crawling": "Crawling articles...",
-      "reloadList": "Reload List",
-      "reloading": "Loading..."
-    }
-  },
-  "companyDashboard": {
-    "sidebar": {
+			"title": "TOUR CATEGORIES",
+			"filterTitle": "Filter & Sort",
+			"sortBy": "Sort by",
+			"sortNewest": "Newest first",
+			"sortOldest": "Oldest first",
+			"domestic": {
+				"title": "Domestic Tours",
+				"north": "Northern Tours",
+				"central": "Central Tours",
+				"south": "Southern Tours",
+				"teambuilding": "Team Building Tours"
+			},
+			"international": {
+				"title": "International Tours",
+				"japan": "Japan Tours",
+				"singapore": "Singapore Malaysia Indonesia Tours",
+				"thailand": "Thailand Tours",
+				"taiwan": "Taiwan Tours",
+				"korea": "Korea Tours",
+				"china": "China Tours",
+				"laos": "Laos Cambodia Tours"
+			},
+			"dayTours": {
+				"title": "Day Tours",
+				"hue": "Hue Tour",
+				"baNa": "Ba Na Tour",
+				"hoiAn": "Hoi An Tour",
+				"mySon": "My Son Tour",
+				"sonTra": "Son Tra Tour",
+				"daNangCompany": "Da Nang Company Tour",
+				"chamIsland": "Cham Island Tour",
+				"daNangExplore": "Da Nang Exploration Tour"
+			},
+			"daNangTours": {
+				"title": "Da Nang Tourism Tours",
+				"1day": "Da Nang 1 Day Tour",
+				"2days": "Da Nang 2 Days 1 Night Tour",
+				"3days": "Da Nang 3 Days 2 Nights Tour",
+				"4days": "Da Nang 4 Days 3 Nights Tour",
+				"5days": "Da Nang 5 Days 4 Nights Tour",
+				"6days": "Da Nang 6 Days 5 Nights Tour",
+				"7days": "Da Nang 7 Days 6 Nights Tour",
+				"8days": "Da Nang 8 Days 7 Nights Tour"
+			},
+			"events": {
+				"title": "Featured Event Tours",
+				"tet": "Tet Tour",
+				"festival": "Festival Tour"
+			}
+		},
+		"comments": {
+			"placeholder": "Write a comment...",
+			"submit": "Send",
+			"submitting": "Sending...",
+			"count": "comments",
+			"showMore": "Show more comments",
+			"showLess": "Show less comments",
+			"empty": "No comments yet. Be the first to comment!"
+		}
+	},
+	"articleDetail": {
+		"backToNews": "Back",
+		"article": "Articles",
+		"loading": "Loading article...",
+		"errorTitle": "Error loading article",
+		"errorMessage": "Unable to load article. Please try again later.",
+		"retry": "Retry",
+		"backToNewsPage": "Back to Article Page",
+		"notFoundTitle": "Article not found",
+		"notFoundMessage": "The article you are looking for does not exist or has been deleted.",
+		"category": "Articles",
+		"publishedAt": "Published at",
+		"backToTop": "↑ Back to top",
+		"viewMoreNews": "← View more articles",
+		"contentUpdating": "Article content is being updated..."
+	},
+	"articleManagement": {
+		"title": "Article Management",
+		"subtitle": "Crawl and manage articles from various sources",
+		"accessDenied": {
+			"title": "Access Denied",
+			"message": "You need administrator or staff permissions to access this page.",
+			"goHome": "Go Home",
+			"staffLogin": "Staff Login"
+		},
+		"logout": {
+			"loggingOut": "Logging out..."
+		},
+		"messages": {
+			"autoCrawlSuccess": "Successfully auto-crawled {{count}} new articles!",
+			"crawlSuccess": "Successfully crawled {{count}} new articles!",
+			"crawlError": "Error occurred while crawling articles",
+			"crawlErrorDesc": "Error occurred while crawling articles. Please try again later.",
+			"noNewArticles": "No new articles!",
+			"noNewArticlesDesc": "No new articles. All articles have been updated or already exist in the system.",
+			"selectArticles": "Please select at least one article",
+			"approved": "approved",
+			"unapproved": "unapproved",
+			"statusUpdateSuccess": "{{action}} {{count}} articles",
+			"statusUpdateError": "Error occurred while updating status",
+			"logoutSuccess": "Successfully logged out!"
+		},
+		"buttons": {
+			"crawlNews": "Crawl New Articles",
+			"crawling": "Crawling articles...",
+			"loading": "Loading...",
+			"reloadList": "Reload List",
+			"approve": "Approve",
+			"unapprove": "Unapprove",
+			"viewDetails": "View Details",
+			"logout": "Logout",
+			"backToNews": "Back to Article Page"
+		},
+		"status": {
+			"approved": "Approved",
+			"pending": "Pending"
+		},
+		"roles": {
+			"admin": "Administrator",
+			"staff": "Staff"
+		},
+		"sidebar": {
+			"title": "Management",
+			"subtitle": "Articles & Content",
+			"article": "Articles",
+			"statistics": "Statistics",
+			"settings": "Settings"
+		},
+		"welcome": {
+			"title": "Welcome, {{name}}!",
+			"description": "Manage and update articles for the website",
+			"autoCrawl": "System automatically crawls new articles at 00:00 daily"
+		},
+		"articles": {
+			"title": "Article Management ({{count}} articles)",
+			"selectAll": "Select All",
+			"selectedCount": "{{count}} articles selected"
+		},
+		"sort": {
+			"label": "Sort:",
+			"newest": "Newest",
+			"oldest": "Oldest"
+		},
+		"pagination": {
+			"showing": "Showing {{start}} to {{end}} of {{total}} articles",
+			"previous": "Previous",
+			"next": "Next"
+		},
+		"noArticles": {
+			"message": "No articles yet. Start by crawling articles!"
+		},
+		"instructions": {
+			"title": "Usage Instructions",
+			"crawlButton": "Click \"Crawl New Articles\" button to automatically collect articles from Danangxanh",
+			"autoCrawl": "System automatically crawls new articles at 00:00 daily",
+			"noDuplicates": "Duplicate articles will not be added to the system",
+			"approvedDisplay": "Approved articles will be displayed on the public article page",
+			"accessControl": "Only admins and staff can perform this function"
+		},
+		"modal": {
+			"title": "Article Details",
+			"source": "Article Source:",
+			"close": "Close"
+		},
+		"role": {
+			"admin": "Administrator",
+			"staff": "Staff"
+		},
+		"actions": {
+			"crawlNews": "Crawl New Articles",
+			"crawling": "Crawling articles...",
+			"reloadList": "Reload List",
+			"reloading": "Loading..."
+		}
+	},
+	"companyDashboard": {
+		"sidebar": {
 			"title": "Business Dashboard",
-      "dashboard": "Dashboard",
-      "tourManagement": "Tour Management",
-      "bookingManagement": "Booking Management",
-      "voucherManagement": "Voucher Management",
+			"dashboard": "Dashboard",
+			"tourManagement": "Tour Management",
+			"bookingManagement": "Booking Management",
+			"voucherManagement": "Voucher Management",
 			"businessInfo": "Business Info",
 			"companyInfo": "Company Info"
-    },
-    "actions": { "download": "Download Report" },
-    "welcome": {
-      "title": "Welcome to your Business Dashboard",
-      "subtitle": "Manage your tours, track analytics, and grow your business",
-      "createTour": "Create New Tour"
-    },
-    "stats": {
-      "totalTours": "Total Tours",
-      "totalBookings": "Total Bookings",
-      "totalRevenue": "Total Revenue",
-      "totalViews": "Total Views",
-      "activeTours": "Active Tours"
-    },
-    "dashboard": {
-      "loading": "Loading...",
-      "revenueOverview": "Revenue Overview",
-      "revenueTrends": "Monthly revenue trends",
-      "bookingStatus": "Booking Status",
-      "bookingDistribution": "Distribution of bookings",
-      "quickStats": "Quick Stats",
-      "tourStatus": "Tour Status",
-      "pendingBookings": "Pending Bookings",
-      "completed": "Completed",
-      "cancelled": "Cancelled",
-      "activeTours": "Active Tours",
-      "totalTours": "Total Tours",
-      "inactive": "Inactive",
-      "chartLabels": {
-        "pending": "Pending",
-        "completed": "Completed",
-        "active": "Active",
-        "cancelled": "Cancelled",
-        "totalBookings": "Total Bookings"
-      }
-    },
-    "analytics": {
-      "sales": "Sales",
-      "purchase": "Purchase",
-      "return": "Return",
-      "marketing": "Marketing",
-      "lastYear": "Last year"
-    },
-    "header": {
-      "subtitle": "Overview and analytics"
-    },
-    "filters": {
-      "thisYear": "This Year",
-      "lastYear": "Last Year",
-      "thisQuarter": "This Quarter",
-      "thisMonth": "This Month"
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "createTour": "Create New Tour",
-      "createTourDesc": "Add a new tour to your collection",
-      "viewAnalytics": "View Analytics",
-      "viewAnalyticsDesc": "Check your business performance",
-      "manageOrders": "Manage Orders",
-      "manageOrdersDesc": "View and manage bookings",
-      "businessInfo": "Business Info",
-      "businessInfoDesc": "Update your business details"
-    },
-    "charts": {
-      "period": "Show:",
-      "bookingTrends": "Sales Statistics",
-      "revenueChart": "Revenue Chart",
-      "last7Days": "Last 7 Days",
-      "last30Days": "Last 30 Days",
-      "last90Days": "Last 90 Days",
-      "monthly": "Monthly",
-      "quarterly": "Quarterly",
-      "yearly": "Yearly",
-      "chartPlaceholder": "Chart will be displayed here"
-    },
-    "panel": {
-      "title": "Sales Statistics",
-      "subtitle": "Marketing & Sales",
-      "marketing": "Marketing",
-      "sales": "Sales",
-      "sortBy": "Sort by:",
-      "monthly": "Monthly",
-      "weekly": "Weekly",
-      "daily": "Daily",
-      "yLabel": "Total revenue acquisition"
-    }
-  },
-  "bookingManagement": {
-    "header": {
-      "title": "Tour Booking Management",
-      "subtitle": "View and manage all bookings by tour"
-    },
-    "stats": {
-      "totalBookings": "Total Bookings",
-      "successfulBookings": "Successful",
-      "pendingPayment": "Pending Payment",
-      "waitingApproval": "Waiting Approval"
-    },
-    "search": {
-      "placeholder": "Search by tour, customer name or booking code..."
-    },
-    "filters": {
-      "status": "Status:",
-      "allStatuses": "All Statuses",
-      "sortBy": "Sort by:"
-    },
-    "sort": {
-      "newest": "Newest",
-      "oldest": "Oldest",
-      "tourAsc": "Tour Name (A-Z)",
-      "tourDesc": "Tour Name (Z-A)",
-      "amountDesc": "Amount (High to Low)",
-      "amountAsc": "Amount (Low to High)"
-    },
-    "table": {
-      "bookingId": "Booking ID",
-      "tour": "Tour",
-      "customer": "Customer",
-      "departureDate": "Departure Date",
-      "guests": "Guests",
-      "amount": "Amount",
-      "status": "Status",
-      "createdAt": "Created At"
-    },
-    "status": {
-      "PENDING_PAYMENT": "Pending Payment",
-      "WAITING_FOR_APPROVAL": "Waiting for Approval",
-      "WAITING_FOR_APPROVED": "Waiting for Approval",
-      "BOOKING_REJECTED": "Rejected",
-      "WAITING_FOR_UPDATE": "Waiting for Update",
-      "BOOKING_FAILED": "Failed",
-      "BOOKING_SUCCESS": "Success",
-      "BOOKING_SUCCESS_PENDING": "Success (Pending)",
-      "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Success (Wait for Confirmed)",
-      "BOOKING_UNDER_COMPLAINT": "Under Complaint"
-    },
-    "guests": {
-      "adults": "Adults",
-      "children": "Children",
-      "babies": "Babies"
-    },
-    "pagination": {
-      "previous": "Previous",
-      "next": "Next",
-      "page": "Page",
-      "of": "of"
-    },
-    "empty": {
-      "noBookings": "No bookings found"
-    },
-    "errors": {
-      "loadFailed": "Unable to load booking list"
-    },
-    "loading": "Loading bookings...",
-    "tourSelector": {
-      "title": "Select tour to view bookings",
-      "loading": "Loading tour list...",
-      "empty": "No tours yet.",
-      "tourCode": "Tour code:",
-      "pagination": {
-        "showing": "Showing page",
-        "of": "of",
-        "tours": "tours"
-      }
-    },
-    "actions": {
-      "viewQuick": "Quick view",
-      "editBooking": "Edit booking",
-      "confirmTourCompletion": "Confirm tour completion",
-      "bookingPending": "Booking is in pending status, cannot access."
-    },
-    "modal": {
-      "title": "Booking #",
-      "tour": "Tour:",
-      "customer": "Customer",
-      "status": "Status",
-      "departureDate": "Departure Date",
-      "tourDuration": "Tour Duration",
-      "expectedEndDate": "Expected End Date",
-      "totalAmount": "Total Amount",
-      "createdAt": "Created At",
-      "unknown": "Unknown",
-      "day": "day",
-      "days": "days"
-    }
-  },
-  "companyBookingWizard": {
-    "steps": {
-      "step1": {
-        "title": "Personal Information",
-        "description": "View and approve booking information"
-      },
-      "step2": {
-        "title": "Insurance Information",
-        "description": "Manage insurance status"
-      },
-      "step3": {
-        "title": "Confirmation",
-        "description": "Confirm booking success"
-      }
-    },
-    "header": {
-      "title": "Manage Booking #"
-    },
-    "readOnly": {
-      "title": "Read-only mode - Booking completed (BOOKING_SUCCESS)"
-    },
-    "navigation": {
-      "back": "Back",
-      "next": "Next",
-      "finish": "Finish",
-      "processing": "Processing...",
-      "close": "Close"
-    },
-    "confirmModal": {
-      "title": "Confirm booking",
-      "message": "Are you sure you want to confirm booking #",
-      "confirm": "Confirm",
-      "cancel": "Cancel",
-      "description": "Booking will be moved to BOOKING_SUCCESS_PENDING status. When the tour ends, the system will require both company and customer to confirm completion."
-    },
-    "loading": {
-      "booking": "Loading booking information..."
-    },
-    "error": {
-      "title": "Error",
-      "notFound": "Booking not found",
-      "back": "Back"
-    },
-    "stepTooltips": {
-      "rejected": "Booking has been rejected - only step 1 is viewable",
-      "readOnlyOther": "Booking completed - Only step 3 is displayed",
-      "readOnlyStep3": "Booking completed (read-only)",
-      "completed": "Step completed (cannot go back)",
-      "notAccessible": "This step is not yet accessible"
-    },
-    "success": {
-      "bookingPending": "Booking has been moved to BOOKING_SUCCESS_PENDING status. The system will automatically wait for tour completion before requesting completion confirmation."
-    },
-    "insurance": {
-      "guestFallback": "guest",
-      "toasts": {
-        "statusUpdated": "Insurance status updated for {{guestName}}. Changes will be saved when you complete the booking.",
-        "rejected": "Booking has been rejected",
-        "saved": "Insurance changes have been recorded. Please complete the booking to save them to the system."
-      },
-      "header": {
-        "title": "Insurance information",
-        "description": "Keep the pastel tone, focus on each guest's insurance status. Make sure all are SUCCESS before continuing.",
-        "stepBadge": "Step 2 / 3"
-      },
-      "summary": {
-        "totalGuests": "Total guests",
-        "success": "SUCCESS",
-        "failed": "FAILED",
-        "pending": "PENDING"
-      },
-      "table": {
-        "title": "Guest list and insurance",
-        "columns": {
-          "index": "No.",
-          "fullName": "Full name",
-          "birthDate": "Date of birth",
-          "idNumber": "ID/Passport",
-          "insuranceStatus": "Insurance status",
-          "actions": "Actions"
-        },
-        "empty": "No guest information yet"
-      },
-      "actions": {
-        "approveTooltip": "Approve insurance",
-        "rejectTooltip": "Reject insurance",
-        "approveAll": "Approve all",
-        "rejectProcessing": "Processing...",
-        "rejectBooking": "Reject booking",
-        "alreadySaved": "Already saved",
-        "continueProcessing": "Processing...",
-        "continue": "Confirm and continue"
-      },
-      "warning": {
-        "allSuccessRequired": "All guests must have insurance status SUCCESS to continue."
-      },
-      "confirmModal": {
-        "title": "Confirm insurance approval",
-        "message": "Are you sure you want to record insurance changes and move to the final step?"
-      },
-      "rejectModal": {
-        "title": "Reason for rejecting booking",
-        "message": "Please enter the reason for rejecting the booking at the insurance step:"
-      }
-    },
-    "step1": {
-      "header": {
-        "title": "Personal information",
-        "description": "Review and approve booking details before moving to the insurance step. Minimal style, focused on key data."
-      },
-      "booking": {
-        "code": "Booking code",
-        "tour": "Tour",
-        "departureDate": "Departure date",
-        "totalGuests": "Total guests"
-      },
-      "sections": {
-        "bookingInfo": "Booking information",
-        "contactInfo": "Contact information",
-        "guests": "Guest list"
-      },
-      "guests": {
-        "columns": {
-          "index": "No.",
-          "fullName": "Full name",
-          "birthDate": "Date of birth",
-          "gender": "Gender",
-          "guestType": "Guest type",
-          "idNumber": "ID/Passport",
-          "nationality": "Nationality"
-        },
-        "empty": "No guest information yet"
-      },
-      "actions": {
-        "processing": "Processing...",
-        "requestUpdate": "Request update",
-        "reject": "Reject",
-        "approveAndContinue": "Approve & continue"
-      },
-      "toasts": {
-        "approved": "Booking information approved. Please proceed to the next steps.",
-        "rejected": "Booking has been rejected",
-        "requestedUpdate": "Booking update request has been sent"
-      },
-      "confirmModal": {
-        "title": "Confirm booking approval",
-        "message": "Are you sure you want to approve booking #{{bookingId}}?",
-        "description": "After confirming, you will move to the insurance approval step. All changes are only written to the system in the final completion step."
-      },
-      "requestUpdateModal": {
-        "title": "Request booking update",
-        "message": "Please enter the reason for requesting a booking update:"
-      },
-      "rejectModal": {
-        "title": "Reason for rejecting booking",
-        "message": "Please enter the reason for rejecting this booking:"
-      }
-    },
-    "requestUpdateModal": {
-      "defaultTitle": "Request booking update",
-      "defaultMessage": "Please enter the reason for requesting a booking update:",
-      "placeholder": "Example: Please update customer information, departure date, or number of guests...",
-      "hint": "Please enter the update request information",
-      "bookingId": "Booking ID"
-    },
-    "confirmation": {
-      "toasts": {
-        "completedByBoth": "The tour has been confirmed as completed by both parties! Payment will be transferred to the company.",
-        "companyConfirmed": "Tour completion has been confirmed! If the customer also confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
-      },
-      "header": {
-        "successTitle": "Booking has been successfully confirmed!",
-        "title": "Confirm booking",
-        "readOnlyDescription": "Read-only mode: you can view completion status and tour information.",
-        "description": "Review all information for booking #{{bookingId}} and complete the trip.",
-        "stepBadge": "Step 3 / 3"
-      },
-      "status": {
-        "completed": "COMPLETED"
-      },
-      "sections": {
-        "bookingSummary": "Booking summary",
-        "contactInfo": "Contact information",
-        "guestsApproved": "Approved guests list",
-        "guestsEmpty": "No guest information yet",
-        "completionTitle": "Confirm tour completion"
-      },
-      "guest": {
-        "insuranceLabel": "Insurance",
-        "insuranceSuccess": "SUCCESS",
-        "insurancePending": "PENDING"
-      },
-      "fields": {
-        "bookingCode": "Booking code:",
-        "tour": "Tour:",
-        "departureDate": "Departure date:",
-        "expectedEndDate": "Expected end date:",
-        "totalGuests": "Total guests:",
-        "status": "Status:"
-      },
-      "confirmation": {},
-      "completion": {
-        "companyStatus": "Company status:",
-        "userStatus": "Customer status:",
-        "confirmed": "✓ Confirmed",
-        "notConfirmed": "Not confirmed",
-        "tourEndDate": "Tour end date:",
-        "autoConfirmDate": "Auto-confirm date:",
-        "checkingStatus": "Checking tour status...",
-        "completedMessage": "The tour has been confirmed as completed by both parties. Payment will be transferred to the company's account.",
-        "autoConfirmCompany": "You have confirmed. Waiting for the customer to confirm. If the customer does not confirm within 3 days (after {{date}}), the system will auto-confirm.",
-        "autoConfirmUser": "The customer has confirmed. You can confirm now or the system will auto-confirm after 3 days (after {{date}}).",
-        "readyToConfirm": "The tour ended on {{date}}. You can confirm the tour completion to proceed with payment.",
-        "confirmProcessing": "Processing...",
-        "confirmButton": "Confirm tour completion",
-        "confirmNote": "* After you confirm:\n- If the customer also confirms, payment will be transferred immediately.\n- If the customer does not confirm, the system will auto-confirm after 3 days (after {{date}}).",
-        "waitingUser": "You have confirmed the tour completion. Waiting for the customer to confirm.",
-        "waitingUserNote": "If the customer confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
-      }
-    }
-  },
-  "voucherManagement": {
-    "title": "Voucher Management",
-    "loading": "Loading...",
-    "create": "Create voucher",
-    "loadingData": "Loading data...",
-    "warning": {
-      "title": "Company information not found.",
-      "message": "Please ensure you are logged in with a COMPANY role account and user information has been updated correctly.",
-      "currentInfo": "Current info: Role =",
-      "userId": "User ID ="
-    },
-    "empty": {
-      "message": "No vouchers yet. Create your first voucher!"
-    },
-    "card": {
-      "code": "Code",
-      "type": "Type:",
-      "value": "Value:",
-      "quantity": "Quantity:",
-      "remaining": "Remaining:",
-      "status": "Status:",
-      "appliedTo": "Applied to tour:",
-      "allTours": "Apply to all tours",
-      "startDate": "Start:",
-      "endDate": "Expires:"
-    },
-    "pagination": {
-      "showing": "Showing page",
-      "of": "of",
-      "vouchers": "vouchers"
-    },
-    "discountTypes": {
-      "percent": "Discount by %",
-      "fixed": "Discount by amount"
-    },
-    "status": {
-      "ACTIVE": "ACTIVE",
-      "INACTIVE": "INACTIVE",
-      "EXPIRED": "EXPIRED"
-    }
-  },
-  "voucherCreate": {
-    "title": "Create voucher",
-    "close": "Close",
-    "fields": {
-      "code": "Voucher code",
-      "name": "Voucher name",
-      "discountType": "Discount type",
-      "discountValue": "Discount value",
-      "totalQuantity": "Quantity",
-      "minOrderValue": "Minimum order (VND)",
-      "status": "Status",
-      "startDate": "Start date",
-      "endDate": "End date",
-      "applyToTours": "Apply to tours"
-    },
-    "placeholders": {
-      "code": "Example: VOUCHER001",
-      "name": "Example: 10% discount for summer tour",
-      "discountPercent": "Enter % (1 - 80)",
-      "discountAmount": "Enter amount in VND (e.g., 100000 for 100k)"
-    },
-    "tourDropdown": {
-      "select": "Select tours to apply",
-      "selected": "tours selected",
-      "empty": "No tours"
-    },
-    "actions": {
-      "cancel": "Cancel",
-      "create": "Create",
-      "creating": "Creating..."
-    },
-    "errors": {
-      "codeRequired": "Please enter voucher code",
-      "nameRequired": "Please enter voucher name",
-      "discountTypeRequired": "Please select discount type",
-      "discountValueRequired": "Please enter discount value",
-      "discountPercentRange": "Percentage must be between 1 and 100",
-      "discountAmountMin": "Discount value must be at least 1 (e.g., 100000 for 100k)",
-      "totalQuantityRequired": "Quantity must be greater than 0",
-      "startDateRequired": "Please select start date",
-      "endDateRequired": "Please select end date",
-      "endDateAfterStart": "End date must be after start date",
-      "companyNotFound": "Company information not found",
-      "createFailed": "Unable to create voucher. Please try again."
-    },
-    "success": {
-      "created": "Voucher created successfully"
-    }
-  },
-  "companyInfo": {
-    "title": "Business Account",
-    "description": "Your account has been confirmed as a business. You can access business features.",
-    "goToManagement": "Go to Management Page",
-    "goToHome": "Go to Home",
-    "pleaseLogin": "Please register/login with a Company account to continue.",
-    "registerCompany": "Register Company Account",
-    "login": "Login",
-    "upload": {
-      "title": "Booking Code",
-      "businessLicense": "Business License (PDF) *",
-      "idCardFront": "ID Card Front",
-      "idCardBack": "ID Card Back",
-      "selected": "Selected:",
-      "viewPending": "View Pending Page",
-      "tourName": "Tour Name",
-      "time": "Time",
-      "adultPrice": "Adult Price",
-      "image": "Image",
-      "status": "Status",
-      "userName": "User Name",
-      "noName": "No name",
-      "noPrice": "No price",
-      "uploaded": "Uploaded",
-      "notAvailable": "Not available",
-      "willShowInList": "Will show in tour list"
-    },
-    "errors": {
-      "businessLicenseRequired": "Please upload business license",
-      "idCardFrontRequired": "Please upload ID card front",
-      "idCardBackRequired": "Please upload ID card back",
-      "businessLicenseFormat": "Business license file must be PDF format",
-      "idCardFrontFormat": "ID card front file must be JPG, JPEG or PNG format",
-      "idCardBackFormat": "ID card back file must be JPG, JPEG or PNG format",
-      "businessLicenseSize": "Business license file must not exceed 25MB",
-      "idCardFrontSize": "ID card front file must not exceed 25MB",
-      "idCardBackSize": "ID card back file must not exceed 25MB",
-      "idCardRecognition": "Cannot recognize ID card in image. Please ensure:\n1) ID card image is clear, not blurry\n2) Not obscured or cropped\n3) Real photo (not screenshot)\n4) Sufficient lighting, no glare\n5) ID card must be intact, not torn",
-      "idCardProcessing": "Cannot process ID card image. Please check and upload a valid ID card image.",
-      "idCardRecognitionGeneric": "Cannot recognize ID card in image. Please upload a valid ID card image.",
-      "unknown": "Unknown error",
-      "serverError": "Server processing error. Please check ID card image and try again.",
-      "idCardIssue": "There is an issue with the ID card image. Please upload a valid ID card image.",
-      "submitFailed": "Failed to submit information. Please try again."
-    },
-    "loading": "Loading...",
-    "status": {
-      "pending": "Pending approval"
-    }
-  },
-  "notifications": {
-    "title": "Notifications",
-    "markAllRead": "Mark all as read",
-    "close": "Close",
-    "empty": "No notifications",
-    "delete": "Delete",
-    "viewAll": "View All Notifications",
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "retry": "Retry",
-    "noTitle": "No title",
-    "more": "More",
-    "justNow": "Just now",
-    "minutesAgo": "{{count}} minutes ago",
-    "hoursAgo": "{{count}} hours ago",
-    "daysAgo": "{{count}} days ago",
-    "markRead": "Mark as read",
-    "markUnread": "Mark as unread",
-    "types": {
-      "NEW_BOOKING": {
-        "title": "New booking",
-        "message": "You have received a new booking."
-      },
-      "BOOKING_CONFIRMED": {
-        "title": "Booking confirmed",
-        "message": "Your booking has been confirmed by the company."
-      },
-      "BOOKING_REJECTED": {
-        "title": "Booking rejected",
-        "message": "Your booking has been rejected. Please contact the company for more details."
-      },
-      "BOOKING_UPDATE_REQUEST": {
-        "title": "Booking update requested",
-        "message": "The company has requested you to update your booking information."
-      },
-      "BOOKING_UPDATED_BY_USER": {
-        "title": "Booking updated by customer",
-        "message": "The customer has updated the booking information as requested."
-      },
-      "TOUR_APPROVED": {
-        "title": "Tour approved",
-        "message": "Your tour has been approved by admin."
-      },
-      "NEW_RATING": {
-        "title": "New rating received",
-        "message": "You have received a new rating for your tour."
-      },
-      "LIKE_POST": {
-        "title": "Post liked",
-        "message": "Someone reacted to your post."
-      },
-      "LIKE_COMMENT": {
-        "title": "Comment liked",
-        "message": "Someone reacted to your comment."
-      },
-      "COMMENT_POST": {
-        "title": "New comment",
-        "message": "Someone commented on your post."
-      },
-      "REPLY_COMMENT": {
-        "title": "New reply",
-        "message": "Someone replied to your comment."
-      }
-    }
-  },
-  "chat": {
-    "title": "Customer Support",
-    "status": "Online",
-    "call": "Call",
-    "video": "Video Call",
-    "more": "More Options",
-    "close": "Close Chat",
-    "emoji": "Add Emoji",
-    "send": "Send Message",
-    "placeholder": "Type your message..."
-  },
-  "chatAI": {
-    "bubble": {
-      "title": "Chat with AI"
-    },
-    "box": {
-      "title": "KDBS Assistant",
-      "greeting": "Hello! I'm KDBS Assistant. How can I help you today?",
-      "status": {
-        "typing": "Typing...",
-        "ready": "Ready to help"
-      },
-      "actions": {
-        "minimize": "Minimize",
-        "close": "Close",
-        "send": "Send"
-      },
-      "input": {
-        "placeholder": "Type a message..."
-      },
-      "error": "Sorry, an error occurred. Please try again later."
-    }
-  },
-  "userChat": {
-    "time": {
-      "justNow": "Just now",
-      "minutesAgo": "{{minutes}} minutes ago",
-      "hoursAgo": "{{hours}} hours ago",
-      "daysAgo": "{{days}} days ago"
-    },
-    "status": {
-      "active": "Active",
-      "connecting": "Connecting...",
-      "disconnected": "Disconnected"
-    },
-    "actions": {
-      "minimize": "Minimize",
-      "close": "Close"
-    },
-    "loading": {
-      "olderMessages": "Loading older messages..."
-    },
-    "empty": {
-      "startConversation": "Start conversation with {{userName}}",
-      "selectUser": "Select a user to start chatting"
-    },
-    "message": {
-      "sent": "Sent"
-    }
-  },
-  "about": {
-    "hero": {
-      "title": "Tour Management Studio for Korea × Da Nang",
-      "subtitle": "A pastel platform that helps teams coordinate bookings, manage tours, handle payments, and care for Korean guests right in Da Nang – intuitive, minimal yet technology-rich.",
-      "highlight1": "Booking Hub realtime",
-      "highlight2": "Tour workflow for Da Nang",
-      "highlight3": "Complete Korean dashboard",
-      "since": {
-        "label": "Since",
-        "value": "2018"
-      },
-      "focus": {
-        "label": "Focus",
-        "value": "Booking Ops"
-      }
-    },
-    "mission": {
-      "title": "Tour Booking Operating System",
-      "description": "We build a bilingual Korean-Vietnamese tour management platform that helps businesses in Da Nang operate bookings, coordinate partners, and care for Korean guests in an intuitive, tech-driven way following soft minimal standards.",
-      "badge": "Soft mission"
-    },
-    "values": {
-      "title": "Core Values",
-      "subtitle": "Shaping soft experiences with thin icons, pastel palette, and spacious layouts.",
-      "badge": "Core values",
-      "quality": {
-        "title": "Booking OS",
-        "desc": "Coordinate tour bookings, vouchers, and payment status on a pastel plane."
-      },
-      "trust": {
-        "title": "Compliance Center",
-        "desc": "Track visas, contracts, Korean partner SLAs with realtime alerts."
-      },
-      "excellence": {
-        "title": "Seoul × Da Nang Link",
-        "desc": "Sync Korean partners, local suppliers, and multilingual schedules."
-      },
-      "passion": {
-        "title": "Care Automation",
-        "desc": "Korean guest care playbook, follow-up schedules, and experience reminders."
-      }
-    },
-    "team": {
-      "title": "Vibe Studio Team",
-      "badge": "Human touch",
-      "member1": {
-        "name": "Nguyễn Văn A",
-        "role": "CEO & Founder",
-        "desc": "10+ years creating bicultural travel products."
-      },
-      "member2": {
-        "name": "Trần Thị B",
-        "role": "Creative Director",
-        "desc": "Shaping visual and emotional soft experiences."
-      },
-      "member3": {
-        "name": "Lê Văn C",
-        "role": "Experience Lead",
-        "desc": "Standardizing balanced, lean guest care processes."
-      }
-    },
-    "stats": {
-      "customers": "Bookings processed",
-      "tours": "Automation coverage",
-      "satisfaction": "Faster lead-to-tour",
-      "partners": "Korean partners"
-    },
-    "timeline": {
-      "badge": "Journey",
-      "caption": "Minimal Soft Korean timeline",
-      "start": {
-        "title": "Starting from Seoul",
-        "desc": "Connecting the first Korean experts with the Da Nang-loving community."
-      },
-      "expand": {
-        "title": "Minimal identity",
-        "desc": "Applying Korean living arts to redesign emotionally caring tours."
-      },
-      "partnership": {
-        "title": "International standard partners",
-        "desc": "Partnering with accommodation chains and high-tech spas for relaxation journeys."
-      },
-      "future": {
-        "title": "Experience Studio",
-        "desc": "Launching a Korean-inspired studio in Da Nang with interactive technology."
-      }
-    },
-    "monitor": {
-      "booking": "Booking load",
-      "operations": "Ops readiness",
-      "experience": "Experience score"
-    },
-    "metrics": {
-      "korAgents": "Korean Agents Online",
-      "korAgents.caption": "Seoul & Busan partners",
-      "vnOperators": "Da Nang Operators",
-      "vnOperators.caption": "Tour logistics & chauffeur",
-      "sla": "SLA Stability",
-      "sla.caption": "Realtime monitoring"
-    },
-    "control": {
-      "korvn": "Korean × Da Nang workforce",
-      "monitor": "Realtime operational status",
-      "liveControl": "Live control",
-      "automationPulse": "Automation pulse"
-    },
-    "heroCard": {
-      "controlHub": "Control Hub",
-      "bookingOpsCloud": "Booking + Ops Cloud",
-      "realtimeRouting": "Realtime routing",
-      "automation": "Automation",
-      "automationValue": "92% tasks",
-      "coverage": "Coverage",
-      "coverageValue": "KOR ↔︎ VN",
-      "live": "Live",
-      "opsRadar": "Ops radar v3.1",
-      "seoul": "Seoul",
-      "daNang": "Da Nang"
-    },
-    "workflow": {
-      "badge": "Workflow",
-      "caption": "Korean - Da Nang tour operation cycle",
-      "capture": "Capture & qualify lead",
-      "capture.detail": "Zalo, KakaoTalk, web booking forms sync to Korean-Vietnamese CRM.",
-      "design": "Design journey",
-      "design.detail": "Select tour templates, apply vouchers, calculate KRW ↔︎ VND prices instantly.",
-      "coordinate": "Coordinate suppliers",
-      "coordinate.detail": "Push alerts to hotels, vehicles, guides with bilingual checklists.",
-      "care": "Care & reporting",
-      "care.detail": "Track Korean guest emotions, automatically generate reports for partners."
-    },
-    "integrations": {
-      "badge": "Connected stack",
-      "title": "Technology stack we use",
-      "badge0": "Kakao Business API",
-      "badge1": "Naver / Google Calendar",
-      "badge2": "VNPay & Toss Payments",
-      "badge3": "Zalo OA",
-      "badge4": "AirTable Sync",
-      "badge5": "GSAP Micro Animations",
-      "kakaoAPI": "Kakao Business API",
-      "naverCalendar": "Naver / Google Calendar",
-      "vnpayToss": "VNPay & Toss Payments",
-      "zaloOA": "Zalo OA",
-      "airtableSync": "AirTable Sync",
-      "gsapAnimations": "GSAP Micro Animations"
-    },
-    "story": {
-      "title": "Soft Narrative",
-      "badge": "Soft narrative",
-      "paragraph1": "KDBS was born from Minimal Soft Korean inspiration – where slow pace, white light, and rounded materials create peace of mind. Each tour is edited like a harmony with the rhythm of technology and nature.",
-      "paragraph2": "We prioritize mental wellness in every step: from herbal spa, sea breathing meditation, to extended reality experiences that preserve emotions. Technology is just the backdrop, your emotions are the center.",
-      "paragraph3": "Let us help you reach the most peaceful version of yourself in the heart of Da Nang."
-    }
-  },
-  "contactPage": {
-    "hero": {
-      "badge": "Minimal Soft Korean Contact",
-      "title": "We listen to every rhythm of your emotions",
-      "subtitle": "Connect with the studio in a minimal, pastel, soft-rounded style – so every Korea × Da Nang journey is delicately cared for."
-    },
-    "moments": {
-      "one": "Design soft itineraries for Korean groups",
-      "two": "Visa procedures & Toss/VNPay payment consultation",
-      "three": "Activate emotional care team in Da Nang"
-    },
-    "channels": {
-      "phoneLabel": "Studio Line",
-      "phoneHint": "09:00 – 21:00 (GMT+7)",
-      "mailLabel": "Email",
-      "mailHint": "Reply within 12 hours",
-      "chatLabel": "Zalo / Kakao",
-      "chatHint": "Instant pastel support"
-    },
-    "office": {
-      "hoursTitle": "Calm Office Hours",
-      "hoursValue": "Mon – Sat · 08:30 – 19:30",
-      "addressTitle": "Studio Address"
-    },
-    "form": {
-      "title": "Send a pastel message",
-      "subtitle": "We respond gently within 12 hours, with suggestions that match your vibe.",
-      "name": "Full name",
-      "email": "Contact email",
-      "topic": "Gentle topic",
-      "topicPlaceholder": "Example: 4N3D Tour for Korean guests",
-      "message": "Message",
-      "cta": "Send message",
-      "softInquiry": "Soft inquiry"
-    },
-    "social": {
-      "badge": "Social pastel"
-    },
-    "visit": {
-      "badge": "Visit studio",
-      "title": "Schedule a private appointment with the studio",
-      "subtitle": "Warm pastel space with herbal tea, Korean mood board, and glowing booking coordination desk.",
-      "map": "View map",
-      "schedule": "Schedule pastel",
-      "zenTitle": "Zen checklist",
-      "zenOne": "Sound healing playlist 528Hz",
-      "zenTwo": "Seasonal tea pairing",
-      "zenThree": "32px rounded itinerary template",
-      "flowTitle": "Flow",
-      "flowCopy": "15 minutes listening, 20 minutes vibe coordination, 5 minutes finalizing journey."
-    }
-  }
+		},
+		"actions": {
+			"download": "Download Report"
+		},
+		"welcome": {
+			"title": "Welcome to your Business Dashboard",
+			"subtitle": "Manage your tours, track analytics, and grow your business",
+			"createTour": "Create New Tour"
+		},
+		"stats": {
+			"totalTours": "Total Tours",
+			"totalBookings": "Total Bookings",
+			"totalRevenue": "Total Revenue",
+			"totalViews": "Total Views",
+			"activeTours": "Active Tours"
+		},
+		"dashboard": {
+			"loading": "Loading...",
+			"revenueOverview": "Revenue Overview",
+			"revenueTrends": "Monthly revenue trends",
+			"bookingStatus": "Booking Status",
+			"bookingDistribution": "Distribution of bookings",
+			"quickStats": "Quick Stats",
+			"tourStatus": "Tour Status",
+			"pendingBookings": "Pending Bookings",
+			"completed": "Completed",
+			"cancelled": "Cancelled",
+			"activeTours": "Active Tours",
+			"totalTours": "Total Tours",
+			"inactive": "Inactive",
+			"chartLabels": {
+				"pending": "Pending",
+				"completed": "Completed",
+				"active": "Active",
+				"cancelled": "Cancelled",
+				"totalBookings": "Total Bookings"
+			}
+		},
+		"analytics": {
+			"sales": "Sales",
+			"purchase": "Purchase",
+			"return": "Return",
+			"marketing": "Marketing",
+			"lastYear": "Last year"
+		},
+		"header": {
+			"subtitle": "Overview and analytics"
+		},
+		"filters": {
+			"thisYear": "This Year",
+			"lastYear": "Last Year",
+			"thisQuarter": "This Quarter",
+			"thisMonth": "This Month"
+		},
+		"quickActions": {
+			"title": "Quick Actions",
+			"createTour": "Create New Tour",
+			"createTourDesc": "Add a new tour to your collection",
+			"viewAnalytics": "View Analytics",
+			"viewAnalyticsDesc": "Check your business performance",
+			"manageOrders": "Manage Orders",
+			"manageOrdersDesc": "View and manage bookings",
+			"businessInfo": "Business Info",
+			"businessInfoDesc": "Update your business details"
+		},
+		"charts": {
+			"period": "Show:",
+			"bookingTrends": "Sales Statistics",
+			"revenueChart": "Revenue Chart",
+			"last7Days": "Last 7 Days",
+			"last30Days": "Last 30 Days",
+			"last90Days": "Last 90 Days",
+			"monthly": "Monthly",
+			"quarterly": "Quarterly",
+			"yearly": "Yearly",
+			"chartPlaceholder": "Chart will be displayed here"
+		},
+		"panel": {
+			"title": "Sales Statistics",
+			"subtitle": "Marketing & Sales",
+			"marketing": "Marketing",
+			"sales": "Sales",
+			"sortBy": "Sort by:",
+			"monthly": "Monthly",
+			"weekly": "Weekly",
+			"daily": "Daily",
+			"yLabel": "Total revenue acquisition"
+		}
+	},
+	"bookingManagement": {
+		"header": {
+			"title": "Tour Booking Management",
+			"subtitle": "View and manage all bookings by tour"
+		},
+		"stats": {
+			"totalBookings": "Total Bookings",
+			"successfulBookings": "Successful",
+			"pendingPayment": "Pending Payment",
+			"waitingApproval": "Waiting Approval"
+		},
+		"search": {
+			"placeholder": "Search by tour, customer name or booking code..."
+		},
+		"filters": {
+			"status": "Status:",
+			"allStatuses": "All Statuses",
+			"sortBy": "Sort by:"
+		},
+		"sort": {
+			"newest": "Newest",
+			"oldest": "Oldest",
+			"tourAsc": "Tour Name (A-Z)",
+			"tourDesc": "Tour Name (Z-A)",
+			"amountDesc": "Amount (High to Low)",
+			"amountAsc": "Amount (Low to High)"
+		},
+		"table": {
+			"bookingId": "Booking ID",
+			"tour": "Tour",
+			"customer": "Customer",
+			"departureDate": "Departure Date",
+			"guests": "Guests",
+			"amount": "Amount",
+			"status": "Status",
+			"createdAt": "Created At"
+		},
+		"status": {
+			"PENDING_PAYMENT": "Pending Payment",
+			"WAITING_FOR_APPROVAL": "Waiting for Approval",
+			"WAITING_FOR_APPROVED": "Waiting for Approval",
+			"BOOKING_REJECTED": "Rejected",
+			"WAITING_FOR_UPDATE": "Waiting for Update",
+			"BOOKING_FAILED": "Failed",
+			"BOOKING_SUCCESS": "Success",
+			"BOOKING_SUCCESS_PENDING": "Success (Pending)",
+			"BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Success (Wait for Confirmed)",
+			"BOOKING_UNDER_COMPLAINT": "Under Complaint"
+		},
+		"guests": {
+			"adults": "Adults",
+			"children": "Children",
+			"babies": "Babies"
+		},
+		"pagination": {
+			"previous": "Previous",
+			"next": "Next",
+			"page": "Page",
+			"of": "of"
+		},
+		"empty": {
+			"noBookings": "No bookings found"
+		},
+		"errors": {
+			"loadFailed": "Unable to load booking list"
+		},
+		"loading": "Loading bookings...",
+		"tourSelector": {
+			"title": "Select tour to view bookings",
+			"loading": "Loading tour list...",
+			"empty": "No tours yet.",
+			"tourCode": "Tour code:",
+			"pagination": {
+				"showing": "Showing page",
+				"of": "of",
+				"tours": "tours"
+			}
+		},
+		"actions": {
+			"viewQuick": "Quick view",
+			"editBooking": "Edit booking",
+			"confirmTourCompletion": "Confirm tour completion",
+			"bookingPending": "Booking is in pending status, cannot access."
+		},
+		"modal": {
+			"title": "Booking #",
+			"tour": "Tour:",
+			"customer": "Customer",
+			"status": "Status",
+			"departureDate": "Departure Date",
+			"tourDuration": "Tour Duration",
+			"expectedEndDate": "Expected End Date",
+			"totalAmount": "Total Amount",
+			"createdAt": "Created At",
+			"unknown": "Unknown",
+			"day": "day",
+			"days": "days"
+		}
+	},
+	"companyBookingWizard": {
+		"steps": {
+			"step1": {
+				"title": "Personal Information",
+				"description": "View and approve booking information"
+			},
+			"step2": {
+				"title": "Insurance Information",
+				"description": "Manage insurance status"
+			},
+			"step3": {
+				"title": "Confirmation",
+				"description": "Confirm booking success"
+			}
+		},
+		"header": {
+			"title": "Manage Booking #"
+		},
+		"readOnly": {
+			"title": "Read-only mode - Booking completed (BOOKING_SUCCESS)"
+		},
+		"navigation": {
+			"back": "Back",
+			"next": "Next",
+			"finish": "Finish",
+			"processing": "Processing...",
+			"close": "Close"
+		},
+		"confirmModal": {
+			"title": "Confirm booking",
+			"message": "Are you sure you want to confirm booking #",
+			"confirm": "Confirm",
+			"cancel": "Cancel",
+			"description": "Booking will be moved to BOOKING_SUCCESS_PENDING status. When the tour ends, the system will require both company and customer to confirm completion."
+		},
+		"loading": {
+			"booking": "Loading booking information..."
+		},
+		"error": {
+			"title": "Error",
+			"notFound": "Booking not found",
+			"back": "Back"
+		},
+		"stepTooltips": {
+			"rejected": "Booking has been rejected - only step 1 is viewable",
+			"readOnlyOther": "Booking completed - Only step 3 is displayed",
+			"readOnlyStep3": "Booking completed (read-only)",
+			"completed": "Step completed (cannot go back)",
+			"notAccessible": "This step is not yet accessible"
+		},
+		"success": {
+			"bookingPending": "Booking has been moved to BOOKING_SUCCESS_PENDING status. The system will automatically wait for tour completion before requesting completion confirmation."
+		},
+		"insurance": {
+			"guestFallback": "guest",
+			"toasts": {
+				"statusUpdated": "Insurance status updated for {{guestName}}. Changes will be saved when you complete the booking.",
+				"rejected": "Booking has been rejected",
+				"saved": "Insurance changes have been recorded. Please complete the booking to save them to the system."
+			},
+			"header": {
+				"title": "Insurance information",
+				"description": "Keep the pastel tone, focus on each guest's insurance status. Make sure all are SUCCESS before continuing.",
+				"stepBadge": "Step 2 / 3"
+			},
+			"summary": {
+				"totalGuests": "Total guests",
+				"success": "SUCCESS",
+				"failed": "FAILED",
+				"pending": "PENDING"
+			},
+			"table": {
+				"title": "Guest list and insurance",
+				"columns": {
+					"index": "No.",
+					"fullName": "Full name",
+					"birthDate": "Date of birth",
+					"idNumber": "ID/Passport",
+					"insuranceStatus": "Insurance status",
+					"actions": "Actions"
+				},
+				"empty": "No guest information yet"
+			},
+			"actions": {
+				"approveTooltip": "Approve insurance",
+				"rejectTooltip": "Reject insurance",
+				"approveAll": "Approve all",
+				"rejectProcessing": "Processing...",
+				"rejectBooking": "Reject booking",
+				"alreadySaved": "Already saved",
+				"continueProcessing": "Processing...",
+				"continue": "Confirm and continue"
+			},
+			"warning": {
+				"allSuccessRequired": "All guests must have insurance status SUCCESS to continue."
+			},
+			"confirmModal": {
+				"title": "Confirm insurance approval",
+				"message": "Are you sure you want to record insurance changes and move to the final step?"
+			},
+			"rejectModal": {
+				"title": "Reason for rejecting booking",
+				"message": "Please enter the reason for rejecting the booking at the insurance step:"
+			}
+		},
+		"step1": {
+			"header": {
+				"title": "Personal information",
+				"description": "Review and approve booking details before moving to the insurance step. Minimal style, focused on key data."
+			},
+			"booking": {
+				"code": "Booking code",
+				"tour": "Tour",
+				"departureDate": "Departure date",
+				"totalGuests": "Total guests"
+			},
+			"sections": {
+				"bookingInfo": "Booking information",
+				"contactInfo": "Contact information",
+				"guests": "Guest list"
+			},
+			"guests": {
+				"columns": {
+					"index": "No.",
+					"fullName": "Full name",
+					"birthDate": "Date of birth",
+					"gender": "Gender",
+					"guestType": "Guest type",
+					"idNumber": "ID/Passport",
+					"nationality": "Nationality"
+				},
+				"empty": "No guest information yet"
+			},
+			"actions": {
+				"processing": "Processing...",
+				"requestUpdate": "Request update",
+				"reject": "Reject",
+				"approveAndContinue": "Approve & continue"
+			},
+			"toasts": {
+				"approved": "Booking information approved. Please proceed to the next steps.",
+				"rejected": "Booking has been rejected",
+				"requestedUpdate": "Booking update request has been sent"
+			},
+			"confirmModal": {
+				"title": "Confirm booking approval",
+				"message": "Are you sure you want to approve booking #{{bookingId}}?",
+				"description": "After confirming, you will move to the insurance approval step. All changes are only written to the system in the final completion step."
+			},
+			"requestUpdateModal": {
+				"title": "Request booking update",
+				"message": "Please enter the reason for requesting a booking update:"
+			},
+			"rejectModal": {
+				"title": "Reason for rejecting booking",
+				"message": "Please enter the reason for rejecting this booking:"
+			}
+		},
+		"requestUpdateModal": {
+			"defaultTitle": "Request booking update",
+			"defaultMessage": "Please enter the reason for requesting a booking update:",
+			"placeholder": "Example: Please update customer information, departure date, or number of guests...",
+			"hint": "Please enter the update request information",
+			"bookingId": "Booking ID"
+		},
+		"confirmation": {
+			"toasts": {
+				"completedByBoth": "The tour has been confirmed as completed by both parties! Payment will be transferred to the company.",
+				"companyConfirmed": "Tour completion has been confirmed! If the customer also confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
+			},
+			"header": {
+				"successTitle": "Booking has been successfully confirmed!",
+				"title": "Confirm booking",
+				"readOnlyDescription": "Read-only mode: you can view completion status and tour information.",
+				"description": "Review all information for booking #{{bookingId}} and complete the trip.",
+				"stepBadge": "Step 3 / 3"
+			},
+			"status": {
+				"completed": "COMPLETED"
+			},
+			"sections": {
+				"bookingSummary": "Booking summary",
+				"contactInfo": "Contact information",
+				"guestsApproved": "Approved guests list",
+				"guestsEmpty": "No guest information yet",
+				"completionTitle": "Confirm tour completion"
+			},
+			"guest": {
+				"insuranceLabel": "Insurance",
+				"insuranceSuccess": "SUCCESS",
+				"insurancePending": "PENDING"
+			},
+			"fields": {
+				"bookingCode": "Booking code:",
+				"tour": "Tour:",
+				"departureDate": "Departure date:",
+				"expectedEndDate": "Expected end date:",
+				"totalGuests": "Total guests:",
+				"status": "Status:"
+			},
+			"confirmation": {},
+			"completion": {
+				"companyStatus": "Company status:",
+				"userStatus": "Customer status:",
+				"confirmed": "✓ Confirmed",
+				"notConfirmed": "Not confirmed",
+				"tourEndDate": "Tour end date:",
+				"autoConfirmDate": "Auto-confirm date:",
+				"checkingStatus": "Checking tour status...",
+				"completedMessage": "The tour has been confirmed as completed by both parties. Payment will be transferred to the company's account.",
+				"autoConfirmCompany": "You have confirmed. Waiting for the customer to confirm. If the customer does not confirm within 3 days (after {{date}}), the system will auto-confirm.",
+				"autoConfirmUser": "The customer has confirmed. You can confirm now or the system will auto-confirm after 3 days (after {{date}}).",
+				"readyToConfirm": "The tour ended on {{date}}. You can confirm the tour completion to proceed with payment.",
+				"confirmProcessing": "Processing...",
+				"confirmButton": "Confirm tour completion",
+				"confirmNote": "* After you confirm:\n- If the customer also confirms, payment will be transferred immediately.\n- If the customer does not confirm, the system will auto-confirm after 3 days (after {{date}}).",
+				"waitingUser": "You have confirmed the tour completion. Waiting for the customer to confirm.",
+				"waitingUserNote": "If the customer confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
+			}
+		}
+	},
+	"voucherManagement": {
+		"title": "Voucher Management",
+		"loading": "Loading...",
+		"create": "Create voucher",
+		"loadingData": "Loading data...",
+		"warning": {
+			"title": "Company information not found.",
+			"message": "Please ensure you are logged in with a COMPANY role account and user information has been updated correctly.",
+			"currentInfo": "Current info: Role =",
+			"userId": "User ID ="
+		},
+		"empty": {
+			"message": "No vouchers yet. Create your first voucher!"
+		},
+		"card": {
+			"code": "Code",
+			"type": "Type:",
+			"value": "Value:",
+			"quantity": "Quantity:",
+			"remaining": "Remaining:",
+			"status": "Status:",
+			"appliedTo": "Applied to tour:",
+			"allTours": "Apply to all tours",
+			"startDate": "Start:",
+			"endDate": "Expires:"
+		},
+		"pagination": {
+			"showing": "Showing page",
+			"of": "of",
+			"vouchers": "vouchers"
+		},
+		"discountTypes": {
+			"percent": "Discount by %",
+			"fixed": "Discount by amount"
+		},
+		"status": {
+			"ACTIVE": "ACTIVE",
+			"INACTIVE": "INACTIVE",
+			"EXPIRED": "EXPIRED"
+		}
+	},
+	"voucherCreate": {
+		"title": "Create voucher",
+		"close": "Close",
+		"fields": {
+			"code": "Voucher code",
+			"name": "Voucher name",
+			"discountType": "Discount type",
+			"discountValue": "Discount value",
+			"totalQuantity": "Quantity",
+			"minOrderValue": "Minimum order (VND)",
+			"status": "Status",
+			"startDate": "Start date",
+			"endDate": "End date",
+			"applyToTours": "Apply to tours"
+		},
+		"placeholders": {
+			"code": "Example: VOUCHER001",
+			"name": "Example: 10% discount for summer tour",
+			"discountPercent": "Enter % (1 - 80)",
+			"discountAmount": "Enter amount in VND (e.g., 100000 for 100k)"
+		},
+		"tourDropdown": {
+			"select": "Select tours to apply",
+			"selected": "tours selected",
+			"empty": "No tours"
+		},
+		"actions": {
+			"cancel": "Cancel",
+			"create": "Create",
+			"creating": "Creating..."
+		},
+		"errors": {
+			"codeRequired": "Please enter voucher code",
+			"nameRequired": "Please enter voucher name",
+			"discountTypeRequired": "Please select discount type",
+			"discountValueRequired": "Please enter discount value",
+			"discountPercentRange": "Percentage must be between 1 and 100",
+			"discountAmountMin": "Discount value must be at least 1 (e.g., 100000 for 100k)",
+			"totalQuantityRequired": "Quantity must be greater than 0",
+			"startDateRequired": "Please select start date",
+			"endDateRequired": "Please select end date",
+			"endDateAfterStart": "End date must be after start date",
+			"companyNotFound": "Company information not found",
+			"createFailed": "Unable to create voucher. Please try again."
+		},
+		"success": {
+			"created": "Voucher created successfully"
+		}
+	},
+	"companyInfo": {
+		"title": "Business Account",
+		"description": "Your account has been confirmed as a business. You can access business features.",
+		"goToManagement": "Go to Management Page",
+		"goToHome": "Go to Home",
+		"pleaseLogin": "Please register/login with a Company account to continue.",
+		"registerCompany": "Register Company Account",
+		"login": "Login",
+		"upload": {
+			"title": "Booking Code",
+			"businessLicense": "Business License (PDF) *",
+			"idCardFront": "ID Card Front",
+			"idCardBack": "ID Card Back",
+			"selected": "Selected:",
+			"viewPending": "View Pending Page",
+			"tourName": "Tour Name",
+			"time": "Time",
+			"adultPrice": "Adult Price",
+			"image": "Image",
+			"status": "Status",
+			"userName": "User Name",
+			"noName": "No name",
+			"noPrice": "No price",
+			"uploaded": "Uploaded",
+			"notAvailable": "Not available",
+			"willShowInList": "Will show in tour list"
+		},
+		"errors": {
+			"businessLicenseRequired": "Please upload business license",
+			"idCardFrontRequired": "Please upload ID card front",
+			"idCardBackRequired": "Please upload ID card back",
+			"businessLicenseFormat": "Business license file must be PDF format",
+			"idCardFrontFormat": "ID card front file must be JPG, JPEG or PNG format",
+			"idCardBackFormat": "ID card back file must be JPG, JPEG or PNG format",
+			"businessLicenseSize": "Business license file must not exceed 25MB",
+			"idCardFrontSize": "ID card front file must not exceed 25MB",
+			"idCardBackSize": "ID card back file must not exceed 25MB",
+			"idCardRecognition": "Cannot recognize ID card in image. Please ensure:\n1) ID card image is clear, not blurry\n2) Not obscured or cropped\n3) Real photo (not screenshot)\n4) Sufficient lighting, no glare\n5) ID card must be intact, not torn",
+			"idCardProcessing": "Cannot process ID card image. Please check and upload a valid ID card image.",
+			"idCardRecognitionGeneric": "Cannot recognize ID card in image. Please upload a valid ID card image.",
+			"unknown": "Unknown error",
+			"serverError": "Server processing error. Please check ID card image and try again.",
+			"idCardIssue": "There is an issue with the ID card image. Please upload a valid ID card image.",
+			"submitFailed": "Failed to submit information. Please try again."
+		},
+		"loading": "Loading...",
+		"status": {
+			"pending": "Pending approval"
+		}
+	},
+	"notifications": {
+		"title": "Notifications",
+		"markAllRead": "Mark all as read",
+		"close": "Close",
+		"empty": "No notifications",
+		"delete": "Delete",
+		"viewAll": "View All Notifications",
+		"loading": "Loading...",
+		"error": "An error occurred",
+		"retry": "Retry",
+		"noTitle": "No title",
+		"more": "More",
+		"justNow": "Just now",
+		"minutesAgo": "{{count}} minutes ago",
+		"hoursAgo": "{{count}} hours ago",
+		"daysAgo": "{{count}} days ago",
+		"markRead": "Mark as read",
+		"markUnread": "Mark as unread",
+		"types": {
+			"NEW_BOOKING": {
+				"title": "New booking",
+				"message": "You have received a new booking."
+			},
+			"BOOKING_CONFIRMED": {
+				"title": "Booking confirmed",
+				"message": "Your booking has been confirmed by the company."
+			},
+			"BOOKING_REJECTED": {
+				"title": "Booking rejected",
+				"message": "Your booking has been rejected. Please contact the company for more details."
+			},
+			"BOOKING_UPDATE_REQUEST": {
+				"title": "Booking update requested",
+				"message": "The company has requested you to update your booking information."
+			},
+			"BOOKING_UPDATED_BY_USER": {
+				"title": "Booking updated by customer",
+				"message": "The customer has updated the booking information as requested."
+			},
+			"TOUR_APPROVED": {
+				"title": "Tour approved",
+				"message": "Your tour has been approved by admin."
+			},
+			"NEW_RATING": {
+				"title": "New rating received",
+				"message": "You have received a new rating for your tour."
+			},
+			"LIKE_POST": {
+				"title": "Post liked",
+				"message": "Someone reacted to your post."
+			},
+			"LIKE_COMMENT": {
+				"title": "Comment liked",
+				"message": "Someone reacted to your comment."
+			},
+			"COMMENT_POST": {
+				"title": "New comment",
+				"message": "Someone commented on your post."
+			},
+			"REPLY_COMMENT": {
+				"title": "New reply",
+				"message": "Someone replied to your comment."
+			}
+		}
+	},
+	"chat": {
+		"title": "Customer Support",
+		"status": "Online",
+		"call": "Call",
+		"video": "Video Call",
+		"more": "More Options",
+		"close": "Close Chat",
+		"emoji": "Add Emoji",
+		"send": "Send Message",
+		"placeholder": "Type your message..."
+	},
+	"chatAI": {
+		"bubble": {
+			"title": "Chat with AI"
+		},
+		"box": {
+			"title": "KDBS Assistant",
+			"greeting": "Hello! I'm KDBS Assistant. How can I help you today?",
+			"status": {
+				"typing": "Typing...",
+				"ready": "Ready to help"
+			},
+			"actions": {
+				"minimize": "Minimize",
+				"close": "Close",
+				"send": "Send"
+			},
+			"input": {
+				"placeholder": "Type a message..."
+			},
+			"error": "Sorry, an error occurred. Please try again later."
+		}
+	},
+	"userChat": {
+		"time": {
+			"justNow": "Just now",
+			"minutesAgo": "{{minutes}} minutes ago",
+			"hoursAgo": "{{hours}} hours ago",
+			"daysAgo": "{{days}} days ago"
+		},
+		"status": {
+			"active": "Active",
+			"connecting": "Connecting...",
+			"disconnected": "Disconnected"
+		},
+		"actions": {
+			"minimize": "Minimize",
+			"close": "Close"
+		},
+		"loading": {
+			"olderMessages": "Loading older messages..."
+		},
+		"empty": {
+			"startConversation": "Start conversation with {{userName}}",
+			"selectUser": "Select a user to start chatting"
+		},
+		"message": {
+			"sent": "Sent"
+		}
+	},
+	"about": {
+		"hero": {
+			"title": "Tour Management Studio for Korea × Da Nang",
+			"subtitle": "A pastel platform that helps teams coordinate bookings, manage tours, handle payments, and care for Korean guests right in Da Nang – intuitive, minimal yet technology-rich.",
+			"highlight1": "Booking Hub realtime",
+			"highlight2": "Tour workflow for Da Nang",
+			"highlight3": "Complete Korean dashboard",
+			"since": {
+				"label": "Since",
+				"value": "2018"
+			},
+			"focus": {
+				"label": "Focus",
+				"value": "Booking Ops"
+			}
+		},
+		"mission": {
+			"title": "Tour Booking Operating System",
+			"description": "We build a bilingual Korean-Vietnamese tour management platform that helps businesses in Da Nang operate bookings, coordinate partners, and care for Korean guests in an intuitive, tech-driven way following soft minimal standards.",
+			"badge": "Soft mission"
+		},
+		"values": {
+			"title": "Core Values",
+			"subtitle": "Shaping soft experiences with thin icons, pastel palette, and spacious layouts.",
+			"badge": "Core values",
+			"quality": {
+				"title": "Booking OS",
+				"desc": "Coordinate tour bookings, vouchers, and payment status on a pastel plane."
+			},
+			"trust": {
+				"title": "Compliance Center",
+				"desc": "Track visas, contracts, Korean partner SLAs with realtime alerts."
+			},
+			"excellence": {
+				"title": "Seoul × Da Nang Link",
+				"desc": "Sync Korean partners, local suppliers, and multilingual schedules."
+			},
+			"passion": {
+				"title": "Care Automation",
+				"desc": "Korean guest care playbook, follow-up schedules, and experience reminders."
+			}
+		},
+		"team": {
+			"title": "Vibe Studio Team",
+			"badge": "Human touch",
+			"member1": {
+				"name": "Nguyễn Văn A",
+				"role": "CEO & Founder",
+				"desc": "10+ years creating bicultural travel products."
+			},
+			"member2": {
+				"name": "Trần Thị B",
+				"role": "Creative Director",
+				"desc": "Shaping visual and emotional soft experiences."
+			},
+			"member3": {
+				"name": "Lê Văn C",
+				"role": "Experience Lead",
+				"desc": "Standardizing balanced, lean guest care processes."
+			}
+		},
+		"stats": {
+			"customers": "Bookings processed",
+			"tours": "Automation coverage",
+			"satisfaction": "Faster lead-to-tour",
+			"partners": "Korean partners"
+		},
+		"timeline": {
+			"badge": "Journey",
+			"caption": "Minimal Soft Korean timeline",
+			"start": {
+				"title": "Starting from Seoul",
+				"desc": "Connecting the first Korean experts with the Da Nang-loving community."
+			},
+			"expand": {
+				"title": "Minimal identity",
+				"desc": "Applying Korean living arts to redesign emotionally caring tours."
+			},
+			"partnership": {
+				"title": "International standard partners",
+				"desc": "Partnering with accommodation chains and high-tech spas for relaxation journeys."
+			},
+			"future": {
+				"title": "Experience Studio",
+				"desc": "Launching a Korean-inspired studio in Da Nang with interactive technology."
+			}
+		},
+		"monitor": {
+			"booking": "Booking load",
+			"operations": "Ops readiness",
+			"experience": "Experience score"
+		},
+		"metrics": {
+			"korAgents": "Korean Agents Online",
+			"korAgents.caption": "Seoul & Busan partners",
+			"vnOperators": "Da Nang Operators",
+			"vnOperators.caption": "Tour logistics & chauffeur",
+			"sla": "SLA Stability",
+			"sla.caption": "Realtime monitoring"
+		},
+		"control": {
+			"korvn": "Korean × Da Nang workforce",
+			"monitor": "Realtime operational status",
+			"liveControl": "Live control",
+			"automationPulse": "Automation pulse"
+		},
+		"heroCard": {
+			"controlHub": "Control Hub",
+			"bookingOpsCloud": "Booking + Ops Cloud",
+			"realtimeRouting": "Realtime routing",
+			"automation": "Automation",
+			"automationValue": "92% tasks",
+			"coverage": "Coverage",
+			"coverageValue": "KOR ↔︎ VN",
+			"live": "Live",
+			"opsRadar": "Ops radar v3.1",
+			"seoul": "Seoul",
+			"daNang": "Da Nang"
+		},
+		"workflow": {
+			"badge": "Workflow",
+			"caption": "Korean - Da Nang tour operation cycle",
+			"capture": "Capture & qualify lead",
+			"capture.detail": "Zalo, KakaoTalk, web booking forms sync to Korean-Vietnamese CRM.",
+			"design": "Design journey",
+			"design.detail": "Select tour templates, apply vouchers, calculate KRW ↔︎ VND prices instantly.",
+			"coordinate": "Coordinate suppliers",
+			"coordinate.detail": "Push alerts to hotels, vehicles, guides with bilingual checklists.",
+			"care": "Care & reporting",
+			"care.detail": "Track Korean guest emotions, automatically generate reports for partners."
+		},
+		"integrations": {
+			"badge": "Connected stack",
+			"title": "Technology stack we use",
+			"badge0": "Kakao Business API",
+			"badge1": "Naver / Google Calendar",
+			"badge2": "VNPay & Toss Payments",
+			"badge3": "Zalo OA",
+			"badge4": "AirTable Sync",
+			"badge5": "GSAP Micro Animations",
+			"kakaoAPI": "Kakao Business API",
+			"naverCalendar": "Naver / Google Calendar",
+			"vnpayToss": "VNPay & Toss Payments",
+			"zaloOA": "Zalo OA",
+			"airtableSync": "AirTable Sync",
+			"gsapAnimations": "GSAP Micro Animations"
+		},
+		"story": {
+			"title": "Soft Narrative",
+			"badge": "Soft narrative",
+			"paragraph1": "KDBS was born from Minimal Soft Korean inspiration – where slow pace, white light, and rounded materials create peace of mind. Each tour is edited like a harmony with the rhythm of technology and nature.",
+			"paragraph2": "We prioritize mental wellness in every step: from herbal spa, sea breathing meditation, to extended reality experiences that preserve emotions. Technology is just the backdrop, your emotions are the center.",
+			"paragraph3": "Let us help you reach the most peaceful version of yourself in the heart of Da Nang."
+		}
+	},
+	"contactPage": {
+		"hero": {
+			"badge": "Minimal Soft Korean Contact",
+			"title": "We listen to every rhythm of your emotions",
+			"subtitle": "Connect with the studio in a minimal, pastel, soft-rounded style – so every Korea × Da Nang journey is delicately cared for."
+		},
+		"moments": {
+			"one": "Design soft itineraries for Korean groups",
+			"two": "Visa procedures & Toss/VNPay payment consultation",
+			"three": "Activate emotional care team in Da Nang"
+		},
+		"channels": {
+			"phoneLabel": "Studio Line",
+			"phoneHint": "09:00 – 21:00 (GMT+7)",
+			"mailLabel": "Email",
+			"mailHint": "Reply within 12 hours",
+			"chatLabel": "Zalo / Kakao",
+			"chatHint": "Instant pastel support"
+		},
+		"office": {
+			"hoursTitle": "Calm Office Hours",
+			"hoursValue": "Mon – Sat · 08:30 – 19:30",
+			"addressTitle": "Studio Address"
+		},
+		"form": {
+			"title": "Send a pastel message",
+			"subtitle": "We respond gently within 12 hours, with suggestions that match your vibe.",
+			"name": "Full name",
+			"email": "Contact email",
+			"topic": "Gentle topic",
+			"topicPlaceholder": "Example: 4N3D Tour for Korean guests",
+			"message": "Message",
+			"cta": "Send message",
+			"softInquiry": "Soft inquiry"
+		},
+		"social": {
+			"badge": "Social pastel"
+		},
+		"visit": {
+			"badge": "Visit studio",
+			"title": "Schedule a private appointment with the studio",
+			"subtitle": "Warm pastel space with herbal tea, Korean mood board, and glowing booking coordination desk.",
+			"map": "View map",
+			"schedule": "Schedule pastel",
+			"zenTitle": "Zen checklist",
+			"zenOne": "Sound healing playlist 528Hz",
+			"zenTwo": "Seasonal tea pairing",
+			"zenThree": "32px rounded itinerary template",
+			"flowTitle": "Flow",
+			"flowCopy": "15 minutes listening, 20 minutes vibe coordination, 5 minutes finalizing journey."
+		}
+	}
 }
-
-
-

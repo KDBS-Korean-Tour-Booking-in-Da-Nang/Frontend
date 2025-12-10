@@ -1353,7 +1353,101 @@
 				"confirm": "거절",
 				"cancel": "취소"
 			},
-			"durationTemplate": "{{days}}일 {{nights}}박"
+			"durationTemplate": "{{days}}일 {{nights}}박",
+			"edit": {
+				"title": "투어 수정",
+				"tabs": {
+					"basic": "기본 정보",
+					"itinerary": "일정",
+					"pricing": "가격",
+					"media": "사진 및 영상"
+				},
+				"basic": {
+					"title": "기본 정보",
+					"priceCapacityTitle": "가격 및 수용 인원",
+					"fields": {
+						"tourName": "투어명",
+						"tourDescription": "투어 설명",
+						"tourType": "투어 유형",
+						"amount": "좌석 수",
+						"tourStatus": "투어 상태",
+						"days": "일수",
+						"nights": "박수",
+						"tourExpirationDate": "예약 마감일",
+						"minAdvancedDays": "최소 사전 예약일",
+						"checkDays": "확인/승인 일수",
+						"balancePaymentDays": "잔금 결제 일수",
+						"depositPercentage": "보증금 비율",
+						"refundFloor": "최소 환불 비율 (%)"
+					},
+					"placeholders": {
+						"selectTourType": "투어 유형 선택",
+						"tourDescription": "텍스트 설명 입력 (이미지 제외)..."
+					},
+					"help": {
+						"checkDays": "보증금을 위한 사전 예약 기간의 첫 번째 부분",
+						"balancePaymentDays": "자동 계산 = 최소 사전 예약일 - 확인 일수",
+						"depositPercentage": "투어 예약 시 필요",
+						"refundFloor": "잔금 결제 기간 이후 최소 환불 비율"
+					}
+				},
+				"itinerary": {
+					"title": "투어 일정",
+					"dailyTitle": "일별 일정",
+					"fields": {
+						"dayDescription": "일 설명"
+					},
+					"placeholders": {
+						"dayTitle": "{{dayNumber}}일차 제목"
+					},
+					"actions": {
+						"addDay": "+ 일 추가",
+						"removeDay": "− 일 삭제"
+					}
+				},
+				"pricing": {
+					"title": "투어 가격",
+					"fields": {
+						"adultPrice": "성인 가격",
+						"childrenPrice": "아동 가격",
+						"babyPrice": "유아 가격"
+					}
+				},
+				"media": {
+					"title": "커버 이미지",
+					"coverLabel": "커버 이미지",
+					"changeImage": "이미지 변경",
+					"selectImage": "커버 이미지 선택",
+					"hint": "이미지를 클릭하여 변경하세요. 형식: JPG, PNG. 최대 5MB."
+				},
+				"status": {
+					"active": "활성",
+					"inactive": "비활성",
+					"draft": "임시저장"
+				},
+				"colorPicker": {
+					"title": "색상 사용자 지정",
+					"apply": "적용",
+					"cancel": "취소"
+				},
+				"alignment": {
+					"left": "왼쪽 정렬",
+					"center": "가운데 정렬",
+					"right": "오른쪽 정렬"
+				},
+				"actions": {
+					"resetTitle": "제목 초기화",
+					"customColor": "사용자 지정 색상"
+				},
+				"saving": "저장 중...",
+				"save": "변경 사항 저장",
+				"errors": {
+					"fillRequired": "다음을 입력해주세요: {{fields}}",
+					"authTokenMissing": "인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.",
+					"sessionExpired": "세션이 만료되었습니다. 다시 로그인해주세요.",
+					"uploadFailed": "이미지를 업로드할 수 없습니다. 다시 시도해주세요."
+				}
+			}
 		},
 		"tourDetailModal": {
 			"title": "투어 상세",
@@ -2850,6 +2944,11 @@
 			"title": "투어 수정",
 			"saving": "저장 중...",
 			"save": "변경 사항 저장",
+			"updateNote": {
+				"label": "업데이트 메모 (관리자 검토용)",
+				"placeholder": "관리자 승인을 위해 변경 사유나 내용을 입력하세요...",
+				"disabledHint": "메모를 활성화하려면 위의 투어 정보를 변경하세요..."
+			},
 			"tabs": {
 				"basic": "기본 정보",
 				"itinerary": "일정",

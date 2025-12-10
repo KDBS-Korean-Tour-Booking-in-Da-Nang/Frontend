@@ -103,14 +103,16 @@ const calculateLeadDays = (isoDate) => {
 };
 
   const enforceCutoffLimit = (draft) => {
-    // Validate: Minimum Advance Days must not exceed booking cut-off (tourExpirationDate)
+    // Validate: Minimum Advance Days must be strictly less than booking cut-off (tourExpirationDate)
+    // Only allow when leadDays > minAdvancedDays (i.e., leadDays >= minAdvancedDays + 1)
     if (!draft.tourExpirationDate || draft.minAdvancedDays === '') return draft;
     const leadDays = calculateLeadDays(draft.tourExpirationDate);
     if (leadDays === null || leadDays < 0) return draft;
     const minDaysNum = parseInt(draft.minAdvancedDays, 10);
     if (Number.isNaN(minDaysNum)) return draft;
 
-    if (minDaysNum > leadDays) {
+    // Error if minAdvancedDays >= leadDays (only allow when leadDays > minAdvancedDays)
+    if (minDaysNum >= leadDays) {
       setFieldErrors((prev) => ({
         ...prev,
         tourDeadline: t('tourWizard.step1.errors.minAdvancedExceedsCutoff', {
@@ -118,7 +120,7 @@ const calculateLeadDays = (isoDate) => {
         }) || `Minimum booking days cannot exceed "${leadDays}" booking closing days. Please re-enter Check days and Balance payment days.`
       }));
     } else {
-      // Clear cutoff error if within range
+      // Clear cutoff error if within range (leadDays > minAdvancedDays)
       setFieldErrors((prev) => {
         const next = { ...prev };
         delete next.tourDeadline;

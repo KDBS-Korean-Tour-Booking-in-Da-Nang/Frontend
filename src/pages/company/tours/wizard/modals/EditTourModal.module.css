@@ -21,8 +21,8 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   width: 900px;
   max-width: 90vw;
-  height: 85vh;
-  max-height: 85vh;
+  height: 90vh;
+  max-height: 90vh;
   min-height: 600px;
   display: flex;
   flex-direction: column;
@@ -36,6 +36,7 @@
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -253,17 +254,47 @@
   background: #374151;
 }
 
-.left-align .line:nth-child(1) { width: 4px; }
-.left-align .line:nth-child(2) { width: 6px; }
-.left-align .line:nth-child(3) { width: 8px; }
+.left-align .line:nth-child(1) {
+  width: 4px;
+}
 
-.center-align .line:nth-child(1) { width: 3px; margin: 0 auto; }
-.center-align .line:nth-child(2) { width: 6px; margin: 0 auto; }
-.center-align .line:nth-child(3) { width: 3px; margin: 0 auto; }
+.left-align .line:nth-child(2) {
+  width: 6px;
+}
 
-.right-align .line:nth-child(1) { width: 8px; margin-left: auto; }
-.right-align .line:nth-child(2) { width: 6px; margin-left: auto; }
-.right-align .line:nth-child(3) { width: 4px; margin-left: auto; }
+.left-align .line:nth-child(3) {
+  width: 8px;
+}
+
+.center-align .line:nth-child(1) {
+  width: 3px;
+  margin: 0 auto;
+}
+
+.center-align .line:nth-child(2) {
+  width: 6px;
+  margin: 0 auto;
+}
+
+.center-align .line:nth-child(3) {
+  width: 3px;
+  margin: 0 auto;
+}
+
+.right-align .line:nth-child(1) {
+  width: 8px;
+  margin-left: auto;
+}
+
+.right-align .line:nth-child(2) {
+  width: 6px;
+  margin-left: auto;
+}
+
+.right-align .line:nth-child(3) {
+  width: 4px;
+  margin-left: auto;
+}
 
 .reset-title-btn {
   background: rgba(255, 255, 255, 0.2);
@@ -418,9 +449,9 @@
 .hue-slider {
   width: 200px;
   height: 20px;
-  background: linear-gradient(to right, 
-    #ff0000, #ffff00, #00ff00, #00ffff, 
-    #0000ff, #ff00ff, #ff0000);
+  background: linear-gradient(to right,
+      #ff0000, #ffff00, #00ff00, #00ffff,
+      #0000ff, #ff00ff, #ff0000);
   border-radius: 10px;
   cursor: pointer;
   position: relative;
@@ -716,12 +747,14 @@
   border: 2px solid #f0f0f0;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-left: 0.3125rem;
 }
 
 .image-preview:hover {
   border-color: #1a8eea;
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(26, 142, 234, 0.2);
+  margin-left: 0.3125rem;
 }
 
 .image-preview.clickable {
@@ -733,6 +766,7 @@
   height: 150px;
   object-fit: cover;
   display: block;
+
 }
 
 .image-overlay {
@@ -937,6 +971,50 @@
   transform: none;
 }
 
+/* Update Note Section */
+.update-note-section {
+  background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.update-note-section label {
+  display: block;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.update-note-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #fcd34d;
+  border-radius: 16px;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  transition: all 0.2s ease;
+  background: #fffbeb;
+  color: #1e293b;
+  box-sizing: border-box;
+}
+
+.update-note-textarea:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  background: white;
+}
+
+.update-note-textarea::placeholder {
+  color: #d97706;
+  opacity: 0.7;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .edit-tour-modal {
@@ -950,37 +1028,37 @@
     padding: 10px;
     padding-top: 3vh;
   }
-  
+
   .edit-tour-modal {
     width: 95vw;
     max-width: 95vw;
     height: 90vh;
     min-height: 500px;
   }
-  
+
   .modal-header {
     padding: 16px 20px;
   }
-  
+
   .modal-header h2 {
     font-size: 1.25rem;
   }
-  
+
   .edit-form {
     padding: 20px;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
+
   .modal-actions {
     flex-direction: column;
     margin: 0 -20px -20px -20px;
     padding: 16px 20px;
   }
-  
+
   .btn-cancel,
   .btn-save {
     width: 100%;
@@ -991,15 +1069,15 @@
   .modal-header {
     padding: 12px 16px;
   }
-  
+
   .edit-form {
     padding: 16px;
   }
-  
+
   .form-section {
     margin-bottom: 1.5rem;
   }
-  
+
   .modal-actions {
     margin: 0 -16px -16px -16px;
     padding: 12px 16px;
@@ -1009,12 +1087,12 @@
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .current-image {
     flex: none;
     width: 100%;
   }
-  
+
   .preview-image,
   .no-image {
     width: 100%;

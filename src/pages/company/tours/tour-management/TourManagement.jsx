@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
+import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
@@ -25,7 +26,7 @@ const TourManagement = () => {
   const { user } = useAuth();
   const { showSuccess } = useToast();
   const { t } = useTranslation();
-  
+
   const [tours, setTours] = useState([]);
   const [allTours, setAllTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ const TourManagement = () => {
   const [itemsPerPage] = useState(8); // 2 rows x 4 columns
   const [error, setError] = useState('');
   const [companyId, setCompanyId] = useState(null);
+  const [deleteNote, setDeleteNote] = useState('');
 
   // Check if user has COMPANY role
   const isBusinessUser = user && user.role === 'COMPANY';
@@ -65,7 +67,7 @@ const TourManagement = () => {
 
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
-  
+
   // Fetch all tours for company, filtering out DISABLED (soft-deleted) tours
   const fetchTours = useCallback(async () => {
     if (!companyId) {
@@ -73,18 +75,18 @@ const TourManagement = () => {
       setLoading(false);
       return;
     }
-    
+
     // Get token for authentication
     const remembered = localStorage.getItem('rememberMe') === 'true';
     const storage = remembered ? localStorage : sessionStorage;
     const token = storage.getItem('token');
-    
+
     if (!token) {
       setError(t('toast.login_required') || 'Vui lòng đăng nhập');
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       const response = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
@@ -92,18 +94,18 @@ const TourManagement = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         const { checkAndHandle401 } = await import('../../../../utils/apiErrorHandler');
         await checkAndHandle401(response);
         return;
       }
-      
+
       if (response.ok) {
         const data = await response.json();
         // Filter out DISABLED tours (soft-deleted tours that have bookings)
-        const activeTours = Array.isArray(data) 
+        const activeTours = Array.isArray(data)
           ? data.filter(tour => tour.tourStatus !== 'DISABLED')
           : [];
         setAllTours(activeTours);
@@ -147,12 +149,51 @@ const TourManagement = () => {
     navigate('/company/tours/wizard');
   };
 
-  // Open edit modal for selected tour
-  const handleEditTour = (tourId) => {
-    const tour = tours.find(t => t.id === tourId);
-    if (tour) {
-      setSelectedTour(tour);
-      setEditModalOpen(true);
+  // Open edit modal for selected tour - fetch fresh data from API
+  const handleEditTour = async (tourId) => {
+    // Get token for authentication
+    const remembered = localStorage.getItem('rememberMe') === 'true';
+    const storage = remembered ? localStorage : sessionStorage;
+    const token = storage.getItem('token');
+
+    if (!token) {
+      setError(t('toast.login_required') || 'Vui lòng đăng nhập');
+      return;
+    }
+
+    try {
+      // Fetch fresh tour data from API to get latest updates
+      const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(tourId), {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok && response.status === 401) {
+        const { checkAndHandle401 } = await import('../../../../utils/apiErrorHandler');
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const freshTourData = await response.json();
+        setSelectedTour(freshTourData);
+        setEditModalOpen(true);
+      } else {
+        // Fallback to cached data if API fails
+        const tour = tours.find(t => t.id === tourId);
+        if (tour) {
+          setSelectedTour(tour);
+          setEditModalOpen(true);
+        }
+      }
+    } catch (error) {
+      // Fallback to cached data on error
+      const tour = tours.find(t => t.id === tourId);
+      if (tour) {
+        setSelectedTour(tour);
+        setEditModalOpen(true);
+      }
     }
   };
 
@@ -166,11 +207,12 @@ const TourManagement = () => {
     const tour = tours.find(t => t.id === tourId);
     if (tour) {
       setSelectedTour(tour);
+      setDeleteNote('');
       setDeleteModalOpen(true);
     }
   };
 
-  // Delete tour: backend performs soft delete if tour has bookings, hard delete otherwise
+  // Delete tour: send delete request to admin for approval
   const confirmDeleteTour = async () => {
     if (!selectedTour) return;
 
@@ -183,37 +225,39 @@ const TourManagement = () => {
       setError(t('toast.login_required') || 'Vui lòng đăng nhập');
       setDeleteModalOpen(false);
       setSelectedTour(null);
+      setDeleteNote('');
       return;
     }
 
     try {
-      const response = await fetch(API_ENDPOINTS.TOUR_DELETE_BY_ID(selectedTour.id, user?.email || ''), {
-        method: 'DELETE',
+      // Send delete request to admin for approval
+      const response = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUEST(selectedTour.id), {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ note: deleteNote || null })
       });
 
+      if (!response.ok && response.status === 401) {
+        const { checkAndHandle401 } = await import('../../../../utils/apiErrorHandler');
+        await checkAndHandle401(response);
+        return;
+      }
+
       if (response.ok) {
-        // Backend: soft delete (DISABLED) if tour has bookings, hard delete otherwise
-        // Remove from UI in both cases as DISABLED tours are filtered out
-        showSuccess('toast.tour.delete_success');
-        const updatedTours = allTours.filter(tour => tour.id !== selectedTour.id);
-        setAllTours(updatedTours);
-        
-        // Adjust to last page if current page becomes empty after deletion
-        const newTotalPages = Math.ceil(updatedTours.length / itemsPerPage);
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-          setCurrentPage(newTotalPages);
-        }
+        // Delete request submitted successfully - pending admin approval
+        showSuccess({ i18nKey: 'toast.tour.delete_request_submitted' });
       } else {
-        setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
+        setError(t('toast.tour.delete_error') || 'Không thể gửi yêu cầu xóa');
       }
     } catch (error) {
-      setError(t('toast.tour.delete_error') || 'Không thể xóa tour');
+      setError(t('toast.tour.delete_error') || 'Không thể gửi yêu cầu xóa');
     } finally {
       setDeleteModalOpen(false);
       setSelectedTour(null);
+      setDeleteNote('');
     }
   };
 
@@ -270,7 +314,7 @@ const TourManagement = () => {
   const getImageSrc = (tourImgPath) => {
     if (!tourImgPath) return '';
     const trimmed = tourImgPath.trim();
-    
+
     // Check if path contains full URL (handles cases where backend stores full Azure URL)
     if (trimmed.includes('https://') || trimmed.includes('http://')) {
       // Extract the full URL from the path
@@ -281,7 +325,7 @@ const TourManagement = () => {
         return trimmed.substring(urlStartIndex);
       }
     }
-    
+
     if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
       return trimmed.substring(1); // Loại bỏ dấu / ở đầu
     }
@@ -336,7 +380,7 @@ const TourManagement = () => {
             <h1>{t('tourManagement.header.title')}</h1>
             <p className={styles['header-subtitle']}>{t('tourManagement.header.subtitle', { defaultValue: 'Quản lý tất cả các tour của bạn' })}</p>
           </div>
-          <button 
+          <button
             onClick={handleCreateTour}
             className={styles['add-tour-btn']}
           >
@@ -352,7 +396,7 @@ const TourManagement = () => {
           <div className={styles['empty-state']}>
             <h3>{t('tourManagement.empty.title')}</h3>
             <p>{t('tourManagement.empty.description')}</p>
-            <button 
+            <button
               onClick={handleCreateTour}
               className={styles['create-first-tour-btn']}
             >
@@ -363,107 +407,107 @@ const TourManagement = () => {
           <>
             <div className={styles['tours-grid']}>
               {tours.map((tour) => (
-              <div 
-                key={tour.id} 
-                className={styles['tour-card']}
-                onClick={() => openTourDetail(tour.id)}
-                style={{ cursor: 'pointer' }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') openTourDetail(tour.id); }}
-              >
-                {/* Tour Image */}
-                <div className={styles['tour-image-container']} style={{height: '250px'}}>
-                  {tour.tourImgPath ? (
-                    <img 
-                      src={getImageSrc(tour.tourImgPath)} 
-                      alt={tour.tourName}
-                      className={styles['tour-image']}
-                      onError={(e) => {
-                        e.target.src = '/default-Tour.jpg';
-                      }}
-                    />
-                  ) : (
-                    <div className={styles['tour-image-placeholder']}>
-                      <div className={styles['placeholder-icon']}>🏞️</div>
-                    </div>
-                  )}
-                  
-                  {/* Status Badge */}
-                  <div className={`${styles['status-badge']} ${styles[tour.tourStatus?.toLowerCase() || 'active']}`}>
-                    {getStatusLabel(tour.tourStatus)}
-                  </div>
-                </div>
+                <div
+                  key={tour.id}
+                  className={styles['tour-card']}
+                  onClick={() => openTourDetail(tour.id)}
+                  style={{ cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') openTourDetail(tour.id); }}
+                >
+                  {/* Tour Image */}
+                  <div className={styles['tour-image-container']} style={{ height: '250px' }}>
+                    {tour.tourImgPath ? (
+                      <img
+                        src={getImageSrc(tour.tourImgPath)}
+                        alt={tour.tourName}
+                        className={styles['tour-image']}
+                        onError={(e) => {
+                          e.target.src = '/default-Tour.jpg';
+                        }}
+                      />
+                    ) : (
+                      <div className={styles['tour-image-placeholder']}>
+                        <div className={styles['placeholder-icon']}>🏞️</div>
+                      </div>
+                    )}
 
-                {/* Tour Info */}
+                    {/* Status Badge */}
+                    <div className={`${styles['status-badge']} ${styles[tour.tourStatus?.toLowerCase() || 'active']}`}>
+                      {getStatusLabel(tour.tourStatus)}
+                    </div>
+                  </div>
+
+                  {/* Tour Info */}
                   <div className={styles['tour-info']}>
-                  <h3 className={styles['tour-name']}>{tour.tourName}</h3>
-                  
-                  <div className={styles['tour-price']}>
-                    <span className={styles['price-label']}>{t('tourManagement.card.priceLabel')}</span>
-                    <span className={styles['price-value']}>{formatPrice(tour.adultPrice)}₫</span>
-                  </div>
+                    <h3 className={styles['tour-name']}>{tour.tourName}</h3>
 
-                  <div className={styles['tour-details']}>
-                    <div className={styles['detail-item']}>
-                      <ClockIcon className={styles['detail-icon']} />
-                      <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
+                    <div className={styles['tour-price']}>
+                      <span className={styles['price-label']}>{t('tourManagement.card.priceLabel')}</span>
+                      <span className={styles['price-value']}>{formatPrice(tour.adultPrice)}₫</span>
                     </div>
-                    {formatAdvanceDays(tour) && (
+
+                    <div className={styles['tour-details']}>
                       <div className={styles['detail-item']}>
                         <ClockIcon className={styles['detail-icon']} />
-                        <span className={styles['detail-value']}>{formatAdvanceDays(tour)}</span>
+                        <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
                       </div>
-                    )}
-                    {formatDeposit(tour) && (
+                      {formatAdvanceDays(tour) && (
+                        <div className={styles['detail-item']}>
+                          <ClockIcon className={styles['detail-icon']} />
+                          <span className={styles['detail-value']}>{formatAdvanceDays(tour)}</span>
+                        </div>
+                      )}
+                      {formatDeposit(tour) && (
+                        <div className={styles['detail-item']}>
+                          <ClockIcon className={styles['detail-icon']} />
+                          <span className={styles['detail-value']}>{t('tourWizard.step4.preview.fields.depositPercentage', 'Deposit')}: {formatDeposit(tour)}</span>
+                        </div>
+                      )}
                       <div className={styles['detail-item']}>
-                        <ClockIcon className={styles['detail-icon']} />
-                        <span className={styles['detail-value']}>{t('tourWizard.step4.preview.fields.depositPercentage', 'Deposit')}: {formatDeposit(tour)}</span>
+                        <UserGroupIcon className={styles['detail-icon']} />
+                        <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
                       </div>
-                    )}
-                    <div className={styles['detail-item']}>
-                      <UserGroupIcon className={styles['detail-icon']} />
-                      <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
+                      <div className={styles['detail-item']}>
+                        <MapPinIcon className={styles['detail-icon']} />
+                        <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
+                      </div>
                     </div>
-                    <div className={styles['detail-item']}>
-                      <MapPinIcon className={styles['detail-icon']} />
-                      <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
-                    </div>
-                  </div>
 
-                  {/* Controls */}
-                  <div className={styles['tour-controls']}>
-                    <div className={styles['action-buttons']}>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleEditTour(tour.id); }}
-                        className={styles['edit-btn']}
-                        title={t('tourManagement.actions.edit')}
-                      >
-                        <PencilIcon className={styles['action-icon']} />
-                        <span>{t('tourManagement.actions.edit')}</span>
-                      </button>
-                      
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDeleteTour(tour.id); }}
-                        className={styles['delete-btn']}
-                        title={t('tourManagement.actions.delete')}
-                      >
-                        <TrashIcon className={styles['action-icon']} />
-                        <span>{t('tourManagement.actions.delete')}</span>
-                      </button>
-                      
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
-                        className={styles['share-btn']}
-                        title={t('tourCard.share') || 'Chia sẻ'}
-                      >
-                        <LinkIcon className={styles['action-icon']} />
-                        <span>{t('tourCard.share') || 'Chia sẻ'}</span>
-                      </button>
+                    {/* Controls */}
+                    <div className={styles['tour-controls']}>
+                      <div className={styles['action-buttons']}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEditTour(tour.id); }}
+                          className={styles['edit-btn']}
+                          title={t('tourManagement.actions.edit')}
+                        >
+                          <PencilIcon className={styles['action-icon']} />
+                          <span>{t('tourManagement.actions.edit')}</span>
+                        </button>
+
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteTour(tour.id); }}
+                          className={styles['delete-btn']}
+                          title={t('tourManagement.actions.delete')}
+                        >
+                          <TrashIcon className={styles['action-icon']} />
+                          <span>{t('tourManagement.actions.delete')}</span>
+                        </button>
+
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
+                          className={styles['share-btn']}
+                          title={t('tourCard.share') || 'Chia sẻ'}
+                        >
+                          <LinkIcon className={styles['action-icon']} />
+                          <span>{t('tourCard.share') || 'Chia sẻ'}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               ))}
             </div>
 
@@ -525,21 +569,58 @@ const TourManagement = () => {
         onSave={handleEditSave}
       />
 
-      {/* Delete Confirm Modal */}
-      <DeleteConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setSelectedTour(null);
-        }}
-        onConfirm={confirmDeleteTour}
-        title={t('tourManagement.modals.delete.title')}
-        message={t('tourManagement.modals.delete.message', { name: selectedTour?.tourName || '' })}
-        itemName={t('tourManagement.modals.delete.itemName')}
-      />
+      {/* Delete Request Modal with Note Input - rendered via portal for fullscreen overlay */}
+      {deleteModalOpen && createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-red-100">
+                <TrashIcon className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+                {t('tourManagement.modals.delete.title')}
+              </h3>
+              <p className="text-center text-gray-600 mb-4">
+                {t('tourManagement.modals.delete.message', { name: selectedTour?.tourName || '' })}
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('tourManagement.modals.delete.noteLabel')}
+                </label>
+                <textarea
+                  value={deleteNote}
+                  onChange={(e) => setDeleteNote(e.target.value)}
+                  placeholder={t('tourManagement.modals.delete.notePlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setSelectedTour(null);
+                    setDeleteNote('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={confirmDeleteTour}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  {t('tourManagement.modals.delete.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Share Tour Modal */}
-      <ShareTourModal 
+      <ShareTourModal
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
         tourId={shareTourId}

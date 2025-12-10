@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders, getTourImageUrl } from '../../../config/api';
@@ -6,7 +6,7 @@ import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import TourDetailModal from './TourDetailModal';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import { Tooltip } from '../../../components';
-import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X } from 'lucide-react';
+import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X, RefreshCw, Edit3, Trash2 } from 'lucide-react';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -31,6 +31,26 @@ const TourManagement = () => {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [tourToApprove, setTourToApprove] = useState(null);
   const [tourToReject, setTourToReject] = useState(null);
+
+  // Update Requests State
+  const [showUpdateRequests, setShowUpdateRequests] = useState(false);
+  const [updateRequests, setUpdateRequests] = useState([]);
+  const [loadingUpdateRequests, setLoadingUpdateRequests] = useState(false);
+  const [selectedUpdateRequest, setSelectedUpdateRequest] = useState(null);
+  const [isApproveUpdateModalOpen, setIsApproveUpdateModalOpen] = useState(false);
+  const [isRejectUpdateModalOpen, setIsRejectUpdateModalOpen] = useState(false);
+  const [updateApproveNote, setUpdateApproveNote] = useState('');
+  const [updateRejectNote, setUpdateRejectNote] = useState('');
+
+  // Delete Requests State
+  const [showDeleteRequests, setShowDeleteRequests] = useState(false);
+  const [deleteRequests, setDeleteRequests] = useState([]);
+  const [loadingDeleteRequests, setLoadingDeleteRequests] = useState(false);
+  const [selectedDeleteRequest, setSelectedDeleteRequest] = useState(null);
+  const [isApproveDeleteModalOpen, setIsApproveDeleteModalOpen] = useState(false);
+  const [isRejectDeleteModalOpen, setIsRejectDeleteModalOpen] = useState(false);
+  const [deleteApproveNote, setDeleteApproveNote] = useState('');
+  const [deleteRejectNote, setDeleteRejectNote] = useState('');
 
   // Fetch tours from API
   useEffect(() => {
@@ -61,6 +81,38 @@ const TourManagement = () => {
     };
 
     fetchTours();
+  }, [getToken]);
+
+  // Fetch pending requests counts on page load for notification badges
+  useEffect(() => {
+    const fetchPendingRequestsCounts = async () => {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        // Fetch update requests
+        const updateResponse = await fetch(API_ENDPOINTS.TOUR_UPDATE_REQUESTS_PENDING, {
+          headers: createAuthHeaders(token)
+        });
+        if (updateResponse.ok) {
+          const data = await updateResponse.json();
+          setUpdateRequests(Array.isArray(data) ? data : []);
+        }
+
+        // Fetch delete requests
+        const deleteResponse = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUESTS_PENDING, {
+          headers: createAuthHeaders(token)
+        });
+        if (deleteResponse.ok) {
+          const data = await deleteResponse.json();
+          setDeleteRequests(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        // Silently handle error
+      }
+    };
+
+    fetchPendingRequestsCounts();
   }, [getToken]);
 
   // Filter and sort tours
@@ -110,6 +162,238 @@ const TourManagement = () => {
     const endIndex = startIndex + pageSize;
     return filteredAndSortedTours.slice(startIndex, endIndex);
   }, [filteredAndSortedTours, currentPage, pageSize]);
+
+  // Fetch pending update requests
+  const fetchUpdateRequests = useCallback(async () => {
+    try {
+      setLoadingUpdateRequests(true);
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TOUR_UPDATE_REQUESTS_PENDING, {
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setUpdateRequests(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      // Silently handle error
+    } finally {
+      setLoadingUpdateRequests(false);
+    }
+  }, [getToken]);
+
+  // Handle approve update request
+  const handleApproveUpdateRequest = (request) => {
+    setSelectedUpdateRequest(request);
+    setUpdateApproveNote('');
+    setIsApproveUpdateModalOpen(true);
+  };
+
+  // Confirm approve update request
+  const confirmApproveUpdateRequest = async () => {
+    if (!selectedUpdateRequest) return;
+
+    try {
+      const token = getToken();
+      const url = `${API_ENDPOINTS.TOUR_UPDATE_REQUEST_APPROVE(selectedUpdateRequest.id)}${updateApproveNote ? `?note=${encodeURIComponent(updateApproveNote)}` : ''}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Refresh both lists
+        fetchUpdateRequests();
+        // Refresh tours list
+        const refreshResponse = await fetch(API_ENDPOINTS.TOURS, {
+          headers: createAuthHeaders(token)
+        });
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          setTours(Array.isArray(data) ? data : []);
+        }
+      }
+    } catch (error) {
+      // Silently handle error
+    } finally {
+      setIsApproveUpdateModalOpen(false);
+      setSelectedUpdateRequest(null);
+      setUpdateApproveNote('');
+    }
+  };
+
+  // Handle reject update request
+  const handleRejectUpdateRequest = (request) => {
+    setSelectedUpdateRequest(request);
+    setUpdateRejectNote('');
+    setIsRejectUpdateModalOpen(true);
+  };
+
+  // Confirm reject update request
+  const confirmRejectUpdateRequest = async () => {
+    if (!selectedUpdateRequest) return;
+
+    try {
+      const token = getToken();
+      const url = `${API_ENDPOINTS.TOUR_UPDATE_REQUEST_REJECT(selectedUpdateRequest.id)}${updateRejectNote ? `?note=${encodeURIComponent(updateRejectNote)}` : ''}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        fetchUpdateRequests();
+      }
+    } catch (error) {
+      // Silently handle error
+    } finally {
+      setIsRejectUpdateModalOpen(false);
+      setSelectedUpdateRequest(null);
+      setUpdateRejectNote('');
+    }
+  };
+
+  // Toggle to update requests view
+  const toggleUpdateRequestsView = () => {
+    const newState = !showUpdateRequests;
+    setShowUpdateRequests(newState);
+    setShowDeleteRequests(false); // Close delete requests when opening update requests
+    if (newState) {
+      fetchUpdateRequests();
+    }
+  };
+
+  // Fetch delete requests
+  const fetchDeleteRequests = useCallback(async () => {
+    try {
+      setLoadingDeleteRequests(true);
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUESTS_PENDING, {
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setDeleteRequests(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      // Silently handle error
+    } finally {
+      setLoadingDeleteRequests(false);
+    }
+  }, [getToken]);
+
+  // Handle approve delete request
+  const handleApproveDeleteRequest = (request) => {
+    setSelectedDeleteRequest(request);
+    setDeleteApproveNote('');
+    setIsApproveDeleteModalOpen(true);
+  };
+
+  // Confirm approve delete request
+  const confirmApproveDeleteRequest = async () => {
+    if (!selectedDeleteRequest) return;
+
+    try {
+      const token = getToken();
+      const url = `${API_ENDPOINTS.TOUR_DELETE_REQUEST_APPROVE(selectedDeleteRequest.id)}${deleteApproveNote ? `?note=${encodeURIComponent(deleteApproveNote)}` : ''}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        // Refresh both lists
+        fetchDeleteRequests();
+        // Refresh tours list
+        const refreshResponse = await fetch(API_ENDPOINTS.TOURS, {
+          headers: createAuthHeaders(token)
+        });
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          setTours(Array.isArray(data) ? data : []);
+        }
+      }
+    } catch (error) {
+      // Silently handle error
+    } finally {
+      setIsApproveDeleteModalOpen(false);
+      setSelectedDeleteRequest(null);
+      setDeleteApproveNote('');
+    }
+  };
+
+  // Handle reject delete request
+  const handleRejectDeleteRequest = (request) => {
+    setSelectedDeleteRequest(request);
+    setDeleteRejectNote('');
+    setIsRejectDeleteModalOpen(true);
+  };
+
+  // Confirm reject delete request
+  const confirmRejectDeleteRequest = async () => {
+    if (!selectedDeleteRequest) return;
+
+    try {
+      const token = getToken();
+      const url = `${API_ENDPOINTS.TOUR_DELETE_REQUEST_REJECT(selectedDeleteRequest.id)}${deleteRejectNote ? `?note=${encodeURIComponent(deleteRejectNote)}` : ''}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: createAuthHeaders(token)
+      });
+
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
+
+      if (response.ok) {
+        fetchDeleteRequests();
+      }
+    } catch (error) {
+      // Silently handle error
+    } finally {
+      setIsRejectDeleteModalOpen(false);
+      setSelectedDeleteRequest(null);
+      setDeleteRejectNote('');
+    }
+  };
+
+  // Toggle to delete requests view
+  const toggleDeleteRequestsView = () => {
+    const newState = !showDeleteRequests;
+    setShowDeleteRequests(newState);
+    setShowUpdateRequests(false); // Close update requests when opening delete requests
+    if (newState) {
+      fetchDeleteRequests();
+    }
+  };
 
   // Handle view details
   const handleViewDetails = async (tourId) => {
@@ -251,15 +535,15 @@ const TourManagement = () => {
   const formatDuration = (duration) => {
     if (!duration) return 'N/A';
     const raw = String(duration);
-    
+
     // Try to parse "X ngày Y đêm" or "X days Y nights" or "X일 Y박" format
     const viMatch = raw.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
     const enMatch = raw.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
     const koMatch = raw.match(/(\d+)\s*일\s*(\d+)\s*박/i);
     const genericMatch = raw.match(/(\d+)\D+(\d+)/);
-    
+
     const match = viMatch || enMatch || koMatch || genericMatch;
-    
+
     if (match) {
       const days = parseInt(match[1], 10);
       const nights = parseInt(match[2], 10);
@@ -267,7 +551,7 @@ const TourManagement = () => {
         return t('admin.tourManagement.durationTemplate', { days, nights });
       }
     }
-    
+
     // If can't parse, return as is
     return raw;
   };
@@ -375,136 +659,358 @@ const TourManagement = () => {
               <option value="name-asc">{t('admin.tourManagement.sortBy.nameAsc')}</option>
               <option value="name-desc">{t('admin.tourManagement.sortBy.nameDesc')}</option>
             </select>
+            <button
+              onClick={toggleUpdateRequestsView}
+              className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${showUpdateRequests
+                ? 'bg-amber-500 text-white shadow-[0_8px_20px_rgba(245,158,11,0.35)] hover:bg-amber-600'
+                : 'border border-amber-300 text-amber-600 hover:bg-amber-50 hover:border-amber-400'
+                }`}
+            >
+              {/* Red notification dot */}
+              {updateRequests.length > 0 && !showUpdateRequests && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+              )}
+              <Edit3 className="h-4 w-4" strokeWidth={1.5} />
+              {t('admin.tourManagement.updateRequests.button')}
+              {updateRequests.length > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-white text-amber-600">
+                  {updateRequests.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={toggleDeleteRequestsView}
+              className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${showDeleteRequests
+                ? 'bg-red-500 text-white shadow-[0_8px_20px_rgba(239,68,68,0.35)] hover:bg-red-600'
+                : 'border border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400'
+                }`}
+            >
+              {/* Red notification dot */}
+              {deleteRequests.length > 0 && !showDeleteRequests && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+              )}
+              <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+              {t('admin.tourManagement.deleteRequests.button')}
+              {deleteRequests.length > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-white text-red-600">
+                  {deleteRequests.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
-              <tr>
-                {[t('admin.tourManagement.tableHeaders.stt'), t('admin.tourManagement.tableHeaders.tourName'), t('admin.tourManagement.tableHeaders.status'), t('admin.tourManagement.tableHeaders.price'), t('admin.tourManagement.tableHeaders.duration'), t('admin.tourManagement.tableHeaders.createdAt'), t('admin.tourManagement.tableHeaders.actions')].map((header) => (
-                  <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
-              {paginatedTours.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
-                    {loading ? t('admin.tourManagement.loading') : t('admin.tourManagement.noResults')}
-                  </td>
-                </tr>
-              ) : (
-                paginatedTours.map((tour, index) => (
-                  <tr key={tour.tourId || tour.id} className="hover:bg-[#e9f2ff]/40 transition">
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {currentPage * pageSize + index + 1}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {tour.tourImgPath || tour.thumbnailUrl ? (
-                          <img
-                            src={getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl)}
-                            alt={tour.title || tour.tourName}
-                            className="w-12 h-12 rounded-lg object-cover"
-                            onError={(e) => {
-                              e.target.src = '/default-Tour.jpg';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                            <span className="text-gray-400 text-xs">📦</span>
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {tour.title || tour.tourName || 'N/A'}
-                          </p>
-                          {tour.shortDescription && (
-                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">
-                              {tour.shortDescription}
-                            </p>
+        {/* Conditional Table Content */}
+        {showUpdateRequests ? (
+          /* Update Requests Table */
+          <div className="overflow-x-auto">
+            {loadingUpdateRequests ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="h-6 w-6 text-amber-500 animate-spin" />
+                <span className="ml-2 text-gray-500">{t('admin.tourManagement.loading')}</span>
+              </div>
+            ) : updateRequests.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Edit3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>{t('admin.tourManagement.updateRequests.empty')}</p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-amber-50/70">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">#</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">{t('admin.tourManagement.updateRequests.tourName')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">{t('admin.tourManagement.updateRequests.status')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">{t('admin.tourManagement.updateRequests.bookingCount')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">{t('admin.tourManagement.updateRequests.companyNote')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">{t('admin.tourManagement.updateRequests.requestedAt')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">{t('admin.tourManagement.tableHeaders.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-50">
+                  {updateRequests.map((request, index) => (
+                    <tr key={request.id} className="hover:bg-amber-50/40 transition">
+                      <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {request.originalTour?.tourImgPath && (
+                            <img
+                              src={getTourImageUrl(request.originalTour.tourImgPath)}
+                              alt={request.originalTour?.tourName || request.updatedTour?.tourName}
+                              className="w-10 h-10 rounded-lg object-cover"
+                              onError={(e) => { e.target.src = '/default-Tour.jpg'; }}
+                            />
                           )}
+                          <div>
+                            <p className="font-semibold text-gray-900">{request.originalTour?.tourName || request.updatedTour?.tourName || 'N/A'}</p>
+                            <p className="text-xs text-gray-500">ID: {request.originalTourId}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <TourStatusBadge status={tour.tourStatus || tour.status} />
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                      {formatPrice(tour.price || tour.adultPrice)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDuration(tour.duration || tour.tourDuration)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDate(tour.createdAt)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
-                          <button
-                            onClick={() => handleViewDetails(tour.tourId || tour.id)}
-                            disabled={loadingDetail}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Eye className="h-4 w-4" strokeWidth={1.5} />
-                          </button>
-                        </Tooltip>
-                        {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
-                          <Tooltip text={t('admin.tourManagement.actions.approve')} position="top">
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                          request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                            request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-600'
+                          }`}>
+                          {request.status || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {request.bookingCount || 0}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                        <p className="line-clamp-2">{request.companyNote || '-'}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
                             <button
-                              onClick={() => handleApproveTour(tour.tourId || tour.id)}
+                              onClick={() => handleApproveUpdateRequest(request)}
                               className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
                             >
                               <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                           </Tooltip>
-                        )}
-                        {(tour.tourStatus || tour.status || '').toUpperCase() !== 'DISABLED' && (
-                          <Tooltip text={t('admin.tourManagement.actions.reject')} position="top">
+                          <Tooltip text={t('admin.tourManagement.updateRequests.reject')} position="top">
                             <button
-                              onClick={() => handleRejectTour(tour.tourId || tour.id)}
+                              onClick={() => handleRejectUpdateRequest(request)}
                               className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
                             >
                               <XCircle className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                           </Tooltip>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {filteredAndSortedTours.length >= 10 && totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-            <div className="text-sm text-gray-600">
-              Trang {currentPage + 1} / {totalPages} ({filteredAndSortedTours.length} tour)
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                disabled={currentPage === 0}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Trước
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                disabled={currentPage >= totalPages - 1}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-              >
-                Sau
-              </button>
-            </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
+        ) : showDeleteRequests ? (
+          /* Delete Requests Table */
+          <div className="overflow-x-auto">
+            {loadingDeleteRequests ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="h-6 w-6 text-red-500 animate-spin" />
+                <span className="ml-2 text-gray-500">{t('admin.tourManagement.loading')}</span>
+              </div>
+            ) : deleteRequests.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Trash2 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>{t('admin.tourManagement.deleteRequests.empty')}</p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-red-50/70">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">#</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">{t('admin.tourManagement.deleteRequests.tourName')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">{t('admin.tourManagement.deleteRequests.status')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">{t('admin.tourManagement.deleteRequests.bookingCount')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">{t('admin.tourManagement.deleteRequests.companyNote')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">{t('admin.tourManagement.deleteRequests.requestedAt')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">{t('admin.tourManagement.tableHeaders.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-50">
+                  {deleteRequests.map((request, index) => (
+                    <tr key={request.id} className="hover:bg-red-50/40 transition">
+                      <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <p className="font-semibold text-gray-900">{request.tourName || 'N/A'}</p>
+                            <p className="text-xs text-gray-500">ID: {request.tourId}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                          request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                            request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-600'
+                          }`}>
+                          {request.status || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {request.bookingCount || 0}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                        <p className="line-clamp-2">{request.companyNote || '-'}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
+                            <button
+                              onClick={() => handleApproveDeleteRequest(request)}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                            >
+                              <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
+                          <Tooltip text={t('admin.tourManagement.deleteRequests.reject')} position="top">
+                            <button
+                              onClick={() => handleRejectDeleteRequest(request)}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                            >
+                              <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        ) : (
+          /* Regular Tours Table */
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-gray-50/70">
+                  <tr>
+                    {[t('admin.tourManagement.tableHeaders.stt'), t('admin.tourManagement.tableHeaders.tourName'), t('admin.tourManagement.tableHeaders.status'), t('admin.tourManagement.tableHeaders.price'), t('admin.tourManagement.tableHeaders.duration'), t('admin.tourManagement.tableHeaders.createdAt'), t('admin.tourManagement.tableHeaders.actions')].map((header) => (
+                      <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-50">
+                  {paginatedTours.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                        {loading ? t('admin.tourManagement.loading') : t('admin.tourManagement.noResults')}
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedTours.map((tour, index) => (
+                      <tr key={tour.tourId || tour.id} className="hover:bg-[#e9f2ff]/40 transition">
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {currentPage * pageSize + index + 1}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {tour.tourImgPath || tour.thumbnailUrl ? (
+                              <img
+                                src={getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl)}
+                                alt={tour.title || tour.tourName}
+                                className="w-12 h-12 rounded-lg object-cover"
+                                onError={(e) => {
+                                  e.target.src = '/default-Tour.jpg';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <span className="text-gray-400 text-xs">📦</span>
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {tour.title || tour.tourName || 'N/A'}
+                              </p>
+                              {tour.shortDescription && (
+                                <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">
+                                  {tour.shortDescription}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <TourStatusBadge status={tour.tourStatus || tour.status} />
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {formatPrice(tour.price || tour.adultPrice)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {formatDuration(tour.duration || tour.tourDuration)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {formatDate(tour.createdAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
+                              <button
+                                onClick={() => handleViewDetails(tour.tourId || tour.id)}
+                                disabled={loadingDetail}
+                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Eye className="h-4 w-4" strokeWidth={1.5} />
+                              </button>
+                            </Tooltip>
+                            {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
+                              <Tooltip text={t('admin.tourManagement.actions.approve')} position="top">
+                                <button
+                                  onClick={() => handleApproveTour(tour.tourId || tour.id)}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                                >
+                                  <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                            )}
+                            {(tour.tourStatus || tour.status || '').toUpperCase() !== 'DISABLED' && (
+                              <Tooltip text={t('admin.tourManagement.actions.reject')} position="top">
+                                <button
+                                  onClick={() => handleRejectTour(tour.tourId || tour.id)}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                                >
+                                  <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {filteredAndSortedTours.length >= 10 && totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+                <div className="text-sm text-gray-600">
+                  Trang {currentPage + 1} / {totalPages} ({filteredAndSortedTours.length} tour)
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0}
+                    className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Trước
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Sau
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -551,6 +1057,210 @@ const TourManagement = () => {
         danger={true}
         icon={<XCircle size={36} strokeWidth={1.5} />}
       />
+
+      {/* Approve Update Request Modal with Note Input */}
+      {isApproveUpdateModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-green-100">
+                <CheckCircle className="h-8 w-8 text-green-600" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+                {t('admin.tourManagement.updateRequests.approveConfirm.title')}
+              </h3>
+              <p className="text-center text-gray-600 mb-4">
+                {t('admin.tourManagement.updateRequests.approveConfirm.message', {
+                  name: selectedUpdateRequest?.originalTour?.tourName || selectedUpdateRequest?.updatedTour?.tourName || ''
+                })}
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.tourManagement.updateRequests.noteLabel')}
+                </label>
+                <textarea
+                  value={updateApproveNote}
+                  onChange={(e) => setUpdateApproveNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.updateRequests.notePlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setIsApproveUpdateModalOpen(false);
+                    setSelectedUpdateRequest(null);
+                    setUpdateApproveNote('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                >
+                  {t('admin.tourManagement.updateRequests.approveConfirm.cancel')}
+                </button>
+                <button
+                  onClick={confirmApproveUpdateRequest}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  {t('admin.tourManagement.updateRequests.approveConfirm.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Update Request Modal with Note Input */}
+      {isRejectUpdateModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-red-100">
+                <XCircle className="h-8 w-8 text-red-600" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+                {t('admin.tourManagement.updateRequests.rejectConfirm.title')}
+              </h3>
+              <p className="text-center text-gray-600 mb-4">
+                {t('admin.tourManagement.updateRequests.rejectConfirm.message', {
+                  name: selectedUpdateRequest?.originalTour?.tourName || selectedUpdateRequest?.updatedTour?.tourName || ''
+                })}
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.tourManagement.updateRequests.noteLabel')}
+                </label>
+                <textarea
+                  value={updateRejectNote}
+                  onChange={(e) => setUpdateRejectNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.updateRequests.notePlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setIsRejectUpdateModalOpen(false);
+                    setSelectedUpdateRequest(null);
+                    setUpdateRejectNote('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                >
+                  {t('admin.tourManagement.updateRequests.rejectConfirm.cancel')}
+                </button>
+                <button
+                  onClick={confirmRejectUpdateRequest}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  {t('admin.tourManagement.updateRequests.rejectConfirm.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Delete Request Modal with Note Input */}
+      {isApproveDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-green-100">
+                <CheckCircle className="h-8 w-8 text-green-600" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+                {t('admin.tourManagement.deleteRequests.approveConfirm.title')}
+              </h3>
+              <p className="text-center text-gray-600 mb-4">
+                {t('admin.tourManagement.deleteRequests.approveConfirm.message', {
+                  name: selectedDeleteRequest?.tour?.tourName || ''
+                })}
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.tourManagement.deleteRequests.noteLabel')}
+                </label>
+                <textarea
+                  value={deleteApproveNote}
+                  onChange={(e) => setDeleteApproveNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.deleteRequests.notePlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setIsApproveDeleteModalOpen(false);
+                    setSelectedDeleteRequest(null);
+                    setDeleteApproveNote('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                >
+                  {t('admin.tourManagement.deleteRequests.approveConfirm.cancel')}
+                </button>
+                <button
+                  onClick={confirmApproveDeleteRequest}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  {t('admin.tourManagement.deleteRequests.approveConfirm.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Delete Request Modal with Note Input */}
+      {isRejectDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-red-100">
+                <XCircle className="h-8 w-8 text-red-600" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+                {t('admin.tourManagement.deleteRequests.rejectConfirm.title')}
+              </h3>
+              <p className="text-center text-gray-600 mb-4">
+                {t('admin.tourManagement.deleteRequests.rejectConfirm.message', {
+                  name: selectedDeleteRequest?.tour?.tourName || ''
+                })}
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.tourManagement.deleteRequests.noteLabel')}
+                </label>
+                <textarea
+                  value={deleteRejectNote}
+                  onChange={(e) => setDeleteRejectNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.deleteRequests.notePlaceholder')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setIsRejectDeleteModalOpen(false);
+                    setSelectedDeleteRequest(null);
+                    setDeleteRejectNote('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                >
+                  {t('admin.tourManagement.deleteRequests.rejectConfirm.cancel')}
+                </button>
+                <button
+                  onClick={confirmRejectDeleteRequest}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  {t('admin.tourManagement.deleteRequests.rejectConfirm.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -558,7 +1268,7 @@ const TourManagement = () => {
 // Tour Status Badge Component
 const TourStatusBadge = ({ status }) => {
   const { t } = useTranslation();
-  
+
   if (!status) {
     return (
       <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
@@ -569,31 +1279,31 @@ const TourStatusBadge = ({ status }) => {
 
   const statusUpper = status.toUpperCase();
   const statusMap = {
-    'PUBLIC': { 
-      color: 'bg-green-100 text-green-700', 
-      label: t('admin.tourManagement.status.approved'), 
-      icon: Check 
+    'PUBLIC': {
+      color: 'bg-green-100 text-green-700',
+      label: t('admin.tourManagement.status.approved'),
+      icon: Check
     },
-    'NOT_APPROVED': { 
-      color: 'bg-amber-100 text-amber-700', 
-      label: t('admin.tourManagement.status.pending'), 
-      icon: Clock 
+    'NOT_APPROVED': {
+      color: 'bg-amber-100 text-amber-700',
+      label: t('admin.tourManagement.status.pending'),
+      icon: Clock
     },
-    'DISABLED': { 
-      color: 'bg-red-100 text-red-700', 
-      label: t('admin.tourManagement.status.disabled'), 
-      icon: X 
+    'DISABLED': {
+      color: 'bg-red-100 text-red-700',
+      label: t('admin.tourManagement.status.disabled'),
+      icon: X
     }
   };
-  
-  const map = statusMap[statusUpper] || { 
-    color: 'bg-gray-100 text-gray-500', 
-    label: status, 
-    icon: FileText 
+
+  const map = statusMap[statusUpper] || {
+    color: 'bg-gray-100 text-gray-500',
+    label: status,
+    icon: FileText
   };
-  
+
   const IconComponent = map.icon;
-  
+
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
       <IconComponent className="w-3.5 h-3.5" strokeWidth={1.5} />
