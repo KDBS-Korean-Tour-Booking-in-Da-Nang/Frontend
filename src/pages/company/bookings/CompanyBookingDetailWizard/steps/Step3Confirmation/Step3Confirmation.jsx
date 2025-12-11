@@ -21,25 +21,25 @@ import { companyConfirmTourCompletion, getTourCompletionStatus, changeBookingSta
 import { DeleteConfirmModal } from '../../../../../../components/modals';
 import styles from './Step3Confirmation.module.css';
 const getStatusColor = (status) => {
-  switch (status) {
-    case 'BOOKING_SUCCESS':
-      return '#10B981';
-    case 'BOOKING_SUCCESS_PENDING':
-      return '#F97316';
-    case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
-      return '#2563EB';
-    case 'PENDING_PAYMENT':
-      return '#F59E0B';
-    case 'WAITING_FOR_APPROVED':
-      return '#3B82F6';
-    case 'WAITING_FOR_UPDATE':
-      return '#8B5CF6';
-    case 'BOOKING_REJECTED':
-    case 'BOOKING_FAILED':
-      return '#EF4444';
-    default:
-      return '#6B7280';
-  }
+  const normalizedStatus = String(status || '').toUpperCase().replace(/ /g, '_');
+  
+  const colorMap = {
+    PENDING_PAYMENT: '#F97316',              // Orange
+    PENDING_DEPOSIT_PAYMENT: '#EA580C',      // Orange darker (riêng biệt)
+    PENDING_BALANCE_PAYMENT: '#F59E0B',      // Amber
+    WAITING_FOR_APPROVED: '#3B82F6',         // Blue
+    WAITING_FOR_UPDATE: '#8B5CF6',           // Purple
+    BOOKING_REJECTED: '#EF4444',             // Red
+    BOOKING_FAILED: '#DC2626',               // Red darker
+    BOOKING_BALANCE_SUCCESS: '#14B8A6',      // Teal
+    BOOKING_SUCCESS_PENDING: '#06B6D4',       // Cyan (riêng biệt)
+    BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
+    BOOKING_UNDER_COMPLAINT: '#EAB308',      // Yellow
+    BOOKING_SUCCESS: '#10B981',              // Green
+    BOOKING_CANCELLED: '#9CA3AF'            // Gray
+  };
+  
+  return colorMap[normalizedStatus] || '#6B7280';
 };
 
 const Step3Confirmation = ({ 
@@ -195,8 +195,24 @@ useEffect(() => {
         );
       }
       
-      // Change booking status to BOOKING_SUCCESS_PENDING - company waits for tour completion
-      const updatedBooking = await changeBookingStatus(booking.bookingId, 'BOOKING_SUCCESS_PENDING');
+      // Determine next status based on payment status
+      // If only deposit is paid, set to PENDING_BALANCE_PAYMENT
+      // If full amount is paid, set to BOOKING_BALANCE_SUCCESS
+      let nextStatus = 'BOOKING_SUCCESS_PENDING'; // Default fallback
+      const payedAmount = Number(booking?.payedAmount || 0);
+      const totalAmount = Number(booking?.totalAmount || 0);
+      const depositAmount = Number(booking?.depositAmount || 0);
+      
+      if (payedAmount < totalAmount && payedAmount >= depositAmount) {
+        // Only deposit is paid → PENDING_BALANCE_PAYMENT
+        nextStatus = 'PENDING_BALANCE_PAYMENT';
+      } else if (payedAmount >= totalAmount) {
+        // Full amount is paid → BOOKING_BALANCE_SUCCESS
+        nextStatus = 'BOOKING_BALANCE_SUCCESS';
+      }
+      
+      // Change booking status based on payment status
+      const updatedBooking = await changeBookingStatus(booking.bookingId, nextStatus);
       
       // Update booking state
       if (onBookingUpdate) {
@@ -213,7 +229,14 @@ useEffect(() => {
         onMarkStepsCompleted(new Set([1, 2, 3]));
       }
       
-      showSuccess('Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất.');
+      // Show success message based on new status
+      if (nextStatus === 'PENDING_BALANCE_PAYMENT') {
+        showSuccess('Đã duyệt booking. Khách hàng cần thanh toán số tiền còn lại.');
+      } else if (nextStatus === 'BOOKING_BALANCE_SUCCESS') {
+        showSuccess('Đã duyệt booking. Khách hàng đã thanh toán đủ số tiền.');
+      } else {
+        showSuccess('Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất.');
+      }
       
       // Navigate to booking management after a short delay to show success message
       setTimeout(() => {

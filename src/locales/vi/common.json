@@ -2944,6 +2944,20 @@
       "success": "Đã quay lại wizard. Vui lòng điền lại thông tin từ đầu. Khi xác nhận, booking mới sẽ được tạo.",
       "error": "Có lỗi xảy ra khi quay lại wizard. Vui lòng thử lại.",
       "missingTourError": "Không thể quay lại wizard. Thiếu thông tin tour."
+    },
+    "paymentModal": {
+      "wizard": {
+        "title": "Xác nhận thanh toán",
+        "message": "Bạn có chắc chắn muốn tiến hành thanh toán? Thông tin đặt tour sẽ được gửi đến hệ thống.",
+        "confirm": "Tiến hành",
+        "cancel": "Quay lại"
+      },
+      "bookingDetail": {
+        "title": "Xác nhận thanh toán",
+        "message": "Bạn có chắc chắn muốn tiến hành thanh toán? Hệ thống sẽ chuyển bạn đến trang thanh toán.",
+        "confirm": "Tiến hành",
+        "cancel": "Quay lại"
+      }
     }
   },
   "tourManagement": {
@@ -3068,6 +3082,9 @@
         "changeImage": "Thay đổi ảnh",
         "selectImage": "Chọn ảnh cover",
         "hint": "Hỗ trợ: JPG, PNG, GIF. Kích thước tối đa: 5MB"
+      },
+      "errors": {
+        "fillRequired": "Vui lòng điền đầy đủ các trường bắt buộc"
       }
     }
   },
@@ -3352,6 +3369,8 @@
       "guests": "khách",
       "contactName": "Tên liên hệ",
       "contactPhone": "Số điện thoại",
+      "depositAmount": "Tiền cọc",
+      "balanceAmount": "Còn lại",
       "totalAmount": "Tổng tiền",
       "viewDetails": "Xem chi tiết",
       "bookedOn": "Đặt ngày",
@@ -3374,14 +3393,18 @@
       "cancelled": "Đã hủy",
       "purchased": "Đã thanh toán",
       "pendingPayment": "Chờ thanh toán",
+      "pendingDepositPayment": "Chờ thanh toán cọc",
+      "pendingBalancePayment": "Chờ thanh toán số tiền còn lại",
       "waitingForApproved": "Chờ phê duyệt",
       "waitingForUpdate": "Chờ cập nhật",
       "bookingSuccessPending": "Đã duyệt (chờ tour diễn ra)",
       "bookingSuccessWaitForConfirmed": "Chờ xác nhận hoàn tất",
       "bookingUnderComplaint": "Đang khiếu nại",
       "bookingSuccess": "Đặt tour thành công",
+      "bookingBalanceSuccess": "Thanh toán hoàn tất (chờ khởi hành)",
       "bookingFailed": "Đặt tour thất bại",
-      "bookingRejected": "Đặt tour bị từ chối"
+      "bookingRejected": "Đặt tour bị từ chối",
+      "bookingCancelled": "Đã hủy"
     },
     "cancel": {
       "title": "Xác nhận huỷ tour",
@@ -3404,21 +3427,37 @@
       "tourInfo": "Thông tin tour",
       "contactInfo": "Thông tin liên hệ",
       "guests": "Thông tin hành khách",
-      "email": "Email"
+      "email": "Email",
+      "paymentInfo": "Thông tin thanh toán"
     },
     "guests": {
       "viewAll": "Xem tất cả {{count}} hành khách"
     },
+    "payment": {
+      "totalAmount": "Tổng tiền",
+      "depositAmount": "Tiền cọc",
+      "payedAmount": "Đã thanh toán",
+      "remainingAmount": "Còn lại"
+    },
     "actions": {
       "editBooking": "Chỉnh sửa booking",
       "complete": "Hoàn thành",
-      "complaint": "Khiếu nại"
+      "complaint": "Khiếu nại",
+      "payDeposit": "Thanh toán cọc",
+      "payBalance": "Thanh toán số tiền còn lại"
     },
     "info": {
       "successPending": "Booking đã được công ty duyệt. Vui lòng chờ tour diễn ra để xác nhận hoàn tất.",
       "expectedEndDatePrefix": "Ngày kết thúc dự kiến:",
       "waitingForConfirmation": "Tour đã kết thúc. Vui lòng xác nhận bạn đã hoàn thành chuyến đi hoặc gửi khiếu nại nếu có vấn đề.",
-      "underComplaint": "Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý."
+      "underComplaint": "Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý.",
+      "balancePaymentRequired": "Vui lòng thanh toán số tiền còn lại để hoàn tất booking.",
+      "remainingAmount": "Số tiền còn lại",
+      "balanceSuccess": "Thanh toán hoàn tất! Booking đang chờ ngày khởi hành.",
+      "waitingForDeparture": "Vui lòng chờ đến ngày khởi hành tour.",
+      "cancelled": "Booking này đã bị hủy.",
+      "cancelledDate": "Ngày hủy",
+      "refundAmount": "Số tiền hoàn"
     },
     "completion": {
       "toastSuccess": "Đã xác nhận tour hoàn thành. Chúng tôi sẽ thông báo cho công ty.",
@@ -3764,7 +3803,16 @@
         "tour": "Thông tin tour",
         "guests": "Thông tin hành khách",
         "members": "Danh sách đoàn",
-        "price": "Tổng kết giá"
+        "price": "Tổng kết giá",
+        "paymentSummary": "Thông tin thanh toán"
+      },
+      "payment": {
+        "totalAmount": "Tổng tiền tour",
+        "depositAmount": "Tiền cọc cần thanh toán",
+        "balanceAmount": "Số tiền còn lại (thanh toán sau khi được duyệt)",
+        "paymentDue": "Số tiền thanh toán ngay",
+        "voucher": "Mã giảm giá",
+        "voucherNotAvailable": "Tính năng đang được phát triển"
       },
       "labels": {
         "fullName": "Họ và tên",
@@ -3917,6 +3965,13 @@
       "heroSubtitle": "Kiểm tra thông tin booking, áp dụng voucher và hoàn tất thanh toán bên dưới.",
       "loadingBooking": "Đang tải thông tin booking...",
       "bookingInfo": "Thông tin booking",
+      "paymentSummary": "Tóm tắt thanh toán",
+      "totalTourPrice": "Tổng tiền tour",
+      "paidAmount": "Đã thanh toán",
+      "depositDue": "Tiền cọc cần thanh toán",
+      "balanceDue": "Số tiền còn lại cần thanh toán",
+      "amountDue": "Số tiền cần thanh toán",
+      "voucherApplied": "Voucher đã áp dụng",
       "bookingSummary": {
         "tourBookingInfo": "Thông tin đặt tour",
         "tourName": "Tên tour",
@@ -4427,15 +4482,19 @@
     },
     "status": {
       "PENDING_PAYMENT": "Chờ Thanh Toán",
+      "PENDING_DEPOSIT_PAYMENT": "Chờ Thanh Toán Cọc",
+      "PENDING_BALANCE_PAYMENT": "Chờ Thanh Toán Số Dư",
       "WAITING_FOR_APPROVAL": "Chờ Duyệt",
       "WAITING_FOR_APPROVED": "Chờ Duyệt",
       "BOOKING_REJECTED": "Đã Từ Chối",
       "WAITING_FOR_UPDATE": "Chờ Cập Nhật",
       "BOOKING_FAILED": "Thất Bại",
+      "BOOKING_BALANCE_SUCCESS": "Đã Thanh Toán Số Dư",
       "BOOKING_SUCCESS": "Thành Công",
       "BOOKING_SUCCESS_PENDING": "Thành Công (Chờ Xử Lý)",
       "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Thành Công (Chờ Xác Nhận)",
-      "BOOKING_UNDER_COMPLAINT": "Đang Khiếu Nại"
+      "BOOKING_UNDER_COMPLAINT": "Đang Khiếu Nại",
+      "BOOKING_CANCELLED": "Đã Hủy"
     },
     "guests": {
       "adults": "Người lớn",

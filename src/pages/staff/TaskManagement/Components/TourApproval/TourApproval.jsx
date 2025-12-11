@@ -1262,117 +1262,205 @@ const TourApproval = () => {
         icon={<XCircle size={36} strokeWidth={1.5} />}
       />
 
-      {/* Update Request Approve Modal */}
+      {/* Update Request Approve Modal - Minimal Soft Korean Style */}
       {isApproveUpdateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden"
+            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+          >
+            <div style={{ padding: '32px 28px 28px' }}>
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
+                <CheckCircle style={{ width: '28px', height: '28px', color: '#10b981', strokeWidth: '1.5' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{t('admin.tourManagement.updateRequests.approveConfirm.title')}</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">{t('admin.tourManagement.updateRequests.approveConfirm.message')}</p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.tourManagement.updateRequests.noteLabel')}</label>
-              <textarea
-                value={updateApproveNote}
-                onChange={(e) => setUpdateApproveNote(e.target.value)}
-                placeholder={t('admin.tourManagement.updateRequests.notePlaceholder')}
-                rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setIsApproveUpdateModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">{t('common.cancel')}</button>
-              <button onClick={confirmApproveUpdateRequest} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">{t('common.confirm')}</button>
+              <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
+                {t('admin.tourManagement.updateRequests.approveConfirm.title')}
+              </h3>
+              <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
+                {t('admin.tourManagement.updateRequests.approveConfirm.message')}
+              </p>
+              <div style={{ marginBottom: '24px' }}>
+                <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.updateRequests.noteLabel')}</label>
+                <textarea
+                  value={updateApproveNote}
+                  onChange={(e) => setUpdateApproveNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.updateRequests.notePlaceholder')}
+                  rows={3}
+                  style={{ width: '100%', padding: '14px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: '14px', color: '#374151', resize: 'none', outline: 'none', transition: 'all 0.2s ease', lineHeight: '1.5' }}
+                  onFocus={(e) => { e.target.style.borderColor = '#86efac'; e.target.style.boxShadow = '0 0 0 4px rgba(134, 239, 172, 0.15)'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsApproveUpdateModalOpen(false)}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
+                  onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
+                >{t('common.cancel')}</button>
+                <button
+                  onClick={confirmApproveUpdateRequest}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)' }}
+                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.35)'; }}
+                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.25)'; }}
+                >{t('common.confirm')}</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Update Request Reject Modal */}
+      {/* Update Request Reject Modal - Minimal Soft Korean Style */}
       {isRejectUpdateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <XCircle className="w-5 h-5 text-red-600" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden"
+            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+          >
+            <div style={{ padding: '32px 28px 28px' }}>
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #fef2f2 0%, #fecaca 100%)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                <XCircle style={{ width: '28px', height: '28px', color: '#ef4444', strokeWidth: '1.5' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{t('admin.tourManagement.updateRequests.rejectConfirm.title')}</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">{t('admin.tourManagement.updateRequests.rejectConfirm.message')}</p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.tourManagement.updateRequests.noteLabel')}</label>
-              <textarea
-                value={updateRejectNote}
-                onChange={(e) => setUpdateRejectNote(e.target.value)}
-                placeholder={t('admin.tourManagement.updateRequests.notePlaceholder')}
-                rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setIsRejectUpdateModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">{t('common.cancel')}</button>
-              <button onClick={confirmRejectUpdateRequest} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">{t('common.confirm')}</button>
+              <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
+                {t('admin.tourManagement.updateRequests.rejectConfirm.title')}
+              </h3>
+              <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
+                {t('admin.tourManagement.updateRequests.rejectConfirm.message')}
+              </p>
+              <div style={{ marginBottom: '24px' }}>
+                <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.updateRequests.noteLabel')}</label>
+                <textarea
+                  value={updateRejectNote}
+                  onChange={(e) => setUpdateRejectNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.updateRequests.notePlaceholder')}
+                  rows={3}
+                  style={{ width: '100%', padding: '14px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: '14px', color: '#374151', resize: 'none', outline: 'none', transition: 'all 0.2s ease', lineHeight: '1.5' }}
+                  onFocus={(e) => { e.target.style.borderColor = '#fca5a5'; e.target.style.boxShadow = '0 0 0 4px rgba(252, 165, 165, 0.15)'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsRejectUpdateModalOpen(false)}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
+                  onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
+                >{t('common.cancel')}</button>
+                <button
+                  onClick={confirmRejectUpdateRequest}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.25)' }}
+                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.35)'; }}
+                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(239, 68, 68, 0.25)'; }}
+                >{t('common.confirm')}</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Request Approve Modal */}
+      {/* Delete Request Approve Modal - Minimal Soft Korean Style */}
       {isApproveDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden"
+            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+          >
+            <div style={{ padding: '32px 28px 28px' }}>
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
+                <CheckCircle style={{ width: '28px', height: '28px', color: '#10b981', strokeWidth: '1.5' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{t('admin.tourManagement.deleteRequests.approveConfirm.title')}</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">{t('admin.tourManagement.deleteRequests.approveConfirm.message')}</p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.tourManagement.deleteRequests.noteLabel')}</label>
-              <textarea
-                value={deleteApproveNote}
-                onChange={(e) => setDeleteApproveNote(e.target.value)}
-                placeholder={t('admin.tourManagement.deleteRequests.notePlaceholder')}
-                rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setIsApproveDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">{t('common.cancel')}</button>
-              <button onClick={confirmApproveDeleteRequest} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">{t('common.confirm')}</button>
+              <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
+                {t('admin.tourManagement.deleteRequests.approveConfirm.title')}
+              </h3>
+              <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
+                {t('admin.tourManagement.deleteRequests.approveConfirm.message')}
+              </p>
+              <div style={{ marginBottom: '24px' }}>
+                <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.deleteRequests.noteLabel')}</label>
+                <textarea
+                  value={deleteApproveNote}
+                  onChange={(e) => setDeleteApproveNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.deleteRequests.notePlaceholder')}
+                  rows={3}
+                  style={{ width: '100%', padding: '14px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: '14px', color: '#374151', resize: 'none', outline: 'none', transition: 'all 0.2s ease', lineHeight: '1.5' }}
+                  onFocus={(e) => { e.target.style.borderColor = '#86efac'; e.target.style.boxShadow = '0 0 0 4px rgba(134, 239, 172, 0.15)'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsApproveDeleteModalOpen(false)}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
+                  onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
+                >{t('common.cancel')}</button>
+                <button
+                  onClick={confirmApproveDeleteRequest}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)' }}
+                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.35)'; }}
+                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.25)'; }}
+                >{t('common.confirm')}</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Request Reject Modal */}
+      {/* Delete Request Reject Modal - Minimal Soft Korean Style */}
       {isRejectDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <XCircle className="w-5 h-5 text-red-600" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden"
+            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+          >
+            <div style={{ padding: '32px 28px 28px' }}>
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #fef2f2 0%, #fecaca 100%)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                <XCircle style={{ width: '28px', height: '28px', color: '#ef4444', strokeWidth: '1.5' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{t('admin.tourManagement.deleteRequests.rejectConfirm.title')}</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">{t('admin.tourManagement.deleteRequests.rejectConfirm.message')}</p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.tourManagement.deleteRequests.noteLabel')}</label>
-              <textarea
-                value={deleteRejectNote}
-                onChange={(e) => setDeleteRejectNote(e.target.value)}
-                placeholder={t('admin.tourManagement.deleteRequests.notePlaceholder')}
-                rows={3}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setIsRejectDeleteModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800">{t('common.cancel')}</button>
-              <button onClick={confirmRejectDeleteRequest} className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700">{t('common.confirm')}</button>
+              <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
+                {t('admin.tourManagement.deleteRequests.rejectConfirm.title')}
+              </h3>
+              <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
+                {t('admin.tourManagement.deleteRequests.rejectConfirm.message')}
+              </p>
+              <div style={{ marginBottom: '24px' }}>
+                <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.deleteRequests.noteLabel')}</label>
+                <textarea
+                  value={deleteRejectNote}
+                  onChange={(e) => setDeleteRejectNote(e.target.value)}
+                  placeholder={t('admin.tourManagement.deleteRequests.notePlaceholder')}
+                  rows={3}
+                  style={{ width: '100%', padding: '14px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: '14px', color: '#374151', resize: 'none', outline: 'none', transition: 'all 0.2s ease', lineHeight: '1.5' }}
+                  onFocus={(e) => { e.target.style.borderColor = '#fca5a5'; e.target.style.boxShadow = '0 0 0 4px rgba(252, 165, 165, 0.15)'; e.target.style.background = '#fff'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsRejectDeleteModalOpen(false)}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
+                  onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
+                >{t('common.cancel')}</button>
+                <button
+                  onClick={confirmRejectDeleteRequest}
+                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.25)' }}
+                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.35)'; }}
+                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(239, 68, 68, 0.25)'; }}
+                >{t('common.confirm')}</button>
+              </div>
             </div>
           </div>
         </div>

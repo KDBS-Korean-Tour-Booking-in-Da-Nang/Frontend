@@ -159,8 +159,13 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
   const { contact, plan } = bookingContext;
   
   // Validate required fields
-  if (!contact.fullName || !contact.phone || !contact.email || !contact.address) {
+  if (!contact.fullName || !contact.phone || !contact.email) {
     throw new Error('Missing required contact information');
+  }
+  
+  // contactAddress is optional in backend (no @NotBlank), but we'll ensure it's not null
+  if (!contact.address) {
+    console.warn('Contact address is missing, using empty string');
   }
   
   if (!plan.date.day || !plan.date.month || !plan.date.year) {
@@ -182,42 +187,81 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
     const effectiveDob = isRepresentative ? (member.dob || contact.dob) : member.dob;
     
     if (effectiveFullName && effectiveDob) {
-      guests.push({
-        fullName: effectiveFullName,
-        birthDate: formatDateForAPI(effectiveDob, language), // Convert display format to YYYY-MM-DD
-        gender: formatGender(member.gender),
-        idNumber: member.idNumber || '',
-        nationality: formatNationality(member.nationality),
-        bookingGuestType: 'ADULT'
-      });
+      try {
+        const formattedBirthDate = formatDateForAPI(effectiveDob, language);
+        // Validate birthDate format
+        if (!formattedBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedBirthDate)) {
+          throw new Error(`Invalid birth date format for adult ${index + 1}: ${effectiveDob}`);
+        }
+        
+        guests.push({
+          fullName: effectiveFullName,
+          birthDate: formattedBirthDate,
+          gender: formatGender(member.gender),
+          idNumber: (member.idNumber || '').trim(),
+          nationality: formatNationality(member.nationality),
+          bookingGuestType: 'ADULT'
+        });
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error(`[formatBookingData] Error formatting adult ${index + 1} birth date:`, error, effectiveDob);
+        }
+        throw new Error(`Invalid birth date for adult ${index + 1}. Please check the date format.`);
+      }
     }
   });
   
   // Add child guests
   plan.members.child.forEach((member, index) => {
     if (member.fullName && member.dob) {
-      guests.push({
-        fullName: member.fullName.trim(),
-        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
-        gender: formatGender(member.gender),
-        idNumber: member.idNumber || '',
-        nationality: formatNationality(member.nationality),
-        bookingGuestType: 'CHILD'
-      });
+      try {
+        const formattedBirthDate = formatDateForAPI(member.dob, language);
+        // Validate birthDate format
+        if (!formattedBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedBirthDate)) {
+          throw new Error(`Invalid birth date format for child ${index + 1}: ${member.dob}`);
+        }
+        
+        guests.push({
+          fullName: member.fullName.trim(),
+          birthDate: formattedBirthDate,
+          gender: formatGender(member.gender),
+          idNumber: (member.idNumber || '').trim(),
+          nationality: formatNationality(member.nationality),
+          bookingGuestType: 'CHILD'
+        });
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error(`[formatBookingData] Error formatting child ${index + 1} birth date:`, error, member.dob);
+        }
+        throw new Error(`Invalid birth date for child ${index + 1}. Please check the date format.`);
+      }
     }
   });
   
   // Add baby guests
   plan.members.infant.forEach((member, index) => {
     if (member.fullName && member.dob) {
-      guests.push({
-        fullName: member.fullName.trim(),
-        birthDate: formatDateForAPI(member.dob, language), // Convert display format to YYYY-MM-DD
-        gender: formatGender(member.gender),
-        idNumber: member.idNumber || '',
-        nationality: formatNationality(member.nationality),
-        bookingGuestType: 'BABY'
-      });
+      try {
+        const formattedBirthDate = formatDateForAPI(member.dob, language);
+        // Validate birthDate format
+        if (!formattedBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedBirthDate)) {
+          throw new Error(`Invalid birth date format for infant ${index + 1}: ${member.dob}`);
+        }
+        
+        guests.push({
+          fullName: member.fullName.trim(),
+          birthDate: formattedBirthDate,
+          gender: formatGender(member.gender),
+          idNumber: (member.idNumber || '').trim(),
+          nationality: formatNationality(member.nationality),
+          bookingGuestType: 'BABY'
+        });
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error(`[formatBookingData] Error formatting infant ${index + 1} birth date:`, error, member.dob);
+        }
+        throw new Error(`Invalid birth date for infant ${index + 1}. Please check the date format.`);
+      }
     }
   });
   
@@ -232,31 +276,66 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
   try {
     if (typeof plan?.date === 'string') {
       formattedDepartureDate = formatDateForAPI(plan.date, language);
-    } else if (plan?.date && typeof plan.date === 'object') {
+    } else if (plan?.date && typeof plan.date === 'object' && plan.date.day && plan.date.month && plan.date.year) {
       formattedDepartureDate = formatDate(plan.date);
+    } else {
+      throw new Error('Invalid date format');
     }
-  } catch (_) {
-    // leave as empty; validation will catch and surface a friendly message
-    formattedDepartureDate = '';
+    
+    // Validate that formatted date is not empty and is in correct format (YYYY-MM-DD)
+    if (!formattedDepartureDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedDepartureDate)) {
+      throw new Error('Invalid departure date format');
+    }
+  } catch (error) {
+    // Log error in development mode
+    if (import.meta.env.DEV) {
+      console.error('[formatBookingData] Error formatting departure date:', error, plan?.date);
+    }
+    throw new Error('Invalid departure date. Please select a valid departure date.');
+  }
+
+  // Validate tourId
+  const parsedTourId = parseInt(tourId, 10);
+  if (!parsedTourId || isNaN(parsedTourId) || parsedTourId <= 0) {
+    throw new Error('Invalid tour ID');
+  }
+
+  // Final validation: ensure departure date is set
+  if (!formattedDepartureDate || formattedDepartureDate.trim() === '') {
+    throw new Error('Departure date is required and must be in valid format (YYYY-MM-DD)');
   }
 
   // Format the final booking data
   // Note: bookingStatus is automatically set by BE @PrePersist to PENDING_PAYMENT
   const bookingData = {
-    tourId: parseInt(tourId),
-    userEmail: userEmail || contact.email.trim(), // Use user email or fallback to contact email
+    tourId: parsedTourId,
+    userEmail: (userEmail || contact.email.trim()).trim(), // Use user email or fallback to contact email
     contactName: contact.fullName.trim(),
-    contactAddress: contact.address.trim(),
+    contactAddress: (contact.address || '').trim(), // Ensure it's never null/undefined
     contactPhone: contact.phone.trim(),
     contactEmail: contact.email.trim(),
-    pickupPoint: contact.pickupPoint?.trim() || '',
-    note: contact.note?.trim() || '',
-    departureDate: formattedDepartureDate,
-    adultsCount: plan.pax.adult,
-    childrenCount: plan.pax.child,
-    babiesCount: plan.pax.infant,
+    pickupPoint: (contact.pickupPoint || '').trim(), // Ensure it's never null/undefined
+    note: (contact.note || '').trim(), // Ensure it's never null/undefined
+    departureDate: formattedDepartureDate.trim(),
+    adultsCount: plan.pax.adult || 1, // Ensure at least 1 adult
+    childrenCount: plan.pax.child || 0,
+    babiesCount: plan.pax.infant || 0,
     bookingGuestRequests: guests
   };
+  
+  // Log final booking data in development mode
+  if (import.meta.env.DEV) {
+    console.log('[formatBookingData] Final booking data:', {
+      tourId: bookingData.tourId,
+      departureDate: bookingData.departureDate,
+      adultsCount: bookingData.adultsCount,
+      childrenCount: bookingData.childrenCount,
+      babiesCount: bookingData.babiesCount,
+      guestsCount: bookingData.bookingGuestRequests.length,
+      contactName: bookingData.contactName,
+      contactEmail: bookingData.contactEmail
+    });
+  }
   
   return bookingData;
 };
@@ -295,12 +374,21 @@ export const validateBookingData = (bookingData) => {
   if (!bookingData.departureDate) {
     errors.push('Departure date is required');
   } else {
-    const departureDate = new Date(bookingData.departureDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (departureDate < today) {
-      errors.push('Departure date cannot be in the past');
+    // Validate date format first
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(bookingData.departureDate)) {
+      errors.push('Departure date must be in YYYY-MM-DD format');
+    } else {
+      // Parse departure date (should be in YYYY-MM-DD format)
+      // Use UTC to avoid timezone issues
+      const [year, month, day] = bookingData.departureDate.split('-').map(Number);
+      const departureDate = new Date(Date.UTC(year, month - 1, day));
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      
+      // Backend requires @Future, so date must be strictly in the future (not today)
+      if (departureDate <= today) {
+        errors.push('Departure date must be in the future (at least tomorrow)');
+      }
     }
   }
   

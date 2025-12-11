@@ -55,6 +55,38 @@ const getAuthHeaders = () => {
  */
 export const createBooking = async (bookingData) => {
   try {
+    // Log booking data in development mode for debugging
+    if (import.meta.env.DEV) {
+      console.log('[BookingAPI] Creating booking with data:', {
+        tourId: bookingData.tourId,
+        departureDate: bookingData.departureDate,
+        adultsCount: bookingData.adultsCount,
+        childrenCount: bookingData.childrenCount,
+        babiesCount: bookingData.babiesCount,
+        guestsCount: bookingData.bookingGuestRequests?.length || 0,
+        contactName: bookingData.contactName,
+        contactEmail: bookingData.contactEmail,
+        contactAddress: bookingData.contactAddress,
+        contactPhone: bookingData.contactPhone,
+        pickupPoint: bookingData.pickupPoint,
+        note: bookingData.note,
+        userEmail: bookingData.userEmail,
+        // Log all guests for debugging
+        guests: bookingData.bookingGuestRequests?.map((guest, idx) => ({
+          index: idx,
+          fullName: guest.fullName,
+          birthDate: guest.birthDate,
+          gender: guest.gender,
+          idNumber: guest.idNumber,
+          nationality: guest.nationality,
+          bookingGuestType: guest.bookingGuestType
+        })) || []
+      });
+      
+      // Log full request body for debugging
+      console.log('[BookingAPI] Full request body:', JSON.stringify(bookingData, null, 2));
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/booking`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -62,12 +94,52 @@ export const createBooking = async (bookingData) => {
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      // Clone response to read body multiple times if needed
+      const responseClone = response.clone();
+      
+      // Get error text for logging and parsing
+      let errorText = '';
+      try {
+        errorText = await responseClone.text();
+      } catch (e) {
+        errorText = '';
+      }
+
+      // Log error details in development mode
+      if (import.meta.env.DEV) {
+        console.error('[BookingAPI] Booking creation failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
+      }
+
+      // Handle 500 errors separately - show helpful error message
+      if (response.status === 500) {
+        // Parse error message from response
+        let errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
+        try {
+          if (errorText) {
+            const errorObj = JSON.parse(errorText);
+            errorMessage = errorObj?.message || errorMessage;
+            // If it's a runtime exception, provide more helpful message
+            if (errorMessage.includes('Runtime exception') || errorMessage.includes('Runtime exception occurred')) {
+              errorMessage = 'Lỗi xử lý dữ liệu. Vui lòng kiểm tra lại thông tin tour (giá tour có thể chưa được thiết lập) hoặc liên hệ hỗ trợ.';
+            }
+          }
+        } catch (e) {
+          // If parsing fails, use default message
+        }
+        throw new Error(errorMessage);
+      }
+
+      // For other errors (401, 403, 404), use global error handler
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
         return; // Đã redirect, không cần xử lý tiếp
       }
       
+      // Parse error message for other errors
       const message = await parseErrorMessage(response);
       throw new Error(message);
     }
@@ -75,6 +147,10 @@ export const createBooking = async (bookingData) => {
     const result = await response.json();
     return result;
   } catch (error) {
+    // Log error in development mode
+    if (import.meta.env.DEV) {
+      console.error('[BookingAPI] Booking creation error:', error);
+    }
     throw error;
   }
 };
@@ -358,43 +434,65 @@ export const resolveBookingComplaint = async (complaintId, resolutionType, note 
 };
 
 /**
+ * Preview cancel booking - get refund information before canceling
+ * @param {number} bookingId - The booking ID
+ * @returns {Promise<Object>} - The booking response with refund info
+ */
+export const previewCancelBooking = async (bookingId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/booking/cancel/preview/${bookingId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
+      }
+      
+      throw new Error(message);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error previewing cancel booking:', error);
+    throw error;
+  }
+};
+
+/**
  * Cancel a booking by ID
  * @param {number} bookingId - The booking ID
  * @returns {Promise<Object>} - The updated booking response
  */
 export const cancelBooking = async (bookingId) => {
   try {
-    // Try common RESTful cancel endpoint patterns
-    const endpoints = [
-      `${API_BASE_URL}/api/booking/${bookingId}/cancel`,
-      `${API_BASE_URL}/api/booking/cancel/${bookingId}`
-    ];
-    let lastError;
-    for (const url of endpoints) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-        });
-        if (response.ok) {
-          const result = await response.json().catch(() => ({}));
-          return result;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        // --- PATCH: suppress console noise ---
-        // lastError = new Error(errorData.message || `HTTP error! status: ${response.status}`); // OLD
-        lastError = new Error(errorData.message || `HTTP error! status: ${response.status}`);
-        // Don't show any error in console here
-      } catch (err) {
-        // OLD: console.error('Error cancelling booking:', err);
-        lastError = err;
-        // No console log
+    const response = await fetch(`${API_BASE_URL}/api/booking/cancel/${bookingId}`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const message = await parseErrorMessage(response);
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return; // Đã redirect, không cần xử lý tiếp
       }
+      
+      throw new Error(message);
     }
-    throw lastError || new Error('Failed to cancel booking');
+
+    const result = await response.json();
+    return result;
   } catch (error) {
-    // PATCH: Don't log error
-    // OLD: console.error('Error cancelling booking:', error);
+    console.error('Error cancelling booking:', error);
     throw error;
   }
 };

@@ -8,6 +8,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useBookingStepValidation } from '../../../hooks/useBookingStepValidation';
 import { useTranslation } from 'react-i18next';
 import ConfirmLeaveModal from '../../../components/modals/ConfirmLeaveModal/ConfirmLeaveModal';
+import PaymentConfirmModal from '../../../components/modals/PaymentConfirmModal/PaymentConfirmModal';
 import Step1Contact from './steps/Step1Contact/Step1Contact';
 import Step2Details from './steps/Step2Details/Step2Details';
 import Step3Review from './steps/Step3Review/Step3Review';
@@ -28,7 +29,7 @@ const BookingWizardContent = () => {
   const { t, i18n } = useTranslation();
   const { showBatch, showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
-    const {
+  const {
     resetBooking,
     contact,
     plan,
@@ -45,29 +46,30 @@ const BookingWizardContent = () => {
     clearBookingStatus,
     restoreBookingData
   } = useTourBooking();
-  
+
   // Track if we've restored data to avoid duplicate restores
   const hasRestoredRef = useRef(false);
   const { createBookingAPI } = useBookingAPI();
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
   const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 1
   const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 2
-  
+
   // Removed showError ref - using setBookingError instead
-  
+
   // Removed VNPay return handling effect
-  
+
   // Serialize contact and plan for stable dependencies to prevent infinite loops
   const contactKey = useMemo(() => contact ? JSON.stringify(contact) : '', [contact]);
   const planKey = useMemo(() => plan ? JSON.stringify(plan) : '', [plan]);
   const lastSavedRef = useRef('');
   const isRestoringRef = useRef(false); // Flag to disable auto-save during restore
   const skipNextAutoSaveRef = useRef(false); // Flag to skip next auto-save after restore
-  
+
   // Auto-save booking data when contact or plan changes
   useEffect(() => {
     // Skip auto-save if we're currently restoring data or should skip next one
@@ -75,11 +77,11 @@ const BookingWizardContent = () => {
       skipNextAutoSaveRef.current = false; // Reset flag after skipping once
       return;
     }
-    
+
     // Only save if we have meaningful data (not initial empty state)
     if (contactKey && planKey && tourId) {
       const currentKey = `${contactKey}_${planKey}_${tourId}`;
-      
+
       // Only save if data actually changed (prevent infinite loop)
       if (currentKey !== lastSavedRef.current && currentKey !== '___') {
         try {
@@ -97,11 +99,11 @@ const BookingWizardContent = () => {
       }
     }
   }, [contactKey, planKey, tourId]);
-  
+
   // Simple beforeunload handler like TourWizard
   useEffect(() => {
-    const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
-                   plan && (plan.date || plan.pax);
+    const hasData = contact && (contact.fullName || contact.phone || contact.email) &&
+      plan && (plan.date || plan.pax);
 
     const handler = (e) => {
       if (!hasData || !tourId) return;
@@ -110,7 +112,7 @@ const BookingWizardContent = () => {
       try {
         // Mark as confirmed leave so next mount clears data
         localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
-      } catch (_) {}
+      } catch (_) { }
     };
 
     window.addEventListener('beforeunload', handler);
@@ -119,28 +121,28 @@ const BookingWizardContent = () => {
 
   // Intercept clicks on navigation links like TourWizard
   useEffect(() => {
-    const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
-                   plan && (plan.date || plan.pax);
-    
+    const hasData = contact && (contact.fullName || contact.phone || contact.email) &&
+      plan && (plan.date || plan.pax);
+
     const onClick = (ev) => {
       if (!hasData) return; // allow normal nav if not dirty
       const anchor = ev.target.closest('a');
       if (!anchor) return;
       const url = new URL(anchor.href, window.location.origin);
       const isSameOrigin = url.origin === window.location.origin;
-      if (isSameOrigin && url.pathname !== window.location.pathname && 
-          !url.pathname.includes('/tour/') && !url.pathname.includes('/payment/')) {
+      if (isSameOrigin && url.pathname !== window.location.pathname &&
+        !url.pathname.includes('/tour/') && !url.pathname.includes('/payment/')) {
         ev.preventDefault();
         setShowLeaveModal(true);
         setPendingNavigation(url.pathname + url.search + url.hash);
       }
     };
-    
+
     document.addEventListener('click', onClick, true);
     return () => document.removeEventListener('click', onClick, true);
   }, [contactKey, planKey]);
-  
-  
+
+
   // Use custom hook for step validation
   const { getStepErrors, isStepCompleted, stepValidations } = useBookingStepValidation({ contact, plan, user });
 
@@ -179,7 +181,7 @@ const BookingWizardContent = () => {
     // Reset restore flag when tourId changes
     hasRestoredRef.current = false;
   }, [tourId]);
-  
+
   // Handle navigation state (step, clearExistingData)
   useEffect(() => {
     // If clearExistingData flag is set (from payment page), clear all data
@@ -196,13 +198,13 @@ const BookingWizardContent = () => {
       }
       return;
     }
-    
+
     // Handle step from navigation state
     if (location.state?.step && location.state.step >= 1 && location.state.step <= 3) {
       setCurrentStep(location.state.step);
     }
   }, [location, tourId, resetBooking]);
-  
+
   useEffect(() => {
     if (user && !hasRestoredRef.current) {
       // Check if clearExistingData was set - if so, skip restore
@@ -210,7 +212,7 @@ const BookingWizardContent = () => {
         hasRestoredRef.current = true;
         return;
       }
-      
+
       // Check if user has confirmed to leave before
       const hasConfirmedLeaveFlag = localStorage.getItem(`hasConfirmedLeave_${tourId}`);
       if (hasConfirmedLeaveFlag === 'true') {
@@ -224,32 +226,32 @@ const BookingWizardContent = () => {
         hasRestoredRef.current = true;
         return;
       }
-      
+
       // Try to restore existing booking data from localStorage
       try {
         const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
         if (savedBookingData) {
           const parsedData = JSON.parse(savedBookingData);
-          
+
           // Set flag to disable auto-save during restore
           isRestoringRef.current = true;
-          
+
           // Restore all data in one batch action to prevent infinite loops
           if (parsedData.contact || parsedData.plan) {
             // Set flag to disable auto-save and skip next auto-save
             isRestoringRef.current = true;
             skipNextAutoSaveRef.current = true;
-            
+
             // Restore everything in one action - restoreBookingData handles pax and members
             restoreBookingData({
               contact: parsedData.contact || null,
               plan: parsedData.plan || null
             });
-            
+
             // Update lastSavedRef immediately to prevent auto-save
             const savedKey = `${JSON.stringify(parsedData.contact || {})}_${JSON.stringify(parsedData.plan || {})}_${tourId}`;
             lastSavedRef.current = savedKey;
-            
+
             // Re-enable auto-save after restore completes (delay to ensure state is updated)
             setTimeout(() => {
               isRestoringRef.current = false;
@@ -259,7 +261,7 @@ const BookingWizardContent = () => {
           // No saved data, reset to initial state
           resetBooking();
         }
-        
+
         // Mark as restored to avoid duplicate restores
         hasRestoredRef.current = true;
       } catch (error) {
@@ -277,7 +279,7 @@ const BookingWizardContent = () => {
       // Check if current step is valid using stepValidations
       const currentStepKey = `step${currentStep}`;
       const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
-      
+
       if (!isCurrentStepValid) {
         // For step 1, find the first missing (unfilled) field and show only 1 toast
         if (currentStep === 1) {
@@ -288,13 +290,13 @@ const BookingWizardContent = () => {
         } else if (currentStep === 2) {
           // Mark that user has attempted validation for Step 2
           setStep2ValidationAttempted(true);
-          
+
           // Trigger validation in Step2Details to show error messages for missing fields
           window.dispatchEvent(new CustomEvent('validateStep2'));
         } else {
           // For other steps, use the original batch toast logic
           const errors = getStepErrors(currentStep);
-          
+
           if (errors.length > 0) {
             const messages = errors.map(errorKey => {
               // Check if it's a toast message key (contains 'toast')
@@ -306,7 +308,7 @@ const BookingWizardContent = () => {
                 return { i18nKey: 'toast.required', values: { field: fieldName } };
               }
             });
-            
+
             // Queue this batch; if another click happens, the next batch will wait until this one is done
             showBatch(messages, 'error', 5000);
           }
@@ -328,17 +330,17 @@ const BookingWizardContent = () => {
               });
             }
           }
-          
+
           // Ensure we have exactly 1 adult passenger
           if (plan.pax.adult < 1) {
             setPax({ ...plan.pax, adult: 1 });
           }
-          
+
           // Rebuild members to ensure we have 1 empty adult
           setTimeout(() => {
             rebuildMembers();
           }, 0);
-          
+
           // Save booking data before moving to step 2
           try {
             const bookingData = {
@@ -371,12 +373,12 @@ const BookingWizardContent = () => {
           } catch (error) {
             // Error saving booking data
           }
-          
+
           // Reset Step 2 validation attempted state when leaving Step 2
           if (currentStep === 2) {
             setStep2ValidationAttempted(false);
           }
-          
+
           setCurrentStep(currentStep + 1);
         }
       }
@@ -395,8 +397,43 @@ const BookingWizardContent = () => {
     }
   };
 
+  // Show payment confirmation modal before proceeding
+  const handlePaymentClick = () => {
+    setShowPaymentModal(true);
+  };
+
   const handleConfirm = async () => {
+    setShowPaymentModal(false); // Close modal before processing
     const currentLanguage = (i18n && i18n.language) ? i18n.language : 'vi';
+
+    // Validate tour prices before proceeding
+    // Check if prices are valid (not null, not undefined, > 0 if pax > 0)
+    const priceValidation = {
+      adult: plan.price?.adult !== null && plan.price?.adult !== undefined && plan.price.adult >= 0,
+      child: plan.price?.child !== null && plan.price?.child !== undefined && plan.price.child >= 0,
+      infant: plan.price?.infant !== null && plan.price?.infant !== undefined && plan.price.infant >= 0,
+    };
+
+    // If there are adults but adult price is invalid
+    if (plan.pax.adult > 0 && (!priceValidation.adult || plan.price.adult === null || plan.price.adult === undefined)) {
+      setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
+      setBookingLoading(false);
+      return;
+    }
+
+    // If there are children but child price is invalid
+    if (plan.pax.child > 0 && (!priceValidation.child || plan.price.child === null || plan.price.child === undefined)) {
+      setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
+      setBookingLoading(false);
+      return;
+    }
+
+    // If there are infants but infant price is invalid
+    if (plan.pax.infant > 0 && (!priceValidation.infant || plan.price.infant === null || plan.price.infant === undefined)) {
+      setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
+      setBookingLoading(false);
+      return;
+    }
 
     let bookingData;
     try {
@@ -412,7 +449,7 @@ const BookingWizardContent = () => {
       setBookingError(t('bookingWizard.toast.validationError', { errors: validation.errors.join(', ') }) || 'Dữ liệu không hợp lệ');
       return;
     }
-    
+
     // Clear error if validation passes
     setBookingError('');
 
@@ -431,14 +468,43 @@ const BookingWizardContent = () => {
     clearBookingStatus();
     setBookingLoading(true);
 
+    // Log booking data before sending in development mode
+    if (import.meta.env.DEV) {
+      console.log('[TourBookingWizard] Sending booking request:', {
+        tourId: bookingData.tourId,
+        departureDate: bookingData.departureDate,
+        adultsCount: bookingData.adultsCount,
+        childrenCount: bookingData.childrenCount,
+        babiesCount: bookingData.babiesCount,
+        guestsCount: bookingData.bookingGuestRequests?.length || 0,
+        contactName: bookingData.contactName,
+        contactEmail: bookingData.contactEmail,
+        contactAddress: bookingData.contactAddress,
+        contactPhone: bookingData.contactPhone,
+        userEmail: bookingData.userEmail,
+        planPrices: {
+          adult: plan.price?.adult,
+          child: plan.price?.child,
+          infant: plan.price?.infant,
+          total: plan.price?.total
+        }
+      });
+    }
+
     try {
       const createdBooking = await createBookingAPI(bookingData);
+
+      // Validate response before using it
+      if (!createdBooking || !createdBooking.bookingId) {
+        throw new Error('Invalid booking response from server. Please try again.');
+      }
+
       setBookingSuccess(createdBooking);
 
       try {
         localStorage.removeItem(`bookingData_${tourId}`);
         localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
-      } catch (_) {}
+      } catch (_) { }
 
       resetBooking();
 
@@ -454,8 +520,27 @@ const BookingWizardContent = () => {
     } catch (error) {
       // Create booking failed
       const message = error?.message || t('bookingWizard.toast.bookingError') || 'Đặt tour thất bại';
+
+      // Log detailed error in development mode
+      if (import.meta.env.DEV) {
+        console.error('[TourBookingWizard] Booking creation failed:', {
+          error: error.message,
+          errorStack: error.stack,
+          bookingData: bookingData ? {
+            tourId: bookingData.tourId,
+            departureDate: bookingData.departureDate,
+            adultsCount: bookingData.adultsCount,
+            childrenCount: bookingData.childrenCount,
+            babiesCount: bookingData.babiesCount,
+            guestsCount: bookingData.bookingGuestRequests?.length,
+            contactName: bookingData.contactName,
+            contactEmail: bookingData.contactEmail
+          } : null
+        });
+      }
+
       setBookingError(message);
-      if (message === 'Unauthenticated') {
+      if (message === 'Unauthenticated' || message.toLowerCase().includes('unauthenticated')) {
         navigate('/login');
       }
     } finally {
@@ -484,12 +569,12 @@ const BookingWizardContent = () => {
   // Handle navigation with confirm leave modal
   const handleNavigation = (path) => {
     // Check if user has entered any data
-    const hasData = contact && (contact.fullName || contact.phone || contact.email) && 
-                   plan && (plan.date || plan.pax);
-    
+    const hasData = contact && (contact.fullName || contact.phone || contact.email) &&
+      plan && (plan.date || plan.pax);
+
     if (hasData) {
       // Show confirm leave modal
-      
+
       setPendingNavigation(path);
       setShowLeaveModal(true);
     } else {
@@ -501,9 +586,9 @@ const BookingWizardContent = () => {
   // Handle confirm leave modal actions - simple like TourWizard
   const handleConfirmLeave = () => {
     // Allow closing tab without prompt
-    window.removeEventListener('beforeunload', () => {});
+    window.removeEventListener('beforeunload', () => { });
     setShowLeaveModal(false);
-    
+
     // Clear booking data when user confirms to leave
     try {
       localStorage.removeItem(`bookingData_${tourId}`);
@@ -511,7 +596,7 @@ const BookingWizardContent = () => {
     } catch (error) {
       // Error clearing booking data
     }
-    
+
     if (pendingNavigation) {
       navigate(pendingNavigation);
       setPendingNavigation(null);
@@ -561,7 +646,7 @@ const BookingWizardContent = () => {
             <div className={styles['auth-required']}>
               <h2>🔒 {t('bookingWizard.auth.loginRequiredTitle')}</h2>
               <p>{t('bookingWizard.auth.loginRequiredMessage')}</p>
-              <button 
+              <button
                 type="button"
                 className={styles['btn-primary']}
                 onClick={() => navigate('/login')}
@@ -584,7 +669,7 @@ const BookingWizardContent = () => {
             <div className={styles['auth-required']}>
               <h2>🚫 {t('bookingWizard.auth.accessDeniedTitle')}</h2>
               <p>{t('bookingWizard.auth.companyNotAllowed')}</p>
-              <button 
+              <button
                 type="button"
                 className={styles['btn-primary']}
                 onClick={() => navigate(`/tour/detail?id=${tourId}`)}
@@ -606,15 +691,15 @@ const BookingWizardContent = () => {
         {/* Progress Bar */}
         <div className={styles['progress-container']}>
           <div className={styles['progress-bar']}>
-            <div 
-              className={styles['progress-fill']} 
+            <div
+              className={styles['progress-fill']}
               style={{ width: `${(currentStep / 3) * 100}%` }}
             />
           </div>
           <div className={styles['progress-steps']}>
             {STEPS.map((step) => (
-              <button 
-                key={step.id} 
+              <button
+                key={step.id}
                 type="button"
                 className={(() => {
                   const base = styles['progress-step'];
@@ -641,19 +726,19 @@ const BookingWizardContent = () => {
 
         {/* Navigation Buttons */}
         <div className={styles['step-navigation']}>
-          <button 
-            type="button" 
-            className={styles['btn-secondary']} 
+          <button
+            type="button"
+            className={styles['btn-secondary']}
             onClick={handleBack}
             disabled={currentStep === 1}
           >
             {t('bookingWizard.navigation.back')}
           </button>
-          
+
           {currentStep < 3 ? (
-            <button 
-              type="button" 
-              className={styles['btn-primary']} 
+            <button
+              type="button"
+              className={styles['btn-primary']}
               onClick={handleNext}
               disabled={(() => {
                 // For Step 1: only disable after user has attempted validation and form is still invalid
@@ -667,7 +752,7 @@ const BookingWizardContent = () => {
                   const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
                   return !isCurrentStepValid;
                 }
-                
+
                 // For Step 2: only disable after user has attempted validation and form is still invalid
                 if (currentStep === 2) {
                   if (!step2ValidationAttempted) {
@@ -679,7 +764,7 @@ const BookingWizardContent = () => {
                   const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
                   return !isCurrentStepValid;
                 }
-                
+
                 // For other steps, use default validation
                 const currentStepKey = `step${currentStep}`;
                 const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
@@ -689,10 +774,10 @@ const BookingWizardContent = () => {
               {t('bookingWizard.navigation.next')}
             </button>
           ) : (
-            <button 
-              type="button" 
-              className={styles['btn-success']} 
-              onClick={handleConfirm}
+            <button
+              type="button"
+              className={styles['btn-success']}
+              onClick={handlePaymentClick}
               disabled={booking.loading || !!booking.error}
             >
               {(() => {
@@ -715,6 +800,15 @@ const BookingWizardContent = () => {
           open={showLeaveModal}
           onCancel={handleCancelLeave}
           onConfirm={handleConfirmLeave}
+        />
+
+        {/* Payment Confirmation Modal */}
+        <PaymentConfirmModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onConfirm={handleConfirm}
+          modalKey="wizard"
+          loading={booking.loading}
         />
 
       </div>

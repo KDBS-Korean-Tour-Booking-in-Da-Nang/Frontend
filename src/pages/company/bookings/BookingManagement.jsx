@@ -28,7 +28,9 @@ import {
   Timer,
   Users,
   Phone,
-  Mail
+  Mail,
+  CreditCard,
+  Wallet
 } from 'lucide-react';
 
 const BookingManagement = () => {
@@ -64,14 +66,18 @@ const BookingManagement = () => {
 
   const statuses = [
     'PENDING_PAYMENT',
+    'PENDING_DEPOSIT_PAYMENT',
+    'PENDING_BALANCE_PAYMENT',
     'WAITING_FOR_APPROVED',
     'BOOKING_REJECTED',
     'WAITING_FOR_UPDATE',
     'BOOKING_FAILED',
+    'BOOKING_BALANCE_SUCCESS',
     'BOOKING_SUCCESS',
     'BOOKING_SUCCESS_PENDING',
     'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED',
-    'BOOKING_UNDER_COMPLAINT'
+    'BOOKING_UNDER_COMPLAINT',
+    'BOOKING_CANCELLED'
   ];
 
   // Check if booking status contains "PENDING"
@@ -518,27 +524,25 @@ const BookingManagement = () => {
 
   // Get color code for booking status badge
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'BOOKING_SUCCESS':
-        return '#10B981';
-      case 'BOOKING_SUCCESS_PENDING':
-        return '#14B8A6';
-      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
-        return '#2563EB';
-      case 'BOOKING_UNDER_COMPLAINT':
-        return '#EAB308';
-      case 'PENDING_PAYMENT':
-        return '#F97316';
-      case 'WAITING_FOR_APPROVED':
-        return '#3B82F6';
-      case 'WAITING_FOR_UPDATE':
-        return '#8B5CF6';
-      case 'BOOKING_REJECTED':
-      case 'BOOKING_FAILED':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
+    const normalizedStatus = String(status || '').toUpperCase().replace(/ /g, '_');
+    
+    const colorMap = {
+      PENDING_PAYMENT: '#F97316',              // Orange
+      PENDING_DEPOSIT_PAYMENT: '#EA580C',      // Orange darker (riêng biệt)
+      PENDING_BALANCE_PAYMENT: '#F59E0B',       // Amber
+      WAITING_FOR_APPROVED: '#3B82F6',          // Blue
+      WAITING_FOR_UPDATE: '#8B5CF6',            // Purple
+      BOOKING_REJECTED: '#EF4444',              // Red
+      BOOKING_FAILED: '#DC2626',                // Red darker
+      BOOKING_BALANCE_SUCCESS: '#14B8A6',       // Teal
+      BOOKING_SUCCESS_PENDING: '#06B6D4',        // Cyan (riêng biệt)
+      BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
+      BOOKING_UNDER_COMPLAINT: '#EAB308',       // Yellow
+      BOOKING_SUCCESS: '#10B981',               // Green
+      BOOKING_CANCELLED: '#9CA3AF'              // Gray
+    };
+    
+    return colorMap[normalizedStatus] || '#6B7280';
   };
 
   // Format booking status for display using translation keys
@@ -857,6 +861,14 @@ const BookingManagement = () => {
               {modalEndDate ? modalEndDate.toLocaleDateString('vi-VN') : '-'}
             </span>
           </div>
+          {/* Payment Information Section */}
+          <div className={styles['modal-section-divider']} style={{ marginTop: '1rem', marginBottom: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+            <div className={styles['modal-section-title']} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontWeight: 600, color: '#374151' }}>
+              <CreditCard className={styles['modal-row-icon']} strokeWidth={2} />
+              <span>{t('bookingManagement.modal.paymentInfo', { defaultValue: 'Thông tin thanh toán' })}</span>
+            </div>
+          </div>
+          
           <div className={styles['modal-row']}>
             <div className={styles['modal-row-label']}>
               <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
@@ -866,6 +878,48 @@ const BookingManagement = () => {
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.totalAmount || 0)}
             </span>
           </div>
+          
+          {viewingBooking.depositAmount !== undefined && viewingBooking.depositAmount !== null && (
+            <div className={styles['modal-row']}>
+              <div className={styles['modal-row-label']}>
+                <Wallet className={styles['modal-row-icon']} strokeWidth={2} />
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.depositAmount', { defaultValue: 'Tiền cọc' })}</span>
+              </div>
+              <span className={styles['modal-value']} style={{ color: '#f59e0b', fontWeight: 600 }}>
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.depositAmount || 0)}
+              </span>
+            </div>
+          )}
+          
+          {viewingBooking.payedAmount !== undefined && viewingBooking.payedAmount !== null && (
+            <div className={styles['modal-row']}>
+              <div className={styles['modal-row-label']}>
+                <CreditCard className={styles['modal-row-icon']} strokeWidth={2} />
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.paidAmount', { defaultValue: 'Đã thanh toán' })}</span>
+              </div>
+              <span className={styles['modal-value']} style={{ color: '#10b981', fontWeight: 600 }}>
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.payedAmount || 0)}
+              </span>
+            </div>
+          )}
+          
+          {viewingBooking.totalAmount !== undefined && viewingBooking.payedAmount !== undefined && (
+            <div className={styles['modal-row']}>
+              <div className={styles['modal-row-label']}>
+                <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.remainingAmount', { defaultValue: 'Còn lại' })}</span>
+              </div>
+              <span className={styles['modal-value']} style={{ 
+                color: (viewingBooking.totalAmount - (viewingBooking.payedAmount || 0)) > 0 ? '#ef4444' : '#10b981', 
+                fontWeight: 700 
+              }}>
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
+                  Math.max(0, (viewingBooking.totalAmount || 0) - (viewingBooking.payedAmount || 0))
+                )}
+              </span>
+            </div>
+          )}
+          
           <div className={styles['modal-row']}>
             <div className={styles['modal-row-label']}>
               <Clock className={styles['modal-row-icon']} strokeWidth={2} />

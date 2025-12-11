@@ -2882,6 +2882,20 @@
 			"success": "마법사로 돌아왔습니다. 처음부터 정보를 입력해주세요. 확인 시 새 예약이 생성됩니다.",
 			"error": "마법사로 돌아가는 중 오류가 발생했습니다. 다시 시도해주세요.",
 			"missingTourError": "마법사로 돌아갈 수 없습니다. 투어 정보가 없습니다."
+		},
+		"paymentModal": {
+			"wizard": {
+				"title": "결제 확인",
+				"message": "결제를 진행하시겠습니까? 투어 예약 정보가 시스템으로 전송됩니다.",
+				"confirm": "진행",
+				"cancel": "취소"
+			},
+			"bookingDetail": {
+				"title": "결제 확인",
+				"message": "결제를 진행하시겠습니까? 시스템이 결제 페이지로 이동합니다.",
+				"confirm": "진행",
+				"cancel": "취소"
+			}
 		}
 	},
 	"tourManagement": {
@@ -3003,6 +3017,9 @@
 				"changeImage": "이미지 변경",
 				"selectImage": "커버 이미지 선택",
 				"hint": "지원: JPG, PNG, GIF. 최대 크기: 5MB"
+			},
+			"errors": {
+				"fillRequired": "필수 입력란을 모두 작성해 주세요"
 			}
 		}
 	},
@@ -3306,14 +3323,18 @@
 			"confirmed": "확정됨",
 			"cancelled": "취소됨",
 			"pendingPayment": "결제 대기",
+			"pendingDepositPayment": "보증금 결제 대기",
+			"pendingBalancePayment": "잔액 결제 대기",
 			"waitingForApproved": "승인 대기",
 			"waitingForUpdate": "업데이트 대기",
 			"bookingSuccessPending": "승인 완료 (투어 대기)",
 			"bookingSuccessWaitForConfirmed": "완료 확인 대기",
 			"bookingUnderComplaint": "이의 제기 중",
 			"bookingSuccess": "예약 완료",
+			"bookingBalanceSuccess": "결제 완료 (출발 대기)",
 			"bookingFailed": "예약 실패",
-			"bookingRejected": "예약 거절"
+			"bookingRejected": "예약 거절",
+			"bookingCancelled": "취소됨"
 		},
 		"cancel": {
 			"title": "투어 취소 확인",
@@ -3336,21 +3357,37 @@
 			"tourInfo": "투어 정보",
 			"contactInfo": "연락처 정보",
 			"guests": "탑승자 정보",
-			"email": "이메일"
+			"email": "이메일",
+			"paymentInfo": "결제 정보"
 		},
 		"guests": {
 			"viewAll": "탑승자 {{count}}명 모두 보기"
 		},
+		"payment": {
+			"totalAmount": "총 금액",
+			"depositAmount": "보증금",
+			"payedAmount": "결제 완료",
+			"remainingAmount": "잔액"
+		},
 		"actions": {
 			"editBooking": "예약 수정",
 			"complete": "완료",
-			"complaint": "이의 제기"
+			"complaint": "이의 제기",
+			"payDeposit": "보증금 결제",
+			"payBalance": "잔액 결제"
 		},
 		"info": {
 			"successPending": "예약이 업체에서 승인되었습니다. 투어 진행 후 완료 여부를 확인해주세요.",
 			"expectedEndDatePrefix": "예상 종료일:",
 			"waitingForConfirmation": "투어가 종료되었습니다. 여행을 모두 마치셨다면 완료를 확인하거나 문제가 있는 경우 이의를 제기해주세요.",
-			"underComplaint": "현재 예약이 이의 제기 상태입니다. 이의 제기가 처리될 때까지 자동 완료가 보류됩니다."
+			"underComplaint": "현재 예약이 이의 제기 상태입니다. 이의 제기가 처리될 때까지 자동 완료가 보류됩니다.",
+			"balancePaymentRequired": "예약을 완료하려면 잔액을 결제해 주세요.",
+			"remainingAmount": "잔액",
+			"balanceSuccess": "결제 완료! 출발을 기다리고 있습니다.",
+			"waitingForDeparture": "투어 출발을 기다려 주세요.",
+			"cancelled": "이 예약은 취소되었습니다.",
+			"cancelledDate": "취소 날짜",
+			"refundAmount": "환불 금액"
 		},
 		"completion": {
 			"toastSuccess": "투어 완료가 확인되었습니다. 업체에 통보하겠습니다.",
@@ -3688,7 +3725,16 @@
 				"tour": "투어 정보",
 				"guests": "승객 정보",
 				"members": "일행 목록",
-				"price": "가격 요약"
+				"price": "가격 요약",
+				"paymentSummary": "결제 요약"
+			},
+			"payment": {
+				"totalAmount": "총 투어 가격",
+				"depositAmount": "필요한 보증금",
+				"balanceAmount": "잔액 (승인 후 결제)",
+				"paymentDue": "지금 결제할 금액",
+				"voucher": "할인 코드",
+				"voucherNotAvailable": "곧 제공 예정"
 			},
 			"labels": {
 				"fullName": "성명",
@@ -3883,6 +3929,13 @@
 			"heroSubtitle": "예약 정보를 확인하고, 바우처를 적용한 뒤 아래에서 결제를 완료하세요.",
 			"loadingBooking": "예약 정보를 불러오는 중...",
 			"bookingInfo": "예약 정보",
+			"paymentSummary": "결제 요약",
+			"totalTourPrice": "총 투어 가격",
+			"paidAmount": "결제 완료",
+			"depositDue": "보증금 결제 필요",
+			"balanceDue": "잔액 결제 필요",
+			"amountDue": "결제 필요 금액",
+			"voucherApplied": "적용된 바우처",
 			"bookingSummary": {
 				"tourBookingInfo": "투어 예약 정보",
 				"tourName": "투어명",
@@ -4350,15 +4403,19 @@
 		},
 		"status": {
 			"PENDING_PAYMENT": "결제 대기",
+			"PENDING_DEPOSIT_PAYMENT": "보증금 결제 대기",
+			"PENDING_BALANCE_PAYMENT": "잔액 결제 대기",
 			"WAITING_FOR_APPROVAL": "승인 대기",
 			"WAITING_FOR_APPROVED": "승인 대기",
 			"BOOKING_REJECTED": "거절됨",
 			"WAITING_FOR_UPDATE": "업데이트 대기",
 			"BOOKING_FAILED": "실패",
+			"BOOKING_BALANCE_SUCCESS": "잔액 결제 완료",
 			"BOOKING_SUCCESS": "성공",
 			"BOOKING_SUCCESS_PENDING": "성공 (대기 중)",
 			"BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "성공 (확인 대기)",
-			"BOOKING_UNDER_COMPLAINT": "이의 제기 중"
+			"BOOKING_UNDER_COMPLAINT": "이의 제기 중",
+			"BOOKING_CANCELLED": "취소됨"
 		},
 		"guests": {
 			"adults": "성인",
@@ -5101,6 +5158,88 @@
 			"zenThree": "32px 둥근 일정 템플릿",
 			"flowTitle": "플로우",
 			"flowCopy": "15분 듣기, 20분 바이브 조정, 5분 여정 확정."
+		}
+	},
+	"bookingHistory": {
+		"title": "예약 내역",
+		"subtitle": "예약한 모든 투어를 확인하세요",
+		"backButton": "뒤로",
+		"loading": "예약 내역 로딩 중...",
+		"loginRequired": {
+			"title": "로그인 필요",
+			"message": "예약 내역을 보려면 로그인해 주세요."
+		},
+		"error": {
+			"title": "오류가 발생했습니다",
+			"retry": "재시도"
+		},
+		"empty": {
+			"title": "예약한 투어가 없습니다",
+			"message": "아직 투어를 예약하지 않았습니다. 지금 바로 멋진 투어를 탐색해 보세요!"
+		},
+		"card": {
+			"bookingId": "예약 ID",
+			"tourName": "투어 이름",
+			"departureDate": "출발일",
+			"totalGuests": "총 인원",
+			"guests": "명",
+			"contactName": "연락처 이름",
+			"contactPhone": "연락처 번호",
+			"depositAmount": "보증금",
+			"balanceAmount": "잔액",
+			"totalAmount": "총 금액",
+			"viewDetails": "상세 보기",
+			"bookedOn": "예약일",
+			"alreadyFeedbacked": "피드백 완료",
+			"transaction": "거래",
+			"cancelBooking": "예약 취소",
+			"resumePayment": "결제 계속",
+			"cancelled": "취소됨"
+		},
+		"filters": {
+			"status": "상태별 필터",
+			"date": "날짜별 필터",
+			"allStatus": "모든 상태",
+			"newestDate": "최신순",
+			"oldestDate": "오래된순"
+		},
+		"status": {
+			"pending": "대기 중",
+			"confirmed": "확인됨",
+			"cancelled": "취소됨",
+			"purchased": "결제 완료",
+			"pendingPayment": "결제 대기",
+			"pendingDepositPayment": "보증금 대기",
+			"pendingBalancePayment": "잔액 결제 대기",
+			"waitingForApproved": "승인 대기",
+			"waitingForUpdate": "업데이트 대기",
+			"bookingSuccessPending": "승인됨 (투어 대기)",
+			"bookingSuccessWaitForConfirmed": "확인 대기",
+			"bookingUnderComplaint": "불만 접수 중",
+			"bookingSuccess": "예약 성공",
+			"bookingBalanceSuccess": "결제 완료 (출발 대기)",
+			"bookingFailed": "예약 실패",
+			"bookingRejected": "예약 거부",
+			"bookingCancelled": "취소됨"
+		},
+		"cancel": {
+			"title": "취소 확인",
+			"message": "이 예약을 취소하시겠습니까?",
+			"confirm": "취소 확인",
+			"loading": "환불 정보 로딩 중...",
+			"processing": "처리 중...",
+			"refundPercentage": "환불 비율",
+			"refundAmount": "환불 금액",
+			"payedAmount": "결제 금액",
+			"successTitle": "예약이 취소되었습니다",
+			"successBody": "취소가 확인되었습니다. 예상 환불금",
+			"successTail": "은 원래 결제 방법으로 이체됩니다."
+		},
+		"transactionStatus": {
+			"pending": "대기 중",
+			"success": "성공",
+			"failed": "실패",
+			"cancelled": "취소됨"
 		}
 	}
 }

@@ -569,32 +569,119 @@ const TourManagement = () => {
         onSave={handleEditSave}
       />
 
-      {/* Delete Request Modal with Note Input - rendered via portal for fullscreen overlay */}
+      {/* Delete Request Modal with Note Input - Minimal Soft Korean Style */}
       {deleteModalOpen && createPortal(
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-red-100">
-                <TrashIcon className="h-8 w-8 text-red-600" />
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
+          style={{
+            background: 'rgba(0, 0, 0, 0.25)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)'
+          }}
+        >
+          <div 
+            className="w-full max-w-md overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)',
+              borderRadius: '28px',
+              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)',
+              border: '1px solid rgba(0, 0, 0, 0.04)',
+              animation: 'modalFadeIn 0.3s ease-out'
+            }}
+          >
+            {/* Modal Content */}
+            <div style={{ padding: '32px 28px 28px' }}>
+              {/* Icon Container - Soft pastel background */}
+              <div 
+                className="mx-auto mb-5 flex items-center justify-center"
+                style={{
+                  width: '72px',
+                  height: '72px',
+                  borderRadius: '24px',
+                  background: 'linear-gradient(145deg, #fff5f5 0%, #ffe8e8 100%)',
+                  border: '1px solid rgba(239, 68, 68, 0.1)'
+                }}
+              >
+                <TrashIcon 
+                  style={{ 
+                    width: '28px', 
+                    height: '28px', 
+                    color: '#ef4444',
+                    strokeWidth: '1.5'
+                  }} 
+                />
               </div>
-              <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+
+              {/* Title */}
+              <h3 
+                className="text-center mb-2"
+                style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#1a1a2e',
+                  letterSpacing: '-0.02em'
+                }}
+              >
                 {t('tourManagement.modals.delete.title')}
               </h3>
-              <p className="text-center text-gray-600 mb-4">
+
+              {/* Description */}
+              <p 
+                className="text-center mb-5"
+                style={{
+                  fontSize: '14px',
+                  color: '#6b7280',
+                  lineHeight: '1.6'
+                }}
+              >
                 {t('tourManagement.modals.delete.message', { name: selectedTour?.tourName || '' })}
               </p>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+
+              {/* Note Input Section */}
+              <div style={{ marginBottom: '24px' }}>
+                <label 
+                  className="block mb-2"
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#4b5563',
+                    letterSpacing: '-0.01em'
+                  }}
+                >
                   {t('tourManagement.modals.delete.noteLabel')}
                 </label>
                 <textarea
                   value={deleteNote}
                   onChange={(e) => setDeleteNote(e.target.value)}
                   placeholder={t('tourManagement.modals.delete.notePlaceholder')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
                   rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    borderRadius: '20px',
+                    border: '1px solid #e5e7eb',
+                    background: '#fafbfc',
+                    fontSize: '14px',
+                    color: '#374151',
+                    resize: 'none',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    lineHeight: '1.5'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#fca5a5';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(252, 165, 165, 0.15)';
+                    e.target.style.background = '#ffffff';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                    e.target.style.background = '#fafbfc';
+                  }}
                 />
               </div>
+
+              {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={() => {
@@ -602,13 +689,52 @@ const TourManagement = () => {
                     setSelectedTour(null);
                     setDeleteNote('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                  style={{
+                    flex: 1,
+                    padding: '14px 20px',
+                    borderRadius: '20px',
+                    border: '1px solid #e5e7eb',
+                    background: '#ffffff',
+                    color: '#4b5563',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#f9fafb';
+                    e.target.style.borderColor = '#d1d5db';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#ffffff';
+                    e.target.style.borderColor = '#e5e7eb';
+                  }}
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   onClick={confirmDeleteTour}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                  style={{
+                    flex: 1,
+                    padding: '14px 20px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.25)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.35)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 14px rgba(239, 68, 68, 0.25)';
+                  }}
                 >
                   {t('tourManagement.modals.delete.confirm')}
                 </button>

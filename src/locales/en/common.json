@@ -2938,6 +2938,20 @@
 			"success": "Returned to wizard. Please fill in information from the beginning. A new booking will be created when you confirm.",
 			"error": "An error occurred while returning to wizard. Please try again.",
 			"missingTourError": "Cannot return to wizard. Missing tour information."
+		},
+		"paymentModal": {
+			"wizard": {
+				"title": "Confirm Payment",
+				"message": "Are you sure you want to proceed with payment? The tour booking information will be sent to the system.",
+				"confirm": "Proceed",
+				"cancel": "Cancel"
+			},
+			"bookingDetail": {
+				"title": "Confirm Payment",
+				"message": "Are you sure you want to proceed with payment? The system will redirect you to the payment page.",
+				"confirm": "Proceed",
+				"cancel": "Cancel"
+			}
 		}
 	},
 	"tourManagement": {
@@ -3062,6 +3076,9 @@
 				"changeImage": "Change image",
 				"selectImage": "Select cover image",
 				"hint": "Supported: JPG, PNG, GIF. Max size: 5MB"
+			},
+			"errors": {
+				"fillRequired": "Please fill in all required fields"
 			}
 		}
 	},
@@ -3366,14 +3383,18 @@
 			"confirmed": "Confirmed",
 			"cancelled": "Cancelled",
 			"pendingPayment": "Pending Payment",
+			"pendingDepositPayment": "Pending Deposit Payment",
+			"pendingBalancePayment": "Pending Balance Payment",
 			"waitingForApproved": "Waiting for Approval",
 			"waitingForUpdate": "Waiting for Update",
 			"bookingSuccessPending": "Approved (Awaiting Tour)",
 			"bookingSuccessWaitForConfirmed": "Awaiting Completion Confirmation",
 			"bookingUnderComplaint": "Under Complaint",
 			"bookingSuccess": "Booking Successful",
+			"bookingBalanceSuccess": "Payment Complete (Awaiting Departure)",
 			"bookingFailed": "Booking Failed",
-			"bookingRejected": "Booking Rejected"
+			"bookingRejected": "Booking Rejected",
+			"bookingCancelled": "Cancelled"
 		},
 		"cancel": {
 			"title": "Confirm cancellation",
@@ -3396,21 +3417,37 @@
 			"tourInfo": "Tour Information",
 			"contactInfo": "Contact Information",
 			"guests": "Passenger information",
-			"email": "Email"
+			"email": "Email",
+			"paymentInfo": "Payment Information"
 		},
 		"guests": {
 			"viewAll": "View all {{count}} passengers"
 		},
+		"payment": {
+			"totalAmount": "Total Amount",
+			"depositAmount": "Deposit Amount",
+			"payedAmount": "Paid Amount",
+			"remainingAmount": "Remaining"
+		},
 		"actions": {
 			"editBooking": "Edit booking",
 			"complete": "Complete",
-			"complaint": "Submit complaint"
+			"complaint": "Submit complaint",
+			"payDeposit": "Pay Deposit",
+			"payBalance": "Pay Remaining Balance"
 		},
 		"info": {
 			"successPending": "Your booking has been approved by the company. Please wait until the tour takes place to confirm completion.",
 			"expectedEndDatePrefix": "Expected end date:",
 			"waitingForConfirmation": "The tour has ended. Please confirm you have completed the trip or submit a complaint if there were any issues.",
-			"underComplaint": "Your booking is currently under complaint. Automatic confirmation will be paused until the complaint is resolved."
+			"underComplaint": "Your booking is currently under complaint. Automatic confirmation will be paused until the complaint is resolved.",
+			"balancePaymentRequired": "Please pay the remaining balance to complete your booking.",
+			"remainingAmount": "Remaining Amount",
+			"balanceSuccess": "Payment complete! Awaiting departure date.",
+			"waitingForDeparture": "Please wait for tour departure.",
+			"cancelled": "This booking has been cancelled.",
+			"cancelledDate": "Cancelled Date",
+			"refundAmount": "Refund Amount"
 		},
 		"completion": {
 			"toastSuccess": "Tour completion has been confirmed. We will notify the company.",
@@ -3748,7 +3785,16 @@
 				"tour": "Tour Information",
 				"guests": "Guests Information",
 				"members": "Group Members",
-				"price": "Price Summary"
+				"price": "Price Summary",
+				"paymentSummary": "Payment Summary"
+			},
+			"payment": {
+				"totalAmount": "Total Tour Price",
+				"depositAmount": "Deposit Required",
+				"balanceAmount": "Balance (to be paid after approval)",
+				"paymentDue": "Amount Due Now",
+				"voucher": "Voucher Code",
+				"voucherNotAvailable": "Feature coming soon"
 			},
 			"labels": {
 				"fullName": "Full Name",
@@ -3943,6 +3989,13 @@
 			"heroSubtitle": "Review booking information, apply vouchers and complete payment below.",
 			"loadingBooking": "Loading booking information...",
 			"bookingInfo": "Booking Information",
+			"paymentSummary": "Payment Summary",
+			"totalTourPrice": "Total Tour Price",
+			"paidAmount": "Paid Amount",
+			"depositDue": "Deposit Due",
+			"balanceDue": "Balance Due",
+			"amountDue": "Amount Due",
+			"voucherApplied": "Voucher Applied",
 			"bookingSummary": {
 				"tourBookingInfo": "Tour Booking Information",
 				"tourName": "Tour Name",
@@ -4420,15 +4473,19 @@
 		},
 		"status": {
 			"PENDING_PAYMENT": "Pending Payment",
+			"PENDING_DEPOSIT_PAYMENT": "Pending Deposit Payment",
+			"PENDING_BALANCE_PAYMENT": "Pending Balance Payment",
 			"WAITING_FOR_APPROVAL": "Waiting for Approval",
 			"WAITING_FOR_APPROVED": "Waiting for Approval",
 			"BOOKING_REJECTED": "Rejected",
 			"WAITING_FOR_UPDATE": "Waiting for Update",
 			"BOOKING_FAILED": "Failed",
+			"BOOKING_BALANCE_SUCCESS": "Balance Payment Success",
 			"BOOKING_SUCCESS": "Success",
 			"BOOKING_SUCCESS_PENDING": "Success (Pending)",
 			"BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Success (Wait for Confirmed)",
-			"BOOKING_UNDER_COMPLAINT": "Under Complaint"
+			"BOOKING_UNDER_COMPLAINT": "Under Complaint",
+			"BOOKING_CANCELLED": "Cancelled"
 		},
 		"guests": {
 			"adults": "Adults",
@@ -5171,6 +5228,88 @@
 			"zenThree": "32px rounded itinerary template",
 			"flowTitle": "Flow",
 			"flowCopy": "15 minutes listening, 20 minutes vibe coordination, 5 minutes finalizing journey."
+		}
+	},
+	"bookingHistory": {
+		"title": "Booking History",
+		"subtitle": "Review all your booked tours",
+		"backButton": "Back",
+		"loading": "Loading booking history...",
+		"loginRequired": {
+			"title": "Login Required",
+			"message": "Please log in to view your booking history."
+		},
+		"error": {
+			"title": "An error occurred",
+			"retry": "Retry"
+		},
+		"empty": {
+			"title": "No tours yet",
+			"message": "You haven't booked any tours. Explore exciting tours now!"
+		},
+		"card": {
+			"bookingId": "Booking ID",
+			"tourName": "Tour Name",
+			"departureDate": "Departure Date",
+			"totalGuests": "Total Guests",
+			"guests": "guests",
+			"contactName": "Contact Name",
+			"contactPhone": "Contact Phone",
+			"depositAmount": "Deposit",
+			"balanceAmount": "Balance",
+			"totalAmount": "Total Amount",
+			"viewDetails": "View Details",
+			"bookedOn": "Booked on",
+			"alreadyFeedbacked": "Feedback submitted",
+			"transaction": "Transaction",
+			"cancelBooking": "Cancel booking",
+			"resumePayment": "Resume payment",
+			"cancelled": "Cancelled"
+		},
+		"filters": {
+			"status": "Filter by Status",
+			"date": "Filter by Date",
+			"allStatus": "All Status",
+			"newestDate": "Newest Date",
+			"oldestDate": "Oldest Date"
+		},
+		"status": {
+			"pending": "Pending",
+			"confirmed": "Confirmed",
+			"cancelled": "Cancelled",
+			"purchased": "Paid",
+			"pendingPayment": "Pending Payment",
+			"pendingDepositPayment": "Pending Deposit",
+			"pendingBalancePayment": "Pending Balance Payment",
+			"waitingForApproved": "Waiting for Approval",
+			"waitingForUpdate": "Waiting for Update",
+			"bookingSuccessPending": "Approved (Awaiting tour)",
+			"bookingSuccessWaitForConfirmed": "Awaiting Confirmation",
+			"bookingUnderComplaint": "Under Complaint",
+			"bookingSuccess": "Booking Successful",
+			"bookingBalanceSuccess": "Payment Complete (Awaiting departure)",
+			"bookingFailed": "Booking Failed",
+			"bookingRejected": "Booking Rejected",
+			"bookingCancelled": "Cancelled"
+		},
+		"cancel": {
+			"title": "Confirm Cancellation",
+			"message": "Are you sure you want to cancel this booking?",
+			"confirm": "Confirm Cancel",
+			"loading": "Loading refund information...",
+			"processing": "Processing...",
+			"refundPercentage": "Refund Percentage",
+			"refundAmount": "Refund Amount",
+			"payedAmount": "Amount Paid",
+			"successTitle": "Booking Cancelled",
+			"successBody": "Cancellation confirmed. Estimated refund",
+			"successTail": "will be transferred via original payment method."
+		},
+		"transactionStatus": {
+			"pending": "Pending",
+			"success": "Success",
+			"failed": "Failed",
+			"cancelled": "Cancelled"
 		}
 	}
 }

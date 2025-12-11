@@ -635,6 +635,45 @@ const BookingCheckPaymentPage = () => {
     setUserEmail(event.target.value);
   };
 
+  // Xác định số tiền cần thanh toán dựa vào status
+  const getPaymentAmount = () => {
+    const status = booking?.bookingStatus;
+    
+    // Thanh toán cọc
+    if (status === 'PENDING_DEPOSIT_PAYMENT') {
+      return booking?.depositAmount || 0;
+    }
+    
+    // Thanh toán 100% (PENDING_PAYMENT - khi deposit = 100%)
+    if (status === 'PENDING_PAYMENT') {
+      return booking?.totalAmount || totalAmount;
+    }
+    
+    // Thanh toán tiền còn lại
+    if (status === 'PENDING_BALANCE_PAYMENT') {
+      return (booking?.totalAmount || 0) - (booking?.payedAmount || 0);
+    }
+    
+    return totalAmount;
+  };
+
+  // Xác định isDeposit cho API
+  // Nếu trạng thái là PENDING_DEPOSIT_PAYMENT thì isDeposit = true
+  // Nếu trạng thái là PENDING_PAYMENT (thanh toán 1 lần) thì true/false đều được (mặc định true)
+  // Các trường hợp khác thì false
+  const getIsDeposit = () => {
+    const status = booking?.bookingStatus;
+    if (status === 'PENDING_DEPOSIT_PAYMENT') {
+      return true;
+    }
+    if (status === 'PENDING_PAYMENT') {
+      // Thanh toán 1 lần, true/false đều được, mặc định true
+      return true;
+    }
+    // Các trường hợp khác (PENDING_BALANCE_PAYMENT, etc.)
+    return false;
+  };
+
   // Xử lý submit form thanh toán
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -656,12 +695,39 @@ const BookingCheckPaymentPage = () => {
     setStatusBanner(null);
 
     try {
+      const isDeposit = getIsDeposit();
+      const paymentAmount = getPaymentAmount();
+
+      // Log thông tin thanh toán để debug
+      if (import.meta.env.DEV) {
+        console.log('[BookingCheckPaymentPage] Payment info:', {
+          bookingId,
+          bookingStatus: booking?.bookingStatus,
+          isDeposit,
+          paymentAmount,
+          depositAmount: booking?.depositAmount,
+          totalAmount: booking?.totalAmount,
+          payedAmount: booking?.payedAmount,
+        });
+      }
+
       // Tạo payment order từ Toss API
       const response = await createTossBookingPayment({
         bookingId,
         userEmail,
-        voucherCode,
+        voucherCode: booking?.voucherCode || '',  // Lấy từ booking, không từ input
+        isDeposit: isDeposit,
       });
+
+      // Log response từ backend để kiểm tra số tiền
+      if (import.meta.env.DEV) {
+        console.log('[BookingCheckPaymentPage] Toss payment response:', {
+          success: response?.success,
+          amount: response?.amount,
+          orderId: response?.orderId,
+          expectedAmount: paymentAmount,
+        });
+      }
 
       if (!response?.success) {
         throw new Error(response?.message || 'Không thể tạo đơn thanh toán Toss.');
@@ -930,20 +996,25 @@ const BookingCheckPaymentPage = () => {
   const limitedGuests = Array.isArray(guests) ? guests.slice(0, 3) : [];
   const hasMoreGuests = Array.isArray(guests) && guests.length > 3;
 
+  // Ẩn button "Return to wizard" khi đến từ booking detail (thanh toán balance hoặc deposit từ detail page)
+  const showBackToWizardButton = !navState?.fromBookingDetail && !navState?.isBalancePayment;
+
   return (
     <>
       <div className={styles['payment-soft-shell']}>
         <div className={styles['payment-soft-card-wrapper']}>
-          <button
-            type="button"
-            onClick={handleBackToWizardClick}
-            className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:text-[#1670c4]"
-          >
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EAF3FF] text-[#1a8eea]">
-              <ArrowLeft className="h-3.5 w-3.5" />
-            </span>
-            <span>{t('payment.checkPayment.actions.backToWizard')}</span>
-          </button>
+          {showBackToWizardButton && (
+            <button
+              type="button"
+              onClick={handleBackToWizardClick}
+              className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:text-[#1670c4]"
+            >
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EAF3FF] text-[#1a8eea]">
+                <ArrowLeft className="h-3.5 w-3.5" />
+              </span>
+              <span>{t('payment.checkPayment.actions.backToWizard')}</span>
+            </button>
+          )}
 
           <div className={styles['payment-soft-card']}>
             <div className={styles['payment-soft-card__header']}>
@@ -1107,100 +1178,74 @@ const BookingCheckPaymentPage = () => {
                         />
                       </div>
 
-                      <div className="flex flex-col gap-2">
-                        <label htmlFor="voucherCode" className="text-sm font-semibold text-gray-700">
-                          {t('payment.checkPayment.voucherCode')}
-                        </label>
-                        <div className="flex w-full flex-col gap-2.5 sm:flex-row">
-                          <div className="relative flex-1">
-                            <Tag className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                            <input
-                              id="voucherCode"
-                              type="text"
-                              value={voucherCode}
-                              onChange={handleVoucherChange}
-                              onKeyDown={handleVoucherKeyDown}
-                              onBlur={handleVoucherBlur}
-                              className="w-full rounded-[18px] border border-gray-200 bg-white px-9 py-3 text-sm text-gray-900 shadow-sm focus:border-[#1a8eea] focus:outline-none focus:ring-2 focus:ring-[#1a8eea]/40"
-                              placeholder={t('payment.checkPayment.voucherPlaceholder')}
-                              aria-describedby="voucherCode-hint"
-                            />
+                      {/* Voucher Section - READONLY */}
+                      {booking?.voucherCode && (
+                        <div className="flex flex-col gap-2">
+                          <label className="text-sm font-semibold text-gray-700">
+                            {t('payment.checkPayment.voucherCode')}
+                          </label>
+                          <div className="relative inline-flex items-center rounded-[20px] border border-gray-300 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-600 shadow-inner">
+                            <Tag className="mr-2 h-4 w-4 text-gray-500" />
+                            <span className="flex-1">{booking.voucherCode}</span>
+                            <span className="ml-2 text-xs text-gray-500">({t('payment.checkPayment.voucherApplied')})</span>
                           </div>
-                          {voucherApplied && voucherCode ? (
-                            <div className="relative inline-flex items-center rounded-[20px] border border-[#1a8eea]/40 bg-[#EAF3FF] px-4 py-3 text-sm font-semibold text-gray-900 shadow-inner">
-                              <CheckCircle2 className="mr-2 h-5 w-5 text-[#1a8eea]" />
-                              <span className="flex-1">{voucherCode}</span>
-                              <button
-                                type="button"
-                                onClick={handleClearVoucher}
-                                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-500 text-xs font-bold text-white shadow hover:bg-gray-600"
-                                aria-label={t('payment.checkPayment.removeVoucherLabel')}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setIsVoucherModalOpen(true)}
-                              className="inline-flex items-center justify-center gap-2 rounded-[20px] border border-transparent bg-[#1a8eea] px-5 py-3 text-sm font-semibold text-white shadow-[0_15px_40px_rgba(26,142,234,0.35)] transition hover:-translate-y-0.5 hover:bg-[#1670c4]"
-                            >
-                              <Tag className="h-4 w-4" />
-                              {t('payment.checkPayment.applyVoucher')}
-                            </button>
-                          )}
+                          <p className="text-xs text-gray-500 leading-relaxed italic">
+                            {t('booking.step3.payment.voucherNotAvailable')}
+                          </p>
                         </div>
-                        <p id="voucherCode-hint" className="text-xs text-gray-500 leading-relaxed">
-                          {t('payment.checkPayment.voucherHint')}
-                        </p>
-                      </div>
+                      )}
                     </div>
 
+                    {/* Payment Summary - Updated */}
                     <div className="rounded-[24px] border border-[#1a8eea]/40 bg-gradient-to-br from-[#fefefe] to-[#eaf3ff] px-4 py-4 shadow-[0_20px_70px_rgba(157,168,199,0.2)] sm:px-5 sm:py-4">
                       <div className="flex items-center gap-2 text-gray-900 mb-1.5">
                         <Sparkles className="h-5 w-5 text-[#1a8eea]" />
                         <p className="text-base font-semibold">
-                          {voucherApplied ? t('payment.checkPayment.totalPayment') : t('payment.checkPayment.totalAmount')}
+                          {t('payment.checkPayment.paymentSummary')}
                         </p>
                       </div>
                       <div className="space-y-2 rounded-[18px] bg-white/85 px-4 py-2.5">
-                        {Number.isFinite(Number(originalTotal)) && originalTotal > 0 && (
+                        {/* Hiển thị tổng tiền tour */}
+                        {booking?.totalAmount && (
                           <div className="flex items-center justify-between text-sm text-gray-600">
-                            <span>{t('payment.checkPayment.originalPrice')}</span>
-                            <span className={voucherApplied ? 'line-through text-gray-400' : 'font-semibold text-gray-900'}>
-                              {formatCurrency(originalTotal)}
+                            <span>{t('payment.checkPayment.totalTourPrice')}</span>
+                            <span className="font-semibold text-gray-900">
+                              {formatCurrency(booking.totalAmount)}
                             </span>
                           </div>
                         )}
-                        {voucherApplied && Number(discountAmount) > 0 && (
-                          <div className="flex items-center justify-between text-sm font-semibold text-gray-900">
-                            <span className="flex items-center gap-2 text-[#1a8eea]">
-                              <Tag className="h-4 w-4" />
-                              {t('payment.checkPayment.discount')}
+                        
+                        {/* Hiển thị số tiền đã thanh toán (nếu có) */}
+                        {booking?.payedAmount > 0 && (
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <span>{t('payment.checkPayment.paidAmount')}</span>
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(booking.payedAmount)}
                             </span>
-                            <span>-{formatCurrency(discountAmount)}</span>
                           </div>
                         )}
+                        
+                        {/* Hiển thị số tiền CẦN thanh toán lần này */}
                         <div className="flex items-center justify-between border-t border-dashed border-[#1a8eea]/30 pt-2.5">
                           <span className="text-base font-bold text-gray-900">
-                            {voucherApplied ? t('payment.checkPayment.finalAmount') : t('payment.checkPayment.tempAmount')}
+                            {booking?.bookingStatus === 'PENDING_DEPOSIT_PAYMENT' 
+                              ? t('payment.checkPayment.depositDue')
+                              : booking?.bookingStatus === 'PENDING_BALANCE_PAYMENT'
+                              ? t('payment.checkPayment.balanceDue')
+                              : t('payment.checkPayment.amountDue')}
                           </span>
                           <span className="text-2xl font-bold text-[#1a8eea]">
-                            {formatCurrency(totalAmount)}
+                            {formatCurrency(getPaymentAmount())}
                           </span>
                         </div>
                       </div>
-                      {voucherApplied && Number(discountAmount) > 0 ? (
-                        <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#1a8eea]">
-                          <CheckCircle2 className="h-4 w-4" />
-                          {t('payment.checkPayment.voucherAppliedMessage', { amount: formatCurrency(totalAmount) })}
+                      
+                      {/* Voucher Section - READONLY */}
+                      {booking?.voucherCode && (
+                        <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-gray-600">
+                          <Tag className="h-4 w-4" />
+                          {t('payment.checkPayment.voucherApplied')}: {booking.voucherCode}
                         </div>
-                      ) : (
-                        <p className="mt-1.5 text-xs text-gray-500 leading-relaxed">
-                          {originalTotal
-                            ? t('payment.checkPayment.voucherHintMessage')
-                            : t('payment.checkPayment.noTotalAmountMessage')}
-                        </p>
                       )}
                     </div>
                   </section>

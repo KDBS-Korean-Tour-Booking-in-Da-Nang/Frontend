@@ -81,7 +81,9 @@ const Step2Details = () => {
   });
   const [tourMeta, setTourMeta] = useState({
     deadlineDays: null,
-    expirationDate: null
+    expirationDate: null,
+    tourCheckDays: null,
+    balancePaymentDays: null
   });
   const [loading, setLoading] = useState(true);
 
@@ -124,13 +126,27 @@ const Step2Details = () => {
   const computeMinDepartureDate = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // Nếu tour có hạn tối thiểu (deadlineDays), user chỉ có thể chọn ngày khởi hành SAU số ngày đó
-    // Ví dụ: nếu deadlineDays = 8, thì user KHÔNG được chọn ngày = today + 8, chỉ được chọn từ today + 9 trở đi
-    if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+    
+    // Tính Minimum Advance Days = tourCheckDays + balancePaymentDays
+    const tourCheckDays = tourMeta.tourCheckDays !== null && !Number.isNaN(tourMeta.tourCheckDays) ? tourMeta.tourCheckDays : 0;
+    const balancePaymentDays = tourMeta.balancePaymentDays !== null && !Number.isNaN(tourMeta.balancePaymentDays) ? tourMeta.balancePaymentDays : 0;
+    const minimumAdvanceDays = tourCheckDays + balancePaymentDays;
+    
+    // Nếu có Minimum Advance Days, user chỉ có thể chọn ngày khởi hành SAU số ngày đó
+    // Ví dụ: nếu minimumAdvanceDays = 10, thì user KHÔNG được chọn ngày = today + 10, chỉ được chọn từ today + 11 trở đi
+    if (minimumAdvanceDays > 0) {
       const minDate = new Date(today);
-      minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1); // +1 để không cho phép chọn ngày = today + deadlineDays
+      minDate.setDate(minDate.getDate() + minimumAdvanceDays + 1); // +1 để không cho phép chọn ngày = today + minimumAdvanceDays
       return toIsoDate(minDate);
     }
+    
+    // Fallback: Nếu có deadlineDays cũ (backward compatibility)
+    if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+      const minDate = new Date(today);
+      minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1);
+      return toIsoDate(minDate);
+    }
+    
     // Nếu không có deadline, chỉ cần không chọn ngày trong quá khứ
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1058,12 +1074,40 @@ const Step2Details = () => {
         return null;
       };
 
+      // Parse tourCheckDays and balancePaymentDays
+      const parseTourCheckDays = () => {
+        const checkDaysValue = tourData.tourCheckDays ?? 
+                              tourData.tour_check_days ?? 
+                              tourData.checkDays;
+        
+        if (checkDaysValue === undefined || checkDaysValue === null || checkDaysValue === '') {
+          return null;
+        }
+        const parsed = parseInt(checkDaysValue, 10);
+        return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
+      };
+
+      const parseBalancePaymentDays = () => {
+        const balanceDaysValue = tourData.balancePaymentDays ?? 
+                                tourData.balance_payment_days;
+        
+        if (balanceDaysValue === undefined || balanceDaysValue === null || balanceDaysValue === '') {
+          return null;
+        }
+        const parsed = parseInt(balanceDaysValue, 10);
+        return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
+      };
+
       const deadlineDays = parseDeadlineDays();
       const expirationDate = parseExpirationDate();
+      const tourCheckDays = parseTourCheckDays();
+      const balancePaymentDays = parseBalancePaymentDays();
 
       setTourMeta({
         deadlineDays: deadlineDays,
-        expirationDate: expirationDate
+        expirationDate: expirationDate,
+        tourCheckDays: tourCheckDays,
+        balancePaymentDays: balancePaymentDays
       });
       
       
@@ -1099,10 +1143,18 @@ const Step2Details = () => {
       today.setHours(0, 0, 0, 0);
       const minDate = new Date(today);
       
-      // Nếu tour có deadlineDays, tính minDate = today + deadlineDays + 1
-      // Ví dụ: nếu deadlineDays = 8, thì user KHÔNG được chọn ngày = today + 8, chỉ được chọn từ today + 9 trở đi
-      if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
-        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1); // +1 để không cho phép chọn ngày = today + deadlineDays
+      // Tính Minimum Advance Days = tourCheckDays + balancePaymentDays
+      const tourCheckDays = tourMeta.tourCheckDays !== null && !Number.isNaN(tourMeta.tourCheckDays) ? tourMeta.tourCheckDays : 0;
+      const balancePaymentDays = tourMeta.balancePaymentDays !== null && !Number.isNaN(tourMeta.balancePaymentDays) ? tourMeta.balancePaymentDays : 0;
+      const minimumAdvanceDays = tourCheckDays + balancePaymentDays;
+      
+      // Nếu có Minimum Advance Days, tính minDate = today + minimumAdvanceDays + 1
+      // Ví dụ: nếu minimumAdvanceDays = 10, thì user KHÔNG được chọn ngày = today + 10, chỉ được chọn từ today + 11 trở đi
+      if (minimumAdvanceDays > 0) {
+        minDate.setDate(minDate.getDate() + minimumAdvanceDays + 1); // +1 để không cho phép chọn ngày = today + minimumAdvanceDays
+      } else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+        // Fallback: Nếu có deadlineDays cũ (backward compatibility)
+        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1);
       } else {
         // Nếu không có deadline, minDate = tomorrow (không cho chọn hôm nay)
         minDate.setDate(minDate.getDate() + 1);
@@ -1122,7 +1174,7 @@ const Step2Details = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tourMeta.deadlineDays, tourMeta.expirationDate]);
+  }, [tourMeta.tourCheckDays, tourMeta.balancePaymentDays, tourMeta.deadlineDays, tourMeta.expirationDate]);
 
   // Update members when pax changes
   useEffect(() => {
@@ -1283,11 +1335,19 @@ const Step2Details = () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      // Calculate minimum date: today + deadlineDays + 1 (Minimum Advance Days)
-      // Example: if deadlineDays = 8, user CANNOT select today + 8, only from today + 9 onwards
+      // Tính Minimum Advance Days = tourCheckDays + balancePaymentDays
+      const tourCheckDays = tourMeta.tourCheckDays !== null && !Number.isNaN(tourMeta.tourCheckDays) ? tourMeta.tourCheckDays : 0;
+      const balancePaymentDays = tourMeta.balancePaymentDays !== null && !Number.isNaN(tourMeta.balancePaymentDays) ? tourMeta.balancePaymentDays : 0;
+      const minimumAdvanceDays = tourCheckDays + balancePaymentDays;
+      
+      // Calculate minimum date: today + minimumAdvanceDays + 1
+      // Example: if minimumAdvanceDays = 10, user CANNOT select today + 10, only from today + 11 onwards
       const minDate = new Date(today);
-      if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
-        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1); // +1 để không cho phép chọn ngày = today + deadlineDays
+      if (minimumAdvanceDays > 0) {
+        minDate.setDate(minDate.getDate() + minimumAdvanceDays + 1); // +1 để không cho phép chọn ngày = today + minimumAdvanceDays
+      } else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+        // Fallback: Nếu có deadlineDays cũ (backward compatibility)
+        minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1);
       } else {
         // Nếu không có deadline, minDate = tomorrow (không cho chọn hôm nay)
         minDate.setDate(minDate.getDate() + 1);
@@ -1297,11 +1357,11 @@ const Step2Details = () => {
       if (selectedDate < today) {
         newErrors.date = t('booking.step2.errors.dateInPast');
       } 
-      // Validate: selected date must be AFTER today + deadlineDays (not equal to)
-      else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+      // Validate: selected date must be AFTER today + minimumAdvanceDays (not equal to)
+      else if (minimumAdvanceDays > 0) {
         if (selectedDate < minDate) {
           // Selected date is before or equal to the minimum advance days requirement
-          newErrors.date = t('booking.step2.errors.dateBeforeDeadline', { days: tourMeta.deadlineDays });
+          newErrors.date = t('booking.step2.errors.dateBeforeDeadline', { days: minimumAdvanceDays });
         } else if (tourMeta.expirationDate) {
           // Validate: selected date must not exceed booking deadline (expiration date)
           const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
@@ -1322,6 +1382,22 @@ const Step2Details = () => {
           }
         }
       } 
+      // Fallback: Nếu có deadlineDays cũ (backward compatibility)
+      else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+        if (selectedDate < minDate) {
+          newErrors.date = t('booking.step2.errors.dateBeforeDeadline', { days: tourMeta.deadlineDays });
+        } else if (tourMeta.expirationDate) {
+          const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
+          expiration.setHours(0, 0, 0, 0);
+          if (selectedDate > expiration) {
+            newErrors.date = t('booking.step2.errors.dateAfterExpiration', { date: tourMeta.expirationDate });
+          } else {
+            delete newErrors.date;
+          }
+        } else {
+          delete newErrors.date;
+        }
+      }
       // No deadlineDays requirement, but still check expiration date
       else if (tourMeta.expirationDate) {
         const expiration = new Date(`${tourMeta.expirationDate}T00:00:00`);
@@ -2706,22 +2782,46 @@ const Step2Details = () => {
           {t('booking.step2.sections.dateTitle')}
         </h3>
         <div className={styles['date-section']}>
-          {/* Deadline notice - show first if tour has deadlineDays requirement */}
-          {tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0 && (() => {
-            // Calculate minimum date (today + deadlineDays + 1)
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const minDate = new Date(today);
-            minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1);
-            const minDateFormatted = formatDateWithMonthName(toIsoDate(minDate));
-            return (
-              <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`}>
-                {t('booking.step2.fields.deadlineNotice', { 
-                  days: tourMeta.deadlineDays, 
-                  minDate: minDateFormatted 
-                })}
-              </div>
-            );
+          {/* Deadline notice - show first if tour has Minimum Advance Days requirement */}
+          {(() => {
+            // Tính Minimum Advance Days = tourCheckDays + balancePaymentDays
+            const tourCheckDays = tourMeta.tourCheckDays !== null && !Number.isNaN(tourMeta.tourCheckDays) ? tourMeta.tourCheckDays : 0;
+            const balancePaymentDays = tourMeta.balancePaymentDays !== null && !Number.isNaN(tourMeta.balancePaymentDays) ? tourMeta.balancePaymentDays : 0;
+            const minimumAdvanceDays = tourCheckDays + balancePaymentDays;
+            
+            // Hiển thị notice nếu có Minimum Advance Days hoặc deadlineDays cũ (backward compatibility)
+            if (minimumAdvanceDays > 0) {
+              // Calculate minimum date (today + minimumAdvanceDays + 1)
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const minDate = new Date(today);
+              minDate.setDate(minDate.getDate() + minimumAdvanceDays + 1);
+              const minDateFormatted = formatDateWithMonthName(toIsoDate(minDate));
+              return (
+                <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`}>
+                  {t('booking.step2.fields.deadlineNotice', { 
+                    days: minimumAdvanceDays, 
+                    minDate: minDateFormatted 
+                  })}
+                </div>
+              );
+            } else if (tourMeta.deadlineDays !== null && !Number.isNaN(tourMeta.deadlineDays) && tourMeta.deadlineDays > 0) {
+              // Fallback: Nếu có deadlineDays cũ (backward compatibility)
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const minDate = new Date(today);
+              minDate.setDate(minDate.getDate() + tourMeta.deadlineDays + 1);
+              const minDateFormatted = formatDateWithMonthName(toIsoDate(minDate));
+              return (
+                <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`}>
+                  {t('booking.step2.fields.deadlineNotice', { 
+                    days: tourMeta.deadlineDays, 
+                    minDate: minDateFormatted 
+                  })}
+                </div>
+              );
+            }
+            return null;
           })()}
           <div className={styles['date-input-wrapper']}>
             {/* Date Picker Input */}

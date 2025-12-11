@@ -74,13 +74,20 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
   };
 
   const statusColorMap = {
-    BOOKING_SUCCESS: '#10b981',
-    BOOKING_REJECTED: '#ef4444',
-    BOOKING_FAILED: '#ef4444',
-    WAITING_FOR_UPDATE: '#8b5cf6',
-    WAITING_FOR_APPROVED: '#3b82f6',
-    PENDING_PAYMENT: '#f59e0b',
-    default: '#6b7280'
+    PENDING_PAYMENT: '#F97316',              // Orange
+    PENDING_DEPOSIT_PAYMENT: '#EA580C',      // Orange darker (riêng biệt)
+    PENDING_BALANCE_PAYMENT: '#F59E0B',       // Amber
+    WAITING_FOR_APPROVED: '#3B82F6',         // Blue
+    WAITING_FOR_UPDATE: '#8B5CF6',           // Purple
+    BOOKING_REJECTED: '#EF4444',             // Red
+    BOOKING_FAILED: '#DC2626',               // Red darker
+    BOOKING_BALANCE_SUCCESS: '#14B8A6',      // Teal
+    BOOKING_SUCCESS_PENDING: '#06B6D4',       // Cyan (riêng biệt)
+    BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
+    BOOKING_UNDER_COMPLAINT: '#EAB308',      // Yellow
+    BOOKING_SUCCESS: '#10B981',              // Green
+    BOOKING_CANCELLED: '#9CA3AF',            // Gray
+    default: '#6B7280'
   };
 
   const statusAccent = statusColorMap[booking?.bookingStatus] || statusColorMap.default;
