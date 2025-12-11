@@ -26,6 +26,7 @@ export const useToursAPI = () => {
   const transformTour = (tour) => ({
     id: tour.id,
     title: stripHtmlTags(tour.tourName),
+    tourName: tour.tourName, // Keep original for display
     duration: tour.tourDuration,
     price: tour.adultPrice ? Number(tour.adultPrice) : 0,
     image: getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl),
@@ -43,6 +44,12 @@ export const useToursAPI = () => {
     tourStatus: tour.tourStatus,
     createdAt: tour.createdAt,
     contents: tour.contents || [],
+    // Payment-related fields
+    depositPercentage: tour.depositPercentage != null ? Number(tour.depositPercentage) : null,
+    minAdvanceDays: tour.minAdvanceDays,
+    cancelDay: tour.cancelDay,
+    balancePaymentDays: tour.balancePaymentDays,
+    refundFloor: tour.refundFloor,
     // Customizable fields by company (optional)
     availableDates: tour.availableDates || [],
     gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
@@ -54,10 +61,10 @@ export const useToursAPI = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Get token for authentication
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      
+
       // Use /public endpoint to get only PUBLIC tours
       const response = await fetch(API_ENDPOINTS.TOURS_PUBLIC, {
         headers: {
@@ -65,7 +72,7 @@ export const useToursAPI = () => {
           ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
-      
+
       if (!response.ok) {
         // Handle 401 with global error handler
         if (await checkAndHandle401(response)) {
@@ -73,13 +80,13 @@ export const useToursAPI = () => {
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Transform backend data to match frontend format
       // Backend already returns only PUBLIC tours, so no need to filter
       const transformedTours = data.map(transformTour);
-      
+
       setTours(transformedTours);
     } catch (err) {
       setError(err.message);
@@ -94,17 +101,17 @@ export const useToursAPI = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Get token for authentication
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-      
+
       const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(id), {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` })
         }
       });
-      
+
       if (!response.ok) {
         // Handle 401 with global error handler
         if (await checkAndHandle401(response)) {
@@ -112,9 +119,9 @@ export const useToursAPI = () => {
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const tour = await response.json();
-      
+
       // Transform backend data to match frontend format
       return transformTour(tour);
     } catch (err) {
@@ -129,7 +136,7 @@ export const useToursAPI = () => {
   // Map backend tour type to frontend category
   const mapTourTypeToCategory = (tourType) => {
     if (!tourType) return 'domestic';
-    
+
     const type = tourType.toLowerCase();
     if (type.includes('international') || type.includes('nước ngoài') || type.includes('quốc tế')) {
       return 'international';
@@ -149,9 +156,9 @@ export const useToursAPI = () => {
   // Search tours
   const searchTours = (query) => {
     if (!query || query.trim() === '') return tours;
-    
+
     const searchTerm = query.toLowerCase();
-    return tours.filter(tour => 
+    return tours.filter(tour =>
       tour.title.toLowerCase().includes(searchTerm) ||
       tour.description.toLowerCase().includes(searchTerm) ||
       (tour.tourDeparturePoint && tour.tourDeparturePoint.toLowerCase().includes(searchTerm))
@@ -168,7 +175,7 @@ export const useToursAPI = () => {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
 
       const url = `${API_ENDPOINTS.TOURS_SEARCH}?keyword=${encodeURIComponent(query)}&page=${page}&size=${size}`;
-      const response = await fetch(url, { 
+      const response = await fetch(url, {
         signal,
         headers: {
           'Content-Type': 'application/json',
@@ -185,10 +192,10 @@ export const useToursAPI = () => {
 
       const pageData = await response.json();
       const items = Array.isArray(pageData.content) ? pageData.content.map(transformTour) : [];
-      
+
       // Filter only PUBLIC tours from search results
       const publicItems = items.filter(tour => tour.tourStatus === 'PUBLIC');
-      
+
       return {
         items: publicItems,
         totalPages: pageData.totalPages ?? 0,
@@ -224,18 +231,18 @@ export const useToursAPI = () => {
     tours,
     loading,
     error,
-    
+
     // Actions
     fetchTours,
     fetchTourById,
     searchToursServer,
-    
+
     // Selectors
     getToursByCategory,
     searchTours,
     getFeaturedTours,
     getTourById,
-    
+
     // Utilities
     mapTourTypeToCategory
   };

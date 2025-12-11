@@ -3732,7 +3732,7 @@
 				"totalAmount": "총 투어 가격",
 				"depositAmount": "필요한 보증금",
 				"balanceAmount": "잔액 (승인 후 결제)",
-				"paymentDue": "지금 결제할 금액",
+				"paymentDue": "결제 금액",
 				"voucher": "할인 코드",
 				"voucherNotAvailable": "곧 제공 예정"
 			},

@@ -272,15 +272,15 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background-color: #1a8eea;
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
   transform: translateX(24px);
 }
 
-.toggle-switch input:disabled + .toggle-slider,
+.toggle-switch input:disabled+.toggle-slider,
 .toggle-slider.disabled {
   background-color: #94a3b8;
   cursor: not-allowed;
@@ -334,9 +334,16 @@
 /* Tour Details */
 .tour-details {
   display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex: 1;
+}
+
+.detail-column {
+  flex: 1;
+  display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
 }
 
 .detail-item {
@@ -781,6 +788,20 @@
 }
 
 @media (min-width: 1024px) {
+
+  /* With sidebar (~280px), content width is significantly reduced */
+  .tours-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .tours-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1536px) {
   .tours-grid {
     grid-template-columns: repeat(4, 1fr);
   }

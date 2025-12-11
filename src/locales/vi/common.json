@@ -3810,7 +3810,7 @@
         "totalAmount": "Tổng tiền tour",
         "depositAmount": "Tiền cọc cần thanh toán",
         "balanceAmount": "Số tiền còn lại (thanh toán sau khi được duyệt)",
-        "paymentDue": "Số tiền thanh toán ngay",
+        "paymentDue": "Số tiền cần thanh toán",
         "voucher": "Mã giảm giá",
         "voucherNotAvailable": "Tính năng đang được phát triển"
       },

@@ -42,10 +42,10 @@ const Step3Review = () => {
   useEffect(() => {
     let isMounted = true;
     let isCancelled = false;
-    
+
     const loadTour = async () => {
       if (!tourId) return;
-      
+
       try {
         const tourData = await fetchTourById(parseInt(tourId));
         if (isMounted && !isCancelled) {
@@ -57,7 +57,7 @@ const Step3Review = () => {
     };
 
     loadTour();
-    
+
     return () => {
       isMounted = false;
       isCancelled = true;
@@ -103,10 +103,10 @@ const Step3Review = () => {
 
   const formatNationality = (nationalityCode) => {
     if (!nationalityCode) return t('booking.step3.labels.notSet');
-    
+
     // Get the translated country name using the same pattern as Step2Details
     const countryName = t(`booking.step2.countries.${nationalityCode}`);
-    
+
     // If translation doesn't exist, return the code itself
     return countryName !== `booking.step2.countries.${nationalityCode}` ? countryName : nationalityCode;
   };
@@ -117,12 +117,12 @@ const Step3Review = () => {
     infant: Baby
   };
 
-const GenderIcon = ({ className = '' }) => (
-  <span className={`${styles['gender-icon']} ${className}`}>
-    <Mars />
-    <Venus />
-  </span>
-);
+  const GenderIcon = ({ className = '' }) => (
+    <span className={`${styles['gender-icon']} ${className}`}>
+      <Mars />
+      <Venus />
+    </span>
+  );
 
   const memberTableHeaders = [
     { key: 'index', label: t('booking.step3.table.index'), icon: null },
@@ -179,7 +179,7 @@ const GenderIcon = ({ className = '' }) => (
     <div className={styles['review-form']}>
       {/* Tour Preview */}
       <TourPreview createdAt={bookingCreatedAtRef.current} />
-      
+
       <div className={styles['summary-columns']}>
         {/* Contact Information Review */}
         <div className={styles['review-section']}>
@@ -187,65 +187,65 @@ const GenderIcon = ({ className = '' }) => (
             <UserCircle2 className={styles['title-icon']} />
             {t('booking.step3.sections.contact')}
           </h3>
-        <div className={styles['contact-columns']}>
-          <div className={styles['contact-column']}>
-            <div className={styles['review-item']}>
-              <div className={styles['item-header']}>
-                <Calendar className={styles['item-icon']} />
-              <span className={styles['review-label']}>{t('booking.step3.labels.departureDate')}</span>
-              </div>
-              <span className={styles['review-value']}>{formatDate(plan.date)}</span>
-            </div>
-            <div className={styles['review-item']}>
-              <div className={styles['item-header']}>
-                <User className={styles['item-icon']} />
-                <span className={styles['review-label']}>{t('booking.step3.labels.fullName')}</span>
-              </div>
-              <span className={styles['review-value']}>{contact.fullName}</span>
-            </div>
-            <div className={styles['review-item']}>
-              <div className={styles['item-header']}>
-                <Phone className={styles['item-icon']} />
-                <span className={styles['review-label']}>{t('booking.step3.labels.phone')}</span>
-              </div>
-              <span className={styles['review-value']}>{contact.phone}</span>
-            </div>
-          </div>
-          <div className={styles['contact-column']}>
-            <div className={styles['review-item']}>
-              <div className={styles['item-header']}>
-                <Mail className={styles['item-icon']} />
-                <span className={styles['review-label']}>{t('booking.step3.labels.email')}</span>
-              </div>
-              <span className={styles['review-value']}>{contact.email}</span>
-            </div>
-            <div className={styles['review-item']}>
-              <div className={styles['item-header']}>
-                <Home className={styles['item-icon']} />
-                <span className={styles['review-label']}>{t('booking.step3.labels.address')}</span>
-              </div>
-              <span className={styles['review-value']}>{contact.address}</span>
-            </div>
-            {contact.pickupPoint && (
+          <div className={styles['contact-columns']}>
+            <div className={styles['contact-column']}>
               <div className={styles['review-item']}>
                 <div className={styles['item-header']}>
-                  <MapPin className={styles['item-icon']} />
-                  <span className={styles['review-label']}>{t('booking.step3.labels.pickupPoint')}</span>
+                  <Calendar className={styles['item-icon']} />
+                  <span className={styles['review-label']}>{t('booking.step3.labels.departureDate')}</span>
                 </div>
-                <span className={styles['review-value']}>{contact.pickupPoint}</span>
+                <span className={styles['review-value']}>{formatDate(plan.date)}</span>
               </div>
-            )}
-          </div>
-        </div>
-        {contact.note && (
-          <div className={styles['review-item']} style={{ marginTop: '1rem' }}>
-            <div className={styles['item-header']}>
-              <StickyNote className={styles['item-icon']} />
-              <span className={styles['review-label']}>{t('booking.step3.labels.note')}</span>
+              <div className={styles['review-item']}>
+                <div className={styles['item-header']}>
+                  <User className={styles['item-icon']} />
+                  <span className={styles['review-label']}>{t('booking.step3.labels.fullName')}</span>
+                </div>
+                <span className={styles['review-value']}>{contact.fullName}</span>
+              </div>
+              <div className={styles['review-item']}>
+                <div className={styles['item-header']}>
+                  <Phone className={styles['item-icon']} />
+                  <span className={styles['review-label']}>{t('booking.step3.labels.phone')}</span>
+                </div>
+                <span className={styles['review-value']}>{contact.phone}</span>
+              </div>
             </div>
-            <span className={styles['review-value']}>{contact.note}</span>
+            <div className={styles['contact-column']}>
+              <div className={styles['review-item']}>
+                <div className={styles['item-header']}>
+                  <Mail className={styles['item-icon']} />
+                  <span className={styles['review-label']}>{t('booking.step3.labels.email')}</span>
+                </div>
+                <span className={styles['review-value']}>{contact.email}</span>
+              </div>
+              <div className={styles['review-item']}>
+                <div className={styles['item-header']}>
+                  <Home className={styles['item-icon']} />
+                  <span className={styles['review-label']}>{t('booking.step3.labels.address')}</span>
+                </div>
+                <span className={styles['review-value']}>{contact.address}</span>
+              </div>
+              {contact.pickupPoint && (
+                <div className={styles['review-item']}>
+                  <div className={styles['item-header']}>
+                    <MapPin className={styles['item-icon']} />
+                    <span className={styles['review-label']}>{t('booking.step3.labels.pickupPoint')}</span>
+                  </div>
+                  <span className={styles['review-value']}>{contact.pickupPoint}</span>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+          {contact.note && (
+            <div className={styles['review-item']} style={{ marginTop: '1rem' }}>
+              <div className={styles['item-header']}>
+                <StickyNote className={styles['item-icon']} />
+                <span className={styles['review-label']}>{t('booking.step3.labels.note')}</span>
+              </div>
+              <span className={styles['review-value']}>{contact.note}</span>
+            </div>
+          )}
         </div>
 
         {/* Guests Information Review */}
@@ -306,7 +306,7 @@ const GenderIcon = ({ className = '' }) => (
           <CreditCard className={styles['title-icon']} />
           {t('booking.step3.sections.paymentSummary')}
         </h3>
-        
+
         <div className={styles['payment-summary']}>
           {/* Tổng tiền tour - tính từ members (adult, child, infant) */}
           <div className={styles['payment-row']}>
@@ -317,30 +317,35 @@ const GenderIcon = ({ className = '' }) => (
               {formatCurrency(plan.price?.total || plan.total || 0)}
             </span>
           </div>
-          
-          {/* Tiền cọc (nếu không phải 100%) */}
-          {tour?.depositPercentage && tour.depositPercentage < 100 && (
-            <>
-              <div className={styles['payment-row']}>
-                <span className={styles['payment-label']}>
-                  {t('booking.step3.payment.depositAmount')} ({tour.depositPercentage}%)
-                </span>
-                <span className={styles['payment-value']}>
-                  {formatCurrency((plan.price?.total || plan.total || 0) * tour.depositPercentage / 100)}
-                </span>
-              </div>
-              
-              <div className={styles['payment-row']}>
-                <span className={styles['payment-label']}>
-                  {t('booking.step3.payment.balanceAmount')}
-                </span>
-                <span className={styles['payment-value']}>
-                  {formatCurrency((plan.price?.total || plan.total || 0) * (100 - tour.depositPercentage) / 100)}
-                </span>
-              </div>
-            </>
-          )}
-          
+
+          {/* Deposit and Remaining - Always show to preview payment breakdown */}
+          <div className={styles['payment-row']}>
+            <span className={styles['payment-label']}>
+              {t('booking.step3.payment.depositAmount')}
+              {tour?.depositPercentage && ` (${tour.depositPercentage}%)`}
+            </span>
+            <span className={styles['payment-value']}>
+              {formatCurrency(
+                tour?.depositPercentage && tour.depositPercentage < 100
+                  ? (plan.price?.total || plan.total || 0) * tour.depositPercentage / 100
+                  : plan.price?.total || plan.total || 0
+              )}
+            </span>
+          </div>
+
+          <div className={styles['payment-row']}>
+            <span className={styles['payment-label']}>
+              {t('booking.step3.payment.balanceAmount')}
+            </span>
+            <span className={styles['payment-value']}>
+              {formatCurrency(
+                tour?.depositPercentage && tour.depositPercentage < 100
+                  ? (plan.price?.total || plan.total || 0) * (100 - tour.depositPercentage) / 100
+                  : 0
+              )}
+            </span>
+          </div>
+
           {/* Voucher Placeholder - DISABLED */}
           <div className={styles['voucher-placeholder']}>
             <div className={styles['voucher-header']}>
@@ -352,7 +357,7 @@ const GenderIcon = ({ className = '' }) => (
               <span>{t('booking.step3.payment.voucherNotAvailable')}</span>
             </div>
           </div>
-          
+
           {/* Số tiền thanh toán lần đầu */}
           <div className={`${styles['payment-row']} ${styles['payment-due']}`}>
             <span className={styles['payment-label']}>
