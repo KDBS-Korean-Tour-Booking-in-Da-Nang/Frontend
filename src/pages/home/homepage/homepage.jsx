@@ -138,28 +138,127 @@ const Homepage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Prepare tours data for slider
-  const toursList = useMemo(() => {
-    return Array.isArray(tours) ? tours : [];
-  }, [tours]);
+  // Fetch and calculate Top Tours based on bookings and 5-star ratings
+  const [topTours, setTopTours] = useState([]);
+  const [topToursLoading, setTopToursLoading] = useState(false);
+
+  useEffect(() => {
+    const calculateTopTours = async () => {
+      if (!tours || tours.length === 0) {
+        setTopTours([]);
+        return;
+      }
+
+      // Filter only PUBLIC tours
+      const publicTours = tours.filter(tour => tour.tourStatus === 'PUBLIC');
+
+      if (publicTours.length === 0) {
+        setTopTours([]);
+        return;
+      }
+
+      setTopToursLoading(true);
+      try {
+        const token = getToken && getToken();
+        const toursWithScores = await Promise.all(
+          publicTours.map(async (tour) => {
+            try {
+              // Fetch bookings count
+              let bookingCount = 0;
+              try {
+                const bookingRes = await fetch(
+                  API_ENDPOINTS.BOOKING_BY_TOUR_ID(tour.id),
+                  token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+                );
+                if (bookingRes.ok) {
+                  const bookings = await bookingRes.json();
+                  bookingCount = Array.isArray(bookings) ? bookings.length : 0;
+                }
+              } catch (err) {
+                // Failed to fetch bookings for tour
+              }
+
+              // Fetch ratings
+              let fiveStarRatings = 0;
+              let averageRating = 0;
+              try {
+                const ratingRes = await fetch(
+                  API_ENDPOINTS.TOUR_RATED_BY_TOUR(tour.id),
+                  token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+                );
+                if (ratingRes.ok) {
+                  const ratings = await ratingRes.json();
+                  if (Array.isArray(ratings) && ratings.length > 0) {
+                    fiveStarRatings = ratings.filter((r) => Number(r.star) === 5).length;
+                    // Calculate average rating
+                    const sum = ratings.reduce((acc, r) => acc + (Number(r.star) || 0), 0);
+                    averageRating = sum / ratings.length;
+                  }
+                }
+              } catch (err) {
+                // Failed to fetch ratings for tour
+              }
+
+              // Calculate score: booking count + 5-star ratings count
+              const score = bookingCount + fiveStarRatings;
+
+              return {
+                ...tour,
+                bookingCount,
+                fiveStarRatings,
+                averageRating: Number.isFinite(averageRating) ? Math.round(averageRating * 10) / 10 : 0,
+                score,
+              };
+            } catch (error) {
+              return {
+                ...tour,
+                bookingCount: 0,
+                fiveStarRatings: 0,
+                averageRating: 0,
+                score: 0,
+              };
+            }
+          })
+        );
+
+        // Sort by score (descending) - show ALL tours, not just top 3
+        const sorted = toursWithScores.sort((a, b) => b.score - a.score);
+
+        setTopTours(sorted);
+      } catch (error) {
+        // Silently handle error calculating top tours
+        setTopTours([]);
+      } finally {
+        setTopToursLoading(false);
+      }
+    };
+
+    // Calculate top tours when tours are loaded
+    if (tours && tours.length > 0) {
+      calculateTopTours();
+    } else {
+      setTopTours([]);
+      setTopToursLoading(false);
+    }
+  }, [tours, getToken]);
 
   const showingOnlyDefaultTours = useMemo(() => {
-    return !toursLoading && (toursList.length === 0 || Boolean(toursError));
-  }, [toursError, toursList.length, toursLoading]);
+    return !toursLoading && !topToursLoading && (topTours.length === 0 || Boolean(toursError));
+  }, [toursError, topTours.length, toursLoading, topToursLoading]);
 
   const displayTours = useMemo(() => {
     if (showingOnlyDefaultTours) {
       return defaultTours;
     }
 
-    const validTours = toursList.filter(Boolean);
+    const validTours = topTours.filter(Boolean);
     if (validTours.length >= 3) {
       return validTours;
     }
 
     const neededDefaults = Math.max(0, 3 - validTours.length);
     return [...validTours, ...defaultTours.slice(0, neededDefaults)];
-  }, [defaultTours, showingOnlyDefaultTours, toursList]);
+  }, [defaultTours, showingOnlyDefaultTours, topTours]);
   const totalDisplayTours = displayTours.length;
 
   // Apply padding callback for slider
@@ -254,17 +353,16 @@ const Homepage = () => {
     };
   }, [totalDisplayTours, applySliderPadding]);
 
-  // Fetch average rating for all tours
+  // Fetch average rating for all tours (for display in carousel)
   useEffect(() => {
     const controller = new AbortController();
     const fetchRatings = async () => {
-      const ids = toursList.filter((t) => t && t.id).map((t) => t.id);
-      if (ids.length === 0) return setPageRatings({});
+      const ids = topTours.filter((t) => t && t.id && !t.averageRating).map((t) => t.id);
+      if (ids.length === 0) return;
 
-      // Skip fetching ratings if not authenticated and endpoint requires auth
+      // Use already calculated ratings from topTours, only fetch if missing
       const token = getToken && getToken();
       if (!token) {
-        setPageRatings({});
         return;
       }
       try {
@@ -301,7 +399,7 @@ const Homepage = () => {
     };
     fetchRatings();
     return () => controller.abort();
-  }, [toursList, getToken]);
+  }, [topTours, getToken]);
 
 
   // GSAP animations - optimized for faster initial display (defer to next frame)
@@ -642,16 +740,19 @@ const Homepage = () => {
 
                 {/* Destination Carousel with React Slick */}
                 <div className="destinations-slider-wrapper mb-8 max-w-5xl mx-auto relative" style={{ zIndex: 1, overflow: 'visible' }}>
-                  {toursLoading ? (
+                  {(toursLoading || topToursLoading) ? (
                     <div className="text-center py-12 text-gray-500">{t('home.destinations.loading', 'Đang tải danh sách tour...')}</div>
                   ) : totalDisplayTours > 0 ? (
                     <Slider ref={sliderRef} {...sliderSettings} className="destinations-slider">
                       {displayTours.map((item) => {
-                        const ratingValue = item?.id && pageRatings[item.id] != null
-                          ? Number(pageRatings[item.id]).toFixed(1)
-                          : item?.rating != null
-                            ? Number(item.rating).toFixed(1)
-                            : '0.0';
+                        // Use averageRating from Top Tours calculation first
+                        const ratingValue = item?.averageRating != null
+                          ? Number(item.averageRating).toFixed(1)
+                          : item?.id && pageRatings[item.id] != null
+                            ? Number(pageRatings[item.id]).toFixed(1)
+                            : item?.rating != null
+                              ? Number(item.rating).toFixed(1)
+                              : '0.0';
 
                         return (
                           <div key={item.id} className="px-4">

@@ -419,6 +419,24 @@
 }
 
 @media (min-width: 1024px) {
+
+  /* Sidebar is visible, so we keep 2 columns for stats to prevent squeezing */
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    /* Keep 1 column for charts on smaller laptops */
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    /* Stack info cards if needed, or keep 2 if they fit */
+  }
+}
+
+@media (min-width: 1280px) {
   .statsGrid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -426,5 +444,8 @@
   .chartsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
 
+  .infoGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

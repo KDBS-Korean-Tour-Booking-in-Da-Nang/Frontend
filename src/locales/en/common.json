@@ -3792,7 +3792,7 @@
 				"totalAmount": "Total Tour Price",
 				"depositAmount": "Deposit Required",
 				"balanceAmount": "Balance (to be paid after approval)",
-				"paymentDue": "Amount Due Now",
+				"paymentDue": "Amount to Pay",
 				"voucher": "Voucher Code",
 				"voucherNotAvailable": "Feature coming soon"
 			},

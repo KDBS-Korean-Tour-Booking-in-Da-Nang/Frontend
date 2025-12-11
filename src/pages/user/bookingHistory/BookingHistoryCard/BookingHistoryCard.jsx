@@ -235,15 +235,14 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     setCancelError(null);
     setCancelPreview(null);
     setHasConfirmedCancel(false);
+    setShowCancelModal(true); // Open modal immediately
 
     try {
       const preview = await previewCancelBooking(booking.bookingId);
       setCancelPreview(preview);
-      setShowCancelModal(true);
     } catch (error) {
       console.error('Error previewing cancel:', error);
       setCancelError(error.message || 'Không thể tải thông tin hoàn tiền. Vui lòng thử lại.');
-      setShowCancelModal(true);
     } finally {
       setIsLoadingPreview(false);
     }
@@ -325,12 +324,12 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                     </div>
                     <div className={styles['refund-item']}>
                       <span>{t('bookingHistory.cancel.refundAmount', 'Số tiền hoàn lại')}:</span>
-                      <strong>{formatCurrency(cancelPreview.refundAmount || 0)}</strong>
+                      <strong>{formatKRW(cancelPreview.refundAmount || 0)}</strong>
                     </div>
                     {cancelPreview.payedAmount && (
                       <div className={styles['refund-item']}>
                         <span>{t('bookingHistory.cancel.payedAmount', 'Số tiền đã thanh toán')}:</span>
-                        <span>{formatCurrency(cancelPreview.payedAmount)}</span>
+                        <span>{formatKRW(cancelPreview.payedAmount)}</span>
                       </div>
                     )}
                   </div>
@@ -379,7 +378,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 {cancelPreview && (
                   <>
                     <strong>{cancelPreview.refundPercentage || 0}%</strong>
-                    {' '}(<strong>{formatCurrency(cancelPreview.refundAmount || 0)}</strong>)
+                    {' '}(<strong>{formatKRW(cancelPreview.refundAmount || 0)}</strong>)
                   </>
                 )}{' '}
                 {t('bookingHistory.cancel.successTail', 'sẽ được chuyển theo phương thức thanh toán ban đầu.')}
@@ -543,10 +542,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 type="button"
                 disabled={isLoadingPreview}
               >
-                {isLoadingPreview
-                  ? t('bookingHistory.card.loading', 'Đang tải...')
-                  : t('bookingHistory.card.cancelBooking', 'Hủy booking')
-                }
+                {t('bookingHistory.card.cancelBooking', 'Hủy booking')}
               </button>
             )}
             <button

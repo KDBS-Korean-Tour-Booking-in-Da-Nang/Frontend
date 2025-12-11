@@ -449,29 +449,33 @@ const TourManagement = () => {
                     </div>
 
                     <div className={styles['tour-details']}>
-                      <div className={styles['detail-item']}>
-                        <ClockIcon className={styles['detail-icon']} />
-                        <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
-                      </div>
-                      {formatAdvanceDays(tour) && (
+                      <div className={styles['detail-column']}>
                         <div className={styles['detail-item']}>
                           <ClockIcon className={styles['detail-icon']} />
-                          <span className={styles['detail-value']}>{formatAdvanceDays(tour)}</span>
+                          <span className={styles['detail-value']}>{formatDuration(tour.tourDuration)}</span>
                         </div>
-                      )}
-                      {formatDeposit(tour) && (
-                        <div className={styles['detail-item']}>
-                          <ClockIcon className={styles['detail-icon']} />
-                          <span className={styles['detail-value']}>{t('tourWizard.step4.preview.fields.depositPercentage', 'Deposit')}: {formatDeposit(tour)}</span>
-                        </div>
-                      )}
-                      <div className={styles['detail-item']}>
-                        <UserGroupIcon className={styles['detail-icon']} />
-                        <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
+                        {formatAdvanceDays(tour) && (
+                          <div className={styles['detail-item']}>
+                            <ClockIcon className={styles['detail-icon']} />
+                            <span className={styles['detail-value']}>{formatAdvanceDays(tour)}</span>
+                          </div>
+                        )}
+                        {formatDeposit(tour) && (
+                          <div className={styles['detail-item']}>
+                            <ClockIcon className={styles['detail-icon']} />
+                            <span className={styles['detail-value']}>{t('tourWizard.step4.preview.fields.depositPercentage', 'Deposit')}: {formatDeposit(tour)}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className={styles['detail-item']}>
-                        <MapPinIcon className={styles['detail-icon']} />
-                        <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
+                      <div className={styles['detail-column']}>
+                        <div className={styles['detail-item']}>
+                          <UserGroupIcon className={styles['detail-icon']} />
+                          <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
+                        </div>
+                        <div className={styles['detail-item']}>
+                          <MapPinIcon className={styles['detail-icon']} />
+                          <span className={styles['detail-value']}>{localizeDeparturePoint(tour.tourDeparturePoint)}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -571,7 +575,7 @@ const TourManagement = () => {
 
       {/* Delete Request Modal with Note Input - Minimal Soft Korean Style */}
       {deleteModalOpen && createPortal(
-        <div 
+        <div
           className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
           style={{
             background: 'rgba(0, 0, 0, 0.25)',
@@ -579,7 +583,7 @@ const TourManagement = () => {
             WebkitBackdropFilter: 'blur(8px)'
           }}
         >
-          <div 
+          <div
             className="w-full max-w-md overflow-hidden"
             style={{
               background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)',
@@ -592,7 +596,7 @@ const TourManagement = () => {
             {/* Modal Content */}
             <div style={{ padding: '32px 28px 28px' }}>
               {/* Icon Container - Soft pastel background */}
-              <div 
+              <div
                 className="mx-auto mb-5 flex items-center justify-center"
                 style={{
                   width: '72px',
@@ -602,18 +606,18 @@ const TourManagement = () => {
                   border: '1px solid rgba(239, 68, 68, 0.1)'
                 }}
               >
-                <TrashIcon 
-                  style={{ 
-                    width: '28px', 
-                    height: '28px', 
+                <TrashIcon
+                  style={{
+                    width: '28px',
+                    height: '28px',
                     color: '#ef4444',
                     strokeWidth: '1.5'
-                  }} 
+                  }}
                 />
               </div>
 
               {/* Title */}
-              <h3 
+              <h3
                 className="text-center mb-2"
                 style={{
                   fontSize: '20px',
@@ -626,7 +630,7 @@ const TourManagement = () => {
               </h3>
 
               {/* Description */}
-              <p 
+              <p
                 className="text-center mb-5"
                 style={{
                   fontSize: '14px',
@@ -639,7 +643,7 @@ const TourManagement = () => {
 
               {/* Note Input Section */}
               <div style={{ marginBottom: '24px' }}>
-                <label 
+                <label
                   className="block mb-2"
                   style={{
                     fontSize: '13px',
