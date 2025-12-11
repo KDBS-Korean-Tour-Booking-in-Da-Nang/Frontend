@@ -32,10 +32,11 @@ export const calcPriceBreakdown = ({ adult, child, infant }) => {
 };
 
 /**
- * Format price to Vietnamese currency
+ * Format price to Korean Won currency
  * @param {number} price - Price in VND
- * @returns {string} Formatted price string
+ * @returns {string} Formatted price string in KRW
  */
 export const formatPrice = (price) => {
-  return price.toLocaleString('vi-VN') + ' VND';
+  const krwPrice = Math.round(price / 18);
+  return krwPrice.toLocaleString('ko-KR') + ' KRW';
 };

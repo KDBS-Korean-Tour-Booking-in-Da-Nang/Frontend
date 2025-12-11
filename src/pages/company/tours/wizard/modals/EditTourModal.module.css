@@ -1,12 +1,13 @@
-/* Edit Tour Modal Styles */
+/* Edit Tour Modal Styles - Minimal Soft Korean Style */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -16,18 +17,18 @@
 }
 
 .edit-tour-modal {
-  background: white;
-  border-radius: 28px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+  border-radius: 32px;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.06), 0 15px 40px rgba(0, 0, 0, 0.03);
   width: 900px;
   max-width: 90vw;
-  height: 85vh;
-  max-height: 85vh;
+  height: 90vh;
+  max-height: 90vh;
   min-height: 600px;
   display: flex;
   flex-direction: column;
-  animation: modalSlideIn 0.3s ease-out;
-  border: 1px solid #f0f0f0;
+  animation: modalSlideIn 0.35s ease-out;
+  border: 1px solid rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
@@ -36,6 +37,7 @@
     opacity: 0;
     transform: translateY(-20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -46,39 +48,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 28px;
-  border-bottom: 1px solid #f0f0f0;
-  background: #fafafa;
-  border-radius: 28px 28px 0 0;
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: linear-gradient(145deg, #fefefe 0%, #f9fafb 100%);
+  border-radius: 32px 32px 0 0;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
-  color: #1e293b;
-  letter-spacing: -0.02em;
+  color: #1a1a2e;
+  letter-spacing: -0.03em;
 }
 
 .close-btn {
-  background: #f8fafc;
-  border: none;
-  font-size: 1.5rem;
-  color: #64748b;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  font-size: 1.4rem;
+  color: #9ca3af;
   cursor: pointer;
   padding: 8px;
-  border-radius: 20px;
-  width: 36px;
-  height: 36px;
+  border-radius: 14px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .close-btn:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: rgba(0, 0, 0, 0.06);
+  color: #374151;
+  transform: scale(1.05);
 }
 
 .edit-form {
@@ -253,17 +256,47 @@
   background: #374151;
 }
 
-.left-align .line:nth-child(1) { width: 4px; }
-.left-align .line:nth-child(2) { width: 6px; }
-.left-align .line:nth-child(3) { width: 8px; }
+.left-align .line:nth-child(1) {
+  width: 4px;
+}
 
-.center-align .line:nth-child(1) { width: 3px; margin: 0 auto; }
-.center-align .line:nth-child(2) { width: 6px; margin: 0 auto; }
-.center-align .line:nth-child(3) { width: 3px; margin: 0 auto; }
+.left-align .line:nth-child(2) {
+  width: 6px;
+}
 
-.right-align .line:nth-child(1) { width: 8px; margin-left: auto; }
-.right-align .line:nth-child(2) { width: 6px; margin-left: auto; }
-.right-align .line:nth-child(3) { width: 4px; margin-left: auto; }
+.left-align .line:nth-child(3) {
+  width: 8px;
+}
+
+.center-align .line:nth-child(1) {
+  width: 3px;
+  margin: 0 auto;
+}
+
+.center-align .line:nth-child(2) {
+  width: 6px;
+  margin: 0 auto;
+}
+
+.center-align .line:nth-child(3) {
+  width: 3px;
+  margin: 0 auto;
+}
+
+.right-align .line:nth-child(1) {
+  width: 8px;
+  margin-left: auto;
+}
+
+.right-align .line:nth-child(2) {
+  width: 6px;
+  margin-left: auto;
+}
+
+.right-align .line:nth-child(3) {
+  width: 4px;
+  margin-left: auto;
+}
 
 .reset-title-btn {
   background: rgba(255, 255, 255, 0.2);
@@ -418,9 +451,9 @@
 .hue-slider {
   width: 200px;
   height: 20px;
-  background: linear-gradient(to right, 
-    #ff0000, #ffff00, #00ff00, #00ffff, 
-    #0000ff, #ff00ff, #ff0000);
+  background: linear-gradient(to right,
+      #ff0000, #ffff00, #00ff00, #00ffff,
+      #0000ff, #ff00ff, #ff0000);
   border-radius: 10px;
   cursor: pointer;
   position: relative;
@@ -716,12 +749,14 @@
   border: 2px solid #f0f0f0;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-left: 0.3125rem;
 }
 
 .image-preview:hover {
   border-color: #1a8eea;
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(26, 142, 234, 0.2);
+  margin-left: 0.3125rem;
 }
 
 .image-preview.clickable {
@@ -733,6 +768,7 @@
   height: 150px;
   object-fit: cover;
   display: block;
+
 }
 
 .image-overlay {
@@ -885,56 +921,104 @@
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: flex-end;
-  padding: 20px 28px;
-  border-top: 1px solid #f0f0f0;
-  background: #fafafa;
-  border-radius: 0 0 28px 28px;
+  padding: 24px 32px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  background: linear-gradient(145deg, #fefefe 0%, #f9fafb 100%);
+  border-radius: 0 0 32px 32px;
   flex-shrink: 0;
   margin: 0 -28px -28px -28px;
 }
 
 .btn-cancel,
 .btn-save {
-  padding: 12px 24px;
+  padding: 14px 28px;
   border-radius: 20px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   border: none;
   outline: none;
+  letter-spacing: -0.01em;
 }
 
 .btn-cancel {
   background: #ffffff;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  color: #6b7280;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .btn-cancel:hover {
-  background: #f8fafc;
-  color: #1e293b;
-  border-color: #cbd5e1;
+  background: #f9fafb;
+  color: #374151;
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 .btn-save {
   background: linear-gradient(135deg, #1a8eea 0%, #3b82f6 100%);
   color: white;
-  box-shadow: 0 2px 8px rgba(26, 142, 234, 0.2);
+  box-shadow: 0 6px 20px rgba(26, 142, 234, 0.2);
 }
 
 .btn-save:hover:not(:disabled) {
   background: linear-gradient(135deg, #1478c3 0%, #2563eb 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(26, 142, 234, 0.28);
 }
 
 .btn-save:disabled {
-  background: #9ca3af;
+  background: #d1d5db;
+  color: #9ca3af;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+/* Update Note Section - Minimal Soft Korean Style */
+.update-note-section {
+  background: linear-gradient(145deg, #fffdf5 0%, #fff8e6 100%);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 24px;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.update-note-section label {
+  display: block;
+  font-weight: 600;
+  color: #a16207;
+  margin-bottom: 12px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.update-note-textarea {
+  width: 100%;
+  padding: 16px 18px;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 20px;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.85);
+  color: #374151;
+  box-sizing: border-box;
+}
+
+.update-note-textarea:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.12);
+  background: white;
+}
+
+.update-note-textarea::placeholder {
+  color: #ca8a04;
+  opacity: 0.6;
 }
 
 /* Responsive Design */
@@ -950,37 +1034,37 @@
     padding: 10px;
     padding-top: 3vh;
   }
-  
+
   .edit-tour-modal {
     width: 95vw;
     max-width: 95vw;
     height: 90vh;
     min-height: 500px;
   }
-  
+
   .modal-header {
     padding: 16px 20px;
   }
-  
+
   .modal-header h2 {
     font-size: 1.25rem;
   }
-  
+
   .edit-form {
     padding: 20px;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
+
   .modal-actions {
     flex-direction: column;
     margin: 0 -20px -20px -20px;
     padding: 16px 20px;
   }
-  
+
   .btn-cancel,
   .btn-save {
     width: 100%;
@@ -991,15 +1075,15 @@
   .modal-header {
     padding: 12px 16px;
   }
-  
+
   .edit-form {
     padding: 16px;
   }
-  
+
   .form-section {
     margin-bottom: 1.5rem;
   }
-  
+
   .modal-actions {
     margin: 0 -16px -16px -16px;
     padding: 12px 16px;
@@ -1009,12 +1093,12 @@
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .current-image {
     flex: none;
     width: 100%;
   }
-  
+
   .preview-image,
   .no-image {
     width: 100%;

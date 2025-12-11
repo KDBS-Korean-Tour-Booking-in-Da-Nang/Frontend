@@ -65,35 +65,35 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const [showTranslated, setShowTranslated] = useState(false);
   const [translateError, setTranslateError] = useState('');
   const [showAllHashtags, setShowAllHashtags] = useState(false);
-  
+
   // Cache for resolved image URLs to avoid repeated processing
   const imageUrlCache = useRef(new Map());
-  
+
   // Resolve image URL helper function
   const resolveImageUrl = (imgPath) => {
     if (!imgPath) return '';
     if (typeof imgPath !== 'string') return '';
-    
+
     // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
     const trimmed = imgPath.trim();
     if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
       return trimmed.substring(1); // Loại bỏ dấu / ở đầu và return luôn
     }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-    
+
     // Check cache first
     if (imageUrlCache.current.has(imgPath)) {
       return imageUrlCache.current.get(imgPath);
     }
-    
+
     const normalized = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
     const resolvedUrl = getImageUrl(normalized);
-    
+
     // Cache the resolved URL
     imageUrlCache.current.set(imgPath, resolvedUrl);
     return resolvedUrl;
   };
-  
+
   // Resolve image URLs immediately on mount to avoid re-render delay
   const initialImageSources = useMemo(() => {
     if (post.images && post.images.length > 0) {
@@ -104,7 +104,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     }
     return [];
   }, [post.images]);
-  
+
   const [imageSources, setImageSources] = useState(initialImageSources);
 
   // Update image sources when post images change (e.g., after edit)
@@ -121,12 +121,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     if (post.reactions?.dislikeCount !== undefined && post.reactions.dislikeCount !== null) {
       setDislikeCount(post.reactions.dislikeCount);
     }
-    
+
     // Update save count if provided in post
     if (post.saveCount !== undefined && post.saveCount !== null) {
       setSaveCount(post.saveCount);
     }
-    
+
     // Update comment count if provided in post
     if (post.comments !== undefined) {
       setCommentCount(post.comments.length || 0);
@@ -143,10 +143,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   useEffect(() => {
     // Use initial data from API response if available, only fetch if missing
     const hasReactionData = post.reactions && (
-      (post.reactions.likeCount !== undefined && post.reactions.likeCount !== null) || 
+      (post.reactions.likeCount !== undefined && post.reactions.likeCount !== null) ||
       (post.reactions.dislikeCount !== undefined && post.reactions.dislikeCount !== null)
     );
-    
+
     // Only fetch if we don't have initial data or need user-specific reaction status
     if (!hasReactionData || (user && !post.reactions?.userReaction)) {
       fetchReactionSummary();
@@ -155,12 +155,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setIsLiked(post.reactions.userReaction === 'LIKE');
       setIsDisliked(post.reactions.userReaction === 'DISLIKE');
     }
-    
+
     // Only fetch save count if not provided in initial data
     if (post.saveCount === undefined || post.saveCount === null) {
       fetchSaveCount();
     }
-    
+
     // Only check user-specific data if user is logged in (defer to avoid blocking)
     if (user) {
       // Use requestIdleCallback to defer non-critical user data fetching
@@ -168,7 +168,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         checkIfSaved();
         checkIfReported();
       };
-      
+
       if (window.requestIdleCallback) {
         window.requestIdleCallback(fetchUserData, { timeout: 2000 });
       } else {
@@ -192,7 +192,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       }
       return;
     }
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -234,9 +234,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       let match = null;
       if (meta && meta.linkType === 'TOUR' && (meta.linkRefId || meta.linkUrl)) {
         const urlStr = String(meta.linkUrl || '');
-        const idFromMeta = meta.linkRefId || 
-                         urlStr.match(/\/tour\/detail[?&]id=(\d+)/)?.[1] || 
-                         urlStr.match(/\/tour\/(\d+)/)?.[1];
+        const idFromMeta = meta.linkRefId ||
+          urlStr.match(/\/tour\/detail[?&]id=(\d+)/)?.[1] ||
+          urlStr.match(/\/tour\/(\d+)/)?.[1];
         if (idFromMeta) return idFromMeta;
       }
       const text = String(post.content || '');
@@ -275,19 +275,19 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             summary: data.summary || data.tourDescription,
             image: imageUrl
           };
-          
+
           // Preload tour preview image immediately
           if (imageUrl) {
             const img = new Image();
             img.src = imageUrl;
           }
-          
+
           setTourLinkPreview(preview);
         })
         .catch(() => setTourLinkPreview(null))
         .finally(() => setIsLoadingTourPreview(false));
     };
-    
+
     // Load immediately for first post or posts in viewport
     if (isFirstPost || imagesInViewport) {
       loadTourPreview();
@@ -349,7 +349,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   );
 
   // Check if user can manage forum reports (admin/staff)
-  const canManageForumReports = user?.role === 'ADMIN' || 
+  const canManageForumReports = user?.role === 'ADMIN' ||
     (user?.role === 'STAFF' && user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT');
 
   const handleLike = async () => {
@@ -385,13 +385,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
-        
+
         // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
         }
-        
+
         if (response.ok) {
           setIsLiked(true);
           if (isDisliked) {
@@ -437,13 +437,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
-        
+
         // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
         }
-        
+
         if (response.ok) {
           setIsDisliked(true);
           setDislikeCount(prev => prev + 1);
@@ -475,7 +475,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         const summary = await response.json();
         setLikeCount(summary.likeCount || 0);
         setDislikeCount(summary.dislikeCount || 0);
-        
+
         // Set user's reaction status if logged in
         if (user && summary.userReaction) {
           setIsLiked(summary.userReaction === 'LIKE');
@@ -492,7 +492,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
       const email = user?.email || localStorage.getItem('email') || '';
-      
+
       const response = await fetch(API_ENDPOINTS.SAVED_POSTS_CHECK(post.forumPostId), {
         headers: {
           'User-Email': email,
@@ -529,7 +529,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       const response = await fetch(
         `${API_ENDPOINTS.REPORTS_CHECK}?userEmail=${encodeURIComponent(email)}&targetType=POST&targetId=${post.forumPostId}`
       );
-      
+
       if (response.ok) {
         const hasReportedResult = await response.json();
         setHasReported(hasReportedResult);
@@ -543,16 +543,16 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     if (!user) {
       return;
     }
-    
+
     // Get authentication token
     const token = getToken();
     const email = user?.email || localStorage.getItem('email') || '';
-    
+
     if (!email) {
       alert(t('forum.errors.unauthorized'));
       return;
     }
-    
+
     try {
       if (isSaved) {
         // Unsave post
@@ -560,13 +560,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           method: 'DELETE',
           headers: createAuthHeaders(token, { 'User-Email': email })
         });
-        
+
         // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
         }
-        
+
         if (response.ok) {
           setIsSaved(false);
           setSaveCount(prev => Math.max(0, prev - 1));
@@ -581,13 +581,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             note: ''
           })
         });
-        
+
         // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
         }
-        
+
         if (response.ok) {
           setIsSaved(true);
           setSaveCount(prev => prev + 1);
@@ -635,7 +635,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
   const handleBanConfirm = async (banReason) => {
     if (!post?.userId || !user) return;
-    
+
     try {
       const token = getToken();
       const response = await fetch(`${BaseURL}/api/staff/ban-user/${post.userId}`, {
@@ -682,7 +682,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
   const handleAdminDeleteConfirm = async () => {
     if (!post || !user) return;
-    
+
     try {
       const token = getToken();
       const response = await fetch(`${API_ENDPOINTS.POST_BY_ID(post.forumPostId)}?userEmail=${encodeURIComponent(user.email)}`, {
@@ -714,7 +714,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setShowMenu(false);
       return;
     }
-    
+
     if (hasReported) {
       alert(t('forum.modals.report.error'));
       setShowMenu(false);
@@ -728,7 +728,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     try {
       const token = getToken();
       const email = user?.email || localStorage.getItem('email') || '';
-      
+
       if (!email) {
         throw new Error(t('forum.errors.unauthorized'));
       }
@@ -744,14 +744,14 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         throw new Error(`${t('forum.modals.report.error')}: ${response.status} - ${errorText}`);
       }
 
-        const result = await response.json();
-      
+      const result = await response.json();
+
       // Update reported status
       setHasReported(true);
-      
+
       // Show success modal
       setShowReportSuccess(true);
-      
+
     } catch (error) {
       // Silently handle error reporting post
       throw error;
@@ -762,7 +762,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return t('forum.post.justNow');
     if (diffInMinutes < 60) return `${diffInMinutes} ${t('forum.post.minutes')} ${t('forum.post.ago')}`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} ${t('forum.post.hours')} ${t('forum.post.ago')}`;
@@ -779,12 +779,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   // Function to render content with clickable links
   const renderContentWithLinks = (content) => {
     if (!content) return '';
-    
+
     return content.split(/(\s+)/).map((part, index) => {
       const isUrl = /^https?:\/\/.+/.test(part.trim());
       if (isUrl) {
         return (
-          <a 
+          <a
             key={index}
             href={part.trim()}
             target="_blank"
@@ -845,28 +845,28 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       // Show loading skeleton while fetching
       if (isLoadingTourPreview || !tourLinkPreview) {
         return (
-          <div className={styles['pc-link-card']} style={{cursor: 'default'}}>
+          <div className={styles['pc-link-card']} style={{ cursor: 'default' }}>
             <div className={styles['pc-link-thumb']}>
-              <div className={styles['pc-link-thumb-placeholder']} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
-                <div style={{width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px'}}></div>
+              <div className={styles['pc-link-thumb-placeholder']} style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>
+                <div style={{ width: '100%', height: '100%', backgroundColor: '#f0f0f0', borderRadius: '8px' }}></div>
               </div>
             </div>
             <div className={styles['pc-link-meta']}>
-              <div className={styles['pc-link-title']} style={{backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
-              <div className={styles['pc-link-desc']} style={{backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite'}}></div>
+              <div className={styles['pc-link-title']} style={{ backgroundColor: '#f0f0f0', height: '20px', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite' }}></div>
+              <div className={styles['pc-link-desc']} style={{ backgroundColor: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s ease-in-out infinite' }}></div>
             </div>
           </div>
         );
       }
-      
+
       // Show actual tour preview
       if (tourLinkPreview) {
         return (
-          <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/detail?id=${tourLinkPreview.id}`)} style={{cursor: 'pointer'}}>
+          <div className={styles['pc-link-card']} onClick={() => navigate(`/tour/detail?id=${tourLinkPreview.id}`)} style={{ cursor: 'pointer' }}>
             <div className={styles['pc-link-thumb']}>
               {tourLinkPreview.image ? (
-                <img 
-                  src={tourLinkPreview.image} 
+                <img
+                  src={tourLinkPreview.image}
                   alt={tourLinkPreview.title}
                   loading={isFirstPost ? "eager" : "lazy"}
                   decoding="async"
@@ -887,7 +887,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       }
     }
     if (!post.images || post.images.length === 0) return null;
-    
+
     // Use resolved image sources (already resolved in useMemo)
     const imgs = imageSources.length > 0 ? imageSources : initialImageSources;
     const count = imgs.length;
@@ -897,10 +897,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       return (
         <div className={`${styles['pc-images']} ${styles['one']}`} ref={imageContainerRef}>
           {imgs[0] ? (
-            <img 
-              src={imgs[0]} 
-              alt="Post image" 
-              className={`${styles['pc-img']} ${styles['main']}`} 
+            <img
+              src={imgs[0]}
+              alt="Post image"
+              className={`${styles['pc-img']} ${styles['main']}`}
               loading={shouldEagerLoad ? "eager" : undefined}
               fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
               decoding="async"
@@ -919,10 +919,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       return (
         <div className={`${styles['pc-images']} ${styles['two']}`} ref={imageContainerRef}>
           {imgs[0] ? (
-            <img 
-              src={imgs[0]} 
-              alt="Post image 1" 
-              className={styles['pc-img']} 
+            <img
+              src={imgs[0]}
+              alt="Post image 1"
+              className={styles['pc-img']}
               loading={shouldEagerLoad ? "eager" : undefined}
               fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
               decoding="async"
@@ -933,10 +933,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             />
           ) : null}
           {imgs[1] ? (
-            <img 
-              src={imgs[1]} 
-              alt="Post image 2" 
-              className={styles['pc-img']} 
+            <img
+              src={imgs[1]}
+              alt="Post image 2"
+              className={styles['pc-img']}
               loading={shouldEagerLoad ? "eager" : undefined}
               decoding="async"
               onClick={() => { setViewerIndex(1); setOpenViewer(true); }}
@@ -956,10 +956,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     return (
       <div className={`${styles['pc-images']} ${styles['collage']}`} ref={imageContainerRef}>
         {imgs[0] ? (
-          <img 
-            src={imgs[0]} 
-            alt="Post image main" 
-            className={`${styles['pc-img']} ${styles['main']}`} 
+          <img
+            src={imgs[0]}
+            alt="Post image main"
+            className={`${styles['pc-img']} ${styles['main']}`}
             loading={shouldEagerLoad ? "eager" : undefined}
             fetchPriority={shouldEagerLoad && isFirstPost ? "high" : "auto"}
             decoding="async"
@@ -973,10 +973,10 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           {rest.map((src, idx) => (
             src ? (
               <div key={idx} className={styles['pc-thumb-wrap']}>
-                <img 
-                  src={src} 
-                  alt={`Post image ${idx + 2}`} 
-                  className={`${styles['pc-img']} ${styles['thumb']}`} 
+                <img
+                  src={src}
+                  alt={`Post image ${idx + 2}`}
+                  className={`${styles['pc-img']} ${styles['thumb']}`}
                   loading={shouldEagerLoad ? "eager" : undefined}
                   decoding="async"
                   onClick={() => { setViewerIndex(idx + 1); setOpenViewer(true); }}
@@ -997,342 +997,342 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
   return (
     <>
-    <div className={styles['post-card']} id={`post-${post.forumPostId}`} data-highlight={highlightPostId && String(highlightPostId) === String(post.forumPostId) ? 'true' : 'false'} data-admin-staff-view={isAdminStaffView ? 'true' : 'false'}>
-      <div className={styles['post-header']}>
-        <div className={styles['post-user-info']} ref={userInfoRef}>
-          <img 
-            src={resolveImageUrl(post.userAvatar) || defaultAvatar} 
-            alt={post.username}
-            className={styles['user-avatar']}
-          />
-          <div className={styles['user-details']}>
-            <div className={styles['username']}>{post.username}</div>
-            <div className={styles['post-time']}>{formatTime(post.createdAt)}</div>
+      <div className={styles['post-card']} id={`post-${post.forumPostId}`} data-highlight={highlightPostId && String(highlightPostId) === String(post.forumPostId) ? 'true' : 'false'} data-admin-staff-view={isAdminStaffView ? 'true' : 'false'}>
+        <div className={styles['post-header']}>
+          <div className={styles['post-user-info']} ref={userInfoRef}>
+            <img
+              src={resolveImageUrl(post.userAvatar) || defaultAvatar}
+              alt={post.username}
+              className={styles['user-avatar']}
+            />
+            <div className={styles['user-details']}>
+              <div className={styles['username']}>{post.username}</div>
+              <div className={styles['post-time']}>{formatTime(post.createdAt)}</div>
+            </div>
+            <UserHoverCard
+              user={{
+                username: post.username,
+                userAvatar: post.userAvatar,
+                userEmail: post.userEmail,
+                userId: post.userId
+              }}
+              triggerRef={userInfoRef}
+              position="bottom"
+            />
           </div>
-          <UserHoverCard 
-            user={{
-              username: post.username,
-              userAvatar: post.userAvatar,
-              userEmail: post.userEmail,
-              userId: post.userId
-            }}
-            triggerRef={userInfoRef}
-            position="bottom"
-          />
-        </div>
-        
-        <div className={styles['post-actions-header']}>
-          <div className={styles['save-section']}>
-            {user ? (
-              <button 
-                onClick={handleSavePost} 
-                className={`${styles['save-btn']} ${isSaved ? styles['saved'] : ''}`}
-                title={isSaved ? t('forum.post.unsave') : t('forum.post.save')}
-              >
-                {isSaved ? (
-                  <BookmarkCheck className={styles['bookmark-icon']} strokeWidth={1.6} />
-                ) : (
+
+          <div className={styles['post-actions-header']}>
+            <div className={styles['save-section']}>
+              {user ? (
+                <button
+                  onClick={handleSavePost}
+                  className={`${styles['save-btn']} ${isSaved ? styles['saved'] : ''}`}
+                  title={isSaved ? t('forum.post.unsave') : t('forum.post.save')}
+                >
+                  {isSaved ? (
+                    <BookmarkCheck className={styles['bookmark-icon']} strokeWidth={1.6} />
+                  ) : (
+                    <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
+                  )}
+                </button>
+              ) : (
+                <div
+                  className={styles['save-btn-disabled']}
+                  title={t('forum.guest.loginToSave')}
+                  onClick={() => setShowLoginRequiredModal(true)}
+                >
                   <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
-                )}
+                </div>
+              )}
+              <span className={styles['save-count']}>{saveCount}</span>
+            </div>
+
+            <div className={styles['post-menu']} ref={postMenuRef}>
+              <button
+                className={styles['menu-btn']}
+                onClick={handleMenuClick}
+              >
+                <MoreHorizontal className={styles['menu-icon']} strokeWidth={1.7} />
               </button>
-            ) : (
-              <div 
-                className={styles['save-btn-disabled']} 
-                title={t('forum.guest.loginToSave')}
+
+              {showMenu && (
+                <div className={styles['menu-dropdown']}>
+                  {(() => {
+                    // Admin/Staff view: show Ban and Delete post
+                    if (isAdminStaffView && canManageForumReports) {
+                      return (
+                        <>
+                          <button className={`${styles['menu-item']} ${styles['ban-item']}`}
+                            onClick={(e) => { e.stopPropagation(); handleBan(); }}>
+                            <ShieldOff className={styles['menu-item-icon']} strokeWidth={1.6} />
+                            {t('admin.customerManagement.actions.banUser') || 'Ban user'}
+                          </button>
+                          <button className={`${styles['menu-item']} ${styles['delete']}`}
+                            onClick={(e) => { e.stopPropagation(); handleAdminDelete(); }}>
+                            <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                            {t('forum.post.delete')}
+                          </button>
+                        </>
+                      );
+                    }
+
+                    // Normal user view: show edit/delete for owner, report for others
+                    if (isOwnPost) {
+                      return (
+                        <>
+                          <button onClick={handleEdit} className={styles['menu-item']}>
+                            <Edit3 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                            {t('forum.post.edit')}
+                          </button>
+                          <button onClick={handleDelete} className={`${styles['menu-item']} ${styles['delete']}`}>
+                            <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                            {t('forum.post.delete')}
+                          </button>
+                        </>
+                      );
+                    }
+
+                    return (
+                      <button
+                        onClick={handleReport}
+                        className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
+                        disabled={hasReported}
+                      >
+                        {hasReported ? (
+                          <>
+                            <CheckCircle2 className={styles['menu-item-icon']} strokeWidth={1.6} />
+                            {t('forum.modals.report.success')}
+                          </>
+                        ) : (
+                          <>
+                            <Flag className={styles['menu-item-icon']} strokeWidth={1.6} />
+                            {t('forum.post.report')}
+                          </>
+                        )}
+                      </button>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles['post-content']}>
+          {post.title && (
+            <h3 className={styles['post-title']}>{post.title}</h3>
+          )}
+          <p className={styles['post-text']}>
+            {renderContentWithLinks(
+              String(post.content || '')
+                .split(/\n+/)
+                .filter(line => {
+                  const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+                  // Match format 1: /tour/123 or http://domain/tour/123
+                  const regexOld = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/\\d+(?:[\\s\\?&#]|$)`);
+                  // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
+                  const regexNew = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=\\d+(?:[\\s&#]|$)`);
+                  return !line.trim().match(regexOld) && !line.trim().match(regexNew);
+                })
+                .join('\n')
+            )}
+          </p>
+          {showTranslated && translatedText && (
+            <div className={styles['post-translate-text']}>
+              {translatedText}
+            </div>
+          )}
+          {post.content && !tourId && (
+            <div className={styles['post-translate-row']}>
+              <button
+                type="button"
+                className={styles['post-translate-link']}
+                onClick={handleTranslateClick}
+                disabled={isTranslating}
+              >
+                {isTranslating
+                  ? t('forum.post.translating')
+                  : showTranslated && translatedText
+                    ? t('forum.post.hideTranslation')
+                    : t('forum.post.translate')}
+              </button>
+            </div>
+          )}
+          {translateError && (
+            <div className={styles['post-translate-error']}>
+              {translateError}
+            </div>
+          )}
+
+          {allHashtags.length > 0 && (
+            <div className={styles['post-hashtags']}>
+              {visibleHashtags.map((tag, index) => (
+                <span
+                  key={index}
+                  className={styles['hashtag']}
+                  onClick={() => onHashtagClick && onHashtagClick(tag.content)}
+                  title={t('forum.hashtag.clickToFilter')}
+                >
+                  #{tag.content}
+                </span>
+              ))}
+              {!showAllHashtags && hasMoreHashtags && (
+                <button
+                  type="button"
+                  className={styles['hashtag-more']}
+                  onClick={() => setShowAllHashtags(true)}
+                >
+                  ...
+                </button>
+              )}
+              {showAllHashtags && hasMoreHashtags && (
+                <button
+                  type="button"
+                  className={styles['hashtag-more']}
+                  onClick={() => setShowAllHashtags(false)}
+                >
+                  {t('forum.hashtag.showLess') || 'Thu gọn'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {renderImages()}
+        </div>
+
+        <div className={styles['post-actions']}>
+          {user ? (
+            <>
+              <button
+                className={`${styles['action-btn']} ${styles['like-btn']} ${isLiked ? styles['active'] : ''}`}
+                onClick={handleLike}
+              >
+                <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
+                <span className={styles['action-text']}>
+                  {t('forum.post.like')} ({likeCount})
+                </span>
+              </button>
+              <button
+                className={`${styles['action-btn']} ${styles['dislike-btn']} ${isDisliked ? styles['active'] : ''}`}
+                onClick={handleDislike}
+              >
+                <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
+                <span className={styles['action-text']}>
+                  {t('forum.post.dislike')} ({dislikeCount})
+                </span>
+              </button>
+
+              <button
+                className={`${styles['action-btn']} ${styles['comment-btn']}`}
+                onClick={() => setShowCommentInput(!showCommentInput)}
+              >
+                <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
+                <span className={styles['action-text']}>
+                  {t('forum.post.comment')} ({commentCount})
+                </span>
+              </button>
+            </>
+          ) : (
+            <div className={styles['guest-actions']}>
+              <div
+                className={`${styles['action-btn-disabled']} ${styles['like-btn-disabled']}`}
+                title={t('forum.guest.loginToReact')}
                 onClick={() => setShowLoginRequiredModal(true)}
               >
-                <Bookmark className={styles['bookmark-icon']} strokeWidth={1.6} />
+                <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
+                <span className={styles['action-text']}>
+                  {t('forum.post.like')} ({likeCount})
+                </span>
               </div>
-            )}
-            <span className={styles['save-count']}>{saveCount}</span>
-          </div>
-          
-          <div className={styles['post-menu']} ref={postMenuRef}>
-            <button 
-              className={styles['menu-btn']}
-              onClick={handleMenuClick}
-            >
-              <MoreHorizontal className={styles['menu-icon']} strokeWidth={1.7} />
-            </button>
-            
-            {showMenu && (
-              <div className={styles['menu-dropdown']}>
-                {(() => {
-                  // Admin/Staff view: show Ban and Delete post
-                  if (isAdminStaffView && canManageForumReports) {
-                    return (
-                      <>
-                        <button className={`${styles['menu-item']} ${styles['ban-item']}`}
-                                onClick={(e) => { e.stopPropagation(); handleBan(); }}>
-                          <ShieldOff className={styles['menu-item-icon']} strokeWidth={1.6} />
-                          {t('admin.customerManagement.actions.banUser') || 'Ban user'}
-                        </button>
-                        <button className={`${styles['menu-item']} ${styles['delete']}`}
-                                onClick={(e) => { e.stopPropagation(); handleAdminDelete(); }}>
-                          <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                          {t('forum.post.delete')}
-                        </button>
-                      </>
-                    );
-                  }
-                  
-                  // Normal user view: show edit/delete for owner, report for others
-                  if (isOwnPost) {
-                    return (
-                      <>
-                        <button onClick={handleEdit} className={styles['menu-item']}>
-                          <Edit3 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                          {t('forum.post.edit')}
-                        </button>
-                        <button onClick={handleDelete} className={`${styles['menu-item']} ${styles['delete']}`}>
-                          <Trash2 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                          {t('forum.post.delete')}
-                        </button>
-                      </>
-                    );
-                  }
-                  
-                  return (
-                    <button 
-                      onClick={handleReport} 
-                      className={`${styles['menu-item']} ${hasReported ? styles['reported'] : ''}`}
-                      disabled={hasReported}
-                    >
-                      {hasReported ? (
-                        <>
-                          <CheckCircle2 className={styles['menu-item-icon']} strokeWidth={1.6} />
-                          {t('forum.modals.report.success')}
-                        </>
-                      ) : (
-                        <>
-                          <Flag className={styles['menu-item-icon']} strokeWidth={1.6} />
-                          {t('forum.post.report')}
-                        </>
-                      )}
-                    </button>
-                  );
-                })()}
+              <div
+                className={`${styles['action-btn-disabled']} ${styles['dislike-btn-disabled']}`}
+                title={t('forum.guest.loginToReact')}
+                onClick={() => setShowLoginRequiredModal(true)}
+              >
+                <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
+                <span className={styles['action-text']}>
+                  {t('forum.post.dislike')} ({dislikeCount})
+                </span>
               </div>
-            )}
-          </div>
+              <div
+                className={`${styles['action-btn-disabled']} ${styles['comment-btn-disabled']}`}
+                title={t('forum.guest.loginToComment')}
+                onClick={() => setShowLoginRequiredModal(true)}
+              >
+                <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
+                <span className={styles['action-text']}>
+                  {t('forum.post.comment')} ({commentCount})
+                </span>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
 
-      <div className={styles['post-content']}>
-        {post.title && (
-          <h3 className={styles['post-title']}>{post.title}</h3>
-        )}
-         <p className={styles['post-text']}>
-           {renderContentWithLinks(
-             String(post.content || '')
-               .split(/\n+/)
-               .filter(line => {
-                 const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
-                 // Match format 1: /tour/123 or http://domain/tour/123
-                 const regexOld = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/\\d+(?:[\\s\\?&#]|$)`);
-                 // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
-                 const regexNew = new RegExp(`^(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=\\d+(?:[\\s&#]|$)`);
-                 return !line.trim().match(regexOld) && !line.trim().match(regexNew);
-               })
-               .join('\n')
-           )}
-         </p>
-        {showTranslated && translatedText && (
-          <div className={styles['post-translate-text']}>
-            {translatedText}
-          </div>
-        )}
-        {post.content && (
-          <div className={styles['post-translate-row']}>
-            <button
-              type="button"
-              className={styles['post-translate-link']}
-              onClick={handleTranslateClick}
-              disabled={isTranslating}
-            >
-              {isTranslating
-                ? t('forum.post.translating')
-                : showTranslated && translatedText
-                  ? t('forum.post.hideTranslation')
-                  : t('forum.post.translate')}
-            </button>
-          </div>
-        )}
-        {translateError && (
-          <div className={styles['post-translate-error']}>
-            {translateError}
-          </div>
-        )}
-        
-        {allHashtags.length > 0 && (
-          <div className={styles['post-hashtags']}>
-            {visibleHashtags.map((tag, index) => (
-              <span 
-                key={index} 
-                className={styles['hashtag']}
-                onClick={() => onHashtagClick && onHashtagClick(tag.content)}
-                title={t('forum.hashtag.clickToFilter')}
-              >
-                #{tag.content}
-              </span>
-            ))}
-            {!showAllHashtags && hasMoreHashtags && (
-              <button
-                type="button"
-                className={styles['hashtag-more']}
-                onClick={() => setShowAllHashtags(true)}
-              >
-                ...
-              </button>
-            )}
-            {showAllHashtags && hasMoreHashtags && (
-              <button
-                type="button"
-                className={styles['hashtag-more']}
-                onClick={() => setShowAllHashtags(false)}
-              >
-                {t('forum.hashtag.showLess') || 'Thu gọn'}
-              </button>
-            )}
-          </div>
-        )}
-        
-        {renderImages()}
+        <CommentSection
+          post={post}
+          onCommentAdded={handleCommentAdded}
+          onCountChange={handleCommentCountChange}
+          onLoginRequired={() => setShowLoginRequiredModal(true)}
+          showCommentInput={showCommentInput}
+          highlightCommentId={highlightCommentId}
+          onCommentInputToggle={setShowCommentInput}
+          isAdminStaffView={isAdminStaffView}
+        />
       </div>
+      <ImageViewerModal open={openViewer} onClose={() => setOpenViewer(false)} post={post} initialIndex={viewerIndex} />
 
-      <div className={styles['post-actions']}>
-        {user ? (
-          <>
-            <button 
-              className={`${styles['action-btn']} ${styles['like-btn']} ${isLiked ? styles['active'] : ''}`}
-              onClick={handleLike}
-            >
-              <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>
-                {t('forum.post.like')} ({likeCount})
-              </span>
-            </button>
-            <button 
-              className={`${styles['action-btn']} ${styles['dislike-btn']} ${isDisliked ? styles['active'] : ''}`}
-              onClick={handleDislike}
-            >
-              <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>
-                {t('forum.post.dislike')} ({dislikeCount})
-              </span>
-            </button>
-            
-            <button 
-              className={`${styles['action-btn']} ${styles['comment-btn']}`}
-              onClick={() => setShowCommentInput(!showCommentInput)}
-            >
-              <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>
-                {t('forum.post.comment')} ({commentCount})
-              </span>
-            </button>
-          </>
-        ) : (
-          <div className={styles['guest-actions']}>
-            <div 
-              className={`${styles['action-btn-disabled']} ${styles['like-btn-disabled']}`} 
-              title={t('forum.guest.loginToReact')}
-              onClick={() => setShowLoginRequiredModal(true)}
-            >
-              <ThumbsUp className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>
-                {t('forum.post.like')} ({likeCount})
-              </span>
-            </div>
-            <div 
-              className={`${styles['action-btn-disabled']} ${styles['dislike-btn-disabled']}`} 
-              title={t('forum.guest.loginToReact')}
-              onClick={() => setShowLoginRequiredModal(true)}
-            >
-              <ThumbsDown className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>
-                {t('forum.post.dislike')} ({dislikeCount})
-              </span>
-            </div>
-            <div 
-              className={`${styles['action-btn-disabled']} ${styles['comment-btn-disabled']}`} 
-              title={t('forum.guest.loginToComment')}
-              onClick={() => setShowLoginRequiredModal(true)}
-            >
-              <MessageCircle className={styles['action-icon']} strokeWidth={1.7} />
-              <span className={styles['action-text']}>
-                {t('forum.post.comment')} ({commentCount})
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <CommentSection 
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onReport={handleReportSubmit}
         post={post}
-        onCommentAdded={handleCommentAdded}
-        onCountChange={handleCommentCountChange}
-        onLoginRequired={() => setShowLoginRequiredModal(true)}
-        showCommentInput={showCommentInput}
-        highlightCommentId={highlightCommentId}
-        onCommentInputToggle={setShowCommentInput}
-        isAdminStaffView={isAdminStaffView}
       />
-    </div>
-    <ImageViewerModal open={openViewer} onClose={() => setOpenViewer(false)} post={post} initialIndex={viewerIndex} />
-    
-    <ReportModal 
-      isOpen={showReportModal}
-      onClose={() => setShowReportModal(false)}
-      onReport={handleReportSubmit}
-      post={post}
-    />
-    
-    <ReportSuccessModal 
-      isOpen={showReportSuccess}
-      onClose={() => setShowReportSuccess(false)}
-    />
-    
-    <LoginRequiredModal 
-      isOpen={showLoginRequiredModal}
-      onClose={() => setShowLoginRequiredModal(false)}
-      title={t('auth.loginRequired.title')}
-      message={t('auth.loginRequired.message')}
-      returnTo="/forum"
-    />
-    
-    <DeleteConfirmModal 
-      isOpen={showDeleteConfirmModal}
-      onClose={() => setShowDeleteConfirmModal(false)}
-      onConfirm={confirmDelete}
-      // Sử dụng text đa ngôn ngữ mặc định trong common.deleteConfirm.*
-      itemName={t('forum.post.title')}
-    />
-    
-    {/* Ban Reason Modal for admin/staff */}
-    {isAdminStaffView && canManageForumReports && (
-      <BanReasonModal
-        isOpen={banModalOpen}
-        onClose={() => setBanModalOpen(false)}
-        customer={{ userId: post?.userId, name: post?.username, email: post?.userEmail }}
-        onConfirm={handleBanConfirm}
+
+      <ReportSuccessModal
+        isOpen={showReportSuccess}
+        onClose={() => setShowReportSuccess(false)}
       />
-    )}
-    
-    {/* Delete Post Modal for admin/staff */}
-    {isAdminStaffView && canManageForumReports && (
+
+      <LoginRequiredModal
+        isOpen={showLoginRequiredModal}
+        onClose={() => setShowLoginRequiredModal(false)}
+        title={t('auth.loginRequired.title')}
+        message={t('auth.loginRequired.message')}
+        returnTo="/forum"
+      />
+
       <DeleteConfirmModal
-        isOpen={showAdminDeleteModal}
-        onClose={() => setShowAdminDeleteModal(false)}
-        onConfirm={handleAdminDeleteConfirm}
-        title={t('forum.post.deleteConfirm') || 'Xóa bài viết'}
-        message={t('forum.post.deleteConfirmMessage') || 'Bạn có chắc chắn muốn xóa bài viết này?'}
-        itemName={t('forum.post.title') || 'bài viết'}
-        confirmText={t('forum.post.delete') || 'Xóa'}
-        cancelText={t('forum.post.cancel') || 'Hủy'}
-        danger={true}
+        isOpen={showDeleteConfirmModal}
+        onClose={() => setShowDeleteConfirmModal(false)}
+        onConfirm={confirmDelete}
+        // Sử dụng text đa ngôn ngữ mặc định trong common.deleteConfirm.*
+        itemName={t('forum.post.title')}
       />
-    )}
+
+      {/* Ban Reason Modal for admin/staff */}
+      {isAdminStaffView && canManageForumReports && (
+        <BanReasonModal
+          isOpen={banModalOpen}
+          onClose={() => setBanModalOpen(false)}
+          customer={{ userId: post?.userId, name: post?.username, email: post?.userEmail }}
+          onConfirm={handleBanConfirm}
+        />
+      )}
+
+      {/* Delete Post Modal for admin/staff */}
+      {isAdminStaffView && canManageForumReports && (
+        <DeleteConfirmModal
+          isOpen={showAdminDeleteModal}
+          onClose={() => setShowAdminDeleteModal(false)}
+          onConfirm={handleAdminDeleteConfirm}
+          title={t('forum.post.deleteConfirm') || 'Xóa bài viết'}
+          message={t('forum.post.deleteConfirmMessage') || 'Bạn có chắc chắn muốn xóa bài viết này?'}
+          itemName={t('forum.post.title') || 'bài viết'}
+          confirmText={t('forum.post.delete') || 'Xóa'}
+          cancelText={t('forum.post.cancel') || 'Hủy'}
+          danger={true}
+        />
+      )}
     </>
   );
 }, (prevProps, nextProps) => {
@@ -1340,11 +1340,11 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   // Return true if props are equal (skip re-render), false if different (re-render)
   if (prevProps.post.forumPostId !== nextProps.post.forumPostId) return false;
   if (prevProps.isFirstPost !== nextProps.isFirstPost) return false;
-  
+
   // Compare post content fields (important for edit updates)
   if (prevProps.post.title !== nextProps.post.title) return false;
   if (prevProps.post.content !== nextProps.post.content) return false;
-  
+
   // Compare hashtags
   const prevHashtags = prevProps.post.hashtags || [];
   const nextHashtags = nextProps.post.hashtags || [];
@@ -1352,12 +1352,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const prevHashtagContents = prevHashtags.map(h => h.content || h).sort().join(',');
   const nextHashtagContents = nextHashtags.map(h => h.content || h).sort().join(',');
   if (prevHashtagContents !== nextHashtagContents) return false;
-  
+
   // Compare metadata (for link previews)
   const prevMetadata = prevProps.post.metadata || prevProps.post.meta;
   const nextMetadata = nextProps.post.metadata || nextProps.post.meta;
   if (JSON.stringify(prevMetadata) !== JSON.stringify(nextMetadata)) return false;
-  
+
   // Compare images
   const prevImages = prevProps.post.images || [];
   const nextImages = nextProps.post.images || [];
@@ -1365,21 +1365,21 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const prevImagePaths = prevImages.map(img => typeof img === 'string' ? img : img.imgPath).sort().join(',');
   const nextImagePaths = nextImages.map(img => typeof img === 'string' ? img : img.imgPath).sort().join(',');
   if (prevImagePaths !== nextImagePaths) return false;
-  
+
   // Compare reactions
   const prevReactions = prevProps.post.reactions;
   const nextReactions = nextProps.post.reactions;
   if (prevReactions?.likeCount !== nextReactions?.likeCount) return false;
   if (prevReactions?.dislikeCount !== nextReactions?.dislikeCount) return false;
-  
+
   // Compare save count
   if (prevProps.post.saveCount !== nextProps.post.saveCount) return false;
-  
+
   // Compare comment count (approximate)
   const prevCommentCount = prevProps.post.comments?.length || 0;
   const nextCommentCount = nextProps.post.comments?.length || 0;
   if (prevCommentCount !== nextCommentCount) return false;
-  
+
   // Props are equal, skip re-render
   return true;
 });

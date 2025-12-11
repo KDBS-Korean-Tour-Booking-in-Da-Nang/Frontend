@@ -22,17 +22,17 @@ export const API_ENDPOINTS = {
   POST_BY_ID: (id) => `${BaseURL}/api/posts/${id}`,
   POST_SEARCH: `${BaseURL}/api/posts/search`,
   MY_POSTS: `${BaseURL}/api/posts/my-posts`,
-  
+
   // Comments
   COMMENTS: `${BaseURL}/api/comments`,
   COMMENTS_BY_POST: (postId) => `${BaseURL}/api/comments/post/${postId}`,
   COMMENT_REPLIES: (commentId) => `${BaseURL}/api/comments/${commentId}/replies`,
-  
+
   // Article Comments
   ARTICLE_COMMENTS: `${BaseURL}/api/article-comments`,
   ARTICLE_COMMENTS_BY_ARTICLE: (articleId) => `${BaseURL}/api/article-comments/article/${articleId}`,
   ARTICLE_COMMENT_BY_ID: (commentId) => `${BaseURL}/api/article-comments/${commentId}`,
-  
+
   // Reactions
   REACTIONS_ADD: `${BaseURL}/api/reactions/add`,
   REACTIONS_DELETE: `${BaseURL}/api/reactions/delete`,
@@ -40,7 +40,7 @@ export const API_ENDPOINTS = {
   REACTIONS_POST_COUNT: (postId) => `${BaseURL}/api/reactions/post/${postId}/count`,
   REACTIONS_POST_SUMMARY: (postId, userEmail) => `${BaseURL}/api/reactions/post/${postId}/summary${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`,
   REACTIONS_COMMENT_SUMMARY: (commentId, userEmail) => `${BaseURL}/api/reactions/comment/${commentId}/summary${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`,
-  
+
   // Saved Posts
   SAVED_POSTS: `${BaseURL}/api/saved-posts`,
   SAVED_POSTS_SAVE: `${BaseURL}/api/saved-posts/save`,
@@ -48,7 +48,7 @@ export const API_ENDPOINTS = {
   SAVED_POSTS_CHECK: (postId) => `${BaseURL}/api/saved-posts/check/${postId}`,
   SAVED_POSTS_COUNT: (postId) => `${BaseURL}/api/saved-posts/count/${postId}`,
   SAVED_POSTS_MY_SAVED: `${BaseURL}/api/saved-posts/my-saved`,
-  
+
   // Reports
   REPORTS: `${BaseURL}/api/reports`,
   REPORTS_CREATE: `${BaseURL}/api/reports/create`,
@@ -57,18 +57,18 @@ export const API_ENDPOINTS = {
   REPORTS_ADMIN_ALL: `${BaseURL}/api/reports/admin/all`,
   REPORTS_ADMIN_STATS: `${BaseURL}/api/reports/admin/stats`,
   REPORTS_UPDATE_STATUS: (reportId) => `${BaseURL}/api/reports/${reportId}/status`,
-  
+
   // Hashtags
   HASHTAGS: `${BaseURL}/api/hashtags`,
   HASHTAGS_POPULAR: `${BaseURL}/api/hashtags/popular`,
   HASHTAGS_SEARCH: `${BaseURL}/api/hashtags/search`,
-  
+
   // Users
   USERS: `${BaseURL}/api/users`,
   UPDATE_USER: `${BaseURL}/api/users/update`,
   GET_USER: (email) => `${BaseURL}/api/users/${encodeURIComponent(email)}`,
   CHANGE_PASSWORD: `${BaseURL}/api/auth/change-password`,
-  
+
   // Tours
   TOURS: `${BaseURL}/api/tour`,
   TOURS_PUBLIC: `${BaseURL}/api/tour/public`,
@@ -77,7 +77,19 @@ export const API_ENDPOINTS = {
   TOUR_DELETE_BY_ID: (id, userEmail) => `${BaseURL}/api/tour/${id}?userEmail=${encodeURIComponent(userEmail)}`,
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
   TOUR_PREVIEW_BY_ID: (id) => `${BaseURL}/api/tour/preview/${id}`,
-  
+
+  // Tour Update Requests
+  TOUR_UPDATE_REQUEST: (tourId) => `${BaseURL}/api/tour/${tourId}/update-request`,
+  TOUR_UPDATE_REQUESTS_PENDING: `${BaseURL}/api/tour/update-requests/pending`,
+  TOUR_UPDATE_REQUEST_APPROVE: (id) => `${BaseURL}/api/tour/update-request/${id}/approve`,
+  TOUR_UPDATE_REQUEST_REJECT: (id) => `${BaseURL}/api/tour/update-request/${id}/reject`,
+
+  // Tour Delete Requests
+  TOUR_DELETE_REQUEST: (tourId) => `${BaseURL}/api/tour/${tourId}/delete-request`,
+  TOUR_DELETE_REQUESTS_PENDING: `${BaseURL}/api/tour/delete-requests/pending`,
+  TOUR_DELETE_REQUEST_APPROVE: (id) => `${BaseURL}/api/tour/delete-request/${id}/approve`,
+  TOUR_DELETE_REQUEST_REJECT: (id) => `${BaseURL}/api/tour/delete-request/${id}/reject`,
+
   // Booking
   BOOKING_BY_EMAIL: (email) => `${BaseURL}/api/booking/email/${encodeURIComponent(email)}`,
   BOOKING_SUMMARY_BY_EMAIL: (email) => `${BaseURL}/api/booking/summary/email/${encodeURIComponent(email)}`,
@@ -90,25 +102,25 @@ export const API_ENDPOINTS = {
   BOOKING_COMPANY_CONFIRM_COMPLETION: (bookingId) => `${BaseURL}/api/booking/${bookingId}/company-confirm-completion`,
   BOOKING_USER_CONFIRM_COMPLETION: (bookingId) => `${BaseURL}/api/booking/${bookingId}/user-confirm-completion`,
   BOOKING_TOUR_COMPLETION_STATUS: (bookingId) => `${BaseURL}/api/booking/${bookingId}/tour-completion-status`,
-  
-  
+
+
 
   // Tour Rated
   TOUR_RATED: `${BaseURL}/api/tourRated`,
   TOUR_RATED_BY_ID: (id) => `${BaseURL}/api/tourRated/${id}`,
   TOUR_RATED_BY_TOUR: (tourId) => `${BaseURL}/api/tourRated/tour/${tourId}`,
-  
+
   // Vouchers
   VOUCHERS: `${BaseURL}/api/vouchers`,
   VOUCHERS_BY_COMPANY: (companyId) => `${BaseURL}/api/vouchers/company/${companyId}`,
   // BE mapping: @RequestMapping("/api/vouchers") + @GetMapping("/{tourId}")
   VOUCHERS_BY_TOUR: (tourId) => `${BaseURL}/api/vouchers/${tourId}`,
-  
+
   // Transactions
   TRANSACTIONS: `${BaseURL}/api/transactions`,
   TRANSACTIONS_BY_USER_ID: (userId) => `${BaseURL}/api/transactions/${userId}`,
   TRANSACTIONS_CHANGE_STATUS: `${BaseURL}/api/transactions/change-status`,
-  
+
   // Tickets
   TICKET_CREATE: `${BaseURL}/api/ticket/create`,
   TICKETS: `${BaseURL}/api/ticket`,
@@ -120,7 +132,7 @@ export const getAvatarUrl = (avatar) => {
   if (!avatar) return '/default-avatar.png';
   // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
   const trimmed = avatar.trim();
-  
+
   // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
   if (trimmed.includes('https://') || trimmed.includes('http://')) {
     // Extract the full URL from the path
@@ -131,7 +143,7 @@ export const getAvatarUrl = (avatar) => {
       return trimmed.substring(urlStartIndex);
     }
   }
-  
+
   if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
     return trimmed.substring(1); // Loại bỏ dấu / ở đầu
   }
@@ -144,7 +156,7 @@ export const getImageUrl = (imagePath) => {
   if (!imagePath) return '';
   // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
   const trimmed = imagePath.trim();
-  
+
   // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
   if (trimmed.includes('https://') || trimmed.includes('http://')) {
     // Extract the full URL from the path
@@ -155,7 +167,7 @@ export const getImageUrl = (imagePath) => {
       return trimmed.substring(urlStartIndex);
     }
   }
-  
+
   if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
     return trimmed.substring(1); // Loại bỏ dấu / ở đầu
   }
@@ -168,7 +180,7 @@ export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') =
   if (!imagePath) return defaultImage;
   // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
   const trimmed = imagePath.trim();
-  
+
   // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
   if (trimmed.includes('https://') || trimmed.includes('http://')) {
     // Extract the full URL from the path
@@ -179,7 +191,7 @@ export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') =
       return trimmed.substring(urlStartIndex);
     }
   }
-  
+
   if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
     return trimmed.substring(1); // Loại bỏ dấu / ở đầu
   }
@@ -219,12 +231,12 @@ export const createAuthHeaders = (token, additionalHeaders = {}) => {
     'Content-Type': 'application/json',
     ...additionalHeaders
   };
-  
+
   const bearer = normalizeBearer(token);
   if (bearer) {
     headers['Authorization'] = bearer;
   }
-  
+
   return headers;
 };
 
@@ -234,12 +246,12 @@ export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
     ...additionalHeaders
     // Không set Content-Type cho FormData, browser sẽ tự động set với boundary
   };
-  
+
   const bearer = normalizeBearer(token);
   if (bearer) {
     headers['Authorization'] = bearer;
   }
-  
+
   return headers;
 };
 
@@ -249,7 +261,7 @@ export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
 export const getApiPath = (path) => {
   // Đảm bảo path bắt đầu với /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  
+
   // Nếu đang ở production mode, dùng full URL
   if (import.meta.env.PROD) {
     // Fail-fast: Kiểm tra BaseURL trong production

@@ -1354,7 +1354,152 @@
         "confirm": "Từ chối",
         "cancel": "Hủy"
       },
-      "durationTemplate": "{{days}} ngày {{nights}} đêm"
+      "durationTemplate": "{{days}} ngày {{nights}} đêm",
+      "edit": {
+        "title": "Chỉnh sửa Tour",
+        "tabs": {
+          "basic": "Thông tin cơ bản",
+          "itinerary": "Lịch trình",
+          "pricing": "Giá cả",
+          "media": "Ảnh & Video"
+        },
+        "basic": {
+          "title": "Thông tin cơ bản",
+          "priceCapacityTitle": "Giá và Sức chứa",
+          "fields": {
+            "tourName": "Tên tour",
+            "tourDescription": "Mô tả tour",
+            "tourType": "Loại tour",
+            "amount": "Số lượng chỗ",
+            "tourStatus": "Trạng thái tour",
+            "days": "Số ngày",
+            "nights": "Số đêm",
+            "tourExpirationDate": "Ngày khóa đặt tour",
+            "minAdvancedDays": "Số ngày báo trước tối thiểu",
+            "checkDays": "Số ngày kiểm tra/duyệt tour",
+            "balancePaymentDays": "Số ngày thanh toán còn lại",
+            "depositPercentage": "Tỷ lệ đặt cọc",
+            "refundFloor": "Tỷ lệ hoàn tiền tối thiểu (%)"
+          },
+          "placeholders": {
+            "selectTourType": "Chọn loại tour",
+            "tourDescription": "Nhập mô tả văn bản (không chèn hình ảnh)..."
+          },
+          "help": {
+            "checkDays": "Phần đầu của thời hạn báo trước dành cho đặt cọc",
+            "balancePaymentDays": "Tự động tính = Số ngày báo trước - Số ngày kiểm tra",
+            "depositPercentage": "Yêu cầu khi đặt tour",
+            "refundFloor": "Mức hoàn tiền tối thiểu sau giai đoạn thanh toán còn lại"
+          }
+        },
+        "itinerary": {
+          "title": "Lịch trình tour",
+          "dailyTitle": "Lịch trình hàng ngày",
+          "fields": {
+            "dayDescription": "Mô tả ngày"
+          },
+          "placeholders": {
+            "dayTitle": "Tiêu đề ngày {{dayNumber}}"
+          },
+          "actions": {
+            "addDay": "+ Thêm ngày",
+            "removeDay": "− Xóa ngày"
+          }
+        },
+        "pricing": {
+          "title": "Giá tour",
+          "fields": {
+            "adultPrice": "Giá người lớn",
+            "childrenPrice": "Giá trẻ em",
+            "babyPrice": "Giá em bé"
+          }
+        },
+        "media": {
+          "title": "Ảnh bìa",
+          "coverLabel": "Ảnh bìa",
+          "changeImage": "Thay đổi ảnh",
+          "selectImage": "Chọn ảnh bìa",
+          "hint": "Nhấp vào ảnh để thay đổi. Định dạng: JPG, PNG. Tối đa 5MB."
+        },
+        "status": {
+          "active": "Hoạt động",
+          "inactive": "Tạm dừng",
+          "draft": "Bản nháp"
+        },
+        "colorPicker": {
+          "title": "Tùy chỉnh màu sắc",
+          "apply": "Áp dụng",
+          "cancel": "Hủy"
+        },
+        "alignment": {
+          "left": "Căn trái",
+          "center": "Căn giữa",
+          "right": "Căn phải"
+        },
+        "actions": {
+          "resetTitle": "Xóa tiêu đề",
+          "customColor": "Tùy chỉnh màu sắc"
+        },
+        "saving": "Đang lưu...",
+        "save": "Lưu thay đổi",
+        "errors": {
+          "fillRequired": "Vui lòng nhập đầy đủ: {{fields}}",
+          "authTokenMissing": "Không tìm thấy token xác thực. Vui lòng đăng nhập lại.",
+          "sessionExpired": "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+          "uploadFailed": "Không thể upload ảnh. Vui lòng thử lại."
+        }
+      },
+      "updateRequests": {
+        "button": "Yêu cầu cập nhật",
+        "title": "Yêu cầu cập nhật Tour",
+        "empty": "Không có yêu cầu cập nhật nào đang chờ xử lý.",
+        "tourName": "Tên tour",
+        "status": "Trạng thái",
+        "bookingCount": "Số booking",
+        "companyNote": "Ghi chú công ty",
+        "requestedAt": "Ngày yêu cầu",
+        "approve": "Phê duyệt cập nhật",
+        "reject": "Từ chối cập nhật",
+        "noteLabel": "Ghi chú (tùy chọn)",
+        "notePlaceholder": "Nhập ghi chú cho công ty...",
+        "approveConfirm": {
+          "title": "Phê duyệt cập nhật Tour",
+          "message": "Bạn có chắc chắn muốn phê duyệt yêu cầu cập nhật cho tour \"{{name}}\"? Thay đổi sẽ được áp dụng ngay.",
+          "confirm": "Phê duyệt",
+          "cancel": "Hủy"
+        },
+        "rejectConfirm": {
+          "title": "Từ chối cập nhật Tour",
+          "message": "Bạn có chắc chắn muốn từ chối yêu cầu cập nhật cho tour \"{{name}}\"? Tour sẽ giữ nguyên như cũ.",
+          "confirm": "Từ chối",
+          "cancel": "Hủy"
+        }
+      },
+      "deleteRequests": {
+        "button": "Yêu cầu xóa",
+        "empty": "Không có yêu cầu xóa nào đang chờ duyệt",
+        "tourName": "Tên Tour",
+        "status": "Trạng thái",
+        "bookingCount": "Số booking",
+        "companyNote": "Ghi chú công ty",
+        "requestedAt": "Ngày yêu cầu",
+        "approve": "Duyệt",
+        "reject": "Từ chối",
+        "noteLabel": "Ghi chú (tùy chọn)",
+        "notePlaceholder": "Nhập ghi chú cho công ty...",
+        "approveConfirm": {
+          "title": "Duyệt yêu cầu xóa Tour",
+          "message": "Bạn có chắc chắn muốn duyệt yêu cầu xóa tour \"{{name}}\"? Tour sẽ bị vô hiệu hóa.",
+          "confirm": "Duyệt",
+          "cancel": "Hủy"
+        },
+        "rejectConfirm": {
+          "title": "Từ chối yêu cầu xóa Tour",
+          "message": "Bạn có chắc chắn muốn từ chối yêu cầu xóa tour \"{{name}}\"? Tour sẽ được giữ nguyên.",
+          "confirm": "Từ chối",
+          "cancel": "Hủy"
+        }
+      }
     },
     "tourDetailModal": {
       "title": "Chi tiết Tour",
@@ -2425,7 +2570,9 @@
       "load_error": "Có lỗi xảy ra khi tải danh sách tour",
       "activate_success": "Đã kích hoạt tour",
       "deactivate_success": "Đã tạm dừng tour",
-      "cannot_delete_content": "Không thể xóa nội dung"
+      "cannot_delete_content": "Không thể xóa nội dung",
+      "update_request_submitted": "Yêu cầu cập nhật đã được gửi và đang chờ phê duyệt.",
+      "delete_request_submitted": "Yêu cầu xóa tour đã được gửi và đang chờ phê duyệt."
     },
     "auth": {
       "login_success": "Đăng nhập thành công!",
@@ -2797,6 +2944,20 @@
       "success": "Đã quay lại wizard. Vui lòng điền lại thông tin từ đầu. Khi xác nhận, booking mới sẽ được tạo.",
       "error": "Có lỗi xảy ra khi quay lại wizard. Vui lòng thử lại.",
       "missingTourError": "Không thể quay lại wizard. Thiếu thông tin tour."
+    },
+    "paymentModal": {
+      "wizard": {
+        "title": "Xác nhận thanh toán",
+        "message": "Bạn có chắc chắn muốn tiến hành thanh toán? Thông tin đặt tour sẽ được gửi đến hệ thống.",
+        "confirm": "Tiến hành",
+        "cancel": "Quay lại"
+      },
+      "bookingDetail": {
+        "title": "Xác nhận thanh toán",
+        "message": "Bạn có chắc chắn muốn tiến hành thanh toán? Hệ thống sẽ chuyển bạn đến trang thanh toán.",
+        "confirm": "Tiến hành",
+        "cancel": "Quay lại"
+      }
     }
   },
   "tourManagement": {
@@ -2850,15 +3011,23 @@
     },
     "modals": {
       "delete": {
-        "title": "Xác nhận xóa tour",
-        "message": "Bạn có chắc chắn muốn xóa tour \"{{name}}\"?",
-        "itemName": "tour này"
+        "title": "Xác nhận yêu cầu xóa tour",
+        "message": "Bạn có chắc chắn muốn gửi yêu cầu xóa tour \"{{name}}\"? Yêu cầu sẽ được gửi tới quản trị viên để duyệt.",
+        "itemName": "tour này",
+        "noteLabel": "Ghi chú (tùy chọn)",
+        "notePlaceholder": "Nhập lý do xóa tour để quản trị viên xem xét...",
+        "confirm": "Gửi yêu cầu xóa"
       }
     },
     "edit": {
       "title": "Chỉnh sửa tour",
       "saving": "Đang lưu...",
       "save": "Lưu thay đổi",
+      "updateNote": {
+        "label": "Ghi chú cập nhật (dành cho quản trị viên)",
+        "placeholder": "Nhập lý do hoặc mô tả thay đổi để quản trị viên duyệt...",
+        "disabledHint": "Thay đổi thông tin tour ở trên để bật ghi chú..."
+      },
       "tabs": {
         "basic": "Thông tin cơ bản",
         "itinerary": "Lịch trình",
@@ -2913,6 +3082,9 @@
         "changeImage": "Thay đổi ảnh",
         "selectImage": "Chọn ảnh cover",
         "hint": "Hỗ trợ: JPG, PNG, GIF. Kích thước tối đa: 5MB"
+      },
+      "errors": {
+        "fillRequired": "Vui lòng điền đầy đủ các trường bắt buộc"
       }
     }
   },
@@ -3197,6 +3369,8 @@
       "guests": "khách",
       "contactName": "Tên liên hệ",
       "contactPhone": "Số điện thoại",
+      "depositAmount": "Tiền cọc",
+      "balanceAmount": "Còn lại",
       "totalAmount": "Tổng tiền",
       "viewDetails": "Xem chi tiết",
       "bookedOn": "Đặt ngày",
@@ -3219,14 +3393,18 @@
       "cancelled": "Đã hủy",
       "purchased": "Đã thanh toán",
       "pendingPayment": "Chờ thanh toán",
+      "pendingDepositPayment": "Chờ thanh toán cọc",
+      "pendingBalancePayment": "Chờ thanh toán số tiền còn lại",
       "waitingForApproved": "Chờ phê duyệt",
       "waitingForUpdate": "Chờ cập nhật",
       "bookingSuccessPending": "Đã duyệt (chờ tour diễn ra)",
       "bookingSuccessWaitForConfirmed": "Chờ xác nhận hoàn tất",
       "bookingUnderComplaint": "Đang khiếu nại",
       "bookingSuccess": "Đặt tour thành công",
+      "bookingBalanceSuccess": "Thanh toán hoàn tất (chờ khởi hành)",
       "bookingFailed": "Đặt tour thất bại",
-      "bookingRejected": "Đặt tour bị từ chối"
+      "bookingRejected": "Đặt tour bị từ chối",
+      "bookingCancelled": "Đã hủy"
     },
     "cancel": {
       "title": "Xác nhận huỷ tour",
@@ -3249,21 +3427,37 @@
       "tourInfo": "Thông tin tour",
       "contactInfo": "Thông tin liên hệ",
       "guests": "Thông tin hành khách",
-      "email": "Email"
+      "email": "Email",
+      "paymentInfo": "Thông tin thanh toán"
     },
     "guests": {
       "viewAll": "Xem tất cả {{count}} hành khách"
     },
+    "payment": {
+      "totalAmount": "Tổng tiền",
+      "depositAmount": "Tiền cọc",
+      "payedAmount": "Đã thanh toán",
+      "remainingAmount": "Còn lại"
+    },
     "actions": {
       "editBooking": "Chỉnh sửa booking",
       "complete": "Hoàn thành",
-      "complaint": "Khiếu nại"
+      "complaint": "Khiếu nại",
+      "payDeposit": "Thanh toán cọc",
+      "payBalance": "Thanh toán số tiền còn lại"
     },
     "info": {
       "successPending": "Booking đã được công ty duyệt. Vui lòng chờ tour diễn ra để xác nhận hoàn tất.",
       "expectedEndDatePrefix": "Ngày kết thúc dự kiến:",
       "waitingForConfirmation": "Tour đã kết thúc. Vui lòng xác nhận bạn đã hoàn thành chuyến đi hoặc gửi khiếu nại nếu có vấn đề.",
-      "underComplaint": "Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý."
+      "underComplaint": "Booking của bạn đang ở trạng thái khiếu nại. Hệ thống sẽ tạm dừng xác nhận tự động cho đến khi khiếu nại được xử lý.",
+      "balancePaymentRequired": "Vui lòng thanh toán số tiền còn lại để hoàn tất booking.",
+      "remainingAmount": "Số tiền còn lại",
+      "balanceSuccess": "Thanh toán hoàn tất! Booking đang chờ ngày khởi hành.",
+      "waitingForDeparture": "Vui lòng chờ đến ngày khởi hành tour.",
+      "cancelled": "Booking này đã bị hủy.",
+      "cancelledDate": "Ngày hủy",
+      "refundAmount": "Số tiền hoàn"
     },
     "completion": {
       "toastSuccess": "Đã xác nhận tour hoàn thành. Chúng tôi sẽ thông báo cho công ty.",
@@ -3609,7 +3803,16 @@
         "tour": "Thông tin tour",
         "guests": "Thông tin hành khách",
         "members": "Danh sách đoàn",
-        "price": "Tổng kết giá"
+        "price": "Tổng kết giá",
+        "paymentSummary": "Thông tin thanh toán"
+      },
+      "payment": {
+        "totalAmount": "Tổng tiền tour",
+        "depositAmount": "Tiền cọc cần thanh toán",
+        "balanceAmount": "Số tiền còn lại (thanh toán sau khi được duyệt)",
+        "paymentDue": "Số tiền thanh toán ngay",
+        "voucher": "Mã giảm giá",
+        "voucherNotAvailable": "Tính năng đang được phát triển"
       },
       "labels": {
         "fullName": "Họ và tên",
@@ -3762,6 +3965,13 @@
       "heroSubtitle": "Kiểm tra thông tin booking, áp dụng voucher và hoàn tất thanh toán bên dưới.",
       "loadingBooking": "Đang tải thông tin booking...",
       "bookingInfo": "Thông tin booking",
+      "paymentSummary": "Tóm tắt thanh toán",
+      "totalTourPrice": "Tổng tiền tour",
+      "paidAmount": "Đã thanh toán",
+      "depositDue": "Tiền cọc cần thanh toán",
+      "balanceDue": "Số tiền còn lại cần thanh toán",
+      "amountDue": "Số tiền cần thanh toán",
+      "voucherApplied": "Voucher đã áp dụng",
       "bookingSummary": {
         "tourBookingInfo": "Thông tin đặt tour",
         "tourName": "Tên tour",
@@ -4272,15 +4482,19 @@
     },
     "status": {
       "PENDING_PAYMENT": "Chờ Thanh Toán",
+      "PENDING_DEPOSIT_PAYMENT": "Chờ Thanh Toán Cọc",
+      "PENDING_BALANCE_PAYMENT": "Chờ Thanh Toán Số Dư",
       "WAITING_FOR_APPROVAL": "Chờ Duyệt",
       "WAITING_FOR_APPROVED": "Chờ Duyệt",
       "BOOKING_REJECTED": "Đã Từ Chối",
       "WAITING_FOR_UPDATE": "Chờ Cập Nhật",
       "BOOKING_FAILED": "Thất Bại",
+      "BOOKING_BALANCE_SUCCESS": "Đã Thanh Toán Số Dư",
       "BOOKING_SUCCESS": "Thành Công",
       "BOOKING_SUCCESS_PENDING": "Thành Công (Chờ Xử Lý)",
       "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": "Thành Công (Chờ Xác Nhận)",
-      "BOOKING_UNDER_COMPLAINT": "Đang Khiếu Nại"
+      "BOOKING_UNDER_COMPLAINT": "Đang Khiếu Nại",
+      "BOOKING_CANCELLED": "Đã Hủy"
     },
     "guests": {
       "adults": "Người lớn",

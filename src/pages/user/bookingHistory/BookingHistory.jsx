@@ -20,14 +20,18 @@ import styles from './BookingHistory.module.css';
 // Booking status helpers
 const STATUS_KEYS = {
   PENDING_PAYMENT: 'pendingPayment',
+  PENDING_DEPOSIT_PAYMENT: 'pendingDepositPayment',       // NEW
+  PENDING_BALANCE_PAYMENT: 'pendingBalancePayment',       // NEW
   WAITING_FOR_APPROVED: 'waitingForApproved',
   WAITING_FOR_UPDATE: 'waitingForUpdate',
   BOOKING_REJECTED: 'bookingRejected',
   BOOKING_FAILED: 'bookingFailed',
+  BOOKING_BALANCE_SUCCESS: 'bookingBalanceSuccess',       // NEW
   BOOKING_SUCCESS_PENDING: 'bookingSuccessPending',
   BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: 'bookingSuccessWaitForConfirmed',
   BOOKING_UNDER_COMPLAINT: 'bookingUnderComplaint',
-  BOOKING_SUCCESS: 'bookingSuccess'
+  BOOKING_SUCCESS: 'bookingSuccess',
+  BOOKING_CANCELLED: 'bookingCancelled'                   // NEW
 };
 
 const normalizeStatus = (status) => {
@@ -51,13 +55,25 @@ const normalizeStatus = (status) => {
     PURCHASED: STATUS_KEYS.BOOKING_SUCCESS,
     CONFIRMED: STATUS_KEYS.WAITING_FOR_APPROVED,
     PENDING: STATUS_KEYS.PENDING_PAYMENT,
-    CANCELLED: STATUS_KEYS.BOOKING_REJECTED,
+    CANCELLED: STATUS_KEYS.BOOKING_CANCELLED,
     FAILED: STATUS_KEYS.BOOKING_FAILED,
     SUCCESS: STATUS_KEYS.BOOKING_SUCCESS
   };
 
   if (STATUS_KEYS[raw]) {
     return STATUS_KEYS[raw];
+  }
+
+  // Thêm mapping cho status mới
+  const newStatusMap = {
+    PENDING_DEPOSIT_PAYMENT: STATUS_KEYS.PENDING_DEPOSIT_PAYMENT,
+    PENDING_BALANCE_PAYMENT: STATUS_KEYS.PENDING_BALANCE_PAYMENT,
+    BOOKING_BALANCE_SUCCESS: STATUS_KEYS.BOOKING_BALANCE_SUCCESS,
+    BOOKING_CANCELLED: STATUS_KEYS.BOOKING_CANCELLED,
+  };
+
+  if (newStatusMap[raw]) {
+    return newStatusMap[raw];
   }
 
   if (legacyMap[raw]) {
@@ -69,7 +85,12 @@ const normalizeStatus = (status) => {
 
 const normalizeTrx = (trx) => {
   if (!trx && typeof trx !== 'number') return undefined;
-  if (typeof trx === 'number') return trx === 1 ? 'success' : trx === 2 ? 'failed' : trx === 3 ? 'cancelled' : 'pending';
+  if (typeof trx === 'number') {
+    if (trx === 1) return 'success';
+    if (trx === 2) return 'failed';
+    if (trx === 3) return 'cancelled';
+    return 'pending';
+  }
   return String(trx || '').toLowerCase();
 };
 
@@ -87,97 +108,103 @@ const BookingHistory = () => {
   const [allBookings, setAllBookings] = useState([]);
   const itemsPerPage = 3;
 
-  useEffect(() => {
+  // Extract fetchBookings function so it can be reused
+  const fetchBookings = React.useCallback(async () => {
     if (!user) return;
     
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Get token from storage (check both localStorage and sessionStorage)
-        const remembered = localStorage.getItem('rememberMe') === 'true';
-        const storage = remembered ? localStorage : sessionStorage;
-        const token = storage.getItem('token');
-        
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-        
-        const response = await fetch(API_ENDPOINTS.BOOKING_BY_EMAIL(user.email), {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401) {
-            const { handleApiError } = await import('../../../utils/apiErrorHandler');
-            await handleApiError(response);
-            throw new Error('Authentication failed. Please login again.');
-          }
-          throw new Error(`Failed to fetch booking history: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        // Fetch total amounts for all bookings in parallel
-        const bookingsWithTotals = await Promise.all(
-          data.map(async (booking) => {
-            try {
-              const totalResp = await getBookingTotal(booking.bookingId);
-              return {
-                bookingId: booking.bookingId,
-                tourId: booking.tourId,
-                tourName: booking.tourName,
-                contactName: booking.contactName,
-                contactPhone: booking.contactPhone,
-                contactEmail: booking.contactEmail,
-                departureDate: booking.departureDate,
-                totalGuests: booking.totalGuests,
-                status: booking.bookingStatus, // Use correct bookingStatus from BookingResponse
-                totalAmount: totalResp?.totalAmount || 0,
-                createdAt: booking.createdAt
-              };
-            } catch (err) {
-              console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
-              return {
-                bookingId: booking.bookingId,
-                tourId: booking.tourId,
-                tourName: booking.tourName,
-                contactName: booking.contactName,
-                contactPhone: booking.contactPhone,
-                contactEmail: booking.contactEmail,
-                departureDate: booking.departureDate,
-                totalGuests: booking.totalGuests,
-                status: booking.bookingStatus,
-                totalAmount: 0,
-                createdAt: booking.createdAt
-              };
-            }
-          })
-        );
-        setAllBookings(bookingsWithTotals);
-        
-        // Calculate pagination
-        const totalItems = bookingsWithTotals.length;
-        const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
-        setTotalPages(totalPagesCount);
-        
-        // Set initial page data
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        setBookings(bookingsWithTotals.slice(startIndex, endIndex));
-      } catch (err) {
-        console.error('Error fetching booking history:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get token from storage (check both localStorage and sessionStorage)
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No authentication token found');
       }
-    };
+      
+      const response = await fetch(API_ENDPOINTS.BOOKING_BY_EMAIL(user.email), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          const { handleApiError } = await import('../../../utils/apiErrorHandler');
+          await handleApiError(response);
+          throw new Error('Authentication failed. Please login again.');
+        }
+        throw new Error(`Failed to fetch booking history: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      // Fetch total amounts for all bookings in parallel
+      const bookingsWithTotals = await Promise.all(
+        data.map(async (booking) => {
+          try {
+            const totalResp = await getBookingTotal(booking.bookingId);
+            return {
+              bookingId: booking.bookingId,
+              tourId: booking.tourId,
+              tourName: booking.tourName,
+              contactName: booking.contactName,
+              contactPhone: booking.contactPhone,
+              contactEmail: booking.contactEmail,
+              departureDate: booking.departureDate,
+              totalGuests: booking.totalGuests,
+              status: booking.bookingStatus, // Use correct bookingStatus from BookingResponse
+              totalAmount: totalResp?.totalAmount || 0,
+              createdAt: booking.createdAt
+            };
+          } catch (err) {
+            console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
+            return {
+              bookingId: booking.bookingId,
+              tourId: booking.tourId,
+              tourName: booking.tourName,
+              contactName: booking.contactName,
+              contactPhone: booking.contactPhone,
+              contactEmail: booking.contactEmail,
+              departureDate: booking.departureDate,
+              totalGuests: booking.totalGuests,
+              status: booking.bookingStatus,
+              totalAmount: 0,
+              createdAt: booking.createdAt
+            };
+          }
+        })
+      );
+      setAllBookings(bookingsWithTotals);
+      
+      // Calculate pagination
+      const totalItems = bookingsWithTotals.length;
+      const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
+      setTotalPages(totalPagesCount);
+      
+      // Set initial page data
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      setBookings(bookingsWithTotals.slice(startIndex, endIndex));
+    } catch (err) {
+      console.error('Error fetching booking history:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentPage, itemsPerPage]);
 
+  useEffect(() => {
     fetchBookings();
-  }, [user]);
+  }, [fetchBookings]);
+
+  // Refresh callback for when booking is cancelled
+  const handleBookingCancelled = React.useCallback(() => {
+    fetchBookings();
+  }, [fetchBookings]);
 
   // Handle pagination and filtering
   useEffect(() => {
@@ -279,7 +306,7 @@ const BookingHistory = () => {
           <p>{error}</p>
           <button 
             className={styles['retry-btn']}
-            onClick={() => window.location.reload()}
+            onClick={() => globalThis.location?.reload()}
           >
             {t('bookingHistory.error.retry')}
           </button>
@@ -320,6 +347,8 @@ const BookingHistory = () => {
             >
               <option value="all">{t('bookingHistory.filters.allStatus')}</option>
               <option value={STATUS_KEYS.PENDING_PAYMENT}>{t('bookingHistory.status.pendingPayment')}</option>
+              <option value={STATUS_KEYS.PENDING_DEPOSIT_PAYMENT}>{t('bookingHistory.status.pendingDepositPayment')}</option>
+              <option value={STATUS_KEYS.PENDING_BALANCE_PAYMENT}>{t('bookingHistory.status.pendingBalancePayment')}</option>
               <option value={STATUS_KEYS.WAITING_FOR_APPROVED}>{t('bookingHistory.status.waitingForApproved')}</option>
               <option value={STATUS_KEYS.WAITING_FOR_UPDATE}>{t('bookingHistory.status.waitingForUpdate')}</option>
               <option value={STATUS_KEYS.BOOKING_SUCCESS}>{t('bookingHistory.status.bookingSuccess')}</option>
@@ -328,6 +357,8 @@ const BookingHistory = () => {
               <option value={STATUS_KEYS.BOOKING_UNDER_COMPLAINT}>{t('bookingHistory.status.bookingUnderComplaint')}</option>
               <option value={STATUS_KEYS.BOOKING_FAILED}>{t('bookingHistory.status.bookingFailed')}</option>
               <option value={STATUS_KEYS.BOOKING_REJECTED}>{t('bookingHistory.status.bookingRejected')}</option>
+              <option value={STATUS_KEYS.BOOKING_BALANCE_SUCCESS}>{t('bookingHistory.status.bookingBalanceSuccess')}</option>
+              <option value={STATUS_KEYS.BOOKING_CANCELLED}>{t('bookingHistory.status.bookingCancelled')}</option>
             </select>
           </div>
           
@@ -361,7 +392,8 @@ const BookingHistory = () => {
                 {bookings.map((booking) => (
                   <BookingHistoryCard 
                     key={booking.bookingId} 
-                    booking={booking} 
+                    booking={booking}
+                    onBookingCancelled={handleBookingCancelled}
                   />
                 ))}
               </div>

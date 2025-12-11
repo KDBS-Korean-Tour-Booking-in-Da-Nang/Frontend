@@ -50,8 +50,8 @@ const Step1BasicInfo = () => {
       // Notify parent about validation status change
       const hasErrors = Object.keys(newErrors).length > 0;
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-          detail: { step: 1, hasErrors } 
+        window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+          detail: { step: 1, hasErrors }
         }));
       }, 0);
       return newErrors;
@@ -91,26 +91,28 @@ const Step1BasicInfo = () => {
     return values.join(', ');
   };
 
-const calculateLeadDays = (isoDate) => {
-  if (!isoDate) return null;
-  const parsed = new Date(`${isoDate}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffTime = parsed.getTime() - today.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
+  const calculateLeadDays = (isoDate) => {
+    if (!isoDate) return null;
+    const parsed = new Date(`${isoDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffTime = parsed.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   const enforceCutoffLimit = (draft) => {
-    // Validate: Minimum Advance Days must not exceed booking cut-off (tourExpirationDate)
+    // Validate: Minimum Advance Days must be strictly less than booking cut-off (tourExpirationDate)
+    // Only allow when leadDays > minAdvancedDays (i.e., leadDays >= minAdvancedDays + 1)
     if (!draft.tourExpirationDate || draft.minAdvancedDays === '') return draft;
     const leadDays = calculateLeadDays(draft.tourExpirationDate);
     if (leadDays === null || leadDays < 0) return draft;
     const minDaysNum = parseInt(draft.minAdvancedDays, 10);
     if (Number.isNaN(minDaysNum)) return draft;
 
-    if (minDaysNum > leadDays) {
+    // Error if minAdvancedDays >= leadDays (only allow when leadDays > minAdvancedDays)
+    if (minDaysNum >= leadDays) {
       setFieldErrors((prev) => ({
         ...prev,
         tourDeadline: t('tourWizard.step1.errors.minAdvancedExceedsCutoff', {
@@ -118,7 +120,7 @@ const calculateLeadDays = (isoDate) => {
         }) || `Minimum booking days cannot exceed "${leadDays}" booking closing days. Please re-enter Check days and Balance payment days.`
       }));
     } else {
-      // Clear cutoff error if within range
+      // Clear cutoff error if within range (leadDays > minAdvancedDays)
       setFieldErrors((prev) => {
         const next = { ...prev };
         delete next.tourDeadline;
@@ -172,7 +174,7 @@ const calculateLeadDays = (isoDate) => {
         { key: 'balancePaymentDays', errorKey: 'tourWizard.step1.fields.balancePaymentDays' },
         { key: 'depositPercentage', errorKey: 'tourWizard.step1.fields.depositPercentage' }
       ];
-      
+
       requiredFields.forEach(({ key, errorKey, checkEmpty }) => {
         const value = formData[key];
         if (checkEmpty) {
@@ -185,7 +187,7 @@ const calculateLeadDays = (isoDate) => {
           }
         }
       });
-      
+
       if (formData.allowRefundableAfterBalancePayment) {
         if (formData.refundFloor === '' || formData.refundFloor === undefined || formData.refundFloor === null) {
           errors.refundFloor =
@@ -201,16 +203,16 @@ const calculateLeadDays = (isoDate) => {
 
       setFieldErrors(errors);
       // Notify parent about validation status
-      window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-        detail: { step: 1, hasErrors: Object.keys(errors).length > 0 } 
+      window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+        detail: { step: 1, hasErrors: Object.keys(errors).length > 0 }
       }));
-      
+
       // Scroll to first error field if there are errors
       if (Object.keys(errors).length > 0) {
         setTimeout(() => {
           const firstErrorKey = Object.keys(errors)[0];
-          const errorElement = document.getElementById(firstErrorKey) || 
-                               document.querySelector(`[name="${firstErrorKey}"]`);
+          const errorElement = document.getElementById(firstErrorKey) ||
+            document.querySelector(`[name="${firstErrorKey}"]`);
           if (errorElement) {
             errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             errorElement.focus();
@@ -222,8 +224,8 @@ const calculateLeadDays = (isoDate) => {
     const handleClearErrors = () => {
       setFieldErrors({});
       // Notify parent that errors are cleared
-      window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-        detail: { step: 1, hasErrors: false } 
+      window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+        detail: { step: 1, hasErrors: false }
       }));
     };
 
@@ -299,12 +301,24 @@ const calculateLeadDays = (isoDate) => {
         updateTourData(updated);
         return;
       }
+      // When enabling refundable, set default refund floor to 1
+      if (name === 'allowRefundableAfterBalancePayment' && nextValue) {
+        updated.refundFloor = '1';
+        setFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.refundFloor;
+          return newErrors;
+        });
+        setFormData(updated);
+        updateTourData(updated);
+        return;
+      }
       setFormData(updated);
       updateTourData(updated);
       return;
     }
 
-  if (['duration', 'nights', 'maxCapacity', 'checkDays', 'balancePaymentDays', 'depositPercentage', 'refundFloor'].includes(name)) {
+    if (['duration', 'nights', 'maxCapacity', 'checkDays', 'balancePaymentDays', 'depositPercentage', 'refundFloor'].includes(name)) {
       // Strip non-digits
       nextValue = String(nextValue).replace(/[^0-9]/g, '');
       if (nextValue === '') {
@@ -345,8 +359,8 @@ const calculateLeadDays = (isoDate) => {
               delete newErrors.nights;
               const hasErrors = Object.keys(newErrors).length > 0;
               setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                  detail: { step: 1, hasErrors } 
+                window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+                  detail: { step: 1, hasErrors }
                 }));
               }, 0);
               return newErrors;
@@ -363,8 +377,8 @@ const calculateLeadDays = (isoDate) => {
                   delete newErrors.nights;
                   const hasErrors = Object.keys(newErrors).length > 0;
                   setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                      detail: { step: 1, hasErrors } 
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+                      detail: { step: 1, hasErrors }
                     }));
                   }, 0);
                   return newErrors;
@@ -381,8 +395,8 @@ const calculateLeadDays = (isoDate) => {
                   delete newErrors.nights;
                   const hasErrors = Object.keys(newErrors).length > 0;
                   setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-                      detail: { step: 1, hasErrors } 
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+                      detail: { step: 1, hasErrors }
                     }));
                   }, 0);
                   return newErrors;
@@ -394,11 +408,11 @@ const calculateLeadDays = (isoDate) => {
           // days là số ngày, nights là số đêm
           const nightsNum = newNights === '' ? 0 : newNights;
           const tourIntDuration = Math.max(days, nightsNum);
-          
+
           // Apply both fields together
-          const updated = { 
-            ...formData, 
-            duration: String(days), 
+          const updated = {
+            ...formData,
+            duration: String(days),
             nights: String(newNights),
             tourIntDuration: tourIntDuration
           };
@@ -434,11 +448,11 @@ const calculateLeadDays = (isoDate) => {
             });
           }
           nextValue = String(clamped);
-          
+
           // Tính tourIntDuration = Max(days, nights)
           // d là số ngày (duration), clamped là số đêm (nights)
           const tourIntDuration = Math.max(d, clamped);
-          
+
           const newFormData = {
             ...formData,
             [name]: nextValue,
@@ -469,9 +483,9 @@ const calculateLeadDays = (isoDate) => {
               minAdvancedDays: '',
               tourDeadline: ''
             };
-          const adjusted = enforceCutoffLimit(updated);
-          setFormData(adjusted);
-          updateTourData(adjusted);
+            const adjusted = enforceCutoffLimit(updated);
+            setFormData(adjusted);
+            updateTourData(adjusted);
             clearFieldError('checkDays');
             clearFieldError('balancePaymentDays');
             clearFieldError('tourDeadline');
@@ -532,7 +546,7 @@ const calculateLeadDays = (isoDate) => {
       setFieldErrors(prev => ({ ...prev, tourExpirationDate: t('toast.field_invalid') || 'Ngày không hợp lệ' }));
       return;
     }
-    
+
     setFieldErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors.tourExpirationDate;
@@ -550,8 +564,8 @@ const calculateLeadDays = (isoDate) => {
           delete newErrors.tourDeadline;
           const hasErrors = Object.keys(newErrors).length > 0;
           setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-              detail: { step: 1, hasErrors } 
+            window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+              detail: { step: 1, hasErrors }
             }));
           }, 0);
           return newErrors;
@@ -563,8 +577,8 @@ const calculateLeadDays = (isoDate) => {
           delete newErrors.tourDeadline;
           const hasErrors = Object.keys(newErrors).length > 0;
           setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
-              detail: { step: 1, hasErrors } 
+            window.dispatchEvent(new CustomEvent('stepValidationStatus', {
+              detail: { step: 1, hasErrors }
             }));
           }, 0);
           return newErrors;
@@ -727,30 +741,30 @@ const calculateLeadDays = (isoDate) => {
               id="tourExpirationDate"
               readOnly
               value={formData.tourExpirationDate || ''}
-            onFocus={handleFieldFocus}
+              onFocus={handleFieldFocus}
               className={`${styles['form-input']} ${styles['date-input']}`}
               placeholder={t('tourWizard.step1.placeholders.tourExpirationDate') || 'YYYY-MM-DD'}
             />
-              <div className={styles['date-picker-wrapper']}>
+            <div className={styles['date-picker-wrapper']}>
               <button
                 type="button"
                 className={styles['calendar-button']}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                    // Trigger the hidden DatePicker via its exposed handlers
-                    if (datePickerRef.current) {
-                      datePickerRef.current.focus?.();
-                      datePickerRef.current.click?.();
-                    }
+                  // Trigger the hidden DatePicker via its exposed handlers
+                  if (datePickerRef.current) {
+                    datePickerRef.current.focus?.();
+                    datePickerRef.current.click?.();
+                  }
                 }}
                 title="Open date picker"
               >
                 <Calendar className={styles['calendar-icon']} />
               </button>
-                <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', left: '-9999px', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}>
                 <DatePicker
-                    ref={datePickerRef}
+                  ref={datePickerRef}
                   value={formData.tourExpirationDate ? new Date(formData.tourExpirationDate) : null}
                   onChange={(date) => {
                     if (date) {
@@ -766,9 +780,9 @@ const calculateLeadDays = (isoDate) => {
                   }}
                   minDate={new Date()}
                   className={styles['form-input']}
-                    onFocus={() => {}}
-                    onBlur={() => {}}
-                    onClick={() => {}}
+                  onFocus={() => { }}
+                  onBlur={() => { }}
+                  onClick={() => { }}
                 />
               </div>
             </div>

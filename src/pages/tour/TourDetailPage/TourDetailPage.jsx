@@ -360,11 +360,10 @@ const TourDetailPage = () => {
     );
   }
 
+  // Format as KRW (VND / 18)
   const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
+    const krwValue = Math.round(Number(price) / 18);
+    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
   const formatDuration = (duration) => {
@@ -392,13 +391,11 @@ const TourDetailPage = () => {
   };
 
 
-  // Format currency helper (similar to VoucherList)
+  // Format currency helper as KRW (VND / 18)
   const formatCurrency = (value) => {
     try {
-      return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(Number(value || 0));
+      const krwValue = Math.round(Number(value || 0) / 18);
+      return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
     } catch {
       return `${value}`;
     }
@@ -877,8 +874,8 @@ const TourDetailPage = () => {
                                 {/* LEFT SECTION (MÀU) */}
                                 <div
                                   className={`${styles["voucher-left-section"]} ${discountType === "PERCENT"
-                                      ? styles["voucher-header-gradient-percent"]
-                                      : styles["voucher-header-gradient-amount"]
+                                    ? styles["voucher-header-gradient-percent"]
+                                    : styles["voucher-header-gradient-amount"]
                                     }`}
                                 >
                                   <div className={styles["voucher-left-content"]}>
@@ -1011,12 +1008,12 @@ const TourDetailPage = () => {
                                         }
                                       }}
                                       className={`${styles["btn-copy"]} ${discountType === "PERCENT"
-                                          ? styles[
-                                          "voucher-button-gradient-percent"
-                                          ]
-                                          : styles[
-                                          "voucher-button-gradient-amount"
-                                          ]
+                                        ? styles[
+                                        "voucher-button-gradient-percent"
+                                        ]
+                                        : styles[
+                                        "voucher-button-gradient-amount"
+                                        ]
                                         }`}
                                     >
                                       {t("tourPage.detail.vouchers.copyButton")}
@@ -1541,9 +1538,10 @@ const TourDetailPage = () => {
                       }}
                     >
                       <img
-                        src={"/default-avatar.png"}
+                        src={r.userAvatar || "/default-avatar.png"}
                         alt="avatar"
-                        style={{ width: 24, height: 24, borderRadius: "50%" }}
+                        style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }}
+                        onError={(e) => { e.target.src = "/default-avatar.png"; }}
                       />
                       <span
                         style={{

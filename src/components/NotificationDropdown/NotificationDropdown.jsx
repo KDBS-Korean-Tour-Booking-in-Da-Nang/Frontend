@@ -133,8 +133,13 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     
     // Tour & Booking notifications
     if (type.includes('BOOKING')) {
-      if (type.includes('CONFIRMED')) return CheckCircle2;
+      // Success statuses - green checkmark
+      if (type.includes('SUCCESS') || type.includes('CONFIRMED')) return CheckCircle2;
+      // Rejected or update request - warning
       if (type.includes('REJECTED') || type.includes('UPDATE_REQUEST')) return AlertTriangle;
+      // Cancelled - X icon
+      if (type.includes('CANCELLED')) return X;
+      // Default booking notification
       return Info;
     }
     if (type.includes('TOUR_APPROVED')) return CheckCircle2;
@@ -155,8 +160,13 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     
     // Tour & Booking notifications
     if (type.includes('BOOKING')) {
-      if (type.includes('CONFIRMED')) return 'green';
+      // Success statuses - green
+      if (type.includes('SUCCESS') || type.includes('CONFIRMED')) return 'green';
+      // Rejected or update request - yellow/warning
       if (type.includes('REJECTED') || type.includes('UPDATE_REQUEST')) return 'yellow';
+      // Cancelled - red/gray
+      if (type.includes('CANCELLED')) return 'gray';
+      // Default booking notification - blue
       return 'blue';
     }
     if (type.includes('TOUR_APPROVED')) return 'green';
@@ -196,6 +206,18 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
       case 'BOOKING_UPDATED_BY_USER':
         return t('notifications.types.BOOKING_UPDATED_BY_USER.title');
       
+      // Booking success statuses (new)
+      case 'BOOKING_SUCCESS':
+        return t('notifications.types.BOOKING_SUCCESS.title', 'Booking thành công');
+      case 'BOOKING_BALANCE_SUCCESS':
+        return t('notifications.types.BOOKING_BALANCE_SUCCESS.title', 'Thanh toán thành công');
+      case 'BOOKING_SUCCESS_PENDING':
+        return t('notifications.types.BOOKING_SUCCESS_PENDING.title', 'Booking đang chờ xác nhận');
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+        return t('notifications.types.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED.title', 'Chờ xác nhận hoàn thành');
+      case 'BOOKING_CANCELLED':
+        return t('notifications.types.BOOKING_CANCELLED.title', 'Booking đã bị hủy');
+      
       default:
         return null;
     }
@@ -230,6 +252,18 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
       case 'BOOKING_UPDATED_BY_USER':
         return t('notifications.types.BOOKING_UPDATED_BY_USER.message');
       
+      // Booking success statuses (new)
+      case 'BOOKING_SUCCESS':
+        return t('notifications.types.BOOKING_SUCCESS.message', 'Booking của bạn đã hoàn thành thành công.');
+      case 'BOOKING_BALANCE_SUCCESS':
+        return t('notifications.types.BOOKING_BALANCE_SUCCESS.message', 'Thanh toán số dư đã hoàn tất. Booking của bạn đã được xác nhận.');
+      case 'BOOKING_SUCCESS_PENDING':
+        return t('notifications.types.BOOKING_SUCCESS_PENDING.message', 'Booking của bạn đang chờ xác nhận hoàn thành.');
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+        return t('notifications.types.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED.message', 'Vui lòng chờ xác nhận hoàn thành tour.');
+      case 'BOOKING_CANCELLED':
+        return t('notifications.types.BOOKING_CANCELLED.message', 'Booking của bạn đã bị hủy.');
+      
       default:
         return null;
     }
@@ -251,41 +285,66 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     // Close dropdown
     onClose();
 
-    // Handle redirect based on notification type
+    // Only redirect if user has a valid role
+    if (!userRole) {
+      // No role - don't redirect, just close dropdown
+      return;
+    }
+
+    // Handle redirect based on notification type and role
     switch (type) {
-      // Company notifications - redirect to management pages
+      // Company-only notifications - redirect to management pages
       case 'NEW_BOOKING':
       case 'BOOKING_UPDATED_BY_USER':
-        // Company receives these notifications
+        // Only redirect if user is COMPANY
         if (userRole === 'COMPANY') {
           navigate('/company/bookings');
         }
+        // Other roles: do nothing (just close dropdown)
         break;
 
       case 'TOUR_APPROVED':
-        // Company receives this notification
+        // Only redirect if user is COMPANY
         if (userRole === 'COMPANY') {
           navigate('/company/tours');
         }
+        // Other roles: do nothing
         break;
 
       case 'NEW_RATING':
-        // Company receives this notification
-        // Could redirect to tour detail or rating management
-        // For now, redirect to tours management
+        // Only redirect if user is COMPANY
         if (userRole === 'COMPANY') {
           navigate('/company/tours');
         }
+        // Other roles: do nothing
         break;
 
-      // User notifications - redirect to booking detail
+      // User-only notifications - redirect to booking detail
       case 'BOOKING_CONFIRMED':
       case 'BOOKING_REJECTED':
       case 'BOOKING_UPDATE_REQUEST':
-        // User receives these notifications
+        // Only redirect if user is USER and has targetId
         if (userRole === 'USER' && targetId) {
           navigate(`/user/booking?id=${targetId}`);
         }
+        // Other roles or no targetId: do nothing
+        break;
+
+      // Booking success statuses - redirect based on role
+      case 'BOOKING_SUCCESS':
+      case 'BOOKING_BALANCE_SUCCESS':
+      case 'BOOKING_SUCCESS_PENDING':
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+      case 'BOOKING_CANCELLED':
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
+        } 
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles (ADMIN, STAFF, etc.): do nothing
         break;
 
       // Forum notifications - could redirect to forum post/comment
@@ -299,6 +358,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         break;
 
       default:
+        // Unknown notification type - just close dropdown, no redirect
         break;
     }
   };

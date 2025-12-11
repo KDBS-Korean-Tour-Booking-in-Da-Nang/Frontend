@@ -9,6 +9,7 @@ import { formatDateForAPI } from '../../../utils/bookingFormatter';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import EditBookingModal from './EditBookingModal/EditBookingModal';
 import ComplaintModal from './ComplaintModal/ComplaintModal';
+import PaymentConfirmModal from '../../../components/modals/PaymentConfirmModal/PaymentConfirmModal';
 import {
   ArrowLeftIcon,
   CreditCardIcon,
@@ -46,19 +47,23 @@ const normalizeStatus = (status) => {
   // Map các status từ backend
   const statusMap = {
     PENDING_PAYMENT: 'PENDING_PAYMENT',
+    PENDING_DEPOSIT_PAYMENT: 'PENDING_DEPOSIT_PAYMENT',
+    PENDING_BALANCE_PAYMENT: 'PENDING_BALANCE_PAYMENT',
     WAITING_FOR_APPROVED: 'WAITING_FOR_APPROVED',
     WAITING_FOR_UPDATE: 'WAITING_FOR_UPDATE',
     BOOKING_REJECTED: 'BOOKING_REJECTED',
     BOOKING_FAILED: 'BOOKING_FAILED',
+    BOOKING_BALANCE_SUCCESS: 'BOOKING_BALANCE_SUCCESS',
     BOOKING_SUCCESS_PENDING: 'BOOKING_SUCCESS_PENDING',
     BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED',
     BOOKING_UNDER_COMPLAINT: 'BOOKING_UNDER_COMPLAINT',
     BOOKING_SUCCESS: 'BOOKING_SUCCESS',
+    BOOKING_CANCELLED: 'BOOKING_CANCELLED',
     // Legacy mappings
     'PURCHASED': 'BOOKING_SUCCESS',
     'CONFIRMED': 'WAITING_FOR_APPROVED',
     'PENDING': 'PENDING_PAYMENT',
-    'CANCELLED': 'BOOKING_REJECTED',
+    'CANCELLED': 'BOOKING_CANCELLED',
     'FAILED': 'BOOKING_FAILED',
     'SUCCESS': 'BOOKING_SUCCESS'
   };
@@ -68,17 +73,21 @@ const normalizeStatus = (status) => {
 
 const STATUS_COLOR_MAP = {
   // Thanh toán chờ: cam đậm
-  PENDING_PAYMENT: '#F97316',
-  WAITING_FOR_APPROVED: '#3B82F6',
-  WAITING_FOR_UPDATE: '#8B5CF6',
-  BOOKING_REJECTED: '#EF4444',
-  BOOKING_FAILED: '#DC2626',
+  PENDING_PAYMENT: '#F97316',              // Orange
+  PENDING_DEPOSIT_PAYMENT: '#EA580C',     // Orange darker (riêng biệt)
+  PENDING_BALANCE_PAYMENT: '#F59E0B',      // Amber
+  WAITING_FOR_APPROVED: '#3B82F6',         // Blue
+  WAITING_FOR_UPDATE: '#8B5CF6',           // Purple
+  BOOKING_REJECTED: '#EF4444',             // Red
+  BOOKING_FAILED: '#DC2626',               // Red darker
   // Đã duyệt nhưng chờ tour diễn ra: teal
-  BOOKING_SUCCESS_PENDING: '#14B8A6',
-  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB',
+  BOOKING_BALANCE_SUCCESS: '#14B8A6',      // Teal
+  BOOKING_SUCCESS_PENDING: '#06B6D4',       // Cyan (riêng biệt)
+  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
   // Đang khiếu nại: vàng tươi
-  BOOKING_UNDER_COMPLAINT: '#EAB308',
-  BOOKING_SUCCESS: '#10B981'
+  BOOKING_UNDER_COMPLAINT: '#EAB308',      // Yellow
+  BOOKING_SUCCESS: '#10B981',              // Green
+  BOOKING_CANCELLED: '#9CA3AF'            // Gray
 };
 
 const BookingDetail = () => {
@@ -98,6 +107,8 @@ const BookingDetail = () => {
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [complaintMessage, setComplaintMessage] = useState('');
   const [showGuestsModal, setShowGuestsModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentType, setPaymentType] = useState(null); // 'deposit', 'full', 'balance'
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -131,6 +142,11 @@ const BookingDetail = () => {
   const isSuccessPending = status === 'BOOKING_SUCCESS_PENDING';
   const isWaitingForConfirmation = status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
   const isUnderComplaint = status === 'BOOKING_UNDER_COMPLAINT';
+  // NEW flags
+  const isPendingDepositPayment = status === 'PENDING_DEPOSIT_PAYMENT';
+  const isPendingBalancePayment = status === 'PENDING_BALANCE_PAYMENT';
+  const isBookingBalanceSuccess = status === 'BOOKING_BALANCE_SUCCESS';
+  const isBookingCancelled = status === 'BOOKING_CANCELLED';
 
   const handleEditBooking = () => {
     setShowEditModal(true);
@@ -139,13 +155,13 @@ const BookingDetail = () => {
   const handleConfirmEdit = async (formData) => {
     // Close edit modal first
     setShowEditModal(false);
-    
+
     // Directly submit update (confirmation already done in EditBookingModal)
     if (!formData || !booking) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Format booking data for API
       const bookingData = {
         tourId: booking.tourId || booking.tour?.tourId || booking.tour?.id,
@@ -173,7 +189,7 @@ const BookingDetail = () => {
       const updatedBooking = await updateBooking(booking.bookingId, bookingData);
       setBooking(updatedBooking);
       showSuccess(t('bookingDetail.edit.toastSuccess'));
-      
+
       // Refresh booking data
       const [refreshedBooking, refreshedGuests] = await Promise.all([
         getBookingById(id),
@@ -203,7 +219,13 @@ const BookingDetail = () => {
       case 'WAITING_FOR_UPDATE':
       case 'BOOKING_SUCCESS_PENDING':
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+      case 'PENDING_DEPOSIT_PAYMENT':
+      case 'PENDING_BALANCE_PAYMENT':
         return <ClockIcon className={styles['status-icon']} style={{ color: statusColor }} />;
+      case 'BOOKING_BALANCE_SUCCESS':
+        return <CheckCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
+      case 'BOOKING_CANCELLED':
+        return <XCircleIcon className={styles['status-icon']} style={{ color: statusColor }} />;
       default:
         return <ClockIcon className={styles['status-icon']} style={{ color: statusColor }} />;
     }
@@ -232,10 +254,36 @@ const BookingDetail = () => {
         return 'bookingHistory.status.bookingSuccessWaitForConfirmed';
       case 'BOOKING_UNDER_COMPLAINT':
         return 'bookingHistory.status.bookingUnderComplaint';
+      case 'PENDING_DEPOSIT_PAYMENT':
+        return 'bookingHistory.status.pendingDepositPayment';
+      case 'PENDING_BALANCE_PAYMENT':
+        return 'bookingHistory.status.pendingBalancePayment';
+      case 'BOOKING_BALANCE_SUCCESS':
+        return 'bookingHistory.status.bookingBalanceSuccess';
+      case 'BOOKING_CANCELLED':
+        return 'bookingHistory.status.bookingCancelled';
       default:
         return 'bookingHistory.status.pendingPayment';
     }
   })();
+
+  // Format currency helper
+  const formatCurrency = (value) => {
+    if (!Number.isFinite(Number(value))) return '—';
+    try {
+      const krwValue = Math.round(Number(value) / 18);
+      return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
+    } catch (error) {
+      return Math.round(Number(value) / 18).toLocaleString('ko-KR') + ' KRW';
+    }
+  };
+
+  // Get locale based on i18n language
+  const getLocale = () => {
+    const lang = localStorage.getItem('i18nextLng') || 'vi';
+    const localeMap = { vi: 'vi-VN', en: 'en-US', ko: 'ko-KR' };
+    return localeMap[lang] || 'vi-VN';
+  };
 
   const handleUserConfirmCompletion = async () => {
     if (!booking?.bookingId) return;
@@ -245,7 +293,7 @@ const BookingDetail = () => {
       showSuccess(t('bookingDetail.completion.toastSuccess'));
       const refreshedBooking = await getBookingById(booking.bookingId);
       setBooking(refreshedBooking);
-      
+
       // Refresh balance for company if booking is now BOOKING_SUCCESS
       // This will update company's balance in navbar and dashboard
       if (refreshedBooking?.bookingStatus === 'BOOKING_SUCCESS') {
@@ -285,6 +333,20 @@ const BookingDetail = () => {
     }
   };
 
+  const handleConfirmPayment = () => {
+    setShowPaymentModal(false);
+    if (!booking?.bookingId) return;
+
+    // Navigate to payment page with appropriate state based on type
+    const state = {
+      booking,
+      fromBookingDetail: true,
+      isBalancePayment: paymentType === 'balance'
+    };
+
+    navigate(`/booking/payment?id=${booking.bookingId}`, { state });
+  };
+
   const renderCompletionInfo = () => {
     if (!booking) return null;
     return (
@@ -292,8 +354,8 @@ const BookingDetail = () => {
         <p>
           {booking.autoConfirmedDate
             ? t('bookingDetail.completion.autoConfirmWithDate', {
-                date: new Date(booking.autoConfirmedDate).toLocaleDateString('vi-VN')
-              })
+              date: new Date(booking.autoConfirmedDate).toLocaleDateString(getLocale())
+            })
             : t('bookingDetail.completion.autoConfirmDefault')}
         </p>
       </div>
@@ -422,6 +484,54 @@ const BookingDetail = () => {
           </div>
         </div>
 
+        {/* Payment Information Section - NEW */}
+        {(booking?.totalAmount || booking?.payedAmount || booking?.depositAmount) && (
+          <div className={styles['info-section']}>
+            <div className={styles['section-header']}>
+              <CreditCardIcon className={styles['section-icon']} />
+              <h2 className={styles['section-title']}>{t('bookingDetail.sections.paymentInfo')}</h2>
+            </div>
+            <div className={styles['info-grid']}>
+              {booking.totalAmount && (
+                <div className={styles['info-item']}>
+                  <div className={styles['info-label']}>
+                    <span>{t('bookingDetail.payment.totalAmount')}</span>
+                  </div>
+                  <div className={styles['info-value']}>{formatCurrency(booking.totalAmount)}</div>
+                </div>
+              )}
+              {booking.depositAmount && (
+                <div className={styles['info-item']}>
+                  <div className={styles['info-label']}>
+                    <span>{t('bookingDetail.payment.depositAmount')}</span>
+                  </div>
+                  <div className={styles['info-value']}>{formatCurrency(booking.depositAmount)}</div>
+                </div>
+              )}
+              {booking.payedAmount > 0 && (
+                <div className={styles['info-item']}>
+                  <div className={styles['info-label']}>
+                    <span>{t('bookingDetail.payment.payedAmount')}</span>
+                  </div>
+                  <div className={styles['info-value']} style={{ color: '#10B981' }}>
+                    {formatCurrency(booking.payedAmount)}
+                  </div>
+                </div>
+              )}
+              {booking.totalAmount && booking.payedAmount >= 0 && (
+                <div className={styles['info-item']}>
+                  <div className={styles['info-label']}>
+                    <span>{t('bookingDetail.payment.remainingAmount')}</span>
+                  </div>
+                  <div className={styles['info-value']} style={{ color: booking.totalAmount - booking.payedAmount > 0 ? '#F59E0B' : '#10B981' }}>
+                    {formatCurrency(Math.max(0, booking.totalAmount - booking.payedAmount))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Guests Information */}
         {guests && guests.length > 0 && (
           <div className={styles['info-section']}>
@@ -455,7 +565,7 @@ const BookingDetail = () => {
                           <span>DOB</span>
                         </div>
                         <div className={styles['guest-info-value']}>
-                          {new Date(guest.birthDate).toLocaleDateString('vi-VN')}
+                          {new Date(guest.birthDate).toLocaleDateString(getLocale())}
                         </div>
                       </div>
                     )}
@@ -514,16 +624,30 @@ const BookingDetail = () => {
       {/* Action Buttons */}
       {booking?.bookingId && (
         <>
+          {/* Pay Deposit Button */}
+          {isPendingDepositPayment && (
+            <div className={styles['action-section']}>
+              <button
+                className={styles['action-btn']}
+                onClick={() => {
+                  setPaymentType('deposit');
+                  setShowPaymentModal(true);
+                }}
+              >
+                <CreditCardIcon className={styles['action-icon']} />
+                <span>{t('bookingDetail.actions.payDeposit')}</span>
+              </button>
+            </div>
+          )}
+
           {isPendingPayment && (
             <div className={styles['action-section']}>
-              <button 
+              <button
                 className={styles['action-btn']}
-                onClick={() => navigate(`/booking/payment?id=${booking.bookingId}`, {
-                  state: {
-                    booking: booking,
-                    fromBookingDetail: true
-                  }
-                })}
+                onClick={() => {
+                  setPaymentType('full');
+                  setShowPaymentModal(true);
+                }}
               >
                 <CreditCardIcon className={styles['action-icon']} />
                 <span>{t('payment.checkPayment.actions.pay')}</span>
@@ -531,9 +655,56 @@ const BookingDetail = () => {
             </div>
           )}
 
+          {/* Pay Balance Button - NEW */}
+          {isPendingBalancePayment && (
+            <div className={styles['action-section']}>
+              <div className={styles['info-banner']} style={{ backgroundColor: '#FEF3C7', marginBottom: '1rem' }}>
+                <p>{t('bookingDetail.info.balancePaymentRequired')}</p>
+                <p style={{ fontWeight: 600 }}>
+                  {t('bookingDetail.info.remainingAmount')}: {formatCurrency(booking.totalAmount - booking.payedAmount)}
+                </p>
+              </div>
+              <button
+                className={styles['action-btn']}
+                onClick={() => {
+                  setPaymentType('balance');
+                  setShowPaymentModal(true);
+                }}
+              >
+                <CreditCardIcon className={styles['action-icon']} />
+                <span>{t('bookingDetail.actions.payBalance')}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Balance Success Info */}
+          {isBookingBalanceSuccess && (
+            <div className={styles['action-section']}>
+              <div className={styles['info-banner']} style={{ backgroundColor: '#D1FAE5' }}>
+                <p>{t('bookingDetail.info.balanceSuccess')}</p>
+                <p>{t('bookingDetail.info.waitingForDeparture')}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Cancelled Booking Info */}
+          {isBookingCancelled && (
+            <div className={styles['action-section']}>
+              <div className={styles['info-banner']} style={{ backgroundColor: '#F3F4F6' }}>
+                <p>{t('bookingDetail.info.cancelled')}</p>
+                {booking.cancelDate && (
+                  <p>{t('bookingDetail.info.cancelledDate')}: {new Date(booking.cancelDate).toLocaleDateString(getLocale())}</p>
+                )}
+                {booking.refundAmount > 0 && (
+                  <p>{t('bookingDetail.info.refundAmount')}: {formatCurrency(booking.refundAmount)} ({booking.refundPercentage}%)</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {isWaitingForUpdate && (
             <div className={styles['action-section']}>
-              <button 
+              <button
                 className={`${styles['action-btn']} ${styles['edit-action-btn']}`}
                 onClick={handleEditBooking}
               >
@@ -549,7 +720,7 @@ const BookingDetail = () => {
                 <p>{t('bookingDetail.info.successPending')}</p>
                 <p>
                   {t('bookingDetail.info.expectedEndDatePrefix')}{' '}
-                  {booking.tourEndDate ? new Date(booking.tourEndDate).toLocaleDateString('vi-VN') : '-'}
+                  {booking.tourEndDate ? new Date(booking.tourEndDate).toLocaleDateString(getLocale()) : '-'}
                 </p>
               </div>
             </div>
@@ -564,7 +735,7 @@ const BookingDetail = () => {
               {/* Hide buttons if user has already confirmed but company hasn't */}
               {!(booking?.userConfirmedCompletion === true && booking?.companyConfirmedCompletion === false) && (
                 <div className={styles['completion-actions']}>
-                  <button 
+                  <button
                     className={styles['confirm-btn']}
                     onClick={() => setShowCompletionConfirmModal(true)}
                     disabled={confirmingCompletion}
@@ -572,7 +743,7 @@ const BookingDetail = () => {
                     <CheckCircleIcon className={styles['action-icon']} />
                     <span>{t('bookingDetail.actions.complete')}</span>
                   </button>
-                  <button 
+                  <button
                     type="button"
                     className={styles['complaint-btn']}
                     onClick={() => setShowComplaintModal(true)}
@@ -732,6 +903,14 @@ const BookingDetail = () => {
           </div>
         </div>
       )}
+
+      {/* Payment Confirmation Modal */}
+      <PaymentConfirmModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onConfirm={handleConfirmPayment}
+        modalKey="bookingDetail"
+      />
     </div>
   );
 };

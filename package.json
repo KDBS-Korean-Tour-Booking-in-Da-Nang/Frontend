@@ -24,7 +24,6 @@
     "apexcharts": "^5.3.6",
     "axios": "^1.13.1",
     "bootstrap": "^5.3.3",
-    "caniuse-lite": "^1.0.30001757",
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",

@@ -29,10 +29,14 @@ const getAuthHeaders = () => {
  * @returns {Promise<Object>}
  */
 export const createTossBookingPayment = async (payload) => {
+  // Đảm bảo isDeposit là boolean, không phải truthy/falsy
+  const isDepositValue = Boolean(payload?.isDeposit === true);
+  
   const requestBody = {
     bookingId: Number(payload?.bookingId),
     userEmail: payload?.userEmail?.trim(),
     voucherCode: payload?.voucherCode ? payload.voucherCode.trim() : undefined,
+    deposit: isDepositValue,  // Gửi 'deposit' để map vào field 'deposit' trong backend
   };
 
   if (!Number.isFinite(requestBody.bookingId)) {
@@ -47,9 +51,11 @@ export const createTossBookingPayment = async (payload) => {
     // Use getApiPath for consistent URL handling in dev/prod
     let url = getApiPath('/api/booking/payment');
     
-    // Log URL in development for debugging
+    // Log request body in development for debugging
     if (import.meta.env.DEV) {
       console.log('[PaymentService] Calling payment endpoint:', url);
+      console.log('[PaymentService] Request body:', JSON.stringify(requestBody, null, 2));
+      console.log('[PaymentService] isDeposit value:', requestBody.isDeposit, '(type:', typeof requestBody.isDeposit, ')');
     }
     
     let response = await fetch(url, {
@@ -152,6 +158,17 @@ export const createTossBookingPayment = async (payload) => {
     }
 
     const data = await response.json();
+    
+    // Log response để kiểm tra số tiền từ backend
+    if (import.meta.env.DEV) {
+      console.log('[PaymentService] Response from backend:', {
+        success: data?.success,
+        amount: data?.amount,
+        orderId: data?.orderId,
+        requestBody: requestBody,
+      });
+    }
+    
     return data;
   } catch (error) {
     // Enhanced error logging
