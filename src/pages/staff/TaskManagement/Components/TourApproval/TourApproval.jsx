@@ -53,6 +53,8 @@ const TourApproval = () => {
   const [isRejectUpdateModalOpen, setIsRejectUpdateModalOpen] = useState(false);
   const [updateApproveNote, setUpdateApproveNote] = useState('');
   const [updateRejectNote, setUpdateRejectNote] = useState('');
+  const [searchUpdateQuery, setSearchUpdateQuery] = useState('');
+  const [sortUpdateBy, setSortUpdateBy] = useState('newest');
 
   // Delete Requests State
   const [showDeleteRequests, setShowDeleteRequests] = useState(false);
@@ -63,6 +65,8 @@ const TourApproval = () => {
   const [isRejectDeleteModalOpen, setIsRejectDeleteModalOpen] = useState(false);
   const [deleteApproveNote, setDeleteApproveNote] = useState('');
   const [deleteRejectNote, setDeleteRejectNote] = useState('');
+  const [searchDeleteQuery, setSearchDeleteQuery] = useState('');
+  const [sortDeleteBy, setSortDeleteBy] = useState('newest');
 
   // Fetch tours from API
   useEffect(() => {
@@ -383,6 +387,76 @@ const TourApproval = () => {
     return filteredAndSortedTours.slice(startIndex, endIndex);
   }, [filteredAndSortedTours, currentPage, pageSize]);
 
+  // Filter and sort update requests
+  const sortedUpdateRequests = useMemo(() => {
+    let filtered = [...updateRequests];
+
+    // Search filter
+    if (searchUpdateQuery.trim()) {
+      const query = searchUpdateQuery.toLowerCase();
+      filtered = filtered.filter(request => {
+        const tourName = (request.originalTour?.tourName || '').toLowerCase();
+        const companyNote = (request.companyNote || '').toLowerCase();
+        return tourName.includes(query) || companyNote.includes(query);
+      });
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortUpdateBy === 'newest') {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      } else if (sortUpdateBy === 'oldest') {
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      } else if (sortUpdateBy === 'name-asc') {
+        const nameA = (a.originalTour?.tourName || '').toLowerCase();
+        const nameB = (b.originalTour?.tourName || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      } else if (sortUpdateBy === 'name-desc') {
+        const nameA = (a.originalTour?.tourName || '').toLowerCase();
+        const nameB = (b.originalTour?.tourName || '').toLowerCase();
+        return nameB.localeCompare(nameA);
+      }
+      return 0;
+    });
+
+    return filtered;
+  }, [updateRequests, searchUpdateQuery, sortUpdateBy]);
+
+  // Filter and sort delete requests
+  const sortedDeleteRequests = useMemo(() => {
+    let filtered = [...deleteRequests];
+
+    // Search filter
+    if (searchDeleteQuery.trim()) {
+      const query = searchDeleteQuery.toLowerCase();
+      filtered = filtered.filter(request => {
+        const tourName = (request.tourName || '').toLowerCase();
+        const companyNote = (request.companyNote || '').toLowerCase();
+        return tourName.includes(query) || companyNote.includes(query);
+      });
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortDeleteBy === 'newest') {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      } else if (sortDeleteBy === 'oldest') {
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      } else if (sortDeleteBy === 'name-asc') {
+        const nameA = (a.tourName || '').toLowerCase();
+        const nameB = (b.tourName || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      } else if (sortDeleteBy === 'name-desc') {
+        const nameA = (a.tourName || '').toLowerCase();
+        const nameB = (b.tourName || '').toLowerCase();
+        return nameB.localeCompare(nameA);
+      }
+      return 0;
+    });
+
+    return filtered;
+  }, [deleteRequests, searchDeleteQuery, sortDeleteBy]);
+
   // Handle view details
   const handleViewDetails = async (tourId) => {
     try {
@@ -530,13 +604,11 @@ const TourApproval = () => {
     }
   };
 
+  // Format as KRW (VND / 18)
   const formatPrice = (price) => {
     if (!price) return t('admin.tourApproval.status.na');
-    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
+    const krwValue = Math.round(Number(price) / 18);
+    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
   const formatDate = (dateString) => {
@@ -685,44 +757,90 @@ const TourApproval = () => {
         <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-xs">
             <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(0);
-              }}
-              placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
-              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            {showUpdateRequests ? (
+              <input
+                type="text"
+                value={searchUpdateQuery}
+                onChange={(e) => setSearchUpdateQuery(e.target.value)}
+                placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
+                className="w-full border border-amber-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              />
+            ) : showDeleteRequests ? (
+              <input
+                type="text"
+                value={searchDeleteQuery}
+                onChange={(e) => setSearchDeleteQuery(e.target.value)}
+                placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
+                className="w-full border border-red-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+            ) : (
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(0);
+                }}
+                placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
+                className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            )}
           </div>
           <div className="flex flex-wrap gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(0);
-              }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">{t('admin.tourApproval.filters.statusFilter.all')}</option>
-              <option value="NOT_APPROVED">{t('admin.tourApproval.filters.statusFilter.notApproved')}</option>
-              <option value="PUBLIC">{t('admin.tourApproval.filters.statusFilter.public')}</option>
-              <option value="DISABLED">{t('admin.tourApproval.filters.statusFilter.disabled')}</option>
-            </select>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setCurrentPage(0);
-              }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
-              <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
-              <option value="name-asc">{t('admin.tourApproval.filters.sortBy.nameAsc')}</option>
-              <option value="name-desc">{t('admin.tourApproval.filters.sortBy.nameDesc')}</option>
-            </select>
+            {/* Status filter - only show for default tours table */}
+            {!showUpdateRequests && !showDeleteRequests && (
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(0);
+                }}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">{t('admin.tourApproval.filters.statusFilter.all')}</option>
+                <option value="NOT_APPROVED">{t('admin.tourApproval.filters.statusFilter.notApproved')}</option>
+                <option value="PUBLIC">{t('admin.tourApproval.filters.statusFilter.public')}</option>
+                <option value="DISABLED">{t('admin.tourApproval.filters.statusFilter.disabled')}</option>
+              </select>
+            )}
+            {/* Sort dropdown - conditional based on active table */}
+            {showUpdateRequests ? (
+              <select
+                value={sortUpdateBy}
+                onChange={(e) => setSortUpdateBy(e.target.value)}
+                className="border border-amber-300 rounded-lg px-3 py-2 text-sm text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              >
+                <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
+                <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
+                <option value="name-asc">{t('admin.tourApproval.filters.sortBy.nameAsc')}</option>
+                <option value="name-desc">{t('admin.tourApproval.filters.sortBy.nameDesc')}</option>
+              </select>
+            ) : showDeleteRequests ? (
+              <select
+                value={sortDeleteBy}
+                onChange={(e) => setSortDeleteBy(e.target.value)}
+                className="border border-red-300 rounded-lg px-3 py-2 text-sm text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
+                <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
+                <option value="name-asc">{t('admin.tourApproval.filters.sortBy.nameAsc')}</option>
+                <option value="name-desc">{t('admin.tourApproval.filters.sortBy.nameDesc')}</option>
+              </select>
+            ) : (
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(0);
+                }}
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
+                <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
+                <option value="name-asc">{t('admin.tourApproval.filters.sortBy.nameAsc')}</option>
+                <option value="name-desc">{t('admin.tourApproval.filters.sortBy.nameDesc')}</option>
+              </select>
+            )}
             {/* Update Requests Button */}
             <button
               onClick={toggleUpdateRequestsView}
@@ -798,7 +916,7 @@ const TourApproval = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-50">
-                  {updateRequests.map((request, index) => (
+                  {sortedUpdateRequests.map((request, index) => (
                     <tr key={request.id} className="hover:bg-amber-50/40 transition">
                       <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
                       <td className="px-6 py-4">
@@ -837,6 +955,15 @@ const TourApproval = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          <Tooltip text={t('admin.tourApproval.actions.viewDetails')} position="top">
+                            <button
+                              onClick={() => handleViewDetails(request.originalTour?.tourId || request.originalTourId)}
+                              disabled={loadingDetail}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
                           <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
                             <button
                               onClick={() => handleApproveUpdateRequest(request)}
@@ -886,7 +1013,7 @@ const TourApproval = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-50">
-                  {deleteRequests.map((request, index) => (
+                  {sortedDeleteRequests.map((request, index) => (
                     <tr key={request.id} className="hover:bg-red-50/40 transition">
                       <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
                       <td className="px-6 py-4">
@@ -917,6 +1044,15 @@ const TourApproval = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          <Tooltip text={t('admin.tourApproval.actions.viewDetails')} position="top">
+                            <button
+                              onClick={() => handleViewDetails(request.tourId)}
+                              disabled={loadingDetail}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
                           <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
                             <button
                               onClick={() => handleApproveDeleteRequest(request)}

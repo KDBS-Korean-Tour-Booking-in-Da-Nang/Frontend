@@ -28,18 +28,16 @@ import styles from './BookingCheckPaymentPage.module.css';
 
 
 /**
- * Format số tiền thành định dạng VND (ví dụ: 100000 -> "100.000 ₫")
+ * Format số tiền thành định dạng KRW (ví dụ: 1800000 -> "100,000 KRW")
+ * VND / 18 = KRW
  */
 const formatCurrency = (value) => {
   if (!Number.isFinite(Number(value))) return '—';
   try {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-    }).format(Number(value));
+    const krwValue = Math.round(Number(value) / 18);
+    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   } catch (error) {
-    return Number(value).toLocaleString('vi-VN');
+    return Math.round(Number(value) / 18).toLocaleString('ko-KR') + ' KRW';
   }
 };
 

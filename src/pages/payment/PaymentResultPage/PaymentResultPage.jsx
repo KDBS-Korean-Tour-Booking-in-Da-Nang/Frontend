@@ -22,17 +22,14 @@ function sanitize(value) {
   return value.replace(/[<>]/g, '').trim();
 }
 
+// Format as KRW (BE already processed the conversion, just display)
 function formatCurrencyVND(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return '—';
   try {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-    }).format(n);
+    return new Intl.NumberFormat('ko-KR').format(n) + ' KRW';
   } catch {
-    return n.toLocaleString('vi-VN');
+    return n.toLocaleString('ko-KR') + ' KRW';
   }
 }
 
@@ -57,20 +54,20 @@ export default function PaymentResultPage() {
   const bannerClasses = isSuccess
     ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
     : isFailed
-    ? 'border-rose-200 bg-rose-50 text-rose-900'
-    : 'border-blue-200 bg-blue-50 text-blue-900';
+      ? 'border-rose-200 bg-rose-50 text-rose-900'
+      : 'border-blue-200 bg-blue-50 text-blue-900';
 
   const title = isSuccess
     ? t('payment.result.successTitle')
     : isFailed
-    ? t('payment.result.failedTitle')
-    : t('payment.result.unknownTitle');
+      ? t('payment.result.failedTitle')
+      : t('payment.result.unknownTitle');
 
   const subtitle = isSuccess
     ? t('payment.result.successMessage')
     : isFailed
-    ? t('payment.result.failedMessage')
-    : t('payment.result.unknownMessage');
+      ? t('payment.result.failedMessage')
+      : t('payment.result.unknownMessage');
 
   return (
     <div className={styles.shell}>

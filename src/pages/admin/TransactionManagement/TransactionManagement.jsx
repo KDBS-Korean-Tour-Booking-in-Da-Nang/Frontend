@@ -38,7 +38,7 @@ const TransactionManagement = () => {
       setLoading(true);
       setError(null);
       const token = getToken();
-      
+
       if (!token) {
         setError(t('common.errors.loginRequired'));
         setLoading(false);
@@ -47,7 +47,7 @@ const TransactionManagement = () => {
 
       const headers = createAuthHeaders(token);
       const response = await fetch(API_ENDPOINTS.TRANSACTIONS, { headers });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           await checkAndHandle401(response);
@@ -59,7 +59,7 @@ const TransactionManagement = () => {
 
       const data = await response.json();
       const transactionsList = Array.isArray(data) ? data : [];
-      
+
       // Map TransactionResponse to frontend format
       const mappedTransactions = transactionsList.map((txn) => {
         // Map status: SUCCESS -> completed, PENDING -> pending, FAILED -> failed
@@ -140,9 +140,10 @@ const TransactionManagement = () => {
     return { total, completed, totalRevenue, pending };
   }, [transactions]);
 
+  // Format as KRW (VND / 18)
   const formatCurrency = (value) => {
-    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+    const krwValue = Math.round(Number(value) / 18);
+    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
   // Chỉ hiển thị màn hình loading toàn trang khi lần load đầu tiên chưa có dữ liệu
@@ -246,50 +247,50 @@ const TransactionManagement = () => {
                 </tr>
               ) : (
                 paginatedTransactions.map((transaction, index) => (
-                <tr key={transaction.id} className="hover:bg-[#e9f2ff]/40 transition">
-                  <td className="px-4 py-4 text-center bg-blue-50/30">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
-                      {currentPage * itemsPerPage + index + 1}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-semibold text-gray-900">{transaction.customerName}</p>
-                      <p className="text-sm text-gray-500">{transaction.customerEmail}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={transaction.status} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-gray-900">{formatCurrency(transaction.amount)}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {transaction.paymentMethod}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <CalendarIcon className="h-4 w-4 text-gray-400" />
-                      {transaction.transactionDate 
-                        ? new Date(transaction.transactionDate).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN')
-                        : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Tooltip text={t('admin.transactionManagement.actions.viewDetails')} position="top">
-                      <button 
-                        onClick={() => {
-                          setSelectedTransaction(transaction);
-                          setIsDetailModalOpen(true);
-                        }}
-                        className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
-                    </Tooltip>
-                  </td>
-                </tr>
-              )))}
+                  <tr key={transaction.id} className="hover:bg-[#e9f2ff]/40 transition">
+                    <td className="px-4 py-4 text-center bg-blue-50/30">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
+                        {currentPage * itemsPerPage + index + 1}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-semibold text-gray-900">{transaction.customerName}</p>
+                        <p className="text-sm text-gray-500">{transaction.customerEmail}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={transaction.status} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(transaction.amount)}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {transaction.paymentMethod}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <CalendarIcon className="h-4 w-4 text-gray-400" />
+                        {transaction.transactionDate
+                          ? new Date(transaction.transactionDate).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN')
+                          : 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Tooltip text={t('admin.transactionManagement.actions.viewDetails')} position="top">
+                        <button
+                          onClick={() => {
+                            setSelectedTransaction(transaction);
+                            setIsDetailModalOpen(true);
+                          }}
+                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    </td>
+                  </tr>
+                )))}
             </tbody>
           </table>
         </div>
@@ -325,7 +326,7 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
           {IconComponent === CurrencyFormatter ? (
-            <span className="text-xl font-semibold text-[#4c9dff]">₫</span>
+            <span className="text-xl font-semibold text-[#4c9dff]">₩</span>
           ) : (
             <IconComponent className="h-6 w-6 text-[#4c9dff]" />
           )}

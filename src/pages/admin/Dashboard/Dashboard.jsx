@@ -105,28 +105,28 @@ const Dashboard = () => {
 
         // Fetch all tours
         const toursRes = await fetch(API_ENDPOINTS.TOURS, { headers });
-        
+
         // Handle 401 if token expired
         if (!toursRes.ok && toursRes.status === 401) {
           await checkAndHandle401(toursRes);
           return;
         }
-        
+
         const tours = toursRes.ok ? await toursRes.json() : [];
         const toursArray = Array.isArray(tours) ? tours : [];
 
         // Fetch all users
         const usersRes = await fetch(API_ENDPOINTS.USERS, { headers });
-        
+
         // Handle 401 if token expired
         if (!usersRes.ok && usersRes.status === 401) {
           await checkAndHandle401(usersRes);
           return;
         }
-        
+
         const users = usersRes.ok ? await usersRes.json() : [];
         const usersArray = Array.isArray(users) ? users : [];
-        
+
         // Extract users from API response if wrapped
         const allUsers = usersArray.result || usersArray;
         const usersList = Array.isArray(allUsers) ? allUsers : [];
@@ -147,7 +147,7 @@ const Dashboard = () => {
         const activeTours = toursArray.filter(t => t.status === 'ACTIVE' || !t.status).length;
         const totalUsers = usersList.length;
         const totalCompanies = usersList.filter(u => u.role === 'COMPANY').length;
-        
+
         // Calculate tour categories
         const tourCategories = {
           domestic: toursArray.filter(t => t.category === 'domestic').length,
@@ -162,7 +162,7 @@ const Dashboard = () => {
         const mockPendingBookings = Math.floor(mockTotalBookings * 0.15);
         const mockCompletedBookings = Math.floor(mockTotalBookings * 0.75);
         const mockCancelledBookings = Math.floor(mockTotalBookings * 0.10);
-        
+
         // Total Revenue should use balance from API (same as company dashboard)
         // Balance is already fetched in fetchBalance() above
         const totalRevenue = balance !== null ? balance : 0;
@@ -189,13 +189,10 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [getToken, balance]);
 
-  // Format currency
+  // Format currency as KRW (VND / 18)
   const formatCurrency = (value) => {
-    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'VND'
-    }).format(value);
+    const krwValue = Math.round(Number(value) / 18);
+    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
   // Stats cards data
@@ -294,11 +291,11 @@ const Dashboard = () => {
       },
       colors: ['#2979FF'],
       xaxis: {
-        categories: i18n.language === 'ko' 
+        categories: i18n.language === 'ko'
           ? ['1월', '2월', '3월', '4월', '5월', '6월']
           : i18n.language === 'en'
-          ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-          : ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6']
+            ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+            : ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6']
       },
       yaxis: {
         title: {
@@ -389,8 +386,8 @@ const Dashboard = () => {
     {
       label: t('admin.dashboard.bookingStatus.completed'),
       value: stats.completedBookings,
-      percentage: stats.totalBookings > 0 
-        ? Math.round((stats.completedBookings / stats.totalBookings) * 100) 
+      percentage: stats.totalBookings > 0
+        ? Math.round((stats.completedBookings / stats.totalBookings) * 100)
         : 0,
       icon: CheckCircleIcon,
       color: '#2979FF',
@@ -401,8 +398,8 @@ const Dashboard = () => {
     {
       label: t('admin.dashboard.bookingStatus.pending'),
       value: stats.pendingBookings,
-      percentage: stats.totalBookings > 0 
-        ? Math.round((stats.pendingBookings / stats.totalBookings) * 100) 
+      percentage: stats.totalBookings > 0
+        ? Math.round((stats.pendingBookings / stats.totalBookings) * 100)
         : 0,
       icon: ClockIcon,
       color: '#36C2A8',
@@ -413,8 +410,8 @@ const Dashboard = () => {
     {
       label: t('admin.dashboard.bookingStatus.cancelled'),
       value: stats.cancelledBookings,
-      percentage: stats.totalBookings > 0 
-        ? Math.round((stats.cancelledBookings / stats.totalBookings) * 100) 
+      percentage: stats.totalBookings > 0
+        ? Math.round((stats.cancelledBookings / stats.totalBookings) * 100)
         : 0,
       icon: XCircleIcon,
       color: '#6EDDCB',
@@ -427,21 +424,21 @@ const Dashboard = () => {
   // Top countries data (mock data for map)
   const topCountries = i18n.language === 'ko'
     ? [
-        { name: '베트남', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
-        { name: '한국', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
-        { name: '일본', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
-        { name: '태국', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
-        { name: '싱가포르', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
-      ]
+      { name: '베트남', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
+      { name: '한국', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
+      { name: '일본', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
+      { name: '태국', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
+      { name: '싱가포르', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
+    ]
     : i18n.language === 'en'
-    ? [
+      ? [
         { name: 'Vietnam', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
         { name: 'South Korea', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
         { name: 'Japan', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
         { name: 'Thailand', code: 'TH', users: 620, percentage: 42, coordinates: [100.9925, 15.8700] },
         { name: 'Singapore', code: 'SG', users: 450, percentage: 30, coordinates: [103.8198, 1.3521] }
       ]
-    : [
+      : [
         { name: 'Việt Nam', code: 'VN', users: 1240, percentage: 80, coordinates: [108.2772, 14.0583] },
         { name: 'Hàn Quốc', code: 'KR', users: 980, percentage: 65, coordinates: [127.7669, 35.9078] },
         { name: 'Nhật Bản', code: 'JP', users: 750, percentage: 50, coordinates: [138.2529, 36.2048] },
@@ -452,7 +449,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
       </div>
     );
   }
@@ -479,9 +476,8 @@ const Dashboard = () => {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
                     <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <div className={`mt-2 flex items-center text-sm font-semibold ${
-                      stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <div className={`mt-2 flex items-center text-sm font-semibold ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       {stat.changeType === 'positive' ? (
                         <ArrowUpIcon className="h-4 w-4 mr-1" />
                       ) : (
@@ -589,7 +585,7 @@ const Dashboard = () => {
             <option>{t('admin.dashboard.worldMap.timeFilter.thisMonth')}</option>
           </select>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* World Map */}
           <div className="relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
@@ -674,8 +670,8 @@ const Dashboard = () => {
                       className="h-2 rounded-full transition-all duration-500"
                       style={{
                         width: `${country.percentage}%`,
-                        backgroundColor: country.code === 'VN' || country.code === 'KR' 
-                          ? '#2979FF' 
+                        backgroundColor: country.code === 'VN' || country.code === 'KR'
+                          ? '#2979FF'
                           : '#36C2A8'
                       }}
                     ></div>

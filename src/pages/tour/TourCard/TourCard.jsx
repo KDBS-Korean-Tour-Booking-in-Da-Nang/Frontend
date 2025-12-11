@@ -19,11 +19,10 @@ const TourCard = ({ tour }) => {
   const modalClosingRef = useRef(false);
   const { t, i18n } = useTranslation();
 
+  // Format as KRW (VND / 18)
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
+    const krwValue = Math.round(Number(price) / 18);
+    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
   const formatDurationLocalized = () => {
@@ -72,9 +71,9 @@ const TourCard = ({ tour }) => {
   return (
     <div className={styles['tour-card']} onClick={handleCardClick}>
       <div className={styles['tour-card-image']}>
-        <img 
-          src={tour.image || '/default-Tour.jpg'} 
-          alt={tour.title} 
+        <img
+          src={tour.image || '/default-Tour.jpg'}
+          alt={tour.title}
           onError={(e) => {
             e.target.src = '/default-Tour.jpg';
           }}
@@ -85,24 +84,24 @@ const TourCard = ({ tour }) => {
           </div>
         )}
       </div>
-      
+
       <div className={styles['tour-card-content']}>
         <h3 className={styles['tour-card-title']}>{tour.title}</h3>
-        
+
         <div className={styles['tour-card-bottom']}>
           <div className={styles['tour-card-info']}>
             <div className={styles['tour-duration']}>
               <ClockIcon className={styles['duration-icon']} />
               <span>{formatDurationLocalized()}</span>
             </div>
-            
+
             <div className={styles['tour-price']}>
               <span className={styles['price-amount']}>{formatPrice(tour.price)}</span>
             </div>
           </div>
 
           <div className={styles['tour-card-actions']}>
-            <button 
+            <button
               className={styles['tour-details-btn']}
               onClick={(e) => {
                 handleButtonClick(e);
@@ -112,7 +111,7 @@ const TourCard = ({ tour }) => {
               <span>{t('tourCard.details')}</span>
               <ArrowRightIcon className={styles['btn-icon']} />
             </button>
-            <button 
+            <button
               className={styles['share-btn']}
               onClick={(e) => {
                 handleButtonClick(e);
@@ -125,8 +124,8 @@ const TourCard = ({ tour }) => {
         </div>
       </div>
       {openShare && createPortal(
-        <ShareTourModal 
-          isOpen={openShare} 
+        <ShareTourModal
+          isOpen={openShare}
           onClose={() => {
             modalClosingRef.current = true;
             setOpenShare(false);
@@ -134,9 +133,9 @@ const TourCard = ({ tour }) => {
             setTimeout(() => {
               modalClosingRef.current = false;
             }, 100);
-          }} 
+          }}
           tourId={tour.id}
-          onShared={(post)=>{ 
+          onShared={(post) => {
             // Close modal then navigate to forum like TourDetailPage
             modalClosingRef.current = true;
             setOpenShare(false);
