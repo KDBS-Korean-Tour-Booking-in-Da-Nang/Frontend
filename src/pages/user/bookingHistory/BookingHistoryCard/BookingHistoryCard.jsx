@@ -359,24 +359,20 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
       const result = await cancelBooking(booking.bookingId);
       setHasConfirmedCancel(true);
 
-      // Call refresh callback if provided
+      // Call refresh callback if provided - refresh data immediately but don't close modal
+      // Let user close modal manually after reading the success message
       if (onBookingCancelled) {
-        setTimeout(() => {
-          onBookingCancelled();
-          handleCloseModal();
-        }, 2000); // Show success message for 2 seconds before closing
+        onBookingCancelled();
       } else {
-        // Fallback: reload page after 2 seconds
-        setTimeout(() => {
-          globalThis.location?.reload();
-        }, 2000);
+        // Fallback: reload page immediately
+        globalThis.location?.reload();
       }
     } catch (error) {
       setCancelError(error.message || 'Không thể hủy booking. Vui lòng thử lại.');
     } finally {
       setIsCancelling(false);
     }
-  }, [booking.bookingId, onBookingCancelled, handleCloseModal]);
+  }, [booking.bookingId, onBookingCancelled]);
 
   const modalNode = useMemo(() => {
     if (!showCancelModal) return null;

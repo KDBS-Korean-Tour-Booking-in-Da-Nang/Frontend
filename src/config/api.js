@@ -78,6 +78,7 @@ export const API_ENDPOINTS = {
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
   TOUR_PREVIEW_BY_ID: (id) => `${BaseURL}/api/tour/preview/${id}`,
   TOURS_SUGGEST_BY_ARTICLE: (userId) => `${BaseURL}/api/tour/suggestByArticle${userId ? `?userId=${userId}` : ''}`,
+  TOURS_SUGGEST_VIA_BEHAVIOR: (userId) => `${BaseURL}/api/tour/suggestViaBehavior${userId ? `?userId=${userId}` : ''}`,
 
   // Tour Update Requests
   TOUR_UPDATE_REQUEST: (tourId) => `${BaseURL}/api/tour/${tourId}/update-request`,

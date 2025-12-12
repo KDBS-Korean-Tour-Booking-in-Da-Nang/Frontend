@@ -1452,12 +1452,19 @@
 		"tourDetailModal": {
 			"title": "투어 상세",
 			"close": "닫기",
+			"changed": "변경됨",
+			"viewingUpdateRequest": "업데이트 요청 보기",
+			"imageChanged": "이미지 변경됨",
+			"updateRequestInfo": "업데이트 요청 정보",
+			"companyNote": "회사 메모",
+			"requestStatus": "요청 상태",
+			"requestedAt": "요청 시간",
 			"fields": {
 				"tourId": "투어 코드",
 				"departurePoint": "출발지",
 				"adultPrice": "성인 가격",
-				"childrenPrice": "아동: {{price}}",
-				"babyPrice": "유아: {{price}}",
+				"childrenPrice": "아동",
+				"babyPrice": "유아",
 				"duration": "기간",
 				"createdAt": "생성일",
 				"additionalInfo": "추가 정보",
@@ -1465,7 +1472,20 @@
 				"tourType": "투어 유형",
 				"amount": "수량",
 				"amountPeople": "{{amount}}명",
-				"company": "회사"
+				"company": "회사",
+				"expirationDate": "만료일",
+				"checkDays": "확인 일수",
+				"paymentBooking": "결제 및 예약",
+				"balancePaymentDays": "잔액 결제 일수",
+				"days": "일",
+				"minAdvancedDays": "최소 사전 예약 일수",
+				"depositPercentage": "보증금 비율",
+				"refundFloor": "환불 기준",
+				"intDuration": "정수 기간",
+				"itinerary": "여행 일정",
+				"day": "일",
+				"schedule": "일정",
+				"status": "상태"
 			},
 			"actions": {
 				"approve": "승인",
@@ -3283,6 +3303,18 @@
 		},
 		"allTours": {
 			"title": "전체 투어"
+		},
+		"behaviorSuggestion": {
+			"title": "행동 기반 추천 투어",
+			"loading": "추천 투어를 불러오는 중...",
+			"previous": "이전",
+			"next": "다음",
+			"errorSession": "세션이 만료되었습니다. 다시 로그인해주세요.",
+			"errorServer": "추천 투어를 불러오는 중 서버 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+			"errorHttp": "추천 투어를 불러오는 중 오류가 발생했습니다 ({{status}}). 나중에 다시 시도해주세요.",
+			"errorNetwork": "연결 오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.",
+			"errorUnknown": "추천 투어를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+			"errorSubtext": "나중에 다시 시도하거나 페이지를 새로고침해주세요."
 		}
 	},
 	"bookingHistory": {

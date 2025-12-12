@@ -1475,7 +1475,8 @@
 					"message": "Are you sure you want to reject the update request for tour \"{{name}}\"? Tour will remain unchanged.",
 					"confirm": "Reject",
 					"cancel": "Cancel"
-				}
+				},
+				"bookings": "Booking List"
 			},
 			"deleteRequests": {
 				"button": "Delete Requests",
@@ -1500,18 +1501,34 @@
 					"message": "Are you sure you want to reject the delete request for tour \"{{name}}\"? Tour will remain active.",
 					"confirm": "Reject",
 					"cancel": "Cancel"
-				}
+				},
+				"bookings": "Booking List"
+			},
+			"bookings": {
+				"contactName": "Contact Name",
+				"contactPhone": "Phone",
+				"contactEmail": "Email",
+				"departureDate": "Departure Date",
+				"status": "Status",
+				"createdAt": "Created At"
 			}
 		},
 		"tourDetailModal": {
 			"title": "Tour Details",
 			"close": "Close",
+			"changed": "Changed",
+			"viewingUpdateRequest": "Viewing update request",
+			"imageChanged": "Image changed",
+			"updateRequestInfo": "Update Request Information",
+			"companyNote": "Company Note",
+			"requestStatus": "Request Status",
+			"requestedAt": "Requested at",
 			"fields": {
 				"tourId": "Tour Code",
 				"departurePoint": "Departure point",
 				"adultPrice": "Adult price",
-				"childrenPrice": "Children: {{price}}",
-				"babyPrice": "Baby: {{price}}",
+				"childrenPrice": "Children",
+				"babyPrice": "Baby",
 				"duration": "Duration",
 				"createdAt": "Created date",
 				"additionalInfo": "Additional information",
@@ -1519,7 +1536,20 @@
 				"tourType": "Tour type",
 				"amount": "Amount",
 				"amountPeople": "{{amount}} people",
-				"company": "Company"
+				"company": "Company",
+				"expirationDate": "Expiration date",
+				"checkDays": "Check days",
+				"paymentBooking": "Payment & Booking",
+				"balancePaymentDays": "Balance payment days",
+				"days": "days",
+				"minAdvancedDays": "Minimum advance days",
+				"depositPercentage": "Deposit percentage",
+				"refundFloor": "Refund floor",
+				"intDuration": "Integer duration",
+				"itinerary": "Itinerary",
+				"day": "Day",
+				"schedule": "Schedule",
+				"status": "Status"
 			},
 			"actions": {
 				"approve": "Approve",
@@ -3342,6 +3372,18 @@
 		},
 		"allTours": {
 			"title": "All Tours"
+		},
+		"behaviorSuggestion": {
+			"title": "Recommended Tours Based on Your Behavior",
+			"loading": "Loading recommended tours...",
+			"previous": "Previous",
+			"next": "Next",
+			"errorSession": "Your session has expired. Please login again.",
+			"errorServer": "Server error while loading recommended tours. Please try again later.",
+			"errorHttp": "Error loading recommended tours ({{status}}). Please try again later.",
+			"errorNetwork": "Connection error. Please check your internet connection and try again.",
+			"errorUnknown": "An error occurred while loading recommended tours. Please try again later.",
+			"errorSubtext": "Please try again later or refresh the page."
 		}
 	},
 	"bookingHistory": {

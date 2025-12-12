@@ -1473,7 +1473,8 @@
           "message": "Bạn có chắc chắn muốn từ chối yêu cầu cập nhật cho tour \"{{name}}\"? Tour sẽ giữ nguyên như cũ.",
           "confirm": "Từ chối",
           "cancel": "Hủy"
-        }
+        },
+        "bookings": "Danh sách booking"
       },
       "deleteRequests": {
         "button": "Yêu cầu xóa",
@@ -1498,18 +1499,34 @@
           "message": "Bạn có chắc chắn muốn từ chối yêu cầu xóa tour \"{{name}}\"? Tour sẽ được giữ nguyên.",
           "confirm": "Từ chối",
           "cancel": "Hủy"
-        }
+        },
+        "bookings": "Danh sách booking"
+      },
+      "bookings": {
+        "contactName": "Tên liên hệ",
+        "contactPhone": "Số điện thoại",
+        "contactEmail": "Email",
+        "departureDate": "Ngày khởi hành",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo"
       }
     },
     "tourDetailModal": {
       "title": "Chi tiết Tour",
       "close": "Đóng",
+      "changed": "Đã thay đổi",
+      "viewingUpdateRequest": "Đang xem yêu cầu cập nhật",
+      "imageChanged": "Hình ảnh đã thay đổi",
+      "updateRequestInfo": "Thông tin yêu cầu cập nhật",
+      "companyNote": "Ghi chú của công ty",
+      "requestStatus": "Trạng thái yêu cầu",
+      "requestedAt": "Yêu cầu lúc",
       "fields": {
         "tourId": "Mã Tour",
         "departurePoint": "Điểm khởi hành",
         "adultPrice": "Giá người lớn",
-        "childrenPrice": "Trẻ em: {{price}}",
-        "babyPrice": "Em bé: {{price}}",
+        "childrenPrice": "Trẻ em",
+        "babyPrice": "Em bé",
         "duration": "Thời gian",
         "createdAt": "Ngày tạo",
         "additionalInfo": "Thông tin bổ sung",
@@ -1517,7 +1534,20 @@
         "tourType": "Loại tour",
         "amount": "Số lượng",
         "amountPeople": "{{amount}} người",
-        "company": "Công ty"
+        "company": "Công ty",
+        "expirationDate": "Ngày hết hạn",
+        "checkDays": "Số ngày kiểm tra",
+        "paymentBooking": "Thanh toán & Đặt chỗ",
+        "balancePaymentDays": "Số ngày thanh toán dư",
+        "days": "ngày",
+        "minAdvancedDays": "Số ngày đặt trước tối thiểu",
+        "depositPercentage": "Phần trăm đặt cọc",
+        "refundFloor": "Phần trăm hoàn tiền",
+        "intDuration": "Thời lượng số",
+        "itinerary": "Lịch trình",
+        "day": "Ngày",
+        "schedule": "Lịch trình",
+        "status": "Trạng thái"
       },
       "actions": {
         "approve": "Phê duyệt",
@@ -3348,6 +3378,18 @@
     },
     "allTours": {
       "title": "Tất Cả Tours"
+    },
+    "behaviorSuggestion": {
+      "title": "Tour Gợi Ý Dựa Trên Hành Vi",
+      "loading": "Đang tải tour gợi ý...",
+      "previous": "Trước",
+      "next": "Sau",
+      "errorSession": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      "errorServer": "Lỗi server khi tải tour gợi ý. Vui lòng thử lại sau.",
+      "errorHttp": "Lỗi khi tải tour gợi ý ({{status}}). Vui lòng thử lại sau.",
+      "errorNetwork": "Lỗi kết nối. Vui lòng kiểm tra kết nối internet và thử lại.",
+      "errorUnknown": "Có lỗi xảy ra khi tải tour gợi ý. Vui lòng thử lại sau.",
+      "errorSubtext": "Vui lòng thử lại sau hoặc làm mới trang."
     }
   },
   "bookingHistory": {
