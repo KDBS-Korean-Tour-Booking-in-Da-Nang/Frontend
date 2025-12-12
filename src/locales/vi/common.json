@@ -1386,9 +1386,9 @@
             "tourDescription": "Nhập mô tả văn bản (không chèn hình ảnh)..."
           },
           "help": {
-            "checkDays": "Phần đầu của thời hạn báo trước dành cho đặt cọc",
-            "balancePaymentDays": "Tự động tính = Số ngày báo trước - Số ngày kiểm tra",
-            "depositPercentage": "Yêu cầu khi đặt tour",
+            "checkDays": "Thời gian để xử lý hồ sơ và phê duyệt đặt cọc",
+            "balancePaymentDays": "Thời gian chờ khách hàng thanh toán phần còn lại",
+            "depositPercentage": "Đây là phần trăm cần phải cọc. Nếu điền 100% tức là thanh toán 100% cho tour, không cần thanh toán cọc hay thanh toán remaining gì cả.",
             "refundFloor": "Mức hoàn tiền tối thiểu sau giai đoạn thanh toán còn lại"
           }
         },
@@ -1473,7 +1473,8 @@
           "message": "Bạn có chắc chắn muốn từ chối yêu cầu cập nhật cho tour \"{{name}}\"? Tour sẽ giữ nguyên như cũ.",
           "confirm": "Từ chối",
           "cancel": "Hủy"
-        }
+        },
+        "bookings": "Danh sách booking"
       },
       "deleteRequests": {
         "button": "Yêu cầu xóa",
@@ -1498,18 +1499,34 @@
           "message": "Bạn có chắc chắn muốn từ chối yêu cầu xóa tour \"{{name}}\"? Tour sẽ được giữ nguyên.",
           "confirm": "Từ chối",
           "cancel": "Hủy"
-        }
+        },
+        "bookings": "Danh sách booking"
+      },
+      "bookings": {
+        "contactName": "Tên liên hệ",
+        "contactPhone": "Số điện thoại",
+        "contactEmail": "Email",
+        "departureDate": "Ngày khởi hành",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo"
       }
     },
     "tourDetailModal": {
       "title": "Chi tiết Tour",
       "close": "Đóng",
+      "changed": "Đã thay đổi",
+      "viewingUpdateRequest": "Đang xem yêu cầu cập nhật",
+      "imageChanged": "Hình ảnh đã thay đổi",
+      "updateRequestInfo": "Thông tin yêu cầu cập nhật",
+      "companyNote": "Ghi chú của công ty",
+      "requestStatus": "Trạng thái yêu cầu",
+      "requestedAt": "Yêu cầu lúc",
       "fields": {
         "tourId": "Mã Tour",
         "departurePoint": "Điểm khởi hành",
         "adultPrice": "Giá người lớn",
-        "childrenPrice": "Trẻ em: {{price}}",
-        "babyPrice": "Em bé: {{price}}",
+        "childrenPrice": "Trẻ em",
+        "babyPrice": "Em bé",
         "duration": "Thời gian",
         "createdAt": "Ngày tạo",
         "additionalInfo": "Thông tin bổ sung",
@@ -1517,7 +1534,20 @@
         "tourType": "Loại tour",
         "amount": "Số lượng",
         "amountPeople": "{{amount}} người",
-        "company": "Công ty"
+        "company": "Công ty",
+        "expirationDate": "Ngày hết hạn",
+        "checkDays": "Số ngày kiểm tra",
+        "paymentBooking": "Thanh toán & Đặt chỗ",
+        "balancePaymentDays": "Số ngày thanh toán dư",
+        "days": "ngày",
+        "minAdvancedDays": "Số ngày đặt trước tối thiểu",
+        "depositPercentage": "Phần trăm đặt cọc",
+        "refundFloor": "Phần trăm hoàn tiền",
+        "intDuration": "Thời lượng số",
+        "itinerary": "Lịch trình",
+        "day": "Ngày",
+        "schedule": "Lịch trình",
+        "status": "Trạng thái"
       },
       "actions": {
         "approve": "Phê duyệt",
@@ -2664,11 +2694,11 @@
       "help": {
         "departurePoint": "Tất cả tour đều khởi hành từ Đà Nẵng",
         "vehicle": "Phương tiện mặc định: Xe Du Lịch",
-        "tourDeadline": "Khách phải đặt tour trước ít nhất số ngày này so với ngày khởi hành",
+        "tourDeadline": "Hành khách phải thanh toán trước khi bắt đầu ngày khởi hành ít nhất số ngày này",
         "tourExpirationDate": "Tour sẽ ngừng nhận đặt sau ngày này",
-        "checkDays": "Phần đầu của MinAdvanceDays dành cho đặt cọc",
-        "balancePaymentDays": "Tự động = MinAdvanceDays - CheckDays",
-        "depositPercentage": "Yêu cầu khi đặt tour.",
+        "checkDays": "Thời gian để xử lý hồ sơ và phê duyệt đặt cọc",
+        "balancePaymentDays": "Thời gian chờ người dùng thanh toán phần còn lại",
+        "depositPercentage": "Đây là phần trăm cần phải cọc. Nếu điền 100% tức là thanh toán 100% cho tour, không cần thanh toán cọc hay thanh toán remaining gì cả.",
         "refundFloor": "Mức % hoàn tối thiểu sau giai đoạn thanh toán còn lại.",
         "allowRefundableAfterBalancePayment": "Bật hoàn tiền sau khi đã thanh toán phần còn lại"
       },
@@ -2816,8 +2846,8 @@
       "subtitle": "Thiết lập giá và chính sách tour",
       "pricing": {
         "title": "Giá tour",
-        "adultPrice": "Giá người lớn (≥ 12 tuổi)",
-        "childrenPrice": "Giá trẻ em (2-11 tuổi)",
+        "adultPrice": "Giá người lớn (≥ 18 tuổi)",
+        "childrenPrice": "Giá trẻ em (2-18 tuổi)",
         "babyPrice": "Giá em bé (dưới 2 tuổi)",
         "unit": "VNĐ / người",
         "unitChildren": "VNĐ / trẻ em",
@@ -3348,6 +3378,18 @@
     },
     "allTours": {
       "title": "Tất Cả Tours"
+    },
+    "behaviorSuggestion": {
+      "title": "Tour Gợi Ý Dựa Trên Hành Vi",
+      "loading": "Đang tải tour gợi ý...",
+      "previous": "Trước",
+      "next": "Sau",
+      "errorSession": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      "errorServer": "Lỗi server khi tải tour gợi ý. Vui lòng thử lại sau.",
+      "errorHttp": "Lỗi khi tải tour gợi ý ({{status}}). Vui lòng thử lại sau.",
+      "errorNetwork": "Lỗi kết nối. Vui lòng kiểm tra kết nối internet và thử lại.",
+      "errorUnknown": "Có lỗi xảy ra khi tải tour gợi ý. Vui lòng thử lại sau.",
+      "errorSubtext": "Vui lòng thử lại sau hoặc làm mới trang."
     }
   },
   "bookingHistory": {
@@ -3738,10 +3780,10 @@
         "dobInFuture": "Ngày sinh không được ở tương lai",
         "dobInvalidFormat": "Định dạng ngày sinh không hợp lệ (sử dụng YYYY-MM-DD)",
         "dobTooOld": "Ngày sinh không hợp lệ (tuổi phải ≤ 120)",
-        "adultTooYoung": "Người lớn phải ≥ 12 tuổi tại mục người lớn.",
+        "adultTooYoung": "Người lớn phải ≥ 18 tuổi tại mục người lớn.",
         "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại mục người đại diện.",
         "childTooYoung": "Trẻ em phải ≥ 2 tuổi tại mục trẻ em.",
-        "childTooOld": "Trẻ em phải < 12 tuổi tại mục trẻ em.",
+        "childTooOld": "Trẻ em phải < 18 tuổi tại mục trẻ em.",
         "infantTooOld": "Em bé phải < 2 tuổi tại mục em bé.",
         "genderRequired": "Giới tính là bắt buộc",
         "nationalityRequired": "Quốc tịch là bắt buộc",
@@ -3775,9 +3817,9 @@
         "infantGenderRequiredGeneric": "Vui lòng chọn giới tính em bé",
         "infantNationalityRequiredGeneric": "Vui lòng chọn quốc tịch em bé",
         "representativeTooYoung": "Người đại diện phải ≥ 18 tuổi tại ngày khởi hành",
-        "adultTooYoung": "Người lớn phải ≥ 12 tuổi tại ngày khởi hành",
+        "adultTooYoung": "Người lớn phải ≥ 18 tuổi tại ngày khởi hành",
         "childTooYoung": "Trẻ em phải ≥ 2 tuổi tại ngày khởi hành",
-        "childTooOld": "Trẻ em phải < 12 tuổi tại ngày khởi hành",
+        "childTooOld": "Trẻ em phải < 18 tuổi tại ngày khởi hành",
         "infantTooOld": "Em bé phải < 2 tuổi tại ngày khởi hành",
         "representativeIdRequired": "Vui lòng nhập CCCD/CMND người đại diện",
         "representativeIdRequiredPassport": "Vui lòng nhập hộ chiếu người đại diện",
@@ -4116,13 +4158,15 @@
       "back": "Quay lại",
       "security": "Kết nối bảo mật chuẩn PCI-DSS từ Toss",
       "tip": "Giữ cửa sổ này mở đến khi thanh toán hoàn tất.",
-      "backConfirmTitle": "Bạn có chắc muốn quay lại?",
-      "backConfirmMessage": "Nếu bạn quay lại bây giờ, quá trình thanh toán hiện tại sẽ bị hủy và bạn sẽ được chuyển đến lịch sử đặt tour.",
+      "backConfirmTitle": "Xác nhận quay lại",
+      "backConfirmWarning": "Thanh toán sẽ bị đóng lại",
+      "backConfirmMessage": "Vui lòng tiếp tục thanh toán ở Booking History. Booking của bạn vẫn giữ nguyên trạng thái và có thể thanh toán lại bất cứ lúc nào.",
       "backConfirmOk": "Xác nhận quay lại",
       "toast": {
         "missingData": "Thiếu dữ liệu khởi tạo cổng thanh toán. Vui lòng khởi tạo lại.",
         "error": "Đã xảy ra lỗi khi khởi tạo cổng thanh toán Toss.",
-        "ready": "Cổng thanh toán Toss đã sẵn sàng. Vui lòng hoàn tất giao dịch trong cửa sổ này."
+        "ready": "Cổng thanh toán Toss đã sẵn sàng. Vui lòng hoàn tất giao dịch trong cửa sổ này.",
+        "paymentCancelled": "Thanh toán đã bị hủy. Vui lòng tiếp tục thanh toán ở Booking History."
       },
       "widget": {
         "loading": "Đang tải cổng thanh toán Toss...",

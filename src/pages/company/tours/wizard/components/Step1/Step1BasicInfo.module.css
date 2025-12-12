@@ -351,12 +351,18 @@
 }
 
 .summary-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.summary-column {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.summary-content p {
+.summary-column p {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -365,7 +371,7 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.summary-content p:last-child {
+.summary-column p:last-child {
   border-bottom: none;
 }
 
@@ -438,6 +444,11 @@
   .step-summary {
     border-radius: 24px;
     padding: 24px;
+  }
+
+  .summary-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 

@@ -818,7 +818,7 @@ const Step1BasicInfo = () => {
           {fieldErrors.checkDays && (
             <span className={styles['error-message']}>{fieldErrors.checkDays}</span>
           )}
-          {!fieldErrors.checkDays && formData.tourDeadline !== '' && (
+          {!fieldErrors.checkDays && (
             <small className={styles['form-help']}>
               {t('tourWizard.step1.help.checkDays', 'Part of MinAdvanceDays; deposit window.')}
             </small>
@@ -845,7 +845,7 @@ const Step1BasicInfo = () => {
           {fieldErrors.balancePaymentDays && (
             <span className={styles['error-message']}>{fieldErrors.balancePaymentDays}</span>
           )}
-          {!fieldErrors.balancePaymentDays && formData.minAdvancedDays !== '' && (
+          {!fieldErrors.balancePaymentDays && (
             <small className={styles['form-help']}>
               {t('tourWizard.step1.help.balancePaymentDays', 'Auto = MinAdvanceDays - CheckDays. Balance payment window.')}
             </small>
@@ -961,49 +961,53 @@ const Step1BasicInfo = () => {
           {t('tourWizard.step1.summary.title')}
         </h3>
         <div className={styles['summary-content']}>
-          <p>
-            <FileText className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.tourName')}</strong> {formData.tourName || t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <Layers className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}
-          </p>
-          <p>
-            <Clock className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}
-          </p>
-          <p>
-            <Users className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.numberOfAvailableTours', 'Number of available tours')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <Calendar className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.tourExpirationDate')}</strong> {formData.tourExpirationDate || t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <CalendarDays className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <CalendarDays className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.checkDays', 'Check days')}</strong> {formData.checkDays !== '' ? formData.checkDays : t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <Clock className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.balancePaymentDays', 'Balance payment days')}</strong> {formData.balancePaymentDays !== '' ? formData.balancePaymentDays : t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <Layers className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.depositPercentage', 'Deposit')}</strong> {formData.depositPercentage !== '' ? `${formData.depositPercentage}%` : t('tourWizard.step1.summary.notEntered')}
-          </p>
-          <p>
-            <ClipboardList className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
-            <strong>{t('tourWizard.step1.summary.refundRule', 'Refund rule')}</strong>{' '}
-            {formData.allowRefundableAfterBalancePayment
-              ? `${t('tourWizard.step1.summary.refundFloor', 'Refund floor')}: ${formData.refundFloor || '0'}%`
-              : t('tourWizard.step1.summary.notSelected')}
-          </p>
+          <div className={styles['summary-column']}>
+            <p>
+              <FileText className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.tourName')}</strong> {formData.tourName || t('tourWizard.step1.summary.notEntered')}
+            </p>
+            <p>
+              <Layers className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.tourType')}</strong> {(() => { const tt = tourTypes.find(type => type.value === formData.tourType); return tt ? t(tt.i18nKey) : t('tourWizard.step1.summary.notSelected'); })()}
+            </p>
+            <p>
+              <Clock className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.duration')}</strong> {(formData.duration || t('tourWizard.step1.summary.notEntered')) + ' ' + t('tourWizard.step1.summary.days')} {formData.nights !== '' ? ` ${formData.nights} ${t('tourWizard.step1.summary.nights')}` : ''}
+            </p>
+            <p>
+              <Users className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.numberOfAvailableTours', 'Number of available tours')}</strong> {formData.maxCapacity || t('tourWizard.step1.summary.notEntered')}
+            </p>
+            <p>
+              <Calendar className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.tourExpirationDate')}</strong> {formData.tourExpirationDate || t('tourWizard.step1.summary.notEntered')}
+            </p>
+          </div>
+          <div className={styles['summary-column']}>
+            <p>
+              <CalendarDays className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.tourDeadline')}</strong> {formData.tourDeadline !== '' ? `${formData.tourDeadline} ${t('tourWizard.step1.summary.days')}` : t('tourWizard.step1.summary.notEntered')}
+            </p>
+            <p>
+              <CalendarDays className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.checkDays', 'Check days')}</strong> {formData.checkDays !== '' ? formData.checkDays : t('tourWizard.step1.summary.notEntered')}
+            </p>
+            <p>
+              <Clock className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.balancePaymentDays', 'Balance payment days')}</strong> {formData.balancePaymentDays !== '' ? formData.balancePaymentDays : t('tourWizard.step1.summary.notEntered')}
+            </p>
+            <p>
+              <Layers className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.depositPercentage', 'Deposit')}</strong> {formData.depositPercentage !== '' ? `${formData.depositPercentage}%` : t('tourWizard.step1.summary.notEntered')}
+            </p>
+            <p>
+              <ClipboardList className={styles['summary-item-icon']} size={16} strokeWidth={1.5} />
+              <strong>{t('tourWizard.step1.summary.refundRule', 'Refund rule')}</strong>{' '}
+              {formData.allowRefundableAfterBalancePayment
+                ? `${t('tourWizard.step1.summary.refundFloor', 'Refund floor')}: ${formData.refundFloor || '0'}%`
+                : t('tourWizard.step1.summary.notSelected')}
+            </p>
+          </div>
         </div>
       </div>
 

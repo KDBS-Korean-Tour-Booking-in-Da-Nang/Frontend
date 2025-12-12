@@ -941,10 +941,8 @@ const TourDetailPage = () => {
                                       </h3>
                                       <div className={styles["voucher-subtitle"]}>
                                         {discountType === "PERCENT"
-                                          ? `Giảm ${discountValueDisplay}%`
-                                          : `Giảm ${formatCurrency(
-                                            discountValueDisplay
-                                          )}`}
+                                          ? t("tourPage.detail.vouchers.discountPercent", { value: discountValueDisplay })
+                                          : t("tourPage.detail.vouchers.discountAmount", { amount: formatCurrency(discountValueDisplay) })}
                                       </div>
                                     </div>
 

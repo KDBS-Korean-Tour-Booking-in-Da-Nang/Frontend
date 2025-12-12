@@ -55,39 +55,6 @@ const getAuthHeaders = () => {
  */
 export const createBooking = async (bookingData) => {
   try {
-    // Log booking data in development mode for debugging
-    if (import.meta.env.DEV) {
-      console.log('[BookingAPI] Creating booking with data:', {
-        tourId: bookingData.tourId,
-        departureDate: bookingData.departureDate,
-        adultsCount: bookingData.adultsCount,
-        childrenCount: bookingData.childrenCount,
-        babiesCount: bookingData.babiesCount,
-        guestsCount: bookingData.bookingGuestRequests?.length || 0,
-        contactName: bookingData.contactName,
-        contactEmail: bookingData.contactEmail,
-        contactAddress: bookingData.contactAddress,
-        contactPhone: bookingData.contactPhone,
-        pickupPoint: bookingData.pickupPoint,
-        note: bookingData.note,
-        userEmail: bookingData.userEmail,
-        voucherCode: bookingData.voucherCode || 'none',
-        // Log all guests for debugging
-        guests: bookingData.bookingGuestRequests?.map((guest, idx) => ({
-          index: idx,
-          fullName: guest.fullName,
-          birthDate: guest.birthDate,
-          gender: guest.gender,
-          idNumber: guest.idNumber,
-          nationality: guest.nationality,
-          bookingGuestType: guest.bookingGuestType
-        })) || []
-      });
-      
-      // Log full request body for debugging
-      console.log('[BookingAPI] Full request body:', JSON.stringify(bookingData, null, 2));
-    }
-
     const response = await fetch(`${API_BASE_URL}/api/booking`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -104,15 +71,6 @@ export const createBooking = async (bookingData) => {
         errorText = await responseClone.text();
       } catch (e) {
         errorText = '';
-      }
-
-      // Log error details in development mode
-      if (import.meta.env.DEV) {
-        console.error('[BookingAPI] Booking creation failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        });
       }
 
       // Handle 500 errors separately - show helpful error message
@@ -155,10 +113,6 @@ export const createBooking = async (bookingData) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    // Log error in development mode
-    if (import.meta.env.DEV) {
-      console.error('[BookingAPI] Booking creation error:', error);
-    }
     throw error;
   }
 };
@@ -196,7 +150,6 @@ export const getBookingById = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error fetching booking:', error);
     throw error;
   }
 };
@@ -268,7 +221,6 @@ export const createVNPayPayment = async (paymentData) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error creating VNPay payment:', error);
     throw error;
   }
 };
@@ -468,7 +420,6 @@ export const previewCancelBooking = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error previewing cancel booking:', error);
     throw error;
   }
 };
@@ -500,7 +451,6 @@ export const cancelBooking = async (bookingId) => {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Error cancelling booking:', error);
     throw error;
   }
 };
@@ -590,11 +540,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
     // Use getApiPath for consistent URL handling in dev/prod
     const url = getApiPath(`/api/booking/change-status/${bookingId}`);
     
-    // Log URL in development for debugging
-    if (import.meta.env.DEV) {
-      console.log('[BookingAPI] Calling change-status endpoint:', url);
-    }
-    
     let response = await fetch(url, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -604,7 +549,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
     // Fallback: If 404 in dev mode with relative path, try full URL
     if (!response.ok && response.status === 404 && import.meta.env.DEV && url.startsWith('/')) {
       const fallbackUrl = `${API_BASE_URL}/api/booking/change-status/${bookingId}`;
-      console.warn('[BookingAPI] Proxy may not be working, trying direct URL:', fallbackUrl);
       
       try {
         response = await fetch(fallbackUrl, {
@@ -613,7 +557,7 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
           body: JSON.stringify(requestBody),
         });
       } catch (fallbackError) {
-        console.error('[BookingAPI] Fallback URL also failed:', fallbackError);
+        // Continue with original response for error handling
       }
     }
 
@@ -630,15 +574,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
       
       // Handle 500 - server error (don't redirect, show error message)
       if (response.status === 500) {
-        // Log detailed error in development
-        if (import.meta.env.DEV) {
-          console.error('[BookingAPI] Server error (500):', {
-            url,
-            status: response.status,
-            statusText: response.statusText,
-            errorMessage
-          });
-        }
         throw new Error(errorMessage || 'Server error occurred. Please try again later.');
       }
       
@@ -656,10 +591,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
     const result = await response.json();
     return result;
   } catch (error) {
-    // Enhanced error logging
-    if (import.meta.env.DEV) {
-      console.error('[BookingAPI] changeBookingStatus error:', error);
-    }
     throw error;
   }
 };
@@ -787,7 +718,6 @@ export const userConfirmTourCompletion = async (bookingId) => {
     // No content response
     return;
   } catch (error) {
-    console.error('Error confirming tour completion:', error);
     throw error;
   }
 };

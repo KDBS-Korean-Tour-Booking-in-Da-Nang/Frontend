@@ -1874,10 +1874,10 @@ const Step2Details = () => {
 
     // Check age requirements based on member type
     if (memberType === 'adult') {
-      // Adults must be at least 12 years old
+      // Adults must be at least 18 years old
       
       // Check current age first
-      if (age < 12) {
+      if (age < 18) {
         return { isValid: false, error: t('booking.step2.errors.adultTooYoung') };
       }
       
@@ -1886,16 +1886,16 @@ const Step2Details = () => {
         const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
         const ageAtDeparture = calculateAge(normalizedDate, departureDate);
         
-        if (ageAtDeparture < 12) {
+        if (ageAtDeparture < 18) {
           return { isValid: false, error: t('booking.step2.errors.adultTooYoung') };
         }
       }
     } else if (memberType === 'child') {
-      // Children should be between 2-11 years old (typical definition)
+      // Children should be between 2-18 years old
       if (age < 2) {
         return { isValid: false, error: t('booking.step2.errors.childTooYoung') };
       }
-      if (age >= 12) {
+      if (age >= 18) {
         return { isValid: false, error: t('booking.step2.errors.childTooOld') };
       }
       
@@ -1907,7 +1907,7 @@ const Step2Details = () => {
         if (ageAtDeparture < 2) {
           return { isValid: false, error: t('booking.step2.errors.childTooYoung') };
         }
-        if (ageAtDeparture >= 12) {
+        if (ageAtDeparture >= 18) {
           return { isValid: false, error: t('booking.step2.errors.childTooOld') };
         }
       }

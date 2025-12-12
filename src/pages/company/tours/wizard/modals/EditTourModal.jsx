@@ -239,7 +239,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     balancePaymentDays: '',
     depositPercentage: '',
     refundFloor: '',
-    allowRefundableAfterBalancePayment: false,
     tourExpirationDate: '',
     adultPrice: '',
     childrenPrice: '',
@@ -278,7 +277,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       formData.balancePaymentDays !== initial.balancePaymentDays ||
       formData.depositPercentage !== initial.depositPercentage ||
       formData.refundFloor !== initial.refundFloor ||
-      formData.allowRefundableAfterBalancePayment !== initial.allowRefundableAfterBalancePayment ||
       formData.tourExpirationDate !== initial.tourExpirationDate ||
       formData.adultPrice !== initial.adultPrice ||
       formData.childrenPrice !== initial.childrenPrice ||
@@ -396,7 +394,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         balancePaymentDays: tour.balancePaymentDays !== undefined && tour.balancePaymentDays !== null ? String(tour.balancePaymentDays) : '',
         depositPercentage: tour.depositPercentage !== undefined && tour.depositPercentage !== null ? String(tour.depositPercentage) : '',
         refundFloor: tour.refundFloor !== undefined && tour.refundFloor !== null ? String(tour.refundFloor) : '',
-        allowRefundableAfterBalancePayment: !!tour.allowRefundableAfterBalancePayment,
         tourExpirationDate: tour.tourExpirationDate || '',
         adultPrice: tour.adultPrice || '',
         childrenPrice: tour.childrenPrice || '',
@@ -446,7 +443,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         balancePaymentDays: tour.balancePaymentDays !== undefined && tour.balancePaymentDays !== null ? String(tour.balancePaymentDays) : '',
         depositPercentage: tour.depositPercentage !== undefined && tour.depositPercentage !== null ? String(tour.depositPercentage) : '',
         refundFloor: tour.refundFloor !== undefined && tour.refundFloor !== null ? String(tour.refundFloor) : '',
-        allowRefundableAfterBalancePayment: !!tour.allowRefundableAfterBalancePayment,
         tourExpirationDate: tour.tourExpirationDate || '',
         adultPrice: tour.adultPrice || '',
         childrenPrice: tour.childrenPrice || '',
@@ -741,21 +737,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       return;
     }
 
-    if (name === 'allowRefundableAfterBalancePayment') {
-      const checked = nextValue;
-      setFormData(prev => ({
-        ...prev,
-        allowRefundableAfterBalancePayment: checked,
-        refundFloor: checked ? (prev.refundFloor || '20') : '0'
-      }));
-      setFormErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.refundFloor;
-        return newErrors;
-      });
-      return;
-    }
-
     setFormData(prev => ({
       ...prev,
       [name]: nextValue
@@ -925,9 +906,6 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     if (formData.tourCheckDays === '') errors.push(t('tourWizard.step1.fields.checkDays'));
     if (formData.balancePaymentDays === '') errors.push(t('tourWizard.step1.fields.balancePaymentDays'));
     if (formData.depositPercentage === '') errors.push(t('tourWizard.step1.fields.depositPercentage'));
-    if (formData.allowRefundableAfterBalancePayment && (formData.refundFloor === '' || parseInt(formData.refundFloor, 10) < 1)) {
-      errors.push(t('tourWizard.step1.fields.refundFloor'));
-    }
     if (!isNonEmptyText(formData.tourExpirationDate)) errors.push(t('tourWizard.step1.fields.tourExpirationDate'));
 
     const amount = parseInt(formData.amount);
@@ -1025,10 +1003,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourCheckDays: formData.tourCheckDays === '' ? 0 : parseInt(formData.tourCheckDays, 10),
         balancePaymentDays: formData.balancePaymentDays === '' ? 0 : parseInt(formData.balancePaymentDays, 10),
         depositPercentage: formData.depositPercentage === '' ? 0 : parseInt(formData.depositPercentage, 10),
-        refundFloor: formData.allowRefundableAfterBalancePayment
-          ? (formData.refundFloor === '' ? 0 : parseInt(formData.refundFloor, 10))
-          : 0,
-        allowRefundableAfterBalancePayment: !!formData.allowRefundableAfterBalancePayment,
+        refundFloor: formData.refundFloor === '' ? 0 : parseInt(formData.refundFloor, 10),
         tourExpirationDate: expirationDateValue,
         amount: amount,
         adultPrice: adultPrice,

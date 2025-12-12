@@ -154,20 +154,27 @@ const TourSuggestion = () => {
     fetchSuggestedTours();
   }, [user, searchParams, t]);
 
-  // Slick carousel settings
+  // Slick carousel settings - chỉ dùng carousel khi có từ 4 tours trở lên
   const settings = {
     dots: false,
-    infinite: tours.length > 3,
+    infinite: tours.length >= 4, // Chỉ infinite khi có >= 4 tours
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
     arrows: false,
+    draggable: false, // Tắt kéo để di chuyển carousel
+    swipe: false, // Tắt swipe trên mobile
+    touchMove: false, // Tắt touch move
     responsive: [
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: 2,
           slidesToScroll: 1,
+          infinite: tours.length >= 4,
+          draggable: false,
+          swipe: false,
+          touchMove: false,
         }
       },
       {
@@ -175,17 +182,27 @@ const TourSuggestion = () => {
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
+          infinite: tours.length >= 4,
+          draggable: false,
+          swipe: false,
+          touchMove: false,
         }
       }
     ]
   };
 
   const goToPrev = () => {
-    sliderRef.current?.slickPrev();
+    // Chỉ cho phép di chuyển khi có từ 4 tours trở lên
+    if (tours.length >= 4) {
+      sliderRef.current?.slickPrev();
+    }
   };
 
   const goToNext = () => {
-    sliderRef.current?.slickNext();
+    // Chỉ cho phép di chuyển khi có từ 4 tours trở lên
+    if (tours.length >= 4) {
+      sliderRef.current?.slickNext();
+    }
   };
 
   // Chỉ hiển thị khi user đã đăng nhập và có userId trong URL params
@@ -248,7 +265,8 @@ const TourSuggestion = () => {
         <div className="p-8">
           <div className={styles.header}>
             <h2 className={styles.title}>{t('articleDetail.tourSuggestion.title')}</h2>
-            {tours.length > 3 && (
+            {/* Chỉ hiển thị nút điều hướng khi có từ 4 tours trở lên */}
+            {tours.length >= 4 && (
               <div className={styles.navigationButtons}>
                 <button 
                   className={styles.navButton} 
@@ -272,6 +290,7 @@ const TourSuggestion = () => {
             )}
           </div>
 
+          {/* Hiển thị grid khi có <= 3 tours, carousel khi có >= 4 tours */}
           {tours.length <= 3 ? (
             <div className={gridClass}>
               {tours.map((tour) => (
@@ -280,7 +299,7 @@ const TourSuggestion = () => {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : tours.length >= 4 ? (
             <div className={styles.carouselContainer} style={{ zIndex: 1 }}>
               <Slider ref={sliderRef} {...settings}>
                 {tours.map((tour) => (
@@ -292,7 +311,7 @@ const TourSuggestion = () => {
                 ))}
               </Slider>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

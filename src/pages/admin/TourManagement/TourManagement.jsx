@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, createAuthHeaders, getTourImageUrl } from '../../../config/api';
@@ -55,6 +55,13 @@ const TourManagement = () => {
   const [deleteRejectNote, setDeleteRejectNote] = useState('');
   const [searchDeleteQuery, setSearchDeleteQuery] = useState('');
   const [sortDeleteBy, setSortDeleteBy] = useState('newest');
+
+  // Booking dropdown state
+  const [expandedUpdateRequestId, setExpandedUpdateRequestId] = useState(null);
+  const [expandedDeleteRequestId, setExpandedDeleteRequestId] = useState(null);
+  const [updateRequestBookingPages, setUpdateRequestBookingPages] = useState({});
+  const [deleteRequestBookingPages, setDeleteRequestBookingPages] = useState({});
+  const BOOKINGS_PER_PAGE = 5;
 
   // Fetch tours from API
   useEffect(() => {
@@ -470,7 +477,7 @@ const TourManagement = () => {
   };
 
   // Handle view details
-  const handleViewDetails = async (tourId) => {
+  const handleViewDetails = async (tourId, updateRequestData = null) => {
     try {
       setLoadingDetail(true);
       const token = getToken();
@@ -485,7 +492,12 @@ const TourManagement = () => {
 
       if (response.ok) {
         const tourDetail = await response.json();
-        setSelectedTour(tourDetail);
+        // If viewing from update request, store the update request data
+        if (updateRequestData) {
+          setSelectedTour({ ...tourDetail, _updateRequest: updateRequestData });
+        } else {
+          setSelectedTour(tourDetail);
+        }
         setIsDetailModalOpen(true);
       } else {
         const errorText = await response.text();
@@ -626,6 +638,119 @@ const TourManagement = () => {
 
     // If can't parse, return as is
     return raw;
+  };
+
+  // Format booking date
+  const formatBookingDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+      return date.toLocaleDateString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Format booking datetime
+  const formatBookingDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+      return date.toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Toggle update request booking dropdown
+  const toggleUpdateRequestBooking = (requestId) => {
+    if (expandedUpdateRequestId === requestId) {
+      setExpandedUpdateRequestId(null);
+    } else {
+      setExpandedUpdateRequestId(requestId);
+      if (!updateRequestBookingPages[requestId]) {
+        setUpdateRequestBookingPages(prev => ({ ...prev, [requestId]: 0 }));
+      }
+    }
+  };
+
+  // Toggle delete request booking dropdown
+  const toggleDeleteRequestBooking = (requestId) => {
+    if (expandedDeleteRequestId === requestId) {
+      setExpandedDeleteRequestId(null);
+    } else {
+      setExpandedDeleteRequestId(requestId);
+      if (!deleteRequestBookingPages[requestId]) {
+        setDeleteRequestBookingPages(prev => ({ ...prev, [requestId]: 0 }));
+      }
+    }
+  };
+
+  // Get paginated bookings for update request
+  const getPaginatedUpdateBookings = (bookings, requestId) => {
+    if (!bookings || bookings.length === 0) return [];
+    const page = updateRequestBookingPages[requestId] || 0;
+    const startIndex = page * BOOKINGS_PER_PAGE;
+    const endIndex = startIndex + BOOKINGS_PER_PAGE;
+    return bookings.slice(startIndex, endIndex);
+  };
+
+  // Get paginated bookings for delete request
+  const getPaginatedDeleteBookings = (bookings, requestId) => {
+    if (!bookings || bookings.length === 0) return [];
+    const page = deleteRequestBookingPages[requestId] || 0;
+    const startIndex = page * BOOKINGS_PER_PAGE;
+    const endIndex = startIndex + BOOKINGS_PER_PAGE;
+    return bookings.slice(startIndex, endIndex);
+  };
+
+  // Get total pages for bookings
+  const getBookingTotalPages = (bookings) => {
+    if (!bookings || bookings.length === 0) return 0;
+    return Math.ceil(bookings.length / BOOKINGS_PER_PAGE);
+  };
+
+  // Get color code for booking status badge (same as BookingManagement)
+  const getBookingStatusColor = (status) => {
+    const normalizedStatus = String(status || '').toUpperCase().replace(/ /g, '_');
+    
+    const colorMap = {
+      PENDING_PAYMENT: '#F97316',              // Orange
+      PENDING_DEPOSIT_PAYMENT: '#EA580C',      // Orange darker
+      PENDING_BALANCE_PAYMENT: '#F59E0B',      // Amber
+      WAITING_FOR_APPROVED: '#3B82F6',         // Blue
+      WAITING_FOR_UPDATE: '#8B5CF6',           // Purple
+      BOOKING_REJECTED: '#EF4444',            // Red
+      BOOKING_FAILED: '#DC2626',              // Red darker
+      BOOKING_BALANCE_SUCCESS: '#14B8A6',     // Teal
+      BOOKING_SUCCESS_PENDING: '#06B6D4',     // Cyan
+      BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
+      BOOKING_UNDER_COMPLAINT: '#EAB308',      // Yellow
+      BOOKING_SUCCESS: '#10B981',             // Green
+      BOOKING_CANCELLED: '#9CA3AF'            // Gray
+    };
+    
+    return colorMap[normalizedStatus] || '#6B7280';
+  };
+
+  // Format booking status for display
+  const formatBookingStatusDisplay = (status = '') => {
+    if (!status) return 'N/A';
+    const translationKey = `bookingManagement.status.${status}`;
+    const translated = t(translationKey);
+    return translated !== translationKey ? translated : status.replaceAll('_', ' ');
   };
 
   if (loading) {
@@ -848,74 +973,175 @@ const TourManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-50">
-                  {sortedUpdateRequests.map((request, index) => (
-                    <tr key={request.id} className="hover:bg-amber-50/40 transition">
-                      <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {request.originalTour?.tourImgPath && (
-                            <img
-                              src={getTourImageUrl(request.originalTour.tourImgPath)}
-                              alt={request.originalTour?.tourName || request.updatedTour?.tourName}
-                              className="w-10 h-10 rounded-lg object-cover"
-                              onError={(e) => { e.target.src = '/default-Tour.jpg'; }}
-                            />
-                          )}
-                          <div>
-                            <p className="font-semibold text-gray-900">{request.originalTour?.tourName || request.updatedTour?.tourName || 'N/A'}</p>
-                            <p className="text-xs text-gray-500">ID: {request.originalTourId}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                          request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                            request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                              'bg-gray-100 text-gray-600'
-                          }`}>
-                          {request.status || 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {request.bookingCount || 0}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
-                        <p className="line-clamp-2">{request.companyNote || '-'}</p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
-                            <button
-                              onClick={() => handleViewDetails(request.originalTourId)}
-                              disabled={loadingDetail}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Eye className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
-                          </Tooltip>
-                          <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
-                            <button
-                              onClick={() => handleApproveUpdateRequest(request)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
-                            >
-                              <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
-                          </Tooltip>
-                          <Tooltip text={t('admin.tourManagement.updateRequests.reject')} position="top">
-                            <button
-                              onClick={() => handleRejectUpdateRequest(request)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
-                            >
-                              <XCircle className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
-                          </Tooltip>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {sortedUpdateRequests.map((request, index) => {
+                    const isExpanded = expandedUpdateRequestId === request.id;
+                    const bookings = request.bookings || [];
+                    const paginatedBookings = getPaginatedUpdateBookings(bookings, request.id);
+                    const totalBookingPages = getBookingTotalPages(bookings);
+                    const currentBookingPage = updateRequestBookingPages[request.id] || 0;
+
+                    return (
+                      <React.Fragment key={request.id}>
+                        <tr 
+                          className="transition cursor-pointer"
+                          onClick={() => toggleUpdateRequestBooking(request.id)}
+                        >
+                          <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {request.originalTour?.tourImgPath && (
+                                <img
+                                  src={getTourImageUrl(request.originalTour.tourImgPath)}
+                                  alt={request.originalTour?.tourName || request.updatedTour?.tourName}
+                                  className="w-10 h-10 rounded-lg object-cover"
+                                  onError={(e) => { e.target.src = '/default-Tour.jpg'; }}
+                                />
+                              )}
+                              <div>
+                                <p className="font-semibold text-gray-900">{request.originalTour?.tourName || request.updatedTour?.tourName || 'N/A'}</p>
+                                <p className="text-xs text-gray-500">ID: {request.originalTourId}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                              request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                                request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                  'bg-gray-100 text-gray-600'
+                            }`}>
+                              {request.status || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {request.bookingCount || 0}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                            <p className="line-clamp-2">{request.companyNote || '-'}</p>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
+                                <button
+                                  onClick={() => handleViewDetails(request.originalTourId, request)}
+                                  disabled={loadingDetail}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
+                                <button
+                                  onClick={() => handleApproveUpdateRequest(request)}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                                >
+                                  <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip text={t('admin.tourManagement.updateRequests.reject')} position="top">
+                                <button
+                                  onClick={() => handleRejectUpdateRequest(request)}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                                >
+                                  <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && bookings.length > 0 && (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-4 bg-amber-50/30">
+                              <div className="space-y-4 pl-8">
+                                <h4 className="text-sm font-semibold text-amber-700 mb-3">
+                                  {t('admin.tourManagement.updateRequests.bookings')} ({bookings.length})
+                                </h4>
+                                <div className="overflow-x-auto">
+                                  <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-100">
+                                      <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactName')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactPhone')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactEmail')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.departureDate')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.status')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.createdAt')}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                      {paginatedBookings.map((booking) => {
+                                        const statusColor = getBookingStatusColor(booking.status);
+                                        return (
+                                          <tr key={booking.bookingId} className="hover:bg-gray-50">
+                                            <td className="px-4 py-2 text-sm text-gray-600">#{booking.bookingId}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-900">{booking.contactName || 'N/A'}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactPhone || 'N/A'}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactEmail || 'N/A'}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDate(booking.departureDate)}</td>
+                                            <td className="px-4 py-2">
+                                              <span 
+                                                className="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                style={{
+                                                  backgroundColor: `${statusColor}15`,
+                                                  color: statusColor,
+                                                  border: `1px solid ${statusColor}30`
+                                                }}
+                                              >
+                                                {formatBookingStatusDisplay(booking.status)}
+                                              </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDateTime(booking.createdAt)}</td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                                {totalBookingPages > 1 && (
+                                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                      Trang {currentBookingPage + 1} / {totalBookingPages} ({bookings.length} booking)
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setUpdateRequestBookingPages(prev => ({
+                                            ...prev,
+                                            [request.id]: Math.max(0, (prev[request.id] || 0) - 1)
+                                          }));
+                                        }}
+                                        disabled={currentBookingPage === 0}
+                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                      >
+                                        Trước
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setUpdateRequestBookingPages(prev => ({
+                                            ...prev,
+                                            [request.id]: Math.min(totalBookingPages - 1, (prev[request.id] || 0) + 1)
+                                          }));
+                                        }}
+                                        disabled={currentBookingPage >= totalBookingPages - 1}
+                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                      >
+                                        Sau
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -947,66 +1173,167 @@ const TourManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-50">
-                  {sortedDeleteRequests.map((request, index) => (
-                    <tr key={request.id} className="hover:bg-red-50/40 transition">
-                      <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className="font-semibold text-gray-900">{request.tourName || 'N/A'}</p>
-                            <p className="text-xs text-gray-500">ID: {request.tourId}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                          request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                            request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                              'bg-gray-100 text-gray-600'
-                          }`}>
-                          {request.status || 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {request.bookingCount || 0}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
-                        <p className="line-clamp-2">{request.companyNote || '-'}</p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
-                            <button
-                              onClick={() => handleViewDetails(request.tourId)}
-                              disabled={loadingDetail}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Eye className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
-                          </Tooltip>
-                          <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
-                            <button
-                              onClick={() => handleApproveDeleteRequest(request)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
-                            >
-                              <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
-                          </Tooltip>
-                          <Tooltip text={t('admin.tourManagement.deleteRequests.reject')} position="top">
-                            <button
-                              onClick={() => handleRejectDeleteRequest(request)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
-                            >
-                              <XCircle className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
-                          </Tooltip>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {sortedDeleteRequests.map((request, index) => {
+                    const isExpanded = expandedDeleteRequestId === request.id;
+                    const bookings = request.bookings || [];
+                    const paginatedBookings = getPaginatedDeleteBookings(bookings, request.id);
+                    const totalBookingPages = getBookingTotalPages(bookings);
+                    const currentBookingPage = deleteRequestBookingPages[request.id] || 0;
+
+                    return (
+                      <React.Fragment key={request.id}>
+                        <tr 
+                          className="transition cursor-pointer"
+                          onClick={() => toggleDeleteRequestBooking(request.id)}
+                        >
+                          <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <p className="font-semibold text-gray-900">{request.tourName || 'N/A'}</p>
+                                <p className="text-xs text-gray-500">ID: {request.tourId}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                              request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                                request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                                  'bg-gray-100 text-gray-600'
+                            }`}>
+                              {request.status || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {request.bookingCount || 0}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                            <p className="line-clamp-2">{request.companyNote || '-'}</p>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <Tooltip text={t('admin.tourManagement.actions.viewDetails')} position="top">
+                                <button
+                                  onClick={() => handleViewDetails(request.tourId)}
+                                  disabled={loadingDetail}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
+                                <button
+                                  onClick={() => handleApproveDeleteRequest(request)}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                                >
+                                  <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                              <Tooltip text={t('admin.tourManagement.deleteRequests.reject')} position="top">
+                                <button
+                                  onClick={() => handleRejectDeleteRequest(request)}
+                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                                >
+                                  <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && bookings.length > 0 && (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-4 bg-red-50/30">
+                              <div className="space-y-4 pl-8">
+                                <h4 className="text-sm font-semibold text-red-700 mb-3">
+                                  {t('admin.tourManagement.deleteRequests.bookings')} ({bookings.length})
+                                </h4>
+                                <div className="overflow-x-auto">
+                                  <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-100">
+                                      <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactName')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactPhone')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactEmail')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.departureDate')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.status')}</th>
+                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.createdAt')}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                      {paginatedBookings.map((booking) => {
+                                        const statusColor = getBookingStatusColor(booking.status);
+                                        return (
+                                          <tr key={booking.bookingId} className="hover:bg-gray-50">
+                                            <td className="px-4 py-2 text-sm text-gray-600">#{booking.bookingId}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-900">{booking.contactName || 'N/A'}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactPhone || 'N/A'}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactEmail || 'N/A'}</td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDate(booking.departureDate)}</td>
+                                            <td className="px-4 py-2">
+                                              <span 
+                                                className="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                style={{
+                                                  backgroundColor: `${statusColor}15`,
+                                                  color: statusColor,
+                                                  border: `1px solid ${statusColor}30`
+                                                }}
+                                              >
+                                                {formatBookingStatusDisplay(booking.status)}
+                                              </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDateTime(booking.createdAt)}</td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                                {totalBookingPages > 1 && (
+                                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                                    <div className="text-sm text-gray-600">
+                                      Trang {currentBookingPage + 1} / {totalBookingPages} ({bookings.length} booking)
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setDeleteRequestBookingPages(prev => ({
+                                            ...prev,
+                                            [request.id]: Math.max(0, (prev[request.id] || 0) - 1)
+                                          }));
+                                        }}
+                                        disabled={currentBookingPage === 0}
+                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                      >
+                                        Trước
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setDeleteRequestBookingPages(prev => ({
+                                            ...prev,
+                                            [request.id]: Math.min(totalBookingPages - 1, (prev[request.id] || 0) + 1)
+                                          }));
+                                        }}
+                                        disabled={currentBookingPage >= totalBookingPages - 1}
+                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                      >
+                                        Sau
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -1154,6 +1481,7 @@ const TourManagement = () => {
           setSelectedTour(null);
         }}
         tour={selectedTour}
+        updateRequest={selectedTour?._updateRequest || null}
       />
 
       {/* Approve Confirmation Modal */}

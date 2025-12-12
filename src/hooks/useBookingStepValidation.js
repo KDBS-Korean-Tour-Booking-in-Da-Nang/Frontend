@@ -220,8 +220,8 @@ export const useBookingStepValidation = (bookingData) => {
                   }
                 }
               } else if (actualMemberType === 'adult') {
-                // Adults must be at least 12 years old
-                if (age < 12) {
+                // Adults must be at least 18 years old
+                if (age < 18) {
                   return false;
                 }
                 
@@ -230,13 +230,13 @@ export const useBookingStepValidation = (bookingData) => {
                   const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
                   const ageAtDeparture = calculateAge(effectiveDob, departureDate);
                   
-                  if (ageAtDeparture === null || ageAtDeparture < 12) {
+                  if (ageAtDeparture === null || ageAtDeparture < 18) {
                     return false;
                   }
                 }
               } else if (actualMemberType === 'child') {
-                // Children must be 2-11 years old
-                if (age < 2 || age >= 12) {
+                // Children must be 2-18 years old
+                if (age < 2 || age >= 18) {
                   return false;
                 }
                 
@@ -245,7 +245,7 @@ export const useBookingStepValidation = (bookingData) => {
                   const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
                   const ageAtDeparture = calculateAge(effectiveDob, departureDate);
                   
-                  if (ageAtDeparture === null || ageAtDeparture < 2 || ageAtDeparture >= 12) {
+                  if (ageAtDeparture === null || ageAtDeparture < 2 || ageAtDeparture >= 18) {
                     return false;
                   }
                 }

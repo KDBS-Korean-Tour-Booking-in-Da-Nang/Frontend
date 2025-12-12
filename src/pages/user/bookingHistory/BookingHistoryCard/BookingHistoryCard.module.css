@@ -248,6 +248,35 @@
   transform: translateY(0);
 }
 
+.pay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #1a8eea;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(26, 142, 234, 0.2);
+  letter-spacing: 0.2px;
+  position: relative;
+  z-index: 1;
+}
+
+.pay-btn:hover {
+  background: #1478c3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 142, 234, 0.3);
+}
+
+.pay-btn:active {
+  transform: translateY(0);
+}
+
 .btn-icon {
   width: 16px;
   height: 16px;

@@ -11,7 +11,7 @@ const TossPaymentPage = () => {
   const bookingId = searchParams.get('id');
   const location = useLocation();
   const navigate = useNavigate();
-  const { showInfo } = useToast();
+  const { showInfo, showWarning } = useToast();
   const { t } = useTranslation();
   const [error, setError] = useState('');
   const [showBackConfirm, setShowBackConfirm] = useState(false);
@@ -53,6 +53,13 @@ const TossPaymentPage = () => {
 
   const handleConfirmBack = () => {
     // Hủy thanh toán và chuyển đến trang lịch sử booking
+    // Booking status vẫn giữ nguyên (PENDING_DEPOSIT_PAYMENT, PENDING_BALANCE_PAYMENT, etc.)
+    // User có thể thanh toán lại từ Booking History
+    showWarning(
+      t('payment.tossPayment.toast.paymentCancelled', {
+        defaultValue: 'Thanh toán đã bị hủy. Vui lòng tiếp tục thanh toán ở Booking History.',
+      })
+    );
     navigate('/user/booking-history', { replace: true });
   };
 
@@ -83,15 +90,22 @@ const TossPaymentPage = () => {
             <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
               <h2 className="mb-3 text-lg font-semibold text-gray-900">
                 {t('payment.tossPayment.backConfirmTitle', {
-                  defaultValue: 'Bạn có chắc muốn quay lại?',
+                  defaultValue: 'Are you sure you want to go back?',
                 })}
               </h2>
-              <p className="mb-5 text-sm text-gray-600">
-                {t('payment.tossPayment.backConfirmMessage', {
-                  defaultValue:
-                    'Nếu bạn quay lại bây giờ, quá trình thanh toán hiện tại sẽ bị hủy. Bạn sẽ được chuyển đến lịch sử đặt tour.',
-                })}
-              </p>
+              <div className="mb-5 space-y-2">
+                <p className="text-sm font-medium text-gray-900">
+                  {t('payment.tossPayment.backConfirmWarning', {
+                    defaultValue: 'Payment will be closed',
+                  })}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {t('payment.tossPayment.backConfirmMessage', {
+                    defaultValue:
+                      'If you go back now, the current payment process will be cancelled and you will be redirected to your booking history.',
+                  })}
+                </p>
+              </div>
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
