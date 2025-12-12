@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getBookingById, getGuestsByBookingId, updateBooking, userConfirmTourCompletion, createBookingComplaint } from '../../../services/bookingAPI';
+import { previewApplyVoucher } from '../../../services/voucherAPI';
 import { DeleteConfirmModal } from '../../../components/modals';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -109,6 +110,8 @@ const BookingDetail = () => {
   const [showGuestsModal, setShowGuestsModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentType, setPaymentType] = useState(null); // 'deposit', 'full', 'balance'
+  const [voucherPreview, setVoucherPreview] = useState(null);
+  const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -135,6 +138,31 @@ const BookingDetail = () => {
       fetchDetail();
     }
   }, [id, navigate]);
+
+  // Load voucher preview using bookingId (backend will get voucherCode from booking)
+  useEffect(() => {
+    const loadVoucherPreview = async () => {
+      if (!booking?.bookingId) return;
+      
+      setIsLoadingVoucher(true);
+      try {
+        // Call API without voucherCode - backend will get it from booking
+        const preview = await previewApplyVoucher(booking.bookingId);
+        if (preview) {
+          setVoucherPreview(preview);
+        }
+      } catch (err) {
+        // If booking doesn't have voucher, set to null
+        setVoucherPreview(null);
+      } finally {
+        setIsLoadingVoucher(false);
+      }
+    };
+
+    if (booking?.bookingId) {
+      loadVoucherPreview();
+    }
+  }, [booking?.bookingId]);
 
   const status = useMemo(() => normalizeStatus(booking?.bookingStatus || booking?.status), [booking]);
   const isPendingPayment = status === 'PENDING_PAYMENT';
@@ -198,7 +226,6 @@ const BookingDetail = () => {
       setBooking(refreshedBooking);
       setGuests(Array.isArray(refreshedGuests) ? refreshedGuests : []);
     } catch (error) {
-      console.error('Error updating booking:', error);
       setError(error.message || t('bookingDetail.edit.toastError'));
     } finally {
       setLoading(false);
@@ -338,6 +365,7 @@ const BookingDetail = () => {
     if (!booking?.bookingId) return;
 
     // Navigate to payment page with appropriate state based on type
+    // BookingCheckPaymentPage will call preview-apply with bookingId automatically
     const state = {
       booking,
       fromBookingDetail: true,
@@ -485,46 +513,140 @@ const BookingDetail = () => {
         </div>
 
         {/* Payment Information Section - NEW */}
-        {(booking?.totalAmount || booking?.payedAmount || booking?.depositAmount) && (
+        {(booking?.totalAmount || booking?.payedAmount || booking?.depositAmount || voucherPreview) && (
           <div className={styles['info-section']}>
             <div className={styles['section-header']}>
               <CreditCardIcon className={styles['section-icon']} />
               <h2 className={styles['section-title']}>{t('bookingDetail.sections.paymentInfo')}</h2>
             </div>
             <div className={styles['info-grid']}>
-              {booking.totalAmount && (
+              {/* Total Amount - show original with strikethrough if voucher applied */}
+              {(voucherPreview?.originalTotal || booking.totalAmount) && (
                 <div className={styles['info-item']}>
                   <div className={styles['info-label']}>
-                    <span>{t('bookingDetail.payment.totalAmount')}</span>
+                    <span>{t('bookingDetail.payment.totalAmount', 'Tổng tiền tour')}</span>
                   </div>
-                  <div className={styles['info-value']}>{formatCurrency(booking.totalAmount)}</div>
+                  <div className={styles['info-value']} style={voucherPreview ? { textDecoration: 'line-through', opacity: 0.7, color: '#94a3b8' } : {}}>
+                    {formatCurrency(voucherPreview?.originalTotal || booking.totalAmount)}
+                  </div>
                 </div>
               )}
-              {booking.depositAmount && (
+              
+              {/* Voucher Code if applied */}
+              {booking?.voucherCode && booking.voucherCode !== 'none' && booking.voucherCode.trim() !== '' && (
                 <div className={styles['info-item']}>
                   <div className={styles['info-label']}>
-                    <span>{t('bookingDetail.payment.depositAmount')}</span>
+                    <span>{t('booking.step3.payment.voucher', 'Mã giảm giá')}</span>
                   </div>
-                  <div className={styles['info-value']}>{formatCurrency(booking.depositAmount)}</div>
+                  <div className={styles['info-value']} style={{ color: '#059669', fontWeight: 600 }}>
+                    {booking.voucherCode}
+                  </div>
                 </div>
               )}
+
+              {/* Discount Amount (when voucher is applied) */}
+              {voucherPreview && (() => {
+                const discountAmount = Number(voucherPreview.discountAmount || 0);
+                if (discountAmount <= 0) return null;
+                
+                const discountType = voucherPreview.discountType || voucherPreview.meta?.discountType;
+                const discountValue = voucherPreview.discountValue || voucherPreview.meta?.discountValue || 0;
+                
+                // Display based on discount type
+                let discountDisplay = '';
+                if (discountType === 'PERCENT' || discountType === 'PERCENTAGE') {
+                  // Show percentage discount (e.g., -20%)
+                  const percentValue = Number.isFinite(Number(discountValue)) 
+                    ? Math.round(Number(discountValue))
+                    : discountValue;
+                  discountDisplay = `-${percentValue}%`;
+                } else if (discountType === 'FIXED' || discountType === 'AMOUNT') {
+                  // Show fixed amount discount (e.g., -50,000 KRW)
+                  discountDisplay = `-${formatCurrency(discountAmount)}`;
+                } else {
+                  // Fallback: show amount if type is unknown
+                  discountDisplay = `-${formatCurrency(discountAmount)}`;
+                }
+                
+                return (
+                  <div className={styles['info-item']}>
+                    <div className={styles['info-label']}>
+                      <span>{t('booking.step3.payment.discountLabel', 'Giảm giá')}</span>
+                    </div>
+                    <div className={styles['info-value']} style={{ color: '#059669', fontWeight: 600 }}>
+                      {discountDisplay}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Final Total (after voucher) - always show when voucher is applied */}
+              {voucherPreview && (
+                <div className={styles['info-item']}>
+                  <div className={styles['info-label']}>
+                    <span>{t('booking.step3.payment.finalTotal', 'Tổng tiền (sau giảm giá)')}</span>
+                  </div>
+                  <div className={styles['info-value']} style={{ color: '#2563EB', fontWeight: 700, fontSize: '1.05rem' }}>
+                    {formatCurrency(voucherPreview.finalTotal || booking.totalAmount || 0)}
+                  </div>
+                </div>
+              )}
+
+              {/* Deposit and Balance - only show if NOT oneTimePayment */}
+              {(() => {
+                const isOneTimePayment = voucherPreview?.oneTimePayment || 
+                  (booking?.depositPercentage === 100) || 
+                  (booking?.depositPercentage === 0);
+                
+                if (isOneTimePayment) return null;
+                
+                return (
+                  <>
+                    {/* Deposit Amount - use finalDepositAmount if voucher applied */}
+                    {(() => {
+                      const depositAmount = voucherPreview?.finalDepositAmount || booking?.depositAmount || 0;
+                      const depositPercentage = booking?.depositPercentage || 0;
+                      return depositAmount > 0 ? (
+                        <div className={styles['info-item']}>
+                          <div className={styles['info-label']}>
+                            <span>
+                              {t('booking.step3.payment.depositAmount', 'Tiền cọc')}
+                              {depositPercentage > 0 && ` (${depositPercentage}%)`}
+                            </span>
+                          </div>
+                          <div className={styles['info-value']}>
+                            {formatCurrency(depositAmount)}
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Remaining Amount - use finalRemainingAmount if voucher applied */}
+                    {(() => {
+                      const remainingAmount = voucherPreview?.finalRemainingAmount || 
+                        (booking?.totalAmount && booking?.depositAmount ? booking.totalAmount - booking.depositAmount : 0);
+                      return remainingAmount > 0 ? (
+                        <div className={styles['info-item']}>
+                          <div className={styles['info-label']}>
+                            <span>{t('booking.step3.payment.balanceAmount', 'Còn lại')}</span>
+                          </div>
+                          <div className={styles['info-value']} style={{ color: '#F59E0B' }}>
+                            {formatCurrency(remainingAmount)}
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+                  </>
+                );
+              })()}
+
               {booking.payedAmount > 0 && (
                 <div className={styles['info-item']}>
                   <div className={styles['info-label']}>
-                    <span>{t('bookingDetail.payment.payedAmount')}</span>
+                    <span>{t('bookingDetail.payment.payedAmount', 'Đã thanh toán')}</span>
                   </div>
                   <div className={styles['info-value']} style={{ color: '#10B981' }}>
                     {formatCurrency(booking.payedAmount)}
-                  </div>
-                </div>
-              )}
-              {booking.totalAmount && booking.payedAmount >= 0 && (
-                <div className={styles['info-item']}>
-                  <div className={styles['info-label']}>
-                    <span>{t('bookingDetail.payment.remainingAmount')}</span>
-                  </div>
-                  <div className={styles['info-value']} style={{ color: booking.totalAmount - booking.payedAmount > 0 ? '#F59E0B' : '#10B981' }}>
-                    {formatCurrency(Math.max(0, booking.totalAmount - booking.payedAmount))}
                   </div>
                 </div>
               )}

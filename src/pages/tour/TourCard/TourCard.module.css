@@ -11,6 +11,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
+  z-index: inherit;
 }
 
 .tour-card:hover {
@@ -61,6 +63,7 @@
   flex-direction: column;
   flex: 1;
   gap: 16px;
+  min-height: 180px;
 }
 
 .tour-card-title {
@@ -90,6 +93,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  flex-wrap: nowrap;
+  min-height: 28px;
 }
 
 .tour-duration {
@@ -99,6 +104,10 @@
   font-size: 14px;
   color: #6b7280;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .duration-icon {
@@ -112,6 +121,7 @@
 .tour-price {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .price-amount {
@@ -119,6 +129,9 @@
   font-weight: 700;
   color: #1a8eea;
   letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Tour Card Actions */
@@ -257,6 +270,7 @@
 
   .tour-duration {
     font-size: 13px;
+    white-space: nowrap;
   }
 
   .price-amount {

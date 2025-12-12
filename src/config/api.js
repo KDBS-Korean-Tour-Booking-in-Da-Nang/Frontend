@@ -77,6 +77,7 @@ export const API_ENDPOINTS = {
   TOUR_DELETE_BY_ID: (id, userEmail) => `${BaseURL}/api/tour/${id}?userEmail=${encodeURIComponent(userEmail)}`,
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
   TOUR_PREVIEW_BY_ID: (id) => `${BaseURL}/api/tour/preview/${id}`,
+  TOURS_SUGGEST_BY_ARTICLE: (userId) => `${BaseURL}/api/tour/suggestByArticle${userId ? `?userId=${userId}` : ''}`,
 
   // Tour Update Requests
   TOUR_UPDATE_REQUEST: (tourId) => `${BaseURL}/api/tour/${tourId}/update-request`,

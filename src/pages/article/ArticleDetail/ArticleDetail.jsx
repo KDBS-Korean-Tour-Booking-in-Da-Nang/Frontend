@@ -1,22 +1,56 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CalendarIcon, ArrowLeftIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../../contexts/AuthContext';
 import articleService from '../../../services/articleService';
 import { htmlToJsx, normalizeImageUrlsInHtml } from '../../../utils/htmlConverter';
 import { getImageUrl } from '../../../config/api';
 import ArticleCommentSection from './ArticleCommentSection/ArticleCommentSection';
+import TourSuggestion from './TourSuggestion/TourSuggestion';
 import styles from './ArticleDetail.module.css';
 
 const ArticleDetail = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const id = searchParams.get('id');
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showTourSuggestion, setShowTourSuggestion] = useState(false);
   const detailContainerClass = `${styles.pageContainer} ${styles.detailContainer}`;
+
+  // Handler để toggle show/hide Tour suggestion
+  const handleToggleTourSuggestion = () => {
+    if (user) {
+      const userId = user?.userId || user?.id;
+      if (userId) {
+        const newShowState = !showTourSuggestion;
+        setShowTourSuggestion(newShowState);
+        
+        if (newShowState) {
+          // Thêm userId vào URL khi show
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.set('userId', String(userId));
+          setSearchParams(newSearchParams, { replace: false });
+          // Scroll to suggestion section
+          setTimeout(() => {
+            const suggestionElement = document.getElementById('tour-suggestion-section');
+            if (suggestionElement) {
+              suggestionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        } else {
+          // Xóa userId khỏi URL khi hide
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete('userId');
+          setSearchParams(newSearchParams, { replace: false });
+        }
+      }
+    }
+  };
 
   // Load article when id changes
   useEffect(() => {
@@ -24,6 +58,17 @@ const ArticleDetail = () => {
       loadArticle(id);
     }
   }, [id]);
+
+  // Sync showTourSuggestion state với URL params khi component mount hoặc URL thay đổi
+  useEffect(() => {
+    const userIdFromUrl = searchParams.get('userId');
+    const userIdFromUser = user?.userId || user?.id;
+    if (userIdFromUrl && userIdFromUser && userIdFromUrl === String(userIdFromUser)) {
+      setShowTourSuggestion(true);
+    } else {
+      setShowTourSuggestion(false);
+    }
+  }, [searchParams, user]);
 
   // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
   const getLocalizedArticleField = (article, baseField) => {
@@ -150,14 +195,7 @@ const ArticleDetail = () => {
         {/* Header */}
         <div className={`${styles.contentWrap} pt-2 pb-0`}>
           <div className={`${styles.card} px-4 sm:px-6 lg:px-8 py-3`}>
-            <div className="flex flex-wrap items-center gap-3 justify-between">
-              <button
-                onClick={() => navigate('/article')}
-                className={`${styles.softButton} ${styles.ghostButton} text-sm gap-2`}
-              >
-                <ArrowLeftIcon className="h-4 w-4" />
-                {t('articleDetail.backToNews')}
-              </button>
+            <div className="flex flex-wrap items-center gap-3 justify-end">
               <Link
                 to="/article"
                 className="text-primary hover:text-primary-hover font-medium transition-colors text-sm"
@@ -219,23 +257,35 @@ const ArticleDetail = () => {
                   {t('articleDetail.publishedAt')}: {new Date(article.articleCreatedDate).toLocaleString('vi-VN')}
                 </div>
                 <div className="flex space-x-4">
+                  {user && (
+                    <button
+                      onClick={handleToggleTourSuggestion}
+                      className={`${styles.softButton} ${showTourSuggestion ? styles.ghostButton : ''} text-sm px-4 py-2`}
+                    >
+                      {showTourSuggestion 
+                        ? t('articleDetail.hideTourSuggestion')
+                        : t('articleDetail.showTourSuggestion')
+                      }
+                    </button>
+                  )}
                   <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     className={`${styles.softButton} ${styles.ghostButton} text-sm px-4 py-2`}
                   >
                     {t('articleDetail.backToTop')}
                   </button>
-                  <Link
-                    to="/article"
-                    className={`${styles.softButton} text-sm px-4 py-2`}
-                  >
-                    {t('articleDetail.viewMoreNews')}
-                  </Link>
                 </div>
               </div>
             </div>
           </article>
         </div>
+
+        {/* Tour Suggestion Section */}
+        {user && searchParams.get('userId') && (
+          <div id="tour-suggestion-section">
+            <TourSuggestion />
+          </div>
+        )}
       </div>
     </div>
   );

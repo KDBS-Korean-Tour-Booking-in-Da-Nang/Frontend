@@ -435,9 +435,29 @@ const BookingWizardContent = () => {
       return;
     }
 
+    // Validate total price
+    const totalPrice = plan.price?.total || plan.total || 0;
+    if (!totalPrice || totalPrice <= 0) {
+      setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
+      setBookingLoading(false);
+      return;
+    }
+
+    // Get voucher code from localStorage
+    let voucherCode = '';
+    try {
+      const savedData = localStorage.getItem(`bookingData_${tourId}`);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        voucherCode = parsed.voucherCode || '';
+      }
+    } catch (err) {
+      // Silently handle error
+    }
+
     let bookingData;
     try {
-      bookingData = formatBookingData({ contact, plan }, tourId, currentLanguage, user.email);
+      bookingData = formatBookingData({ contact, plan, voucherCode }, tourId, currentLanguage, user.email);
     } catch (error) {
       // Failed to format booking data
       setBookingError(error?.message || t('bookingWizard.toast.formatDataError') || 'Lỗi định dạng dữ liệu');
@@ -468,28 +488,6 @@ const BookingWizardContent = () => {
     clearBookingStatus();
     setBookingLoading(true);
 
-    // Log booking data before sending in development mode
-    if (import.meta.env.DEV) {
-      console.log('[TourBookingWizard] Sending booking request:', {
-        tourId: bookingData.tourId,
-        departureDate: bookingData.departureDate,
-        adultsCount: bookingData.adultsCount,
-        childrenCount: bookingData.childrenCount,
-        babiesCount: bookingData.babiesCount,
-        guestsCount: bookingData.bookingGuestRequests?.length || 0,
-        contactName: bookingData.contactName,
-        contactEmail: bookingData.contactEmail,
-        contactAddress: bookingData.contactAddress,
-        contactPhone: bookingData.contactPhone,
-        userEmail: bookingData.userEmail,
-        planPrices: {
-          adult: plan.price?.adult,
-          child: plan.price?.child,
-          infant: plan.price?.infant,
-          total: plan.price?.total
-        }
-      });
-    }
 
     try {
       const createdBooking = await createBookingAPI(bookingData);
@@ -510,34 +508,20 @@ const BookingWizardContent = () => {
 
       showSuccess(t('bookingWizard.toast.bookingSuccess'));
 
+      // Lấy voucherCode từ bookingData để truyền vào navState
+      const voucherCodeFromBooking = bookingData.voucherCode || null;
+      
       navigate(`/booking/payment?id=${createdBooking.bookingId}`, {
         state: {
           bookingId: createdBooking.bookingId,
           userEmail: createdBooking.contactEmail || bookingData.userEmail,
-          booking: createdBooking
+          booking: createdBooking,
+          voucherCode: voucherCodeFromBooking // Thêm voucherCode vào navState
         }
       });
     } catch (error) {
       // Create booking failed
       const message = error?.message || t('bookingWizard.toast.bookingError') || 'Đặt tour thất bại';
-
-      // Log detailed error in development mode
-      if (import.meta.env.DEV) {
-        console.error('[TourBookingWizard] Booking creation failed:', {
-          error: error.message,
-          errorStack: error.stack,
-          bookingData: bookingData ? {
-            tourId: bookingData.tourId,
-            departureDate: bookingData.departureDate,
-            adultsCount: bookingData.adultsCount,
-            childrenCount: bookingData.childrenCount,
-            babiesCount: bookingData.babiesCount,
-            guestsCount: bookingData.bookingGuestRequests?.length,
-            contactName: bookingData.contactName,
-            contactEmail: bookingData.contactEmail
-          } : null
-        });
-      }
 
       setBookingError(message);
       if (message === 'Unauthenticated' || message.toLowerCase().includes('unauthenticated')) {

@@ -161,7 +161,6 @@ const BookingHistory = () => {
               createdAt: booking.createdAt
             };
           } catch (err) {
-            console.error(`Failed to fetch total for booking ${booking.bookingId}:`, err);
             return {
               bookingId: booking.bookingId,
               tourId: booking.tourId,
@@ -190,7 +189,6 @@ const BookingHistory = () => {
       const endIndex = startIndex + itemsPerPage;
       setBookings(bookingsWithTotals.slice(startIndex, endIndex));
     } catch (err) {
-      console.error('Error fetching booking history:', err);
       setError(err.message);
     } finally {
       setLoading(false);

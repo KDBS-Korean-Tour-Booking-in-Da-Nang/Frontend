@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +12,12 @@ import {
   XCircleIcon,
   ClockIcon,
   DocumentTextIcon,
-  BanknotesIcon
+  BanknotesIcon,
+  CreditCardIcon
 } from '@heroicons/react/24/outline';
 import { previewCancelBooking, cancelBooking } from '../../../../services/bookingAPI';
+import { previewApplyVoucher } from '../../../../services/voucherAPI';
+import PaymentConfirmModal from '../../../../components/modals/PaymentConfirmModal/PaymentConfirmModal';
 import styles from './BookingHistoryCard.module.css';
 
 const STATUS_KEYS = {
@@ -155,6 +158,10 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const [voucherPreview, setVoucherPreview] = useState(null);
+  const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentType, setPaymentType] = useState(null); // 'deposit', 'full', 'balance'
 
   // Map i18n language to locale
   const getLocale = () => {
@@ -174,6 +181,76 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
 
   const handleViewDetails = () => {
     navigate(`/user/booking?id=${booking.bookingId}`);
+  };
+
+  // Load voucher preview using bookingId (backend will get voucherCode from booking)
+  useEffect(() => {
+    const loadVoucherPreview = async () => {
+      if (!booking?.bookingId) return;
+      
+      setIsLoadingVoucher(true);
+      try {
+        // Call API without voucherCode - backend will get it from booking
+        const preview = await previewApplyVoucher(booking.bookingId);
+        if (preview) {
+          setVoucherPreview(preview);
+        }
+      } catch (err) {
+        // Silently handle error - booking may not have voucher
+      } finally {
+        setIsLoadingVoucher(false);
+      }
+    };
+
+    loadVoucherPreview();
+  }, [booking?.bookingId]);
+
+  const handlePay = (e) => {
+    e.stopPropagation();
+    if (!booking?.bookingId) return;
+    
+    // Determine payment type based on status (same logic as BookingDetail)
+    // Check raw bookingStatus first, then fallback to effectiveStatus
+    const rawStatus = booking?.bookingStatus || booking?.status;
+    const statusString = String(rawStatus || '').toUpperCase();
+    
+    let type = 'full'; // Default for PENDING_PAYMENT (full payment)
+    
+    // Priority: PENDING_DEPOSIT_PAYMENT -> deposit, PENDING_BALANCE_PAYMENT -> balance
+    if (statusString === 'PENDING_DEPOSIT_PAYMENT') {
+      type = 'deposit';
+    } else if (statusString === 'PENDING_BALANCE_PAYMENT') {
+      type = 'balance';
+    } else if (statusString === 'PENDING_PAYMENT') {
+      type = 'full';
+    } else {
+      // Fallback to effectiveStatus if rawStatus doesn't match
+      if (effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT) {
+        type = 'deposit';
+      } else if (effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) {
+        type = 'balance';
+      } else if (effectiveStatus === STATUS_KEYS.PENDING_PAYMENT) {
+        type = 'full';
+      }
+    }
+    
+    setPaymentType(type);
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmPayment = () => {
+    setShowPaymentModal(false);
+    if (!booking?.bookingId) return;
+
+    // Navigate to payment page - BookingCheckPaymentPage will call preview-apply with bookingId automatically
+    const state = {
+      booking,
+      fromBookingHistory: true,
+      fromBookingDetail: false,
+      isBalancePayment: paymentType === 'balance'
+    };
+
+    navigate(`/booking/payment?id=${booking.bookingId}`, { state });
   };
 
   // Compute effective booking status based on transaction
@@ -241,7 +318,6 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
       const preview = await previewCancelBooking(booking.bookingId);
       setCancelPreview(preview);
     } catch (error) {
-      console.error('Error previewing cancel:', error);
       setCancelError(error.message || 'Không thể tải thông tin hoàn tiền. Vui lòng thử lại.');
     } finally {
       setIsLoadingPreview(false);
@@ -278,7 +354,6 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
         }, 2000);
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
       setCancelError(error.message || 'Không thể hủy booking. Vui lòng thử lại.');
     } finally {
       setIsCancelling(false);
@@ -494,31 +569,77 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
               </div>
             </div>
 
-            {/* Show amount to pay based on status */}
-            {(effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT ||
-              effectiveStatus === STATUS_KEYS.PENDING_PAYMENT) && (
-                <div className={styles['info-item']}>
-                  <div className={styles['info-label']}>
-                    <BanknotesIcon className={styles['item-icon']} />
-                    <span>{t('bookingHistory.card.depositAmount', 'Tiền cọc')}</span>
+            {/* Show amount to pay based on status - use voucher preview if available */}
+            {/* Only show deposit/remaining if NOT oneTimePayment */}
+            {(() => {
+              const isOneTimePayment = voucherPreview?.oneTimePayment || 
+                (booking?.depositPercentage === 100) || 
+                (booking?.depositPercentage === 0);
+              
+              if (isOneTimePayment) {
+                // For oneTimePayment, show total amount to pay
+                if (effectiveStatus === STATUS_KEYS.PENDING_PAYMENT || 
+                    effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT) {
+                  return (
+                    <div className={styles['info-item']}>
+                      <div className={styles['info-label']}>
+                        <BanknotesIcon className={styles['item-icon']} />
+                        <span>{t('payment.checkPayment.amountDue', 'Số tiền cần thanh toán')}</span>
+                      </div>
+                      <div className={styles['info-value']} style={{ color: '#EA580C', fontWeight: 600 }}>
+                        {formatKRW(
+                          voucherPreview?.finalTotal || 
+                          booking.totalAmount || 
+                          booking.totalPrice || 
+                          0
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }
+              
+              // For non-oneTimePayment, show deposit or balance
+              if (effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT ||
+                  effectiveStatus === STATUS_KEYS.PENDING_PAYMENT) {
+                return (
+                  <div className={styles['info-item']}>
+                    <div className={styles['info-label']}>
+                      <BanknotesIcon className={styles['item-icon']} />
+                      <span>{t('bookingHistory.card.depositAmount', 'Tiền cọc')}</span>
+                    </div>
+                    <div className={styles['info-value']} style={{ color: '#EA580C', fontWeight: 600 }}>
+                      {formatKRW(
+                        voucherPreview?.finalDepositAmount || 
+                        booking.depositAmount || 
+                        booking.deposit || 
+                        0
+                      )}
+                    </div>
                   </div>
-                  <div className={styles['info-value']} style={{ color: '#EA580C', fontWeight: 600 }}>
-                    {formatKRW(booking.depositAmount || booking.deposit || 0)}
+                );
+              }
+              
+              if (effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) {
+                return (
+                  <div className={styles['info-item']}>
+                    <div className={styles['info-label']}>
+                      <BanknotesIcon className={styles['item-icon']} />
+                      <span>{t('bookingHistory.card.balanceAmount', 'Còn lại')}</span>
+                    </div>
+                    <div className={styles['info-value']} style={{ color: '#F59E0B', fontWeight: 600 }}>
+                      {formatKRW(
+                        voucherPreview?.finalRemainingAmount || 
+                        ((booking.totalPrice || booking.totalAmount || 0) - (booking.depositAmount || booking.deposit || 0))
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-
-            {effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT && (
-              <div className={styles['info-item']}>
-                <div className={styles['info-label']}>
-                  <BanknotesIcon className={styles['item-icon']} />
-                  <span>{t('bookingHistory.card.balanceAmount', 'Còn lại')}</span>
-                </div>
-                <div className={styles['info-value']} style={{ color: '#F59E0B', fontWeight: 600 }}>
-                  {formatKRW((booking.totalPrice || booking.totalAmount || 0) - (booking.depositAmount || booking.deposit || 0))}
-                </div>
-              </div>
-            )}
+                );
+              }
+              
+              return null;
+            })()}
           </div>
 
           {(booking?.transactionStatus || booking?.latestTransactionStatus) && (
@@ -535,6 +656,31 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
 
         <div className={styles['card-footer']}>
           <div className={styles['action-buttons']}>
+            {/* Pay button for pending payment statuses */}
+            {(effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT ||
+              effectiveStatus === STATUS_KEYS.PENDING_PAYMENT ||
+              effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) && (
+              <button
+                className={styles['pay-btn']}
+                onClick={handlePay}
+                type="button"
+                style={{ 
+                  backgroundColor: '#1a8eea', 
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                <CreditCardIcon className={styles['btn-icon']} style={{ width: '1rem', height: '1rem' }} />
+                <span>{t('payment.checkPayment.actions.pay', 'Thanh toán')}</span>
+              </button>
+            )}
             {canCancelBooking && (
               <button
                 className={styles['cancel-btn']}
@@ -557,6 +703,14 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
         </div>
       </div>
       {modalNode}
+      
+      {/* Payment Confirmation Modal */}
+      <PaymentConfirmModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onConfirm={handleConfirmPayment}
+        modalKey="bookingHistoryCard"
+      />
     </>
   );
 };

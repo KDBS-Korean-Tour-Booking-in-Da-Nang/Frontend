@@ -170,3 +170,118 @@ export const getAvailableVouchersForBooking = async (bookingId) => {
   }
 };
 
+/**
+ * Preview apply voucher to a booking
+ * @param {number} bookingId - The booking ID
+ * @param {string} voucherCode - Optional voucher code to apply. If not provided, will use voucher from booking
+ * @returns {Promise<Object>} - ApplyVoucherResponse with discount info
+ */
+export const previewApplyVoucher = async (bookingId, voucherCode = null) => {
+  // If voucherCode is provided, use query param. Otherwise, just call with bookingId
+  const url = voucherCode 
+    ? `${API_BASE_URL}/api/vouchers/preview-apply/${bookingId}?voucherCode=${encodeURIComponent(voucherCode)}`
+    : `${API_BASE_URL}/api/vouchers/preview-apply/${bookingId}`;
+  const headers = getAuthHeaders();
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers,
+    });
+
+    if (!response.ok) {
+      let errorData = {};
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Ignore parse error
+        }
+      } else {
+        try {
+          const text = await response.text();
+          errorData = { message: text };
+        } catch (e) {
+          // Ignore read error
+        }
+      }
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return null; // Đã redirect
+      }
+      
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Preview all available vouchers for a tour booking
+ * @param {Object} request - AllVoucherRequest with tourId, adultsCount, childrenCount, babiesCount
+ * @returns {Promise<Array>} - Array of available voucher responses with discount info
+ */
+export const previewAllAvailableVouchers = async (request) => {
+  const url = `${API_BASE_URL}/api/vouchers/preview-all`;
+  const headers = getAuthHeaders();
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        tourId: request.tourId,
+        adultsCount: request.adultsCount || 0,
+        childrenCount: request.childrenCount || 0,
+        babiesCount: request.babiesCount || 0
+      }),
+    });
+
+    if (!response.ok) {
+      let errorData = {};
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Ignore parse error
+        }
+      } else {
+        try {
+          const text = await response.text();
+          errorData = { message: text };
+        } catch (e) {
+          // Ignore read error
+        }
+      }
+      
+      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+      const wasHandled = await checkAndHandleApiError(response, true);
+      if (wasHandled) {
+        return []; // Đã redirect, trả về mảng rỗng
+      }
+      
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!Array.isArray(result)) {
+      return [];
+    }
+    
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+

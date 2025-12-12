@@ -2957,6 +2957,12 @@
         "message": "Bạn có chắc chắn muốn tiến hành thanh toán? Hệ thống sẽ chuyển bạn đến trang thanh toán.",
         "confirm": "Tiến hành",
         "cancel": "Quay lại"
+      },
+      "bookingHistoryCard": {
+        "title": "Xác nhận thanh toán",
+        "message": "Bạn có chắc chắn muốn tiến hành thanh toán? Hệ thống sẽ chuyển bạn đến trang thanh toán.",
+        "confirm": "Tiến hành",
+        "cancel": "Hủy"
       }
     }
   },
@@ -3812,7 +3818,20 @@
         "balanceAmount": "Số tiền còn lại (thanh toán sau khi được duyệt)",
         "paymentDue": "Số tiền cần thanh toán",
         "voucher": "Mã giảm giá",
-        "voucherNotAvailable": "Tính năng đang được phát triển"
+        "voucherNotAvailable": "Tính năng đang được phát triển",
+        "voucherCodeRequired": "Vui lòng nhập mã voucher",
+        "voucherInvalid": "Mã voucher không hợp lệ",
+        "voucherApplied": "Voucher đã được áp dụng",
+        "voucherRemoved": "Voucher đã được gỡ bỏ",
+        "voucherPlaceholder": "Nhập mã voucher",
+        "removeVoucher": "Gỡ bỏ voucher",
+        "selectVoucher": "Chọn voucher từ danh sách",
+        "applyVoucher": "Áp dụng",
+        "finalTotal": "Tổng tiền sau giảm giá",
+        "discountLabel": "Giảm giá",
+        "voucherListTitle": "Danh sách voucher",
+        "loadingVouchers": "Đang tải...",
+        "noVouchers": "Không có voucher nào"
       },
       "labels": {
         "fullName": "Họ và tên",
@@ -4243,7 +4262,23 @@
     "publishedAt": "Đăng lúc",
     "backToTop": "↑ Lên đầu trang",
     "viewMoreNews": "← Xem thêm bài viết",
-    "contentUpdating": "Nội dung bài báo đang được cập nhật..."
+    "contentUpdating": "Nội dung bài báo đang được cập nhật...",
+    "showTourSuggestion": "Tour gợi ý",
+    "hideTourSuggestion": "Ẩn Tour gợi ý",
+    "tourSuggestion": {
+      "title": "Tour gợi ý dành cho bạn",
+      "loading": "Đang tải tour gợi ý...",
+      "previous": "Trước",
+      "next": "Sau",
+      "errorQuota": "AI service đang tạm thời hết quota. Vui lòng thử lại sau.",
+      "errorServer": "Lỗi server khi tải tour gợi ý. Vui lòng thử lại sau.",
+      "errorUnknown": "Có lỗi xảy ra khi tải tour gợi ý.",
+      "errorSubtext": "Vui lòng thử lại sau hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp tục.",
+      "errorInvalidUser": "Không thể xác định người dùng.",
+      "errorSession": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      "errorHttp": "Lỗi khi tải tour gợi ý ({{status}}). Vui lòng thử lại sau.",
+      "errorNetwork": "Lỗi kết nối. Vui lòng kiểm tra kết nối internet và thử lại."
+    }
   },
   "article": {
     "comments": {

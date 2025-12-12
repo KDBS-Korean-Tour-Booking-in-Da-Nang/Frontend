@@ -2895,6 +2895,12 @@
 				"message": "결제를 진행하시겠습니까? 시스템이 결제 페이지로 이동합니다.",
 				"confirm": "진행",
 				"cancel": "취소"
+			},
+			"bookingHistoryCard": {
+				"title": "결제 확인",
+				"message": "결제를 진행하시겠습니까? 시스템이 결제 페이지로 이동합니다.",
+				"confirm": "진행",
+				"cancel": "취소"
 			}
 		}
 	},
@@ -3734,7 +3740,20 @@
 				"balanceAmount": "잔액 (승인 후 결제)",
 				"paymentDue": "결제 금액",
 				"voucher": "할인 코드",
-				"voucherNotAvailable": "곧 제공 예정"
+				"voucherNotAvailable": "곧 제공 예정",
+				"voucherCodeRequired": "할인 코드를 입력해주세요",
+				"voucherInvalid": "유효하지 않은 할인 코드",
+				"voucherApplied": "할인 코드가 적용되었습니다",
+				"voucherRemoved": "할인 코드가 제거되었습니다",
+				"voucherPlaceholder": "할인 코드 입력",
+				"removeVoucher": "할인 코드 제거",
+				"selectVoucher": "목록에서 할인 코드 선택",
+				"applyVoucher": "적용",
+				"finalTotal": "할인 후 최종 금액",
+				"discountLabel": "할인",
+				"voucherListTitle": "할인 코드 목록",
+				"loadingVouchers": "로딩 중...",
+				"noVouchers": "사용 가능한 할인 코드가 없습니다"
 			},
 			"labels": {
 				"fullName": "성명",
@@ -4175,7 +4194,23 @@
 		"contentUpdating": "콘텐츠가 업데이트되고 있습니다.",
 		"publishedAt": "발행일",
 		"backToTop": "맨 위로",
-		"viewMoreNews": "더 많은 기사 보기"
+		"viewMoreNews": "더 많은 기사 보기",
+		"showTourSuggestion": "투어 추천",
+		"hideTourSuggestion": "투어 추천 숨기기",
+		"tourSuggestion": {
+			"title": "추천 투어",
+			"loading": "투어 추천 로딩 중...",
+			"previous": "이전",
+			"next": "다음",
+			"errorQuota": "AI 서비스가 일시적으로 할당량을 초과했습니다. 나중에 다시 시도해주세요.",
+			"errorServer": "투어 추천을 로딩하는 중 서버 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+			"errorUnknown": "투어 추천을 로딩하는 중 오류가 발생했습니다.",
+			"errorSubtext": "나중에 다시 시도하거나 문제가 계속되면 지원팀에 문의하세요.",
+			"errorInvalidUser": "사용자를 식별할 수 없습니다.",
+			"errorSession": "세션이 만료되었습니다. 다시 로그인해주세요.",
+			"errorHttp": "투어 추천을 로딩하는 중 오류가 발생했습니다 ({{status}}). 나중에 다시 시도해주세요.",
+			"errorNetwork": "연결 오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도해주세요."
+		}
 	},
 	"articleManagement": {
 		"title": "기사 관리",
