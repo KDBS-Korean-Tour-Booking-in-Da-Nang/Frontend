@@ -1385,9 +1385,9 @@
 						"tourDescription": "텍스트 설명 입력 (이미지 제외)..."
 					},
 					"help": {
-						"checkDays": "보증금을 위한 사전 예약 기간의 첫 번째 부분",
-						"balancePaymentDays": "자동 계산 = 최소 사전 예약일 - 확인 일수",
-						"depositPercentage": "투어 예약 시 필요",
+						"checkDays": "서류 처리 및 보증금 결제 승인 시간",
+						"balancePaymentDays": "고객이 잔액을 결제하기까지 기다리는 시간",
+						"depositPercentage": "이는 보증금으로 지불해야 하는 비율입니다. 100%를 입력하면 투어 요금의 100%를 지불한다는 의미이며, 보증금이나 잔액 결제가 필요하지 않습니다.",
 						"refundFloor": "잔금 결제 기간 이후 최소 환불 비율"
 					}
 				},
@@ -2603,11 +2603,11 @@
 			"help": {
 				"departurePoint": "모든 투어는 다낭에서 출발합니다",
 				"vehicle": "기본 교통수단: 관광버스",
-				"tourDeadline": "출발일까지 최소 이 일수 이상 남아야 예약 가능합니다",
+				"tourDeadline": "출발일 시작 전 최소 이 일수 이상 남아야 결제를 완료해야 합니다",
 				"tourExpirationDate": "이 날짜 이후로는 예약을 받을 수 없습니다",
-				"checkDays": "MinAdvanceDays 중 초기 구간(보증금 기간)",
-				"balancePaymentDays": "자동 = MinAdvanceDays - CheckDays",
-				"depositPercentage": "예약 시 필요한 보증금 비율",
+				"checkDays": "서류 처리 및 보증금 결제 승인 시간",
+				"balancePaymentDays": "사용자가 잔액을 결제하기까지 기다리는 시간",
+				"depositPercentage": "이는 보증금으로 지불해야 하는 비율입니다. 100%를 입력하면 투어 요금의 100%를 지불한다는 의미이며, 보증금이나 잔액 결제가 필요하지 않습니다.",
 				"refundFloor": "잔금 구간 이후 최소 환불 비율",
 				"allowRefundableAfterBalancePayment": "잔금 후 환불 규칙을 활성화"
 			},
@@ -2754,8 +2754,8 @@
 			"subtitle": "투어 가격 및 정책 설정",
 			"pricing": {
 				"title": "투어 가격",
-				"adultPrice": "성인 가격 (≥ 12세)",
-				"childrenPrice": "아동 가격 (2-11세)",
+				"adultPrice": "성인 가격 (≥ 18세)",
+				"childrenPrice": "아동 가격 (2-18세)",
 				"babyPrice": "유아 가격 (2세 미만)",
 				"unit": "VND / 명",
 				"unitChildren": "VND / 아동",
@@ -3669,10 +3669,10 @@
 				"dobInFuture": "생년월일은 미래일 수 없습니다",
 				"dobInvalidFormat": "날짜 형식이 올바르지 않습니다 (YYYY-MM-DD 형식 사용)",
 				"dobTooOld": "생년월일이 유효하지 않습니다 (나이는 ≤ 120세)",
-				"adultTooYoung": "성인은 성인 항목에서 만 12세 이상이어야 합니다.",
+				"adultTooYoung": "성인은 성인 항목에서 만 18세 이상이어야 합니다.",
 				"representativeTooYoung": "대표자는 대표자 항목에서 만 18세 이상이어야 합니다.",
 				"childTooYoung": "아이는 어린이 항목에서 만 2세 이상이어야 합니다.",
-				"childTooOld": "아이는 어린이 항목에서 만 12세 미만이어야 합니다.",
+				"childTooOld": "아이는 어린이 항목에서 만 18세 미만이어야 합니다.",
 				"infantTooOld": "유아는 유아 항목에서 만 2세 미만이어야 합니다.",
 				"genderRequired": "성별은 필수입니다",
 				"nationalityRequired": "국적은 필수입니다",
@@ -4080,13 +4080,15 @@
 			"back": "돌아가기",
 			"security": "Toss의 PCI-DSS 규격 보안 연결",
 			"tip": "결제가 완료될 때까지 이 창을 닫지 마세요.",
-			"backConfirmTitle": "정말 돌아가시겠습니까?",
-			"backConfirmMessage": "지금 돌아가시면 현재 결제가 취소되고 예약 내역 페이지로 이동합니다.",
+			"backConfirmTitle": "돌아가시겠습니까?",
+			"backConfirmWarning": "결제가 종료됩니다",
+			"backConfirmMessage": "예약 내역에서 결제를 계속 진행해 주세요. 예약 상태는 그대로 유지되며 언제든지 다시 결제할 수 있습니다.",
 			"backConfirmOk": "돌아가기 확인",
 			"toast": {
 				"missingData": "결제 게이트웨이 초기화 데이터가 없습니다. 다시 초기화해 주세요.",
 				"error": "토스 결제 게이트웨이를 초기화하는 중 오류가 발생했습니다.",
-				"ready": "토스 결제 게이트웨이가 준비되었습니다. 이 창에서 거래를 완료해 주세요."
+				"ready": "토스 결제 게이트웨이가 준비되었습니다. 이 창에서 거래를 완료해 주세요.",
+				"paymentCancelled": "결제가 취소되었습니다. 예약 내역에서 결제를 계속 진행해 주세요."
 			},
 			"widget": {
 				"loading": "토스 결제 게이트웨이 로딩 중...",

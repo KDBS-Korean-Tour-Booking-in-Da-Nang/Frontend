@@ -1388,9 +1388,9 @@
 						"tourDescription": "Enter text description (no images)..."
 					},
 					"help": {
-						"checkDays": "The first part of the advance period for deposit",
-						"balancePaymentDays": "Auto calculated = Min Advance Days - Check Days",
-						"depositPercentage": "Required when booking tour",
+						"checkDays": "Time to process documentation and approve the deposit payment",
+						"balancePaymentDays": "Time to wait for guests to pay the remaining balance",
+						"depositPercentage": "This is the percentage that must be paid as deposit. If you enter 100%, it means paying 100% for the tour, no deposit or remaining payment needed.",
 						"refundFloor": "Minimum refund percentage after balance payment period"
 					}
 				},
@@ -2658,11 +2658,11 @@
 			"help": {
 				"departurePoint": "All tours depart from Da Nang",
 				"vehicle": "Default vehicle: Tourist Bus",
-				"tourDeadline": "Guests must book at least this many days before departure",
+				"tourDeadline": "Guests must complete payment at least this many days before the departure date",
 				"tourExpirationDate": "Bookings close after this date",
-				"checkDays": "Part of MinAdvanceDays; deposit window",
-				"balancePaymentDays": "Auto = MinAdvanceDays - CheckDays",
-				"depositPercentage": "Required at booking time.",
+				"checkDays": "Time to process documentation and approve the deposit payment",
+				"balancePaymentDays": "Time to wait for guests to pay the remaining balance",
+				"depositPercentage": "This is the percentage that must be paid as deposit. If you enter 100%, it means paying 100% for the tour, no deposit or remaining payment needed.",
 				"refundFloor": "Minimum refundable % after balance window.",
 				"allowRefundableAfterBalancePayment": "Enable refundable rules after balance is paid"
 			},
@@ -2810,8 +2810,8 @@
 			"subtitle": "Set up tour pricing",
 			"pricing": {
 				"title": "Tour Pricing",
-				"adultPrice": "Adult Price (≥ 12 years)",
-				"childrenPrice": "Children Price (2-11 years)",
+				"adultPrice": "Adult Price (≥ 18 years)",
+				"childrenPrice": "Children Price (2-18 years)",
 				"babyPrice": "Baby Price (under 2 years)",
 				"unit": "VND / person",
 				"unitChildren": "VND / child",
@@ -3729,10 +3729,10 @@
 				"dobInFuture": "Date of birth cannot be in the future",
 				"dobInvalidFormat": "Invalid date format (use YYYY-MM-DD)",
 				"dobTooOld": "Invalid date of birth (age must be ≤ 120)",
-				"adultTooYoung": "Adult must be ≥ 12 years old in the Adult section.",
+				"adultTooYoung": "Adult must be ≥ 18 years old in the Adult section.",
 				"representativeTooYoung": "Representative must be ≥ 18 years old in the Representative section.",
 				"childTooYoung": "Child must be ≥ 2 years old in the Children section.",
-				"childTooOld": "Child must be < 12 years old in the Children section.",
+				"childTooOld": "Child must be < 18 years old in the Children section.",
 				"infantTooOld": "Infant must be < 2 years old in the Infant section.",
 				"genderRequired": "Gender is required",
 				"nationalityRequired": "Nationality is required",
@@ -4141,12 +4141,14 @@
 			"security": "PCI-DSS compliant secure connection from Toss",
 			"tip": "Keep this window open until the payment is complete.",
 			"backConfirmTitle": "Are you sure you want to go back?",
+			"backConfirmWarning": "Payment will be closed",
 			"backConfirmMessage": "If you go back now, the current payment process will be cancelled and you will be redirected to your booking history.",
 			"backConfirmOk": "Confirm and go back",
 			"toast": {
 				"missingData": "Missing payment gateway initialization data. Please reinitialize.",
 				"error": "An error occurred while initializing Toss payment gateway.",
-				"ready": "Toss payment gateway is ready. Please complete the transaction in this window."
+				"ready": "Toss payment gateway is ready. Please complete the transaction in this window.",
+				"paymentCancelled": "Payment has been cancelled. Please continue payment in Booking History."
 			},
 			"widget": {
 				"loading": "Loading Toss payment gateway...",

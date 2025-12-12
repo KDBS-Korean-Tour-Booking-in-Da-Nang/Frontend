@@ -144,36 +144,44 @@ const BookingHistory = () => {
       
       const data = await response.json();
       // Fetch total amounts for all bookings in parallel
+      // IMPORTANT: Keep all fields from BookingResponse, especially voucher-related fields
       const bookingsWithTotals = await Promise.all(
         data.map(async (booking) => {
           try {
             const totalResp = await getBookingTotal(booking.bookingId);
             return {
-              bookingId: booking.bookingId,
-              tourId: booking.tourId,
-              tourName: booking.tourName,
-              contactName: booking.contactName,
-              contactPhone: booking.contactPhone,
-              contactEmail: booking.contactEmail,
-              departureDate: booking.departureDate,
-              totalGuests: booking.totalGuests,
-              status: booking.bookingStatus, // Use correct bookingStatus from BookingResponse
-              totalAmount: totalResp?.totalAmount || 0,
-              createdAt: booking.createdAt
+              // Keep all original fields from BookingResponse
+              ...booking,
+              // Map bookingStatus to status for compatibility
+              status: booking.bookingStatus || booking.status,
+              bookingStatus: booking.bookingStatus,
+              // Override totalAmount with calculated total if available
+              totalAmount: totalResp?.totalAmount || booking.totalAmount || 0,
+              // Ensure voucher fields are preserved
+              voucherCode: booking.voucherCode,
+              voucherId: booking.voucherId,
+              voucherDiscountApplied: booking.voucherDiscountApplied,
+              depositDiscountAmount: booking.depositDiscountAmount,
+              totalDiscountAmount: booking.totalDiscountAmount,
+              depositAmount: booking.depositAmount,
+              depositPercentage: booking.depositPercentage,
+              payedAmount: booking.payedAmount
             };
-          } catch (err) {
+          } catch {
+            // On error, still preserve all fields
             return {
-              bookingId: booking.bookingId,
-              tourId: booking.tourId,
-              tourName: booking.tourName,
-              contactName: booking.contactName,
-              contactPhone: booking.contactPhone,
-              contactEmail: booking.contactEmail,
-              departureDate: booking.departureDate,
-              totalGuests: booking.totalGuests,
-              status: booking.bookingStatus,
-              totalAmount: 0,
-              createdAt: booking.createdAt
+              ...booking,
+              status: booking.bookingStatus || booking.status,
+              bookingStatus: booking.bookingStatus,
+              totalAmount: booking.totalAmount || 0,
+              voucherCode: booking.voucherCode,
+              voucherId: booking.voucherId,
+              voucherDiscountApplied: booking.voucherDiscountApplied,
+              depositDiscountAmount: booking.depositDiscountAmount,
+              totalDiscountAmount: booking.totalDiscountAmount,
+              depositAmount: booking.depositAmount,
+              depositPercentage: booking.depositPercentage,
+              payedAmount: booking.payedAmount
             };
           }
         })

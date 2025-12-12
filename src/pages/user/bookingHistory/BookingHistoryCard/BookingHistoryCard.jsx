@@ -184,9 +184,25 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   };
 
   // Load voucher preview using bookingId (backend will get voucherCode from booking)
+  // Chỉ gọi API khi booking có voucherCode hợp lệ để tránh lỗi 404
   useEffect(() => {
     const loadVoucherPreview = async () => {
       if (!booking?.bookingId) return;
+      
+      // Kiểm tra xem booking có voucherCode hợp lệ hay không
+      const bookingVoucherCode = booking?.voucherCode;
+      const hasValidVoucherCode = bookingVoucherCode && 
+        bookingVoucherCode !== 'none' && 
+        bookingVoucherCode.trim() !== '' &&
+        bookingVoucherCode !== null &&
+        bookingVoucherCode !== undefined;
+      
+      // Nếu không có voucher, không gọi API
+      if (!hasValidVoucherCode) {
+        setVoucherPreview(null);
+        setIsLoadingVoucher(false);
+        return;
+      }
       
       setIsLoadingVoucher(true);
       try {
@@ -195,15 +211,16 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
         if (preview) {
           setVoucherPreview(preview);
         }
-      } catch (err) {
+      } catch {
         // Silently handle error - booking may not have voucher
+        setVoucherPreview(null);
       } finally {
         setIsLoadingVoucher(false);
       }
     };
 
     loadVoucherPreview();
-  }, [booking?.bookingId]);
+  }, [booking?.bookingId, booking?.voucherCode]);
 
   const handlePay = (e) => {
     e.stopPropagation();
@@ -581,6 +598,11 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 // For oneTimePayment, show total amount to pay
                 if (effectiveStatus === STATUS_KEYS.PENDING_PAYMENT || 
                     effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT) {
+                  // Priority: booking.totalDiscountAmount (saved in DB) > voucherPreview > booking.totalAmount
+                  const totalAmount = booking?.totalDiscountAmount != null && booking.totalDiscountAmount > 0
+                    ? booking.totalDiscountAmount
+                    : (voucherPreview?.finalTotal ?? booking.totalAmount ?? booking.totalPrice ?? 0);
+                  
                   return (
                     <div className={styles['info-item']}>
                       <div className={styles['info-label']}>
@@ -588,12 +610,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                         <span>{t('payment.checkPayment.amountDue', 'Số tiền cần thanh toán')}</span>
                       </div>
                       <div className={styles['info-value']} style={{ color: '#EA580C', fontWeight: 600 }}>
-                        {formatKRW(
-                          voucherPreview?.finalTotal || 
-                          booking.totalAmount || 
-                          booking.totalPrice || 
-                          0
-                        )}
+                        {formatKRW(totalAmount)}
                       </div>
                     </div>
                   );
@@ -604,6 +621,17 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
               // For non-oneTimePayment, show deposit or balance
               if (effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT ||
                   effectiveStatus === STATUS_KEYS.PENDING_PAYMENT) {
+                // Priority: booking.depositDiscountAmount (saved in DB) > voucherPreview > booking.depositAmount
+                const depositDiscountAmount = booking?.depositDiscountAmount;
+                const finalDepositFromPreview = voucherPreview?.finalDepositAmount;
+                const originalDeposit = booking.depositAmount ?? booking.deposit ?? 0;
+                
+                const depositAmount = depositDiscountAmount != null && depositDiscountAmount > 0
+                  ? depositDiscountAmount
+                  : (finalDepositFromPreview != null 
+                      ? finalDepositFromPreview 
+                      : originalDeposit);
+                
                 return (
                   <div className={styles['info-item']}>
                     <div className={styles['info-label']}>
@@ -611,18 +639,39 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                       <span>{t('bookingHistory.card.depositAmount', 'Tiền cọc')}</span>
                     </div>
                     <div className={styles['info-value']} style={{ color: '#EA580C', fontWeight: 600 }}>
-                      {formatKRW(
-                        voucherPreview?.finalDepositAmount || 
-                        booking.depositAmount || 
-                        booking.deposit || 
-                        0
-                      )}
+                      {formatKRW(depositAmount)}
                     </div>
                   </div>
                 );
               }
               
               if (effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) {
+                // Calculate remaining amount
+                // Priority: Calculate from booking.depositDiscountAmount & totalDiscountAmount > voucherPreview > booking values
+                let remainingAmount = 0;
+                
+                const depositDiscountAmount = booking?.depositDiscountAmount;
+                const totalDiscountAmount = booking?.totalDiscountAmount;
+                
+                // If booking has depositDiscountAmount and totalDiscountAmount (voucher was applied and saved in DB)
+                if (depositDiscountAmount != null && totalDiscountAmount != null) {
+                  remainingAmount = Math.max(0, Number(totalDiscountAmount) - Number(depositDiscountAmount));
+                } else if (voucherPreview) {
+                  // Use voucherPreview if available
+                  if (voucherPreview.finalRemainingAmount != null && voucherPreview.finalRemainingAmount !== undefined) {
+                    remainingAmount = Number(voucherPreview.finalRemainingAmount) || 0;
+                  } else if (voucherPreview.finalTotal && voucherPreview.finalDepositAmount != null && voucherPreview.finalDepositAmount !== undefined) {
+                    remainingAmount = Math.max(0, Number(voucherPreview.finalTotal) - Number(voucherPreview.finalDepositAmount));
+                  } else {
+                    remainingAmount = 0;
+                  }
+                } else {
+                  // No voucher: calculate from booking values
+                  const total = booking.totalPrice || booking.totalAmount || 0;
+                  const deposit = booking.depositAmount || booking.deposit || 0;
+                  remainingAmount = Math.max(0, total - deposit);
+                }
+                
                 return (
                   <div className={styles['info-item']}>
                     <div className={styles['info-label']}>
@@ -630,10 +679,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                       <span>{t('bookingHistory.card.balanceAmount', 'Còn lại')}</span>
                     </div>
                     <div className={styles['info-value']} style={{ color: '#F59E0B', fontWeight: 600 }}>
-                      {formatKRW(
-                        voucherPreview?.finalRemainingAmount || 
-                        ((booking.totalPrice || booking.totalAmount || 0) - (booking.depositAmount || booking.deposit || 0))
-                      )}
+                      {formatKRW(remainingAmount)}
                     </div>
                   </div>
                 );
@@ -665,20 +711,8 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 className={styles['pay-btn']}
                 onClick={handlePay}
                 type="button"
-                style={{ 
-                  backgroundColor: '#1a8eea', 
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 600
-                }}
               >
-                <CreditCardIcon className={styles['btn-icon']} style={{ width: '1rem', height: '1rem' }} />
+                <CreditCardIcon className={styles['btn-icon']} />
                 <span>{t('payment.checkPayment.actions.pay', 'Thanh toán')}</span>
               </button>
             )}

@@ -105,44 +105,61 @@ const BookingCheckPaymentPage = () => {
       const navBooking = navState.booking;
       setBooking(navBooking);
       
-      // Gọi preview-apply với bookingId (backend sẽ tự lấy voucherCode từ booking)
-      // Fallback: nếu thất bại và có voucherCode từ navState, thử lại với voucherCode
+      // Chỉ gọi preview-apply khi booking có voucherCode hợp lệ
+      // Nếu không có voucher, không gọi API để tránh lỗi 404
       if (bookingId) {
-        previewApplyVoucher(bookingId)
-          .then((preview) => {
-            if (!isMounted) return;
-            if (preview) {
-              setVoucherPreview(preview);
-              setVoucherApplied(true);
-              setVoucherCode(preview.voucherCode || navState?.voucherCode || navBooking?.voucherCode || '');
-              setDiscountAmount(Number(preview.discountAmount || 0));
-              setTotalAmount(Number(preview.finalTotal || navBooking.totalAmount || 0));
-              setOriginalTotal(Number(preview.originalTotal || navBooking.totalAmount || 0));
-            }
-          })
-          .catch((err) => {
-            // Fallback: nếu booking chưa có voucherCode trong DB, thử với voucherCode từ navState
-            const navVoucherCode = navState?.voucherCode || navBooking?.voucherCode;
-            if (navVoucherCode && navVoucherCode !== 'none' && navVoucherCode.trim() !== '') {
-              return previewApplyVoucher(bookingId, navVoucherCode);
-            }
-            throw err; // Re-throw nếu không có voucherCode để fallback
-          })
-          .then((preview) => {
-            // Handle fallback preview result
-            if (preview && !isMounted) return;
-            if (preview) {
-              setVoucherPreview(preview);
-              setVoucherApplied(true);
-              setVoucherCode(preview.voucherCode || navState?.voucherCode || navBooking?.voucherCode || '');
-              setDiscountAmount(Number(preview.discountAmount || 0));
-              setTotalAmount(Number(preview.finalTotal || navBooking.totalAmount || 0));
-              setOriginalTotal(Number(preview.originalTotal || navBooking.totalAmount || 0));
-            }
-          })
-          .catch((err) => {
-            // If booking doesn't have voucher, continue without preview
-          });
+        const navVoucherCode = navState?.voucherCode || navBooking?.voucherCode;
+        const hasValidVoucherCode = navVoucherCode && 
+          navVoucherCode !== 'none' && 
+          navVoucherCode.trim() !== '' &&
+          navVoucherCode !== null &&
+          navVoucherCode !== undefined;
+        
+        if (hasValidVoucherCode) {
+          // Gọi preview-apply với bookingId (backend sẽ tự lấy voucherCode từ booking)
+          // Fallback: nếu thất bại và có voucherCode từ navState, thử lại với voucherCode
+          previewApplyVoucher(bookingId)
+            .then((preview) => {
+              if (!isMounted) return;
+              if (preview) {
+                setVoucherPreview(preview);
+                setVoucherApplied(true);
+                setVoucherCode(preview.voucherCode || navVoucherCode || '');
+                setDiscountAmount(Number(preview.discountAmount || 0));
+                setTotalAmount(Number(preview.finalTotal || navBooking.totalAmount || 0));
+                setOriginalTotal(Number(preview.originalTotal || navBooking.totalAmount || 0));
+              }
+            })
+            .catch((err) => {
+              // Fallback: nếu booking chưa có voucherCode trong DB, thử với voucherCode từ navState
+              if (navVoucherCode && navVoucherCode !== 'none' && navVoucherCode.trim() !== '') {
+                return previewApplyVoucher(bookingId, navVoucherCode);
+              }
+              throw err; // Re-throw nếu không có voucherCode để fallback
+            })
+            .then((preview) => {
+              // Handle fallback preview result
+              if (preview && !isMounted) return;
+              if (preview) {
+                setVoucherPreview(preview);
+                setVoucherApplied(true);
+                setVoucherCode(preview.voucherCode || navVoucherCode || '');
+                setDiscountAmount(Number(preview.discountAmount || 0));
+                setTotalAmount(Number(preview.finalTotal || navBooking.totalAmount || 0));
+                setOriginalTotal(Number(preview.originalTotal || navBooking.totalAmount || 0));
+              }
+            })
+            .catch((err) => {
+              // If booking doesn't have voucher, continue without preview
+              // Không cần xử lý gì, chỉ cần không gọi API nếu không có voucher
+            });
+        } else {
+          // Không có voucher, set giá trị mặc định
+          setVoucherApplied(false);
+          setDiscountAmount(0);
+          setVoucherCode('');
+          setVoucherPreview(null);
+        }
       }
     }
 
@@ -228,40 +245,54 @@ const BookingCheckPaymentPage = () => {
           
           setBooking(loadedBooking);
           
-          // Gọi preview-apply với bookingId (backend sẽ tự lấy voucherCode từ booking)
-          // Fallback: nếu thất bại và có voucherCode từ navState, thử lại với voucherCode
+          // Chỉ gọi preview-apply khi booking có voucherCode hợp lệ
+          // Nếu không có voucher, không gọi API để tránh lỗi 404
           if (bookingId) {
-            try {
-              let preview = await previewApplyVoucher(bookingId);
-              if (preview) {
-                // Lưu voucher preview để sử dụng finalDepositAmount và finalRemainingAmount
-                setVoucherPreview(preview);
-                setVoucherApplied(true);
-                setVoucherCode(preview.voucherCode || navState?.voucherCode || loadedBooking?.voucherCode || '');
-                setDiscountAmount(Number(preview.discountAmount || 0));
-                setTotalAmount(Number(preview.finalTotal || loadedBooking.totalAmount || 0));
-                setOriginalTotal(Number(preview.originalTotal || loadedBooking.totalAmount || 0));
-                hasVoucherPreview = true;
-              }
-            } catch (err) {
-              // Fallback: nếu booking chưa có voucherCode trong DB, thử với voucherCode từ navState
-              const navVoucherCode = navState?.voucherCode || loadedBooking?.voucherCode;
-              if (navVoucherCode && navVoucherCode !== 'none' && navVoucherCode.trim() !== '') {
-                try {
-                  const preview = await previewApplyVoucher(bookingId, navVoucherCode);
-                  if (preview) {
-                    setVoucherPreview(preview);
-                    setVoucherApplied(true);
-                    setVoucherCode(preview.voucherCode || navVoucherCode);
-                    setDiscountAmount(Number(preview.discountAmount || 0));
-                    setTotalAmount(Number(preview.finalTotal || loadedBooking.totalAmount || 0));
-                    setOriginalTotal(Number(preview.originalTotal || loadedBooking.totalAmount || 0));
-                    hasVoucherPreview = true;
+            const navVoucherCode = navState?.voucherCode || loadedBooking?.voucherCode;
+            const hasValidVoucherCode = navVoucherCode && 
+              navVoucherCode !== 'none' && 
+              navVoucherCode.trim() !== '' &&
+              navVoucherCode !== null &&
+              navVoucherCode !== undefined;
+            
+            if (hasValidVoucherCode) {
+              try {
+                let preview = await previewApplyVoucher(bookingId);
+                if (preview) {
+                  // Lưu voucher preview để sử dụng finalDepositAmount và finalRemainingAmount
+                  setVoucherPreview(preview);
+                  setVoucherApplied(true);
+                  setVoucherCode(preview.voucherCode || navVoucherCode || '');
+                  setDiscountAmount(Number(preview.discountAmount || 0));
+                  setTotalAmount(Number(preview.finalTotal || loadedBooking.totalAmount || 0));
+                  setOriginalTotal(Number(preview.originalTotal || loadedBooking.totalAmount || 0));
+                  hasVoucherPreview = true;
+                }
+              } catch (err) {
+                // Fallback: nếu booking chưa có voucherCode trong DB, thử với voucherCode từ navState
+                if (navVoucherCode && navVoucherCode !== 'none' && navVoucherCode.trim() !== '') {
+                  try {
+                    const preview = await previewApplyVoucher(bookingId, navVoucherCode);
+                    if (preview) {
+                      setVoucherPreview(preview);
+                      setVoucherApplied(true);
+                      setVoucherCode(preview.voucherCode || navVoucherCode);
+                      setDiscountAmount(Number(preview.discountAmount || 0));
+                      setTotalAmount(Number(preview.finalTotal || loadedBooking.totalAmount || 0));
+                      setOriginalTotal(Number(preview.originalTotal || loadedBooking.totalAmount || 0));
+                      hasVoucherPreview = true;
+                    }
+                  } catch (fallbackErr) {
+                    // If booking doesn't have voucher, continue without preview
                   }
-                } catch (fallbackErr) {
-                  // If booking doesn't have voucher, continue without preview
                 }
               }
+            } else {
+              // Không có voucher, set giá trị mặc định
+              setVoucherApplied(false);
+              setDiscountAmount(0);
+              setVoucherCode('');
+              setVoucherPreview(null);
             }
           }
           
