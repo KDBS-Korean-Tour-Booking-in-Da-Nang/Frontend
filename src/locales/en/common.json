@@ -2951,6 +2951,12 @@
 				"message": "Are you sure you want to proceed with payment? The system will redirect you to the payment page.",
 				"confirm": "Proceed",
 				"cancel": "Cancel"
+			},
+			"bookingHistoryCard": {
+				"title": "Confirm Payment",
+				"message": "Are you sure you want to proceed with payment? The system will redirect you to the payment page.",
+				"confirm": "Proceed",
+				"cancel": "Cancel"
 			}
 		}
 	},
@@ -3794,7 +3800,20 @@
 				"balanceAmount": "Balance (to be paid after approval)",
 				"paymentDue": "Amount to Pay",
 				"voucher": "Voucher Code",
-				"voucherNotAvailable": "Feature coming soon"
+				"voucherNotAvailable": "Feature coming soon",
+				"voucherCodeRequired": "Please enter voucher code",
+				"voucherInvalid": "Invalid voucher code",
+				"voucherApplied": "Voucher applied successfully",
+				"voucherRemoved": "Voucher removed",
+				"voucherPlaceholder": "Enter voucher code",
+				"removeVoucher": "Remove voucher",
+				"selectVoucher": "Select voucher from list",
+				"applyVoucher": "Apply",
+				"finalTotal": "Final Total (after discount)",
+				"discountLabel": "Discount",
+				"voucherListTitle": "Voucher List",
+				"loadingVouchers": "Loading...",
+				"noVouchers": "No vouchers available"
 			},
 			"labels": {
 				"fullName": "Full Name",
@@ -4235,7 +4254,23 @@
 		"publishedAt": "Published at",
 		"backToTop": "↑ Back to top",
 		"viewMoreNews": "← View more articles",
-		"contentUpdating": "Article content is being updated..."
+		"contentUpdating": "Article content is being updated...",
+		"showTourSuggestion": "Tour Suggestions",
+		"hideTourSuggestion": "Hide Tour Suggestions",
+		"tourSuggestion": {
+			"title": "Recommended Tours for You",
+			"loading": "Loading tour suggestions...",
+			"previous": "Previous",
+			"next": "Next",
+			"errorQuota": "AI service has temporarily exceeded quota. Please try again later.",
+			"errorServer": "Server error while loading tour suggestions. Please try again later.",
+			"errorUnknown": "An error occurred while loading tour suggestions.",
+			"errorSubtext": "Please try again later or contact support if the problem persists.",
+			"errorInvalidUser": "Unable to identify user.",
+			"errorSession": "Session expired. Please login again.",
+			"errorHttp": "Error loading tour suggestions ({{status}}). Please try again later.",
+			"errorNetwork": "Connection error. Please check your internet connection and try again."
+		}
 	},
 	"articleManagement": {
 		"title": "Article Management",

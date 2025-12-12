@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getBookingById, getBookingTotal, getGuestsByBookingId } from '../../../services/bookingAPI';
 import { createTossBookingPayment } from '../../../services/paymentService';
-import { getAvailableVouchersForBooking } from '../../../services/voucherAPI';
+import { previewApplyVoucher } from '../../../services/voucherAPI';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { validateEmail } from '../../../utils/emailValidator';
@@ -77,6 +77,8 @@ const BookingCheckPaymentPage = () => {
   const [voucherCode, setVoucherCode] = useState('');
   const [availableVouchers, setAvailableVouchers] = useState([]);
   const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
+  // Voucher preview response - chứa finalDepositAmount và finalRemainingAmount
+  const [voucherPreview, setVoucherPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusBanner, setStatusBanner] = useState(null);
@@ -100,7 +102,48 @@ const BookingCheckPaymentPage = () => {
 
     // Sử dụng booking từ navigation state nếu có
     if (navState?.booking && !booking) {
-      setBooking(navState.booking);
+      const navBooking = navState.booking;
+      setBooking(navBooking);
+      
+      // Gọi preview-apply với bookingId (backend sẽ tự lấy voucherCode từ booking)
+      // Fallback: nếu thất bại và có voucherCode từ navState, thử lại với voucherCode
+      if (bookingId) {
+        previewApplyVoucher(bookingId)
+          .then((preview) => {
+            if (!isMounted) return;
+            if (preview) {
+              setVoucherPreview(preview);
+              setVoucherApplied(true);
+              setVoucherCode(preview.voucherCode || navState?.voucherCode || navBooking?.voucherCode || '');
+              setDiscountAmount(Number(preview.discountAmount || 0));
+              setTotalAmount(Number(preview.finalTotal || navBooking.totalAmount || 0));
+              setOriginalTotal(Number(preview.originalTotal || navBooking.totalAmount || 0));
+            }
+          })
+          .catch((err) => {
+            // Fallback: nếu booking chưa có voucherCode trong DB, thử với voucherCode từ navState
+            const navVoucherCode = navState?.voucherCode || navBooking?.voucherCode;
+            if (navVoucherCode && navVoucherCode !== 'none' && navVoucherCode.trim() !== '') {
+              return previewApplyVoucher(bookingId, navVoucherCode);
+            }
+            throw err; // Re-throw nếu không có voucherCode để fallback
+          })
+          .then((preview) => {
+            // Handle fallback preview result
+            if (preview && !isMounted) return;
+            if (preview) {
+              setVoucherPreview(preview);
+              setVoucherApplied(true);
+              setVoucherCode(preview.voucherCode || navState?.voucherCode || navBooking?.voucherCode || '');
+              setDiscountAmount(Number(preview.discountAmount || 0));
+              setTotalAmount(Number(preview.finalTotal || navBooking.totalAmount || 0));
+              setOriginalTotal(Number(preview.originalTotal || navBooking.totalAmount || 0));
+            }
+          })
+          .catch((err) => {
+            // If booking doesn't have voucher, continue without preview
+          });
+      }
     }
 
     // Tính toán tổng tiền từ booking snapshot (khi có tourId)
@@ -168,7 +211,53 @@ const BookingCheckPaymentPage = () => {
 
         // Xử lý kết quả load booking
         if (bookingRes.status === 'fulfilled') {
-          setBooking(bookingRes.value);
+          const loadedBooking = bookingRes.value;
+          setBooking(loadedBooking);
+          
+          // Gọi preview-apply với bookingId (backend sẽ tự lấy voucherCode từ booking)
+          // Fallback: nếu thất bại và có voucherCode từ navState, thử lại với voucherCode
+          let hasVoucherPreview = false;
+          if (bookingId) {
+            try {
+              let preview = await previewApplyVoucher(bookingId);
+              if (preview) {
+                // Lưu voucher preview để sử dụng finalDepositAmount và finalRemainingAmount
+                setVoucherPreview(preview);
+                setVoucherApplied(true);
+                setVoucherCode(preview.voucherCode || navState?.voucherCode || loadedBooking?.voucherCode || '');
+                setDiscountAmount(Number(preview.discountAmount || 0));
+                setTotalAmount(Number(preview.finalTotal || loadedBooking.totalAmount || 0));
+                setOriginalTotal(Number(preview.originalTotal || loadedBooking.totalAmount || 0));
+                hasVoucherPreview = true;
+              }
+            } catch (err) {
+              // Fallback: nếu booking chưa có voucherCode trong DB, thử với voucherCode từ navState
+              const navVoucherCode = navState?.voucherCode || loadedBooking?.voucherCode;
+              if (navVoucherCode && navVoucherCode !== 'none' && navVoucherCode.trim() !== '') {
+                try {
+                  const preview = await previewApplyVoucher(bookingId, navVoucherCode);
+                  if (preview) {
+                    setVoucherPreview(preview);
+                    setVoucherApplied(true);
+                    setVoucherCode(preview.voucherCode || navVoucherCode);
+                    setDiscountAmount(Number(preview.discountAmount || 0));
+                    setTotalAmount(Number(preview.finalTotal || loadedBooking.totalAmount || 0));
+                    setOriginalTotal(Number(preview.originalTotal || loadedBooking.totalAmount || 0));
+                    hasVoucherPreview = true;
+                  }
+                } catch (fallbackErr) {
+                  // If booking doesn't have voucher, continue without preview
+                }
+              }
+            }
+          }
+          
+          // Lưu flag để biết đã có voucher preview hay chưa
+          // Sẽ dùng để quyết định có cần set totalAmount từ API hay không
+          if (!hasVoucherPreview) {
+            // Nếu không có voucher, xử lý totalAmount như bình thường
+            // (sẽ được xử lý ở phần dưới)
+          }
         } else {
           // Xử lý lỗi: unauthenticated hoặc lỗi khác
           const msg = String(bookingRes.reason?.message || '');
@@ -191,44 +280,49 @@ const BookingCheckPaymentPage = () => {
         }
 
         // Xử lý tổng tiền: ưu tiên từ API, fallback tính từ tour
-        if (totalRes.status === 'fulfilled' && Number(totalRes.value?.totalAmount) > 0) {
-          const base = Number(totalRes.value.totalAmount);
-          setOriginalTotal(base);
-          setTotalAmount(base);
-          setDiscountAmount(0);
-          setVoucherApplied(false);
-        } else {
-          // Fallback: tính tổng tiền từ tour prices
-          try {
-            const b = bookingRes.value;
-            if (b?.tourId) {
-              const tourResp = await fetch(API_ENDPOINTS.TOUR_BY_ID(b.tourId));
-              if (tourResp.ok) {
-                const tour = await tourResp.json();
-                const adults = Number(b.adultsCount || 0);
-                const children = Number(b.childrenCount || 0);
-                const babies = Number(b.babiesCount || 0);
-                const adultPrice = Number(tour.adultPrice || 0);
-                const childrenPrice = Number(tour.childrenPrice || 0);
-                const babyPrice = Number(tour.babyPrice || 0);
-                const computed =
-                  adults * adultPrice + children * childrenPrice + babies * babyPrice;
-                const safeComputed = Number.isFinite(computed) ? computed : null;
-                setOriginalTotal(safeComputed);
-                setTotalAmount(safeComputed);
-                setDiscountAmount(0);
-                setVoucherApplied(false);
+        // Lưu ý: Nếu booking có voucherCode, giá trị đã được cập nhật từ voucherPreview ở trên
+        // Chỉ xử lý nếu booking không có voucherCode (chưa có voucherPreview)
+        const loadedBooking = bookingRes.status === 'fulfilled' ? bookingRes.value : null;
+        if (loadedBooking && !loadedBooking?.voucherCode) {
+          if (totalRes.status === 'fulfilled' && Number(totalRes.value?.totalAmount) > 0) {
+            const base = Number(totalRes.value.totalAmount);
+            setOriginalTotal(base);
+            setTotalAmount(base);
+            setDiscountAmount(0);
+            setVoucherApplied(false);
+          } else {
+            // Fallback: tính tổng tiền từ tour prices
+            try {
+              const b = bookingRes.value;
+              if (b?.tourId) {
+                const tourResp = await fetch(API_ENDPOINTS.TOUR_BY_ID(b.tourId));
+                if (tourResp.ok) {
+                  const tour = await tourResp.json();
+                  const adults = Number(b.adultsCount || 0);
+                  const children = Number(b.childrenCount || 0);
+                  const babies = Number(b.babiesCount || 0);
+                  const adultPrice = Number(tour.adultPrice || 0);
+                  const childrenPrice = Number(tour.childrenPrice || 0);
+                  const babyPrice = Number(tour.babyPrice || 0);
+                  const computed =
+                    adults * adultPrice + children * childrenPrice + babies * babyPrice;
+                  const safeComputed = Number.isFinite(computed) ? computed : null;
+                  setOriginalTotal(safeComputed);
+                  setTotalAmount(safeComputed);
+                  setDiscountAmount(0);
+                  setVoucherApplied(false);
+                } else {
+                  setOriginalTotal(null);
+                  setTotalAmount(null);
+                }
               } else {
                 setOriginalTotal(null);
                 setTotalAmount(null);
               }
-            } else {
+            } catch (e) {
               setOriginalTotal(null);
               setTotalAmount(null);
             }
-          } catch (e) {
-            setOriginalTotal(null);
-            setTotalAmount(null);
           }
         }
 
@@ -353,12 +447,11 @@ const BookingCheckPaymentPage = () => {
       }
 
       try {
-        // Load vouchers từ API
-        // API này trả về TẤT CẢ voucher khả dụng cho booking, bao gồm:
-        // 1. Voucher áp dụng cho toàn bộ tour (không có tour mappings)
-        // 2. Voucher chỉ áp dụng cho tour cụ thể (có tour mappings và tour của booking nằm trong danh sách)
-        // Backend đã tự động filter và chỉ trả về voucher hợp lệ
-        const vouchers = await getAvailableVouchersForBooking(bookingId);
+        // NOTE: Endpoint GET /preview-all/{bookingId} không tồn tại trong backend
+        // Backend chỉ có POST /preview-all (dùng trong Step3Review) và GET /preview-apply/{bookingId} (dùng khi apply voucher)
+        // Tạm thời không load danh sách voucher ở đây, chỉ apply voucher trực tiếp qua preview-apply endpoint
+        // const vouchers = await getAvailableVouchersForBooking(bookingId);
+        const vouchers = [];
 
         if (!isActive) {
           return [];
@@ -636,25 +729,58 @@ const BookingCheckPaymentPage = () => {
   };
 
   // Xác định số tiền cần thanh toán dựa vào status
+  // Ưu tiên sử dụng finalDepositAmount và finalRemainingAmount từ voucher preview nếu có
   const getPaymentAmount = () => {
-    const status = booking?.bookingStatus;
+    const status = booking?.bookingStatus || booking?.status;
+    const statusString = String(status || '').toUpperCase();
     
-    // Thanh toán cọc
-    if (status === 'PENDING_DEPOSIT_PAYMENT') {
-      return booking?.depositAmount || 0;
+    // Check oneTimePayment from voucherPreview or booking
+    const isOneTimePayment = voucherPreview?.oneTimePayment || 
+      (booking?.depositPercentage === 100) || 
+      (booking?.depositPercentage === 0);
+    
+    // Nếu có voucher preview (từ booking có voucherCode hoặc đã apply voucher trong trang này)
+    // Sử dụng finalDepositAmount và finalRemainingAmount từ preview
+    if (voucherPreview) {
+      // Nếu oneTimePayment = true, luôn thanh toán finalTotal
+      if (isOneTimePayment || statusString === 'PENDING_PAYMENT') {
+        const amount = Number(voucherPreview.finalTotal || totalAmount || 0);
+        return amount;
+      }
+      
+      // Thanh toán cọc
+      if (statusString === 'PENDING_DEPOSIT_PAYMENT') {
+        const amount = Number(voucherPreview.finalDepositAmount || 0);
+        return amount;
+      }
+      
+      // Thanh toán tiền còn lại
+      if (statusString === 'PENDING_BALANCE_PAYMENT' || navState?.isBalancePayment) {
+        const amount = Number(voucherPreview.finalRemainingAmount || 0);
+        return amount;
+      }
     }
     
-    // Thanh toán 100% (PENDING_PAYMENT - khi deposit = 100%)
-    if (status === 'PENDING_PAYMENT') {
-      return booking?.totalAmount || totalAmount;
+    // Fallback: sử dụng giá trị từ booking (đã được backend tính sau khi apply voucher khi tạo booking)
+    // Nếu oneTimePayment = true, luôn thanh toán totalAmount
+    if (isOneTimePayment || statusString === 'PENDING_PAYMENT') {
+      const amount = booking?.totalAmount || totalAmount || 0;
+      return amount;
+    }
+    
+    // Thanh toán cọc
+    if (statusString === 'PENDING_DEPOSIT_PAYMENT') {
+      const amount = booking?.depositAmount || 0;
+      return amount;
     }
     
     // Thanh toán tiền còn lại
-    if (status === 'PENDING_BALANCE_PAYMENT') {
-      return (booking?.totalAmount || 0) - (booking?.payedAmount || 0);
+    if (statusString === 'PENDING_BALANCE_PAYMENT' || navState?.isBalancePayment) {
+      const amount = (booking?.totalAmount || 0) - (booking?.payedAmount || 0);
+      return amount;
     }
     
-    return totalAmount;
+    return totalAmount || 0;
   };
 
   // Xác định isDeposit cho API
@@ -698,19 +824,6 @@ const BookingCheckPaymentPage = () => {
       const isDeposit = getIsDeposit();
       const paymentAmount = getPaymentAmount();
 
-      // Log thông tin thanh toán để debug
-      if (import.meta.env.DEV) {
-        console.log('[BookingCheckPaymentPage] Payment info:', {
-          bookingId,
-          bookingStatus: booking?.bookingStatus,
-          isDeposit,
-          paymentAmount,
-          depositAmount: booking?.depositAmount,
-          totalAmount: booking?.totalAmount,
-          payedAmount: booking?.payedAmount,
-        });
-      }
-
       // Tạo payment order từ Toss API
       const response = await createTossBookingPayment({
         bookingId,
@@ -718,16 +831,6 @@ const BookingCheckPaymentPage = () => {
         voucherCode: booking?.voucherCode || '',  // Lấy từ booking, không từ input
         isDeposit: isDeposit,
       });
-
-      // Log response từ backend để kiểm tra số tiền
-      if (import.meta.env.DEV) {
-        console.log('[BookingCheckPaymentPage] Toss payment response:', {
-          success: response?.success,
-          amount: response?.amount,
-          orderId: response?.orderId,
-          expectedAmount: paymentAmount,
-        });
-      }
 
       if (!response?.success) {
         throw new Error(response?.message || 'Không thể tạo đơn thanh toán Toss.');
@@ -760,7 +863,7 @@ const BookingCheckPaymentPage = () => {
     }
   };
 
-  // Áp dụng voucher từ code
+  // Áp dụng voucher từ code - gọi API endpoint preview-apply
   const handleApplyVoucher = async (codeOverride) => {
     const codeToApply = (codeOverride ?? voucherCode)?.trim();
     if (!bookingId || !codeToApply) {
@@ -769,21 +872,10 @@ const BookingCheckPaymentPage = () => {
     }
 
     try {
-      // Tìm voucher trong danh sách available
-      const normalizedCode = codeToApply.toUpperCase().trim();
-      let vouchers = availableVouchers;
+      // Gọi API endpoint GET /preview-apply/{bookingId}?voucherCode=...
+      const preview = await previewApplyVoucher(bookingId, codeToApply);
 
-      let matched = vouchers.find((v) => v.code?.toUpperCase().trim() === normalizedCode);
-
-      // Nếu không tìm thấy, refresh danh sách voucher và tìm lại
-      if (!matched && loadAvailableVouchersRef.current) {
-        const refreshed = await loadAvailableVouchersRef.current(false);
-        vouchers = refreshed;
-        matched = refreshed.find((v) => v.code?.toUpperCase().trim() === normalizedCode);
-      }
-
-      // Xử lý khi không tìm thấy voucher
-      if (!matched) {
+      if (!preview) {
         setVoucherApplied(false);
         setDiscountAmount(0);
         if (originalTotal != null) {
@@ -793,21 +885,25 @@ const BookingCheckPaymentPage = () => {
         return;
       }
 
-      // Tính toán giá sau khi áp dụng voucher
-      const original = Number(matched.originalTotal ?? originalTotal ?? 0);
-      const discount = Number(matched.discountAmount ?? 0);
-      const final = Number(matched.finalTotal ?? Math.max(original - discount, 0));
+      // Sử dụng giá trị từ API response (ApplyVoucherResponse)
+      const original = Number(preview.originalTotal ?? originalTotal ?? 0);
+      const discount = Number(preview.discountAmount ?? 0);
+      const final = Number(preview.finalTotal ?? Math.max(original - discount, 0));
+      const finalDeposit = Number(preview.finalDepositAmount ?? 0);
+      const finalRemaining = Number(preview.finalRemainingAmount ?? 0);
 
       if (!Number.isFinite(original) || original <= 0) {
         throw new Error(t('payment.checkPayment.toast.voucherCalculationError'));
       }
 
-      // Cập nhật state với giá đã áp dụng voucher
+      // Cập nhật state với giá đã áp dụng voucher từ API response
       setOriginalTotal(original);
       setDiscountAmount(discount);
       setTotalAmount(final);
       setVoucherApplied(discount > 0);
-      setVoucherCode(matched.code);
+      setVoucherCode(preview.voucherCode || codeToApply);
+      // Lưu voucher preview response để sử dụng finalDepositAmount và finalRemainingAmount
+      setVoucherPreview(preview);
 
       // Hiển thị thông báo thành công
       if (discount > 0) {
@@ -819,6 +915,7 @@ const BookingCheckPaymentPage = () => {
       // Xử lý lỗi khi áp dụng voucher
       setVoucherApplied(false);
       setDiscountAmount(0);
+      setVoucherPreview(null);
       if (originalTotal != null) {
         setTotalAmount(originalTotal);
       }
@@ -996,8 +1093,8 @@ const BookingCheckPaymentPage = () => {
   const limitedGuests = Array.isArray(guests) ? guests.slice(0, 3) : [];
   const hasMoreGuests = Array.isArray(guests) && guests.length > 3;
 
-  // Ẩn button "Return to wizard" khi đến từ booking detail (thanh toán balance hoặc deposit từ detail page)
-  const showBackToWizardButton = !navState?.fromBookingDetail && !navState?.isBalancePayment;
+  // Ẩn button "Return to wizard" khi đến từ booking detail hoặc booking history (thanh toán balance hoặc deposit từ detail/history page)
+  const showBackToWizardButton = !navState?.fromBookingDetail && !navState?.fromBookingHistory && !navState?.isBalancePayment;
 
   return (
     <>
@@ -1196,7 +1293,7 @@ const BookingCheckPaymentPage = () => {
                       )}
                     </div>
 
-                    {/* Payment Summary - Updated */}
+                    {/* Payment Summary - Updated with Voucher Details */}
                     <div className="rounded-[24px] border border-[#1a8eea]/40 bg-gradient-to-br from-[#fefefe] to-[#eaf3ff] px-4 py-4 shadow-[0_20px_70px_rgba(157,168,199,0.2)] sm:px-5 sm:py-4">
                       <div className="flex items-center gap-2 text-gray-900 mb-1.5">
                         <Sparkles className="h-5 w-5 text-[#1a8eea]" />
@@ -1204,21 +1301,124 @@ const BookingCheckPaymentPage = () => {
                           {t('payment.checkPayment.paymentSummary')}
                         </p>
                       </div>
+                      
                       <div className="space-y-2 rounded-[18px] bg-white/85 px-4 py-2.5">
-                        {/* Hiển thị tổng tiền tour */}
-                        {booking?.totalAmount && (
-                          <div className="flex items-center justify-between text-sm text-gray-600">
-                            <span>{t('payment.checkPayment.totalTourPrice')}</span>
-                            <span className="font-semibold text-gray-900">
-                              {formatCurrency(booking.totalAmount)}
+                        {/* Total Tour Price - strikethrough when voucher is applied */}
+                        {(originalTotal || booking?.totalAmount) && (
+                          <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
+                            <span className="text-gray-600">{t('payment.checkPayment.totalTourPrice')}</span>
+                            <span className={`font-semibold ${voucherPreview ? 'line-through text-gray-400 opacity-70' : 'text-gray-900'}`}>
+                              {formatCurrency(originalTotal || booking?.totalAmount || 0)}
                             </span>
                           </div>
                         )}
-                        
+
+                        {/* Voucher Code Section - READONLY */}
+                        {voucherCode && (
+                          <div className="py-2 border-b border-dashed border-gray-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Tag className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm text-gray-600">{t('booking.step3.payment.voucher')}</span>
+                            </div>
+                            <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 border border-gray-200">
+                              <span className="text-sm font-semibold text-gray-700 flex-1">{voucherCode}</span>
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Discount Amount (when voucher is applied) */}
+                        {voucherPreview && (() => {
+                          const voucherDiscountAmount = Number(voucherPreview.discountAmount || 0);
+                          if (voucherDiscountAmount <= 0) return null;
+                          
+                          const discountType = voucherPreview.discountType || voucherPreview.meta?.discountType;
+                          const discountValue = voucherPreview.discountValue || voucherPreview.meta?.discountValue || 0;
+                          
+                          // Display based on discount type
+                          let discountDisplay = '';
+                          if (discountType === 'PERCENT' || discountType === 'PERCENTAGE') {
+                            // Show percentage discount (e.g., -20%)
+                            const percentValue = Number.isFinite(Number(discountValue)) 
+                              ? Math.round(Number(discountValue))
+                              : discountValue;
+                            discountDisplay = `-${percentValue}%`;
+                          } else if (discountType === 'FIXED' || discountType === 'AMOUNT') {
+                            // Show fixed amount discount (e.g., -50,000 KRW)
+                            discountDisplay = `-${formatCurrency(voucherDiscountAmount)}`;
+                          } else {
+                            // Fallback: show amount if type is unknown
+                            discountDisplay = `-${formatCurrency(voucherDiscountAmount)}`;
+                          }
+                          
+                          return (
+                            <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
+                              <span className="text-gray-600">{t('booking.step3.payment.discountLabel')}</span>
+                              <span className="font-semibold text-green-600">
+                                {discountDisplay}
+                              </span>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Final Total (after voucher) - always show when voucher is applied */}
+                        {voucherPreview && (
+                          <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
+                            <span className="text-gray-600 font-medium">{t('booking.step3.payment.finalTotal')}</span>
+                            <span className="font-bold text-blue-600 text-base">
+                              {formatCurrency(voucherPreview.finalTotal || totalAmount || 0)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Deposit and Balance - only show if NOT oneTimePayment */}
+                        {(() => {
+                          const isOneTimePayment = voucherPreview?.oneTimePayment || 
+                            (booking?.depositPercentage === 100) || 
+                            (booking?.depositPercentage === 0);
+                          
+                          if (isOneTimePayment) return null;
+                          
+                          return (
+                            <>
+                              {/* Deposit Amount - use finalDepositAmount if voucher applied */}
+                              {(() => {
+                                const depositAmount = voucherPreview?.finalDepositAmount || booking?.depositAmount || 0;
+                                const depositPercentage = booking?.depositPercentage || 0;
+                                return depositAmount > 0 ? (
+                                  <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
+                                    <span className="text-gray-600">
+                                      {t('booking.step3.payment.depositAmount')}
+                                      {depositPercentage > 0 && ` (${depositPercentage}%)`}
+                                    </span>
+                                    <span className="font-semibold text-gray-900">
+                                      {formatCurrency(depositAmount)}
+                                    </span>
+                                  </div>
+                                ) : null;
+                              })()}
+
+                              {/* Remaining Amount - use finalRemainingAmount if voucher applied */}
+                              {(() => {
+                                const remainingAmount = voucherPreview?.finalRemainingAmount || 
+                                  (booking?.totalAmount && booking?.depositAmount ? booking.totalAmount - booking.depositAmount : 0);
+                                return remainingAmount > 0 ? (
+                                  <div className="flex items-center justify-between text-sm py-2">
+                                    <span className="text-gray-600">{t('booking.step3.payment.balanceAmount')}</span>
+                                    <span className="font-semibold text-gray-900">
+                                      {formatCurrency(remainingAmount)}
+                                    </span>
+                                  </div>
+                                ) : null;
+                              })()}
+                            </>
+                          );
+                        })()}
+
                         {/* Hiển thị số tiền đã thanh toán (nếu có) */}
                         {booking?.payedAmount > 0 && (
-                          <div className="flex items-center justify-between text-sm text-gray-600">
-                            <span>{t('payment.checkPayment.paidAmount')}</span>
+                          <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
+                            <span className="text-gray-600">{t('payment.checkPayment.paidAmount')}</span>
                             <span className="font-semibold text-green-600">
                               {formatCurrency(booking.payedAmount)}
                             </span>
@@ -1226,7 +1426,7 @@ const BookingCheckPaymentPage = () => {
                         )}
                         
                         {/* Hiển thị số tiền CẦN thanh toán lần này */}
-                        <div className="flex items-center justify-between border-t border-dashed border-[#1a8eea]/30 pt-2.5">
+                        <div className="flex items-center justify-between pt-3 mt-2 border-t-2 border-dashed border-[#1a8eea]/30">
                           <span className="text-base font-bold text-gray-900">
                             {booking?.bookingStatus === 'PENDING_DEPOSIT_PAYMENT' 
                               ? t('payment.checkPayment.depositDue')
@@ -1239,14 +1439,6 @@ const BookingCheckPaymentPage = () => {
                           </span>
                         </div>
                       </div>
-                      
-                      {/* Voucher Section - READONLY */}
-                      {booking?.voucherCode && (
-                        <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-gray-600">
-                          <Tag className="h-4 w-4" />
-                          {t('payment.checkPayment.voucherApplied')}: {booking.voucherCode}
-                        </div>
-                      )}
                     </div>
                   </section>
 

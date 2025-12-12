@@ -322,6 +322,11 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
     babiesCount: plan.pax.infant || 0,
     bookingGuestRequests: guests
   };
+
+  // Add voucherCode if provided (from bookingContext or separate parameter)
+  if (bookingContext.voucherCode) {
+    bookingData.voucherCode = bookingContext.voucherCode.trim();
+  }
   
   // Log final booking data in development mode
   if (import.meta.env.DEV) {
@@ -333,7 +338,8 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
       babiesCount: bookingData.babiesCount,
       guestsCount: bookingData.bookingGuestRequests.length,
       contactName: bookingData.contactName,
-      contactEmail: bookingData.contactEmail
+      contactEmail: bookingData.contactEmail,
+      voucherCode: bookingData.voucherCode || 'none'
     });
   }
   

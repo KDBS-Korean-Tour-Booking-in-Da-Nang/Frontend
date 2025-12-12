@@ -71,6 +71,7 @@ export const createBooking = async (bookingData) => {
         pickupPoint: bookingData.pickupPoint,
         note: bookingData.note,
         userEmail: bookingData.userEmail,
+        voucherCode: bookingData.voucherCode || 'none',
         // Log all guests for debugging
         guests: bookingData.bookingGuestRequests?.map((guest, idx) => ({
           index: idx,
@@ -125,6 +126,13 @@ export const createBooking = async (bookingData) => {
             // If it's a runtime exception, provide more helpful message
             if (errorMessage.includes('Runtime exception') || errorMessage.includes('Runtime exception occurred')) {
               errorMessage = 'Lỗi xử lý dữ liệu. Vui lòng kiểm tra lại thông tin tour (giá tour có thể chưa được thiết lập) hoặc liên hệ hỗ trợ.';
+            }
+            // Check for specific error messages
+            if (errorMessage.includes('NullPointerException') || errorMessage.includes('null')) {
+              errorMessage = 'Lỗi xử lý dữ liệu. Vui lòng kiểm tra lại thông tin tour (giá tour có thể chưa được thiết lập) hoặc liên hệ hỗ trợ.';
+            }
+            if (errorMessage.includes('VOUCHER') || errorMessage.includes('voucher')) {
+              errorMessage = 'Lỗi khi áp dụng voucher. Vui lòng kiểm tra lại mã voucher hoặc thử lại sau.';
             }
           }
         } catch (e) {
