@@ -247,6 +247,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
       booking,
       fromBookingHistory: true,
       fromBookingDetail: false,
+      paymentType: paymentType, // 'deposit', 'full', or 'balance'
       isBalancePayment: paymentType === 'balance'
     };
 

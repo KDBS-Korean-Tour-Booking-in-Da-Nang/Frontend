@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -107,6 +107,7 @@ const BookingHistory = () => {
   const [dateFilter, setDateFilter] = useState('newest');
   const [allBookings, setAllBookings] = useState([]);
   const itemsPerPage = 3;
+  const prevFiltersRef = useRef({ statusFilter, dateFilter });
 
   // Extract fetchBookings function so it can be reused
   const fetchBookings = React.useCallback(async () => {
@@ -204,9 +205,11 @@ const BookingHistory = () => {
     fetchBookings();
   }, [fetchBookings]);
 
-  // Handle pagination and filtering
+  // Handle pagination and filtering - combined into one useEffect
   useEffect(() => {
-    if (allBookings.length === 0) return;
+    if (allBookings.length === 0) {
+      return;
+    }
 
     // Apply filters
     let filteredBookings = [...allBookings];
@@ -217,7 +220,7 @@ const BookingHistory = () => {
         const status = normalizeStatus(booking.status ?? booking.bookingStatus);
         const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
         if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
-          return status === STATUS_KEYS.BOOKING_SUCCESS || trx === 'success';
+          return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
         }
         return status === statusFilter;
       });
@@ -235,44 +238,27 @@ const BookingHistory = () => {
     const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
     setTotalPages(totalPagesCount);
 
-    // Reset to page 1 when filters change
-    setCurrentPage(1);
-
-    // Get current page data
-    const startIndex = 0;
-    const endIndex = itemsPerPage;
-    setBookings(filteredBookings.slice(startIndex, endIndex));
-  }, [allBookings, statusFilter, dateFilter]);
-
-  // Handle page change
-  useEffect(() => {
-    if (allBookings.length === 0) return;
-
-    // Apply filters
-    let filteredBookings = [...allBookings];
-
-    if (statusFilter !== 'all') {
-      filteredBookings = filteredBookings.filter(booking => {
-        const status = normalizeStatus(booking.status ?? booking.bookingStatus);
-        const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
-        if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
-          return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
-        }
-        return status === statusFilter;
-      });
+    // Check if we need to reset to page 1 (only when filters change, not when page changes)
+    const filtersChanged = 
+      prevFiltersRef.current.statusFilter !== statusFilter || 
+      prevFiltersRef.current.dateFilter !== dateFilter;
+    
+    // Determine which page to use: if filters changed, use page 1, otherwise use currentPage
+    const pageToUse = filtersChanged ? 1 : currentPage;
+    
+    if (filtersChanged) {
+      prevFiltersRef.current = { statusFilter, dateFilter };
+      // Reset to page 1 when filters change
+      setCurrentPage(1);
     }
 
-    if (dateFilter === 'newest') {
-      filteredBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (dateFilter === 'oldest') {
-      filteredBookings.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    }
-
-    // Get current page data
-    const startIndex = (currentPage - 1) * itemsPerPage;
+    // Get current page data (use pageToUse instead of currentPage)
+    const startIndex = (pageToUse - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    setBookings(filteredBookings.slice(startIndex, endIndex));
-  }, [currentPage, allBookings, statusFilter, dateFilter]);
+    const pageData = filteredBookings.slice(startIndex, endIndex);
+    
+    setBookings(pageData);
+  }, [currentPage, allBookings, statusFilter, dateFilter, itemsPerPage]);
 
   if (!user) {
     return (
@@ -417,30 +403,70 @@ const BookingHistory = () => {
                   </button>
                   
                   {/* Page numbers */}
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = i + 1;
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`${styles['pagination-page']} ${currentPage === pageNum ? styles['active'] : ''}`}
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                  
-                  {totalPages > 5 && (
-                    <>
-                      <span className={styles['pagination-ellipsis']}>...</span>
-                      <button
-                        className={`${styles['pagination-page']} ${currentPage === totalPages ? styles['active'] : ''}`}
-                        onClick={() => setCurrentPage(totalPages)}
-                      >
-                        {totalPages}
-                      </button>
-                    </>
-                  )}
+                  {(() => {
+                    const pages = [];
+                    const maxVisible = 5;
+                    
+                    if (totalPages <= maxVisible) {
+                      // Hiển thị tất cả các trang nếu tổng số trang <= 5
+                      for (let i = 1; i <= totalPages; i++) {
+                        pages.push(i);
+                      }
+                    } else {
+                      // Luôn hiển thị trang đầu
+                      pages.push(1);
+                      
+                      // Tính toán các trang xung quanh currentPage
+                      let startPage = Math.max(2, currentPage - 1);
+                      let endPage = Math.min(totalPages - 1, currentPage + 1);
+                      
+                      // Điều chỉnh nếu quá gần đầu hoặc cuối
+                      if (currentPage <= 3) {
+                        startPage = 2;
+                        endPage = Math.min(4, totalPages - 1);
+                      } else if (currentPage >= totalPages - 2) {
+                        startPage = Math.max(2, totalPages - 3);
+                        endPage = totalPages - 1;
+                      }
+                      
+                      // Thêm ellipsis trước nếu cần
+                      if (startPage > 2) {
+                        pages.push('ellipsis-start');
+                      }
+                      
+                      // Thêm các trang ở giữa
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(i);
+                      }
+                      
+                      // Thêm ellipsis sau nếu cần
+                      if (endPage < totalPages - 1) {
+                        pages.push('ellipsis-end');
+                      }
+                      
+                      // Luôn hiển thị trang cuối
+                      pages.push(totalPages);
+                    }
+                    
+                    return pages.map((page, index) => {
+                      if (page === 'ellipsis-start' || page === 'ellipsis-end') {
+                        return (
+                          <span key={`ellipsis-${index}`} className={styles['pagination-ellipsis']}>
+                            ...
+                          </span>
+                        );
+                      }
+                      return (
+                        <button
+                          key={page}
+                          className={`${styles['pagination-page']} ${currentPage === page ? styles['active'] : ''}`}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </button>
+                      );
+                    });
+                  })()}
                   
                   <button 
                     className={styles['pagination-btn']}

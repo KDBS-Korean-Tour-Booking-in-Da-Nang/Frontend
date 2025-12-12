@@ -369,6 +369,7 @@ const BookingDetail = () => {
     const state = {
       booking,
       fromBookingDetail: true,
+      paymentType: paymentType, // 'deposit', 'full', or 'balance'
       isBalancePayment: paymentType === 'balance'
     };
 
