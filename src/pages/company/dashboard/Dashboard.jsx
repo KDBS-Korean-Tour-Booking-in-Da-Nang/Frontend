@@ -59,8 +59,7 @@ const Dashboard = () => {
         const userData = await response.json();
         setBalance(userData.balance || 0);
       }
-    } catch (error) {
-      console.error('Error loading balance:', error);
+    } catch {
       setBalance(0);
     }
   }, [user, getToken]);
@@ -140,8 +139,8 @@ const Dashboard = () => {
           // Active tours are tours with PUBLIC status
           activeTours = toursStats.byStatus?.PUBLIC || 0;
         }
-      } catch (e) {
-        console.error('Error fetching tour statistics:', e);
+      } catch {
+        // Failed to fetch tour statistics, continue with default values
       }
 
       // Fetch booking statistics
@@ -188,8 +187,8 @@ const Dashboard = () => {
           // Cancelled bookings
           cancelledBookings = byStatus.BOOKING_CANCELLED || 0;
         }
-      } catch (e) {
-        console.error('Error fetching booking statistics:', e);
+      } catch {
+        // Failed to fetch booking statistics, continue with default values
       }
       
       // Use balance from API as total revenue
@@ -205,8 +204,8 @@ const Dashboard = () => {
         cancelledBookings,
         bookingStatusMap
       });
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+    } catch {
+      // Failed to fetch dashboard data, continue with default values
     } finally {
       setLoading(false);
     }
@@ -257,8 +256,8 @@ const Dashboard = () => {
       }
       
       setBookingCountData(bookingCountByMonth);
-    } catch (e) {
-      console.error('Error fetching monthly booking count:', e);
+    } catch {
+      // Failed to fetch monthly booking count, continue with default values
     }
   }, [companyId, selectedYear, getToken]);
 

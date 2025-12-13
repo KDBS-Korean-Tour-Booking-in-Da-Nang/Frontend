@@ -32,7 +32,6 @@ const ArticleCommentSection = ({ articleId }) => {
       });
       setComments(parentComments);
     } catch (err) {
-      console.error('Error loading comments:', err);
       setError(err.message || 'Không thể tải bình luận');
       setComments([]);
     } finally {
@@ -75,7 +74,6 @@ const ArticleCommentSection = ({ articleId }) => {
       setCommentText('');
       await loadComments();
     } catch (err) {
-      console.error('Error submitting comment:', err);
       setError(err.message || 'Không thể gửi bình luận');
     } finally {
       setIsSubmitting(false);

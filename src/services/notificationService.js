@@ -1,6 +1,5 @@
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { BaseURL } from '../config/api';
 
 const getAuthHeaders = () => {
   const token =
@@ -49,7 +48,7 @@ export const NotificationAPI = {
     params.set('page', String(page));
     params.set('size', String(size));
     params.set('sort', sort);
-    const url = `${API_BASE_URL}/api/notifications?${params.toString()}`;
+    const url = `${BaseURL}/api/notifications?${params.toString()}`;
     const res = await fetch(url, { headers: withUserEmail(getAuthHeaders(), userEmail) });
     return parseJson(res);
   },
@@ -61,7 +60,7 @@ export const NotificationAPI = {
    * @returns {Promise<void>}
    */
   async markAsRead(notificationId, userEmail) {
-    const url = `${API_BASE_URL}/api/notifications/${notificationId}/read`;
+    const url = `${BaseURL}/api/notifications/${notificationId}/read`;
     const res = await fetch(url, {
       method: 'PATCH',
       headers: withUserEmail(getAuthHeaders(), userEmail)
@@ -75,7 +74,7 @@ export const NotificationAPI = {
    * @returns {Promise<number>}
    */
   async getUnreadCount(userEmail) {
-    const url = `${API_BASE_URL}/api/notifications/unread-count`;
+    const url = `${BaseURL}/api/notifications/unread-count`;
     const res = await fetch(url, { headers: withUserEmail(getAuthHeaders(), userEmail) });
     return parseJson(res);
   }

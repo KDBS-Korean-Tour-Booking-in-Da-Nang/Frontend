@@ -214,21 +214,6 @@ useEffect(() => {
       
       const payedAmount = Number(booking?.payedAmount || 0);
       
-      // Debug logging
-      console.log('Booking approval check:', {
-        bookingId: booking.bookingId,
-        currentStatus: booking.bookingStatus,
-        hasVoucher,
-        payedAmount,
-        finalTotalAmount,
-        finalDepositAmount,
-        originalTotalAmount: booking?.totalAmount,
-        originalDepositAmount: booking?.depositAmount,
-        totalDiscountAmount: booking?.totalDiscountAmount,
-        depositDiscountAmount: booking?.depositDiscountAmount,
-        depositPercentage: booking?.depositPercentage
-      });
-      
       // Tolerance for floating point comparison (allow small difference due to rounding)
       const TOLERANCE = 1; // 1 VND tolerance
       
@@ -249,12 +234,6 @@ useEffect(() => {
       } else {
         // This should not happen if booking is WAITING_FOR_APPROVED
         // But handle edge case - payment amount is less than deposit
-        console.warn('Payment amount check failed:', {
-          payedAmount,
-          finalDepositAmount,
-          finalTotalAmount,
-          depositPercentage: booking?.depositPercentage
-        });
         throw new Error(`Không thể duyệt booking: Khách hàng chưa thanh toán đủ tiền cọc. Đã thanh toán: ${payedAmount.toLocaleString('vi-VN')} VND, Cần thanh toán cọc: ${finalDepositAmount.toLocaleString('vi-VN')} VND`);
       }
       

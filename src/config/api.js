@@ -7,6 +7,30 @@ export const BaseURL = rawBase.replace(/\/+$/, ''); // Remove trailing slash(es)
 const rawFrontendUrl = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000';
 export const FrontendURL = rawFrontendUrl.replace(/\/+$/, ''); // Remove trailing slash(es)
 
+// Helper to detect if URL is localhost (for production warnings)
+const isLocalhostUrl = (url) => {
+  if (!url) return false;
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1';
+  } catch {
+    return url.includes('localhost') || url.includes('127.0.0.1');
+  }
+};
+
+// Warn in production if using localhost (but don't fail - allows for special cases)
+if (import.meta.env.PROD && isLocalhostUrl(BaseURL)) {
+  // Only warn once, not on every import
+  if (typeof globalThis.window !== 'undefined' && !globalThis.window.__apiConfigWarned) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[API Config] VITE_API_BASE_URL is not set or is localhost in production. ' +
+      'Please set VITE_API_BASE_URL environment variable for production deployment.'
+    );
+    globalThis.window.__apiConfigWarned = true;
+  }
+}
+
 // Helper function to safely join URLs (base + path)
 // Prevents double slashes and handles edge cases
 const joinUrl = (base, path) => {
@@ -218,20 +242,46 @@ export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') =
 // Đảm bảo khi deploy, không lưu full URL với backend domain vào database
 export const normalizeToRelativePath = (url) => {
   if (!url) return '';
+  
+  // Trim whitespace
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  
   // Nếu đã là relative path (bắt đầu với /), giữ nguyên
-  if (url.startsWith('/')) return url;
-  // Nếu là absolute URL từ BaseURL, chuyển về relative path
-  if (url.startsWith(BaseURL)) {
-    const relativePath = url.replace(BaseURL, '');
+  if (trimmed.startsWith('/')) return trimmed;
+  
+  // Nếu là absolute URL từ BaseURL (hoặc localhost trong dev), chuyển về relative path
+  // Kiểm tra cả BaseURL hiện tại và localhost để đảm bảo hoạt động trong cả dev và prod
+  const baseUrlLower = BaseURL.toLowerCase();
+  const trimmedLower = trimmed.toLowerCase();
+  
+  if (trimmedLower.startsWith(baseUrlLower)) {
+    const relativePath = trimmed.substring(BaseURL.length);
     // Đảm bảo bắt đầu với /
     return relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
   }
-  // Nếu là absolute URL từ domain khác (external URL), giữ nguyên
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url; // Giữ nguyên external URLs (ví dụ: từ crawl articles)
+  
+  // Kiểm tra localhost URLs (cho trường hợp dev environment)
+  // Chỉ normalize nếu URL chứa localhost và có path giống với BaseURL pattern
+  if (isLocalhostUrl(trimmed) && trimmed.includes('/uploads/')) {
+    // Extract path sau domain (ví dụ: /uploads/users/avatar/...)
+    try {
+      const urlObj = new URL(trimmed);
+      return urlObj.pathname; // Trả về pathname (đã có / ở đầu)
+    } catch {
+      // Nếu không parse được URL, thử extract path manually
+      const pathMatch = trimmed.match(/\/uploads\/.*/);
+      if (pathMatch) return pathMatch[0];
+    }
   }
+  
+  // Nếu là absolute URL từ domain khác (external URL), giữ nguyên
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed; // Giữ nguyên external URLs (ví dụ: từ crawl articles)
+  }
+  
   // Nếu không có prefix, thêm / để thành relative path
-  return url.startsWith('/') ? url : `/${url}`;
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 };
 
 // Helper function để tạo headers với auth token
@@ -278,11 +328,9 @@ export const getApiPath = (path) => {
 
   // Nếu đang ở production mode, dùng full URL
   if (import.meta.env.PROD) {
-    // Fail-fast: Kiểm tra BaseURL trong production
-    if (!BaseURL || BaseURL === 'http://localhost:8080') {
-      console.warn('[getApiPath] BaseURL is not configured for production. Please set VITE_API_BASE_URL environment variable.');
-    }
     // Trong production, luôn dùng BaseURL (đã được set trong env)
+    // Nếu BaseURL không được set đúng, API calls sẽ fail - đó là behavior mong muốn
+    // BaseURL đã được validate ở trên với warning nếu là localhost
     return joinUrl(BaseURL, normalizedPath);
   } else {
     // Trong development, dùng relative path để Vite proxy xử lý

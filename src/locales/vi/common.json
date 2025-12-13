@@ -266,7 +266,13 @@
       "headline": "Tin tưởng khách hàng của chúng tôi",
       "name": "Irfan Rahmat",
       "role": "Người đam mê du lịch",
-      "review": "Tôi yêu Travelo, đây là nơi tốt nhất để mua vé và giúp bạn tìm kỳ nghỉ mơ ước."
+      "review": "Tôi yêu Travelo, đây là nơi tốt nhất để mua vé và giúp bạn tìm kỳ nghỉ mơ ước.",
+      "loading": "Đang tải đánh giá...",
+      "empty": "Chưa có đánh giá nào.",
+      "previous": "Đánh giá trước",
+      "next": "Đánh giá tiếp theo",
+      "goToTestimonial": "Đi tới đánh giá {{index}}",
+      "user": "Người dùng"
     },
     "newsletter": {
       "sectionTitle": "ĐĂNG KÝ NHẬN BẢN TIN",

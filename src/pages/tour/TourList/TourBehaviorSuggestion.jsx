@@ -33,10 +33,10 @@ const getCachedTours = (userId) => {
         localStorage.removeItem(cacheKey);
         localStorage.removeItem(timestampKey);
       }
+      }
+    } catch {
+      // Silently handle error reading cache
     }
-  } catch (err) {
-    console.error('[TourBehaviorSuggestion] Error reading cache:', err);
-  }
   return null;
 };
 
@@ -47,8 +47,8 @@ const saveToursToCache = (userId, toursData) => {
     const timestampKey = getCacheTimestampKey(userId);
     localStorage.setItem(cacheKey, JSON.stringify(toursData));
     localStorage.setItem(timestampKey, String(Date.now()));
-  } catch (err) {
-    console.error('[TourBehaviorSuggestion] Error saving cache:', err);
+  } catch {
+    // Silently handle error saving cache
   }
 };
 
@@ -143,7 +143,6 @@ const TourBehaviorSuggestion = () => {
           // Nếu lỗi 500, kiểm tra xem có phải AI hết quota không
           if (response.status === 500) {
             const errorText = await response.text().catch(() => 'Server error');
-            console.error('[TourBehaviorSuggestion] Server error (500):', errorText);
             
             // Luôn dùng cache nếu có (bất kể loại lỗi)
             if (currentCachedTours && currentCachedTours.length > 0) {
@@ -195,8 +194,8 @@ const TourBehaviorSuggestion = () => {
 
         setTours(transformedTours);
         setLoading(false);
-      } catch (err) {
-        console.error('[TourBehaviorSuggestion] Error fetching suggested tours:', err);
+      } catch {
+        // Silently handle error fetching suggested tours
         
         // Nếu có cache, dùng cache thay vì hiển thị lỗi
         const currentCachedTours = getCachedTours(userId);

@@ -121,8 +121,8 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
         
         setToursMap(toursMap);
       }
-    } catch (error) {
-      console.error('Error fetching tour details:', error);
+    } catch {
+      // Silently fail - tours map will remain empty
     }
   };
 
@@ -191,8 +191,7 @@ const VoucherDetailModal = ({ isOpen, onClose, voucherId }) => {
         if (foundVoucher.tourIds && foundVoucher.tourIds.length > 0) {
           fetchTourDetails(foundVoucher.tourIds);
         }
-      } catch (err) {
-        console.error('Error fetching voucher:', err);
+      } catch {
         setError(t('tourPage.detail.vouchers.loadError'));
       } finally {
         setLoading(false);

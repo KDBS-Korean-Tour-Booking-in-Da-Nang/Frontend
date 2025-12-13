@@ -92,19 +92,19 @@ const Article = () => {
       title: t('article.hero.title'),
       subtitle: t('article.hero.subtitle'),
       eyebrow: t('article.hero.eyebrow', { defaultValue: 'Travel Journal' }),
-      image: '/tour1.jpg'
+      image: '/Danang1.jpg'
     },
     {
       title: t('article.hero.slide2Title', { defaultValue: 'Exciting Travel Information' }),
       subtitle: t('article.hero.slide2Subtitle', { defaultValue: 'Discover attractive destinations and curated itineraries designed for soft, effortless journeys.' }),
       eyebrow: t('article.hero.slide2Eyebrow', { defaultValue: 'Destination Highlights' }),
-      image: '/tour2.jpg'
+      image: '/hoian1.jpg'
     },
     {
       title: t('article.hero.slide3Title', { defaultValue: 'Unique Experiences' }),
       subtitle: t('article.hero.slide3Subtitle', { defaultValue: 'Providing useful tips about activities, events, and cultural moments worth cherishing.' }),
       eyebrow: t('article.hero.slide3Eyebrow', { defaultValue: 'Inspired Moments' }),
-      image: '/tour3.jpg'
+      image: '/Danang2.jpg'
     }
   ];
 

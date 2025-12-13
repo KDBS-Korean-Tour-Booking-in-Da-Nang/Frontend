@@ -836,7 +836,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Translation API error:', response.status, errorText);
         throw new Error(`Translate failed with status ${response.status}: ${errorText}`);
       }
 
@@ -845,20 +844,14 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       const responseText = await response.text();
       let translatedContent = '';
       
-      // Log raw response để debug
-      console.log('Translation raw response:', responseText);
-      
       try {
         // Thử parse JSON trước (Spring thường trả về JSON string)
         const jsonData = JSON.parse(responseText);
         translatedContent = typeof jsonData === 'string' ? jsonData : (jsonData.text || jsonData.result || String(jsonData));
-      } catch (jsonError) {
+      } catch {
         // Nếu không phải JSON hợp lệ, sử dụng text trực tiếp
         translatedContent = responseText;
       }
-
-      // Log để debug
-      console.log('Translation parsed content (before cleanup):', translatedContent);
 
       // Loại bỏ quotes nếu có (Spring serialize String thành JSON string)
       translatedContent = String(translatedContent).trim();
@@ -869,8 +862,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       // Loại bỏ escape characters
       translatedContent = translatedContent.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\t/g, '\t');
-      
-      console.log('Translation final content:', translatedContent);
 
       if (!translatedContent) {
         throw new Error('Empty translation response');
@@ -878,8 +869,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       setTranslatedText(translatedContent);
       setShowTranslated(true);
-    } catch (error) {
-      console.error('Translation error:', error);
+    } catch {
       setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
     } finally {
       setIsTranslating(false);
@@ -961,7 +951,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Translation API error:', response.status, errorText);
         throw new Error(`Translate failed with status ${response.status}: ${errorText}`);
       }
 
@@ -970,20 +959,14 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       const responseText = await response.text();
       let translatedContent = '';
       
-      // Log raw response để debug
-      console.log('Translation raw response:', responseText);
-      
       try {
         // Thử parse JSON trước (Spring thường trả về JSON string)
         const jsonData = JSON.parse(responseText);
         translatedContent = typeof jsonData === 'string' ? jsonData : (jsonData.text || jsonData.result || String(jsonData));
-      } catch (jsonError) {
+      } catch {
         // Nếu không phải JSON hợp lệ, sử dụng text trực tiếp
         translatedContent = responseText;
       }
-
-      // Log để debug
-      console.log('Translation parsed content (before cleanup):', translatedContent);
 
       // Clean up response - loại bỏ quotes nếu có và trim
       translatedContent = String(translatedContent).trim();
@@ -1001,8 +984,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
       const urlRegex = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(?:detail[?&]id=|)\\d+`, 'gi');
       translatedContent = translatedContent.replace(urlRegex, '').trim();
-      
-      console.log('Translation final content:', translatedContent);
 
       if (!translatedContent) {
         throw new Error('Empty translation response');
@@ -1010,8 +991,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       setTranslatedText(translatedContent);
       setShowTranslated(true);
-    } catch (error) {
-      console.error('Translation error for tour preview:', error);
+    } catch {
       setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
     } finally {
       setIsTranslating(false);

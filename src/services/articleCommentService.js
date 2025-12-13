@@ -1,8 +1,6 @@
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
 import { API_ENDPOINTS } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
 class ArticleCommentService {
   /**
    * Get authentication headers with Bearer token
@@ -79,7 +77,6 @@ class ArticleCommentService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching article comments:', error);
       throw error;
     }
   }
@@ -123,7 +120,6 @@ class ArticleCommentService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error creating article comment:', error);
       throw error;
     }
   }
@@ -167,7 +163,6 @@ class ArticleCommentService {
 
       return await response.json();
     } catch (error) {
-      console.error('Error updating article comment:', error);
       throw error;
     }
   }
@@ -197,7 +192,6 @@ class ArticleCommentService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error deleting article comment:', error);
       throw error;
     }
   }

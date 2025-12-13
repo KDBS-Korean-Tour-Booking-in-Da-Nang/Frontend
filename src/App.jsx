@@ -2,12 +2,11 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from
 import { useEffect, useState, useRef } from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ConditionalNavbar, Footer, SupportTicketBubble, BubbleChatAI } from './components';
-import { useAuth } from './contexts/AuthContext';
 import { setNavigateCallback } from './utils/apiErrorHandler';
 import { Homepage, BannedPage, PendingPage, Error404, Error403, Error500, Error401 } from './pages/home';
 import { Login, StaffLogin, AdminLogin, Register, VerifyEmail, OAuthCallback, ForgotPassword, ResetPassword } from './pages/authentication';
@@ -107,9 +106,7 @@ function AppContent() {
 
   // Scroll to top on route change to avoid landing mid-page
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }
+    globalThis.window?.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
 
   // Set navigate callback for apiErrorHandler
@@ -134,8 +131,8 @@ function AppContent() {
 
         // Clear the state immediately to prevent showing message again
         try {
-          window.history.replaceState({}, document.title, location.pathname + location.search);
-        } catch (error) {
+          globalThis.window.history.replaceState({}, document.title, location.pathname + location.search);
+        } catch {
           // Fallback: navigate without state if replaceState fails
           navigate(location.pathname, { replace: true, state: {} });
         }
@@ -182,7 +179,6 @@ function AppContent() {
         // Allow access to company-info to upload documents
         navigate('/company-info', { replace: true });
       }
-      return;
     }
   }, [user, loading, location.pathname, navigate]);
 

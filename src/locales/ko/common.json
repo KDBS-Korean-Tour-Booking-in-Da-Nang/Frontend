@@ -266,7 +266,13 @@
 			"headline": "고객을 신뢰하세요",
 			"name": "Irfan Rahmat",
 			"role": "여행 애호가",
-			"review": "저는 Travelo를 사랑합니다. 티켓을 구매하고 꿈의 휴가를 찾는 최고의 장소입니다."
+			"review": "저는 Travelo를 사랑합니다. 티켓을 구매하고 꿈의 휴가를 찾는 최고의 장소입니다.",
+			"loading": "후기 로딩 중...",
+			"empty": "사용 가능한 후기가 없습니다.",
+			"previous": "이전 후기",
+			"next": "다음 후기",
+			"goToTestimonial": "후기 {{index}}로 이동",
+			"user": "사용자"
 		},
 		"newsletter": {
 			"sectionTitle": "뉴스레터 구독",

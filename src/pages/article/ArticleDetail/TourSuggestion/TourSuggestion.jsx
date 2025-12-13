@@ -122,7 +122,6 @@ const TourSuggestion = () => {
           // Nếu lỗi 500, kiểm tra xem có phải AI hết quota không
           if (response.status === 500) {
             const errorText = await response.text().catch(() => 'Server error');
-            console.error('[TourSuggestion] Server error (500):', errorText);
             
             // Nếu là lỗi quota của Gemini, giữ loading state (không hiển thị error)
             if (errorText.includes('Quota exceeded') || errorText.includes('429') || errorText.includes('quota')) {
@@ -154,7 +153,6 @@ const TourSuggestion = () => {
         setLoading(false);
         setError(null);
       } catch (err) {
-        console.error('[TourSuggestion] Error fetching suggested tours:', err);
         // Nếu là lỗi network hoặc lỗi không xác định, hiển thị error message
         if (err.name === 'TypeError' && err.message.includes('fetch')) {
           setError(t('articleDetail.tourSuggestion.errorNetwork', { defaultValue: 'Lỗi kết nối. Vui lòng kiểm tra kết nối internet và thử lại.' }));

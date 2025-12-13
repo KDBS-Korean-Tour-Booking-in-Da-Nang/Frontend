@@ -164,9 +164,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
   }
   
   // contactAddress is optional in backend (no @NotBlank), but we'll ensure it's not null
-  if (!contact.address) {
-    console.warn('Contact address is missing, using empty string');
-  }
+  // Address is optional, will use empty string if missing
   
   if (!plan.date.day || !plan.date.month || !plan.date.year) {
     throw new Error('Missing departure date');

@@ -341,7 +341,6 @@ const UserHoverCard = ({ user, triggerRef, position = 'bottom' }) => {
 
     // If still no userId after all attempts, we cannot proceed
     if (!userId) {
-      console.warn('Cannot resolve chat user ID for', user);
       return;
     }
 

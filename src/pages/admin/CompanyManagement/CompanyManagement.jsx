@@ -6,22 +6,23 @@ import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
 import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import { Tooltip } from '../../../components';
-import { CheckCircle, XCircle } from 'lucide-react';
-import {
-  BuildingOfficeIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ArrowTopRightOnSquareIcon,
-  ArrowDownTrayIcon,
-  MagnifyingGlassIcon,
-  PhoneIcon,
-  MapPinIcon,
-  EyeIcon,
-  CheckIcon,
-  XMarkIcon,
-  DocumentTextIcon
-} from '@heroicons/react/24/outline';
+import { 
+  CheckCircle, 
+  XCircle, 
+  Building2, 
+  Clock, 
+  CheckCircle2, 
+  XCircle as XCircleIcon, 
+  ExternalLink, 
+  Download, 
+  Search, 
+  Phone, 
+  MapPin, 
+  Eye, 
+  Check, 
+  X, 
+  FileText 
+} from 'lucide-react';
 
 const CompanyManagement = () => {
   const { t, i18n } = useTranslation();
@@ -111,7 +112,7 @@ const CompanyManagement = () => {
       });
 
       setCompanies(mappedCompanies);
-    } catch (err) {
+    } catch {
       // Silently handle error fetching companies
       setError(t('admin.companyManagement.error') || 'Không thể tải danh sách công ty. Vui lòng thử lại.');
     } finally {
@@ -330,7 +331,7 @@ const CompanyManagement = () => {
         idCardBackUrl,
         loading: false
       });
-    } catch (err) {
+    } catch {
       // Silently handle error fetching company files
       alert('Không thể tải thông tin file. Vui lòng thử lại.');
       setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: false });
@@ -408,7 +409,7 @@ const CompanyManagement = () => {
           newWindow.focus();
         }
       }
-    } catch (error) {
+    } catch {
       alert(t('admin.companyManagement.modal.openPdfError') || 'Không thể mở PDF. Vui lòng thử lại.');
     }
   };
@@ -446,7 +447,7 @@ const CompanyManagement = () => {
           } else if (lastPart) {
             filename = lastPart;
           }
-        } catch (e) {
+        } catch {
           // Error extracting filename, using default
         }
       } else {
@@ -510,7 +511,7 @@ const CompanyManagement = () => {
           
           // Nếu iframe không trigger download, thử mở trong tab mới
           // User có thể right-click > Save As nếu cần
-          const newWindow = window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+          window.open(downloadUrl, '_blank', 'noopener,noreferrer');
         }, 3000);
       } else {
         // Đối với local URLs, cần authentication headers
@@ -548,7 +549,7 @@ const CompanyManagement = () => {
           window.URL.revokeObjectURL(blobUrl);
         }, 100);
       }
-    } catch (error) {
+    } catch {
       alert(t('admin.companyManagement.modal.downloadError') || 'Không thể tải file. Vui lòng thử lại.');
     }
   };
@@ -558,7 +559,7 @@ const CompanyManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#66B3FF' }}></div>
           <p className="mt-4 text-gray-600">{t('admin.companyManagement.loading')}</p>
         </div>
       </div>
@@ -568,11 +569,14 @@ const CompanyManagement = () => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
-          <span>{error}</span>
+        <div className="px-4 py-3 rounded-[24px] flex items-center justify-between border" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFCCE0' }}>
+          <span style={{ color: '#FF80B3' }}>{error}</span>
           <button
             onClick={fetchCompanies}
-            className="ml-4 px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+            className="ml-4 px-3 py-1 text-xs font-semibold rounded-[20px] transition"
+            style={{ backgroundColor: '#FFCCE0', color: '#FF80B3' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#FFB3CC'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#FFCCE0'}
           >
             {t('admin.companyManagement.retry')}
           </button>
@@ -580,8 +584,8 @@ const CompanyManagement = () => {
       )}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-500 font-semibold mb-2">{t('admin.companyManagement.title')}</p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.companyManagement.title')}</h1>
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('admin.companyManagement.title')}</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('admin.companyManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('admin.companyManagement.subtitle')}
           </p>
@@ -591,29 +595,31 @@ const CompanyManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={BuildingOfficeIcon} label={t('admin.companyManagement.stats.totalCompanies')} value={stats.total} trend={t('admin.companyManagement.stats.totalCompaniesDesc')} />
-        <StatCard icon={ClockIcon} label={t('admin.companyManagement.stats.pending')} value={stats.pending} trend={t('admin.companyManagement.stats.pendingDesc')} color="text-amber-500" />
-        <StatCard icon={CheckCircleIcon} label={t('admin.companyManagement.stats.approved')} value={stats.approved} trend={t('admin.companyManagement.stats.approvedDesc')} color="text-green-600" />
+        <StatCard icon={Building2} label={t('admin.companyManagement.stats.totalCompanies')} value={stats.total} trend={t('admin.companyManagement.stats.totalCompaniesDesc')} />
+        <StatCard icon={Clock} label={t('admin.companyManagement.stats.pending')} value={stats.pending} trend={t('admin.companyManagement.stats.pendingDesc')} color="text-amber-500" />
+        <StatCard icon={CheckCircle2} label={t('admin.companyManagement.stats.approved')} value={stats.approved} trend={t('admin.companyManagement.stats.approvedDesc')} color="text-green-600" />
         <StatCard icon={XCircleIcon} label={t('admin.companyManagement.stats.rejected')} value={stats.rejected} trend={t('admin.companyManagement.stats.rejectedDesc')} color="text-red-600" />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="flex flex-col gap-3 p-5 border-b lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div className="relative w-full lg:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.companyManagement.searchPlaceholder')}
-              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('admin.companyManagement.statusFilter.all')}</option>
               <option value="pending">{t('admin.companyManagement.statusFilter.pending')}</option>
@@ -624,8 +630,8 @@ const CompanyManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
                 {[t('admin.companyManagement.tableHeaders.company'), t('admin.companyManagement.tableHeaders.status'), t('admin.companyManagement.tableHeaders.registrationDate'), t('admin.companyManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -634,7 +640,7 @@ const CompanyManagement = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {filteredCompanies.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
@@ -643,24 +649,28 @@ const CompanyManagement = () => {
                 </tr>
               ) : (
                 paginatedCompanies.map((company) => (
-                <tr key={company.id} className="hover:bg-[#e9f2ff]/40 transition">
+                <tr key={company.id} className="transition" style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-start gap-3">
                       <img 
                         src={company.avatar || '/default-avatar.png'} 
                         alt={company.name} 
-                        className="h-12 w-12 rounded-full object-cover border border-gray-100 mt-1.5"
+                        className="h-12 w-12 rounded-[20px] object-cover border mt-1.5"
+                        style={{ borderColor: '#E0E0E0' }}
                         onError={(e) => {
                           e.target.src = '/default-avatar.png';
                         }}
                       />
                       <div className="mt-1.5">
-                        <p className="font-semibold text-gray-900 mb-0">{company.name}</p>
+                        <p className="font-semibold text-gray-800 mb-0">{company.name}</p>
                         <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
                           {company.email && <span>{company.email}</span>}
                           {company.phone && (
                             <span className="inline-flex items-center gap-1">
-                              <PhoneIcon className="h-4 w-4 text-gray-400" />
+                              <Phone className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
                               {company.phone}
                             </span>
                           )}
@@ -668,7 +678,7 @@ const CompanyManagement = () => {
                         <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
                           {company.address && (
                             <span className="inline-flex items-center gap-1">
-                              <MapPinIcon className="h-3.5 w-3.5" />
+                              <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} />
                               {company.address}
                             </span>
                           )}
@@ -689,9 +699,20 @@ const CompanyManagement = () => {
                         <Tooltip text={t('admin.companyManagement.actions.viewDetails')} position="top">
                           <button 
                             onClick={() => handleViewDetails(company)}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                            className="p-2 rounded-[20px] border transition"
+                            style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                            onMouseEnter={(e) => {
+                              e.target.style.color = '#66B3FF';
+                              e.target.style.borderColor = '#CCE6FF';
+                              e.target.style.backgroundColor = '#E6F3FF';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.color = '#9CA3AF';
+                              e.target.style.borderColor = '#E0E0E0';
+                              e.target.style.backgroundColor = 'transparent';
+                            }}
                           >
-                            <EyeIcon className="h-4 w-4" />
+                            <Eye className="h-4 w-4" strokeWidth={1.5} />
                           </button>
                         </Tooltip>
                       )}
@@ -703,17 +724,31 @@ const CompanyManagement = () => {
                                 setCompanyToApprove(company);
                                 setApproveModalOpen(true);
                               }}
-                              className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition shadow-sm"
+                              className="p-2 rounded-[20px] transition"
+                              style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = '#BBF7D0';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#DCFCE7';
+                              }}
                             >
-                              <CheckIcon className="h-4 w-4" />
+                              <Check className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                           </Tooltip>
                           <Tooltip text={t('admin.companyManagement.actions.reject')} position="top">
                             <button 
                               onClick={() => handleReject(company)}
-                              className="p-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-sm"
+                              className="p-2 rounded-[20px] transition"
+                              style={{ backgroundColor: '#FFE6F0', color: '#FF80B3' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.backgroundColor = '#FFCCE0';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#FFE6F0';
+                              }}
                             >
-                              <XMarkIcon className="h-4 w-4" />
+                              <X className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                           </Tooltip>
                         </>
@@ -742,24 +777,24 @@ const CompanyManagement = () => {
       {/* Modal for viewing company files */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-white via-gray-50/40 to-slate-50/50 rounded-[32px] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-100/50">
+          <div className="bg-white rounded-[32px] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border" style={{ borderColor: '#F0F0F0' }}>
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-b border-gray-200/30 px-8 py-3 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white border-b px-8 py-3 flex items-center justify-between z-10" style={{ borderColor: '#F0F0F0' }}>
               <div>
                 <h2 className="text-2xl font-semibold text-gray-800">{t('admin.companyManagement.modal.title')}</h2>
                 <p className="text-gray-600 text-sm mt-1 font-medium">{selectedCompany?.name}</p>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="p-2 rounded-[16px] hover:bg-white/60 transition-all duration-200 text-gray-600 hover:text-gray-800"
+                className="p-2 rounded-[20px] hover:bg-[#FAFAFA] transition-all duration-200 text-gray-600 hover:text-gray-800"
                 aria-label={t('admin.companyManagement.modal.close')}
               >
-                <XMarkIcon className="h-5 w-5" />
+                <X className="h-5 w-5" strokeWidth={1.5} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-8 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-8" style={{ backgroundColor: '#FAFAFA' }}>
               {fileData.loading ? (
                 <div className="flex items-center justify-center py-20">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-300"></div>
@@ -770,7 +805,7 @@ const CompanyManagement = () => {
                   {!fileData.businessLicenseUrl && !fileData.idCardFrontUrl && !fileData.idCardBackUrl ? (
                     <div className="text-center py-20">
                       <div className="inline-flex items-center justify-center w-20 h-20 mb-5">
-                        <DocumentTextIcon className="h-10 w-10 text-gray-400" />
+                        <FileText className="h-10 w-10 text-gray-400" strokeWidth={1.5} />
                       </div>
                       <p className="text-gray-700 text-lg font-semibold mb-2">{t('admin.companyManagement.modal.noFiles')}</p>
                       <p className="text-gray-500 text-sm">
@@ -780,11 +815,11 @@ const CompanyManagement = () => {
                   ) : (
                     <div className="space-y-6">
                       {/* Business License PDF */}
-                      <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-gray-200/50 shadow-sm p-6">
+                      <div className="bg-white rounded-[28px] border shadow-sm p-6" style={{ borderColor: '#F0F0F0' }}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-4">
                             <div className="p-3">
-                              <DocumentTextIcon className="h-6 w-6 text-gray-500" />
+                              <FileText className="h-6 w-6 text-gray-500" strokeWidth={1.5} />
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold text-gray-800">{t('admin.companyManagement.modal.businessLicense')}</h3>
@@ -807,9 +842,12 @@ const CompanyManagement = () => {
                                       href={openUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2 cursor-pointer"
+                                      className="px-5 py-2.5 rounded-[20px] transition-all duration-200 text-sm font-medium flex items-center gap-2 cursor-pointer"
+                                      style={{ backgroundColor: '#66B3FF', color: '#FFFFFF' }}
+                                      onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+                                      onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
                                     >
-                                      <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                                      <ExternalLink className="h-4 w-4" strokeWidth={1.5} />
                                       {t('admin.companyManagement.modal.openInNewTab')}
                                     </a>
                                   );
@@ -818,18 +856,24 @@ const CompanyManagement = () => {
                                 // Local URLs: Dùng button với onClick (có thể cần authentication)
                                 <button
                                   onClick={() => handleOpenPdf(fileData.businessLicenseUrl)}
-                                  className="px-5 py-2.5 bg-[#4c9dff] text-white rounded-[20px] hover:bg-[#3f85d6] transition-all duration-200 text-sm font-medium shadow-[0_12px_30px_rgba(76,157,255,0.35)] flex items-center gap-2"
+                                  className="px-5 py-2.5 rounded-[20px] transition-all duration-200 text-sm font-medium flex items-center gap-2"
+                                  style={{ backgroundColor: '#66B3FF', color: '#FFFFFF' }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
                                 >
-                                  <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                                  <ExternalLink className="h-4 w-4" strokeWidth={1.5} />
                                   {t('admin.companyManagement.modal.openInNewTab')}
                                 </button>
                               )}
                               <button
                                 onClick={() => handleDownloadPdf(fileData.businessLicenseUrl)}
-                                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-[20px] hover:bg-gray-200 transition-all duration-200 text-sm font-medium flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-[20px] transition-all duration-200 text-sm font-medium flex items-center gap-2"
+                                style={{ backgroundColor: '#F5F5F5', color: '#6B7280' }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#E5E5E5'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = '#F5F5F5'}
                                 title={t('admin.companyManagement.modal.download') || 'Tải xuống'}
                               >
-                                <ArrowDownTrayIcon className="h-4 w-4" />
+                                <Download className="h-4 w-4" strokeWidth={1.5} />
                                 {t('admin.companyManagement.modal.download') || 'Tải xuống'}
                               </button>
                             </div>
@@ -843,10 +887,10 @@ const CompanyManagement = () => {
                       {/* ID Cards - Grid layout */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-fit mx-auto">
                         {/* ID Card Front */}
-                        <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-purple-200/50 shadow-sm p-5">
+                        <div className="bg-white rounded-[28px] border shadow-sm p-5" style={{ borderColor: '#E0CCFF' }}>
                           <div className="flex items-center gap-3 mb-4">
                             <div className="p-3">
-                              <EyeIcon className="h-5 w-5 text-purple-500" />
+                              <Eye className="h-5 w-5 text-purple-500" strokeWidth={1.5} />
                             </div>
                             <div>
                               <h3 className="text-base font-semibold text-gray-800">{t('admin.companyManagement.modal.idCardFront')}</h3>
@@ -854,7 +898,7 @@ const CompanyManagement = () => {
                             </div>
                           </div>
                           {fileData.idCardFrontUrl ? (
-                            <div className="relative bg-gradient-to-br from-purple-50/50 to-gray-50/50 rounded-[24px] p-4 border-2 border-dashed border-purple-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                            <div className="relative rounded-[24px] p-4 border-2 border-dashed w-full" style={{ aspectRatio: '15/10', height: '280px', backgroundColor: '#F0E6FF', borderColor: '#E0CCFF' }}>
                               <div className="absolute inset-4 flex items-center justify-center overflow-hidden rounded-[20px]">
                                 <img
                                   src={fileData.idCardFrontUrl}
@@ -870,17 +914,17 @@ const CompanyManagement = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex justify-center items-center bg-gradient-to-br from-purple-50/50 to-gray-50/50 rounded-[24px] border-2 border-dashed border-purple-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                            <div className="flex justify-center items-center rounded-[24px] border-2 border-dashed w-full" style={{ aspectRatio: '15/10', height: '280px', backgroundColor: '#F0E6FF', borderColor: '#E0CCFF' }}>
                               <p className="text-gray-500 text-sm">{t('admin.companyManagement.modal.noImage')}</p>
                             </div>
                           )}
                         </div>
 
                         {/* ID Card Back */}
-                        <div className="bg-white/70 backdrop-blur-sm rounded-[28px] border border-orange-200/50 shadow-sm p-5">
+                        <div className="bg-white rounded-[28px] border shadow-sm p-5" style={{ borderColor: '#FFE5CC' }}>
                           <div className="flex items-center gap-3 mb-4">
                             <div className="p-3">
-                              <EyeIcon className="h-5 w-5 text-orange-500" />
+                              <Eye className="h-5 w-5 text-orange-500" strokeWidth={1.5} />
                             </div>
                             <div>
                               <h3 className="text-base font-semibold text-gray-800">{t('admin.companyManagement.modal.idCardBack')}</h3>
@@ -888,7 +932,7 @@ const CompanyManagement = () => {
                             </div>
                           </div>
                           {fileData.idCardBackUrl ? (
-                            <div className="relative bg-gradient-to-br from-orange-50/50 to-gray-50/50 rounded-[24px] p-4 border-2 border-dashed border-orange-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                            <div className="relative rounded-[24px] p-4 border-2 border-dashed w-full" style={{ aspectRatio: '15/10', height: '280px', backgroundColor: '#FFF4E6', borderColor: '#FFE5CC' }}>
                               <div className="absolute inset-4 flex items-center justify-center overflow-hidden rounded-[20px]">
                                 <img
                                   src={fileData.idCardBackUrl}
@@ -904,7 +948,7 @@ const CompanyManagement = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex justify-center items-center bg-gradient-to-br from-orange-50/50 to-gray-50/50 rounded-[24px] border-2 border-dashed border-orange-200/60 w-full" style={{ aspectRatio: '15/10', height: '280px' }}>
+                            <div className="flex justify-center items-center rounded-[24px] border-2 border-dashed w-full" style={{ aspectRatio: '15/10', height: '280px', backgroundColor: '#FFF4E6', borderColor: '#FFE5CC' }}>
                               <p className="text-gray-500 text-sm">{t('admin.companyManagement.modal.noImage')}</p>
                             </div>
                           )}
@@ -917,12 +961,15 @@ const CompanyManagement = () => {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gradient-to-r from-white/90 via-gray-50/70 to-slate-50/80 backdrop-blur-md border-t border-gray-200/30 px-8 py-4 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-white border-t px-8 py-4 flex justify-end gap-3" style={{ borderColor: '#F0F0F0' }}>
               {selectedCompany?.approvalStatus === 'pending' && (
                 <>
                   <button
                     onClick={() => handleReject(selectedCompany)}
-                    className="px-5 py-2.5 bg-red-200/80 hover:bg-red-300/80 text-red-700 rounded-[20px] transition-all duration-200 text-sm font-medium shadow-sm border border-red-300/30"
+                    className="px-5 py-2.5 rounded-[20px] transition-all duration-200 text-sm font-medium"
+                    style={{ backgroundColor: '#FFE6F0', color: '#FF80B3', borderColor: '#FFCCE0' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#FFCCE0'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#FFE6F0'}
                   >
                     {t('admin.companyManagement.actions.reject')}
                   </button>
@@ -931,7 +978,10 @@ const CompanyManagement = () => {
                       setCompanyToApprove(selectedCompany);
                       setApproveModalOpen(true);
                     }}
-                    className="px-5 py-2.5 bg-green-200/80 hover:bg-green-300/80 text-green-700 rounded-[20px] transition-all duration-200 text-sm font-medium shadow-sm border border-green-300/30"
+                    className="px-5 py-2.5 rounded-[20px] transition-all duration-200 text-sm font-medium"
+                    style={{ backgroundColor: '#DCFCE7', color: '#15803D', borderColor: '#BBF7D0' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#BBF7D0'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#DCFCE7'}
                   >
                     {t('admin.companyManagement.actions.approve')}
                   </button>
@@ -939,7 +989,10 @@ const CompanyManagement = () => {
               )}
               <button
                 onClick={handleCloseModal}
-                className="px-6 py-2.5 border border-gray-300/50 rounded-[20px] text-gray-700 hover:bg-white/60 transition-all duration-200 font-medium bg-white/40 backdrop-blur-sm"
+                className="px-6 py-2.5 border rounded-[20px] text-gray-700 transition-all duration-200 font-medium"
+                style={{ backgroundColor: '#F5F5F5', borderColor: '#E0E0E0' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#E5E5E5'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#F5F5F5'}
               >
                 {t('admin.companyManagement.modal.close')}
               </button>
@@ -987,29 +1040,41 @@ const CompanyManagement = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
+const StatCard = ({ icon: Icon, label, value, trend, color = 'text-blue-600' }) => {
+  const colorMap = {
+    'text-blue-600': { bg: '#E6F3FF', iconColor: '#66B3FF', textColor: '#66B3FF' },
+    'text-amber-500': { bg: '#FFF4E6', iconColor: '#FFB84D', textColor: '#FFB84D' },
+    'text-green-600': { bg: '#DCFCE7', iconColor: '#15803D', textColor: '#15803D' },
+    'text-red-600': { bg: '#FFE6F0', iconColor: '#FF80B3', textColor: '#FF80B3' }
+  };
+  const colors = colorMap[color] || colorMap['text-blue-600'];
+  
+  return (
+    <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: colors.bg }}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+            {Icon && <Icon className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />}
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-semibold text-gray-800">{value}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-medium" style={{ color: colors.textColor }}>{trend}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
-  </div>
-);
+  );
+};
 
 const ApprovalStatusBadge = ({ status }) => {
   const { t } = useTranslation();
   const statusMap = {
-    pending: { color: 'bg-amber-100 text-amber-700', label: t('admin.companyManagement.status.pending'), icon: ClockIcon },
-    not_updated: { color: 'bg-gray-100 text-gray-700', label: t('admin.companyManagement.status.notUpdated'), icon: ClockIcon },
-    approved: { color: 'bg-green-100 text-green-700', label: t('admin.companyManagement.status.approved'), icon: CheckCircleIcon },
+    pending: { color: 'bg-amber-100 text-amber-700', label: t('admin.companyManagement.status.pending'), icon: Clock },
+    not_updated: { color: 'bg-gray-100 text-gray-700', label: t('admin.companyManagement.status.notUpdated'), icon: Clock },
+    approved: { color: 'bg-green-100 text-green-700', label: t('admin.companyManagement.status.approved'), icon: CheckCircle2 },
     rejected: { color: 'bg-red-100 text-red-700', label: t('admin.companyManagement.status.rejected'), icon: XCircleIcon }
   };
 
@@ -1017,11 +1082,12 @@ const ApprovalStatusBadge = ({ status }) => {
   const Icon = statusInfo.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
-      <Icon className="h-3.5 w-3.5" />
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-[20px] ${statusInfo.color}`}>
+      <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
       {statusInfo.label}
     </span>
   );
 };
 
 export default CompanyManagement;
+

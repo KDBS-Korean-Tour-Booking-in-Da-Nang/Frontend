@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import StaffLayout from './StaffLayout';
 import CustomerContact from './CustomerContact/CustomerContact';
@@ -7,6 +7,7 @@ import ResolveTicketManagement from '../admin/ResolveTicketManagement/ResolveTic
 
 const StaffDashboard = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   // Avoid flicker on refresh: wait for auth to finish
   if (loading) {
@@ -18,7 +19,7 @@ const StaffDashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #fafbfc 0%, #f5f7fa 100%)',
+        backgroundColor: '#FAFAFA',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -28,25 +29,25 @@ const StaffDashboard = () => {
           maxWidth: '420px',
           width: '100%',
           background: '#ffffff',
-          borderRadius: '24px',
+          borderRadius: '32px',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04)',
           padding: '48px 40px',
           textAlign: 'center',
-          border: '1px solid rgba(0, 0, 0, 0.04)'
+          border: '1px solid #F0F0F0'
         }}>
           {/* Pastel Orange Icon */}
           <div style={{
             width: '72px',
             height: '72px',
-            background: 'linear-gradient(135deg, #fef3e2 0%, #fde8cc 100%)',
-            borderRadius: '20px',
+            backgroundColor: '#FFF4E6',
+            borderRadius: '24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 24px',
-            boxShadow: '0 4px 12px rgba(220, 160, 100, 0.15)'
+            border: '1px solid #FFE5CC'
           }}>
-            <svg style={{ width: '32px', height: '32px', color: '#d4a574' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg style={{ width: '32px', height: '32px', color: '#FFB84D' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
@@ -54,7 +55,7 @@ const StaffDashboard = () => {
           <h2 style={{
             fontSize: '22px',
             fontWeight: '600',
-            color: '#3d4852',
+            color: '#1a1a2e',
             marginBottom: '12px',
             letterSpacing: '-0.3px'
           }}>
@@ -63,7 +64,7 @@ const StaffDashboard = () => {
 
           <p style={{
             fontSize: '15px',
-            color: '#718096',
+            color: '#6b7280',
             marginBottom: '32px',
             lineHeight: '1.6'
           }}>
@@ -72,53 +73,49 @@ const StaffDashboard = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
               style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #7eb8e0 0%, #5ba3d4 100%)',
+                backgroundColor: '#66B3FF',
                 color: '#ffffff',
                 padding: '14px 24px',
-                borderRadius: '14px',
+                borderRadius: '24px',
                 border: 'none',
                 fontSize: '15px',
-                fontWeight: '500',
+                fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(91, 163, 212, 0.25)'
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 16px rgba(91, 163, 212, 0.35)';
+                e.target.style.backgroundColor = '#4DA3FF';
               }}
               onMouseOut={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(91, 163, 212, 0.25)';
+                e.target.style.backgroundColor = '#66B3FF';
               }}
             >
               Go to Homepage
             </button>
             <button
-              onClick={() => window.location.href = '/staff/login'}
+              onClick={() => navigate('/staff/login')}
               style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #e8eaed 0%, #dce0e5 100%)',
+                backgroundColor: '#F5F5F5',
                 color: '#4a5568',
                 padding: '14px 24px',
-                borderRadius: '14px',
-                border: 'none',
+                borderRadius: '24px',
+                border: '1px solid #E0E0E0',
                 fontSize: '15px',
-                fontWeight: '500',
+                fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                e.target.style.backgroundColor = '#E5E5E5';
+                e.target.style.borderColor = '#D0D0D0';
               }}
               onMouseOut={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)';
+                e.target.style.backgroundColor = '#F5F5F5';
+                e.target.style.borderColor = '#E0E0E0';
               }}
             >
               Staff Login

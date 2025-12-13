@@ -300,8 +300,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
       } else {
         alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
       }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
+    } catch {
       alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
     } finally {
       setDeleteOpen(false);
@@ -649,8 +648,8 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
           return newReaction;
         });
       }
-    } catch (error) {
-      console.error('Error handling reaction:', error);
+    } catch {
+      // Failed to handle reaction, silently continue
     }
   };
 
@@ -823,8 +822,7 @@ const CommentItem = ({ comment, user, t, formatTime, isCommentOwner, isCommentRe
       } else {
         alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
       }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
+    } catch {
       alert('Có lỗi xảy ra khi xóa bình luận. Vui lòng thử lại.');
     } finally {
       setLocalDeleteOpen(false);

@@ -51,8 +51,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             if (!user) return [];
             const saved = sessionStorage.getItem('chat_history');
             return saved ? JSON.parse(saved) : [];
-        } catch (error) {
-            console.error('Error loading chat history:', error);
+        } catch {
             return [];
         }
     });
@@ -66,8 +65,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             const saved = sessionStorage.getItem('chat_history');
             const historyArray = saved ? JSON.parse(saved) : [];
             return historyToMessages(historyArray);
-        } catch (error) {
-            console.error('Error initializing messages:', error);
+        } catch {
             return historyToMessages([]);
         }
     });
@@ -195,9 +193,7 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, aiResponse]);
-        } catch (error) {
-            console.error('Error sending message:', error);
-
+        } catch {
             // Show error message to user
             const errorMessage = {
                 id: Date.now() + 1,
