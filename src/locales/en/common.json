@@ -266,7 +266,13 @@
 			"headline": "Trust our customers",
 			"name": "Irfan Rahmat",
 			"role": "Travel enthusiast",
-			"review": "I love Travelo, this is the best place to buy tickets and help you find your dream vacation."
+			"review": "I love Travelo, this is the best place to buy tickets and help you find your dream vacation.",
+			"loading": "Loading testimonials...",
+			"empty": "No testimonials available.",
+			"previous": "Previous testimonial",
+			"next": "Next testimonial",
+			"goToTestimonial": "Go to testimonial {{index}}",
+			"user": "User"
 		},
 		"newsletter": {
 			"sectionTitle": "NEWSLETTER SIGNUP",

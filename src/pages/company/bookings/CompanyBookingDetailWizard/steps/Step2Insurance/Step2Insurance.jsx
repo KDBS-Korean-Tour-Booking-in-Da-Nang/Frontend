@@ -14,7 +14,6 @@ const Step2Insurance = ({
   onNext,
   onBack,
   isReadOnly = false,
-  isStep1Completed = false,
   isStep2Completed = false,
   onStepCompleted,
   onInsuranceUpdatesPending
@@ -41,7 +40,7 @@ const Step2Insurance = ({
         }
         return guest;
       });
-    } catch (err) {
+    } catch {
       return guestList;
     }
   };
@@ -56,7 +55,7 @@ const Step2Insurance = ({
         return acc;
       }, {});
       localStorage.setItem(storageKey, JSON.stringify(map));
-    } catch (err) {
+    } catch {
       // Unable to persist insurance state
     }
   };
@@ -116,7 +115,7 @@ const Step2Insurance = ({
       setTimeout(() => {
         onBack();
       }, 1500);
-    } catch (error) {
+    } catch {
       // Error rejecting booking - show in UI if needed
     } finally {
       setLoading(prev => ({ ...prev, reject: false }));
@@ -179,7 +178,7 @@ const Step2Insurance = ({
 
       showSuccess(t('companyBookingWizard.insurance.toasts.saved'));
       onNext();
-    } catch (error) {
+    } catch {
       // Error preparing insurance status changes - show in UI if needed
     } finally {
       setLoading(prev => ({ ...prev, continue: false }));

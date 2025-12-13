@@ -48,8 +48,7 @@ const CommentReportModal = ({ isOpen, onClose, onReport, comment }) => {
       setSelectedReasons([]);
       setDescription('');
       onClose();
-    } catch (error) {
-      console.error('Error reporting comment:', error);
+    } catch {
       alert(t('forum.modals.report.submitError'));
     } finally {
       setIsSubmitting(false);

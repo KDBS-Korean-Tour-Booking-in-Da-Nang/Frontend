@@ -55,8 +55,7 @@ export const getCompanyName = async (companyId) => {
 
     // Return the company name from cache
     return companyNameCache.get(companyId) || 'N/A';
-  } catch (error) {
-    console.error('Error fetching company name:', error);
+  } catch {
     return 'N/A';
   }
 };
@@ -117,8 +116,7 @@ export const getCompanyNames = async (companyIds) => {
     uniqueIds.forEach(id => {
       result.set(id, companyNameCache.get(id) || 'N/A');
     });
-  } catch (error) {
-    console.error('Error fetching company names:', error);
+  } catch {
     uniqueIds.forEach(id => {
       result.set(id, companyNameCache.get(id) || 'N/A');
     });

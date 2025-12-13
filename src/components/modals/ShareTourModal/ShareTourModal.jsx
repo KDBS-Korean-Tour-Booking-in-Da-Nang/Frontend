@@ -53,7 +53,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
             linkUrl: `${FrontendURL}/tour/detail?id=${tourId}`
           });
         }
-      } catch (e) {
+      } catch {
         // Error creating post - handled silently or in UI
       }
     })();
@@ -84,7 +84,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           .filter(s => !hashtags.includes(s));
         setTagSuggestions(filtered);
         setShowTagSuggest(true);
-      } catch (e) {
+      } catch {
         setTagSuggestions([]);
         setShowTagSuggest(false);
       }
@@ -154,14 +154,16 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       // Download thumbnail and append as file if available
       if (preview?.thumbnailUrl) {
         try {
-          const imgRes = await fetch(preview.thumbnailUrl);
+          // Convert relative path to full URL for fetching (preview.thumbnailUrl is normalized to relative path)
+          const imageUrl = getTourImageUrl(preview.thumbnailUrl);
+          const imgRes = await fetch(imageUrl);
+          if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
           const blob = await imgRes.blob();
           const file = new File([blob], 'thumbnail.jpg', { type: blob.type || 'image/jpeg' });
           // Fix: Use 'images' instead of 'imageUrls' to match backend ForumPostRequest
           formData.append('images', file);
-        } catch (e) {
-          // Failed to fetch thumbnail, continue without image
-          console.warn('Failed to fetch thumbnail image:', e);
+        } catch {
+          // Failed to fetch thumbnail, continue without image (silently fail)
         }
       }
 
@@ -170,7 +172,6 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Failed to create post:', res.status, errorText);
         let errorMessage = t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.';
         try {
           const errorJson = JSON.parse(errorText);
@@ -181,7 +182,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           // If errorText is not JSON, use default message
         }
         showError(errorMessage);
-        throw new Error(`Failed to create post: ${res.status} ${errorText}`);
+        throw new Error(`Failed to create post: ${res.status}`);
       }
       
       const post = await res.json();
@@ -197,9 +198,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
         navigate('/forum');
       }, 100);
     } catch (e) {
-      // Error creating post - log for debugging
-      console.error('Error creating post:', e);
-      // Error toast already shown in the res.ok check above
+      // Error creating post - Error toast already shown in the res.ok check above
       if (!e.message || !e.message.includes('Failed to create post:')) {
         showError(t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.');
       }
@@ -269,7 +268,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
                   if (keys.includes(e.key)) {
                     e.preventDefault();
                     const raw = hashtagInput;
-                    const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                    const cleaned = (raw || '').replace(/^#+/, '').replace(/[, ]+/g, ' ').trim().toLowerCase();
                     if (cleaned && !hashtags.includes(cleaned)) {
                       setHashtags([...hashtags, cleaned]);
                     }
@@ -279,7 +278,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
                 }}
                 onBlur={() => { if (!choosingTagRef.current) {
                   const raw = hashtagInput;
-                  const cleaned = (raw || '').replace(/^#+/, '').replace(/[\,\s]+/g, ' ').trim().toLowerCase();
+                  const cleaned = (raw || '').replace(/^#+/, '').replace(/[, ]+/g, ' ').trim().toLowerCase();
                   if (cleaned && !hashtags.includes(cleaned)) setHashtags([...hashtags, cleaned]);
                   setHashtagInput('');
                   setShowTagSuggest(false);

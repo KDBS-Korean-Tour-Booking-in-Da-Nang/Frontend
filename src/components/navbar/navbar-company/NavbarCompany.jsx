@@ -64,8 +64,7 @@ const NavbarCompany = () => {
           }
         }
       }
-    } catch (error) {
-      console.error('Error loading balance:', error);
+    } catch {
       setBalance(0);
     } finally {
       setIsLoadingBalance(false);
@@ -126,8 +125,8 @@ const NavbarCompany = () => {
               setBalance(newBalance);
             }
           }
-        } catch (error) {
-          console.error('Error refreshing balance:', error);
+        } catch {
+          // Silently fail - balance will remain unchanged
         } finally {
           setIsLoadingBalance(false);
         }

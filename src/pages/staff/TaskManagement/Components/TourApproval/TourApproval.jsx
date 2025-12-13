@@ -8,13 +8,7 @@ import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import TourDetailModal from './TourDetailModal';
 import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
 import Tooltip from '../../../../../components/tooltip/Tooltip';
-import {
-  XMarkIcon,
-  ExclamationTriangleIcon,
-  MagnifyingGlassIcon,
-  EyeIcon
-} from '@heroicons/react/24/outline';
-import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X, Edit3, Trash2, RefreshCw } from 'lucide-react';
+import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X, Edit3, Trash2, RefreshCw, AlertTriangle, Search } from 'lucide-react';
 
 const TourApproval = () => {
   const { t, i18n } = useTranslation();
@@ -842,18 +836,21 @@ const TourApproval = () => {
   // Check if user has permission
   if (user && !canManageTours) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc]">
-        <div className="max-w-md w-full rounded-[32px] bg-white/90 border border-gray-200 shadow-lg p-10 text-center">
-          <div className="w-16 h-16 rounded-[20px] bg-emerald-100 flex items-center justify-center text-emerald-600 mx-auto mb-6">
-            <ExclamationTriangleIcon className="h-7 w-7" />
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
+        <div className="max-w-md w-full rounded-[32px] bg-white border p-10 text-center shadow-sm" style={{ borderColor: '#F0F0F0' }}>
+          <div className="w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#DCFCE7' }}>
+            <AlertTriangle className="h-7 w-7" style={{ color: '#15803D' }} strokeWidth={1.5} />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">{t('admin.tourApproval.permissionDenied.title')}</h2>
-          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-3">{t('admin.tourApproval.permissionDenied.title')}</h2>
+          <p className="text-gray-500 text-sm leading-relaxed mb-6">
             {t('admin.tourApproval.permissionDenied.message')}
           </p>
           <button
             onClick={() => navigate('/staff/tasks')}
-            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white bg-[#4c9dff] hover:bg-[#3f85d6] transition-all shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
+            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white transition-all"
+            style={{ backgroundColor: '#66B3FF' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
           >
             {t('admin.tourApproval.permissionDenied.backButton')}
           </button>
@@ -866,7 +863,7 @@ const TourApproval = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#66B3FF' }}></div>
           <p className="mt-4 text-gray-600">{t('admin.tourApproval.loading')}</p>
         </div>
       </div>
@@ -876,7 +873,7 @@ const TourApproval = () => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="mb-6 px-4 py-3 rounded-[20px] text-sm" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFB3B3', color: '#FF80B3', borderWidth: '1px', borderStyle: 'solid' }}>
           {error}
         </div>
       )}
@@ -884,8 +881,8 @@ const TourApproval = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.tourApproval.title')}</p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.tourApproval.title')}</h1>
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('admin.tourApproval.title')}</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('admin.tourApproval.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('admin.tourApproval.subtitle')}
           </p>
@@ -896,55 +893,68 @@ const TourApproval = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourApproval.stats.totalTours')}</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{tours.length}</p>
+        <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: '#E6F3FF' }}>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+                <Package className="h-7 w-7" style={{ color: '#66B3FF' }} strokeWidth={1.5} />
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-semibold text-gray-800">{tours.length}</p>
+              </div>
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
-              <Package className="w-6 h-6 text-[#4c9dff]" strokeWidth={1.5} />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourApproval.stats.displayedTours')}</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{filteredAndSortedTours.length}</p>
-            </div>
-            <div className="h-12 w-12 rounded-2xl bg-green-50 flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-green-600" strokeWidth={1.5} />
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{t('admin.tourApproval.stats.totalTours')}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">{t('admin.tourApproval.stats.currentPage')}</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">
-                {currentPage + 1} / {totalPages || 1}
-              </p>
+        <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: '#DCFCE7' }}>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+                <CheckCircle2 className="h-7 w-7" style={{ color: '#15803D' }} strokeWidth={1.5} />
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-semibold text-gray-800">{filteredAndSortedTours.length}</p>
+              </div>
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-purple-50 flex items-center justify-center">
-              <FileText className="w-6 h-6 text-purple-600" strokeWidth={1.5} />
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{t('admin.tourApproval.stats.displayedTours')}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: '#F0E6FF' }}>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+                <FileText className="h-7 w-7" style={{ color: '#B380FF' }} strokeWidth={1.5} />
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-semibold text-gray-800">
+                  {currentPage + 1} / {totalPages || 1}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{t('admin.tourApproval.stats.currentPage')}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="flex flex-col gap-3 p-5 border-b lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div className="relative w-full lg:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
             {showUpdateRequests ? (
               <input
                 type="text"
                 value={searchUpdateQuery}
                 onChange={(e) => setSearchUpdateQuery(e.target.value)}
                 placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
-                className="w-full border border-amber-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFB84D]/30 bg-white"
+                style={{ borderColor: '#FFE5CC' }}
               />
             ) : showDeleteRequests ? (
               <input
@@ -952,7 +962,8 @@ const TourApproval = () => {
                 value={searchDeleteQuery}
                 onChange={(e) => setSearchDeleteQuery(e.target.value)}
                 placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
-                className="w-full border border-red-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF80B3]/30 bg-white"
+                style={{ borderColor: '#FFB3B3' }}
               />
             ) : (
               <input
@@ -963,7 +974,8 @@ const TourApproval = () => {
                   setCurrentPage(0);
                 }}
                 placeholder={t('admin.tourApproval.filters.searchPlaceholder')}
-                className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               />
             )}
           </div>
@@ -976,7 +988,8 @@ const TourApproval = () => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(0);
                 }}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               >
                 <option value="all">{t('admin.tourApproval.filters.statusFilter.all')}</option>
                 <option value="NOT_APPROVED">{t('admin.tourApproval.filters.statusFilter.notApproved')}</option>
@@ -989,7 +1002,8 @@ const TourApproval = () => {
               <select
                 value={sortUpdateBy}
                 onChange={(e) => setSortUpdateBy(e.target.value)}
-                className="border border-amber-300 rounded-lg px-3 py-2 text-sm text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="border rounded-[20px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFB84D]/30 bg-white"
+                style={{ borderColor: '#FFE5CC', color: '#FFB84D' }}
               >
                 <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
                 <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
@@ -1000,7 +1014,8 @@ const TourApproval = () => {
               <select
                 value={sortDeleteBy}
                 onChange={(e) => setSortDeleteBy(e.target.value)}
-                className="border border-red-300 rounded-lg px-3 py-2 text-sm text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="border rounded-[20px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF80B3]/30 bg-white"
+                style={{ borderColor: '#FFB3B3', color: '#FF80B3' }}
               >
                 <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
                 <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
@@ -1014,7 +1029,8 @@ const TourApproval = () => {
                   setSortBy(e.target.value);
                   setCurrentPage(0);
                 }}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               >
                 <option value="newest">{t('admin.tourApproval.filters.sortBy.newest')}</option>
                 <option value="oldest">{t('admin.tourApproval.filters.sortBy.oldest')}</option>
@@ -1025,22 +1041,37 @@ const TourApproval = () => {
             {/* Update Requests Button */}
             <button
               onClick={toggleUpdateRequestsView}
-              className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${showUpdateRequests
-                ? 'bg-amber-500 text-white shadow-[0_8px_20px_rgba(245,158,11,0.35)] hover:bg-amber-600'
-                : 'border border-amber-300 text-amber-600 hover:bg-amber-50 hover:border-amber-400'
-                }`}
+              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-[20px] text-sm font-semibold transition-all duration-200"
+              style={showUpdateRequests
+                ? { backgroundColor: '#FFB84D', color: '#FFFFFF' }
+                : { borderColor: '#FFE5CC', color: '#FFB84D', backgroundColor: '#FFF4E6', borderWidth: '1px', borderStyle: 'solid' }
+              }
+              onMouseEnter={(e) => {
+                if (!showUpdateRequests) {
+                  e.target.style.backgroundColor = '#FFEDD5';
+                } else {
+                  e.target.style.backgroundColor = '#FFA726';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!showUpdateRequests) {
+                  e.target.style.backgroundColor = '#FFF4E6';
+                } else {
+                  e.target.style.backgroundColor = '#FFB84D';
+                }
+              }}
             >
               {/* Red notification dot */}
               {updateRequests.length > 0 && !showUpdateRequests && (
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#FF80B3' }}></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: '#FF80B3' }}></span>
                 </span>
               )}
               <Edit3 className="h-4 w-4" strokeWidth={1.5} />
               {t('admin.tourManagement.updateRequests.button')}
               {updateRequests.length > 0 && (
-                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-white text-amber-600">
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full" style={{ backgroundColor: showUpdateRequests ? '#FFFFFF' : '#FFB84D', color: showUpdateRequests ? '#FFB84D' : '#FFFFFF' }}>
                   {updateRequests.length}
                 </span>
               )}
@@ -1048,22 +1079,37 @@ const TourApproval = () => {
             {/* Delete Requests Button */}
             <button
               onClick={toggleDeleteRequestsView}
-              className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${showDeleteRequests
-                ? 'bg-red-500 text-white shadow-[0_8px_20px_rgba(239,68,68,0.35)] hover:bg-red-600'
-                : 'border border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400'
-                }`}
+              className="relative inline-flex items-center gap-2 px-4 py-2 rounded-[20px] text-sm font-semibold transition-all duration-200"
+              style={showDeleteRequests
+                ? { backgroundColor: '#FF80B3', color: '#FFFFFF' }
+                : { borderColor: '#FFB3B3', color: '#FF80B3', backgroundColor: '#FFE6F0', borderWidth: '1px', borderStyle: 'solid' }
+              }
+              onMouseEnter={(e) => {
+                if (!showDeleteRequests) {
+                  e.target.style.backgroundColor = '#FFD9E8';
+                } else {
+                  e.target.style.backgroundColor = '#FF66A3';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!showDeleteRequests) {
+                  e.target.style.backgroundColor = '#FFE6F0';
+                } else {
+                  e.target.style.backgroundColor = '#FF80B3';
+                }
+              }}
             >
               {/* Red notification dot */}
               {deleteRequests.length > 0 && !showDeleteRequests && (
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#FF80B3' }}></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: '#FF80B3' }}></span>
                 </span>
               )}
               <Trash2 className="h-4 w-4" strokeWidth={1.5} />
               {t('admin.tourManagement.deleteRequests.button')}
               {deleteRequests.length > 0 && (
-                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-white text-red-600">
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full" style={{ backgroundColor: showDeleteRequests ? '#FFFFFF' : '#FF80B3', color: showDeleteRequests ? '#FF80B3' : '#FFFFFF' }}>
                   {deleteRequests.length}
                 </span>
               )}
@@ -1086,18 +1132,18 @@ const TourApproval = () => {
                 <p>{t('admin.tourManagement.updateRequests.empty')}</p>
               </div>
             ) : (
-              <div className="bg-white rounded-[24px] overflow-hidden border border-[#FFF7ED] shadow-sm">
-                <table className="min-w-full divide-y divide-[#FFF7ED]">
-                  <thead className="bg-[#FFF7ED]">
+              <div className="bg-white rounded-[28px] overflow-hidden border shadow-sm" style={{ borderColor: '#FFE5CC' }}>
+                <table className="min-w-full divide-y" style={{ borderColor: '#FFE5CC' }}>
+                  <thead style={{ backgroundColor: '#FFF4E6' }}>
                     <tr>
                       {['STT', t('admin.tourManagement.updateRequests.tourName'), t('admin.tourManagement.updateRequests.status'), t('admin.tourManagement.updateRequests.bookingCount'), t('admin.tourManagement.updateRequests.companyNote'), t('admin.tourManagement.updateRequests.requestedAt'), t('admin.tourApproval.table.headers.actions')].map((header) => (
-                        <th key={header} className="px-6 py-4 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">
+                        <th key={header} className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>
                           {header}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-[#FFF7ED]">
+                  <tbody className="bg-white divide-y" style={{ borderColor: '#FFE5CC' }}>
                   {sortedUpdateRequests.map((request, index) => {
                     const isExpanded = expandedUpdateRequestId === request.id;
                     const bookings = request.bookings || [];
@@ -1108,10 +1154,13 @@ const TourApproval = () => {
                     return (
                       <React.Fragment key={request.id}>
                         <tr 
-                          className="transition-all duration-200 cursor-pointer hover:bg-[#FFF7ED]/30"
+                          className="transition-all duration-200 cursor-pointer"
+                          style={{ backgroundColor: 'transparent' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FFF4E6'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           onClick={() => toggleUpdateRequestBooking(request.id)}
                         >
-                          <td className="px-6 py-5 text-sm text-[#8B6F47]">{index + 1}</td>
+                          <td className="px-6 py-5 text-sm" style={{ color: '#FFB84D' }}>{index + 1}</td>
                           <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
                               {request.originalTour?.tourImgPath && (
@@ -1129,15 +1178,16 @@ const TourApproval = () => {
                             </div>
                           </td>
                           <td className="px-6 py-5">
-                            <span className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px] ${request.status === 'PENDING' ? 'bg-[#FFE4CC] text-[#D97706]' :
-                              request.status === 'APPROVED' ? 'bg-[#D1FAE5] text-[#059669]' :
-                                request.status === 'REJECTED' ? 'bg-[#FEE2E2] text-[#DC2626]' :
-                                  'bg-[#F3F4F6] text-[#6B7280]'
-                            }`}>
+                            <span className="inline-flex px-3 py-1.5 text-xs font-semibold rounded-[20px]" style={
+                              request.status === 'PENDING' ? { backgroundColor: '#FFF4E6', color: '#FFB84D' } :
+                              request.status === 'APPROVED' ? { backgroundColor: '#DCFCE7', color: '#15803D' } :
+                              request.status === 'REJECTED' ? { backgroundColor: '#FFE6F0', color: '#FF80B3' } :
+                              { backgroundColor: '#F5F5F5', color: '#9CA3AF' }
+                            }>
                               {request.status || 'N/A'}
                             </span>
                           </td>
-                          <td className="px-6 py-5 text-sm text-[#8B6F47]">
+                          <td className="px-6 py-5 text-sm" style={{ color: '#FFB84D' }}>
                             {request.bookingCount || 0}
                           </td>
                           <td className="px-6 py-5 text-sm text-[#8B6F47] max-w-xs">
@@ -1152,20 +1202,36 @@ const TourApproval = () => {
                                 <button
                                   onClick={() => handleViewDetails(request.originalTour?.tourId || request.originalTourId, request)}
                                   disabled={loadingDetail}
-                                  className="relative p-2.5 rounded-[20px] border border-[#FED7AA] bg-[#FFE4CC] text-[#D97706] hover:text-[#B45309] hover:border-[#FDBA74] hover:bg-[#FFEDD5] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="relative p-2.5 rounded-[20px] border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  style={{ borderColor: '#FFE5CC', backgroundColor: '#FFF4E6', color: '#FFB84D' }}
+                                  onMouseEnter={(e) => {
+                                    if (!e.target.disabled) {
+                                      e.target.style.backgroundColor = '#FFEDD5';
+                                      e.target.style.borderColor = '#FFD9B3';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!e.target.disabled) {
+                                      e.target.style.backgroundColor = '#FFF4E6';
+                                      e.target.style.borderColor = '#FFE5CC';
+                                    }
+                                  }}
                                   title={t('admin.tourDetailModal.viewingUpdateRequest')}
                                 >
                                   <Eye className="h-4 w-4" strokeWidth={1.5} />
                                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F59E0B] opacity-60"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#D97706]"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ backgroundColor: '#FFB84D' }}></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: '#FFB84D' }}></span>
                                   </span>
                                 </button>
                               </Tooltip>
                               <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
                                 <button
                                   onClick={() => handleApproveUpdateRequest(request)}
-                                  className="p-2.5 rounded-[20px] border border-[#A7F3D0] bg-[#D1FAE5] text-[#059669] hover:text-[#047857] hover:border-[#6EE7B7] hover:bg-[#ECFDF5] transition-all duration-200"
+                                  className="p-2.5 rounded-[20px] transition-all duration-200"
+                                  style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = '#BBF7D0'}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = '#DCFCE7'}
                                 >
                                   <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1173,7 +1239,10 @@ const TourApproval = () => {
                               <Tooltip text={t('admin.tourManagement.updateRequests.reject')} position="top">
                                 <button
                                   onClick={() => handleRejectUpdateRequest(request)}
-                                  className="p-2.5 rounded-[20px] border border-[#FCA5A5] bg-[#FEE2E2] text-[#DC2626] hover:text-[#B91C1C] hover:border-[#F87171] hover:bg-[#FEF2F2] transition-all duration-200"
+                                  className="p-2.5 rounded-[20px] transition-all duration-200"
+                                  style={{ backgroundColor: '#FFE6F0', color: '#FF80B3' }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = '#FFB3B3'}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = '#FFE6F0'}
                                 >
                                   <XCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1183,25 +1252,25 @@ const TourApproval = () => {
                         </tr>
                         {isExpanded && bookings.length > 0 && (
                           <tr>
-                            <td colSpan={7} className="px-6 py-5 bg-[#FFF7ED]/20">
+                            <td colSpan={7} className="px-6 py-5" style={{ backgroundColor: '#FFF4E6' }}>
                               <div className="space-y-4 pl-4">
-                                <h4 className="text-sm font-medium text-[#C0845D] mb-4">
+                                <h4 className="text-sm font-semibold mb-4" style={{ color: '#FFB84D' }}>
                                   {t('admin.tourManagement.updateRequests.bookings')} ({bookings.length})
                                 </h4>
-                                <div className="overflow-x-auto bg-white rounded-[24px] border border-[#FFF7ED] shadow-sm">
-                                  <table className="min-w-full divide-y divide-[#FFF7ED]">
-                                    <thead className="bg-[#FFF7ED]/50">
+                                <div className="overflow-x-auto bg-white rounded-[24px] border shadow-sm" style={{ borderColor: '#FFE5CC' }}>
+                                  <table className="min-w-full divide-y" style={{ borderColor: '#FFE5CC' }}>
+                                    <thead style={{ backgroundColor: '#FFF4E6' }}>
                                       <tr>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">ID</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactName')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactPhone')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactEmail')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.departureDate')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.status')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.createdAt')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>ID</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>{t('admin.tourManagement.bookings.contactName')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>{t('admin.tourManagement.bookings.contactPhone')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>{t('admin.tourManagement.bookings.contactEmail')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>{t('admin.tourManagement.bookings.departureDate')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>{t('admin.tourManagement.bookings.status')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FFB84D' }}>{t('admin.tourManagement.bookings.createdAt')}</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-[#FFF7ED]">
+                                    <tbody className="bg-white divide-y" style={{ borderColor: '#FFE5CC' }}>
                                       {paginatedBookings.map((booking) => {
                                         const statusColor = getBookingStatusColor(booking.status);
                                         // Convert to pastel colors
@@ -1215,12 +1284,15 @@ const TourApproval = () => {
                                         const colorKey = statusColor || '#6b7280';
                                         const pastelColor = pastelColors[colorKey] || pastelColors['#6b7280'];
                                         return (
-                                          <tr key={booking.bookingId} className="hover:bg-[#FFF7ED]/20 transition-all duration-200">
-                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">#{booking.bookingId}</td>
-                                            <td className="px-5 py-3 text-sm text-[#5A4A3A] font-medium">{booking.contactName || 'N/A'}</td>
-                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{booking.contactPhone || 'N/A'}</td>
-                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{booking.contactEmail || 'N/A'}</td>
-                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{formatBookingDate(booking.departureDate)}</td>
+                                          <tr key={booking.bookingId} className="transition-all duration-200" style={{ backgroundColor: 'transparent' }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FFF4E6'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                          >
+                                            <td className="px-5 py-3 text-sm" style={{ color: '#FFB84D' }}>#{booking.bookingId}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-800 font-medium">{booking.contactName || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{booking.contactPhone || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{booking.contactEmail || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{formatBookingDate(booking.departureDate)}</td>
                                             <td className="px-5 py-3">
                                               <span 
                                                 className="inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px]"
@@ -1233,7 +1305,7 @@ const TourApproval = () => {
                                                 {formatBookingStatusDisplay(booking.status)}
                                               </span>
                                             </td>
-                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{formatBookingDateTime(booking.createdAt)}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{formatBookingDateTime(booking.createdAt)}</td>
                                           </tr>
                                         );
                                       })}
@@ -1241,13 +1313,9 @@ const TourApproval = () => {
                                   </table>
                                 </div>
                                 {totalBookingPages > 1 && (
-                                  <div className="flex items-center justify-between pt-4 border-t border-[#FFF7ED]">
-                                    <div className="text-sm text-[#8B6F47]">
-                                      {t('admin.tourApproval.pagination.page', { 
-                                        current: currentBookingPage + 1, 
-                                        total: totalBookingPages, 
-                                        count: bookings.length 
-                                      })}
+                                  <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: '#FFE5CC' }}>
+                                    <div className="text-sm" style={{ color: '#FFB84D' }}>
+                                      Trang {currentBookingPage + 1} / {totalBookingPages} ({bookings.length} booking)
                                     </div>
                                     <div className="flex gap-2">
                                       <button
@@ -1259,9 +1327,20 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage === 0}
-                                        className="px-4 py-2 text-sm border border-[#FED7AA] bg-white text-[#C0845D] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FFF7ED] transition-all duration-200"
+                                        className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                                        style={{ borderColor: '#FFE5CC', backgroundColor: '#FFFFFF', color: '#FFB84D' }}
+                                        onMouseEnter={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFF4E6';
+                                          }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFFFFF';
+                                          }
+                                        }}
                                       >
-                                        {t('admin.tourApproval.pagination.previous')}
+                                        Trước
                                       </button>
                                       <button
                                         onClick={(e) => {
@@ -1272,9 +1351,20 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage >= totalBookingPages - 1}
-                                        className="px-4 py-2 text-sm border border-[#FED7AA] bg-white text-[#C0845D] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FFF7ED] transition-all duration-200"
+                                        className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                                        style={{ borderColor: '#FFE5CC', backgroundColor: '#FFFFFF', color: '#FFB84D' }}
+                                        onMouseEnter={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFF4E6';
+                                          }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFFFFF';
+                                          }
+                                        }}
                                       >
-                                        {t('admin.tourApproval.pagination.next')}
+                                        Sau
                                       </button>
                                     </div>
                                   </div>
@@ -1305,18 +1395,18 @@ const TourApproval = () => {
                 <p>{t('admin.tourManagement.deleteRequests.empty')}</p>
               </div>
             ) : (
-              <div className="bg-white rounded-[24px] overflow-hidden border border-[#FEF2F2] shadow-sm">
-                <table className="min-w-full divide-y divide-[#FEF2F2]">
-                  <thead className="bg-[#FEF2F2]">
+              <div className="bg-white rounded-[28px] overflow-hidden border shadow-sm" style={{ borderColor: '#FFB3B3' }}>
+                <table className="min-w-full divide-y" style={{ borderColor: '#FFB3B3' }}>
+                  <thead style={{ backgroundColor: '#FFE6F0' }}>
                     <tr>
                       {['STT', t('admin.tourManagement.deleteRequests.tourName'), t('admin.tourManagement.deleteRequests.status'), t('admin.tourManagement.deleteRequests.bookingCount'), t('admin.tourManagement.deleteRequests.companyNote'), t('admin.tourManagement.deleteRequests.requestedAt'), t('admin.tourApproval.table.headers.actions')].map((header) => (
-                        <th key={header} className="px-6 py-4 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">
+                        <th key={header} className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>
                           {header}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-[#FEF2F2]">
+                  <tbody className="bg-white divide-y" style={{ borderColor: '#FFB3B3' }}>
                   {sortedDeleteRequests.map((request, index) => {
                     const isExpanded = expandedDeleteRequestId === request.id;
                     const bookings = request.bookings || [];
@@ -1327,34 +1417,38 @@ const TourApproval = () => {
                     return (
                       <React.Fragment key={request.id}>
                         <tr 
-                          className="transition-all duration-200 cursor-pointer hover:bg-[#FEF2F2]/30"
+                          className="transition-all duration-200 cursor-pointer"
+                          style={{ backgroundColor: 'transparent' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FFE6F0'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           onClick={() => toggleDeleteRequestBooking(request.id)}
                         >
-                          <td className="px-6 py-5 text-sm text-[#A66B73]">{index + 1}</td>
+                          <td className="px-6 py-5 text-sm" style={{ color: '#FF80B3' }}>{index + 1}</td>
                           <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
                               <div>
-                                <p className="font-medium text-[#7F1D1D]">{request.tourName || 'N/A'}</p>
-                                <p className="text-xs text-[#B8818F]">ID: {request.tourId}</p>
+                                <p className="font-medium text-gray-800">{request.tourName || 'N/A'}</p>
+                                <p className="text-xs text-gray-500">ID: {request.tourId}</p>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-5">
-                            <span className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px] ${request.status === 'PENDING' ? 'bg-[#FEF3C7] text-[#D97706]' :
-                              request.status === 'APPROVED' ? 'bg-[#D1FAE5] text-[#059669]' :
-                                request.status === 'REJECTED' ? 'bg-[#FEE2E2] text-[#DC2626]' :
-                                  'bg-[#F3F4F6] text-[#6B7280]'
-                            }`}>
+                            <span className="inline-flex px-3 py-1.5 text-xs font-semibold rounded-[20px]" style={
+                              request.status === 'PENDING' ? { backgroundColor: '#FFF4E6', color: '#FFB84D' } :
+                              request.status === 'APPROVED' ? { backgroundColor: '#DCFCE7', color: '#15803D' } :
+                              request.status === 'REJECTED' ? { backgroundColor: '#FFE6F0', color: '#FF80B3' } :
+                              { backgroundColor: '#F5F5F5', color: '#9CA3AF' }
+                            }>
                               {request.status || 'N/A'}
                             </span>
                           </td>
-                          <td className="px-6 py-5 text-sm text-[#A66B73]">
+                          <td className="px-6 py-5 text-sm" style={{ color: '#FF80B3' }}>
                             {request.bookingCount || 0}
                           </td>
-                          <td className="px-6 py-5 text-sm text-[#A66B73] max-w-xs">
+                          <td className="px-6 py-5 text-sm text-gray-600 max-w-xs">
                             <p className="line-clamp-2">{request.companyNote || '-'}</p>
                           </td>
-                          <td className="px-6 py-5 text-sm text-[#A66B73]">
+                          <td className="px-6 py-5 text-sm text-gray-600">
                             {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
                           </td>
                           <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
@@ -1363,20 +1457,32 @@ const TourApproval = () => {
                                 <button
                                   onClick={() => handleViewDetails(request.tourId)}
                                   disabled={loadingDetail}
-                                  className="relative p-2.5 rounded-[20px] border border-[#FCA5A5] bg-[#FEE2E2] text-[#DC2626] hover:text-[#B91C1C] hover:border-[#F87171] hover:bg-[#FEF2F2] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="p-2.5 rounded-[20px] border transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  style={{ borderColor: '#FFB3B3', backgroundColor: '#FFE6F0', color: '#FF80B3' }}
+                                  onMouseEnter={(e) => {
+                                    if (!e.target.disabled) {
+                                      e.target.style.backgroundColor = '#FFD9E8';
+                                      e.target.style.borderColor = '#FFB3CC';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!e.target.disabled) {
+                                      e.target.style.backgroundColor = '#FFE6F0';
+                                      e.target.style.borderColor = '#FFB3B3';
+                                    }
+                                  }}
                                   title={t('admin.tourDetailModal.viewingDeleteRequest') || 'Viewing Delete Request'}
                                 >
                                   <Eye className="h-4 w-4" strokeWidth={1.5} />
-                                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F87171] opacity-60"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#DC2626]"></span>
-                                  </span>
                                 </button>
                               </Tooltip>
                               <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
                                 <button
                                   onClick={() => handleApproveDeleteRequest(request)}
-                                  className="p-2.5 rounded-[20px] border border-[#A7F3D0] bg-[#D1FAE5] text-[#059669] hover:text-[#047857] hover:border-[#6EE7B7] hover:bg-[#ECFDF5] transition-all duration-200"
+                                  className="p-2.5 rounded-[20px] transition-all duration-200"
+                                  style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = '#BBF7D0'}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = '#DCFCE7'}
                                 >
                                   <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1384,7 +1490,10 @@ const TourApproval = () => {
                               <Tooltip text={t('admin.tourManagement.deleteRequests.reject')} position="top">
                                 <button
                                   onClick={() => handleRejectDeleteRequest(request)}
-                                  className="p-2.5 rounded-[20px] border border-[#FCA5A5] bg-[#FEE2E2] text-[#DC2626] hover:text-[#B91C1C] hover:border-[#F87171] hover:bg-[#FEF2F2] transition-all duration-200"
+                                  className="p-2.5 rounded-[20px] transition-all duration-200"
+                                  style={{ backgroundColor: '#FFE6F0', color: '#FF80B3' }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = '#FFB3B3'}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = '#FFE6F0'}
                                 >
                                   <XCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1394,25 +1503,25 @@ const TourApproval = () => {
                         </tr>
                         {isExpanded && bookings.length > 0 && (
                           <tr>
-                            <td colSpan={7} className="px-6 py-5 bg-[#FEF2F2]/20">
+                            <td colSpan={7} className="px-6 py-5" style={{ backgroundColor: '#FFE6F0' }}>
                               <div className="space-y-4 pl-4">
-                                <h4 className="text-sm font-medium text-[#DC6875] mb-4">
+                                <h4 className="text-sm font-semibold mb-4" style={{ color: '#FF80B3' }}>
                                   {t('admin.tourManagement.deleteRequests.bookings')} ({bookings.length})
                                 </h4>
-                                <div className="overflow-x-auto bg-white rounded-[24px] border border-[#FEF2F2] shadow-sm">
-                                  <table className="min-w-full divide-y divide-[#FEF2F2]">
-                                    <thead className="bg-[#FEF2F2]/50">
+                                <div className="overflow-x-auto bg-white rounded-[24px] border shadow-sm" style={{ borderColor: '#FFB3B3' }}>
+                                  <table className="min-w-full divide-y" style={{ borderColor: '#FFB3B3' }}>
+                                    <thead style={{ backgroundColor: '#FFE6F0' }}>
                                       <tr>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">ID</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactName')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactPhone')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactEmail')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.departureDate')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.status')}</th>
-                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.createdAt')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>ID</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>{t('admin.tourManagement.bookings.contactName')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>{t('admin.tourManagement.bookings.contactPhone')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>{t('admin.tourManagement.bookings.contactEmail')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>{t('admin.tourManagement.bookings.departureDate')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>{t('admin.tourManagement.bookings.status')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#FF80B3' }}>{t('admin.tourManagement.bookings.createdAt')}</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-[#FEF2F2]">
+                                    <tbody className="bg-white divide-y" style={{ borderColor: '#FFB3B3' }}>
                                       {paginatedBookings.map((booking) => {
                                         const statusColor = getBookingStatusColor(booking.status);
                                         // Convert to pastel colors
@@ -1426,15 +1535,18 @@ const TourApproval = () => {
                                         const colorKey = statusColor || '#6b7280';
                                         const pastelColor = pastelColors[colorKey] || pastelColors['#6b7280'];
                                         return (
-                                          <tr key={booking.bookingId} className="hover:bg-[#FEF2F2]/20 transition-all duration-200">
-                                            <td className="px-5 py-3 text-sm text-[#A66B73]">#{booking.bookingId}</td>
-                                            <td className="px-5 py-3 text-sm text-[#7F1D1D] font-medium">{booking.contactName || 'N/A'}</td>
-                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{booking.contactPhone || 'N/A'}</td>
-                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{booking.contactEmail || 'N/A'}</td>
-                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{formatBookingDate(booking.departureDate)}</td>
+                                          <tr key={booking.bookingId} className="transition-all duration-200" style={{ backgroundColor: 'transparent' }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FFE6F0'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                          >
+                                            <td className="px-5 py-3 text-sm" style={{ color: '#FF80B3' }}>#{booking.bookingId}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-800 font-medium">{booking.contactName || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{booking.contactPhone || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{booking.contactEmail || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{formatBookingDate(booking.departureDate)}</td>
                                             <td className="px-5 py-3">
                                               <span 
-                                                className="inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px]"
+                                                className="inline-flex px-3 py-1.5 text-xs font-semibold rounded-[20px]"
                                                 style={{
                                                   backgroundColor: pastelColor.bg,
                                                   color: pastelColor.text,
@@ -1444,7 +1556,7 @@ const TourApproval = () => {
                                                 {formatBookingStatusDisplay(booking.status)}
                                               </span>
                                             </td>
-                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{formatBookingDateTime(booking.createdAt)}</td>
+                                            <td className="px-5 py-3 text-sm text-gray-600">{formatBookingDateTime(booking.createdAt)}</td>
                                           </tr>
                                         );
                                       })}
@@ -1452,13 +1564,9 @@ const TourApproval = () => {
                                   </table>
                                 </div>
                                 {totalBookingPages > 1 && (
-                                  <div className="flex items-center justify-between pt-4 border-t border-[#FEF2F2]">
-                                    <div className="text-sm text-[#A66B73]">
-                                      {t('admin.tourApproval.pagination.page', { 
-                                        current: currentBookingPage + 1, 
-                                        total: totalBookingPages, 
-                                        count: bookings.length 
-                                      })}
+                                  <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: '#FFB3B3' }}>
+                                    <div className="text-sm" style={{ color: '#FF80B3' }}>
+                                      Trang {currentBookingPage + 1} / {totalBookingPages} ({bookings.length} booking)
                                     </div>
                                     <div className="flex gap-2">
                                       <button
@@ -1470,9 +1578,20 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage === 0}
-                                        className="px-4 py-2 text-sm border border-[#FCA5A5] bg-white text-[#DC6875] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FEF2F2] transition-all duration-200"
+                                        className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                                        style={{ borderColor: '#FFB3B3', backgroundColor: '#FFFFFF', color: '#FF80B3' }}
+                                        onMouseEnter={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFE6F0';
+                                          }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFFFFF';
+                                          }
+                                        }}
                                       >
-                                        {t('admin.tourApproval.pagination.previous')}
+                                        Trước
                                       </button>
                                       <button
                                         onClick={(e) => {
@@ -1483,9 +1602,20 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage >= totalBookingPages - 1}
-                                        className="px-4 py-2 text-sm border border-[#FCA5A5] bg-white text-[#DC6875] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FEF2F2] transition-all duration-200"
+                                        className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                                        style={{ borderColor: '#FFB3B3', backgroundColor: '#FFFFFF', color: '#FF80B3' }}
+                                        onMouseEnter={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFE6F0';
+                                          }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          if (!e.target.disabled) {
+                                            e.target.style.backgroundColor = '#FFFFFF';
+                                          }
+                                        }}
                                       >
-                                        {t('admin.tourApproval.pagination.next')}
+                                        Sau
                                       </button>
                                     </div>
                                   </div>
@@ -1506,8 +1636,8 @@ const TourApproval = () => {
           /* Regular Tours Table */
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50/70">
+            <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+              <thead style={{ backgroundColor: '#FAFAFA' }}>
                 <tr>
                   {[
                     t('admin.tourApproval.table.headers.stt'),
@@ -1524,7 +1654,7 @@ const TourApproval = () => {
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-50">
+              <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
                 {paginatedTours.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
@@ -1533,7 +1663,10 @@ const TourApproval = () => {
                   </tr>
                 ) : (
                   paginatedTours.map((tour, index) => (
-                    <tr key={tour.tourId || tour.id} className="hover:bg-[#e9f2ff]/40 transition">
+                    <tr key={tour.tourId || tour.id} className="transition" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {currentPage * pageSize + index + 1}
                       </td>
@@ -1543,18 +1676,19 @@ const TourApproval = () => {
                             <img
                               src={getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl)}
                               alt={tour.title || tour.tourName}
-                              className="w-12 h-12 rounded-lg object-cover"
+                              className="w-12 h-12 rounded-[20px] object-cover border"
+                              style={{ borderColor: '#E0E0E0' }}
                               onError={(e) => {
                                 e.target.src = '/default-Tour.jpg';
                               }}
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                              <span className="text-gray-400 text-xs">📦</span>
+                            <div className="w-12 h-12 rounded-[20px] flex items-center justify-center border" style={{ backgroundColor: '#F5F5F5', borderColor: '#E0E0E0' }}>
+                              <Package className="h-6 w-6 text-gray-400" strokeWidth={1.5} />
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-gray-800">
                               {tour.title || tour.tourName || 'N/A'}
                             </p>
                             {tour.shortDescription && (
@@ -1568,7 +1702,7 @@ const TourApproval = () => {
                       <td className="px-6 py-4">
                         <TourStatusBadge status={tour.tourStatus || tour.status} />
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
                         {formatPrice(tour.price || tour.adultPrice)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
@@ -1583,28 +1717,51 @@ const TourApproval = () => {
                             <button
                               onClick={() => handleViewDetails(tour.tourId || tour.id)}
                               disabled={loadingDetail}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="p-2 rounded-[20px] border transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                              onMouseEnter={(e) => {
+                                if (!e.target.disabled) {
+                                  e.target.style.color = '#66B3FF';
+                                  e.target.style.borderColor = '#CCE6FF';
+                                  e.target.style.backgroundColor = '#E6F3FF';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!e.target.disabled) {
+                                  e.target.style.color = '#9CA3AF';
+                                  e.target.style.borderColor = '#E0E0E0';
+                                  e.target.style.backgroundColor = 'transparent';
+                                }
+                              }}
                             >
                               <Eye className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                           </Tooltip>
                           {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
-                            <button
-                              onClick={() => handleApproveTour(tour.tourId || tour.id)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
-                              title={t('admin.tourApproval.actions.approve')}
-                            >
-                              <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
+                            <Tooltip text={t('admin.tourApproval.actions.approve')} position="top">
+                              <button
+                                onClick={() => handleApproveTour(tour.tourId || tour.id)}
+                                className="p-2 rounded-[20px] transition"
+                                style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#BBF7D0'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = '#DCFCE7'}
+                              >
+                                <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                              </button>
+                            </Tooltip>
                           )}
                           {(tour.tourStatus || tour.status || '').toUpperCase() !== 'DISABLED' && (
-                            <button
-                              onClick={() => handleRejectTour(tour.tourId || tour.id)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
-                              title={t('admin.tourApproval.actions.reject')}
-                            >
-                              <XCircle className="h-4 w-4" strokeWidth={1.5} />
-                            </button>
+                            <Tooltip text={t('admin.tourApproval.actions.reject')} position="top">
+                              <button
+                                onClick={() => handleRejectTour(tour.tourId || tour.id)}
+                                className="p-2 rounded-[20px] transition"
+                                style={{ backgroundColor: '#FFE6F0', color: '#FF80B3' }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#FFB3B3'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = '#FFE6F0'}
+                              >
+                                <XCircle className="h-4 w-4" strokeWidth={1.5} />
+                              </button>
+                            </Tooltip>
                           )}
                         </div>
                       </td>
@@ -1618,24 +1775,46 @@ const TourApproval = () => {
 
         {/* Pagination */}
         {!showUpdateRequests && !showDeleteRequests && filteredAndSortedTours.length >= 10 && totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: '#F0F0F0' }}>
             <div className="text-sm text-gray-600">
-              {t('admin.tourApproval.pagination.page', { current: currentPage + 1, total: totalPages, count: filteredAndSortedTours.length })}
+              Trang {currentPage + 1} / {totalPages} ({filteredAndSortedTours.length} tour)
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                 disabled={currentPage === 0}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                style={{ borderColor: '#E0E0E0', backgroundColor: '#FFFFFF' }}
+                onMouseEnter={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#F5F5F5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#FFFFFF';
+                  }
+                }}
               >
-                {t('admin.tourApproval.pagination.previous')}
+                Trước
               </button>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                 disabled={currentPage >= totalPages - 1}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                style={{ borderColor: '#E0E0E0', backgroundColor: '#FFFFFF' }}
+                onMouseEnter={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#F5F5F5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#FFFFFF';
+                  }
+                }}
               >
-                {t('admin.tourApproval.pagination.next')}
+                Sau
               </button>
             </div>
           </div>
@@ -1696,18 +1875,20 @@ const TourApproval = () => {
           style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
-            className="w-full max-w-md overflow-hidden"
-            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+            className="w-full max-w-md overflow-hidden border"
+            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
-              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
-                <CheckCircle style={{ width: '28px', height: '28px', color: '#10b981', strokeWidth: '1.5' }} />
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0' }}>
+                <CheckCircle style={{ width: '28px', height: '28px', color: '#15803D', strokeWidth: '1.5' }} />
               </div>
               <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
                 {t('admin.tourManagement.updateRequests.approveConfirm.title')}
               </h3>
               <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                {t('admin.tourManagement.updateRequests.approveConfirm.message')}
+                {t('admin.tourManagement.updateRequests.approveConfirm.message', {
+                  name: selectedUpdateRequest?.originalTour?.tourName || selectedUpdateRequest?.updatedTour?.tourName || ''
+                })}
               </p>
               <div style={{ marginBottom: '24px' }}>
                 <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.updateRequests.noteLabel')}</label>
@@ -1721,19 +1902,19 @@ const TourApproval = () => {
                   onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
                 />
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setIsApproveUpdateModalOpen(false)}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onClick={() => { setIsApproveUpdateModalOpen(false); setSelectedUpdateRequest(null); setUpdateApproveNote(''); }}
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
                   onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
-                >{t('common.cancel')}</button>
+                >{t('admin.tourManagement.updateRequests.approveConfirm.cancel')}</button>
                 <button
                   onClick={confirmApproveUpdateRequest}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)' }}
-                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.35)'; }}
-                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.25)'; }}
-                >{t('common.confirm')}</button>
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: 'none', backgroundColor: '#DCFCE7', color: '#15803D', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.backgroundColor = '#BBF7D0'; }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = '#DCFCE7'; }}
+                >{t('admin.tourManagement.updateRequests.approveConfirm.confirm')}</button>
               </div>
             </div>
           </div>
@@ -1747,18 +1928,18 @@ const TourApproval = () => {
           style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
-            className="w-full max-w-md overflow-hidden"
-            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+            className="w-full max-w-md overflow-hidden border"
+            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
-              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #fef2f2 0%, #fecaca 100%)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
-                <XCircle style={{ width: '28px', height: '28px', color: '#ef4444', strokeWidth: '1.5' }} />
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#FFE6F0', border: '1px solid #FFB3B3' }}>
+                <XCircle style={{ width: '28px', height: '28px', color: '#FF80B3', strokeWidth: '1.5' }} />
               </div>
               <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
                 {t('admin.tourManagement.updateRequests.rejectConfirm.title')}
               </h3>
               <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                {t('admin.tourManagement.updateRequests.rejectConfirm.message')}
+                {t('admin.tourManagement.updateRequests.rejectConfirm.message', { name: selectedUpdateRequest?.originalTour?.tourName || selectedUpdateRequest?.updatedTour?.tourName || '' })}
               </p>
               <div style={{ marginBottom: '24px' }}>
                 <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.updateRequests.noteLabel')}</label>
@@ -1772,19 +1953,19 @@ const TourApproval = () => {
                   onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
                 />
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setIsRejectUpdateModalOpen(false)}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onClick={() => { setIsRejectUpdateModalOpen(false); setSelectedUpdateRequest(null); setUpdateRejectNote(''); }}
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
                   onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
-                >{t('common.cancel')}</button>
+                >{t('admin.tourManagement.updateRequests.rejectConfirm.cancel')}</button>
                 <button
                   onClick={confirmRejectUpdateRequest}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.25)' }}
-                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.35)'; }}
-                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(239, 68, 68, 0.25)'; }}
-                >{t('common.confirm')}</button>
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: 'none', backgroundColor: '#FFE6F0', color: '#FF80B3', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.backgroundColor = '#FFB3B3'; }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = '#FFE6F0'; }}
+                >{t('admin.tourManagement.updateRequests.rejectConfirm.confirm')}</button>
               </div>
             </div>
           </div>
@@ -1798,18 +1979,18 @@ const TourApproval = () => {
           style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
-            className="w-full max-w-md overflow-hidden"
-            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+            className="w-full max-w-md overflow-hidden border"
+            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
-              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
-                <CheckCircle style={{ width: '28px', height: '28px', color: '#10b981', strokeWidth: '1.5' }} />
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0' }}>
+                <CheckCircle style={{ width: '28px', height: '28px', color: '#15803D', strokeWidth: '1.5' }} />
               </div>
               <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
                 {t('admin.tourManagement.deleteRequests.approveConfirm.title')}
               </h3>
               <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                {t('admin.tourManagement.deleteRequests.approveConfirm.message')}
+                {t('admin.tourManagement.deleteRequests.approveConfirm.message', { name: selectedDeleteRequest?.tour?.tourName || '' })}
               </p>
               <div style={{ marginBottom: '24px' }}>
                 <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.deleteRequests.noteLabel')}</label>
@@ -1823,19 +2004,19 @@ const TourApproval = () => {
                   onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
                 />
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setIsApproveDeleteModalOpen(false)}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onClick={() => { setIsApproveDeleteModalOpen(false); setSelectedDeleteRequest(null); setDeleteApproveNote(''); }}
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
                   onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
-                >{t('common.cancel')}</button>
+                >{t('admin.tourManagement.deleteRequests.approveConfirm.cancel')}</button>
                 <button
                   onClick={confirmApproveDeleteRequest}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)' }}
-                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.35)'; }}
-                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.25)'; }}
-                >{t('common.confirm')}</button>
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: 'none', backgroundColor: '#DCFCE7', color: '#15803D', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.backgroundColor = '#BBF7D0'; }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = '#DCFCE7'; }}
+                >{t('admin.tourManagement.deleteRequests.approveConfirm.confirm')}</button>
               </div>
             </div>
           </div>
@@ -1849,18 +2030,18 @@ const TourApproval = () => {
           style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
-            className="w-full max-w-md overflow-hidden"
-            style={{ background: 'linear-gradient(145deg, #ffffff 0%, #fafbfc 100%)', borderRadius: '28px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', border: '1px solid rgba(0, 0, 0, 0.04)' }}
+            className="w-full max-w-md overflow-hidden border"
+            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
-              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', background: 'linear-gradient(145deg, #fef2f2 0%, #fecaca 100%)', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
-                <XCircle style={{ width: '28px', height: '28px', color: '#ef4444', strokeWidth: '1.5' }} />
+              <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#FFE6F0', border: '1px solid #FFB3B3' }}>
+                <XCircle style={{ width: '28px', height: '28px', color: '#FF80B3', strokeWidth: '1.5' }} />
               </div>
               <h3 className="text-center mb-2" style={{ fontSize: '20px', fontWeight: '600', color: '#1a1a2e', letterSpacing: '-0.02em' }}>
                 {t('admin.tourManagement.deleteRequests.rejectConfirm.title')}
               </h3>
               <p className="text-center mb-5" style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
-                {t('admin.tourManagement.deleteRequests.rejectConfirm.message')}
+                {t('admin.tourManagement.deleteRequests.rejectConfirm.message', { name: selectedDeleteRequest?.tour?.tourName || '' })}
               </p>
               <div style={{ marginBottom: '24px' }}>
                 <label className="block mb-2" style={{ fontSize: '13px', fontWeight: '500', color: '#4b5563', letterSpacing: '-0.01em' }}>{t('admin.tourManagement.deleteRequests.noteLabel')}</label>
@@ -1874,19 +2055,19 @@ const TourApproval = () => {
                   onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; e.target.style.background = '#fafbfc'; }}
                 />
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setIsRejectDeleteModalOpen(false)}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onClick={() => { setIsRejectDeleteModalOpen(false); setSelectedDeleteRequest(null); setDeleteRejectNote(''); }}
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', color: '#4b5563', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
                   onMouseEnter={(e) => { e.target.style.background = '#f9fafb'; e.target.style.borderColor = '#d1d5db'; }}
                   onMouseLeave={(e) => { e.target.style.background = '#fff'; e.target.style.borderColor = '#e5e7eb'; }}
-                >{t('common.cancel')}</button>
+                >{t('admin.tourManagement.deleteRequests.rejectConfirm.cancel')}</button>
                 <button
                   onClick={confirmRejectDeleteRequest}
-                  style={{ padding: '14px 24px', borderRadius: '20px', border: 'none', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.25)' }}
-                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.35)'; }}
-                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 14px rgba(239, 68, 68, 0.25)'; }}
-                >{t('common.confirm')}</button>
+                  style={{ flex: 1, padding: '14px 20px', borderRadius: '20px', border: 'none', backgroundColor: '#FFE6F0', color: '#FF80B3', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.target.style.backgroundColor = '#FFB3B3'; }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = '#FFE6F0'; }}
+                >{t('admin.tourManagement.deleteRequests.rejectConfirm.confirm')}</button>
               </div>
             </div>
           </div>
@@ -1902,7 +2083,7 @@ const TourStatusBadge = ({ status }) => {
 
   if (!status) {
     return (
-      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#F5F5F5', color: '#9CA3AF' }}>
         {t('admin.tourApproval.status.na')}
       </span>
     );
@@ -1911,32 +2092,36 @@ const TourStatusBadge = ({ status }) => {
   const statusUpper = status.toUpperCase();
   const statusMap = {
     'PUBLIC': {
-      color: 'bg-green-100 text-green-700',
+      bgColor: '#DCFCE7',
+      textColor: '#15803D',
       label: t('admin.tourApproval.status.approved'),
       icon: Check
     },
     'NOT_APPROVED': {
-      color: 'bg-amber-100 text-amber-700',
+      bgColor: '#FFF4E6',
+      textColor: '#FFB84D',
       label: t('admin.tourApproval.status.pending'),
       icon: Clock
     },
     'DISABLED': {
-      color: 'bg-red-100 text-red-700',
+      bgColor: '#FFE6F0',
+      textColor: '#FF80B3',
       label: t('admin.tourApproval.status.disabled'),
       icon: X
     }
   };
 
   const map = statusMap[statusUpper] || {
-    color: 'bg-gray-100 text-gray-500',
-    label: status || t('admin.tourApproval.status.na'),
+    bgColor: '#F5F5F5',
+    textColor: '#9CA3AF',
+    label: status,
     icon: FileText
   };
 
   const IconComponent = map.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: map.bgColor, color: map.textColor }}>
       <IconComponent className="w-3.5 h-3.5" strokeWidth={1.5} />
       {map.label}
     </span>

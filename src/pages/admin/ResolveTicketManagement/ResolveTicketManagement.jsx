@@ -7,14 +7,14 @@ import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import Pagination from '../Pagination';
 import { Tooltip } from '../../../components';
 import {
-  TicketIcon,
-  MagnifyingGlassIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  EyeIcon,
-  XMarkIcon,
-  ChatBubbleLeftRightIcon,
-} from '@heroicons/react/24/outline';
+  Ticket,
+  Search,
+  CheckCircle2,
+  Clock,
+  Eye,
+  X,
+  MessageSquare,
+} from 'lucide-react';
 
 const ResolveTicketManagement = () => {
   const { t, i18n } = useTranslation();
@@ -289,10 +289,10 @@ const ResolveTicketManagement = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>
             {t('admin.resolveTicketManagement.title')}
           </p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.resolveTicketManagement.title')}</h1>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('admin.resolveTicketManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('admin.resolveTicketManagement.subtitle')}
           </p>
@@ -302,19 +302,19 @@ const ResolveTicketManagement = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={TicketIcon}
+          icon={Ticket}
           label={t('admin.resolveTicketManagement.stats.total')}
           value={stats.total}
           color="text-blue-500"
         />
         <StatCard
-          icon={CheckCircleIcon}
+          icon={CheckCircle2}
           label={t('admin.resolveTicketManagement.stats.resolved')}
           value={stats.resolved}
           color="text-green-600"
         />
         <StatCard
-          icon={ClockIcon}
+          icon={Clock}
           label={t('admin.resolveTicketManagement.stats.pending')}
           value={stats.pending}
           color="text-amber-500"
@@ -322,17 +322,18 @@ const ResolveTicketManagement = () => {
       </div>
 
       {/* Search and Filter box */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="bg-white rounded-[28px] shadow-sm border p-5" style={{ borderColor: '#F0F0F0' }}>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3 flex-1">
             <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={searchType === 'ticketId' ? t('admin.resolveTicketManagement.search.placeholderId') : t('admin.resolveTicketManagement.search.placeholderAll')}
-                className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               />
             </div>
             <select
@@ -341,7 +342,8 @@ const ResolveTicketManagement = () => {
                 setSearchType(e.target.value);
                 setSearchInput('');
               }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="all">{t('admin.resolveTicketManagement.search.all')}</option>
               <option value="ticketId">{t('admin.resolveTicketManagement.search.byTicketId')}</option>
@@ -351,7 +353,8 @@ const ResolveTicketManagement = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               >
                 <option value="all">{t('admin.resolveTicketManagement.search.all')}</option>
                 <option value="pending">{t('admin.resolveTicketManagement.search.pending')}</option>
@@ -365,24 +368,35 @@ const ResolveTicketManagement = () => {
             <button
               onClick={handleSearchById}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-[20px] text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#66B3FF', color: '#FFFFFF' }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#4DA3FF';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#66B3FF';
+                }
+              }}
             >
               {loading ? t('admin.resolveTicketManagement.loading') : t('admin.resolveTicketManagement.searchById')}
             </button>
           </div>
         )}
         {error && (
-          <p className="mt-3 text-sm text-red-600">
+          <p className="mt-3 text-sm px-4 py-2 rounded-[20px]" style={{ backgroundColor: '#FFE6F0', color: '#FF80B3' }}>
             {error}
           </p>
         )}
       </div>
 
       {/* Tickets table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-800">
               Support Tickets {filteredTickets.length > 0 && `(${filteredTickets.length})`}
             </h2>
             <p className="text-sm text-gray-500">
@@ -394,8 +408,8 @@ const ResolveTicketManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
                 {['ID', 'User', 'Message', 'Created at', 'Status', 'Action'].map((header) => (
                   <th
@@ -407,12 +421,12 @@ const ResolveTicketManagement = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {paginatedTickets.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-4">
-                      <TicketIcon className="h-16 w-16 text-gray-300" />
+                      <Ticket className="h-16 w-16 text-gray-300" strokeWidth={1.5} />
                       <div>
                         <p className="text-lg font-semibold text-gray-700">{t('admin.resolveTicketManagement.noTickets')}</p>
                         <p className="text-sm text-gray-500 mt-1">
@@ -424,7 +438,10 @@ const ResolveTicketManagement = () => {
                 </tr>
               ) : (
                 paginatedTickets.map((ticket) => (
-                  <tr key={ticket.ticketId} className="hover:bg-[#e9f2ff]/40 transition">
+                  <tr key={ticket.ticketId} className="transition" style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
                     <td className="px-6 py-4 text-sm text-gray-600 font-semibold">
                       #{ticket.ticketId}
                     </td>
@@ -434,7 +451,7 @@ const ResolveTicketManagement = () => {
                         if (userInfo) {
                           return (
                             <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-gray-800">
                                 {userInfo.username || userInfo.email || `User #${userInfo.userId}`}
                               </span>
                               {userInfo.email && userInfo.username && (
@@ -449,7 +466,7 @@ const ResolveTicketManagement = () => {
                         }
                       })()}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-6 py-4 text-sm text-gray-800">
                       <div className="max-w-md truncate" title={ticket.message || 'N/A'}>
                         {ticket.message || 'N/A'}
                       </div>
@@ -466,13 +483,24 @@ const ResolveTicketManagement = () => {
                           <button
                             type="button"
                             onClick={() => handleViewDetail(ticket)}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                            className="p-2 rounded-[20px] border transition"
+                            style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                            onMouseEnter={(e) => {
+                              e.target.style.color = '#66B3FF';
+                              e.target.style.borderColor = '#CCE6FF';
+                              e.target.style.backgroundColor = '#E6F3FF';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.color = '#9CA3AF';
+                              e.target.style.borderColor = '#E0E0E0';
+                              e.target.style.backgroundColor = 'transparent';
+                            }}
                           >
-                            <EyeIcon className="h-4 w-4" />
+                            <Eye className="h-4 w-4" strokeWidth={1.5} />
                           </button>
                         </Tooltip>
                         {ticket.resolutionType || ticket.status === 'RESOLVED' ? (
-                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}>
                             {t('admin.resolveTicketManagement.status.resolved')}
                           </span>
                         ) : (
@@ -482,12 +510,23 @@ const ResolveTicketManagement = () => {
                                 type="button"
                                 onClick={() => handleOpenResolveModal(ticket)}
                                 disabled={resolvingId === ticket.ticketId || !isAdminOrStaff}
-                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                                className="p-2 rounded-[20px] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}
+                                onMouseEnter={(e) => {
+                                  if (!e.target.disabled) {
+                                    e.target.style.backgroundColor = '#BBF7D0';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!e.target.disabled) {
+                                    e.target.style.backgroundColor = '#DCFCE7';
+                                  }
+                                }}
                               >
                                 {resolvingId === ticket.ticketId ? (
-                                  <ClockIcon className="h-4 w-4 animate-spin" />
+                                  <Clock className="h-4 w-4 animate-spin" strokeWidth={1.5} />
                                 ) : (
-                                  <CheckCircleIcon className="h-4 w-4" />
+                                  <CheckCircle2 className="h-4 w-4" strokeWidth={1.5} />
                                 )}
                               </button>
                             </Tooltip>
@@ -502,9 +541,20 @@ const ResolveTicketManagement = () => {
                                     handleViewDetail(ticket);
                                   }
                                 }}
-                                className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
+                                className="p-2 rounded-[20px] border transition"
+                                style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.color = '#66B3FF';
+                                  e.target.style.borderColor = '#CCE6FF';
+                                  e.target.style.backgroundColor = '#E6F3FF';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.color = '#9CA3AF';
+                                  e.target.style.borderColor = '#E0E0E0';
+                                  e.target.style.backgroundColor = 'transparent';
+                                }}
                               >
-                                <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                                <MessageSquare className="h-4 w-4" strokeWidth={1.5} />
                               </button>
                             </Tooltip>
                           </>
@@ -556,28 +606,39 @@ const ResolveTicketManagement = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
+const StatCard = ({ icon: IconComponent, label, value, color = 'text-blue-600' }) => {
+  const colorMap = {
+    'text-blue-500': { bg: '#E6F3FF', iconColor: '#66B3FF', textColor: '#66B3FF' },
+    'text-blue-600': { bg: '#E6F3FF', iconColor: '#66B3FF', textColor: '#66B3FF' },
+    'text-amber-500': { bg: '#FFF4E6', iconColor: '#FFB84D', textColor: '#FFB84D' },
+    'text-green-600': { bg: '#DCFCE7', iconColor: '#15803D', textColor: '#15803D' }
+  };
+  const colors = colorMap[color] || colorMap['text-blue-600'];
+  
+  return (
+    <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: colors.bg }}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+            <IconComponent className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-semibold text-gray-800">{value}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}></span>
     </div>
-  </div>
-);
+  );
+};
 
 const StatusBadge = ({ status }) => {
   const { t } = useTranslation();
   if (!status || status === 'PENDING') {
     return (
-      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700">
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#FFF4E6', color: '#FFB84D' }}>
         {t('admin.resolveTicketManagement.status.pending')}
       </span>
     );
@@ -585,14 +646,14 @@ const StatusBadge = ({ status }) => {
 
   if (status === 'RESOLVED') {
     return (
-      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}>
         {t('admin.resolveTicketManagement.status.resolved')}
       </span>
     );
   }
 
   return (
-    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#F5F5F5', color: '#9CA3AF' }}>
       {status}
     </span>
   );
@@ -618,40 +679,41 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
+        style={{ borderColor: '#F0F0F0' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50">
+        <div className="px-6 py-5 border-b bg-white" style={{ borderColor: '#F0F0F0', backgroundColor: '#E6F3FF' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('admin.resolveTicketManagement.modal.title')}</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">{t('admin.resolveTicketManagement.modal.title')}</h2>
               <p className="text-sm text-gray-500 mt-1">{t('admin.resolveTicketManagement.modal.ticketId', { id: ticket.ticketId })}</p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200"
+              className="p-2 rounded-[20px] hover:bg-white/80 text-gray-500 hover:text-gray-700 transition-all duration-200"
               title="Close"
             >
-              <XMarkIcon className="h-6 w-6" />
+              <X className="h-6 w-6" strokeWidth={1.5} />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6 overflow-y-auto flex-1">
+        <div className="px-6 py-6 overflow-y-auto flex-1" style={{ backgroundColor: '#FAFAFA' }}>
           <div className="space-y-6">
             {/* User Information Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 User Information
               </label>
-              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <div className="p-4 rounded-[24px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                 {userInfo ? (
                   <div className="space-y-2">
                     <div>
                       <span className="text-xs text-gray-500">Username: </span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-gray-800">
                         {userInfo.username || userInfo.email || 'N/A'}
                       </span>
                     </div>
@@ -671,7 +733,7 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
                 ) : ticket.userId ? (
                   <div>
                     <span className="text-xs text-gray-500">User ID: </span>
-                    <span className="text-sm font-medium text-gray-900">#{ticket.userId}</span>
+                    <span className="text-sm font-medium text-gray-800">#{ticket.userId}</span>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500">N/A</p>
@@ -684,7 +746,7 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {t('admin.resolveTicketManagement.modal.message')}
               </label>
-              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <div className="p-4 rounded-[24px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                   {ticket.message || 'N/A'}
                 </p>
@@ -696,13 +758,14 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {t('admin.resolveTicketManagement.modal.reasons')}
               </label>
-              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <div className="p-4 rounded-[24px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                 {ticket.reasons && ticket.reasons.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {ticket.reasons.map((reason, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-blue-50 text-blue-700"
+                        className="inline-flex px-3 py-1 text-sm font-medium rounded-[16px]"
+                        style={{ backgroundColor: '#E6F3FF', color: '#66B3FF' }}
                       >
                         {reason.ticketReasonType || reason}
                       </span>
@@ -720,7 +783,7 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   {t('admin.resolveTicketManagement.modal.status')}
                 </label>
-                <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                <div className="p-3 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                   <StatusBadge status={ticket.status || ticket.resolutionType || 'PENDING'} />
                 </div>
               </div>
@@ -731,7 +794,7 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   {t('admin.resolveTicketManagement.modal.createdAt')}
                 </label>
-                <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                <div className="p-3 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                   <p className="text-sm text-gray-700">{formatDateTime(ticket.createdAt || ticket.created_at || ticket.createAt)}</p>
                 </div>
               </div>
@@ -740,7 +803,7 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                     {t('admin.resolveTicketManagement.modal.resolvedAt')}
                   </label>
-                  <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                  <div className="p-3 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                     <p className="text-sm text-gray-700">{formatDateTime(ticket.resolvedAt)}</p>
                   </div>
                 </div>
@@ -750,11 +813,14 @@ const TicketDetailModal = ({ ticket, userMap, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+        <div className="px-6 py-4 border-t bg-white" style={{ borderColor: '#F0F0F0' }}>
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-all duration-200"
+              className="px-6 py-2.5 rounded-[20px] text-sm font-medium transition-all duration-200"
+              style={{ backgroundColor: '#F5F5F5', color: '#6B7280', borderColor: '#E0E0E0' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#E5E5E5'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#F5F5F5'}
             >
               {t('admin.resolveTicketManagement.modal.close')}
             </button>
@@ -797,36 +863,37 @@ const ResolveTicketModal = ({
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
+        style={{ borderColor: '#F0F0F0' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-green-50/50 to-blue-50/50">
+        <div className="px-6 py-5 border-b bg-white" style={{ borderColor: '#F0F0F0', backgroundColor: '#DCFCE7' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{t('admin.resolveTicketManagement.resolveModal.title')}</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">{t('admin.resolveTicketManagement.resolveModal.title')}</h2>
               <p className="text-sm text-gray-500 mt-1">{t('admin.resolveTicketManagement.resolveModal.ticketId', { id: ticket.ticketId })}</p>
             </div>
             <button
               onClick={onClose}
               disabled={isResolving}
-              className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200 disabled:opacity-50"
+              className="p-2 rounded-[20px] hover:bg-white/80 text-gray-500 hover:text-gray-700 transition-all duration-200 disabled:opacity-50"
               title="Close"
             >
-              <XMarkIcon className="h-6 w-6" />
+              <X className="h-6 w-6" strokeWidth={1.5} />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6 overflow-y-auto flex-1">
+        <div className="px-6 py-6 overflow-y-auto flex-1" style={{ backgroundColor: '#FAFAFA' }}>
           <div className="space-y-6">
             {/* Ticket Preview */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 {t('admin.resolveTicketManagement.resolveModal.ticketMessage')}
               </label>
-              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <div className="p-4 rounded-[24px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                 <p className="text-sm text-gray-800 leading-relaxed line-clamp-4">
                   {ticket.message || 'N/A'}
                 </p>
@@ -839,30 +906,50 @@ const ResolveTicketModal = ({
                 {t('admin.resolveTicketManagement.resolveModal.resolutionType')} <span className="text-red-500">{t('admin.resolveTicketManagement.resolveModal.required')}</span>
               </label>
               <div className="space-y-2">
-                {resolutionOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex items-start p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
-                      resolutionType === option.value
-                        ? `${option.color} border-current`
-                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="resolutionType"
-                      value={option.value}
-                      checked={resolutionType === option.value}
-                      onChange={(e) => setResolutionType(e.target.value)}
-                      className="mt-0.5 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                      disabled={isResolving}
-                    />
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm">{option.label}</div>
-                      <div className="text-xs mt-1 opacity-80">{option.description}</div>
-                    </div>
-                  </label>
-                ))}
+                {resolutionOptions.map((option) => {
+                  const isSelected = resolutionType === option.value;
+                  const optionColors = {
+                    'RESOLVED': { bg: '#DCFCE7', border: '#BBF7D0', text: '#15803D' },
+                    'CLOSED': { bg: '#F5F5F5', border: '#E0E0E0', text: '#6B7280' }
+                  };
+                  const colors = optionColors[option.value] || { bg: '#F5F5F5', border: '#E0E0E0', text: '#6B7280' };
+                  
+                  return (
+                    <label
+                      key={option.value}
+                      className="flex items-start p-4 rounded-[24px] border-2 cursor-pointer transition-all duration-200"
+                      style={{
+                        backgroundColor: isSelected ? colors.bg : '#FFFFFF',
+                        borderColor: isSelected ? colors.border : '#E0E0E0'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = '#CCCCCC';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = '#E0E0E0';
+                        }
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="resolutionType"
+                        value={option.value}
+                        checked={isSelected}
+                        onChange={(e) => setResolutionType(e.target.value)}
+                        className="mt-0.5 mr-3 h-4 w-4"
+                        style={{ accentColor: colors.text }}
+                        disabled={isResolving}
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm" style={{ color: isSelected ? colors.text : '#374151' }}>{option.label}</div>
+                        <div className="text-xs mt-1 opacity-80" style={{ color: isSelected ? colors.text : '#6B7280' }}>{option.description}</div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -877,30 +964,53 @@ const ResolveTicketModal = ({
                 rows={4}
                 placeholder={t('admin.resolveTicketManagement.resolveModal.notePlaceholder')}
                 disabled={isResolving}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full border rounded-[20px] px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ borderColor: '#E0E0E0', backgroundColor: '#FFFFFF' }}
               />
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+        <div className="px-6 py-4 border-t bg-white" style={{ borderColor: '#F0F0F0' }}>
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
               disabled={isResolving}
-              className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition-all duration-200 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-[20px] text-sm font-medium transition-all duration-200 disabled:opacity-50"
+              style={{ backgroundColor: '#F5F5F5', color: '#6B7280', borderColor: '#E0E0E0' }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#E5E5E5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#F5F5F5';
+                }
+              }}
             >
               {t('admin.resolveTicketManagement.resolveModal.cancel')}
             </button>
             <button
               onClick={onResolve}
               disabled={isResolving || !resolutionType}
-              className="px-6 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-2.5 rounded-[20px] text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#BBF7D0';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#DCFCE7';
+                }
+              }}
             >
               {isResolving ? (
                 <>
-                  <ClockIcon className="h-4 w-4 animate-spin" />
+                  <Clock className="h-4 w-4 animate-spin" strokeWidth={1.5} />
                   {t('admin.resolveTicketManagement.resolveModal.resolving')}
                 </>
               ) : (

@@ -8,7 +8,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useToursAPI } from '../../../hooks/useToursAPI';
-import { API_ENDPOINTS } from '../../../config/api';
+import { API_ENDPOINTS, getAvatarUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import styles from './homepage.module.css';
 const FALLBACK_GALLERY_IMAGE = '/default-Tour.jpg';
@@ -32,7 +32,7 @@ const Homepage = () => {
       title: t('home.destinations.defaultCards.banaTitle', 'Khám phá Bà Nà Hills'),
       tourDeparturePoint: t('home.destinations.defaultCards.banaDeparture', 'Đà Nẵng'),
       price: 1899000,
-      image: '/tour1.jpg',
+      image: '/Danang1.jpg',
       rating: 4.8,
       isDefault: true
     },
@@ -41,7 +41,7 @@ const Homepage = () => {
       title: t('home.destinations.defaultCards.hoianTitle', 'Dạo bước Hội An cổ kính'),
       tourDeparturePoint: t('home.destinations.defaultCards.hoianDeparture', 'Hội An'),
       price: 1599000,
-      image: '/tour2.jpg',
+      image: '/hoian1.jpg',
       rating: 4.7,
       isDefault: true
     },
@@ -50,7 +50,7 @@ const Homepage = () => {
       title: t('home.destinations.defaultCards.culaoChamTitle', 'Khám phá Cù Lao Chàm'),
       tourDeparturePoint: t('home.destinations.defaultCards.culaoChamDeparture', 'Quảng Nam'),
       price: 1399000,
-      image: '/tour3.jpg',
+      image: '/Danang2.jpg',
       rating: 4.6,
       isDefault: true
     }
@@ -65,10 +65,10 @@ const Homepage = () => {
 
   // Gallery images state
   const [galleryImages, setGalleryImages] = useState([
-    { src: '/tour1.jpg', alt: 'Left Top', loaded: false, error: false },
-    { src: '/tour2.jpg', alt: 'Right Top', loaded: false, error: false },
-    { src: '/tour3.jpg', alt: 'Left Bottom', loaded: false, error: false },
-    { src: '/TourDaNangBackground.jpg', alt: 'Right Tall', loaded: false, error: false }
+    { src: '/danang3.jpg', alt: 'Left Top', loaded: false, error: false },
+    { src: '/hoian2.jpg', alt: 'Right Top', loaded: false, error: false },
+    { src: '/danang4.jpg', alt: 'Left Bottom', loaded: false, error: false },
+    { src: '/hoian3.jpg', alt: 'Right Tall', loaded: false, error: false }
   ]);
 
   // Close success message
@@ -400,6 +400,61 @@ const Homepage = () => {
     fetchRatings();
     return () => controller.abort();
   }, [topTours, getToken]);
+
+  // Fetch testimonials (tour ratings with comments)
+  const [testimonials, setTestimonials] = useState([]);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(false);
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      setTestimonialsLoading(true);
+      try {
+        const res = await fetch(API_ENDPOINTS.TOUR_RATED);
+        if (res.ok) {
+          const allRatings = await res.json();
+          // Filter only ratings with comments and sort by star rating (highest first), then by date (newest first)
+          const filtered = allRatings
+            .filter((rating) => rating.comment && rating.comment.trim().length > 0)
+            .sort((a, b) => {
+              // First sort by star rating (descending)
+              if (b.star !== a.star) {
+                return (b.star || 0) - (a.star || 0);
+              }
+              // Then sort by date (newest first)
+              if (a.createdAt && b.createdAt) {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+              }
+              return 0;
+            });
+          setTestimonials(filtered);
+        }
+      } catch (error) {
+        // Silently handle error
+        setTestimonials([]);
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  // Navigation handlers for testimonials
+  const handlePrevTestimonial = useCallback(() => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === 0 ? Math.max(0, testimonials.length - 1) : prev - 1
+    );
+  }, [testimonials.length]);
+
+  const handleNextTestimonial = useCallback(() => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === testimonials.length - 1 ? 0 : prev + 1
+    );
+  }, [testimonials.length]);
+
+  // Get current testimonial
+  const currentTestimonial = testimonials.length > 0 ? testimonials[currentTestimonialIndex] : null;
 
 
   // GSAP animations - optimized for faster initial display (defer to next frame)
@@ -905,7 +960,7 @@ const Homepage = () => {
                     {/* Responsive container for images */}
                     <div className="relative w-full max-w-[540px] h-[300px] sm:h-[400px] lg:h-[440px] mx-auto lg:ml-auto lg:translate-x-[64px] lg:-translate-y-[120px] group cursor-pointer">
                       <img
-                        src="/TourDaNangBackground.jpg"
+                        src="/danang5.jpg"
                         alt="Colosseum Rome"
                         className="
                       absolute top-[-30px] sm:top-[-40px] left-[5px] sm:left-[10px]
@@ -919,7 +974,7 @@ const Homepage = () => {
                       />
 
                       <img
-                        src="/TourDaNangBackground.jpg"
+                        src="/hoian4.jpg"
                         alt="Dubai City"
                         className="
                       absolute top-[80px] sm:top-[160px] left-[70px] sm:left-[120px]
@@ -939,95 +994,123 @@ const Homepage = () => {
               </div>
             </section>
 
-            {/* TESTIMONIALS Section */}
-            <section className="relative py-24 lg:py-28">
-              <div className="max-w-7xl mx-auto px-6">
-                {/* Header */}
-                <div className="mb-12 max-w-5xl mx-auto text-center">
-                  <h2 className="text-xl font-semibold text-red-500 uppercase tracking-[0.2em] mb-3">
-                    {t('home.testimonials.sectionTitle')}
-                  </h2>
-                  <h3 className="text-4xl font-bold text-gray-900">
-                    {t('home.testimonials.headline')}
-                  </h3>
-                </div>
-
-                {/* === Wrapper 1024px, arrows overlay chạm mép card === */}
-                <div className="relative mx-auto max-w-[900px]">
-                  {/* Card full width */}
-                  <div
-                    className="
-                  testimonial-card w-full bg-white rounded-2xl shadow-lg
-                  p-10 sm:p-12
-                  min-h-[460px] md:min-h-[500px]
-                  flex flex-col items-center justify-center
-                  text-center
-                "
-                  >
-                    {/* Avatar */}
-                    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <span className="text-3xl">😉</span>
-                    </div>
-
-                    {/* Name & role */}
-                    <h4 className="text-xl font-bold text-gray-900 mb-1">{t('home.testimonials.name')}</h4>
-                    <p className="text-gray-600 mb-4">{t('home.testimonials.role')}</p>
-
-                    {/* Rating */}
-                    <div className="flex items-center justify-center gap-1 mb-6">
-                      {[...Array(4)].map((_, i) => (
-                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                      <svg className="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    </div>
-
-                    {/* Review */}
-                    <p className="text-gray-600 text-lg leading-relaxed max-w-[720px] mx-auto">
-                      "{t('home.testimonials.review')}"
-                    </p>
+            {/* TESTIMONIALS Section - Only show when there is data */}
+            {!testimonialsLoading && testimonials.length > 0 && currentTestimonial && (
+              <section className="relative py-24 lg:py-28">
+                <div className="max-w-7xl mx-auto px-6">
+                  {/* Header */}
+                  <div className="mb-12 max-w-5xl mx-auto text-center">
+                    <h2 className="text-xl font-semibold text-red-500 uppercase tracking-[0.2em] mb-3">
+                      {t('home.testimonials.sectionTitle')}
+                    </h2>
+                    <h3 className="text-4xl font-bold text-gray-900">
+                      {t('home.testimonials.headline')}
+                    </h3>
                   </div>
 
-                  {/* Left Arrow — to hơn, chạm mép card */}
-                  <button
-                    className="nav-arrow-btn absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2
-                           w-14 h-14 sm:w-16 sm:h-16 bg-white border-2 border-gray-300 rounded-full
-                           shadow-lg flex items-center justify-center
-                           hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500
-                           transition-all duration-300"
-                    aria-label="Previous"
-                  >
-                    <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+                  {/* === Wrapper 1024px, arrows overlay chạm mép card === */}
+                  <div className="relative mx-auto max-w-[900px]">
+                    {/* Card full width */}
+                    <div
+                      className="
+                    testimonial-card w-full bg-white rounded-2xl shadow-lg
+                    p-10 sm:p-12
+                    min-h-[460px] md:min-h-[500px]
+                    flex flex-col items-center justify-center
+                    text-center
+                  "
+                    >
+                      {/* Avatar */}
+                      <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-6 flex items-center justify-center bg-purple-100">
+                        <img
+                          src={getAvatarUrl(currentTestimonial.userAvatar) || '/default-avatar.png'}
+                          alt={currentTestimonial.username || t('home.testimonials.user')}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = '/default-avatar.png';
+                          }}
+                        />
+                      </div>
 
-                  {/* Right Arrow — to hơn, chạm mép card */}
-                  <button
-                    className="nav-arrow-btn absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2
-                           w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 rounded-full shadow-lg
-                           flex items-center justify-center
-                           hover:shadow-xl hover:scale-110 hover:bg-blue-700
-                           transition-all duration-300"
-                    aria-label="Next"
-                  >
-                    <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
+                      {/* Name & role */}
+                      <h4 className="text-xl font-bold text-gray-900 mb-1">
+                        {currentTestimonial.username || t('home.testimonials.name')}
+                      </h4>
+                      <p className="text-gray-600 mb-4">{t('home.testimonials.role')}</p>
 
-                {/* Pagination Dots */}
-                <div className="flex items-center justify-center gap-2 mt-16">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                      {/* Rating */}
+                      <div className="flex items-center justify-center gap-1 mb-6">
+                        {[...Array(5)].map((_, i) => {
+                          const starValue = currentTestimonial.star || 0;
+                          const isFilled = i < starValue;
+                          return (
+                            <svg
+                              key={i}
+                              className={`w-6 h-6 ${isFilled ? 'text-yellow-400' : 'text-gray-300'}`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          );
+                        })}
+                      </div>
+
+                      {/* Review */}
+                      <p className="text-gray-600 text-lg leading-relaxed max-w-[720px] mx-auto">
+                        "{currentTestimonial.comment || ''}"
+                      </p>
+                    </div>
+
+                    {/* Left Arrow — to hơn, chạm mép card */}
+                    <button
+                      onClick={handlePrevTestimonial}
+                      disabled={testimonials.length <= 1}
+                      className="nav-arrow-btn absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2
+                             w-14 h-14 sm:w-16 sm:h-16 bg-white border-2 border-gray-300 rounded-full
+                             shadow-lg flex items-center justify-center
+                             hover:shadow-xl hover:scale-110 hover:border-blue-500 hover:text-blue-500
+                             transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                      aria-label={t('home.testimonials.previous')}
+                    >
+                      <svg className="w-6 h-6 sm:w-7 sm:h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+
+                    {/* Right Arrow — to hơn, chạm mép card */}
+                    <button
+                      onClick={handleNextTestimonial}
+                      disabled={testimonials.length <= 1}
+                      className="nav-arrow-btn absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2
+                             w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 rounded-full shadow-lg
+                             flex items-center justify-center
+                             hover:shadow-xl hover:scale-110 hover:bg-blue-700
+                             transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                      aria-label={t('home.testimonials.next')}
+                    >
+                      <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Pagination Dots */}
+                  <div className="flex items-center justify-center gap-2 mt-16">
+                    {testimonials.slice(0, Math.min(5, testimonials.length)).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentTestimonialIndex(i)}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                          i === currentTestimonialIndex ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                        aria-label={t('home.testimonials.goToTestimonial', { index: i + 1 })}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            )}
 
             {/* NEWSLETTER SUBSCRIPTION Section */}
             <section className="relative">

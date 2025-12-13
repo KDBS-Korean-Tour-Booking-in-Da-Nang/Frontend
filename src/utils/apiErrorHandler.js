@@ -77,16 +77,16 @@ export const handleApiError = async (response, autoRedirect = false) => {
       localStorage.removeItem('token');
       localStorage.removeItem('accessToken');
       sessionStorage.removeItem('token');
-    } catch (e) {
-      console.error('Error clearing tokens:', e);
+    } catch {
+      // Failed to clear tokens, continue anyway
     }
     
     // Call logout if available to properly clear user state
     if (logoutCallback) {
       try {
         logoutCallback();
-      } catch (e) {
-        console.error('Error calling logout callback:', e);
+      } catch {
+        // Failed to call logout callback, continue anyway
       }
     }
     
@@ -128,8 +128,8 @@ export const handleApiError = async (response, autoRedirect = false) => {
       if (logoutCallback) {
         try {
           logoutCallback();
-        } catch (e) {
-          console.error('Error calling logout callback for banned user:', e);
+        } catch {
+          // Failed to call logout callback for banned user, continue anyway
         }
       }
       if (navigateCallback) {

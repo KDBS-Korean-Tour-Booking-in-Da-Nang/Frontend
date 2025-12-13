@@ -182,7 +182,6 @@ const TossWidgetContainer = ({
       })
       .catch((error) => {
         if (!isActive) return;
-        console.error('[Payment] Toss widget init failed', error);
         setInitError(error.message || t('payment.tossPayment.widget.initError'));
         onErrorRef.current?.(error);
         setLoading(false);
@@ -218,7 +217,6 @@ const TossWidgetContainer = ({
         failUrl,
       });
     } catch (error) {
-      console.error('[Payment] Toss widget requestPayment error', error);
       setRequesting(false);
       onError?.(error);
     }

@@ -289,9 +289,8 @@ const UserProfile = () => {
         try {
           // Use refreshUser from AuthContext to ensure consistency
           await refreshUser();
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          // Don't show error toast on mount, only log it
+        } catch {
+          // Silently handle error fetching user data on mount
         }
       }
     };
@@ -922,9 +921,8 @@ const UserProfile = () => {
           };
           updateUser(updatedUser);
         }
-      } catch (fetchError) {
-        console.error('Error fetching updated user data:', fetchError);
-        // Fallback to local update if fetch fails
+      } catch {
+        // Silently handle error fetching updated user data, fallback to local update
         const updatedUser = {
           ...user,
           username: editForm.name,

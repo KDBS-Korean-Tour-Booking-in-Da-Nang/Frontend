@@ -8,16 +8,16 @@ import CustomerDetailModal from './CustomerDetailModal';
 import Pagination from '../Pagination';
 import { Tooltip } from '../../../components';
 import {
-  UsersIcon,
-  UserCircleIcon,
-  MagnifyingGlassIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  MapPinIcon,
-  EyeIcon,
-  NoSymbolIcon,
-  ShieldExclamationIcon
-} from '@heroicons/react/24/outline';
+  Users,
+  UserCircle,
+  Search,
+  Phone,
+  Mail,
+  MapPin,
+  Eye,
+  Ban,
+  ShieldCheck
+} from 'lucide-react';
 
 const CustomerManagement = () => {
   const { t, i18n } = useTranslation();
@@ -298,7 +298,7 @@ const CustomerManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#66B3FF' }}></div>
           <p className="mt-4 text-gray-600">{t('admin.customerManagement.loading')}</p>
         </div>
       </div>
@@ -308,11 +308,14 @@ const CustomerManagement = () => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
-          <span>{error}</span>
+        <div className="px-4 py-3 rounded-[24px] flex items-center justify-between border" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFCCE0' }}>
+          <span style={{ color: '#FF80B3' }}>{error}</span>
           <button
             onClick={fetchCustomers}
-            className="ml-4 px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+            className="ml-4 px-3 py-1 text-xs font-semibold rounded-[20px] transition"
+            style={{ backgroundColor: '#FFCCE0', color: '#FF80B3' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#FFB3CC'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#FFCCE0'}
           >
             {t('admin.customerManagement.retry')}
           </button>
@@ -320,8 +323,8 @@ const CustomerManagement = () => {
       )}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.customerManagement.title')}</p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.customerManagement.title')}</h1>
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('admin.customerManagement.title')}</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('admin.customerManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('admin.customerManagement.subtitle')}
           </p>
@@ -331,27 +334,29 @@ const CustomerManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StatCard icon={UsersIcon} label={t('admin.customerManagement.stats.totalCustomers')} value={stats.total} trend={t('admin.customerManagement.stats.totalCustomersTrend')} />
-        <StatCard icon={UserCircleIcon} label={t('admin.customerManagement.stats.active')} value={stats.active} trend={t('admin.customerManagement.stats.activeTrend')} color="text-green-600" />
+        <StatCard icon={Users} label={t('admin.customerManagement.stats.totalCustomers')} value={stats.total} trend={t('admin.customerManagement.stats.totalCustomersTrend')} />
+        <StatCard icon={UserCircle} label={t('admin.customerManagement.stats.active')} value={stats.active} trend={t('admin.customerManagement.stats.activeTrend')} color="#15803D" />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="flex flex-col gap-3 p-5 border-b lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div className="relative w-full lg:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.customerManagement.searchPlaceholder')}
-              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('admin.customerManagement.statusFilter.all')}</option>
               <option value="active">{t('admin.customerManagement.statusFilter.active')}</option>
@@ -361,8 +366,8 @@ const CustomerManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
                 {[t('admin.customerManagement.tableHeaders.customer'), t('admin.customerManagement.tableHeaders.status'), t('admin.customerManagement.tableHeaders.bookings'), t('admin.customerManagement.tableHeaders.lastBooking'), t('admin.customerManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -371,7 +376,7 @@ const CustomerManagement = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
@@ -380,24 +385,28 @@ const CustomerManagement = () => {
                 </tr>
               ) : (
                 paginatedCustomers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-[#e9f2ff]/40 transition">
+                <tr key={customer.id} className="transition" style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-start gap-3">
                       <img 
                         src={customer.avatar || '/default-avatar.png'} 
                         alt={customer.name} 
-                        className="h-12 w-12 rounded-full object-cover border border-gray-100 mt-3.5"
+                        className="h-12 w-12 rounded-[20px] object-cover border mt-3.5"
+                        style={{ borderColor: '#E0E0E0' }}
                         onError={(e) => {
                           e.target.src = '/default-avatar.png';
                         }}
                       />
                       <div className="mt-1.5">
-                        <p className="font-semibold text-gray-900 mb-0">{customer.name}</p>
+                        <p className="font-semibold text-gray-800 mb-0">{customer.name}</p>
                         <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
                           {customer.email && <span>{customer.email}</span>}
                           {customer.phone && (
                             <span className="inline-flex items-center gap-1">
-                              <PhoneIcon className="h-4 w-4 text-gray-400" />
+                              <Phone className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
                               {customer.phone}
                             </span>
                           )}
@@ -405,7 +414,7 @@ const CustomerManagement = () => {
                         <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
                           {customer.address && (
                             <span className="inline-flex items-center gap-1">
-                              <MapPinIcon className="h-3.5 w-3.5" />
+                              <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} />
                               {customer.address}
                             </span>
                           )}
@@ -418,7 +427,7 @@ const CustomerManagement = () => {
                     <StatusBadge status={customer.status} />
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-gray-900">{customer.totalBookings}</div>
+                    <div className="text-sm font-semibold text-gray-800">{customer.totalBookings}</div>
                     <div className="text-xs text-gray-500">{t('admin.customerManagement.bookings')}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
@@ -429,20 +438,42 @@ const CustomerManagement = () => {
                       <Tooltip text={t('admin.customerManagement.actions.viewDetails')} position="top">
                         <button 
                           onClick={() => handleViewDetail(customer)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-200 transition"
+                          className="p-2 rounded-[20px] border transition"
+                          style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                          onMouseEnter={(e) => {
+                            e.target.style.color = '#66B3FF';
+                            e.target.style.borderColor = '#CCE6FF';
+                            e.target.style.backgroundColor = '#E6F3FF';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.color = '#9CA3AF';
+                            e.target.style.borderColor = '#E0E0E0';
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                         >
-                          <EyeIcon className="h-4 w-4" />
+                          <Eye className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </Tooltip>
                       <Tooltip text={customer.status === 'active' ? t('admin.customerManagement.actions.banUser') : t('admin.customerManagement.actions.unbanUser')} position="top">
                         <button 
                           onClick={() => handleBanClick(customer)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                          className="p-2 rounded-[20px] border transition"
+                          style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                          onMouseEnter={(e) => {
+                            e.target.style.color = '#FF80B3';
+                            e.target.style.borderColor = '#FFCCE0';
+                            e.target.style.backgroundColor = '#FFE6F0';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.color = '#9CA3AF';
+                            e.target.style.borderColor = '#E0E0E0';
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                         >
                           {customer.status === 'active' ? (
-                            <NoSymbolIcon className="h-4 w-4" />
+                            <Ban className="h-4 w-4" strokeWidth={1.5} />
                           ) : (
-                            <ShieldExclamationIcon className="h-4 w-4" />
+                            <ShieldCheck className="h-4 w-4" strokeWidth={1.5} />
                           )}
                         </button>
                       </Tooltip>
@@ -490,19 +521,19 @@ const CustomerManagement = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+const StatCard = ({ icon: IconComponent, label, value, trend, color = '#66B3FF' }) => (
+  <div className="bg-white rounded-[28px] border p-5 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: color === '#66B3FF' ? '#E6F3FF' : '#DCFCE7' }}>
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-blue-600" />
+        <div className="h-12 w-12 rounded-[20px] flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+          <IconComponent className="h-6 w-6" style={{ color: color }} strokeWidth={1.5} />
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+          <p className="text-xl font-semibold text-gray-800">{value}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
+      <span className="text-xs font-semibold" style={{ color: color }}>{trend}</span>
     </div>
   </div>
 );
@@ -510,10 +541,10 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
 const StatusBadge = ({ status }) => {
   const { t } = useTranslation();
   const map = status === 'active'
-    ? { color: 'bg-green-100 text-green-700', label: t('admin.customerManagement.status.active') }
-    : { color: 'bg-gray-100 text-gray-500', label: t('admin.customerManagement.status.inactive') };
+    ? { bgColor: '#DCFCE7', textColor: '#15803D', label: t('admin.customerManagement.status.active') }
+    : { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: t('admin.customerManagement.status.inactive') };
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: map.bgColor, color: map.textColor }}>
       {map.label}
     </span>
   );

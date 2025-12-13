@@ -3,14 +3,14 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { getAllComplaints, getComplaintById, resolveBookingComplaint } from '../../../../../services/bookingAPI';
 import { useNavigate } from 'react-router-dom';
 import {
-  ExclamationTriangleIcon,
-  MagnifyingGlassIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  EyeIcon,
-  XMarkIcon,
-  ArrowLeftIcon,
-} from '@heroicons/react/24/outline';
+  AlertTriangle,
+  Search,
+  CheckCircle2,
+  Clock,
+  Eye,
+  X,
+  ArrowLeft,
+} from 'lucide-react';
 
 const BookingComplaint = () => {
   const { user } = useAuth();
@@ -205,18 +205,21 @@ const BookingComplaint = () => {
   // Check if user has permission
   if (user && !canManageBookingComplaints) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc]">
-        <div className="max-w-md w-full rounded-[32px] bg-white/90 border border-gray-200 shadow-lg p-10 text-center">
-          <div className="w-16 h-16 rounded-[20px] bg-red-100 flex items-center justify-center text-red-600 mx-auto mb-6">
-            <ExclamationTriangleIcon className="h-7 w-7" />
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
+        <div className="max-w-md w-full rounded-[32px] bg-white border p-10 text-center shadow-sm" style={{ borderColor: '#F0F0F0' }}>
+          <div className="w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#FFE6F0' }}>
+            <AlertTriangle className="h-7 w-7" style={{ color: '#FF80B3' }} strokeWidth={1.5} />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">Không có quyền truy cập</h2>
-          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-3">Không có quyền truy cập</h2>
+          <p className="text-gray-500 text-sm leading-relaxed mb-6">
             Bạn không có quyền quản lý khiếu nại đặt tour. Vui lòng liên hệ admin để được phân quyền.
           </p>
           <button
             onClick={() => navigate('/staff/tasks')}
-            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white bg-[#4c9dff] hover:bg-[#3f85d6] transition-all shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
+            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white transition-all"
+            style={{ backgroundColor: '#66B3FF' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
           >
             Quay lại Task Management
           </button>
@@ -232,16 +235,25 @@ const BookingComplaint = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/staff/tasks')}
-            className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-600 hover:text-gray-700 transition-all duration-200"
+            className="p-2 rounded-[20px] transition-all duration-200"
+            style={{ backgroundColor: '#F5F5F5', color: '#9CA3AF' }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#E5E5E5';
+              e.target.style.color = '#6B7280';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#F5F5F5';
+              e.target.style.color = '#9CA3AF';
+            }}
             title="Back to tasks"
           >
-            <ArrowLeftIcon className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
           </button>
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">
+            <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>
               Booking Complaint Management
             </p>
-            <h1 className="text-3xl font-bold text-gray-900">Manage booking complaints</h1>
+            <h1 className="text-3xl font-semibold text-gray-800">Manage booking complaints</h1>
             <p className="text-sm text-gray-500 mt-1">
               View all complaints and manage resolution status for staff processing.
             </p>
@@ -252,37 +264,38 @@ const BookingComplaint = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          icon={ExclamationTriangleIcon}
+          icon={AlertTriangle}
           label="Total complaints"
           value={stats.total}
-          color="text-amber-500"
+          color="amber"
         />
         <StatCard
-          icon={CheckCircleIcon}
+          icon={CheckCircle2}
           label="Resolved"
           value={stats.resolved}
-          color="text-green-600"
+          color="green"
         />
         <StatCard
-          icon={ClockIcon}
+          icon={Clock}
           label="Pending"
           value={stats.pending}
-          color="text-blue-600"
+          color="blue"
         />
       </div>
 
       {/* Search and Filter box */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className="bg-white rounded-[28px] shadow-sm border p-5" style={{ borderColor: '#F0F0F0' }}>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3 flex-1">
             <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={searchType === 'complaintId' ? 'Enter complaint ID...' : 'Search in messages...'}
-                className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               />
             </div>
             <select
@@ -291,7 +304,8 @@ const BookingComplaint = () => {
                 setSearchType(e.target.value);
                 setSearchInput('');
               }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="all">Search all</option>
               <option value="complaintId">Search by Complaint ID</option>
@@ -301,7 +315,8 @@ const BookingComplaint = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+                style={{ borderColor: '#E0E0E0' }}
               >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
@@ -315,24 +330,35 @@ const BookingComplaint = () => {
             <button
               onClick={handleSearchById}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-[20px] text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#66B3FF' }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#4DA3FF';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#66B3FF';
+                }
+              }}
             >
               {loading ? 'Loading...' : 'Search by ID'}
             </button>
           </div>
         )}
         {error && (
-          <p className="mt-3 text-sm text-red-600">
+          <p className="mt-3 px-4 py-2 rounded-[20px] text-sm" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFB3B3', color: '#FF80B3', borderWidth: '1px', borderStyle: 'solid' }}>
             {error}
           </p>
         )}
       </div>
 
       {/* Complaints table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-800">
               Complaints {filteredComplaints.length > 0 && `(${filteredComplaints.length})`}
             </h2>
             <p className="text-sm text-gray-500">
@@ -344,8 +370,8 @@ const BookingComplaint = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
                 {['ID', 'Message', 'Created at', 'Resolution', 'Resolved at', 'Action'].map((header) => (
                   <th
@@ -357,7 +383,7 @@ const BookingComplaint = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {paginatedComplaints.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-gray-500 text-sm">
@@ -370,11 +396,14 @@ const BookingComplaint = () => {
                 </tr>
               ) : (
                 paginatedComplaints.map((complaint, index) => (
-                  <tr key={complaint.complaintId} className="hover:bg-[#e9f2ff]/40 transition">
+                  <tr key={complaint.complaintId} className="transition" style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
                     <td className="px-6 py-4 text-sm text-gray-600 font-semibold">
                       #{complaint.complaintId}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-md">
+                    <td className="px-6 py-4 text-sm text-gray-800 max-w-md">
                       <p className="line-clamp-3 whitespace-pre-wrap">{complaint.message || 'N/A'}</p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
@@ -391,13 +420,22 @@ const BookingComplaint = () => {
                         <button
                           type="button"
                           onClick={() => handleViewDetail(complaint)}
-                          className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-all duration-200"
+                          className="p-2 rounded-[20px] transition-all duration-200"
+                          style={{ backgroundColor: '#F5F5F5', color: '#9CA3AF' }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#E6F3FF';
+                            e.target.style.color = '#66B3FF';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#F5F5F5';
+                            e.target.style.color = '#9CA3AF';
+                          }}
                           title="View details"
                         >
-                          <EyeIcon className="h-5 w-5" />
+                          <Eye className="h-5 w-5" strokeWidth={1.5} />
                         </button>
                         {complaint.resolutionType ? (
-                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}>
                             Resolved
                           </span>
                         ) : (
@@ -405,13 +443,26 @@ const BookingComplaint = () => {
                             type="button"
                             onClick={() => handleOpenResolveModal(complaint)}
                             disabled={resolvingId === complaint.complaintId || !isAdminOrStaff}
-                            className="p-2 rounded-lg bg-gray-50 hover:bg-green-50 text-gray-600 hover:text-green-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                            className="p-2 rounded-[20px] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                            style={{ backgroundColor: '#F5F5F5', color: '#9CA3AF' }}
+                            onMouseEnter={(e) => {
+                              if (!e.target.disabled) {
+                                e.target.style.backgroundColor = '#DCFCE7';
+                                e.target.style.color = '#15803D';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!e.target.disabled) {
+                                e.target.style.backgroundColor = '#F5F5F5';
+                                e.target.style.color = '#9CA3AF';
+                              }
+                            }}
                             title="Resolve complaint"
                           >
                             {resolvingId === complaint.complaintId ? (
-                              <ClockIcon className="h-5 w-5 animate-spin" />
+                              <Clock className="h-5 w-5 animate-spin" strokeWidth={1.5} />
                             ) : (
-                              <CheckCircleIcon className="h-5 w-5" />
+                              <CheckCircle2 className="h-5 w-5" strokeWidth={1.5} />
                             )}
                           </button>
                         )}
@@ -426,7 +477,7 @@ const BookingComplaint = () => {
 
         {/* Pagination */}
         {filteredComplaints.length > itemsPerPage && (
-          <div className="px-6 py-4 border-t border-gray-100">
+          <div className="px-6 py-4 border-t" style={{ borderColor: '#F0F0F0' }}>
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-500">
                 Page {currentPage + 1} of {totalPages}
@@ -435,14 +486,40 @@ const BookingComplaint = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                   disabled={currentPage === 0}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-[20px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  style={{ borderColor: '#E0E0E0' }}
+                  onMouseEnter={(e) => {
+                    if (!e.target.disabled) {
+                      e.target.style.backgroundColor = '#F5F5F5';
+                      e.target.style.borderColor = '#D0D0D0';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!e.target.disabled) {
+                      e.target.style.backgroundColor = '#FFFFFF';
+                      e.target.style.borderColor = '#E0E0E0';
+                    }
+                  }}
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                   disabled={currentPage >= totalPages - 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-[20px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  style={{ borderColor: '#E0E0E0' }}
+                  onMouseEnter={(e) => {
+                    if (!e.target.disabled) {
+                      e.target.style.backgroundColor = '#F5F5F5';
+                      e.target.style.borderColor = '#D0D0D0';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!e.target.disabled) {
+                      e.target.style.backgroundColor = '#FFFFFF';
+                      e.target.style.borderColor = '#E0E0E0';
+                    }
+                  }}
                 >
                   Next
                 </button>
@@ -477,42 +554,53 @@ const BookingComplaint = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
+const StatCard = ({ icon: IconComponent, label, value, color = 'blue' }) => {
+  const colorMap = {
+    blue: { bg: '#E6F3FF', iconColor: '#66B3FF', border: '#CCE6FF', textColor: '#66B3FF' },
+    amber: { bg: '#FFF4E6', iconColor: '#FFB84D', border: '#FFE5CC', textColor: '#FFB84D' },
+    green: { bg: '#DCFCE7', iconColor: '#15803D', border: '#BBF7D0', textColor: '#15803D' },
+    red: { bg: '#FFE6F0', iconColor: '#FF80B3', border: '#FFB3B3', textColor: '#FF80B3' }
+  };
+  const colors = colorMap[color] || colorMap.blue;
+
+  return (
+    <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: colors.bg }}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+            <IconComponent className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-semibold text-gray-800">{value}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}></span>
     </div>
-  </div>
-);
+  );
+};
 
 const ResolutionBadge = ({ resolutionType }) => {
   if (!resolutionType) {
     return (
-      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-700">
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#FFF4E6', color: '#FFB84D' }}>
         Pending
       </span>
     );
   }
 
   const map = {
-    COMPANY_FAULT: { color: 'bg-red-100 text-red-700', label: 'Company fault' },
-    USER_FAULT: { color: 'bg-blue-100 text-blue-700', label: 'User fault' },
-    NO_FAULT: { color: 'bg-green-100 text-green-700', label: 'No fault' },
+    COMPANY_FAULT: { bgColor: '#FFE6F0', textColor: '#FF80B3', label: 'Company fault' },
+    USER_FAULT: { bgColor: '#E6F3FF', textColor: '#66B3FF', label: 'User fault' },
+    NO_FAULT: { bgColor: '#DCFCE7', textColor: '#15803D', label: 'No fault' },
   };
 
-  const cfg = map[resolutionType] || { color: 'bg-gray-100 text-gray-700', label: resolutionType };
+  const cfg = map[resolutionType] || { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: resolutionType };
 
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${cfg.color}`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: cfg.bgColor, color: cfg.textColor }}>
       {cfg.label}
     </span>
   );
@@ -530,39 +618,48 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
+        style={{ borderColor: '#F0F0F0' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-purple-50/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Complaint Details</h2>
-              <p className="text-sm text-gray-500 mt-1">Complaint ID: #{complaint.complaintId}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200"
-              title="Close"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+        <div className="px-6 py-5 border-b flex items-center justify-between" style={{ backgroundColor: '#E6F3FF', borderColor: '#CCE6FF' }}>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800">Complaint Details</h2>
+            <p className="text-sm mt-1" style={{ color: '#66B3FF' }}>Complaint ID: #{complaint.complaintId}</p>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-[20px] transition-all duration-200"
+            style={{ color: '#9CA3AF' }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#F5F5F5';
+              e.target.style.color = '#6B7280';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = '#9CA3AF';
+            }}
+            title="Close"
+          >
+            <X className="h-6 w-6" strokeWidth={1.5} />
+          </button>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6 overflow-y-auto flex-1">
+        <div className="px-6 py-6 overflow-y-auto flex-1" style={{ backgroundColor: '#FAFAFA' }}>
           <div className="space-y-6">
             {/* Message Section */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 Message
               </label>
-              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <div className="p-4 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                   {complaint.message || 'N/A'}
                 </p>
@@ -575,7 +672,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Status
                 </label>
-                <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                <div className="p-3 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                   <ResolutionBadge resolutionType={complaint.resolutionType} />
                 </div>
               </div>
@@ -583,7 +680,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Created At
                 </label>
-                <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                <div className="p-3 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                   <p className="text-sm text-gray-700">{formatDateTime(complaint.createdAt)}</p>
                 </div>
               </div>
@@ -595,7 +692,7 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                   Resolved At
                 </label>
-                <div className="p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+                <div className="p-3 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                   <p className="text-sm text-gray-700">{formatDateTime(complaint.resolvedAt)}</p>
                 </div>
               </div>
@@ -604,11 +701,14 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+        <div className="px-6 py-4 border-t" style={{ backgroundColor: '#FAFAFA', borderColor: '#F0F0F0' }}>
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-all duration-200"
+              className="px-6 py-2.5 rounded-[20px] text-white text-sm font-semibold transition-all duration-200"
+              style={{ backgroundColor: '#66B3FF' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
             >
               Close
             </button>
@@ -652,40 +752,53 @@ const ResolveComplaintModal = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
+        style={{ borderColor: '#F0F0F0' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-green-50/50 to-blue-50/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Resolve Complaint</h2>
-              <p className="text-sm text-gray-500 mt-1">Complaint ID: #{complaint.complaintId}</p>
-            </div>
-            <button
-              onClick={onClose}
-              disabled={isResolving}
-              className="p-2 rounded-xl bg-white/80 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-all duration-200 disabled:opacity-50"
-              title="Close"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+        <div className="px-6 py-5 border-b flex items-center justify-between" style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0' }}>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800">Resolve Complaint</h2>
+            <p className="text-sm mt-1" style={{ color: '#15803D' }}>Complaint ID: #{complaint.complaintId}</p>
           </div>
+          <button
+            onClick={onClose}
+            disabled={isResolving}
+            className="p-2 rounded-[20px] transition-all duration-200 disabled:opacity-50"
+            style={{ color: '#9CA3AF' }}
+            onMouseEnter={(e) => {
+              if (!e.target.disabled) {
+                e.target.style.backgroundColor = '#F5F5F5';
+                e.target.style.color = '#6B7280';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!e.target.disabled) {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = '#9CA3AF';
+              }
+            }}
+            title="Close"
+          >
+            <X className="h-6 w-6" strokeWidth={1.5} />
+          </button>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6 overflow-y-auto flex-1">
+        <div className="px-6 py-6 overflow-y-auto flex-1" style={{ backgroundColor: '#FAFAFA' }}>
           <div className="space-y-6">
             {/* Complaint Message Preview */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 Complaint Message
               </label>
-              <div className="p-4 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <div className="p-4 rounded-[20px] border" style={{ backgroundColor: '#FFFFFF', borderColor: '#F0F0F0' }}>
                 <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed line-clamp-4">
                   {complaint.message || 'N/A'}
                 </p>
@@ -695,33 +808,56 @@ const ResolveComplaintModal = ({
             {/* Resolution Type Selection */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                Resolution Type <span className="text-red-500">*</span>
+                Resolution Type <span style={{ color: '#FF80B3' }}>*</span>
               </label>
               <div className="space-y-2">
-                {resolutionOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex items-start p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
-                      resolutionType === option.value
-                        ? `${option.color} border-current`
-                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="resolutionType"
-                      value={option.value}
-                      checked={resolutionType === option.value}
-                      onChange={(e) => setResolutionType(e.target.value)}
-                      className="mt-0.5 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                      disabled={isResolving}
-                    />
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm">{option.label}</div>
-                      <div className="text-xs mt-1 opacity-80">{option.description}</div>
-                    </div>
-                  </label>
-                ))}
+                {resolutionOptions.map((option) => {
+                  const isSelected = resolutionType === option.value;
+                  const colorMap = {
+                    'NO_FAULT': { bg: '#DCFCE7', text: '#15803D', border: '#BBF7D0' },
+                    'USER_FAULT': { bg: '#E6F3FF', text: '#66B3FF', border: '#CCE6FF' },
+                    'COMPANY_FAULT': { bg: '#FFE6F0', text: '#FF80B3', border: '#FFB3B3' }
+                  };
+                  const colors = colorMap[option.value] || { bg: '#F5F5F5', text: '#9CA3AF', border: '#E0E0E0' };
+                  
+                  return (
+                    <label
+                      key={option.value}
+                      className="flex items-start p-4 rounded-[20px] border-2 cursor-pointer transition-all duration-200"
+                      style={isSelected
+                        ? { backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }
+                        : { backgroundColor: '#FFFFFF', borderColor: '#E0E0E0' }
+                      }
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.target.style.borderColor = '#D0D0D0';
+                          e.target.style.backgroundColor = '#F5F5F5';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.target.style.borderColor = '#E0E0E0';
+                          e.target.style.backgroundColor = '#FFFFFF';
+                        }
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="resolutionType"
+                        value={option.value}
+                        checked={resolutionType === option.value}
+                        onChange={(e) => setResolutionType(e.target.value)}
+                        className="mt-0.5 mr-3 h-4 w-4"
+                        style={{ accentColor: '#66B3FF' }}
+                        disabled={isResolving}
+                      />
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm" style={{ color: isSelected ? colors.text : '#4B5563' }}>{option.label}</div>
+                        <div className="text-xs mt-1" style={{ color: isSelected ? colors.text : '#6B7280', opacity: 0.8 }}>{option.description}</div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -736,30 +872,55 @@ const ResolveComplaintModal = ({
                 rows={4}
                 placeholder="Add any additional notes or comments about this resolution..."
                 disabled={isResolving}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full border rounded-[20px] px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 resize-none disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ borderColor: '#E0E0E0', backgroundColor: '#FFFFFF' }}
               />
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+        <div className="px-6 py-4 border-t" style={{ backgroundColor: '#FAFAFA', borderColor: '#F0F0F0' }}>
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
               disabled={isResolving}
-              className="px-6 py-2.5 rounded-xl bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition-all duration-200 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-[20px] text-gray-700 text-sm font-semibold transition-all duration-200 disabled:opacity-50"
+              style={{ backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0' }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#E5E5E5';
+                  e.target.style.borderColor = '#D0D0D0';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#F5F5F5';
+                  e.target.style.borderColor = '#E0E0E0';
+                }
+              }}
             >
               Cancel
             </button>
             <button
               onClick={onResolve}
               disabled={isResolving || !resolutionType}
-              className="px-6 py-2.5 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-2.5 rounded-[20px] text-white text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              style={{ backgroundColor: '#15803D' }}
+              onMouseEnter={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#16A34A';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!e.target.disabled) {
+                  e.target.style.backgroundColor = '#15803D';
+                }
+              }}
             >
               {isResolving ? (
                 <>
-                  <ClockIcon className="h-4 w-4 animate-spin" />
+                  <Clock className="h-4 w-4 animate-spin" strokeWidth={1.5} />
                   Resolving...
                 </>
               ) : (

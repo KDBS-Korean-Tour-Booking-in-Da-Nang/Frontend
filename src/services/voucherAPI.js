@@ -1,7 +1,6 @@
 // Voucher API service
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { BaseURL } from '../config/api';
 
 /**
  * Get authentication headers with Bearer token
@@ -31,7 +30,7 @@ const getAuthHeaders = () => {
  */
 export const createVoucher = async (voucherData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/vouchers`, {
+    const response = await fetch(`${BaseURL}/api/vouchers`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(voucherData),
@@ -62,7 +61,7 @@ export const createVoucher = async (voucherData) => {
  */
 export const getVouchersByCompanyId = async (companyId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/vouchers/company/${companyId}`, {
+    const response = await fetch(`${BaseURL}/api/vouchers/company/${companyId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -91,7 +90,7 @@ export const getVouchersByCompanyId = async (companyId) => {
  */
 export const getAllVouchers = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/vouchers`, {
+    const response = await fetch(`${BaseURL}/api/vouchers`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -121,7 +120,7 @@ export const getAllVouchers = async () => {
  * @returns {Promise<Array>} - Array of available voucher responses with discount info
  */
 export const getAvailableVouchersForBooking = async (bookingId) => {
-  const url = `${API_BASE_URL}/api/vouchers/preview-all/${bookingId}`;
+  const url = `${BaseURL}/api/vouchers/preview-all/${bookingId}`;
   const headers = getAuthHeaders();
   
   try {
@@ -179,8 +178,8 @@ export const getAvailableVouchersForBooking = async (bookingId) => {
 export const previewApplyVoucher = async (bookingId, voucherCode = null) => {
   // If voucherCode is provided, use query param. Otherwise, just call with bookingId
   const url = voucherCode 
-    ? `${API_BASE_URL}/api/vouchers/preview-apply/${bookingId}?voucherCode=${encodeURIComponent(voucherCode)}`
-    : `${API_BASE_URL}/api/vouchers/preview-apply/${bookingId}`;
+    ? `${BaseURL}/api/vouchers/preview-apply/${bookingId}?voucherCode=${encodeURIComponent(voucherCode)}`
+    : `${BaseURL}/api/vouchers/preview-apply/${bookingId}`;
   const headers = getAuthHeaders();
   
   try {
@@ -230,7 +229,7 @@ export const previewApplyVoucher = async (bookingId, voucherCode = null) => {
  * @returns {Promise<Array>} - Array of available voucher responses with discount info
  */
 export const previewAllAvailableVouchers = async (request) => {
-  const url = `${API_BASE_URL}/api/vouchers/preview-all`;
+  const url = `${BaseURL}/api/vouchers/preview-all`;
   const headers = getAuthHeaders();
   
   try {

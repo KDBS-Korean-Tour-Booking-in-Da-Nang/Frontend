@@ -22,10 +22,10 @@ import TourBehaviorSuggestion from "./TourBehaviorSuggestion";
 import styles from "./TourList.module.css";
 
 const bannerImages = [
-  "https://phongma.vn/wp-content/uploads/2018/06/30-dia-diem-du-lich-da-nang-du-la-van-chua-het-hot-trong-nam-2017-phan-1-1-1024x601.jpg",
-  "https://trivietagency.com/wp-content/uploads/2025/04/du-lich-da-nang.jpg",
-  "https://intour.vn/upload/img/0f70a9710eb8c8bd31bb847ec81b5dd0/2022/03/14/cac_dia_diem_du_lich_noi_tieng_o_da_nang_thu_hut_khach_du_lich_quanh_nam_1647251151.png",
-  "https://dulichkhamphahue.com/wp-content/uploads/2020/07/dia_diem_tham_quan_mien_phi_o_da_nang_nam_o_d.jpg",
+  "/Danang1.jpg",
+  "/hoian1.jpg",
+  "/Danang2.jpg",
+  "/hoian2.jpg",
 ];
 
 const TourList = () => {
@@ -264,8 +264,8 @@ const TourList = () => {
       {/* Tours Section - Tour Behavior Suggestion and All Tours */}
       <div className={styles["tours-section"]}>
         <div className={styles["container"]}>
-          {/* Tour Behavior Suggestion Section - chỉ hiển thị khi không ở search mode */}
-          {!isSearchMode && <TourBehaviorSuggestion />}
+          {/* Tour Behavior Suggestion Section - chỉ hiển thị khi user đã đăng nhập và không ở search mode */}
+          {!isSearchMode && user && <TourBehaviorSuggestion />}
 
           {/* All Tours Grid */}
           {loading ? (

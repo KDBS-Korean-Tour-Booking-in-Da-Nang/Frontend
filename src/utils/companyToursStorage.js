@@ -8,8 +8,7 @@ function readAllTours() {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error('Failed to read tours from localStorage', error);
+  } catch {
     return [];
   }
 }
@@ -17,8 +16,8 @@ function readAllTours() {
 function writeAllTours(tours) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tours));
-  } catch (error) {
-    console.error('Failed to write tours to localStorage', error);
+  } catch {
+    // Failed to write tours to localStorage, silently fail
   }
 }
 

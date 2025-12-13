@@ -6,13 +6,13 @@ import { useToast } from '../../../contexts/ToastContext';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import {
-  ClipboardDocumentListIcon,
-  ExclamationTriangleIcon,
-  BuildingOfficeIcon,
-  MapPinIcon,
-  DocumentTextIcon,
-  TicketIcon
-} from '@heroicons/react/24/outline';
+  ClipboardList,
+  AlertTriangle,
+  Building2,
+  MapPin,
+  FileText,
+  Ticket
+} from 'lucide-react';
 import articleService from '../../../services/articleService';
 import { getAllComplaints } from '../../../services/bookingAPI';
 import ForumReportManagement from './Components/ForumReportManagement/ForumReportManagement';
@@ -22,7 +22,7 @@ import ArticleManagement from './Components/ArticleManagement/ArticleManagement'
 import BookingComplaint from './Components/BookingComplaint/BookingComplaint';
 import ResolveTicket from './Components/ResolveTicket/ResolveTicket';
 
-const pastelCardClasses = 'rounded-[28px] bg-white/95 border border-[#eceff7] shadow-[0_15px_45px_rgba(15,23,42,0.08)]';
+const pastelCardClasses = 'rounded-[28px] bg-white border shadow-sm';
 
 const TaskManagement = () => {
   const { t } = useTranslation();
@@ -155,7 +155,7 @@ const TaskManagement = () => {
         id: 'forum-section',
         title: t('staff.taskManagement.sidebar.sections.forumComplaint.title'),
         description: t('staff.taskManagement.sidebar.sections.forumComplaint.description'),
-        icon: ExclamationTriangleIcon,
+        icon: AlertTriangle,
         items: [
           {
             id: 'forum-reports',
@@ -196,7 +196,7 @@ const TaskManagement = () => {
         id: 'company-article-section',
         title: t('staff.taskManagement.sidebar.sections.companyArticle.title'),
         description: t('staff.taskManagement.sidebar.sections.companyArticle.description'),
-        icon: BuildingOfficeIcon,
+        icon: Building2,
         items
       });
     }
@@ -206,7 +206,7 @@ const TaskManagement = () => {
         id: 'tour-section',
         title: t('staff.taskManagement.sidebar.sections.tour.title'),
         description: t('staff.taskManagement.sidebar.sections.tour.description'),
-        icon: MapPinIcon,
+        icon: MapPin,
         items: [
           {
             id: 'tour-approval',
@@ -242,7 +242,7 @@ const TaskManagement = () => {
         label: t('staff.taskManagement.summaryCards.forumReports.label'),
         value: forumReportsCount,
         sublabel: t('staff.taskManagement.summaryCards.forumReports.sublabel'),
-        icon: ExclamationTriangleIcon,
+        icon: AlertTriangle,
         accent: 'bg-[#fff8ee]',
       });
       cards.push({
@@ -250,7 +250,7 @@ const TaskManagement = () => {
         label: t('staff.taskManagement.summaryCards.bookingComplaints.label'),
         value: bookingComplaintsCount,
         sublabel: t('staff.taskManagement.summaryCards.bookingComplaints.sublabel'),
-        icon: ExclamationTriangleIcon,
+        icon: AlertTriangle,
         accent: 'bg-[#fff0f0]',
       });
     }
@@ -260,7 +260,7 @@ const TaskManagement = () => {
         label: t('staff.taskManagement.summaryCards.companyRequests.label'),
         value: companyRequestsCount,
         sublabel: t('staff.taskManagement.summaryCards.companyRequests.sublabel'),
-        icon: BuildingOfficeIcon,
+        icon: Building2,
         accent: 'bg-[#f3f7ff]',
       });
     }
@@ -270,7 +270,7 @@ const TaskManagement = () => {
         label: t('staff.taskManagement.summaryCards.pendingTours.label'),
         value: pendingToursCount,
         sublabel: t('staff.taskManagement.summaryCards.pendingTours.sublabel'),
-        icon: MapPinIcon,
+        icon: MapPin,
         accent: 'bg-[#f0fcff]',
       });
     }
@@ -280,7 +280,7 @@ const TaskManagement = () => {
         label: t('staff.taskManagement.summaryCards.pendingArticles.label'),
         value: pendingArticlesCount,
         sublabel: t('staff.taskManagement.summaryCards.pendingArticles.sublabel'),
-        icon: DocumentTextIcon,
+        icon: FileText,
         accent: 'bg-[#f5f0ff]',
       });
     }
@@ -314,33 +314,33 @@ const TaskManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc] px-4 py-10 sm:px-6 lg:px-10">
+    <div className="min-h-screen px-4 py-10 sm:px-6 lg:px-10" style={{ backgroundColor: '#FAFAFA' }}>
       {error && (
-        <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', color: '#e11d48', borderRadius: '0.5rem', fontSize: '0.875rem', maxWidth: '1200px', margin: '0 auto 1rem' }}>
+        <div className="mb-4 px-4 py-3 rounded-[20px] text-sm max-w-7xl mx-auto" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFB3B3', color: '#FF80B3', borderWidth: '1px', borderStyle: 'solid' }}>
           {error}
         </div>
       )}
       <div className="mx-auto max-w-7xl space-y-8">
         {!activeSection && (
-          <div className={`${pastelCardClasses} p-8`}>
-            <p className="text-xs uppercase tracking-[0.5em] text-[#b1b5c9]">{t('staff.taskManagement.dashboard.title')}</p>
+          <div className={`${pastelCardClasses} p-8`} style={{ borderColor: '#F0F0F0' }}>
+            <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('staff.taskManagement.dashboard.title')}</p>
             <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h1 className="text-3xl font-semibold text-[#111827]">{t('staff.taskManagement.dashboard.taskManagement')}</h1>
-                <p className="mt-2 text-sm text-[#6b7280]">{t('staff.taskManagement.dashboard.subtitle')}</p>
+                <h1 className="text-3xl font-semibold text-gray-800">{t('staff.taskManagement.dashboard.taskManagement')}</h1>
+                <p className="mt-2 text-sm text-gray-500">{t('staff.taskManagement.dashboard.subtitle')}</p>
               </div>
-              <div className="rounded-[24px] border border-[#eef2ff] bg-[#f9faff] px-5 py-3 text-sm text-[#4c4f69]">
-                <span className="font-medium text-[#1f2937]">{t('staff.taskManagement.dashboard.role')}</span> {user?.staffTask || user?.role}
+              <div className="rounded-[24px] border px-5 py-3 text-sm" style={{ borderColor: '#E6F3FF', backgroundColor: '#E6F3FF', color: '#66B3FF' }}>
+                <span className="font-semibold text-gray-800">{t('staff.taskManagement.dashboard.role')}</span> {user?.staffTask || user?.role}
               </div>
             </div>
           </div>
         )}
 
         {!hasAnyTaskPermission && (
-          <div className={`${pastelCardClasses} flex flex-col items-center justify-center space-y-4 py-24 text-center`}>
-            <ClipboardDocumentListIcon className="h-16 w-16 text-[#dbe1f5]" />
-            <h2 className="text-xl font-semibold text-[#111827]">{t('staff.taskManagement.dashboard.noTasks.title')}</h2>
-            <p className="max-w-md text-sm text-[#6b7280]">
+          <div className={`${pastelCardClasses} flex flex-col items-center justify-center space-y-4 py-24 text-center`} style={{ borderColor: '#F0F0F0' }}>
+            <ClipboardList className="h-16 w-16 text-gray-300" strokeWidth={1.5} />
+            <h2 className="text-xl font-semibold text-gray-800">{t('staff.taskManagement.dashboard.noTasks.title')}</h2>
+            <p className="max-w-md text-sm text-gray-500">
               {t('staff.taskManagement.dashboard.noTasks.description')}
             </p>
           </div>
@@ -350,29 +350,40 @@ const TaskManagement = () => {
           <div className="space-y-6">
             {!activeSection && summaryCards.length > 0 && (
               <div className="grid gap-4 sm:grid-cols-2">
-                {summaryCards.map(card => (
-                  <div key={card.id} className={`${pastelCardClasses} flex items-center gap-4 px-6 py-5`}>
-                    <div className={`rounded-3xl ${card.accent} p-3`}>
-                      <card.icon className="h-6 w-6 text-[#475569]" />
+                {summaryCards.map(card => {
+                  const colorMap = {
+                    'bg-[#fff8ee]': { bg: '#FFF4E6', iconColor: '#FFB84D', border: '#FFE5CC' },
+                    'bg-[#fff0f0]': { bg: '#FFE6F0', iconColor: '#FF80B3', border: '#FFB3B3' },
+                    'bg-[#f3f7ff]': { bg: '#E6F3FF', iconColor: '#66B3FF', border: '#CCE6FF' },
+                    'bg-[#f0fcff]': { bg: '#E0F7FA', iconColor: '#4DD0E1', border: '#B2EBF2' },
+                    'bg-[#f5f0ff]': { bg: '#F0E6FF', iconColor: '#B380FF', border: '#D9B3FF' }
+                  };
+                  const colors = colorMap[card.accent] || { bg: '#F5F5F5', iconColor: '#9CA3AF', border: '#E0E0E0' };
+                  
+                  return (
+                    <div key={card.id} className={`${pastelCardClasses} flex items-center gap-4 px-6 py-5`} style={{ borderColor: colors.border, backgroundColor: colors.bg }}>
+                      <div className="rounded-[24px] p-3 flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+                        <card.icon className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs uppercase tracking-[0.35em] font-medium text-gray-600">{card.label}</p>
+                        <p className="text-3xl font-semibold text-gray-800 mt-1">{card.value}</p>
+                        <p className="text-sm text-gray-500 mt-1">{card.sublabel}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.35em] text-[#a3acc7]">{card.label}</p>
-                      <p className="text-3xl font-semibold text-[#111827]">{card.value}</p>
-                      <p className="text-sm text-[#6b7280]">{card.sublabel}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {activeSection ? (
               renderActiveSection()
             ) : (
-              <div className={`${pastelCardClasses} p-10 text-center`}>
-                <h3 className="text-xl font-semibold text-[#111827] mb-2">{t('staff.taskManagement.dashboard.selectTask.title')}</h3>
-                <p className="text-sm text-[#6b7280] max-w-2xl mx-auto">
+              <div className={`${pastelCardClasses} p-10 text-center`} style={{ borderColor: '#F0F0F0' }}>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('staff.taskManagement.dashboard.selectTask.title')}</h3>
+                <p className="text-sm text-gray-500 max-w-2xl mx-auto">
                   {t('staff.taskManagement.dashboard.selectTask.description')}{' '}
-                  <span className="font-semibold text-[#1d4ed8]"> {t('staff.taskManagement.dashboard.selectTask.taskManagement')} </span>
+                  <span className="font-semibold" style={{ color: '#66B3FF' }}> {t('staff.taskManagement.dashboard.selectTask.taskManagement')} </span>
                   {t('staff.taskManagement.dashboard.selectTask.instruction')}
                 </p>
               </div>

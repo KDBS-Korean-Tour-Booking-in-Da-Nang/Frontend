@@ -6,15 +6,15 @@ import { API_ENDPOINTS, createAuthHeaders } from '../../../../../config/api';
 import { checkAndHandle401 } from '../../../../../utils/apiErrorHandler';
 import ReportDetailModal from './ReportDetailModal';
 import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmModal/DeleteConfirmModal';
-import { CheckCircle } from 'lucide-react';
-import {
-  ExclamationTriangleIcon,
-  MagnifyingGlassIcon,
-  EyeIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon
-} from '@heroicons/react/24/outline';
+import { 
+  CheckCircle, 
+  AlertTriangle, 
+  Search, 
+  Eye, 
+  CheckCircle2, 
+  XCircle, 
+  Clock 
+} from 'lucide-react';
 
 const ForumReportManagement = () => {
   const { t, i18n } = useTranslation();
@@ -291,18 +291,21 @@ const ForumReportManagement = () => {
   // Check if user has permission
   if (user && !canManageForumReports) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc]">
-        <div className="max-w-md w-full rounded-[32px] bg-white/90 border border-gray-200 shadow-lg p-10 text-center">
-          <div className="w-16 h-16 rounded-[20px] bg-red-100 flex items-center justify-center text-red-600 mx-auto mb-6">
-            <ExclamationTriangleIcon className="h-7 w-7" />
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#FAFAFA' }}>
+        <div className="max-w-md w-full rounded-[32px] bg-white border p-10 text-center shadow-sm" style={{ borderColor: '#F0F0F0' }}>
+          <div className="w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#FFE6F0' }}>
+            <AlertTriangle className="h-7 w-7" style={{ color: '#FF80B3' }} strokeWidth={1.5} />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">{t('staff.forumReportManagement.permissionDenied.title')}</h2>
-          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-3">{t('staff.forumReportManagement.permissionDenied.title')}</h2>
+          <p className="text-gray-500 text-sm leading-relaxed mb-6">
             {t('staff.forumReportManagement.permissionDenied.message')}
           </p>
           <button
             onClick={() => navigate('/staff/tasks')}
-            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white bg-[#4c9dff] hover:bg-[#3f85d6] transition-all shadow-[0_12px_30px_rgba(76,157,255,0.35)]"
+            className="w-full px-6 py-3 rounded-[24px] text-sm font-semibold text-white transition-all"
+            style={{ backgroundColor: '#66B3FF' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
           >
             {t('staff.forumReportManagement.permissionDenied.backButton')}
           </button>
@@ -315,7 +318,7 @@ const ForumReportManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#66B3FF' }}></div>
           <p className="mt-4 text-gray-600">{t('staff.forumReportManagement.loading')}</p>
         </div>
       </div>
@@ -326,8 +329,8 @@ const ForumReportManagement = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('staff.forumReportManagement.title')}</p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('staff.forumReportManagement.subtitle')}</h1>
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('staff.forumReportManagement.title')}</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('staff.forumReportManagement.subtitle')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('staff.forumReportManagement.description')}
           </p>
@@ -337,29 +340,31 @@ const ForumReportManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={ExclamationTriangleIcon} label={t('staff.forumReportManagement.stats.total')} value={stats.total} trend="" />
-        <StatCard icon={ClockIcon} label={t('staff.forumReportManagement.stats.pending')} value={stats.pending} trend={t('staff.forumReportManagement.stats.pendingDesc')} color="text-amber-500" />
-        <StatCard icon={CheckCircleIcon} label={t('staff.forumReportManagement.stats.resolved')} value={stats.resolved} trend="" color="text-green-600" />
-        <StatCard icon={XCircleIcon} label={t('staff.forumReportManagement.stats.dismissed')} value={stats.dismissed} trend="" color="text-red-600" />
+        <StatCard icon={AlertTriangle} label={t('staff.forumReportManagement.stats.total')} value={stats.total} trend="" color="blue" />
+        <StatCard icon={Clock} label={t('staff.forumReportManagement.stats.pending')} value={stats.pending} trend={t('staff.forumReportManagement.stats.pendingDesc')} color="amber" />
+        <StatCard icon={CheckCircle2} label={t('staff.forumReportManagement.stats.resolved')} value={stats.resolved} trend="" color="green" />
+        <StatCard icon={XCircle} label={t('staff.forumReportManagement.stats.dismissed')} value={stats.dismissed} trend="" color="red" />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="flex flex-col gap-3 p-5 border-b lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div className="relative w-full lg:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('staff.forumReportManagement.filters.searchPlaceholder')}
-              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('staff.forumReportManagement.filters.statusFilter.all')}</option>
               <option value="PENDING">{t('staff.forumReportManagement.filters.statusFilter.pending')}</option>
@@ -371,7 +376,8 @@ const ForumReportManagement = () => {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('staff.forumReportManagement.filters.typeFilter.all')}</option>
               <option value="SPAM">{t('staff.forumReportManagement.filters.typeFilter.spam')}</option>
@@ -384,8 +390,8 @@ const ForumReportManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
                 {[
                   t('staff.forumReportManagement.table.headers.stt'),
@@ -402,7 +408,7 @@ const ForumReportManagement = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {filteredReports.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
@@ -411,7 +417,10 @@ const ForumReportManagement = () => {
                 </tr>
               ) : (
                 filteredReports.map((report, index) => (
-                  <tr key={report.reportId} className="hover:bg-[#e9f2ff]/40 transition">
+                  <tr key={report.reportId} className="transition" style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {currentPage * pageSize + index + 1}
                     </td>
@@ -422,18 +431,32 @@ const ForumReportManagement = () => {
                           e.preventDefault();
                           navigate(`/forum?${report.targetType === 'POST' ? 'postId' : 'commentId'}=${report.targetId}&fromStaff=true`);
                         }}
-                        className={`inline-flex items-center text-sm px-3 py-1.5 rounded font-semibold cursor-pointer transition-all hover:shadow-md hover:scale-105 no-underline ${
-                          report.targetType === 'POST' 
-                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-                            : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                        }`}
+                        className="inline-flex items-center text-sm px-3 py-1.5 rounded-[20px] font-semibold cursor-pointer transition-all no-underline"
+                        style={report.targetType === 'POST' 
+                          ? { backgroundColor: '#E6F3FF', color: '#66B3FF' }
+                          : { backgroundColor: '#F0E6FF', color: '#B380FF' }
+                        }
+                        onMouseEnter={(e) => {
+                          if (report.targetType === 'POST') {
+                            e.target.style.backgroundColor = '#CCE6FF';
+                          } else {
+                            e.target.style.backgroundColor = '#E9D5FF';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (report.targetType === 'POST') {
+                            e.target.style.backgroundColor = '#E6F3FF';
+                          } else {
+                            e.target.style.backgroundColor = '#F0E6FF';
+                          }
+                        }}
                         title={report.targetType === 'POST' ? t('staff.forumReportManagement.viewPost') : t('staff.forumReportManagement.viewComment')}
                       >
                         {report.targetType === 'POST' ? t('staff.forumReportManagement.reportTypes.post') : t('staff.forumReportManagement.reportTypes.comment')}
                       </a>
                     </td>
                     <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-900">{report.reporterName || t('staff.forumReportManagement.status.na')}</p>
+                        <p className="text-sm font-medium text-gray-800">{report.reporterName || t('staff.forumReportManagement.status.na')}</p>
                     </td>
                     <td className="px-6 py-4">
                       <TypeBadge reasons={report.reason} />
@@ -448,26 +471,59 @@ const ForumReportManagement = () => {
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => handleViewDetails(report.reportId)}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition" 
+                          className="p-2 rounded-[20px] border transition" 
+                          style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                          onMouseEnter={(e) => {
+                            e.target.style.color = '#66B3FF';
+                            e.target.style.borderColor = '#CCE6FF';
+                            e.target.style.backgroundColor = '#E6F3FF';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.color = '#9CA3AF';
+                            e.target.style.borderColor = '#E0E0E0';
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                           title={t('staff.forumReportManagement.actions.viewDetails')}
                         >
-                          <EyeIcon className="h-4 w-4" />
+                          <Eye className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                         {(report.status === 'PENDING' || report.status === 'INVESTIGATING') && (
                           <>
                             <button 
                               onClick={() => handleApprove(report.reportId)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition" 
+                              className="p-2 rounded-[20px] border transition" 
+                              style={{ borderColor: '#E0E0E0', color: '#9CA3AF', backgroundColor: 'transparent' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.color = '#15803D';
+                                e.target.style.borderColor = '#BBF7D0';
+                                e.target.style.backgroundColor = '#DCFCE7';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.color = '#9CA3AF';
+                                e.target.style.borderColor = '#E0E0E0';
+                                e.target.style.backgroundColor = 'transparent';
+                              }}
                               title={t('staff.forumReportManagement.actions.approve')}
                             >
-                              <CheckCircleIcon className="h-4 w-4" />
+                              <CheckCircle2 className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                             <button 
                               onClick={() => handleReject(report.reportId)}
-                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition" 
+                              className="p-2 rounded-[20px] border transition" 
+                              style={{ borderColor: '#E0E0E0', color: '#9CA3AF', backgroundColor: 'transparent' }}
+                              onMouseEnter={(e) => {
+                                e.target.style.color = '#FF80B3';
+                                e.target.style.borderColor = '#FFB3B3';
+                                e.target.style.backgroundColor = '#FFE6F0';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.color = '#9CA3AF';
+                                e.target.style.borderColor = '#E0E0E0';
+                                e.target.style.backgroundColor = 'transparent';
+                              }}
                               title={t('staff.forumReportManagement.actions.reject')}
                             >
-                              <XCircleIcon className="h-4 w-4" />
+                              <XCircle className="h-4 w-4" strokeWidth={1.5} />
                             </button>
                           </>
                         )}
@@ -482,7 +538,7 @@ const ForumReportManagement = () => {
         
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: '#F0F0F0' }}>
             <div className="text-sm text-gray-600">
               {t('staff.forumReportManagement.pagination.page', { current: currentPage + 1, total: totalPages })}
             </div>
@@ -490,14 +546,40 @@ const ForumReportManagement = () => {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                 disabled={currentPage === 0}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                style={{ borderColor: '#E0E0E0', backgroundColor: '#FFFFFF' }}
+                onMouseEnter={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#F5F5F5';
+                    e.target.style.borderColor = '#D0D0D0';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#FFFFFF';
+                    e.target.style.borderColor = '#E0E0E0';
+                  }
+                }}
               >
                 {t('staff.forumReportManagement.pagination.previous')}
               </button>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                 disabled={currentPage >= totalPages - 1}
-                className="px-4 py-2 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 text-sm border rounded-[20px] disabled:opacity-50 disabled:cursor-not-allowed transition"
+                style={{ borderColor: '#E0E0E0', backgroundColor: '#FFFFFF' }}
+                onMouseEnter={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#F5F5F5';
+                    e.target.style.borderColor = '#D0D0D0';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!e.target.disabled) {
+                    e.target.style.backgroundColor = '#FFFFFF';
+                    e.target.style.borderColor = '#E0E0E0';
+                  }
+                }}
               >
                 {t('staff.forumReportManagement.pagination.next')}
               </button>
@@ -538,37 +620,49 @@ const ForumReportManagement = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
-          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
+const StatCard = ({ icon: IconComponent, label, value, trend, color = 'blue' }) => {
+  const colorMap = {
+    blue: { bg: '#E6F3FF', iconColor: '#66B3FF', border: '#CCE6FF', textColor: '#66B3FF' },
+    amber: { bg: '#FFF4E6', iconColor: '#FFB84D', border: '#FFE5CC', textColor: '#FFB84D' },
+    green: { bg: '#DCFCE7', iconColor: '#15803D', border: '#BBF7D0', textColor: '#15803D' },
+    red: { bg: '#FFE6F0', iconColor: '#FF80B3', border: '#FFB3B3', textColor: '#FF80B3' }
+  };
+  const colors = colorMap[color] || colorMap.blue;
+
+  return (
+    <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: colors.bg }}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+            <IconComponent className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-semibold text-gray-800">{value}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</p>
+          {trend && <p className="text-sm" style={{ color: colors.textColor }}>{trend}</p>}
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
-  </div>
-);
+  );
+};
 
 const StatusBadge = ({ status }) => {
   const { t } = useTranslation();
   const statusMap = {
-    'PENDING': { color: 'bg-amber-100 text-amber-700', label: t('staff.forumReportManagement.status.pending') },
-    'INVESTIGATING': { color: 'bg-blue-100 text-blue-700', label: t('staff.forumReportManagement.status.investigating') },
-    'RESOLVED': { color: 'bg-green-100 text-green-700', label: t('staff.forumReportManagement.status.resolved') },
-    'DISMISSED': { color: 'bg-red-100 text-red-700', label: t('staff.forumReportManagement.status.dismissed') },
-    'CLOSED': { color: 'bg-gray-100 text-gray-700', label: t('staff.forumReportManagement.status.closed') }
+    'PENDING': { bgColor: '#FFF4E6', textColor: '#FFB84D', label: t('staff.forumReportManagement.status.pending') },
+    'INVESTIGATING': { bgColor: '#E6F3FF', textColor: '#66B3FF', label: t('staff.forumReportManagement.status.investigating') },
+    'RESOLVED': { bgColor: '#DCFCE7', textColor: '#15803D', label: t('staff.forumReportManagement.status.resolved') },
+    'DISMISSED': { bgColor: '#FFE6F0', textColor: '#FF80B3', label: t('staff.forumReportManagement.status.dismissed') },
+    'CLOSED': { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: t('staff.forumReportManagement.status.closed') }
   };
   
-  const map = statusMap[status] || { color: 'bg-gray-100 text-gray-500', label: status || t('staff.forumReportManagement.status.na') };
+  const map = statusMap[status] || { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: status || t('staff.forumReportManagement.status.na') };
   
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: map.bgColor, color: map.textColor }}>
       {map.label}
     </span>
   );
@@ -578,7 +672,7 @@ const TypeBadge = ({ reasons }) => {
   const { t } = useTranslation();
   if (!reasons) {
     return (
-      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
+      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: '#F5F5F5', color: '#9CA3AF' }}>
         {t('staff.forumReportManagement.violationTypes.na')}
       </span>
     );
@@ -587,14 +681,14 @@ const TypeBadge = ({ reasons }) => {
   // Reasons is a string (joined from Set), try to find the first matching type
   const reasonsUpper = typeof reasons === 'string' ? reasons.toUpperCase() : '';
   const typeMap = {
-    'SPAM': { color: 'bg-purple-100 text-purple-700', label: t('staff.forumReportManagement.violationTypes.spam') },
-    'INAPPROPRIATE': { color: 'bg-orange-100 text-orange-700', label: t('staff.forumReportManagement.violationTypes.inappropriate') },
-    'HARASSMENT': { color: 'bg-red-100 text-red-700', label: t('staff.forumReportManagement.violationTypes.harassment') },
-    'COPYRIGHT': { color: 'bg-blue-100 text-blue-700', label: t('staff.forumReportManagement.violationTypes.copyright') },
-    'VIOLENCE': { color: 'bg-red-100 text-red-700', label: t('staff.forumReportManagement.violationTypes.violence') },
-    'HATE_SPEECH': { color: 'bg-red-100 text-red-700', label: t('staff.forumReportManagement.violationTypes.hateSpeech') },
-    'FALSE_INFO': { color: 'bg-yellow-100 text-yellow-700', label: t('staff.forumReportManagement.violationTypes.falseInfo') },
-    'OTHER': { color: 'bg-gray-100 text-gray-700', label: t('staff.forumReportManagement.violationTypes.other') }
+    'SPAM': { bgColor: '#F0E6FF', textColor: '#B380FF', label: t('staff.forumReportManagement.violationTypes.spam') },
+    'INAPPROPRIATE': { bgColor: '#FFF4E6', textColor: '#FFB84D', label: t('staff.forumReportManagement.violationTypes.inappropriate') },
+    'HARASSMENT': { bgColor: '#FFE6F0', textColor: '#FF80B3', label: t('staff.forumReportManagement.violationTypes.harassment') },
+    'COPYRIGHT': { bgColor: '#E6F3FF', textColor: '#66B3FF', label: t('staff.forumReportManagement.violationTypes.copyright') },
+    'VIOLENCE': { bgColor: '#FFE6F0', textColor: '#FF80B3', label: t('staff.forumReportManagement.violationTypes.violence') },
+    'HATE_SPEECH': { bgColor: '#FFE6F0', textColor: '#FF80B3', label: t('staff.forumReportManagement.violationTypes.hateSpeech') },
+    'FALSE_INFO': { bgColor: '#FFF4E6', textColor: '#FFB84D', label: t('staff.forumReportManagement.violationTypes.falseInfo') },
+    'OTHER': { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: t('staff.forumReportManagement.violationTypes.other') }
   };
   
   // Find first matching type
@@ -606,10 +700,10 @@ const TypeBadge = ({ reasons }) => {
     }
   }
   
-  const map = typeMap[matchedType] || { color: 'bg-gray-100 text-gray-500', label: t('staff.forumReportManagement.violationTypes.other') };
+  const map = typeMap[matchedType] || { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: t('staff.forumReportManagement.violationTypes.other') };
   
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: map.bgColor, color: map.textColor }}>
       {map.label}
     </span>
   );

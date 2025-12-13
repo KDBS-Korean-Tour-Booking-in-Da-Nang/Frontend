@@ -7,14 +7,14 @@ import Pagination from '../Pagination';
 import TransactionDetailModal from './TransactionDetailModal';
 import { Tooltip } from '../../../components';
 import {
-  CurrencyDollarIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-  ReceiptRefundIcon,
-  MagnifyingGlassIcon,
-  EyeIcon,
-  CalendarIcon
-} from '@heroicons/react/24/outline';
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Receipt,
+  Search,
+  Eye,
+  Calendar
+} from 'lucide-react';
 
 const TransactionManagement = () => {
   const { t, i18n } = useTranslation();
@@ -149,7 +149,7 @@ const TransactionManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#66B3FF' }}></div>
           <p className="mt-4 text-gray-600">{t('admin.transactionManagement.loading')}</p>
         </div>
       </div>
@@ -159,11 +159,14 @@ const TransactionManagement = () => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+        <div className="border px-4 py-3 rounded-[20px] flex items-center justify-between" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFB3B3', color: '#FF80B3' }}>
           <span>{error}</span>
           <button
             onClick={fetchTransactions}
-            className="ml-4 px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+            className="ml-4 px-3 py-1 text-xs font-semibold rounded-[16px] transition"
+            style={{ backgroundColor: '#FFCCE0', color: '#FF80B3' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#FFB3CC'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#FFCCE0'}
           >
             {t('admin.transactionManagement.retry')}
           </button>
@@ -171,8 +174,8 @@ const TransactionManagement = () => {
       )}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.transactionManagement.title')}</p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.transactionManagement.title')}</h1>
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('admin.transactionManagement.title')}</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('admin.transactionManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('admin.transactionManagement.subtitle')}
           </p>
@@ -182,29 +185,31 @@ const TransactionManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard icon={CurrencyDollarIcon} label={t('admin.transactionManagement.stats.total')} value={stats.total} trend={t('admin.transactionManagement.stats.totalTrend')} />
-        <StatCard icon={ArrowTrendingUpIcon} label={t('admin.transactionManagement.stats.completed')} value={stats.completed} trend={t('admin.transactionManagement.stats.completedTrend')} color="text-green-600" />
+        <StatCard icon={DollarSign} label={t('admin.transactionManagement.stats.total')} value={stats.total} trend={t('admin.transactionManagement.stats.totalTrend')} />
+        <StatCard icon={TrendingUp} label={t('admin.transactionManagement.stats.completed')} value={stats.completed} trend={t('admin.transactionManagement.stats.completedTrend')} color="text-green-600" />
         <StatCard icon={CurrencyFormatter} label={t('admin.transactionManagement.stats.totalRevenue')} value={formatCurrency(stats.totalRevenue)} trend={t('admin.transactionManagement.stats.totalRevenueTrend')} color="text-[#4c9dff]" />
-        <StatCard icon={ArrowTrendingDownIcon} label={t('admin.transactionManagement.stats.pending')} value={stats.pending} trend={t('admin.transactionManagement.stats.pendingTrend')} color="text-amber-500" />
+        <StatCard icon={TrendingDown} label={t('admin.transactionManagement.stats.pending')} value={stats.pending} trend={t('admin.transactionManagement.stats.pendingTrend')} color="text-amber-500" />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="flex flex-col gap-3 p-5 border-b lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div className="relative w-full lg:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.transactionManagement.searchPlaceholder')}
-              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('admin.transactionManagement.statusFilter.all')}</option>
               <option value="completed">{t('admin.transactionManagement.statusFilter.completed')}</option>
@@ -215,10 +220,10 @@ const TransactionManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-blue-50/50 w-16">
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">
                   STT
                 </th>
                 {[t('admin.transactionManagement.tableHeaders.customer'), t('admin.transactionManagement.tableHeaders.status'), t('admin.transactionManagement.tableHeaders.amount'), t('admin.transactionManagement.tableHeaders.paymentMethod'), t('admin.transactionManagement.tableHeaders.transactionDate'), t('admin.transactionManagement.tableHeaders.actions')].map((header) => (
@@ -228,7 +233,7 @@ const TransactionManagement = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {filteredTransactions.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
@@ -237,15 +242,18 @@ const TransactionManagement = () => {
                 </tr>
               ) : (
                 paginatedTransactions.map((transaction, index) => (
-                  <tr key={transaction.id} className="hover:bg-[#e9f2ff]/40 transition">
-                    <td className="px-4 py-4 text-center bg-blue-50/30">
-                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
+                  <tr key={transaction.id} className="transition" style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <td className="px-4 py-4 text-center">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-[20px] text-sm font-semibold" style={{ backgroundColor: '#F5F5F5', color: '#6B7280' }}>
                         {currentPage * itemsPerPage + index + 1}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-semibold text-gray-900">{transaction.customerName}</p>
+                        <p className="font-semibold text-gray-800">{transaction.customerName}</p>
                         <p className="text-sm text-gray-500">{transaction.customerEmail}</p>
                       </div>
                     </td>
@@ -253,14 +261,14 @@ const TransactionManagement = () => {
                       <StatusBadge status={transaction.status} />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-gray-900">{formatCurrency(transaction.amount)}</div>
+                      <div className="text-sm font-semibold text-gray-800">{formatCurrency(transaction.amount)}</div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {transaction.paymentMethod}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <CalendarIcon className="h-4 w-4 text-gray-400" />
+                        <Calendar className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
                         {transaction.transactionDate
                           ? new Date(transaction.transactionDate).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN')
                           : 'N/A'}
@@ -273,9 +281,20 @@ const TransactionManagement = () => {
                             setSelectedTransaction(transaction);
                             setIsDetailModalOpen(true);
                           }}
-                          className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition"
+                          className="p-2 rounded-[20px] border transition"
+                          style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                          onMouseEnter={(e) => {
+                            e.target.style.color = '#66B3FF';
+                            e.target.style.borderColor = '#CCE6FF';
+                            e.target.style.backgroundColor = '#E6F3FF';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.color = '#9CA3AF';
+                            e.target.style.borderColor = '#E0E0E0';
+                            e.target.style.backgroundColor = 'transparent';
+                          }}
                         >
-                          <EyeIcon className="h-4 w-4" />
+                          <Eye className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </Tooltip>
                     </td>
@@ -310,37 +329,49 @@ const TransactionManagement = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
-          {IconComponent === CurrencyFormatter ? (
-            <span className="text-xl font-semibold text-[#4c9dff]">₩</span>
-          ) : (
-            <IconComponent className="h-6 w-6 text-[#4c9dff]" />
-          )}
+const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => {
+  const colorMap = {
+    'text-blue-600': { bg: '#E6F3FF', iconColor: '#66B3FF', textColor: '#66B3FF' },
+    'text-[#4c9dff]': { bg: '#E6F3FF', iconColor: '#66B3FF', textColor: '#66B3FF' },
+    'text-green-600': { bg: '#DCFCE7', iconColor: '#15803D', textColor: '#15803D' },
+    'text-amber-500': { bg: '#FFF4E6', iconColor: '#FFB84D', textColor: '#FFB84D' }
+  };
+  const colors = colorMap[color] || colorMap['text-blue-600'];
+  
+  return (
+    <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: colors.bg }}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+            {IconComponent === CurrencyFormatter ? (
+              <span className="text-2xl font-semibold" style={{ color: colors.iconColor }}>₩</span>
+            ) : (
+              <IconComponent className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
+            )}
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-semibold text-gray-800">{value}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</p>
+          {trend && <p className="text-xs font-medium" style={{ color: colors.textColor }}>{trend}</p>}
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
     </div>
-  </div>
-);
+  );
+};
 
 const StatusBadge = ({ status }) => {
   const { t } = useTranslation();
   const map = {
-    completed: { color: 'bg-green-100 text-green-700', label: t('admin.transactionManagement.status.completed') },
-    pending: { color: 'bg-amber-100 text-amber-700', label: t('admin.transactionManagement.status.pending') },
-    failed: { color: 'bg-red-100 text-red-700', label: t('admin.transactionManagement.status.failed') }
+    completed: { bgColor: '#DCFCE7', textColor: '#15803D', label: t('admin.transactionManagement.status.completed') },
+    pending: { bgColor: '#FFF4E6', textColor: '#FFB84D', label: t('admin.transactionManagement.status.pending') },
+    failed: { bgColor: '#FFE6F0', textColor: '#FF80B3', label: t('admin.transactionManagement.status.failed') }
   };
-  const statusMap = map[status] || { color: 'bg-gray-100 text-gray-500', label: status };
+  const statusMap = map[status] || { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: status };
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusMap.color} mt-1`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px] mt-1" style={{ backgroundColor: statusMap.bgColor, color: statusMap.textColor }}>
       {statusMap.label}
     </span>
   );

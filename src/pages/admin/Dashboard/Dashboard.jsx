@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Chart from 'react-apexcharts';
 import {
-  MapIcon,
-  CurrencyDollarIcon,
-  UserGroupIcon,
-  BuildingOfficeIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  GlobeAltIcon,
-  UserIcon,
-  DocumentTextIcon,
-  ClockIcon,
-  ArrowUpIcon,
-  ArrowDownIcon
-} from '@heroicons/react/24/outline';
+  MapPin,
+  DollarSign,
+  Users,
+  Building2,
+  CheckCircle2,
+  XCircle,
+  Globe,
+  User,
+  FileText,
+  Clock,
+  ArrowUp,
+  ArrowDown
+} from 'lucide-react';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
@@ -263,73 +263,67 @@ const Dashboard = () => {
     return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
-  // Stats cards data
+  // Stats cards data with pastel colors
   const statsCards = [
     {
       name: 'Total Revenue',
       value: formatCurrency(stats.totalRevenue),
       change: '+15%',
       changeType: 'positive',
-      icon: CurrencyDollarIcon,
-      color: 'yellow',
-      bgColor: 'bg-yellow-50',
-      iconColor: 'text-yellow-600',
-      borderColor: 'border-l-yellow-500'
+      icon: DollarSign,
+      bgColor: '#FFF4E6',
+      iconColor: '#FFB84D',
+      borderColor: '#FFE5CC'
     },
     {
       name: 'Customer Management',
       value: stats.customerManagement.totalCustomers,
       change: '+5%',
       changeType: 'positive',
-      icon: UserIcon,
-      color: 'blue',
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-l-blue-500'
+      icon: User,
+      bgColor: '#E6F3FF',
+      iconColor: '#66B3FF',
+      borderColor: '#CCE6FF'
     },
     {
       name: 'Staff Management',
       value: stats.staffManagement.totalStaff,
       change: '+3%',
       changeType: 'positive',
-      icon: UserGroupIcon,
-      color: 'purple',
-      bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600',
-      borderColor: 'border-l-purple-500'
+      icon: Users,
+      bgColor: '#F0E6FF',
+      iconColor: '#B380FF',
+      borderColor: '#E0CCFF'
     },
     {
       name: 'Company Management',
       value: stats.companyManagement.totalCompanies,
       change: '+8%',
       changeType: 'positive',
-      icon: BuildingOfficeIcon,
-      color: 'green',
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600',
-      borderColor: 'border-l-green-500'
+      icon: Building2,
+      bgColor: '#E8F5E9',
+      iconColor: '#8BC34A',
+      borderColor: '#C8E6C9'
     },
     {
       name: 'Article Management',
       value: stats.articleManagement.totalArticles,
       change: '+12%',
       changeType: 'positive',
-      icon: DocumentTextIcon,
-      color: 'indigo',
-      bgColor: 'bg-indigo-50',
-      iconColor: 'text-indigo-600',
-      borderColor: 'border-l-indigo-500'
+      icon: FileText,
+      bgColor: '#E6E6FF',
+      iconColor: '#8080FF',
+      borderColor: '#CCCCFF'
     },
     {
       name: 'Tour Management',
       value: stats.tourManagement.totalTours,
       change: '+10%',
       changeType: 'positive',
-      icon: MapIcon,
-      color: 'orange',
-      bgColor: 'bg-orange-50',
-      iconColor: 'text-orange-600',
-      borderColor: 'border-l-orange-500'
+      icon: MapPin,
+      bgColor: '#FFE6F0',
+      iconColor: '#FF80B3',
+      borderColor: '#FFCCE0'
     }
   ];
 
@@ -378,10 +372,10 @@ const Dashboard = () => {
       },
       stroke: {
         curve: 'smooth',
-        width: 3,
-        colors: ['#4c9dff']
+        width: 2.5,
+        colors: ['#66B3FF']
       },
-      colors: ['#4c9dff'],
+      colors: ['#66B3FF'],
       xaxis: {
         categories: last6Months.map(m => monthNames[m - 1] || `Month ${m}`)
       },
@@ -427,7 +421,7 @@ const Dashboard = () => {
         height: 350
       },
       labels: tourStatusLabels,
-      colors: ['#4c9dff', '#f59e0b', '#ef4444'],
+      colors: ['#66B3FF', '#FFB84D', '#FF80B3'],
       legend: {
         position: 'bottom',
         fontSize: '14px'
@@ -493,11 +487,10 @@ const Dashboard = () => {
       percentage: totalBookings > 0
         ? Math.round(((getBookingStatusCount('BOOKING_SUCCESS') + getBookingStatusCount('BOOKING_BALANCE_SUCCESS')) / totalBookings) * 100)
         : 0,
-      icon: CheckCircleIcon,
-      color: '#4c9dff',
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-blue-200'
+      icon: CheckCircle2,
+      bgColor: '#E6F3FF',
+      iconColor: '#66B3FF',
+      borderColor: '#CCE6FF'
     },
     {
       label: i18n.language === 'ko' ? '대기 중' : i18n.language === 'en' ? 'Pending' : 'Đang chờ',
@@ -505,11 +498,10 @@ const Dashboard = () => {
       percentage: totalBookings > 0
         ? Math.round((((getBookingStatusCount('PENDING_PAYMENT') + getBookingStatusCount('PENDING_DEPOSIT_PAYMENT') + getBookingStatusCount('PENDING_BALANCE_PAYMENT')) / totalBookings) * 100))
         : 0,
-      icon: ClockIcon,
-      color: '#f59e0b',
-      bgColor: 'bg-amber-50',
-      iconColor: 'text-amber-600',
-      borderColor: 'border-amber-200'
+      icon: Clock,
+      bgColor: '#FFF4E6',
+      iconColor: '#FFB84D',
+      borderColor: '#FFE5CC'
     },
     {
       label: i18n.language === 'ko' ? '취소됨' : i18n.language === 'en' ? 'Cancelled' : 'Đã hủy',
@@ -517,11 +509,10 @@ const Dashboard = () => {
       percentage: totalBookings > 0
         ? Math.round((getBookingStatusCount('CANCELLED') / totalBookings) * 100)
         : 0,
-      icon: XCircleIcon,
-      color: '#ef4444',
-      bgColor: 'bg-red-50',
-      iconColor: 'text-red-600',
-      borderColor: 'border-red-200'
+      icon: XCircle,
+      bgColor: '#FFE6F0',
+      iconColor: '#FF80B3',
+      borderColor: '#FFCCE0'
     }
   ];
 
@@ -553,17 +544,17 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#66B3FF]"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+    <div className="space-y-6 p-6 bg-[#FAFAFA] min-h-screen">
       {/* Page header */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h1 className="text-3xl font-bold text-gray-900">{t('admin.dashboard.title')}</h1>
-        <p className="mt-2 text-gray-600">{t('admin.dashboard.subtitle')}</p>
+      <div className="bg-white rounded-[24px] shadow-sm p-8 border border-[#F0F0F0]">
+        <h1 className="text-3xl font-semibold text-gray-800">{t('admin.dashboard.title')}</h1>
+        <p className="mt-2 text-gray-500">{t('admin.dashboard.subtitle')}</p>
       </div>
 
       {/* Stats cards */}
@@ -573,26 +564,27 @@ const Dashboard = () => {
           return (
             <div
               key={stat.name}
-              className={`bg-white rounded-lg shadow-sm border-l-4 ${stat.borderColor} hover:shadow-md transition-shadow duration-200`}
+              className="bg-white rounded-[28px] shadow-sm border border-[#F0F0F0] hover:shadow-md transition-all duration-300"
+              style={{ backgroundColor: stat.bgColor }}
             >
               <div className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                    <div className={`mt-2 flex items-center text-sm font-semibold ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                    <p className="text-sm font-medium text-gray-600 mb-2">{stat.name}</p>
+                    <p className="text-2xl font-semibold text-gray-800 mb-2">{stat.value}</p>
+                    <div className={`mt-2 flex items-center text-sm font-medium ${stat.changeType === 'positive' ? 'text-[#4DD0E1]' : 'text-[#FF80B3]'
                       }`}>
                       {stat.changeType === 'positive' ? (
-                        <ArrowUpIcon className="h-4 w-4 mr-1" />
+                        <ArrowUp className="h-4 w-4 mr-1" strokeWidth={2} />
                       ) : (
-                        <ArrowDownIcon className="h-4 w-4 mr-1" />
+                        <ArrowDown className="h-4 w-4 mr-1" strokeWidth={2} />
                       )}
                       <span>{stat.change}</span>
-                      <span className="ml-1 text-gray-500 text-xs">{t('admin.dashboard.changeFromLastMonth')}</span>
+                      <span className="ml-1 text-gray-400 text-xs">{t('admin.dashboard.changeFromLastMonth')}</span>
                     </div>
                   </div>
-                  <div className={`${stat.bgColor} p-4 rounded-lg`}>
-                    <Icon className={`h-8 w-8 ${stat.iconColor}`} />
+                  <div className="p-4 rounded-[20px]" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Icon className="h-7 w-7" style={{ color: stat.iconColor }} strokeWidth={1.5} />
                   </div>
                 </div>
               </div>
@@ -604,9 +596,9 @@ const Dashboard = () => {
       {/* Charts section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Booking Trend */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-[28px] shadow-sm p-6 border border-[#F0F0F0]">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Booking Trend</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Booking Trend</h3>
             <span className="text-sm text-gray-500">Last 6 months</span>
           </div>
           <Chart
@@ -618,9 +610,9 @@ const Dashboard = () => {
         </div>
 
         {/* Tour Status Distribution */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-[28px] shadow-sm p-6 border border-[#F0F0F0]">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Tour Status</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Tour Status</h3>
             <span className="text-sm text-gray-500">Total: {stats.tourManagement.totalTours || 0} tours</span>
           </div>
           <Chart
@@ -633,10 +625,10 @@ const Dashboard = () => {
       </div>
 
       {/* Booking Status Cards - Redesigned */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-[28px] shadow-sm p-6 border border-[#F0F0F0]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Booking Status</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Booking Status</h3>
             <p className="text-sm text-gray-500 mt-1">Total: {stats.bookingManagement.totalBookings || 0} bookings</p>
           </div>
         </div>
@@ -646,24 +638,28 @@ const Dashboard = () => {
             return (
               <div
                 key={status.label}
-                className={`border-2 ${status.borderColor} rounded-xl p-6 hover:shadow-lg transition-all duration-200 ${status.bgColor}`}
+                className="rounded-[28px] p-6 hover:shadow-lg transition-all duration-300 border"
+                style={{
+                  backgroundColor: status.bgColor,
+                  borderColor: status.borderColor
+                }}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg ${status.bgColor}`}>
-                    <Icon className={`h-6 w-6 ${status.iconColor}`} />
+                  <div className="p-3 rounded-[20px]" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+                    <Icon className="h-6 w-6" style={{ color: status.iconColor }} strokeWidth={1.5} />
                   </div>
-                  <span className={`text-2xl font-bold ${status.iconColor}`}>
+                  <span className="text-2xl font-semibold" style={{ color: status.iconColor }}>
                     {status.percentage}%
                   </span>
                 </div>
                 <h4 className="text-sm font-medium text-gray-600 mb-2">{status.label}</h4>
-                <p className="text-3xl font-bold text-gray-900 mb-4">{status.value}</p>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <p className="text-3xl font-semibold text-gray-800 mb-4">{status.value}</p>
+                <div className="w-full bg-white/50 rounded-full h-2.5">
                   <div
-                    className={`h-2.5 rounded-full transition-all duration-500`}
+                    className="h-2.5 rounded-full transition-all duration-500"
                     style={{
                       width: `${status.percentage}%`,
-                      backgroundColor: status.color
+                      backgroundColor: status.iconColor
                     }}
                   ></div>
                 </div>
@@ -674,16 +670,16 @@ const Dashboard = () => {
       </div>
 
       {/* World Map Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-[28px] shadow-sm p-6 border border-[#F0F0F0]">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <GlobeAltIcon className="h-5 w-5 text-[#4c9dff]" />
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Globe className="h-5 w-5" style={{ color: '#66B3FF' }} strokeWidth={1.5} />
               {t('admin.dashboard.worldMap.title')}
             </h3>
             <p className="text-sm text-gray-500 mt-1">{t('admin.dashboard.worldMap.subtitle')}</p>
           </div>
-          <select className="text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select className="text-sm border border-[#E0E0E0] rounded-[20px] px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white">
             <option>{t('admin.dashboard.worldMap.timeFilter.today')}</option>
             <option>{t('admin.dashboard.worldMap.timeFilter.thisWeek')}</option>
             <option>{t('admin.dashboard.worldMap.timeFilter.thisMonth')}</option>
@@ -692,13 +688,13 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* World Map */}
-          <div className="relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+          <div className="relative bg-[#FAFAFA] rounded-[24px] overflow-hidden border border-[#E0E0E0]">
             <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-              <button className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-lg shadow-sm border border-gray-200 transition-colors">
-                <span className="text-lg font-bold">+</span>
+              <button className="bg-white hover:bg-[#F5F5F5] text-gray-700 p-2 rounded-[16px] shadow-sm border border-[#E0E0E0] transition-colors">
+                <span className="text-lg font-semibold">+</span>
               </button>
-              <button className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-lg shadow-sm border border-gray-200 transition-colors">
-                <span className="text-lg font-bold">−</span>
+              <button className="bg-white hover:bg-[#F5F5F5] text-gray-700 p-2 rounded-[16px] shadow-sm border border-[#E0E0E0] transition-colors">
+                <span className="text-lg font-semibold">−</span>
               </button>
             </div>
             <ComposableMap
@@ -716,8 +712,8 @@ const Dashboard = () => {
                       <Geography
                         key={geo.rsmKey || geo.properties.ISO_A3 || geo.properties.name}
                         geography={geo}
-                        fill={isHighlighted ? '#2979FF' : '#E5E7EB'}
-                        stroke={isHighlighted ? '#1976D2' : '#D1D5DB'}
+                        fill={isHighlighted ? '#66B3FF' : '#F0F0F0'}
+                        stroke={isHighlighted ? '#4DA3FF' : '#E0E0E0'}
                         strokeWidth={isHighlighted ? 1.5 : 0.5}
                         style={{
                           default: {
@@ -725,7 +721,7 @@ const Dashboard = () => {
                             transition: 'all 0.3s ease'
                           },
                           hover: {
-                            fill: isHighlighted ? '#1976D2' : '#D1D5DB',
+                            fill: isHighlighted ? '#4DA3FF' : '#E0E0E0',
                             outline: 'none',
                             cursor: 'pointer'
                           },
@@ -742,7 +738,7 @@ const Dashboard = () => {
                 <Marker key={country.code} coordinates={country.coordinates}>
                   <circle
                     r={8}
-                    fill="#2979FF"
+                    fill="#66B3FF"
                     stroke="#fff"
                     strokeWidth={2}
                     style={{ cursor: 'pointer' }}
@@ -757,26 +753,26 @@ const Dashboard = () => {
             {topCountries.map((country) => (
               <div
                 key={country.code}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                className="flex items-center justify-between p-4 bg-[#FAFAFA] rounded-[24px] hover:bg-[#F5F5F5] transition-colors border border-[#E0E0E0]"
               >
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-lg font-bold text-gray-600">
+                  <div className="w-10 h-10 rounded-[16px] bg-white border-2 border-[#E0E0E0] flex items-center justify-center text-lg font-semibold text-gray-600">
                     {country.code}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{country.name}</h4>
+                    <h4 className="font-semibold text-gray-800">{country.name}</h4>
                     <p className="text-sm text-gray-500">{country.users.toLocaleString()} {t('admin.dashboard.worldMap.users')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
+                  <div className="w-24 bg-white/60 rounded-full h-2">
                     <div
                       className="h-2 rounded-full transition-all duration-500"
                       style={{
                         width: `${country.percentage}%`,
                         backgroundColor: country.code === 'VN' || country.code === 'KR'
-                          ? '#2979FF'
-                          : '#36C2A8'
+                          ? '#66B3FF'
+                          : '#8BC34A'
                       }}
                     ></div>
                   </div>
@@ -792,37 +788,37 @@ const Dashboard = () => {
 
       {/* Additional Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
+        <div className="rounded-[28px] shadow-sm p-6 border border-[#E0E0E0]" style={{ backgroundColor: '#E6F3FF' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium mb-1">Completed Tours</p>
-              <p className="text-3xl font-bold">{stats.completedBookings || 0}</p>
+              <p className="text-sm font-medium mb-1" style={{ color: '#4D8FCC' }}>Completed Tours</p>
+              <p className="text-3xl font-semibold text-gray-800">{stats.completedBookings || 0}</p>
             </div>
-            <CheckCircleIcon className="h-12 w-12 text-blue-200" />
+            <CheckCircle2 className="h-12 w-12" style={{ color: '#66B3FF' }} strokeWidth={1.5} />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
+        <div className="rounded-[28px] shadow-sm p-6 border border-[#E0E0E0]" style={{ backgroundColor: '#E8F5E9' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium mb-1">Companies</p>
-              <p className="text-3xl font-bold">{stats.companyManagement.totalCompanies || 0}</p>
+              <p className="text-sm font-medium mb-1" style={{ color: '#8BC34A' }}>Companies</p>
+              <p className="text-3xl font-semibold text-gray-800">{stats.companyManagement.totalCompanies || 0}</p>
             </div>
-            <BuildingOfficeIcon className="h-12 w-12 text-green-200" />
+            <Building2 className="h-12 w-12" style={{ color: '#8BC34A' }} strokeWidth={1.5} />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+        <div className="rounded-[28px] shadow-sm p-6 border border-[#E0E0E0]" style={{ backgroundColor: '#F0E6FF' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium mb-1">Completion Rate</p>
-              <p className="text-3xl font-bold">
+              <p className="text-sm font-medium mb-1" style={{ color: '#9966CC' }}>Completion Rate</p>
+              <p className="text-3xl font-semibold text-gray-800">
                 {stats.bookingManagement.totalBookings > 0
                   ? Math.round((stats.completedBookings / stats.bookingManagement.totalBookings) * 100)
                   : 0}%
               </p>
             </div>
-            <CurrencyDollarIcon className="h-12 w-12 text-purple-200" />
+            <DollarSign className="h-12 w-12" style={{ color: '#B380FF' }} strokeWidth={1.5} />
           </div>
         </div>
       </div>

@@ -10,19 +10,19 @@ import DeleteConfirmModal from '../../../components/modals/DeleteConfirmModal/De
 import Pagination from '../Pagination';
 import { Tooltip } from '../../../components';
 import { 
-  UserGroupIcon,
-  PlusIcon,
-  TrashIcon,
-  EyeIcon,
-  MagnifyingGlassIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  ClipboardDocumentListIcon,
-  FlagIcon,
-  BuildingOfficeIcon,
-  DocumentCheckIcon,
-  MapPinIcon
-} from '@heroicons/react/24/outline';
+  Users,
+  Plus,
+  Trash2,
+  Eye,
+  Search,
+  Phone,
+  Mail,
+  ClipboardList,
+  Flag,
+  Building2,
+  FileCheck,
+  MapPin
+} from 'lucide-react';
 
 const StaffManagement = () => {
   const { t, i18n } = useTranslation();
@@ -370,9 +370,9 @@ const StaffManagement = () => {
   };
 
   const taskOptions = [
-    { id: 'forum_report', label: t('admin.staffManagement.tasks.forumReport'), icon: FlagIcon, value: 'FORUM_REPORT_AND_BOOKING_COMPLAINT' },
-    { id: 'company_request', label: t('admin.staffManagement.tasks.companyRequest'), icon: BuildingOfficeIcon, value: 'COMPANY_REQUEST_AND_RESOLVE_TICKET' },
-    { id: 'approve_tour', label: t('admin.staffManagement.tasks.approveTour'), icon: MapPinIcon, value: 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' }
+    { id: 'forum_report', label: t('admin.staffManagement.tasks.forumReport'), icon: Flag, value: 'FORUM_REPORT_AND_BOOKING_COMPLAINT' },
+    { id: 'company_request', label: t('admin.staffManagement.tasks.companyRequest'), icon: Building2, value: 'COMPANY_REQUEST_AND_RESOLVE_TICKET' },
+    { id: 'approve_tour', label: t('admin.staffManagement.tasks.approveTour'), icon: MapPin, value: 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' }
   ];
 
   // Filter staff list based on search and filters
@@ -427,7 +427,7 @@ const StaffManagement = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4c9dff] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: '#66B3FF' }}></div>
           <p className="mt-4 text-gray-600">{t('admin.staffManagement.loading')}</p>
         </div>
       </div>
@@ -437,15 +437,15 @@ const StaffManagement = () => {
   return (
     <div className="space-y-6">
       {error && typeof error === 'string' && error !== null && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
+        <div className="px-4 py-3 rounded-[24px] flex items-center justify-between border" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFCCE0' }}>
+          <span style={{ color: '#FF80B3' }}>{error}</span>
         </div>
       )}
       
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#4c9dff] font-semibold mb-2">{t('admin.staffManagement.title')}</p>
-          <h1 className="text-3xl font-bold text-gray-900">{t('admin.staffManagement.title')}</h1>
+          <p className="text-xs uppercase tracking-[0.3em] font-semibold mb-2" style={{ color: '#66B3FF' }}>{t('admin.staffManagement.title')}</p>
+          <h1 className="text-3xl font-semibold text-gray-800">{t('admin.staffManagement.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {t('admin.staffManagement.subtitle')}
           </p>
@@ -453,38 +453,43 @@ const StaffManagement = () => {
         <div className="flex gap-3">
           <button
             onClick={handleAddStaff}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-[20px] text-sm font-semibold transition-all duration-200"
+            style={{ backgroundColor: '#66B3FF', color: '#FFFFFF' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#4DA3FF'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#66B3FF'}
           >
-            <PlusIcon className="h-5 w-5" />
+            <Plus className="h-5 w-5" strokeWidth={1.5} />
             {t('admin.staffManagement.addStaff')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={UserGroupIcon} label={t('admin.staffManagement.stats.total')} value={stats.total} trend={t('admin.staffManagement.stats.totalTrend')} />
-        <StatCard icon={FlagIcon} label={t('admin.staffManagement.stats.forumReport')} value={stats.forumReport} trend={t('admin.staffManagement.stats.forumReportTrend')} color="text-blue-600" />
-        <StatCard icon={BuildingOfficeIcon} label={t('admin.staffManagement.stats.companyRequest')} value={stats.companyRequest} trend={t('admin.staffManagement.stats.companyRequestTrend')} color="text-purple-600" />
-        <StatCard icon={MapPinIcon} label={t('admin.staffManagement.stats.approveTour')} value={stats.approveTour} trend={t('admin.staffManagement.stats.approveTourTrend')} color="text-green-600" />
+        <StatCard icon={Users} label={t('admin.staffManagement.stats.total')} value={stats.total} trend={t('admin.staffManagement.stats.totalTrend')} />
+        <StatCard icon={Flag} label={t('admin.staffManagement.stats.forumReport')} value={stats.forumReport} trend={t('admin.staffManagement.stats.forumReportTrend')} color="text-blue-600" />
+        <StatCard icon={Building2} label={t('admin.staffManagement.stats.companyRequest')} value={stats.companyRequest} trend={t('admin.staffManagement.stats.companyRequestTrend')} color="text-purple-600" />
+        <StatCard icon={MapPin} label={t('admin.staffManagement.stats.approveTour')} value={stats.approveTour} trend={t('admin.staffManagement.stats.approveTourTrend')} color="text-green-600" />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 p-5 border-b border-gray-100 lg:flex-row lg:items-center lg:justify-between">
+      <div className="bg-white rounded-[28px] shadow-sm border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="flex flex-col gap-3 p-5 border-b lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: '#F0F0F0' }}>
           <div className="relative w-full lg:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" strokeWidth={1.5} />
             <input
               type="text"
               placeholder={t('admin.staffManagement.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border rounded-[20px] pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             />
           </div>
           <div className="flex flex-wrap gap-3">
             <select 
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('admin.staffManagement.roleFilter.all')}</option>
               <option value="staff">{t('admin.staffManagement.roleFilter.staff')}</option>
@@ -492,7 +497,8 @@ const StaffManagement = () => {
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border rounded-[20px] px-3 py-2 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#66B3FF]/30 bg-white"
+              style={{ borderColor: '#E0E0E0' }}
             >
               <option value="ALL">{t('admin.staffManagement.statusFilter.all')}</option>
               <option value="active">{t('admin.staffManagement.statusFilter.active')}</option>
@@ -502,8 +508,8 @@ const StaffManagement = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y" style={{ borderColor: '#F0F0F0' }}>
+            <thead style={{ backgroundColor: '#FAFAFA' }}>
               <tr>
                 {[t('admin.staffManagement.tableHeaders.staff'), t('admin.staffManagement.tableHeaders.role'), t('admin.staffManagement.tableHeaders.status'), t('admin.staffManagement.tableHeaders.assignedTasks'), t('admin.staffManagement.tableHeaders.createdAt'), t('admin.staffManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -512,7 +518,7 @@ const StaffManagement = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-50">
+            <tbody className="bg-white divide-y" style={{ borderColor: '#F0F0F0' }}>
               {filteredStaffList.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
@@ -521,18 +527,21 @@ const StaffManagement = () => {
                 </tr>
               ) : (
                 paginatedStaffList.map((staff) => (
-                  <tr key={staff.userId} className="hover:bg-[#e9f2ff]/40 transition">
+                  <tr key={staff.userId} className="transition" style={{ backgroundColor: 'transparent' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6F3FF'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-[#4c9dff] flex items-center justify-center text-white text-sm font-medium border border-gray-100">
+                        <div className="h-12 w-12 rounded-[20px] flex items-center justify-center text-white text-sm font-semibold border" style={{ backgroundColor: '#66B3FF', borderColor: '#4DA3FF' }}>
                           {staff.username ? staff.username.charAt(0).toUpperCase() : 'S'}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900 mb-0">{staff.username || 'N/A'}</p>
+                          <p className="font-semibold text-gray-800 mb-0">{staff.username || 'N/A'}</p>
                           <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
                             {staff.email && (
                               <span className="inline-flex items-center gap-1">
-                                <EnvelopeIcon className="h-4 w-4 text-gray-400" />
+                                <Mail className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
                                 {staff.email}
                               </span>
                             )}
@@ -556,8 +565,8 @@ const StaffManagement = () => {
                           if (!task) return null;
                           const Icon = task.icon;
                           return (
-                            <span key={taskId} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-[#e9f2ff] text-[#2563eb] rounded-full">
-                              <Icon className="h-3 w-3" />
+                            <span key={taskId} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-[16px]" style={{ backgroundColor: '#E6F3FF', color: '#66B3FF' }}>
+                              <Icon className="h-3 w-3" strokeWidth={1.5} />
                               {task.label}
                             </span>
                           );
@@ -611,17 +620,39 @@ const StaffManagement = () => {
                         <Tooltip text={t('admin.staffManagement.actions.assignTask')} position="top">
                           <button 
                             onClick={() => handleAssignTask(staff)}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-purple-600 hover:border-purple-200 transition"
+                            className="p-2 rounded-[20px] border transition"
+                            style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                            onMouseEnter={(e) => {
+                              e.target.style.color = '#B380FF';
+                              e.target.style.borderColor = '#E0CCFF';
+                              e.target.style.backgroundColor = '#F0E6FF';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.color = '#9CA3AF';
+                              e.target.style.borderColor = '#E0E0E0';
+                              e.target.style.backgroundColor = 'transparent';
+                            }}
                           >
-                            <ClipboardDocumentListIcon className="h-4 w-4" />
+                            <ClipboardList className="h-4 w-4" strokeWidth={1.5} />
                           </button>
                         </Tooltip>
                         <Tooltip text={t('admin.staffManagement.actions.delete')} position="top">
                           <button 
                             onClick={() => handleDeleteStaff(staff)}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                            className="p-2 rounded-[20px] border transition"
+                            style={{ borderColor: '#E0E0E0', color: '#9CA3AF' }}
+                            onMouseEnter={(e) => {
+                              e.target.style.color = '#FF80B3';
+                              e.target.style.borderColor = '#FFCCE0';
+                              e.target.style.backgroundColor = '#FFE6F0';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.color = '#9CA3AF';
+                              e.target.style.borderColor = '#E0E0E0';
+                              e.target.style.backgroundColor = 'transparent';
+                            }}
                           >
-                            <TrashIcon className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
                           </button>
                         </Tooltip>
                       </div>
@@ -690,32 +721,41 @@ const StaffManagement = () => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center flex-shrink-0">
-          <IconComponent className="h-6 w-6 text-[#4c9dff]" />
+const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => {
+  const colorMap = {
+    'text-blue-600': { bg: '#E6F3FF', iconColor: '#66B3FF', textColor: '#66B3FF' },
+    'text-purple-600': { bg: '#F0E6FF', iconColor: '#B380FF', textColor: '#B380FF' },
+    'text-green-600': { bg: '#DCFCE7', iconColor: '#15803D', textColor: '#15803D' }
+  };
+  const colors = colorMap[color] || colorMap['text-blue-600'];
+  
+  return (
+    <div className="bg-white rounded-[28px] border p-6 shadow-sm" style={{ borderColor: '#F0F0F0', backgroundColor: colors.bg }}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
+            <IconComponent className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-semibold text-gray-800">{value}</p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500 uppercase tracking-wider leading-tight line-clamp-2">{label}</p>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-medium" style={{ color: colors.textColor }}>{trend}</p>
         </div>
-      </div>
-      <div className="flex items-baseline gap-2">
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const StatusBadge = ({ status }) => {
   const { t } = useTranslation();
   const map = status === 'active'
-    ? { color: 'bg-green-100 text-green-700', label: t('admin.staffManagement.status.active') }
-    : { color: 'bg-gray-100 text-gray-500', label: t('admin.staffManagement.status.inactive') };
+    ? { bgColor: '#DCFCE7', textColor: '#15803D', label: t('admin.staffManagement.status.active') }
+    : { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: t('admin.staffManagement.status.inactive') };
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: map.bgColor, color: map.textColor }}>
       {map.label}
     </span>
   );
@@ -724,10 +764,10 @@ const StatusBadge = ({ status }) => {
 const RoleBadge = ({ role }) => {
   const { t } = useTranslation();
   const map = role === 'admin'
-    ? { color: 'bg-purple-100 text-purple-700', label: t('admin.staffManagement.roles.admin') }
-    : { color: 'bg-[#bfd7ff] text-[#2563eb]', label: t('admin.staffManagement.roles.staff') };
+    ? { bgColor: '#F0E6FF', textColor: '#B380FF', label: t('admin.staffManagement.roles.admin') }
+    : { bgColor: '#E6F3FF', textColor: '#66B3FF', label: t('admin.staffManagement.roles.staff') };
   return (
-    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${map.color}`}>
+    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-[20px]" style={{ backgroundColor: map.bgColor, color: map.textColor }}>
       {map.label}
     </span>
   );

@@ -1,8 +1,6 @@
 // Booking API service
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
-import { getApiPath } from '../config/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+import { getApiPath, BaseURL } from '../config/api';
 
 const parseErrorMessage = async (response) => {
   try {
@@ -55,7 +53,7 @@ const getAuthHeaders = () => {
  */
 export const createBooking = async (bookingData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking`, {
+    const response = await fetch(`${BaseURL}/api/booking`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(bookingData),
@@ -125,7 +123,7 @@ export const createBooking = async (bookingData) => {
 export const getBookingById = async (bookingId) => {
   try {
     // Correct endpoint per backend controller: /api/booking/id/{bookingId}
-    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -165,7 +163,7 @@ export const getAllBookings = async (companyId) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/company/${companyId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/company/${companyId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -201,7 +199,7 @@ export const getAllBookings = async (companyId) => {
  */
 export const createVNPayPayment = async (paymentData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/payment`, {
+    const response = await fetch(`${BaseURL}/api/booking/payment`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(paymentData),
@@ -233,7 +231,7 @@ export const createVNPayPayment = async (paymentData) => {
 export const getBookingTotal = async (bookingId) => {
   try {
     // Always use authentication headers for booking total
-    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/total`, {
+    const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}/total`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -267,7 +265,7 @@ export const getBookingTotal = async (bookingId) => {
  */
 export const getBookingDetails = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -298,7 +296,7 @@ export const getBookingDetails = async (bookingId) => {
  */
 export const createBookingComplaint = async (bookingId, message) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/complaint`, {
+    const response = await fetch(`${BaseURL}/api/booking/${bookingId}/complaint`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ message }),
@@ -329,7 +327,7 @@ export const createBookingComplaint = async (bookingId, message) => {
 export const getComplaintsByBookingId = async (bookingId) => {
   if (!bookingId) return [];
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/complaints`, {
+    const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}/complaints`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -370,7 +368,7 @@ export const resolveBookingComplaint = async (complaintId, resolutionType, note 
       note: note || null,
     };
 
-    const response = await fetch(`${API_BASE_URL}/api/booking/complaint/${complaintId}/resolve`, {
+    const response = await fetch(`${BaseURL}/api/booking/complaint/${complaintId}/resolve`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(body),
@@ -400,7 +398,7 @@ export const resolveBookingComplaint = async (complaintId, resolutionType, note 
  */
 export const previewCancelBooking = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/cancel/preview/${bookingId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/cancel/preview/${bookingId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -431,7 +429,7 @@ export const previewCancelBooking = async (bookingId) => {
  */
 export const cancelBooking = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/cancel/${bookingId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/cancel/${bookingId}`, {
       method: 'POST',
       headers: getAuthHeaders(),
     });
@@ -462,7 +460,7 @@ export const cancelBooking = async (bookingId) => {
  */
 export const getBookingsByTourId = async (tourId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/tour/${tourId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/tour/${tourId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -499,7 +497,7 @@ export const getBookingsByTourId = async (tourId) => {
  */
 export const getGuestsByBookingId = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/id/${bookingId}/guests`, {
+    const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}/guests`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -548,7 +546,7 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
 
     // Fallback: If 404 in dev mode with relative path, try full URL
     if (!response.ok && response.status === 404 && import.meta.env.DEV && url.startsWith('/')) {
-      const fallbackUrl = `${API_BASE_URL}/api/booking/change-status/${bookingId}`;
+      const fallbackUrl = `${BaseURL}/api/booking/change-status/${bookingId}`;
       
       try {
         response = await fetch(fallbackUrl, {
@@ -603,7 +601,7 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
  */
 export const updateBooking = async (bookingId, bookingData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}`, {
+    const response = await fetch(`${BaseURL}/api/booking/${bookingId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(bookingData),
@@ -636,7 +634,7 @@ export const updateBooking = async (bookingId, bookingData) => {
  */
 export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/booking-guest/insurance/change-status/${guestId}?status=${status}`, {
+    const response = await fetch(`${BaseURL}/api/booking/booking-guest/insurance/change-status/${guestId}?status=${status}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
     });
@@ -667,7 +665,7 @@ export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
  */
 export const companyConfirmTourCompletion = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/company-confirm-completion`, {
+    const response = await fetch(`${BaseURL}/api/booking/${bookingId}/company-confirm-completion`, {
       method: 'PUT',
       headers: getAuthHeaders(),
     });
@@ -698,7 +696,7 @@ export const companyConfirmTourCompletion = async (bookingId) => {
  */
 export const userConfirmTourCompletion = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/user-confirm-completion`, {
+    const response = await fetch(`${BaseURL}/api/booking/${bookingId}/user-confirm-completion`, {
       method: 'PUT',
       headers: getAuthHeaders(),
     });
@@ -729,7 +727,7 @@ export const userConfirmTourCompletion = async (bookingId) => {
  */
 export const getTourCompletionStatus = async (bookingId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/${bookingId}/tour-completion-status`, {
+    const response = await fetch(`${BaseURL}/api/booking/${bookingId}/tour-completion-status`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -763,7 +761,7 @@ export const getTourCompletionStatus = async (bookingId) => {
  */
 export const getAllComplaints = async (autoRedirect = false) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/complaints/all`, {
+    const response = await fetch(`${BaseURL}/api/booking/complaints/all`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -797,7 +795,7 @@ export const getComplaintById = async (complaintId) => {
     throw new Error('Complaint ID is required');
   }
   try {
-    const response = await fetch(`${API_BASE_URL}/api/booking/id/${complaintId}/complaints`, {
+    const response = await fetch(`${BaseURL}/api/booking/id/${complaintId}/complaints`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
