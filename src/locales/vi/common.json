@@ -2663,6 +2663,7 @@
     "step1": {
       "title": "Thông tin cơ bản",
       "subtitle": "Nhập thông tin cơ bản của tour",
+      "warning": "Nếu người dùng tạo tour bằng tiếng hàn thì sẽ tiếp cận được nhiều khách hàng.",
       "fields": {
         "tourName": "Tên tour",
         "tourType": "Loại hình tour",
@@ -2742,6 +2743,7 @@
       },
       "title": "Lịch trình chi tiết",
       "subtitle": "Thiết lập chi tiết lịch trình từng ngày",
+      "warning": "Nếu người dùng tạo tour bằng tiếng hàn thì sẽ tiếp cận được nhiều khách hàng.",
       "fields": {
         "tourSchedule": "Lịch trình tóm tắt"
       },
@@ -2844,6 +2846,7 @@
     "step3": {
       "title": "Giá & chính sách",
       "subtitle": "Thiết lập giá và chính sách tour",
+      "warning": "Nhập giá tiền Việt vì hệ thống đã có xử lý chuyển đổi từ tiền Việt qua tiền Hàn Quốc.",
       "pricing": {
         "title": "Giá tour",
         "adultPrice": "Giá người lớn (≥ 18 tuổi)",
@@ -4310,10 +4313,11 @@
     "showTourSuggestion": "Tour gợi ý",
     "hideTourSuggestion": "Ẩn Tour gợi ý",
     "tourSuggestion": {
-      "title": "Tour gợi ý dành cho bạn",
+      "title": "Tour được đề xuất cho bạn",
       "loading": "Đang tải tour gợi ý...",
       "previous": "Trước",
       "next": "Sau",
+      "noTours": "Hiện tại chưa có tour gợi ý phù hợp. Vui lòng đọc thêm bài viết để chúng tôi có thể đề xuất tour phù hợp với bạn.",
       "errorQuota": "AI service đang tạm thời hết quota. Vui lòng thử lại sau.",
       "errorServer": "Lỗi server khi tải tour gợi ý. Vui lòng thử lại sau.",
       "errorUnknown": "Có lỗi xảy ra khi tải tour gợi ý.",

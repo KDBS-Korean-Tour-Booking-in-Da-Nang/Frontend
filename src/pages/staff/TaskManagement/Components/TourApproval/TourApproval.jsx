@@ -12,8 +12,7 @@ import {
   XMarkIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
-  ArrowDownTrayIcon,
+  ArrowPathIcon,
   EyeIcon
 } from '@heroicons/react/24/outline';
 import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X, Edit3, Trash2, RefreshCw } from 'lucide-react';
@@ -76,51 +75,56 @@ const TourApproval = () => {
   const BOOKINGS_PER_PAGE = 5;
 
   // Fetch tours from API
-  useEffect(() => {
-    const fetchTours = async () => {
-      if (!canManageTours) return;
+  const fetchTours = useCallback(async () => {
+    if (!canManageTours) return;
 
-      try {
-        setLoading(true);
-        const token = getToken();
-        const response = await fetch(API_ENDPOINTS.TOURS, {
-          headers: createAuthHeaders(token)
-        });
+    try {
+      setLoading(true);
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TOURS, {
+        headers: createAuthHeaders(token)
+      });
 
-        if (!response.ok && response.status === 401) {
-          await checkAndHandle401(response);
-          return;
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-          // Handle different response formats
-          let toursList = [];
-          if (Array.isArray(data)) {
-            toursList = data;
-          } else if (data.result && Array.isArray(data.result)) {
-            toursList = data.result;
-          } else if (data.content && Array.isArray(data.content)) {
-            toursList = data.content;
-          } else if (data.data && Array.isArray(data.data)) {
-            toursList = data.data;
-          }
-          setTours(toursList);
-          setError(''); // Clear error on success
-        } else {
-          // Silently handle failed to fetch tours
-          setError(t('admin.tourApproval.error.loadTours'));
-        }
-      } catch (error) {
-        // Silently handle error fetching tours
-        setError(t('admin.tourApproval.error.loadTours'));
-      } finally {
-        setLoading(false);
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
       }
-    };
 
+      if (response.ok) {
+        const data = await response.json();
+        // Handle different response formats
+        let toursList = [];
+        if (Array.isArray(data)) {
+          toursList = data;
+        } else if (data.result && Array.isArray(data.result)) {
+          toursList = data.result;
+        } else if (data.content && Array.isArray(data.content)) {
+          toursList = data.content;
+        } else if (data.data && Array.isArray(data.data)) {
+          toursList = data.data;
+        }
+        setTours(toursList);
+        setError(''); // Clear error on success
+      } else {
+        // Silently handle failed to fetch tours
+        setError(t('admin.tourApproval.error.loadTours'));
+      }
+    } catch (error) {
+      // Silently handle error fetching tours
+      setError(t('admin.tourApproval.error.loadTours'));
+    } finally {
+      setLoading(false);
+    }
+  }, [canManageTours, getToken, t]);
+
+  useEffect(() => {
     fetchTours();
-  }, [canManageTours, getToken]);
+  }, [fetchTours]);
+
+  // Handle refresh
+  const handleRefresh = () => {
+    fetchTours();
+  };
 
   // Fetch pending requests counts on page load for notification badges
   useEffect(() => {
@@ -826,13 +830,12 @@ const TourApproval = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
-            <FunnelIcon className="h-5 w-5" />
-            {t('admin.tourApproval.filters.advancedFilter')}
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
-            <ArrowDownTrayIcon className="h-5 w-5" />
-            {t('admin.tourApproval.filters.exportReport')}
+          <button 
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
+          >
+            <ArrowPathIcon className="h-5 w-5" />
+            Refresh
           </button>
         </div>
       </div>

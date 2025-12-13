@@ -19,38 +19,7 @@ const ArticleDetail = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showTourSuggestion, setShowTourSuggestion] = useState(false);
   const detailContainerClass = `${styles.pageContainer} ${styles.detailContainer}`;
-
-  // Handler để toggle show/hide Tour suggestion
-  const handleToggleTourSuggestion = () => {
-    if (user) {
-      const userId = user?.userId || user?.id;
-      if (userId) {
-        const newShowState = !showTourSuggestion;
-        setShowTourSuggestion(newShowState);
-        
-        if (newShowState) {
-          // Thêm userId vào URL khi show
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.set('userId', String(userId));
-          setSearchParams(newSearchParams, { replace: false });
-          // Scroll to suggestion section
-          setTimeout(() => {
-            const suggestionElement = document.getElementById('tour-suggestion-section');
-            if (suggestionElement) {
-              suggestionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 100);
-        } else {
-          // Xóa userId khỏi URL khi hide
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.delete('userId');
-          setSearchParams(newSearchParams, { replace: false });
-        }
-      }
-    }
-  };
 
   // Load article when id changes
   useEffect(() => {
@@ -59,16 +28,22 @@ const ArticleDetail = () => {
     }
   }, [id]);
 
-  // Sync showTourSuggestion state với URL params khi component mount hoặc URL thay đổi
+  // Tự động thêm userId vào URL params khi có user đăng nhập
   useEffect(() => {
-    const userIdFromUrl = searchParams.get('userId');
-    const userIdFromUser = user?.userId || user?.id;
-    if (userIdFromUrl && userIdFromUser && userIdFromUrl === String(userIdFromUser)) {
-      setShowTourSuggestion(true);
-    } else {
-      setShowTourSuggestion(false);
+    if (user) {
+      const userId = user?.userId || user?.id;
+      if (userId) {
+        const userIdFromUrl = searchParams.get('userId');
+        // Chỉ thêm userId vào URL nếu chưa có hoặc khác với userId hiện tại
+        if (!userIdFromUrl || userIdFromUrl !== String(userId)) {
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.set('userId', String(userId));
+          setSearchParams(newSearchParams, { replace: true });
+        }
+      }
     }
-  }, [searchParams, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
   const getLocalizedArticleField = (article, baseField) => {
@@ -257,17 +232,6 @@ const ArticleDetail = () => {
                   {t('articleDetail.publishedAt')}: {new Date(article.articleCreatedDate).toLocaleString('vi-VN')}
                 </div>
                 <div className="flex space-x-4">
-                  {user && (
-                    <button
-                      onClick={handleToggleTourSuggestion}
-                      className={`${styles.softButton} ${showTourSuggestion ? styles.ghostButton : ''} text-sm px-4 py-2`}
-                    >
-                      {showTourSuggestion 
-                        ? t('articleDetail.hideTourSuggestion')
-                        : t('articleDetail.showTourSuggestion')
-                      }
-                    </button>
-                  )}
                   <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     className={`${styles.softButton} ${styles.ghostButton} text-sm px-4 py-2`}
@@ -280,8 +244,8 @@ const ArticleDetail = () => {
           </article>
         </div>
 
-        {/* Tour Suggestion Section */}
-        {user && searchParams.get('userId') && (
+        {/* Tour Suggestion Section - Tự động hiển thị khi có user đăng nhập */}
+        {user && (
           <div id="tour-suggestion-section">
             <TourSuggestion />
           </div>

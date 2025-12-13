@@ -4,6 +4,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getTourImageUrl } from '../../../config/api';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import TourCard from '../TourCard/TourCard';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import styles from './TourBehaviorSuggestion.module.css';
 
 // Cache helper functions
@@ -56,6 +59,7 @@ const TourBehaviorSuggestion = () => {
   const [loading, setLoading] = useState(true);
   const hasFetchedRef = useRef(false);
   const lastUserIdRef = useRef(null);
+  const sliderRef = useRef(null);
 
   // Transform tour from backend to TourCard format
   const transformTour = (tour) => {
@@ -214,14 +218,60 @@ const TourBehaviorSuggestion = () => {
     fetchSuggestedTours();
   }, [user, getToken, t]);
 
-  // Vì chỉ có 3 tours nên không cần carousel, chỉ cần grid
-  // Nút điều hướng sẽ không hoạt động vì không có carousel
+  // Slick carousel settings - hiển thị 3 tours
+  const settings = {
+    dots: false,
+    infinite: false, // Không infinite vì chỉ có 3 tours
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    arrows: false,
+    draggable: false, // Tắt kéo để di chuyển carousel
+    swipe: false, // Tắt swipe trên mobile
+    touchMove: false, // Tắt touch move
+    responsive: [
+      {
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 1,
+          infinite: false,
+          draggable: false,
+          swipe: false,
+          touchMove: false,
+        }
+      },
+      {
+        breakpoint: 900,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          infinite: false,
+          draggable: false,
+          swipe: false,
+          touchMove: false,
+        }
+      },
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          infinite: false,
+          draggable: false,
+          swipe: false,
+          touchMove: false,
+        }
+      }
+    ]
+  };
+
   const goToPrev = () => {
-    // Không có carousel nên không cần xử lý
+    sliderRef.current?.slickPrev();
   };
 
   const goToNext = () => {
-    // Không có carousel nên không cần xử lý
+    sliderRef.current?.slickNext();
   };
 
   // Hiển thị loading nếu đang loading hoặc chưa có tours (giống TourSuggestion)
@@ -241,9 +291,6 @@ const TourBehaviorSuggestion = () => {
 
   // Không hiển thị error - chỉ hiển thị loading hoặc tours
   // Error sẽ được xử lý bằng cách dùng cache hoặc tiếp tục loading
-
-  // Không cần grid class đặc biệt vì đã dùng CSS grid
-  const gridClass = styles.toursGrid;
 
   return (
     <>
@@ -266,15 +313,26 @@ const TourBehaviorSuggestion = () => {
             </button>
           )}
 
-          {/* Carousel - luôn hiển thị grid vì chỉ có 3 tours */}
-          <div className={styles.carouselContainer}>
-            <div className={gridClass}>
+          {/* Carousel với slick */}
+          <div className={styles.carouselContainer} style={{ zIndex: 1, overflow: 'visible' }}>
+            <Slider ref={sliderRef} {...settings}>
               {tours.map((tour) => (
-                <div key={tour.id} className={styles.tourCardWrapper}>
-                  <TourCard tour={tour} />
+                <div key={tour.id} className={styles.slide}>
+                  <div 
+                    style={{ zIndex: 2, willChange: 'transform' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.zIndex = '10';
+                      e.currentTarget.style.position = 'relative';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.zIndex = '2';
+                    }}
+                  >
+                    <TourCard tour={tour} />
+                  </div>
                 </div>
               ))}
-            </div>
+            </Slider>
           </div>
 
           {/* Nút điều hướng bên phải */}

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -157,7 +157,9 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   const [cancelPreview, setCancelPreview] = useState(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isClosingModal, setIsClosingModal] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const modalShouldStayOpenRef = useRef({ shouldStayOpen: false, callback: null });
   const [voucherPreview, setVoucherPreview] = useState(null);
   const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -330,6 +332,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     setCancelError(null);
     setCancelPreview(null);
     setHasConfirmedCancel(false);
+    modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
     setShowCancelModal(true); // Open modal immediately
 
     try {
@@ -342,13 +345,40 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     }
   };
 
-  const handleCloseModal = useCallback((e) => {
+  const handleCloseModal = useCallback(async (e) => {
     if (e) e.stopPropagation();
-    setShowCancelModal(false);
-    setHasConfirmedCancel(false);
-    setCancelPreview(null);
-    setCancelError(null);
-  }, []);
+    
+    // If modal was showing success, show loading and call the refresh callback
+    if (hasConfirmedCancel && modalShouldStayOpenRef.current?.callback) {
+      setIsClosingModal(true);
+      const callback = modalShouldStayOpenRef.current.callback;
+      // Reset ref first
+      modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
+      
+      // Wait a bit for smooth transition, then call callback
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Call refresh callback
+      if (callback) {
+        callback();
+      }
+      
+      // Close modal after callback
+      setShowCancelModal(false);
+      setHasConfirmedCancel(false);
+      setCancelPreview(null);
+      setCancelError(null);
+      setIsClosingModal(false);
+    } else {
+      // Normal close
+      modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
+      setShowCancelModal(false);
+      setHasConfirmedCancel(false);
+      setCancelPreview(null);
+      setCancelError(null);
+      setIsClosingModal(false);
+    }
+  }, [hasConfirmedCancel]);
 
   const handleConfirmCancel = useCallback(async (e) => {
     e.stopPropagation();
@@ -357,18 +387,26 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
 
     try {
       const result = await cancelBooking(booking.bookingId);
+      
+      // Mark that modal should stay open to show success message
+      modalShouldStayOpenRef.current = { 
+        shouldStayOpen: true, 
+        callback: onBookingCancelled || null 
+      };
+      
+      // Ensure modal is open
+      setShowCancelModal(true);
+      
+      // Set success state - this will trigger the slide animation
       setHasConfirmedCancel(true);
-
-      // Call refresh callback if provided - refresh data immediately but don't close modal
-      // Let user close modal manually after reading the success message
-      if (onBookingCancelled) {
-        onBookingCancelled();
-      } else {
-        // Fallback: reload page immediately
-        globalThis.location?.reload();
-      }
+      
+      // Don't call onBookingCancelled() immediately - wait until user closes modal
+      // This prevents re-render from closing the modal
+      // Store the callback to call later when modal closes
     } catch (error) {
       setCancelError(error.message || 'Không thể hủy booking. Vui lòng thử lại.');
+      setHasConfirmedCancel(false); // Reset on error
+      modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
     } finally {
       setIsCancelling(false);
     }
@@ -384,8 +422,8 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
           role="dialog"
           aria-modal="true"
         >
-          {!hasConfirmedCancel ? (
-            <>
+          <div className={`${styles['modal-content-wrapper']} ${hasConfirmedCancel ? styles['wrapper-success'] : ''}`}>
+            <div className={`${styles['modal-content']} ${!hasConfirmedCancel ? styles['modal-content-active'] : styles['modal-content-hidden']}`}>
               <div className={styles['modal-header']}>
                 <h3>{t('bookingHistory.cancel.title', 'Xác nhận hủy booking')}</h3>
               </div>
@@ -453,9 +491,14 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                   }
                 </button>
               </div>
-            </>
-          ) : (
-            <>
+            </div>
+
+            <div className={`${styles['modal-content']} ${hasConfirmedCancel ? styles['modal-content-active'] : styles['modal-content-hidden']}`}>
+              {isClosingModal && (
+                <div className={styles['modal-loading-overlay']}>
+                  <div className={styles['loading-spinner']}></div>
+                </div>
+              )}
               <div className={styles['modal-header']}>
                 <h3>{t('bookingHistory.cancel.successTitle', 'Hủy booking thành công')}</h3>
               </div>
@@ -473,12 +516,20 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 {t('bookingHistory.cancel.successTail', 'sẽ được chuyển theo phương thức thanh toán ban đầu.')}
               </p>
               <div className={styles['modal-actions']}>
-                <button className={styles['primary-btn']} onClick={handleCloseModal} type="button">
-                  {t('common.close', 'Đóng')}
+                <button 
+                  className={styles['primary-btn']} 
+                  onClick={handleCloseModal} 
+                  type="button"
+                  disabled={isClosingModal}
+                >
+                  {isClosingModal 
+                    ? t('bookingHistory.cancel.closing', 'Đang đóng...') 
+                    : t('common.close', 'Đóng')
+                  }
                 </button>
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>,
       document.body
@@ -491,6 +542,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     cancelPreview,
     isLoadingPreview,
     isCancelling,
+    isClosingModal,
     cancelError,
     t
   ]);

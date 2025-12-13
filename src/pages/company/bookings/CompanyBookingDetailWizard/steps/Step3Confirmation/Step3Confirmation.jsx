@@ -196,19 +196,71 @@ useEffect(() => {
       }
       
       // Determine next status based on payment status
-      // If only deposit is paid, set to PENDING_BALANCE_PAYMENT
-      // If full amount is paid, set to BOOKING_BALANCE_SUCCESS
-      let nextStatus = 'BOOKING_SUCCESS_PENDING'; // Default fallback
-      const payedAmount = Number(booking?.payedAmount || 0);
-      const totalAmount = Number(booking?.totalAmount || 0);
-      const depositAmount = Number(booking?.depositAmount || 0);
+      // Check if booking has voucher applied
+      const hasVoucher = booking?.voucherCode && 
+        booking.voucherCode !== 'none' && 
+        booking.voucherCode.trim() !== '' &&
+        booking.totalDiscountAmount != null &&
+        booking.depositDiscountAmount != null;
       
-      if (payedAmount < totalAmount && payedAmount >= depositAmount) {
-        // Only deposit is paid → PENDING_BALANCE_PAYMENT
-        nextStatus = 'PENDING_BALANCE_PAYMENT';
-      } else if (payedAmount >= totalAmount) {
+      // Use discount amounts if voucher is applied, otherwise use original amounts
+      const finalTotalAmount = hasVoucher 
+        ? Number(booking.totalDiscountAmount || 0)
+        : Number(booking?.totalAmount || 0);
+      
+      const finalDepositAmount = hasVoucher
+        ? Number(booking.depositDiscountAmount || 0)
+        : Number(booking?.depositAmount || 0);
+      
+      const payedAmount = Number(booking?.payedAmount || 0);
+      
+      // Debug logging
+      console.log('Booking approval check:', {
+        bookingId: booking.bookingId,
+        currentStatus: booking.bookingStatus,
+        hasVoucher,
+        payedAmount,
+        finalTotalAmount,
+        finalDepositAmount,
+        originalTotalAmount: booking?.totalAmount,
+        originalDepositAmount: booking?.depositAmount,
+        totalDiscountAmount: booking?.totalDiscountAmount,
+        depositDiscountAmount: booking?.depositDiscountAmount,
+        depositPercentage: booking?.depositPercentage
+      });
+      
+      // Tolerance for floating point comparison (allow small difference due to rounding)
+      const TOLERANCE = 1; // 1 VND tolerance
+      
+      // Determine next status based on payment amount (not depositPercentage)
+      // Since booking is WAITING_FOR_APPROVED, payment has been completed
+      // We determine status based on actual payment amount vs required amounts
+      let nextStatus = null;
+      
+      // Check if full amount is paid (with tolerance)
+      if (payedAmount >= (finalTotalAmount - TOLERANCE)) {
         // Full amount is paid → BOOKING_BALANCE_SUCCESS
+        // This applies to both one-time payment and split payment where customer paid full
         nextStatus = 'BOOKING_BALANCE_SUCCESS';
+      } else if (payedAmount >= (finalDepositAmount - TOLERANCE)) {
+        // Only deposit is paid (or partial payment) → PENDING_BALANCE_PAYMENT
+        // This means customer paid deposit but not full amount yet
+        nextStatus = 'PENDING_BALANCE_PAYMENT';
+      } else {
+        // This should not happen if booking is WAITING_FOR_APPROVED
+        // But handle edge case - payment amount is less than deposit
+        console.warn('Payment amount check failed:', {
+          payedAmount,
+          finalDepositAmount,
+          finalTotalAmount,
+          depositPercentage: booking?.depositPercentage
+        });
+        throw new Error(`Không thể duyệt booking: Khách hàng chưa thanh toán đủ tiền cọc. Đã thanh toán: ${payedAmount.toLocaleString('vi-VN')} VND, Cần thanh toán cọc: ${finalDepositAmount.toLocaleString('vi-VN')} VND`);
+      }
+      
+      // If nextStatus is still null, something went wrong
+      if (!nextStatus) {
+        throw new Error('Không thể xác định trạng thái booking tiếp theo. Vui lòng kiểm tra lại thông tin thanh toán.');
       }
       
       // Change booking status based on payment status
@@ -233,9 +285,7 @@ useEffect(() => {
       if (nextStatus === 'PENDING_BALANCE_PAYMENT') {
         showSuccess('Đã duyệt booking. Khách hàng cần thanh toán số tiền còn lại.');
       } else if (nextStatus === 'BOOKING_BALANCE_SUCCESS') {
-        showSuccess('Đã duyệt booking. Khách hàng đã thanh toán đủ số tiền.');
-      } else {
-        showSuccess('Đã đẩy booking sang trạng thái BOOKING_SUCCESS_PENDING. Hệ thống sẽ tự động chờ kết thúc tour trước khi yêu cầu xác nhận hoàn tất.');
+        showSuccess('Đã duyệt booking. Khách hàng đã thanh toán đủ số tiền. Hệ thống sẽ tự động chuyển sang BOOKING_SUCCESS_PENDING khi đến ngày khởi hành.');
       }
       
       // Navigate to booking management after a short delay to show success message

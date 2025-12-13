@@ -655,7 +655,7 @@ const BookingManagement = () => {
   // Check if booking status allows approval action from list
   const canApproveFromList = (status) => status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
 
-  // Check if booking status allows editing (exclude completed, rejected, complaint, etc.)
+  // Check if booking status allows editing (exclude completed, rejected, complaint, cancelled, etc.)
   const canEditBooking = (status) => {
     if (!status) return false;
     const statusUpper = status.toUpperCase();
@@ -664,7 +664,8 @@ const BookingManagement = () => {
       'BOOKING_REJECTED',
       'BOOKING_UNDER_COMPLAINT',
       'BOOKING_SUCCESS_PENDING',
-      'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED'
+      'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED',
+      'BOOKING_CANCELLED'
     ];
     return !disabledStatuses.includes(statusUpper);
   };
@@ -1131,6 +1132,7 @@ const BookingManagement = () => {
                 bookings.map((b) => {
                   const isPendingBooking = isPendingStatus(b.bookingStatus);
                   const isUnderComplaint = b.bookingStatus === 'BOOKING_UNDER_COMPLAINT';
+                  const isCancelled = (b.bookingStatus || '').toUpperCase() === 'BOOKING_CANCELLED';
                   const canEdit = canEditBooking(b.bookingStatus);
                   const isCompanyConfirmed = b.companyConfirmedCompletion === true;
                   const canShowApproveButton = !isUnderComplaint && canApproveFromList(b.bookingStatus);
@@ -1162,7 +1164,7 @@ const BookingManagement = () => {
                             <EyeIcon className={styles['action-icon']} />
                           </button>
                         </Tooltip>
-                        {!isUnderComplaint && (
+                        {!isUnderComplaint && !isCancelled && (
                           <Tooltip 
                             text={t('bookingManagement.actions.editBooking')} 
                             position="top"

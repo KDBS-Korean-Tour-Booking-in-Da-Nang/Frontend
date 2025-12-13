@@ -2592,6 +2592,7 @@
 		"step1": {
 			"title": "기본 정보",
 			"subtitle": "투어 기본 정보 입력",
+			"warning": "한국어로 투어를 만들면 더 많은 고객에게 도달할 수 있습니다.",
 			"fields": {
 				"tourName": "투어명",
 				"tourType": "투어 유형",
@@ -2671,6 +2672,7 @@
 			},
 			"title": "상세 일정",
 			"subtitle": "일별 상세 일정 설정",
+			"warning": "한국어로 투어를 만들면 더 많은 고객에게 도달할 수 있습니다.",
 			"fields": {
 				"tourSchedule": "일정 요약"
 			},
@@ -2772,6 +2774,7 @@
 		"step3": {
 			"title": "가격 & 정책",
 			"subtitle": "투어 가격 및 정책 설정",
+			"warning": "시스템에서 베트남 동을 한국 원으로 자동 변환하므로 베트남 동으로 가격을 입력하세요.",
 			"pricing": {
 				"title": "투어 가격",
 				"adultPrice": "성인 가격 (≥ 18세)",
@@ -4232,10 +4235,11 @@
 		"showTourSuggestion": "투어 추천",
 		"hideTourSuggestion": "투어 추천 숨기기",
 		"tourSuggestion": {
-			"title": "추천 투어",
+			"title": "당신을 위한 추천 투어",
 			"loading": "투어 추천 로딩 중...",
 			"previous": "이전",
 			"next": "다음",
+			"noTours": "현재 적합한 투어 추천이 없습니다. 더 많은 기사를 읽어주시면 관심사에 맞는 투어를 추천해드릴 수 있습니다.",
 			"errorQuota": "AI 서비스가 일시적으로 할당량을 초과했습니다. 나중에 다시 시도해주세요.",
 			"errorServer": "투어 추천을 로딩하는 중 서버 오류가 발생했습니다. 나중에 다시 시도해주세요.",
 			"errorUnknown": "투어 추천을 로딩하는 중 오류가 발생했습니다.",

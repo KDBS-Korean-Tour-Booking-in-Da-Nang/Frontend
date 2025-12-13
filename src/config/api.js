@@ -73,6 +73,7 @@ export const API_ENDPOINTS = {
   TOURS: `${BaseURL}/api/tour`,
   TOURS_PUBLIC: `${BaseURL}/api/tour/public`,
   TOURS_BY_COMPANY_ID: (companyId) => `${BaseURL}/api/tour/company/${companyId}`,
+  TOUR_COMPANY_STATISTICS: (companyId) => `${BaseURL}/api/tour/company/${companyId}/statistics`,
   TOUR_BY_ID: (id) => `${BaseURL}/api/tour/${id}`,
   TOUR_DELETE_BY_ID: (id, userEmail) => `${BaseURL}/api/tour/${id}?userEmail=${encodeURIComponent(userEmail)}`,
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
@@ -104,8 +105,9 @@ export const API_ENDPOINTS = {
   BOOKING_COMPANY_CONFIRM_COMPLETION: (bookingId) => `${BaseURL}/api/booking/${bookingId}/company-confirm-completion`,
   BOOKING_USER_CONFIRM_COMPLETION: (bookingId) => `${BaseURL}/api/booking/${bookingId}/user-confirm-completion`,
   BOOKING_TOUR_COMPLETION_STATUS: (bookingId) => `${BaseURL}/api/booking/${bookingId}/tour-completion-status`,
-
-
+  BOOKING_COMPANY_STATISTICS: (companyId) => `${BaseURL}/api/booking/company/${companyId}/statistics`,
+  BOOKING_COMPANY_MONTHLY_STATISTICS: (companyId, year) => `${BaseURL}/api/booking/company/${companyId}/monthly-statistics?year=${year}`,
+  BOOKING_COMPANY_MONTHLY_BOOKING_COUNT: (companyId, year) => `${BaseURL}/api/booking/company/${companyId}/monthly-booking-count?year=${year}`,
 
   // Tour Rated
   TOUR_RATED: `${BaseURL}/api/tourRated`,
@@ -127,6 +129,16 @@ export const API_ENDPOINTS = {
   TICKET_CREATE: `${BaseURL}/api/ticket/create`,
   TICKETS: `${BaseURL}/api/ticket`,
   TICKET_BY_ID: (ticketId) => `${BaseURL}/api/ticket/${ticketId}`,
+
+  // Admin Statistics
+  ADMIN_TOUR_STATISTICS: `${BaseURL}/api/admin/tour/statistics`,
+  ADMIN_BOOKING_STATISTICS: `${BaseURL}/api/admin/booking/statistics`,
+  ADMIN_COUNT_UNBANNED_USERS: `${BaseURL}/api/admin/count/unbanned/user`,
+  ADMIN_COUNT_UNBANNED_COMPANIES: `${BaseURL}/api/admin/count/unbanned/company`,
+  ADMIN_COUNT_UNBANNED_STAFF: `${BaseURL}/api/admin/count/unbanned/staff`,
+  ADMIN_COUNT_APPROVED_ARTICLES: `${BaseURL}/api/admin/admin/count/approved`,
+  ADMIN_MONTHLY_BOOKING_COUNT: (year) => `${BaseURL}/api/admin/booking/monthly-booking-count?year=${year}`,
+  ADMIN_MONTHLY_REVENUE: (year) => `${BaseURL}/api/admin/booking/monthly-revenue?year=${year}`,
 };
 
 // Helper function để xử lý avatar URLs

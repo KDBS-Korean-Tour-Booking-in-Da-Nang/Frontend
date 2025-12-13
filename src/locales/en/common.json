@@ -2657,6 +2657,7 @@
 		"step1": {
 			"title": "Basic Information",
 			"subtitle": "Enter basic tour information",
+			"warning": "If users create tours in Korean, they will reach more customers.",
 			"fields": {
 				"tourName": "Tour Name",
 				"tourType": "Tour Type",
@@ -2736,6 +2737,7 @@
 			},
 			"title": "Detailed Itinerary",
 			"subtitle": "Set up detailed daily itinerary",
+			"warning": "If users create tours in Korean, they will reach more customers.",
 			"fields": {
 				"tourSchedule": "Schedule Summary"
 			},
@@ -2838,6 +2840,7 @@
 		"step3": {
 			"title": "Pricing",
 			"subtitle": "Set up tour pricing",
+			"warning": "Enter prices in Vietnamese Dong as the system already handles conversion from VND to Korean Won.",
 			"pricing": {
 				"title": "Tour Pricing",
 				"adultPrice": "Adult Price (≥ 18 years)",
@@ -4306,6 +4309,7 @@
 			"loading": "Loading tour suggestions...",
 			"previous": "Previous",
 			"next": "Next",
+			"noTours": "Currently, there are no suitable tour recommendations. Please read more articles so we can suggest tours that match your interests.",
 			"errorQuota": "AI service has temporarily exceeded quota. Please try again later.",
 			"errorServer": "Server error while loading tour suggestions. Please try again later.",
 			"errorUnknown": "An error occurred while loading tour suggestions.",

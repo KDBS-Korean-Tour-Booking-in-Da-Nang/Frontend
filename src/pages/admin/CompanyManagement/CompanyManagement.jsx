@@ -12,9 +12,8 @@ import {
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ArrowDownTrayIcon,
+  ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
-  FunnelIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
   MapPinIcon,
@@ -588,13 +587,12 @@ const CompanyManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
-            <FunnelIcon className="h-5 w-5" />
-            {t('admin.companyManagement.advancedFilter')}
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
-            <ArrowDownTrayIcon className="h-5 w-5" />
-            {t('admin.companyManagement.exportReport')}
+          <button 
+            onClick={fetchCompanies}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
+          >
+            <ArrowPathIcon className="h-5 w-5" />
+            Refresh
           </button>
         </div>
       </div>

@@ -9,8 +9,7 @@ import { Tooltip } from '../../../components';
 import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X, RefreshCw, Edit3, Trash2 } from 'lucide-react';
 import {
   MagnifyingGlassIcon,
-  FunnelIcon,
-  ArrowDownTrayIcon
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 const TourManagement = () => {
@@ -64,35 +63,40 @@ const TourManagement = () => {
   const BOOKINGS_PER_PAGE = 5;
 
   // Fetch tours from API
-  useEffect(() => {
-    const fetchTours = async () => {
-      try {
-        setLoading(true);
-        const token = getToken();
-        const response = await fetch(API_ENDPOINTS.TOURS, {
-          headers: createAuthHeaders(token)
-        });
+  const fetchTours = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = getToken();
+      const response = await fetch(API_ENDPOINTS.TOURS, {
+        headers: createAuthHeaders(token)
+      });
 
-        if (!response.ok && response.status === 401) {
-          await checkAndHandle401(response);
-          return;
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-          setTours(Array.isArray(data) ? data : []);
-        } else {
-          // Silently handle failed to fetch tours
-        }
-      } catch (error) {
-        // Silently handle error fetching tours
-      } finally {
-        setLoading(false);
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
       }
-    };
 
-    fetchTours();
+      if (response.ok) {
+        const data = await response.json();
+        setTours(Array.isArray(data) ? data : []);
+      } else {
+        // Silently handle failed to fetch tours
+      }
+    } catch (error) {
+      // Silently handle error fetching tours
+    } finally {
+      setLoading(false);
+    }
   }, [getToken]);
+
+  useEffect(() => {
+    fetchTours();
+  }, [fetchTours]);
+
+  // Handle refresh
+  const handleRefresh = () => {
+    fetchTours();
+  };
 
   // Fetch pending requests counts on page load for notification badges
   useEffect(() => {
@@ -776,13 +780,12 @@ const TourManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
-            <FunnelIcon className="h-5 w-5" />
-            {t('admin.tourManagement.advancedFilter')}
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200">
-            <ArrowDownTrayIcon className="h-5 w-5" />
-            {t('admin.tourManagement.exportReport')}
+          <button 
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
+          >
+            <ArrowPathIcon className="h-5 w-5" />
+            Refresh
           </button>
         </div>
       </div>
