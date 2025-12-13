@@ -123,6 +123,7 @@ const VoucherList = () => {
       
       // Filter only ACTIVE vouchers for users
       const now = new Date();
+      const isCompany = user && user.role === 'COMPANY';
       
       const activeVouchers = mappedVouchers.filter(v => {
         // Check status - allow ACTIVE status (case-insensitive)
@@ -131,10 +132,24 @@ const VoucherList = () => {
           return false;
         }
         
+        // For non-company users: only show vouchers that have started (startDate <= now)
+        // For company users: show all vouchers regardless of startDate
+        if (!isCompany) {
+          const startDate = v.startDate ? new Date(v.startDate) : null;
+          if (startDate) {
+            startDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            // If startDate is in the future, don't show to regular users
+            if (startDate > today) {
+              return false;
+            }
+          }
+        }
+        
         // Check if voucher is currently valid (between startDate and endDate)
         const endDate = v.endDate ? new Date(v.endDate) : null;
         
-        // Allow vouchers that haven't started yet (startDate in future) - they're still valid
         // Only filter out if endDate is in the past
         if (endDate && now > endDate) {
           return false;
