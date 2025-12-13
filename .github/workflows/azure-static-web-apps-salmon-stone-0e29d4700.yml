@@ -19,10 +19,6 @@ jobs:
       VITE_FRONTEND_URL: ${{ secrets.VITE_FRONTEND_URL }}
       VITE_TINYMCE_API_KEY: ${{ secrets.VITE_TINYMCE_API_KEY }}
       VITE_WS_URL: ${{ secrets.VITE_WS_URL }}
-      VITE_OPENWEATHER_API_KEY: ${{ secrets.VITE_OPENWEATHER_API_KEY }}
-      VITE_COZE_BOT_ID: ${{ secrets.VITE_COZE_BOT_ID }}
-      VITE_COZE_TOKEN: ${{ secrets.VITE_COZE_TOKEN }}
-      VITE_COZE_TITLE: ${{ secrets.VITE_COZE_TITLE }}
     steps:
       - uses: actions/checkout@v3
         with:
