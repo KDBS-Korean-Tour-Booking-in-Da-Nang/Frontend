@@ -399,7 +399,7 @@ const Step2Insurance = ({
         onClose={() => !loading.continue && setShowConfirmModal(false)}
         onConfirm={handleConfirmContinue}
         title={t('companyBookingWizard.insurance.confirmModal.title')}
-        message={t('companyBookingWizard.insurance.confirmModal.message')}
+        message={t('companyBookingWizard.insurance.confirmModal.message', { bookingId: booking?.bookingId })}
         confirmText={t('common.confirm') || 'Xác nhận'}
         cancelText={t('common.cancel') || 'Hủy'}
         icon="✓"

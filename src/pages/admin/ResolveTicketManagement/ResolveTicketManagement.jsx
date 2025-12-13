@@ -359,13 +359,6 @@ const ResolveTicketManagement = () => {
               </select>
             </div>
           </div>
-          <button
-            onClick={loadAllTickets}
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? t('admin.resolveTicketManagement.loading') : t('admin.resolveTicketManagement.refresh')}
-          </button>
         </div>
         {searchType === 'ticketId' && searchInput.trim() && (
           <div className="mt-4">

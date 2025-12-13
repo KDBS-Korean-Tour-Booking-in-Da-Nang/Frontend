@@ -11,7 +11,6 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   ReceiptRefundIcon,
-  ArrowPathIcon,
   MagnifyingGlassIcon,
   EyeIcon,
   CalendarIcon
@@ -179,13 +178,6 @@ const TransactionManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={fetchTransactions}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
         </div>
       </div>
 

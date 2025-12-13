@@ -11,13 +11,9 @@ import Pagination from '../Pagination';
 import { Tooltip } from '../../../components';
 import { 
   UserGroupIcon,
-  UserCircleIcon,
-  ShieldCheckIcon,
   PlusIcon,
   TrashIcon,
   EyeIcon,
-  XMarkIcon,
-  ArrowPathIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
   EnvelopeIcon,
@@ -412,12 +408,19 @@ const StaffManagement = () => {
     setCurrentPage(0);
   }, [searchTerm, roleFilter, statusFilter]);
 
-  const stats = {
-    total: staffList.length,
-    active: staffList.filter((s) => s.status === 'active').length,
-    inactive: staffList.filter((s) => s.status === 'inactive').length,
-    admin: 0 // Only showing STAFF role users, so admin count is 0
-  };
+  const stats = useMemo(() => {
+    const total = staffList.length;
+    const forumReport = staffList.filter((s) => 
+      s.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' && s.status === 'active'
+    ).length;
+    const companyRequest = staffList.filter((s) => 
+      s.staffTask === 'COMPANY_REQUEST_AND_RESOLVE_TICKET' && s.status === 'active'
+    ).length;
+    const approveTour = staffList.filter((s) => 
+      s.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' && s.status === 'active'
+    ).length;
+    return { total, forumReport, companyRequest, approveTour };
+  }, [staffList]);
 
   // Chỉ hiển thị màn hình loading toàn trang khi lần load đầu tiên chưa có dữ liệu
   if (loading && staffList.length === 0) {
@@ -448,13 +451,6 @@ const StaffManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={fetchStaffList}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
           <button
             onClick={handleAddStaff}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
@@ -465,11 +461,11 @@ const StaffManagement = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={UserGroupIcon} label={t('admin.staffManagement.stats.total')} value={stats.total} trend={t('admin.staffManagement.stats.totalTrend')} />
-        <StatCard icon={UserCircleIcon} label={t('admin.staffManagement.stats.active')} value={stats.active} trend={t('admin.staffManagement.stats.activeTrend')} color="text-green-600" />
-        <StatCard icon={ShieldCheckIcon} label={t('admin.staffManagement.stats.admin')} value={stats.admin} trend={t('admin.staffManagement.stats.adminTrend')} color="text-purple-600" />
-        <StatCard icon={XMarkIcon} label={t('admin.staffManagement.stats.inactive')} value={stats.inactive} trend={t('admin.staffManagement.stats.inactiveTrend')} color="text-gray-600" />
+        <StatCard icon={FlagIcon} label={t('admin.staffManagement.stats.forumReport')} value={stats.forumReport} trend={t('admin.staffManagement.stats.forumReportTrend')} color="text-blue-600" />
+        <StatCard icon={BuildingOfficeIcon} label={t('admin.staffManagement.stats.companyRequest')} value={stats.companyRequest} trend={t('admin.staffManagement.stats.companyRequestTrend')} color="text-purple-600" />
+        <StatCard icon={MapPinIcon} label={t('admin.staffManagement.stats.approveTour')} value={stats.approveTour} trend={t('admin.staffManagement.stats.approveTourTrend')} color="text-green-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -696,17 +692,19 @@ const StaffManagement = () => {
 
 const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue-600' }) => (
   <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="h-12 w-12 rounded-2xl bg-[#e9f2ff] flex items-center justify-center flex-shrink-0">
           <IconComponent className="h-6 w-6 text-[#4c9dff]" />
         </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-500 uppercase tracking-wider leading-tight line-clamp-2">{label}</p>
         </div>
       </div>
-      <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
+      <div className="flex items-baseline gap-2">
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <span className={`text-xs font-semibold ${color === 'text-blue-600' ? 'text-[#4c9dff]' : color}`}>{trend}</span>
+      </div>
     </div>
   </div>
 );
