@@ -32,6 +32,10 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
   const { t, i18n } = useTranslation();
   if (!isOpen || !tour) return null;
 
+  // When viewing update request, use originalTour for display (to compare with updatedTour)
+  // Otherwise use the provided tour
+  const displayTour = updateRequest?.originalTour || tour;
+
   // Helper function to parse duration string to get days and nights
   const parseDuration = (durationStr) => {
     if (!durationStr) return { days: 0, nights: 0 };
@@ -76,44 +80,103 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
     }
   };
 
+  // Helper function to normalize values for comparison
+  const normalizeValue = (value) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string') return value.trim();
+    if (typeof value === 'number') return value;
+    if (typeof value === 'boolean') return value;
+    return value;
+  };
+
+  // Helper function to compare two values (handles numbers, strings, dates)
+  const compareValues = (val1, val2) => {
+    const norm1 = normalizeValue(val1);
+    const norm2 = normalizeValue(val2);
+    
+    // Handle null/undefined
+    if (norm1 === null && norm2 === null) return true;
+    if (norm1 === null || norm2 === null) return false;
+    
+    // Handle numbers (including BigDecimal which might be strings)
+    const num1 = typeof norm1 === 'string' && !isNaN(norm1) && !isNaN(parseFloat(norm1)) ? parseFloat(norm1) : norm1;
+    const num2 = typeof norm2 === 'string' && !isNaN(norm2) && !isNaN(parseFloat(norm2)) ? parseFloat(norm2) : norm2;
+    if (typeof num1 === 'number' && typeof num2 === 'number') {
+      return Math.abs(num1 - num2) < 0.01; // Allow small floating point differences
+    }
+    
+    // Handle strings
+    if (typeof norm1 === 'string' && typeof norm2 === 'string') {
+      return norm1 === norm2;
+    }
+    
+    // Default comparison
+    return norm1 === norm2;
+  };
+
+  // Helper function to get value from original tour (TourResponse) or updated tour (TourRequest)
+  // Handles field name differences between TourResponse and TourRequest
+  const getOriginalValue = (original, fieldName) => {
+    // TourResponse might use different field names, try both
+    switch (fieldName) {
+      case 'tourName':
+        return original.tourName || original.title;
+      case 'tourDescription':
+        return original.tourDescription || original.description;
+      case 'tourDeparturePoint':
+        return original.tourDeparturePoint || original.departurePoint;
+      case 'tourDuration':
+        return original.tourDuration || original.duration;
+      case 'tourExpirationDate':
+        return original.tourExpirationDate || original.expirationDate;
+      case 'tourCheckDays':
+        return original.tourCheckDays || original.checkDays;
+      case 'tourVehicle':
+        return original.tourVehicle || original.vehicle;
+      case 'tourType':
+        return original.tourType || original.type;
+      case 'adultPrice':
+        return original.adultPrice || original.price;
+      case 'tourSchedule':
+        return original.tourSchedule || original.schedule;
+      default:
+        return original[fieldName];
+    }
+  };
+
   // Helper function to check if a field has changed in update request
   const isFieldChanged = (fieldName) => {
     if (!updateRequest || !updateRequest.originalTour || !updateRequest.updatedTour) return false;
     const original = updateRequest.originalTour;
     const updated = updateRequest.updatedTour;
     
-    // Handle nested field access
-    const getValue = (obj, path) => {
-      const keys = path.split('.');
-      let value = obj;
-      for (const key of keys) {
-        if (value && typeof value === 'object') {
-          value = value[key];
-        } else {
-          return undefined;
-        }
-      }
-      return value;
-    };
-
-    let originalValue = getValue(original, fieldName);
-    let updatedValue = getValue(updated, fieldName);
+    // Exclude readonly fields that company cannot change
+    const readonlyFields = ['refundFloor', 'companyEmail'];
+    if (readonlyFields.includes(fieldName)) {
+      return false;
+    }
+    
+    // Get values with proper field mapping
+    let originalValue = getOriginalValue(original, fieldName);
+    let updatedValue = updated[fieldName];
     
     // Special handling for tourIntDuration: calculated from duration and nights
+    // Only highlight if tourDuration actually changed
     if (fieldName === 'tourIntDuration') {
-      const originalDuration = parseDuration(original.tourDuration || '');
-      const updatedDuration = parseDuration(updated.tourDuration || '');
-      const originalIntDuration = Math.max(originalDuration.days, originalDuration.nights);
-      const updatedIntDuration = Math.max(updatedDuration.days, updatedDuration.nights);
+      // Check if tourDuration changed first
+      const originalDuration = original.tourDuration || '';
+      const updatedDuration = updated.tourDuration || '';
+      if (originalDuration === updatedDuration) return false; // No change if duration unchanged
+      
+      const originalParsed = parseDuration(originalDuration);
+      const updatedParsed = parseDuration(updatedDuration);
+      const originalIntDuration = Math.max(originalParsed.days, originalParsed.nights);
+      const updatedIntDuration = Math.max(updatedParsed.days, updatedParsed.nights);
       return originalIntDuration !== updatedIntDuration;
     }
     
     // Special handling for minAdvancedDays: calculated from tourExpirationDate
     if (fieldName === 'minAdvancedDays') {
-      const originalMinAdv = originalValue !== undefined && originalValue !== null ? Number(originalValue) : null;
-      const updatedMinAdv = updatedValue !== undefined && updatedValue !== null ? Number(updatedValue) : null;
-      
-      // Calculate from expiration dates
       const originalExpiration = original.tourExpirationDate;
       const updatedExpiration = updated.tourExpirationDate;
       
@@ -134,59 +197,111 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
     
     // Special handling for balancePaymentDays: calculated from minAdvancedDays - tourCheckDays
     if (fieldName === 'balancePaymentDays') {
-      // Get minAdvancedDays values (may need to calculate from expiration dates)
+      // Check if dependent fields changed
+      const originalExpiration = original.tourExpirationDate;
+      const updatedExpiration = updated.tourExpirationDate;
+      const originalCheckDays = original.tourCheckDays !== undefined && original.tourCheckDays !== null ? Number(original.tourCheckDays) : 0;
+      const updatedCheckDays = updated.tourCheckDays !== undefined && updated.tourCheckDays !== null ? Number(updated.tourCheckDays) : 0;
+      
+      // If neither expiration date nor check days changed, balancePaymentDays should not change
+      if (originalExpiration === updatedExpiration && originalCheckDays === updatedCheckDays) {
+        return false;
+      }
+      
+      // Calculate minAdvancedDays from expiration dates
       let originalMinAdv = original.minAdvancedDays !== undefined && original.minAdvancedDays !== null ? Number(original.minAdvancedDays) : 0;
       let updatedMinAdv = updated.minAdvancedDays !== undefined && updated.minAdvancedDays !== null ? Number(updated.minAdvancedDays) : 0;
       
-      // If expiration dates exist, recalculate minAdvancedDays to ensure accuracy
-      if (original.tourExpirationDate) {
-        const calculated = calculateMinAdvancedDays(original.tourExpirationDate);
+      if (originalExpiration) {
+        const calculated = calculateMinAdvancedDays(originalExpiration);
         if (calculated !== null) originalMinAdv = calculated;
       }
-      if (updated.tourExpirationDate) {
-        const calculated = calculateMinAdvancedDays(updated.tourExpirationDate);
+      if (updatedExpiration) {
+        const calculated = calculateMinAdvancedDays(updatedExpiration);
         if (calculated !== null) updatedMinAdv = calculated;
       }
-      
-      const originalCheckDays = original.tourCheckDays !== undefined && original.tourCheckDays !== null ? Number(original.tourCheckDays) : 0;
-      const updatedCheckDays = updated.tourCheckDays !== undefined && updated.tourCheckDays !== null ? Number(updated.tourCheckDays) : 0;
       
       // Calculate expected balancePaymentDays
       const calculatedOriginal = Math.max(0, originalMinAdv - originalCheckDays);
       const calculatedUpdated = Math.max(0, updatedMinAdv - updatedCheckDays);
       
-      // Only highlight if the calculated values differ
-      // This automatically handles the case where minAdvancedDays or tourCheckDays changed
       return calculatedOriginal !== calculatedUpdated;
     }
     
     // Special handling for tourDescription: normalize HTML to text for comparison
-    // EditTourModal sends text, but originalTour may have HTML
+    // EditTourModal sends text, but originalTour (TourResponse) may have HTML
     if (fieldName === 'tourDescription') {
-      const originalText = htmlToText(originalValue || '');
-      const updatedText = htmlToText(updatedValue || '');
-      return originalText.trim() !== updatedText.trim();
+      // Get original description (may be HTML)
+      const origDesc = original.tourDescription || original.description || originalValue || '';
+      const originalText = htmlToText(origDesc).trim();
+      // Get updated description (should be plain text)
+      const updDesc = updatedValue || updated.tourDescription || '';
+      const updatedText = String(updDesc).trim();
+      return originalText !== updatedText;
     }
     
-    // Special handling for refundFloor: 
-    // refundFloor is readonly in EditTourModal (company cannot change it)
-    // It's loaded from database and sent as-is in update request
-    // Since company cannot modify it, it should never change in update requests
-    // Return false to prevent false positives
-    if (fieldName === 'refundFloor') {
-      // Company cannot change refundFloor, so it should never be highlighted as changed
-      return false;
+    // Special handling for tourName: compare directly (case-sensitive)
+    if (fieldName === 'tourName') {
+      // Try to get from both possible field names in original
+      const origName = String(original.tourName || original.title || originalValue || '').trim();
+      const updName = String(updatedValue || updated.tourName || '').trim();
+      return origName !== updName;
     }
     
-    // For other readonly fields (tourCheckDays, depositPercentage), do normal comparison
-    // These fields are readonly but can be set in the form, so we compare directly
+    // Special handling for tourImgPath: check updatedImagePath in updateRequest
+    if (fieldName === 'tourImgPath') {
+      const originalPath = original.tourImgPath || original.thumbnailUrl || '';
+      const updatedPath = updateRequest?.updatedImagePath || '';
+      if (!updatedPath) return false; // No new image uploaded
+      return originalPath !== updatedPath;
+    }
     
-    // Deep comparison for objects/arrays
+    // Special handling for tourSchedule: compare as strings
+    // Also check originalTour directly for tourSchedule field (may have different field name)
+    if (fieldName === 'tourSchedule') {
+      // Get original value from multiple possible locations
+      const origSchedule = original.tourSchedule || original.schedule || originalValue || '';
+      const originalStr = origSchedule ? String(origSchedule).trim() : '';
+      const updatedStr = updatedValue ? String(updatedValue).trim() : '';
+      // If both are empty/null/undefined, no change
+      if (!originalStr && !updatedStr) return false;
+      // If one is empty and the other is not, it's a change
+      if (!originalStr || !updatedStr) return true;
+      // Compare trimmed strings
+      return originalStr !== updatedStr;
+    }
+    
+    // Special handling for price fields (adultPrice, childrenPrice, babyPrice)
+    // These might come as BigDecimal (string or number)
+    if (fieldName === 'adultPrice' || fieldName === 'childrenPrice' || fieldName === 'babyPrice') {
+      const origNum = originalValue !== null && originalValue !== undefined ? parseFloat(originalValue) : null;
+      const updNum = updatedValue !== null && updatedValue !== undefined ? parseFloat(updatedValue) : null;
+      if (origNum === null && updNum === null) return false;
+      if (origNum === null || updNum === null) return true;
+      return Math.abs(origNum - updNum) >= 0.01;
+    }
+    
+    // Handle numeric fields
+    if (fieldName === 'amount' || fieldName === 'tourCheckDays' || fieldName === 'depositPercentage') {
+      const origNum = originalValue !== null && originalValue !== undefined ? Number(originalValue) : null;
+      const updNum = updatedValue !== null && updatedValue !== undefined ? Number(updatedValue) : null;
+      if (origNum === null && updNum === null) return false;
+      if (origNum === null || updNum === null) return true;
+      return origNum !== updNum;
+    }
+    
+    // Deep comparison for objects/arrays (e.g., contents)
     if (typeof originalValue === 'object' || typeof updatedValue === 'object') {
+      if (Array.isArray(originalValue) || Array.isArray(updatedValue)) {
+        if (!Array.isArray(originalValue) || !Array.isArray(updatedValue)) return true;
+        if (originalValue.length !== updatedValue.length) return true;
+        return JSON.stringify(originalValue) !== JSON.stringify(updatedValue);
+      }
       return JSON.stringify(originalValue) !== JSON.stringify(updatedValue);
     }
     
-    return originalValue !== updatedValue;
+    // Default string/number comparison
+    return !compareValues(originalValue, updatedValue);
   };
 
   // Get changed value for a field
@@ -270,27 +385,33 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
     const changedValue = changed ? getChangedValue(fieldName) : null;
     
     return (
-      <div className={`bg-gray-50 rounded-[24px] p-4 border ${changed ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'}`}>
+      <div className={`rounded-[24px] p-4 border-2 transition-all ${
+        changed 
+          ? 'border-amber-400 bg-amber-50 shadow-[0_4px_12px_rgba(251,191,36,0.3)] ring-2 ring-amber-200 ring-opacity-50' 
+          : 'border-gray-200 bg-gray-50'
+      }`}>
         <div className="flex items-center gap-3 mb-2">
           {Icon && <Icon className={`w-5 h-5 ${changed ? 'text-amber-600' : 'text-blue-600'}`} strokeWidth={1.5} />}
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-gray-500">{label}</p>
+          <div className="flex items-center gap-2 flex-1">
+            <p className={`text-sm font-medium ${changed ? 'text-amber-900' : 'text-gray-500'}`}>{label}</p>
             {changed && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold shadow-sm">
                 <ExclamationCircleIcon className="w-3 h-3" />
                 {t('admin.tourDetailModal.changed')}
               </span>
             )}
           </div>
         </div>
-        <div className="space-y-1">
-          <p className={`text-base font-medium ${changed ? 'text-gray-700 line-through' : 'text-gray-900'}`}>
+        <div className="space-y-2">
+          <p className={`text-base font-medium ${changed ? 'text-gray-600 line-through decoration-2 decoration-amber-500' : 'text-gray-900'}`}>
             {formatValue(value)}
           </p>
           {changed && changedValue !== null && (
-            <p className="text-base font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-              → {formatValue(changedValue)}
-            </p>
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 px-3 py-2 rounded-lg shadow-sm">
+              <p className="text-base font-bold text-emerald-700">
+                → {formatValue(changedValue)}
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -328,48 +449,97 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Tour Image */}
-          {tour.tourImgPath || tour.thumbnailUrl ? (
-            <div className={`rounded-[24px] overflow-hidden bg-gray-100 ${isFieldChanged('tourImgPath') ? 'ring-2 ring-amber-400' : ''}`}>
-              <img
-                src={getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl)}
-                alt={tour.title || tour.tourName}
-                className="w-full h-64 object-cover"
-                onError={(e) => {
-                  e.target.src = '/default-Tour.jpg';
-                }}
-              />
-              {isFieldChanged('tourImgPath') && (
-                <div className="p-2 bg-amber-100 text-amber-700 text-xs font-semibold text-center">
-                  {t('admin.tourDetailModal.imageChanged')}
+          {(displayTour.tourImgPath || displayTour.thumbnailUrl || updateRequest?.updatedImagePath) ? (
+            <div className={`rounded-[24px] overflow-hidden border-2 transition-all ${
+              isFieldChanged('tourImgPath') 
+                ? 'border-amber-400 bg-amber-50 shadow-[0_4px_12px_rgba(251,191,36,0.3)] ring-2 ring-amber-200 ring-opacity-50' 
+                : 'border-gray-200 bg-gray-100'
+            }`}>
+              <div className="relative">
+                <img
+                  src={getTourImageUrl(displayTour.tourImgPath || displayTour.thumbnailUrl || '')}
+                  alt={displayTour.title || displayTour.tourName}
+                  className="w-full h-64 object-cover"
+                  onError={(e) => {
+                    e.target.src = '/default-Tour.jpg';
+                  }}
+                />
+                {isFieldChanged('tourImgPath') && (
+                  <div className="absolute top-2 right-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-200 text-amber-800 text-xs font-bold shadow-sm">
+                      <ExclamationCircleIcon className="w-3 h-3" />
+                      {t('admin.tourDetailModal.changed')}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {isFieldChanged('tourImgPath') && updateRequest?.updatedImagePath && (
+                <div className="p-3 bg-gradient-to-r from-emerald-50 to-green-50 border-t-2 border-emerald-300">
+                  <p className="text-emerald-700 font-bold text-sm mb-2">→ {t('admin.tourDetailModal.imageChanged')}</p>
+                  <img
+                    src={getTourImageUrl(updateRequest.updatedImagePath)}
+                    alt="New tour image"
+                    className="w-full h-64 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.target.src = '/default-Tour.jpg';
+                    }}
+                  />
                 </div>
               )}
             </div>
           ) : null}
 
           {/* Tour Name */}
-          <div>
-            <h3 className={`text-2xl font-bold mb-2 ${isFieldChanged('tourName') ? 'text-gray-700 line-through' : 'text-gray-900'}`}>
-              {tour.title || tour.tourName || 'N/A'}
-            </h3>
+          <div className={`rounded-[24px] p-4 border-2 transition-all ${
+            isFieldChanged('tourName') 
+              ? 'border-amber-400 bg-amber-50 shadow-[0_4px_12px_rgba(251,191,36,0.3)] ring-2 ring-amber-200 ring-opacity-50' 
+              : 'border-transparent'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className={`text-2xl font-bold ${isFieldChanged('tourName') ? 'text-amber-900' : 'text-gray-900'}`}>
+                {displayTour.title || displayTour.tourName || 'N/A'}
+              </h3>
+              {isFieldChanged('tourName') && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold shadow-sm">
+                  <ExclamationCircleIcon className="w-3 h-3" />
+                  {t('admin.tourDetailModal.changed')}
+                </span>
+              )}
+            </div>
             {isFieldChanged('tourName') && (
-              <p className="text-xl font-semibold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-200 mb-2">
-                → {updateRequest?.updatedTour?.tourName || 'N/A'}
-              </p>
+              <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 px-4 py-3 rounded-lg shadow-sm mt-2">
+                <p className="text-xl font-bold text-emerald-700">
+                  → {updateRequest?.updatedTour?.tourName || 'N/A'}
+                </p>
+              </div>
             )}
-            {tour.shortDescription && (
-              <p className="text-gray-600 leading-relaxed">{tour.shortDescription}</p>
+            {displayTour.shortDescription && (
+              <p className="text-gray-600 leading-relaxed">{displayTour.shortDescription}</p>
             )}
-            {tour.tourDescription && !tour.shortDescription && (
-              <div className="space-y-2">
+            {displayTour.tourDescription && !displayTour.shortDescription && (
+              <div className={`space-y-2 rounded-[24px] p-4 border-2 transition-all ${
+                isFieldChanged('tourDescription') 
+                  ? 'border-amber-400 bg-amber-50 shadow-[0_4px_12px_rgba(251,191,36,0.3)] ring-2 ring-amber-200 ring-opacity-50' 
+                  : 'border-transparent'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-gray-500">{t('admin.tourDetailModal.fields.description')}</span>
+                  {isFieldChanged('tourDescription') && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold shadow-sm">
+                      <ExclamationCircleIcon className="w-3 h-3" />
+                      {t('admin.tourDetailModal.changed')}
+                    </span>
+                  )}
+                </div>
                 <div 
-                  className={`text-gray-600 leading-relaxed prose max-w-none ${isFieldChanged('tourDescription') ? 'line-through opacity-50' : ''}`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(tour.tourDescription) }}
+                  className={`text-gray-600 leading-relaxed prose max-w-none ${isFieldChanged('tourDescription') ? 'line-through decoration-2 decoration-amber-500 opacity-60' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(displayTour.tourDescription) }}
                 />
                 {isFieldChanged('tourDescription') && updateRequest?.updatedTour?.tourDescription && (
-                  <div className="text-gray-600 leading-relaxed prose max-w-none bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                    <p className="text-emerald-600 font-semibold mb-2">→ {t('admin.tourDetailModal.changed')}</p>
+                  <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-lg p-4 shadow-sm mt-2">
+                    <p className="text-emerald-700 font-bold mb-2 text-sm">→ {t('admin.tourDetailModal.changed')}</p>
                     {/* Updated description is text from EditTourModal, so render as text with line breaks */}
-                    <div className="whitespace-pre-wrap">{updateRequest.updatedTour.tourDescription}</div>
+                    <div className="whitespace-pre-wrap text-gray-800">{updateRequest.updatedTour.tourDescription}</div>
                   </div>
                 )}
               </div>
@@ -379,21 +549,21 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
           {/* Tour ID */}
           <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
             <p className="text-sm text-gray-500 mb-1">{t('admin.tourDetailModal.fields.tourId')}</p>
-            <p className="text-lg font-semibold text-gray-900">#{tour.tourId || tour.id}</p>
+            <p className="text-lg font-semibold text-gray-900">#{displayTour.tourId || displayTour.id}</p>
           </div>
 
           {/* Basic Details Grid */}
           <div className="grid grid-cols-2 gap-4">
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.departurePoint')}
-              value={tour.departurePoint || tour.tourDeparturePoint}
+              value={displayTour.departurePoint || displayTour.tourDeparturePoint}
               fieldName="tourDeparturePoint"
               icon={MapPinIcon}
             />
 
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.duration')}
-              value={tour.duration || tour.tourDuration}
+              value={displayTour.duration || displayTour.tourDuration}
               fieldName="tourDuration"
               icon={ClockIcon}
               formatValue={formatDuration}
@@ -401,26 +571,26 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
 
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.adultPrice')}
-              value={tour.price || tour.adultPrice}
+              value={displayTour.price || displayTour.adultPrice}
               fieldName="adultPrice"
               icon={CurrencyDollarIcon}
               formatValue={formatPrice}
             />
 
-            {tour.childrenPrice && (
+            {(displayTour.childrenPrice !== undefined && displayTour.childrenPrice !== null) && (
               <FieldWithChange
                 label={t('admin.tourDetailModal.fields.childrenPrice')}
-                value={tour.childrenPrice}
+                value={displayTour.childrenPrice}
                 fieldName="childrenPrice"
                 icon={CurrencyDollarIcon}
                 formatValue={formatPrice}
               />
             )}
 
-            {tour.babyPrice && (
+            {(displayTour.babyPrice !== undefined && displayTour.babyPrice !== null) && (
               <FieldWithChange
                 label={t('admin.tourDetailModal.fields.babyPrice')}
-                value={tour.babyPrice}
+                value={displayTour.babyPrice}
                 fieldName="babyPrice"
                 icon={CurrencyDollarIcon}
                 formatValue={formatPrice}
@@ -429,7 +599,7 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
 
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.expirationDate')}
-              value={tour.tourExpirationDate || tour.expirationDate}
+              value={displayTour.tourExpirationDate || displayTour.expirationDate}
               fieldName="tourExpirationDate"
               icon={CalendarDaysIcon}
               formatValue={formatLocalDate}
@@ -437,58 +607,60 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
 
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.checkDays')}
-              value={tour.tourCheckDays || tour.checkDays}
+              value={displayTour.tourCheckDays || displayTour.checkDays}
               fieldName="tourCheckDays"
               icon={CalendarIcon}
             />
 
-            <FieldWithChange
-              label={t('admin.tourDetailModal.fields.amount')}
-              value={tour.amount}
-              fieldName="amount"
-              icon={UsersIcon}
-              formatValue={(v) => t('admin.tourDetailModal.fields.amountPeople', { amount: v })}
-            />
+            {(displayTour.amount !== undefined && displayTour.amount !== null) && (
+              <FieldWithChange
+                label={t('admin.tourDetailModal.fields.amount')}
+                value={displayTour.amount}
+                fieldName="amount"
+                icon={UsersIcon}
+                formatValue={(v) => t('admin.tourDetailModal.fields.amountPeople', { amount: v })}
+              />
+            )}
           </div>
 
           {/* Payment & Booking Details */}
           <div className="space-y-3">
             <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.paymentBooking')}</h4>
             <div className="grid grid-cols-2 gap-3">
-              {tour.balancePaymentDays !== undefined && (
+              {(displayTour.balancePaymentDays !== undefined && displayTour.balancePaymentDays !== null) && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.balancePaymentDays')}
-                  value={tour.balancePaymentDays}
+                  value={displayTour.balancePaymentDays}
                   fieldName="balancePaymentDays"
                   icon={CreditCardIcon}
                   formatValue={(v) => `${v} ${t('admin.tourDetailModal.fields.days')}`}
                 />
               )}
 
-              {tour.minAdvancedDays !== undefined && (
+              {(displayTour.minAdvancedDays !== undefined && displayTour.minAdvancedDays !== null) && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.minAdvancedDays')}
-                  value={tour.minAdvancedDays}
+                  value={displayTour.minAdvancedDays}
                   fieldName="minAdvancedDays"
                   icon={CalendarDaysIcon}
                   formatValue={(v) => `${v} ${t('admin.tourDetailModal.fields.days')}`}
                 />
               )}
 
-              {tour.depositPercentage !== undefined && (
+              {(displayTour.depositPercentage !== undefined && displayTour.depositPercentage !== null) && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.depositPercentage')}
-                  value={tour.depositPercentage}
+                  value={displayTour.depositPercentage}
                   fieldName="depositPercentage"
                   icon={CreditCardIcon}
                   formatValue={(v) => `${v}%`}
                 />
               )}
 
-              {tour.refundFloor !== undefined && (
+              {(displayTour.refundFloor !== undefined && displayTour.refundFloor !== null) && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.refundFloor')}
-                  value={tour.refundFloor}
+                  value={displayTour.refundFloor}
                   fieldName="refundFloor"
                   icon={CreditCardIcon}
                   formatValue={(v) => `${v}%`}
@@ -501,26 +673,26 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
           <div className="space-y-3">
             <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.additionalInfo')}</h4>
             <div className="grid grid-cols-2 gap-3">
-              {tour.tourVehicle && (
+              {displayTour.tourVehicle && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.vehicle')}
-                  value={tour.tourVehicle}
+                  value={displayTour.tourVehicle}
                   fieldName="tourVehicle"
                   icon={TruckIcon}
                 />
               )}
-              {tour.tourType && (
+              {displayTour.tourType && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.tourType')}
-                  value={tour.tourType}
+                  value={displayTour.tourType}
                   fieldName="tourType"
                   icon={TagIcon}
                 />
               )}
-              {tour.tourIntDuration !== undefined && (
+              {(displayTour.tourIntDuration !== undefined && displayTour.tourIntDuration !== null) && (
                 <FieldWithChange
                   label={t('admin.tourDetailModal.fields.intDuration')}
-                  value={tour.tourIntDuration}
+                  value={displayTour.tourIntDuration}
                   fieldName="tourIntDuration"
                   icon={ClockIcon}
                   formatValue={(v) => `${v} ${t('admin.tourDetailModal.fields.days')}`}
@@ -530,39 +702,128 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
           </div>
 
           {/* Tour Contents / Itinerary */}
-          {tour.contents && Array.isArray(tour.contents) && tour.contents.length > 0 && (
+          {displayTour.contents && Array.isArray(displayTour.contents) && displayTour.contents.length > 0 && (
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.itinerary')}</h4>
               <div className="space-y-4">
-                {tour.contents.map((content, index) => {
-                  const contentChanged = isFieldChanged(`contents.${index}`);
+                {displayTour.contents.map((content, index) => {
+                  // Check if this content item has changed
+                  const originalContents = updateRequest?.originalTour?.contents || [];
+                  const updatedContents = updateRequest?.updatedTour?.contents || [];
+                  const originalContent = originalContents[index];
+                  const updatedContent = updatedContents[index];
+                  
+                  // Check if content item changed (exists in both, or length changed, or content different)
+                  let contentChanged = false;
+                  if (updateRequest) {
+                    // Only compare if we have both original and updated contents
+                    if (originalContents.length !== updatedContents.length) {
+                      // Length changed - only items at or after the shorter length are considered changed
+                      // Items before the change should remain unchanged
+                      contentChanged = index >= Math.min(originalContents.length, updatedContents.length);
+                    } else if (index < originalContents.length && index < updatedContents.length) {
+                      // Both exist at this index, compare individual fields
+                      if (originalContent && updatedContent) {
+                        // Normalize title for comparison
+                        const origTitle = String(originalContent.tourContentTitle || '').trim();
+                        const updTitle = String(updatedContent.tourContentTitle || '').trim();
+                        const titleChanged = origTitle !== updTitle;
+                        
+                        // Normalize description for comparison (both to text)
+                        const origDesc = htmlToText(originalContent.tourContentDescription || '').trim();
+                        const updDesc = htmlToText(updatedContent.tourContentDescription || '').trim();
+                        const descChanged = origDesc !== updDesc;
+                        
+                        // Compare images arrays
+                        const origImages = JSON.stringify((originalContent.images || []).sort());
+                        const updImages = JSON.stringify((updatedContent.images || []).sort());
+                        const imagesChanged = origImages !== updImages;
+                        
+                        // Compare color (normalize field names)
+                        const origColor = String(originalContent.dayColor || originalContent.day_color || '').trim();
+                        const updColor = String(updatedContent.dayColor || '').trim();
+                        const colorChanged = origColor !== updColor;
+                        
+                        // Compare alignment (normalize field names)
+                        const origAlignment = String(originalContent.titleAlignment || originalContent.title_alignment || '').trim();
+                        const updAlignment = String(updatedContent.titleAlignment || '').trim();
+                        const alignmentChanged = origAlignment !== updAlignment;
+                        
+                        // Only mark as changed if at least one field actually changed
+                        contentChanged = titleChanged || descChanged || imagesChanged || colorChanged || alignmentChanged;
+                      }
+                    }
+                    // If one exists but not the other, it's a change (handled by length check above)
+                  }
+                  
                   return (
                     <div 
                       key={index} 
-                      className={`rounded-[20px] p-4 border ${contentChanged ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200 bg-gray-50'}`}
+                      className={`rounded-[20px] p-4 border-2 transition-all ${
+                        contentChanged 
+                          ? 'border-amber-400 bg-amber-50 shadow-[0_4px_12px_rgba(251,191,36,0.3)] ring-2 ring-amber-200 ring-opacity-50' 
+                          : 'border-gray-200 bg-gray-50'
+                      }`}
                     >
                       {contentChanged && (
-                        <div className="mb-2 flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                        <div className="mb-3 flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold shadow-sm">
                             <ExclamationCircleIcon className="w-3 h-3" />
                             {t('admin.tourDetailModal.changed')}
                           </span>
                         </div>
                       )}
                       <h5 
-                        className="text-lg font-semibold mb-2"
+                        className={`text-lg font-semibold mb-2 ${
+                          contentChanged && updatedContent && originalContent && 
+                          String(originalContent.tourContentTitle || '').trim() !== String(updatedContent.tourContentTitle || '').trim()
+                            ? 'line-through decoration-2 decoration-amber-500 text-gray-500' 
+                            : ''
+                        }`}
                         style={{ 
-                          color: content.dayColor || '#4c9dff',
-                          textAlign: content.titleAlignment || 'left'
+                          color: contentChanged && updatedContent?.dayColor && originalContent && 
+                                 String(originalContent.dayColor || originalContent.day_color || '').trim() !== String(updatedContent.dayColor || '').trim()
+                                 ? updatedContent.dayColor : (content.dayColor || '#4c9dff'),
+                          textAlign: contentChanged && updatedContent?.titleAlignment && originalContent &&
+                                    String(originalContent.titleAlignment || originalContent.title_alignment || '').trim() !== String(updatedContent.titleAlignment || '').trim()
+                                    ? updatedContent.titleAlignment : (content.titleAlignment || 'left')
                         }}
                       >
                         {content.tourContentTitle || `${t('admin.tourDetailModal.fields.day')} ${index + 1}`}
                       </h5>
+                      {contentChanged && updatedContent && originalContent && 
+                       String(originalContent.tourContentTitle || '').trim() !== String(updatedContent.tourContentTitle || '').trim() && (
+                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-lg p-3 mb-2 shadow-sm">
+                          <h5 
+                            className="text-lg font-bold text-emerald-700"
+                            style={{ 
+                              color: updatedContent.dayColor || '#059669',
+                              textAlign: updatedContent.titleAlignment || 'left'
+                            }}
+                          >
+                            → {updatedContent.tourContentTitle}
+                          </h5>
+                        </div>
+                      )}
                       {content.tourContentDescription && (
-                        <div 
-                          className="prose max-w-none text-gray-700"
-                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(content.tourContentDescription) }}
-                        />
+                        <div className="space-y-2">
+                          <div 
+                            className={`prose max-w-none text-gray-700 ${
+                              contentChanged && updatedContent && originalContent && 
+                              htmlToText(originalContent.tourContentDescription || '').trim() !== htmlToText(updatedContent.tourContentDescription || '').trim()
+                                ? 'line-through decoration-2 decoration-amber-500 opacity-60' 
+                                : ''
+                            }`}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(content.tourContentDescription) }}
+                          />
+                          {contentChanged && updatedContent?.tourContentDescription && originalContent && 
+                           htmlToText(originalContent.tourContentDescription || '').trim() !== htmlToText(updatedContent.tourContentDescription || '').trim() && (
+                            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-lg p-4 shadow-sm">
+                              <p className="text-emerald-700 font-bold mb-2 text-sm">→ {t('admin.tourDetailModal.changed')}</p>
+                              <div className="whitespace-pre-wrap text-gray-800">{htmlToText(updatedContent.tourContentDescription)}</div>
+                            </div>
+                          )}
+                        </div>
                       )}
                       {content.images && Array.isArray(content.images) && content.images.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mt-3">
@@ -587,51 +848,71 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
           )}
 
           {/* Tour Schedule (if contents not available) */}
-          {(!tour.contents || tour.contents.length === 0) && tour.tourSchedule && (
+          {(!displayTour.contents || displayTour.contents.length === 0) && displayTour.tourSchedule && (
             <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.schedule')}</h4>
-              <div className="bg-gray-50 rounded-[20px] p-4 border border-gray-200">
-                <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
-                  {typeof tour.tourSchedule === 'string' ? tour.tourSchedule : JSON.stringify(tour.tourSchedule, null, 2)}
-                </pre>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-semibold text-gray-900">{t('admin.tourDetailModal.fields.schedule')}</h4>
+                {isFieldChanged('tourSchedule') && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                    <ExclamationCircleIcon className="w-3 h-3" />
+                    {t('admin.tourDetailModal.changed')}
+                  </span>
+                )}
+              </div>
+              <div className={`rounded-[20px] p-4 border ${isFieldChanged('tourSchedule') ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200 bg-gray-50'}`}>
+                <div className="space-y-2">
+                  <pre className={`whitespace-pre-wrap text-sm font-mono ${isFieldChanged('tourSchedule') ? 'text-gray-700 line-through opacity-50' : 'text-gray-700'}`}>
+                    {typeof displayTour.tourSchedule === 'string' ? displayTour.tourSchedule : JSON.stringify(displayTour.tourSchedule, null, 2)}
+                  </pre>
+                  {isFieldChanged('tourSchedule') && updateRequest?.updatedTour?.tourSchedule && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                      <p className="text-emerald-600 font-semibold mb-2 text-sm">→ {t('admin.tourDetailModal.changed')}</p>
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
+                        {typeof updateRequest.updatedTour.tourSchedule === 'string' 
+                          ? updateRequest.updatedTour.tourSchedule 
+                          : JSON.stringify(updateRequest.updatedTour.tourSchedule, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* Company Info */}
-          {tour.companyEmail && (
+          {displayTour.companyEmail && (
             <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
               <div className="flex items-center gap-3 mb-2">
                 <BuildingOfficeIcon className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
                 <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.company')}</p>
               </div>
-              <p className="text-base font-medium text-gray-900">{tour.companyEmail}</p>
+              <p className="text-base font-medium text-gray-900">{displayTour.companyEmail}</p>
             </div>
           )}
 
           {/* Status & Dates */}
           <div className="grid grid-cols-2 gap-4">
-            {tour.tourStatus && (
+            {displayTour.tourStatus && (
               <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
                 <p className="text-sm text-gray-500 mb-2">{t('admin.tourDetailModal.fields.status')}</p>
                 <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                  tour.tourStatus === 'PUBLIC' ? 'bg-green-100 text-green-700' :
-                  tour.tourStatus === 'NOT_APPROVED' ? 'bg-amber-100 text-amber-700' :
+                  displayTour.tourStatus === 'PUBLIC' ? 'bg-green-100 text-green-700' :
+                  displayTour.tourStatus === 'NOT_APPROVED' ? 'bg-amber-100 text-amber-700' :
                   'bg-red-100 text-red-700'
                 }`}>
-                  {tour.tourStatus}
+                  {displayTour.tourStatus}
                 </span>
               </div>
             )}
 
-            {tour.createdAt && (
+            {displayTour.createdAt && (
               <div className="bg-gray-50 rounded-[24px] p-4 border border-gray-200">
                 <div className="flex items-center gap-3 mb-2">
                   <CalendarIcon className="w-5 h-5 text-amber-600" strokeWidth={1.5} />
                   <p className="text-sm text-gray-500">{t('admin.tourDetailModal.fields.createdAt')}</p>
                 </div>
                 <p className="text-base font-medium text-gray-900">
-                  {formatDate(tour.createdAt)}
+                  {formatDate(displayTour.createdAt)}
                 </p>
               </div>
             )}

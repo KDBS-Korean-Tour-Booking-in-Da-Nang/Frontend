@@ -1462,6 +1462,7 @@
 			"fields": {
 				"tourId": "투어 코드",
 				"departurePoint": "출발지",
+				"description": "설명",
 				"adultPrice": "성인 가격",
 				"childrenPrice": "아동",
 				"babyPrice": "유아",
@@ -4805,6 +4806,7 @@
 	"voucherCreate": {
 		"title": "바우처 만들기",
 		"close": "닫기",
+		"warning": "한국어로 바우처를 만들면 더 많은 고객에게 도달할 수 있습니다",
 		"fields": {
 			"code": "바우처 코드",
 			"name": "바우처 이름",

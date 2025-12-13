@@ -472,6 +472,22 @@ const TourApproval = () => {
   const handleViewDetails = async (tourId, updateRequestData = null) => {
     try {
       setLoadingDetail(true);
+      
+      // If viewing from update request, use originalTour from updateRequest directly
+      // No need to fetch from database since we already have the data
+      if (updateRequestData && updateRequestData.originalTour) {
+        // Use originalTour as the display tour, and pass updateRequest separately
+        // Store updateRequest separately so modal can access both originalTour and updatedTour
+        setSelectedTour({
+          ...updateRequestData.originalTour,
+          _updateRequest: updateRequestData
+        });
+        setIsDetailModalOpen(true);
+        setLoadingDetail(false);
+        return;
+      }
+
+      // Otherwise, fetch tour from database (normal view)
       const token = getToken();
       const response = await fetch(API_ENDPOINTS.TOUR_BY_ID(tourId), {
         headers: createAuthHeaders(token)
@@ -485,10 +501,6 @@ const TourApproval = () => {
       if (response.ok) {
         const tourDetail = await response.json();
         setSelectedTour(tourDetail);
-        // If viewing from update request, store the update request data
-        if (updateRequestData) {
-          setSelectedTour({ ...tourDetail, _updateRequest: updateRequestData });
-        }
         setIsDetailModalOpen(true);
       } else {
         const errorText = await response.text();
@@ -1093,13 +1105,18 @@ const TourApproval = () => {
                           </td>
                           <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
-                              <Tooltip text={t('admin.tourApproval.actions.viewDetails')} position="top">
+                              <Tooltip text={t('admin.tourApproval.actions.viewDetails') + ' - ' + t('admin.tourDetailModal.viewingUpdateRequest')} position="top">
                                 <button
                                   onClick={() => handleViewDetails(request.originalTour?.tourId || request.originalTourId, request)}
                                   disabled={loadingDetail}
-                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="relative p-2 rounded-full border-2 border-amber-500 bg-amber-100 text-amber-700 hover:text-amber-800 hover:border-amber-600 hover:bg-amber-200 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(245,158,11,0.3)]"
+                                  title={t('admin.tourDetailModal.viewingUpdateRequest')}
                                 >
-                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                                  <Eye className="h-4 w-4" strokeWidth={2} />
+                                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-600"></span>
+                                  </span>
                                 </button>
                               </Tooltip>
                               <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
@@ -1291,9 +1308,14 @@ const TourApproval = () => {
                                 <button
                                   onClick={() => handleViewDetails(request.tourId)}
                                   disabled={loadingDetail}
-                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="relative p-2 rounded-full border-2 border-red-400 bg-red-50 text-red-600 hover:text-red-700 hover:border-red-500 hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(239,68,68,0.2)]"
+                                  title={t('admin.tourDetailModal.viewingDeleteRequest') || 'Viewing Delete Request'}
                                 >
-                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                                  <Eye className="h-4 w-4" strokeWidth={2} />
+                                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                  </span>
                                 </button>
                               </Tooltip>
                               <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
@@ -1491,14 +1513,15 @@ const TourApproval = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleViewDetails(tour.tourId || tour.id)}
-                            disabled={loadingDetail}
-                            className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={t('admin.tourApproval.actions.viewDetails')}
-                          >
-                            <Eye className="h-4 w-4" strokeWidth={1.5} />
-                          </button>
+                          <Tooltip text={t('admin.tourApproval.actions.viewDetails')} position="top">
+                            <button
+                              onClick={() => handleViewDetails(tour.tourId || tour.id)}
+                              disabled={loadingDetail}
+                              className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-[#4c9dff] hover:border-[#9fc2ff] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Eye className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </Tooltip>
                           {(tour.tourStatus || tour.status || '').toUpperCase() !== 'PUBLIC' && (
                             <button
                               onClick={() => handleApproveTour(tour.tourId || tour.id)}

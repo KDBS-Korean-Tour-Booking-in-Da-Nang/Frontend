@@ -1526,6 +1526,7 @@
 			"fields": {
 				"tourId": "Tour Code",
 				"departurePoint": "Departure point",
+				"description": "Description",
 				"adultPrice": "Adult price",
 				"childrenPrice": "Children",
 				"babyPrice": "Baby",
@@ -4885,6 +4886,7 @@
 	"voucherCreate": {
 		"title": "Create voucher",
 		"close": "Close",
+		"warning": "If you create a voucher in Korean, you will reach more customers",
 		"fields": {
 			"code": "Voucher code",
 			"name": "Voucher name",
