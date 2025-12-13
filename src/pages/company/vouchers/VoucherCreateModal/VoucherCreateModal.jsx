@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { AlertTriangle } from 'lucide-react';
 import { useToast } from '../../../../contexts/ToastContext';
 import { createVoucher } from '../../../../services/voucherAPI';
 import styles from './VoucherCreateModal.module.css';
@@ -204,6 +205,12 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
             <XMarkIcon className={styles['close-icon']} />
           </button>
           <h3 className={styles['modal-title']}>{t('voucherCreate.title')}</h3>
+        </div>
+
+        {/* Warning Message */}
+        <div className={styles['warning-message']}>
+          <AlertTriangle className={styles['warning-icon']} size={18} strokeWidth={1.5} />
+          <span>{t('voucherCreate.warning')}</span>
         </div>
 
         {/* Body: scrollable form */}

@@ -1524,6 +1524,7 @@
       "fields": {
         "tourId": "Mã Tour",
         "departurePoint": "Điểm khởi hành",
+        "description": "Mô tả",
         "adultPrice": "Giá người lớn",
         "childrenPrice": "Trẻ em",
         "babyPrice": "Em bé",
@@ -4899,6 +4900,7 @@
   "voucherCreate": {
     "title": "Tạo voucher",
     "close": "Đóng",
+    "warning": "Nếu tạo voucher bằng tiếng Hàn thì sẽ tiếp cận được nhiều khách hàng hơn",
     "fields": {
       "code": "Mã voucher",
       "name": "Tên voucher",

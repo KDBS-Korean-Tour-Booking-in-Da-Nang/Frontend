@@ -1539,15 +1539,36 @@ const BookingCheckPaymentPage = () => {
                           );
                         })()}
 
-                        {/* Hiển thị số tiền đã thanh toán (nếu có) */}
-                        {booking?.payedAmount > 0 && (
-                          <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
-                            <span className="text-gray-600">{t('payment.checkPayment.paidAmount')}</span>
-                            <span className="font-semibold text-green-600">
-                              {formatCurrency(booking.payedAmount)}
-                            </span>
-                          </div>
-                        )}
+                        {/* Hiển thị số tiền đã thanh toán (chỉ khi không phải oneTimePayment và không phải đang thanh toán remaining) */}
+                        {(() => {
+                          const isOneTimePayment = voucherPreview?.oneTimePayment || 
+                            (booking?.depositPercentage === 100) || 
+                            (booking?.depositPercentage === 0);
+                          const status = booking?.bookingStatus || booking?.status;
+                          const statusString = String(status || '').toUpperCase();
+                          const isBalancePayment = statusString === 'PENDING_BALANCE_PAYMENT' || navState?.isBalancePayment;
+                          
+                          // Không hiển thị paidAmount khi:
+                          // 1. oneTimePayment (thanh toán 100%)
+                          // 2. Đang thanh toán remaining (PENDING_BALANCE_PAYMENT)
+                          if (isOneTimePayment || isBalancePayment) {
+                            return null;
+                          }
+                          
+                          // Chỉ hiển thị khi có payedAmount > 0
+                          if (booking?.payedAmount > 0) {
+                            return (
+                              <div className="flex items-center justify-between text-sm py-2 border-b border-dashed border-gray-200">
+                                <span className="text-gray-600">{t('payment.checkPayment.paidAmount')}</span>
+                                <span className="font-semibold text-green-600">
+                                  {formatCurrency(booking.payedAmount)}
+                                </span>
+                              </div>
+                            );
+                          }
+                          
+                          return null;
+                        })()}
                         
                         {/* Hiển thị số tiền CẦN thanh toán lần này */}
                         <div className="flex items-center justify-between pt-3 mt-2 border-t-2 border-dashed border-[#1a8eea]/30">

@@ -998,7 +998,7 @@
   border-radius: 12px;
   object-fit: contain;
   background: #f8fafc;
-  margin: 12px 0;
+  margin: 12px auto;
 }
 
 .time-schedule {

@@ -655,19 +655,12 @@ const BookingManagement = () => {
   // Check if booking status allows approval action from list
   const canApproveFromList = (status) => status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
 
-  // Check if booking status allows editing (exclude completed, rejected, complaint, cancelled, etc.)
+  // Check if booking status allows editing (only WAITING_FOR_APPROVED)
   const canEditBooking = (status) => {
     if (!status) return false;
     const statusUpper = status.toUpperCase();
-    const disabledStatuses = [
-      'BOOKING_SUCCESS',
-      'BOOKING_REJECTED',
-      'BOOKING_UNDER_COMPLAINT',
-      'BOOKING_SUCCESS_PENDING',
-      'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED',
-      'BOOKING_CANCELLED'
-    ];
-    return !disabledStatuses.includes(statusUpper);
+    // Chỉ cho phép edit khi status là WAITING_FOR_APPROVED
+    return statusUpper === 'WAITING_FOR_APPROVED';
   };
 
   // Calculate values for booking detail modal

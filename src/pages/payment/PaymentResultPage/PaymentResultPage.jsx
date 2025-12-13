@@ -7,7 +7,6 @@ import {
   Info,
   History,
   Home,
-  Mail,
   CreditCard,
   Receipt,
   Clock3,
@@ -165,13 +164,6 @@ export default function PaymentResultPage() {
                 <Home className="h-4 w-4" />
                 {t('payment.result.actions.goHome')}
               </button>
-              <a
-                href="mailto:support@kdbs.com"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[18px] border border-transparent bg-[#1a8eea] px-4 py-2.5 text-xs font-semibold text-white no-underline shadow-[0_12px_30px_rgba(26,142,234,0.3)] transition hover:-translate-y-0.5 hover:bg-[#1670c4] sm:w-[165px]"
-              >
-                <Mail className="h-4 w-4" />
-                {t('payment.result.actions.contactSupport')}
-              </a>
             </div>
           </div>
         </div>
