@@ -6,6 +6,7 @@ class WebSocketService {
     this.stompClient = null;
     this.isConnected = false;
     this.subscriptions = new Map();
+    this.messageCallbacks = new Map(); // Store current callbacks for each subscription
     this.messageHandlers = new Set();
     this.connectionHandlers = new Set();
     this.disconnectionHandlers = new Set();
@@ -124,6 +125,7 @@ class WebSocketService {
         subscription.unsubscribe();
       });
       this.subscriptions.clear();
+      this.messageCallbacks.clear(); // Clear all callbacks
 
       // Disconnect
       this.stompClient.deactivate();
@@ -140,25 +142,49 @@ class WebSocketService {
 
     // Backend uses userId as string for routing
     const userIdStr = String(userId);
-    const subscription = this.stompClient.subscribe(`/user/${userIdStr}/queue/messages`, (message) => {
+    const destination = `/user/${userIdStr}/queue/messages`;
+    
+    // Unsubscribe from existing subscription if it exists to avoid duplicates
+    const existingSubscription = this.subscriptions.get(destination);
+    if (existingSubscription) {
+      existingSubscription.unsubscribe();
+      this.subscriptions.delete(destination);
+      this.messageCallbacks.delete(destination); // Remove old callback
+    }
+    
+    // Store the current callback
+    this.messageCallbacks.set(destination, callback);
+    
+    const subscription = this.stompClient.subscribe(destination, (message) => {
       try {
         const messageData = JSON.parse(message.body);
-        this.notifyMessageHandlers(messageData);
-        if (callback) {
-          callback(messageData);
+        // Get the current callback (latest one) to avoid calling old callbacks
+        const currentCallback = this.messageCallbacks.get(destination);
+        // Only call callback, not notifyMessageHandlers to avoid duplicate processing
+        // notifyMessageHandlers is for global message handlers, not for user-specific subscriptions
+        if (currentCallback) {
+          currentCallback(messageData);
         }
       } catch (error) {
         // Error parsing message
       }
     });
 
-    this.subscriptions.set(`/user/${userIdStr}/queue/messages`, subscription);
+    this.subscriptions.set(destination, subscription);
     return subscription;
   }
 
   subscribeToGlobalNotifications(callback) {
     if (!this.isConnected || !this.stompClient) return null;
     const destination = '/topic/notifications';
+    
+    // Unsubscribe from existing subscription if it exists to avoid duplicates
+    const existingSubscription = this.subscriptions.get(destination);
+    if (existingSubscription) {
+      existingSubscription.unsubscribe();
+      this.subscriptions.delete(destination);
+    }
+    
     const subscription = this.stompClient.subscribe(destination, (message) => {
       try {
         const data = JSON.parse(message.body);
@@ -174,6 +200,14 @@ class WebSocketService {
     // Spring user destination: client should subscribe to '/user/queue/notifications'
     // Server routes to the authenticated user; no username segment is needed here.
     const destination = `/user/queue/notifications`;
+    
+    // Unsubscribe from existing subscription if it exists to avoid duplicates
+    const existingSubscription = this.subscriptions.get(destination);
+    if (existingSubscription) {
+      existingSubscription.unsubscribe();
+      this.subscriptions.delete(destination);
+    }
+    
     const subscription = this.stompClient.subscribe(destination, (message) => {
       try {
         const data = JSON.parse(message.body);

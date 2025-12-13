@@ -173,7 +173,7 @@ const chatReducer = (state, action) => {
         }
       }
 
-      // De-duplicate: skip if a very similar message already exists (same sender/ownership, same content, within 3s)
+      // De-duplicate: skip if a very similar message already exists (same sender/ownership, same content, within 5s)
       const alreadyExists = state.messages.some(existing => {
         // Skip temp messages in comparison (they will be replaced)
         if (existing.id && typeof existing.id === 'string' && existing.id.startsWith('temp-')) {
@@ -186,23 +186,24 @@ const chatReducer = (state, action) => {
           return false;
         }
 
-        const existingTs = new Date(existing.timestamp).getTime();
-        const incomingTs = new Date(incoming.timestamp).getTime();
-        const closeInTime = Math.abs(existingTs - incomingTs) <= 3000; // 3 seconds window (reduced from 5s)
-
-        if (!closeInTime) {
-          return false;
-        }
-
-        const existingSenderId = existing.sender?.userId || existing.sender?.id || existing.senderId;
-        const incomingSenderId = incoming.sender?.userId || incoming.sender?.id || incoming.senderId;
-        const existingReceiverId = existing.receiver?.userId || existing.receiver?.id || existing.receiverId;
-        const incomingReceiverId = incoming.receiver?.userId || incoming.receiver?.id || incoming.receiverId;
+        // Normalize sender and receiver IDs for comparison
+        const existingSenderId = String(existing.sender?.userId || existing.sender?.id || existing.senderId || '');
+        const incomingSenderId = String(incoming.sender?.userId || incoming.sender?.id || incoming.senderId || '');
+        const existingReceiverId = String(existing.receiver?.userId || existing.receiver?.id || existing.receiverId || '');
+        const incomingReceiverId = String(incoming.receiver?.userId || incoming.receiver?.id || incoming.receiverId || '');
 
         // Check same direction (sender->receiver) using userId
         const sameDirection = existingSenderId === incomingSenderId && existingReceiverId === incomingReceiverId;
+        if (!sameDirection) {
+          return false;
+        }
 
-        return sameDirection;
+        // Check timestamp - allow up to 5 seconds difference to handle network delays
+        const existingTs = new Date(existing.timestamp).getTime();
+        const incomingTs = new Date(incoming.timestamp).getTime();
+        const closeInTime = Math.abs(existingTs - incomingTs) <= 5000; // 5 seconds window
+
+        return closeInTime;
       });
 
       if (alreadyExists) {
