@@ -251,11 +251,30 @@ const TourDetailPage = () => {
         // Lọc bỏ voucher đã hết hạn dựa trên endDate hoặc đã hết số lượng
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const isCompany = user && user.role === "COMPANY";
+        
         vouchers = vouchers.filter((voucher) => {
           // Lọc bỏ voucher hết số lượng (remainingQuantity <= 0)
           const remaining = voucher?.remainingQuantity;
           if (remaining !== null && remaining !== undefined && remaining <= 0) {
             return false;
+          }
+
+          // For non-company users: only show vouchers that have started (startDate <= now)
+          // For company users: show all vouchers regardless of startDate
+          if (!isCompany) {
+            const rawStartDate =
+              voucher?.startDate || voucher?.meta?.startDate;
+            if (rawStartDate) {
+              const start = new Date(rawStartDate);
+              if (!Number.isNaN(start.getTime())) {
+                start.setHours(0, 0, 0, 0);
+                // If startDate is in the future, don't show to regular users
+                if (start > today) {
+                  return false;
+                }
+              }
+            }
           }
 
           // Lọc bỏ voucher hết hạn
