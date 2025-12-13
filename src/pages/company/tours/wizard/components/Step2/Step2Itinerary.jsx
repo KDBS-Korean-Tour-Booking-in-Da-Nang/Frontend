@@ -8,7 +8,8 @@ import {
   FileText,
   Clock,
   List,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
 import styles from './Step2Itinerary.module.css';
 import ColorPickerModal from './ColorPickerModal/ColorPickerModal';
@@ -415,6 +416,10 @@ const Step2Itinerary = () => {
       <div className={styles['step-header']}>
         <h2 className={styles['step-title']}>{t('tourWizard.step2.title')}</h2>
         <p className={styles['step-subtitle']}>{t('tourWizard.step2.subtitle')}</p>
+        <div className={styles['warning-message']}>
+          <AlertTriangle className={styles['warning-icon']} size={18} strokeWidth={1.5} />
+          <span>{t('tourWizard.step2.warning')}</span>
+        </div>
       </div>
 
       {/* Tour Description */}

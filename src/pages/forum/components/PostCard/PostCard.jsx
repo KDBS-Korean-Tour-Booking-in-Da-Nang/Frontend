@@ -803,14 +803,23 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     if (!post?.content || isTranslating) return;
 
     // Nếu đã có bản dịch rồi thì chỉ toggle hiển thị
-    if (translatedText) {
-      setShowTranslated(prev => !prev);
+    if (translatedText && showTranslated) {
+      setShowTranslated(false);
+      return;
+    }
+    
+    // Nếu đã có bản dịch nhưng đang ẩn, hiển thị lại
+    if (translatedText && !showTranslated) {
+      setShowTranslated(true);
       return;
     }
 
     try {
       setIsTranslating(true);
       setTranslateError('');
+      // Reset translation state trước khi fetch mới
+      setTranslatedText('');
+      setShowTranslated(false);
 
       const response = await fetch(
         getApiPath('/api/gemini/translate'),
@@ -818,20 +827,191 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
           },
           body: JSON.stringify({ text: post.content }),
         }
       );
 
       if (!response.ok) {
-        throw new Error(`Translate failed with status ${response.status}`);
+        const errorText = await response.text();
+        console.error('Translation API error:', response.status, errorText);
+        throw new Error(`Translate failed with status ${response.status}: ${errorText}`);
       }
 
-      const text = await response.text();
-      setTranslatedText(text || '');
+      // Spring trả về String sẽ được serialize thành JSON string, cần parse
+      // Lấy response text trước (vì body chỉ đọc được một lần)
+      const responseText = await response.text();
+      let translatedContent = '';
+      
+      // Log raw response để debug
+      console.log('Translation raw response:', responseText);
+      
+      try {
+        // Thử parse JSON trước (Spring thường trả về JSON string)
+        const jsonData = JSON.parse(responseText);
+        translatedContent = typeof jsonData === 'string' ? jsonData : (jsonData.text || jsonData.result || String(jsonData));
+      } catch (jsonError) {
+        // Nếu không phải JSON hợp lệ, sử dụng text trực tiếp
+        translatedContent = responseText;
+      }
+
+      // Log để debug
+      console.log('Translation parsed content (before cleanup):', translatedContent);
+
+      // Loại bỏ quotes nếu có (Spring serialize String thành JSON string)
+      translatedContent = String(translatedContent).trim();
+      if ((translatedContent.startsWith('"') && translatedContent.endsWith('"')) || 
+          (translatedContent.startsWith("'") && translatedContent.endsWith("'"))) {
+        translatedContent = translatedContent.slice(1, -1).trim();
+      }
+
+      // Loại bỏ escape characters
+      translatedContent = translatedContent.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+      
+      console.log('Translation final content:', translatedContent);
+
+      if (!translatedContent) {
+        throw new Error('Empty translation response');
+      }
+
+      setTranslatedText(translatedContent);
       setShowTranslated(true);
     } catch (error) {
-      // Silently handle error translating post content
+      console.error('Translation error:', error);
+      setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Helper function to filter out tour URLs from content
+  const filterTourUrlsFromContent = (content) => {
+    if (!content) return '';
+    
+    const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    // Match format 1: /tour/123 or http://domain/tour/123 (có thể ở đầu hoặc giữa dòng)
+    const regexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/\\d+(?:[\\s\\?&#]|$)`, 'gi');
+    // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123 (có thể ở đầu hoặc giữa dòng)
+    const regexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=\\d+(?:[\\s&#]|$)`, 'gi');
+    
+    let filteredContent = String(content);
+    
+    // Loại bỏ các tour URL khỏi content
+    filteredContent = filteredContent.replace(regexOld, '').replace(regexNew, '');
+    
+    // Loại bỏ các dòng chỉ chứa URL hoặc rỗng
+    return filteredContent
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return false;
+        // Kiểm tra lại xem dòng có chứa tour URL không
+        return !trimmed.match(regexOld) && !trimmed.match(regexNew);
+      })
+      .join('\n')
+      .trim();
+  };
+
+  const handleTranslateTourClick = async () => {
+    if (!post?.content || isTranslating) return;
+
+    // Nếu đã có bản dịch rồi thì chỉ toggle hiển thị
+    if (translatedText && showTranslated) {
+      setShowTranslated(false);
+      return;
+    }
+    
+    // Nếu đã có bản dịch nhưng đang ẩn, hiển thị lại
+    if (translatedText && !showTranslated) {
+      setShowTranslated(true);
+      return;
+    }
+
+    try {
+      setIsTranslating(true);
+      setTranslateError('');
+      // Reset translation state trước khi fetch mới
+      setTranslatedText('');
+      setShowTranslated(false);
+
+      // Filter out tour URLs from content before translating
+      const contentToTranslate = filterTourUrlsFromContent(post.content);
+      
+      if (!contentToTranslate || !contentToTranslate.trim()) {
+        setTranslateError('Không có nội dung để dịch.');
+        setIsTranslating(false);
+        return;
+      }
+
+      const response = await fetch(
+        getApiPath('/api/gemini/translate'),
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+          },
+          body: JSON.stringify({ text: contentToTranslate }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Translation API error:', response.status, errorText);
+        throw new Error(`Translate failed with status ${response.status}: ${errorText}`);
+      }
+
+      // Xử lý response - Spring trả về String sẽ được serialize thành JSON string
+      // Lấy response text trước (vì body chỉ đọc được một lần)
+      const responseText = await response.text();
+      let translatedContent = '';
+      
+      // Log raw response để debug
+      console.log('Translation raw response:', responseText);
+      
+      try {
+        // Thử parse JSON trước (Spring thường trả về JSON string)
+        const jsonData = JSON.parse(responseText);
+        translatedContent = typeof jsonData === 'string' ? jsonData : (jsonData.text || jsonData.result || String(jsonData));
+      } catch (jsonError) {
+        // Nếu không phải JSON hợp lệ, sử dụng text trực tiếp
+        translatedContent = responseText;
+      }
+
+      // Log để debug
+      console.log('Translation parsed content (before cleanup):', translatedContent);
+
+      // Clean up response - loại bỏ quotes nếu có và trim
+      translatedContent = String(translatedContent).trim();
+      
+      // Loại bỏ quotes ở đầu và cuối nếu response bị wrap trong quotes
+      if ((translatedContent.startsWith('"') && translatedContent.endsWith('"')) || 
+          (translatedContent.startsWith("'") && translatedContent.endsWith("'"))) {
+        translatedContent = translatedContent.slice(1, -1).trim();
+      }
+      
+      // Loại bỏ các escape characters nếu có
+      translatedContent = translatedContent.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+
+      // Đảm bảo không có tour URL trong bản dịch (double check)
+      const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const urlRegex = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(?:detail[?&]id=|)\\d+`, 'gi');
+      translatedContent = translatedContent.replace(urlRegex, '').trim();
+      
+      console.log('Translation final content:', translatedContent);
+
+      if (!translatedContent) {
+        throw new Error('Empty translation response');
+      }
+
+      setTranslatedText(translatedContent);
+      setShowTranslated(true);
+    } catch (error) {
+      console.error('Translation error for tour preview:', error);
       setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
     } finally {
       setIsTranslating(false);
@@ -879,8 +1059,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
               )}
             </div>
             <div className={styles['pc-link-meta']}>
-              <div className={styles['pc-link-title']}>{tourLinkPreview.title}</div>
-              <div className={styles['pc-link-desc']}>{tourLinkPreview.summary}</div>
+              <div className={styles['pc-link-title']}>
+                {tourLinkPreview.title}
+              </div>
+              <div className={styles['pc-link-desc']}>
+                {tourLinkPreview.summary}
+              </div>
             </div>
           </div>
         );
@@ -1148,6 +1332,22 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
                 type="button"
                 className={styles['post-translate-link']}
                 onClick={handleTranslateClick}
+                disabled={isTranslating}
+              >
+                {isTranslating
+                  ? t('forum.post.translating')
+                  : showTranslated && translatedText
+                    ? t('forum.post.hideTranslation')
+                    : t('forum.post.translate')}
+              </button>
+            </div>
+          )}
+          {post.content && tourId && (
+            <div className={styles['post-translate-row']}>
+              <button
+                type="button"
+                className={styles['post-translate-link']}
+                onClick={handleTranslateTourClick}
                 disabled={isTranslating}
               >
                 {isTranslating

@@ -11,8 +11,7 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   ReceiptRefundIcon,
-  ArrowDownTrayIcon,
-  FunnelIcon,
+  ArrowPathIcon,
   MagnifyingGlassIcon,
   EyeIcon,
   CalendarIcon
@@ -180,13 +179,12 @@ const TransactionManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:border-gray-300">
-            <FunnelIcon className="h-5 w-5" />
-            {t('admin.transactionManagement.advancedFilter')}
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700">
-            <ArrowDownTrayIcon className="h-5 w-5" />
-            {t('admin.transactionManagement.exportReport')}
+          <button 
+            onClick={fetchTransactions}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-blue-700"
+          >
+            <ArrowPathIcon className="h-5 w-5" />
+            Refresh
           </button>
         </div>
       </div>

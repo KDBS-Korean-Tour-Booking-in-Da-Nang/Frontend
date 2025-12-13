@@ -37,10 +37,24 @@ const TourSuggestion = () => {
   };
 
   useEffect(() => {
-    // Chỉ fetch khi user đã đăng nhập và có userId trong URL params
+    // Chỉ fetch khi user đã đăng nhập
+    if (!user) {
+      setLoading(false);
+      setTours([]);
+      setError(null);
+      hasFetchedRef.current = false;
+      lastUserIdRef.current = null;
+      return;
+    }
+
+    // Lấy userId từ URL params hoặc từ user object
     const userIdFromUrl = searchParams.get('userId');
+    const userIdFromUser = user?.userId || user?.id;
     
-    if (!user || !userIdFromUrl) {
+    // Ưu tiên userId từ URL, nếu không có thì lấy từ user object
+    const userIdToUse = userIdFromUrl ? userIdFromUrl : (userIdFromUser ? String(userIdFromUser) : null);
+    
+    if (!userIdToUse) {
       setLoading(false);
       setTours([]);
       setError(null);
@@ -50,7 +64,7 @@ const TourSuggestion = () => {
     }
 
     // Parse userId
-    const parsedUserId = Number.parseInt(userIdFromUrl, 10);
+    const parsedUserId = Number.parseInt(userIdToUse, 10);
     if (Number.isNaN(parsedUserId) || parsedUserId <= 0) {
       setError(t('articleDetail.tourSuggestion.errorInvalidUser', { defaultValue: 'Không thể xác định người dùng.' }));
       setLoading(false);
@@ -73,7 +87,7 @@ const TourSuggestion = () => {
 
     const fetchSuggestedTours = async () => {
       try {
-        // Build URL
+        // Build URL với userId (theo backend API, userId là optional nhưng chúng ta luôn truyền nếu có)
         const url = API_ENDPOINTS.TOURS_SUGGEST_BY_ARTICLE(parsedUserId);
         
         // Get token for authentication
@@ -205,9 +219,8 @@ const TourSuggestion = () => {
     }
   };
 
-  // Chỉ hiển thị khi user đã đăng nhập và có userId trong URL params
-  const userIdFromUrl = searchParams.get('userId');
-  if (!user || !userIdFromUrl) {
+  // Chỉ hiển thị khi user đã đăng nhập
+  if (!user) {
     return null;
   }
 
@@ -232,8 +245,8 @@ const TourSuggestion = () => {
     );
   }
 
-  // Hiển thị loading state nếu đang loading hoặc chưa có tours
-  if (loading || tours.length === 0) {
+  // Hiển thị loading state nếu đang loading
+  if (loading) {
     return (
       <div className={`${articleStyles.contentWrap} pt-6`}>
         <div className={articleStyles.card}>
@@ -244,6 +257,27 @@ const TourSuggestion = () => {
             <div className={styles.loadingContainer}>
               <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-200 border-t-primary mx-auto"></div>
               <p className={styles.loadingText}>{t('articleDetail.tourSuggestion.loading')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Hiển thị message khi không có tour gợi ý (API trả về mảng rỗng)
+  if (tours.length === 0) {
+    return (
+      <div className={`${articleStyles.contentWrap} pt-6`}>
+        <div className={articleStyles.card}>
+          <div className="p-8">
+            <div className={styles.header}>
+              <h2 className={styles.title}>{t('articleDetail.tourSuggestion.title')}</h2>
+            </div>
+            <div className={styles.loadingContainer}>
+              <div className="text-gray-400 text-4xl mb-4">🔍</div>
+              <p className={styles.loadingText}>
+                {t('articleDetail.tourSuggestion.noTours')}
+              </p>
             </div>
           </div>
         </div>

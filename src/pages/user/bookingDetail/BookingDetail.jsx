@@ -445,13 +445,13 @@ const BookingDetail = () => {
 
       {/* Main Card */}
       <div className={styles['card']}>
-        {/* Header with Booking ID and Status */}
+        {/* Header with Tour Name and Status */}
         <div className={styles['card-header']}>
           <div className={styles['booking-id-section']}>
             <DocumentTextIcon className={styles['header-icon']} />
             <div>
-              <div className={styles['booking-id-label']}>{t('bookingHistory.card.bookingId')}</div>
-              <div className={styles['booking-id']}>#{booking.bookingId}</div>
+              <div className={styles['booking-id-label']}>{t('payment.tourName', 'Tên tour')}</div>
+              <div className={styles['booking-id']}>{booking.tourName || booking.tour?.tourName || '-'}</div>
             </div>
           </div>
           <div

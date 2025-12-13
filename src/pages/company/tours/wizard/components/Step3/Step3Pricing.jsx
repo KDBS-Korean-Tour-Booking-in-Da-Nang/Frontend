@@ -8,7 +8,8 @@ import {
   DollarSign,
   User,
   Baby,
-  Users
+  Users,
+  AlertTriangle
 } from 'lucide-react';
 import styles from './Step3Pricing.module.css';
 
@@ -208,6 +209,10 @@ const Step3Pricing = () => {
       <div className={styles['step-header']}>
         <h2 className={styles['step-title']}>{t('tourWizard.step3.title')}</h2>
         <p className={styles['step-subtitle']}>{t('tourWizard.step3.subtitle')}</p>
+        <div className={styles['warning-message']}>
+          <AlertTriangle className={styles['warning-icon']} size={18} strokeWidth={1.5} />
+          <span>{t('tourWizard.step3.warning')}</span>
+        </div>
       </div>
 
       {/* Pricing */}

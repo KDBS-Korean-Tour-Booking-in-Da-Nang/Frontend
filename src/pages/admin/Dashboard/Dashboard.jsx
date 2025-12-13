@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Chart from 'react-apexcharts';
 import {
   MapIcon,
-  ClipboardDocumentListIcon,
   CurrencyDollarIcon,
   UserGroupIcon,
-  EyeIcon,
-  ClockIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
   BuildingOfficeIcon,
   CheckCircleIcon,
   XCircleIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  UserIcon,
+  DocumentTextIcon,
+  ClockIcon,
+  ArrowUpIcon,
+  ArrowDownIcon
 } from '@heroicons/react/24/outline';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import { API_ENDPOINTS, createAuthHeaders } from '../../../config/api';
@@ -36,15 +36,29 @@ const Dashboard = () => {
     return null;
   });
   const [stats, setStats] = useState({
-    totalTours: 0,
-    totalBookings: 0,
     totalRevenue: 0,
-    totalUsers: 0,
-    activeTours: 0,
-    pendingBookings: 0,
-    completedBookings: 0,
-    cancelledBookings: 0,
-    totalCompanies: 0
+    customerManagement: {
+      totalCustomers: 0
+    },
+    staffManagement: {
+      totalStaff: 0
+    },
+    companyManagement: {
+      totalCompanies: 0
+    },
+    articleManagement: {
+      totalArticles: 0
+    },
+    tourManagement: {
+      totalTours: 0,
+      byStatus: {}
+    },
+    bookingManagement: {
+      totalBookings: 0,
+      byStatus: {}
+    },
+    monthlyBookingCount: {},
+    completedBookings: 0
   });
 
   // Sync balance with user object when user changes
@@ -99,87 +113,141 @@ const Dashboard = () => {
           return;
         }
 
-        // Balance is already synced with user object via useEffect above
-
         const headers = createAuthHeaders(token);
 
-        // Fetch all tours
-        const toursRes = await fetch(API_ENDPOINTS.TOURS, { headers });
-
-        // Handle 401 if token expired
-        if (!toursRes.ok && toursRes.status === 401) {
-          await checkAndHandle401(toursRes);
-          return;
-        }
-
-        const tours = toursRes.ok ? await toursRes.json() : [];
-        const toursArray = Array.isArray(tours) ? tours : [];
-
-        // Fetch all users
-        const usersRes = await fetch(API_ENDPOINTS.USERS, { headers });
-
-        // Handle 401 if token expired
-        if (!usersRes.ok && usersRes.status === 401) {
-          await checkAndHandle401(usersRes);
-          return;
-        }
-
-        const users = usersRes.ok ? await usersRes.json() : [];
-        const usersArray = Array.isArray(users) ? users : [];
-
-        // Extract users from API response if wrapped
-        const allUsers = usersArray.result || usersArray;
-        const usersList = Array.isArray(allUsers) ? allUsers : [];
-
-        // Fetch bookings - we'll need to aggregate from all users
-        // For now, we'll use a mock approach or fetch from a summary endpoint if available
-        let bookingsArray = [];
-        try {
-          // Try to fetch bookings for a few sample users or use a different approach
-          // This is a limitation - ideally there should be an admin endpoint for all bookings
-          // For now, we'll calculate from available data
-        } catch (e) {
-          // Silently handle error fetching bookings
-        }
-
-        // Calculate stats
-        const totalTours = toursArray.length;
-        const activeTours = toursArray.filter(t => t.status === 'ACTIVE' || !t.status).length;
-        const totalUsers = usersList.length;
-        const totalCompanies = usersList.filter(u => u.role === 'COMPANY').length;
-
-        // Calculate tour categories
-        const tourCategories = {
-          domestic: toursArray.filter(t => t.category === 'domestic').length,
-          international: toursArray.filter(t => t.category === 'international').length,
-          day: toursArray.filter(t => t.category === 'day' || !t.category).length
-        };
-
-        // Mock booking data for demonstration
-        // In production, this should come from an admin API endpoint
-        const mockBookings = [];
-        const mockTotalBookings = Math.floor(totalTours * 2.5); // Estimate
-        const mockPendingBookings = Math.floor(mockTotalBookings * 0.15);
-        const mockCompletedBookings = Math.floor(mockTotalBookings * 0.75);
-        const mockCancelledBookings = Math.floor(mockTotalBookings * 0.10);
-
         // Total Revenue should use balance from API (same as company dashboard)
-        // Balance is already fetched in fetchBalance() above
+        // Balance is already synced with user object via useEffect above
         const totalRevenue = balance !== null ? balance : 0;
 
+        // Fetch Tour Statistics
+        let tourStats = { totalTours: 0, byStatus: {} };
+        try {
+          const tourStatsRes = await fetch(API_ENDPOINTS.ADMIN_TOUR_STATISTICS, { headers });
+          if (tourStatsRes.ok && tourStatsRes.status !== 401) {
+            tourStats = await tourStatsRes.json();
+          } else if (tourStatsRes.status === 401) {
+            await checkAndHandle401(tourStatsRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
+        // Fetch Booking Statistics
+        let bookingStats = { totalBookings: 0, byStatus: {} };
+        try {
+          const bookingStatsRes = await fetch(API_ENDPOINTS.ADMIN_BOOKING_STATISTICS, { headers });
+          if (bookingStatsRes.ok && bookingStatsRes.status !== 401) {
+            bookingStats = await bookingStatsRes.json();
+          } else if (bookingStatsRes.status === 401) {
+            await checkAndHandle401(bookingStatsRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
+        // Fetch Monthly Booking Count (for last 6 months)
+        const currentYear = new Date().getFullYear();
+        let monthlyBookingCount = {};
+        try {
+          const monthlyRes = await fetch(API_ENDPOINTS.ADMIN_MONTHLY_BOOKING_COUNT(currentYear), { headers });
+          if (monthlyRes.ok && monthlyRes.status !== 401) {
+            const monthlyData = await monthlyRes.json();
+            monthlyBookingCount = monthlyData.monthlyBookingCount || {};
+          } else if (monthlyRes.status === 401) {
+            await checkAndHandle401(monthlyRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
+        // Calculate completed bookings from booking statistics
+        const completedBookings = bookingStats.byStatus?.BOOKING_SUCCESS || bookingStats.byStatus?.BOOKING_BALANCE_SUCCESS || 0;
+
+        // Fetch Customer Count (Unbanned Users with role USER)
+        let totalCustomers = 0;
+        try {
+          const customerRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_UNBANNED_USERS, { headers });
+          if (customerRes.ok && customerRes.status !== 401) {
+            totalCustomers = await customerRes.json();
+          } else if (customerRes.status === 401) {
+            await checkAndHandle401(customerRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
+        // Fetch Staff Count (Unbanned Staff)
+        let totalStaff = 0;
+        try {
+          const staffRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_UNBANNED_STAFF, { headers });
+          if (staffRes.ok && staffRes.status !== 401) {
+            totalStaff = await staffRes.json();
+          } else if (staffRes.status === 401) {
+            await checkAndHandle401(staffRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
+        // Fetch Company Count (Unbanned Companies)
+        let totalCompanies = 0;
+        try {
+          const companyRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_UNBANNED_COMPANIES, { headers });
+          if (companyRes.ok && companyRes.status !== 401) {
+            totalCompanies = await companyRes.json();
+          } else if (companyRes.status === 401) {
+            await checkAndHandle401(companyRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
+        // Fetch Article Count (Approved Articles)
+        let totalArticles = 0;
+        try {
+          const articleRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_APPROVED_ARTICLES, { headers });
+          if (articleRes.ok && articleRes.status !== 401) {
+            totalArticles = await articleRes.json();
+          } else if (articleRes.status === 401) {
+            await checkAndHandle401(articleRes);
+            return;
+          }
+        } catch {
+          // Silently handle error
+        }
+
         setStats({
-          totalTours,
-          totalBookings: mockTotalBookings,
           totalRevenue,
-          totalUsers,
-          activeTours,
-          pendingBookings: mockPendingBookings,
-          completedBookings: mockCompletedBookings,
-          cancelledBookings: mockCancelledBookings,
-          totalCompanies,
-          tourCategories
+          customerManagement: {
+            totalCustomers: totalCustomers || 0
+          },
+          staffManagement: {
+            totalStaff: totalStaff || 0
+          },
+          companyManagement: {
+            totalCompanies: totalCompanies || 0
+          },
+          articleManagement: {
+            totalArticles: totalArticles || 0
+          },
+          tourManagement: {
+            totalTours: tourStats?.totalTours || 0,
+            byStatus: tourStats?.byStatus || {}
+          },
+          bookingManagement: {
+            totalBookings: bookingStats?.totalBookings || 0,
+            byStatus: bookingStats?.byStatus || {}
+          },
+          monthlyBookingCount: monthlyBookingCount || {},
+          completedBookings: completedBookings
         });
-      } catch (error) {
+      } catch {
         // Silently handle error fetching dashboard data
       } finally {
         setLoading(false);
@@ -198,31 +266,9 @@ const Dashboard = () => {
   // Stats cards data
   const statsCards = [
     {
-      name: t('admin.dashboard.stats.totalTours'),
-      value: stats.totalTours,
-      change: t('admin.dashboard.stats.totalToursChange'),
-      changeType: 'positive',
-      icon: MapIcon,
-      color: 'blue',
-      bgColor: 'bg-[#e9f2ff]',
-      iconColor: 'text-[#4c9dff]',
-      borderColor: 'border-l-[#4c9dff]'
-    },
-    {
-      name: t('admin.dashboard.stats.totalBookings'),
-      value: stats.totalBookings,
-      change: t('admin.dashboard.stats.totalBookingsChange'),
-      changeType: 'positive',
-      icon: ClipboardDocumentListIcon,
-      color: 'green',
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600',
-      borderColor: 'border-l-green-500'
-    },
-    {
-      name: t('admin.dashboard.stats.totalRevenue'),
+      name: 'Total Revenue',
       value: formatCurrency(stats.totalRevenue),
-      change: t('admin.dashboard.stats.totalRevenueChange'),
+      change: '+15%',
       changeType: 'positive',
       icon: CurrencyDollarIcon,
       color: 'yellow',
@@ -231,9 +277,20 @@ const Dashboard = () => {
       borderColor: 'border-l-yellow-500'
     },
     {
-      name: t('admin.dashboard.stats.totalUsers'),
-      value: stats.totalUsers,
-      change: t('admin.dashboard.stats.totalUsersChange'),
+      name: 'Customer Management',
+      value: stats.customerManagement.totalCustomers,
+      change: '+5%',
+      changeType: 'positive',
+      icon: UserIcon,
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      iconColor: 'text-blue-600',
+      borderColor: 'border-l-blue-500'
+    },
+    {
+      name: 'Staff Management',
+      value: stats.staffManagement.totalStaff,
+      change: '+3%',
       changeType: 'positive',
       icon: UserGroupIcon,
       color: 'purple',
@@ -242,22 +299,33 @@ const Dashboard = () => {
       borderColor: 'border-l-purple-500'
     },
     {
-      name: t('admin.dashboard.stats.activeTours'),
-      value: stats.activeTours,
-      change: t('admin.dashboard.stats.activeToursChange'),
+      name: 'Company Management',
+      value: stats.companyManagement.totalCompanies,
+      change: '+8%',
       changeType: 'positive',
-      icon: EyeIcon,
+      icon: BuildingOfficeIcon,
+      color: 'green',
+      bgColor: 'bg-green-50',
+      iconColor: 'text-green-600',
+      borderColor: 'border-l-green-500'
+    },
+    {
+      name: 'Article Management',
+      value: stats.articleManagement.totalArticles,
+      change: '+12%',
+      changeType: 'positive',
+      icon: DocumentTextIcon,
       color: 'indigo',
       bgColor: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
       borderColor: 'border-l-indigo-500'
     },
     {
-      name: t('admin.dashboard.stats.pendingBookings'),
-      value: stats.pendingBookings,
-      change: t('admin.dashboard.stats.pendingBookingsChange'),
-      changeType: 'negative',
-      icon: ClockIcon,
+      name: 'Tour Management',
+      value: stats.tourManagement.totalTours,
+      change: '+10%',
+      changeType: 'positive',
+      icon: MapIcon,
       color: 'orange',
       bgColor: 'bg-orange-50',
       iconColor: 'text-orange-600',
@@ -265,11 +333,34 @@ const Dashboard = () => {
     }
   ];
 
-  // Booking trend data (last 6 months)
+  // Booking trend data (last 6 months from monthlyBookingCount)
+  const getLast6MonthsData = () => {
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    const months = [];
+    const data = [];
+    
+    for (let i = 5; i >= 0; i--) {
+      const monthNum = currentMonth - i;
+      const monthKey = monthNum > 0 ? monthNum : monthNum + 12;
+      months.push(monthKey);
+      data.push(stats.monthlyBookingCount[monthKey] || 0);
+    }
+    
+    return { months, data };
+  };
+
+  const { months: last6Months, data: last6MonthsData } = getLast6MonthsData();
+  
+  const monthNames = i18n.language === 'ko'
+    ? ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+    : i18n.language === 'en'
+      ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      : ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+
   const bookingTrendData = {
     series: [{
-      name: t('admin.dashboard.charts.bookingTrend'),
-      data: [45, 52, 48, 61, 55, 67]
+      name: 'Bookings',
+      data: last6MonthsData
     }],
     options: {
       chart: {
@@ -287,15 +378,12 @@ const Dashboard = () => {
       },
       stroke: {
         curve: 'smooth',
-        width: 3
+        width: 3,
+        colors: ['#4c9dff']
       },
-      colors: ['#2979FF'],
+      colors: ['#4c9dff'],
       xaxis: {
-        categories: i18n.language === 'ko'
-          ? ['1월', '2월', '3월', '4월', '5월', '6월']
-          : i18n.language === 'en'
-            ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-            : ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6']
+        categories: last6Months.map(m => monthNames[m - 1] || `Month ${m}`)
       },
       yaxis: {
         title: {
@@ -310,25 +398,36 @@ const Dashboard = () => {
         }
       },
       tooltip: {
-        theme: 'light'
+        theme: 'light',
+        y: {
+          formatter: (val) => val + ' bookings'
+        }
       }
     }
   };
 
-  // Tour category distribution
+  // Tour status distribution (from tour statistics byStatus)
+  const tourStatusData = stats.tourManagement.byStatus || {};
+  const tourStatusSeries = [
+    tourStatusData.PUBLIC || 0,
+    tourStatusData.NOT_APPROVED || 0,
+    tourStatusData.DISABLED || 0
+  ];
+  const tourStatusLabels = i18n.language === 'ko'
+    ? ['공개', '미승인', '비활성화']
+    : i18n.language === 'en'
+      ? ['Public', 'Not Approved', 'Disabled']
+      : ['Công khai', 'Chưa duyệt', 'Vô hiệu hóa'];
+
   const tourCategoryData = {
-    series: [
-      stats.tourCategories?.domestic || 0,
-      stats.tourCategories?.international || 0,
-      stats.tourCategories?.day || 0
-    ],
+    series: tourStatusSeries,
     options: {
       chart: {
         type: 'donut',
         height: 350
       },
-      labels: [t('admin.dashboard.tourCategories.domestic'), t('admin.dashboard.tourCategories.international'), t('admin.dashboard.tourCategories.day')],
-      colors: ['#2979FF', '#36C2A8', '#6EDDCB'],
+      labels: tourStatusLabels,
+      colors: ['#4c9dff', '#f59e0b', '#ef4444'],
       legend: {
         position: 'bottom',
         fontSize: '14px'
@@ -364,7 +463,7 @@ const Dashboard = () => {
                 fontSize: '14px',
                 fontWeight: 600,
                 formatter: function () {
-                  return stats.totalTours;
+                  return stats.tourManagement.totalTours || 0;
                 }
               }
             }
@@ -381,43 +480,48 @@ const Dashboard = () => {
     }
   };
 
-  // Booking status data for cards
+  // Booking status data for cards (from booking statistics)
+  const bookingStatusData = stats.bookingManagement.byStatus || {};
+  const totalBookings = stats.bookingManagement.totalBookings || 0;
+  
+  const getBookingStatusCount = (status) => bookingStatusData[status] || 0;
+  
   const bookingStatusCards = [
     {
-      label: t('admin.dashboard.bookingStatus.completed'),
-      value: stats.completedBookings,
-      percentage: stats.totalBookings > 0
-        ? Math.round((stats.completedBookings / stats.totalBookings) * 100)
+      label: i18n.language === 'ko' ? '성공' : i18n.language === 'en' ? 'Success' : 'Thành công',
+      value: getBookingStatusCount('BOOKING_SUCCESS') + getBookingStatusCount('BOOKING_BALANCE_SUCCESS'),
+      percentage: totalBookings > 0
+        ? Math.round(((getBookingStatusCount('BOOKING_SUCCESS') + getBookingStatusCount('BOOKING_BALANCE_SUCCESS')) / totalBookings) * 100)
         : 0,
       icon: CheckCircleIcon,
-      color: '#2979FF',
-      bgColor: 'bg-[#e9f2ff]',
-      iconColor: 'text-[#4c9dff]',
-      borderColor: 'border-[#9fc2ff]'
+      color: '#4c9dff',
+      bgColor: 'bg-blue-50',
+      iconColor: 'text-blue-600',
+      borderColor: 'border-blue-200'
     },
     {
-      label: t('admin.dashboard.bookingStatus.pending'),
-      value: stats.pendingBookings,
-      percentage: stats.totalBookings > 0
-        ? Math.round((stats.pendingBookings / stats.totalBookings) * 100)
+      label: i18n.language === 'ko' ? '대기 중' : i18n.language === 'en' ? 'Pending' : 'Đang chờ',
+      value: getBookingStatusCount('PENDING_PAYMENT') + getBookingStatusCount('PENDING_DEPOSIT_PAYMENT') + getBookingStatusCount('PENDING_BALANCE_PAYMENT'),
+      percentage: totalBookings > 0
+        ? Math.round((((getBookingStatusCount('PENDING_PAYMENT') + getBookingStatusCount('PENDING_DEPOSIT_PAYMENT') + getBookingStatusCount('PENDING_BALANCE_PAYMENT')) / totalBookings) * 100))
         : 0,
       icon: ClockIcon,
-      color: '#36C2A8',
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600',
-      borderColor: 'border-green-200'
+      color: '#f59e0b',
+      bgColor: 'bg-amber-50',
+      iconColor: 'text-amber-600',
+      borderColor: 'border-amber-200'
     },
     {
-      label: t('admin.dashboard.bookingStatus.cancelled'),
-      value: stats.cancelledBookings,
-      percentage: stats.totalBookings > 0
-        ? Math.round((stats.cancelledBookings / stats.totalBookings) * 100)
+      label: i18n.language === 'ko' ? '취소됨' : i18n.language === 'en' ? 'Cancelled' : 'Đã hủy',
+      value: getBookingStatusCount('CANCELLED'),
+      percentage: totalBookings > 0
+        ? Math.round((getBookingStatusCount('CANCELLED') / totalBookings) * 100)
         : 0,
       icon: XCircleIcon,
-      color: '#6EDDCB',
-      bgColor: 'bg-teal-50',
-      iconColor: 'text-teal-600',
-      borderColor: 'border-teal-200'
+      color: '#ef4444',
+      bgColor: 'bg-red-50',
+      iconColor: 'text-red-600',
+      borderColor: 'border-red-200'
     }
   ];
 
@@ -502,8 +606,8 @@ const Dashboard = () => {
         {/* Booking Trend */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.charts.bookingTrend')}</h3>
-            <span className="text-sm text-gray-500">{t('admin.dashboard.charts.bookingTrendSubtitle')}</span>
+            <h3 className="text-lg font-semibold text-gray-900">Booking Trend</h3>
+            <span className="text-sm text-gray-500">Last 6 months</span>
           </div>
           <Chart
             options={bookingTrendData.options}
@@ -513,11 +617,11 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Tour Category Distribution */}
+        {/* Tour Status Distribution */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.charts.tourCategory')}</h3>
-            <span className="text-sm text-gray-500">{t('admin.dashboard.charts.tourCategorySubtitle', { total: stats.totalTours })}</span>
+            <h3 className="text-lg font-semibold text-gray-900">Tour Status</h3>
+            <span className="text-sm text-gray-500">Total: {stats.tourManagement.totalTours || 0} tours</span>
           </div>
           <Chart
             options={tourCategoryData.options}
@@ -532,8 +636,8 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{t('admin.dashboard.charts.bookingStatus')}</h3>
-            <p className="text-sm text-gray-500 mt-1">{t('admin.dashboard.charts.bookingStatusSubtitle', { total: stats.totalBookings })}</p>
+            <h3 className="text-lg font-semibold text-gray-900">Booking Status</h3>
+            <p className="text-sm text-gray-500 mt-1">Total: {stats.bookingManagement.totalBookings || 0} bookings</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -650,7 +754,7 @@ const Dashboard = () => {
 
           {/* Country List */}
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-            {topCountries.map((country, index) => (
+            {topCountries.map((country) => (
               <div
                 key={country.code}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
@@ -691,8 +795,8 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium mb-1">{t('admin.dashboard.infoCards.completedTours')}</p>
-              <p className="text-3xl font-bold">{stats.completedBookings}</p>
+              <p className="text-blue-100 text-sm font-medium mb-1">Completed Tours</p>
+              <p className="text-3xl font-bold">{stats.completedBookings || 0}</p>
             </div>
             <CheckCircleIcon className="h-12 w-12 text-blue-200" />
           </div>
@@ -701,8 +805,8 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium mb-1">{t('admin.dashboard.infoCards.companies')}</p>
-              <p className="text-3xl font-bold">{stats.totalCompanies}</p>
+              <p className="text-green-100 text-sm font-medium mb-1">Companies</p>
+              <p className="text-3xl font-bold">{stats.companyManagement.totalCompanies || 0}</p>
             </div>
             <BuildingOfficeIcon className="h-12 w-12 text-green-200" />
           </div>
@@ -711,10 +815,10 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium mb-1">{t('admin.dashboard.infoCards.completionRate')}</p>
+              <p className="text-purple-100 text-sm font-medium mb-1">Completion Rate</p>
               <p className="text-3xl font-bold">
-                {stats.totalBookings > 0
-                  ? Math.round((stats.completedBookings / stats.totalBookings) * 100)
+                {stats.bookingManagement.totalBookings > 0
+                  ? Math.round((stats.completedBookings / stats.bookingManagement.totalBookings) * 100)
                   : 0}%
               </p>
             </div>

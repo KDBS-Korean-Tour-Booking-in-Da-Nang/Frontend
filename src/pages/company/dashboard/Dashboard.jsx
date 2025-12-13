@@ -8,7 +8,7 @@ import {
   EyeIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  CalendarIcon,
+  ArrowPathIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -29,10 +29,12 @@ const Dashboard = () => {
     activeTours: 0,
     pendingBookings: 0,
     completedBookings: 0,
-    cancelledBookings: 0
+    cancelledBookings: 0,
+    bookingStatusMap: {}
   });
-  const [revenueData, setRevenueData] = useState([]);
+  const [bookingCountData, setBookingCountData] = useState([]);
   const [period, setPeriod] = useState('thisMonth');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Fetch user balance from API
   const fetchBalance = useCallback(async () => {
@@ -103,129 +105,175 @@ const Dashboard = () => {
   }, [user?.email, getToken, fetchBalance]);
 
   // Fetch all dashboard data: tours, bookings, calculate stats and revenue chart data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!companyId) {
-        setLoading(false);
-        return;
-      }
+  const fetchDashboardData = useCallback(async () => {
+    if (!companyId) {
+      setLoading(false);
+      return;
+    }
 
+    try {
+      setLoading(true);
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+
+      if (!token) return;
+
+      // Fetch balance first
+      await fetchBalance();
+
+      // Fetch tour statistics
+      let totalTours = 0;
+      let activeTours = 0;
       try {
-        setLoading(true);
-        const remembered = localStorage.getItem('rememberMe') === 'true';
-        const storage = remembered ? localStorage : sessionStorage;
-        const token = storage.getItem('token');
-
-        if (!token) return;
-
-        // Fetch balance first
-        await fetchBalance();
-
-        // Fetch tours
-        const toursRes = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
+        const toursStatsRes = await fetch(API_ENDPOINTS.TOUR_COMPANY_STATISTICS(companyId), {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Handle 401 unauthorized if token expired
-        if (!toursRes.ok && toursRes.status === 401) {
-          await checkAndHandle401(toursRes);
+        if (toursStatsRes.status === 401) {
+          await checkAndHandle401(toursStatsRes);
           return;
         }
         
-        const tours = toursRes.ok ? await toursRes.json() : [];
-        let toursArray = Array.isArray(tours) ? tours : [];
-        if (toursArray.length === 0) {
-          const mockStatuses = ['ACTIVE', 'ACTIVE', 'INACTIVE', 'ACTIVE'];
-          toursArray = mockStatuses.map((status, index) => ({
-            id: `mock-tour-${index + 1}`,
-            name: `Mock Tour ${index + 1}`,
-            status
-          }));
+        if (toursStatsRes.ok) {
+          const toursStats = await toursStatsRes.json();
+          totalTours = toursStats.totalTours || 0;
+          // Active tours are tours with PUBLIC status
+          activeTours = toursStats.byStatus?.PUBLIC || 0;
         }
-
-        // Fetch bookings for company
-        let bookingsArray = [];
-        if (user?.email) {
-          try {
-            const bookingsRes = await fetch(API_ENDPOINTS.BOOKING_BY_EMAIL(user.email), {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            
-            // Handle 401 unauthorized if token expired
-            if (!bookingsRes.ok && bookingsRes.status === 401) {
-              await checkAndHandle401(bookingsRes);
-              return;
-            }
-            
-            if (bookingsRes.ok) {
-              const bookings = await bookingsRes.json();
-              bookingsArray = Array.isArray(bookings) ? bookings : [];
-            }
-          } catch (e) {
-            // Silently handle error fetching bookings
-          }
-        }
-        if (bookingsArray.length === 0) {
-          const now = new Date();
-          const monthOffsetDate = (offset) => {
-            const date = new Date(now);
-            date.setMonth(date.getMonth() - offset);
-            return date.toISOString();
-          };
-          bookingsArray = [
-            { id: 'mock-booking-1', status: 'COMPLETED', totalPrice: 5200000, createdAt: monthOffsetDate(0) },
-            { id: 'mock-booking-2', status: 'COMPLETED', totalPrice: 4800000, createdAt: monthOffsetDate(1) },
-            { id: 'mock-booking-3', status: 'PENDING', totalPrice: 3100000, createdAt: monthOffsetDate(0) },
-            { id: 'mock-booking-4', status: 'CANCELLED', totalPrice: 1500000, createdAt: monthOffsetDate(2) },
-            { id: 'mock-booking-5', status: 'COMPLETED', totalPrice: 6900000, createdAt: monthOffsetDate(3) },
-            { id: 'mock-booking-6', status: 'COMPLETED', totalPrice: 4200000, createdAt: monthOffsetDate(4) },
-            { id: 'mock-booking-7', status: 'PENDING', totalPrice: 2800000, createdAt: monthOffsetDate(1) },
-            { id: 'mock-booking-8', status: 'COMPLETED', totalPrice: 3600000, createdAt: monthOffsetDate(5) }
-          ];
-        }
-
-        // Calculate dashboard statistics from tours and bookings
-        const totalTours = toursArray.length;
-        const activeTours = toursArray.filter(t => t.status === 'ACTIVE').length;
-        const totalBookings = bookingsArray.length;
-        const pendingBookings = bookingsArray.filter(b => b.status === 'PENDING').length;
-        const completedBookings = bookingsArray.filter(b => b.status === 'COMPLETED').length;
-        const cancelledBookings = bookingsArray.filter(b => b.status === 'CANCELLED').length;
-        
-        // Use balance from API as total revenue
-        const totalRevenue = balance !== null ? balance : 0;
-
-        // Generate revenue chart data by grouping bookings by month
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const revenueByMonth = months.map((month, index) => {
-          // Mock data - in real app, group bookings by month
-          const monthBookings = bookingsArray.filter(b => {
-            if (!b.createdAt) return false;
-            const date = new Date(b.createdAt);
-            return date.getMonth() === index;
-          });
-          return monthBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
-        });
-
-        setStats({
-          totalTours,
-          totalBookings,
-          totalRevenue,
-          activeTours,
-          pendingBookings,
-          completedBookings,
-          cancelledBookings
-        });
-        setRevenueData(revenueByMonth);
-      } catch (error) {
-        // Silently handle error fetching dashboard data
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.error('Error fetching tour statistics:', e);
       }
-    };
 
+      // Fetch booking statistics
+      let totalBookings = 0;
+      let pendingBookings = 0;
+      let completedBookings = 0;
+      let cancelledBookings = 0;
+      let bookingStatusMap = {};
+      try {
+        const bookingsStatsRes = await fetch(API_ENDPOINTS.BOOKING_COMPANY_STATISTICS(companyId), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (bookingsStatsRes.status === 401) {
+          await checkAndHandle401(bookingsStatsRes);
+          return;
+        }
+        
+        if (bookingsStatsRes.ok) {
+          const bookingsStats = await bookingsStatsRes.json();
+          totalBookings = bookingsStats.totalBookings || 0;
+          
+          // Extract status counts from byStatus map
+          const byStatus = bookingsStats.byStatus || {};
+          
+          // Store all status map for booking status chart
+          Object.keys(byStatus).forEach(status => {
+            bookingStatusMap[status] = byStatus[status] || 0;
+          });
+          
+          // Pending bookings: various pending/waiting states
+          pendingBookings = (byStatus.BOOKING_SUCCESS_PENDING || 0) +
+                          (byStatus.PENDING_PAYMENT || 0) +
+                          (byStatus.PENDING_DEPOSIT_PAYMENT || 0) +
+                          (byStatus.PENDING_BALANCE_PAYMENT || 0) +
+                          (byStatus.WAITING_FOR_APPROVED || 0) +
+                          (byStatus.WAITING_FOR_UPDATE || 0);
+          
+          // Completed bookings: success states
+          completedBookings = (byStatus.BOOKING_SUCCESS || 0) +
+                            (byStatus.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED || 0) +
+                            (byStatus.BOOKING_BALANCE_SUCCESS || 0);
+          
+          // Cancelled bookings
+          cancelledBookings = byStatus.BOOKING_CANCELLED || 0;
+        }
+      } catch (e) {
+        console.error('Error fetching booking statistics:', e);
+      }
+      
+      // Use balance from API as total revenue
+      const currentBalance = balance !== null ? balance : 0;
+
+      setStats({
+        totalTours,
+        totalBookings,
+        totalRevenue: currentBalance,
+        activeTours,
+        pendingBookings,
+        completedBookings,
+        cancelledBookings,
+        bookingStatusMap
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [companyId, balance, getToken, fetchBalance]);
+
+  useEffect(() => {
     fetchDashboardData();
-  }, [companyId, user, balance, getToken, fetchBalance]);
+  }, [fetchDashboardData]);
+
+  // Fetch monthly booking count statistics separately when year changes
+  const fetchMonthlyBookingCount = useCallback(async () => {
+    if (!companyId) {
+      return;
+    }
+
+    try {
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const storage = remembered ? localStorage : sessionStorage;
+      const token = storage.getItem('token');
+
+      if (!token) return;
+
+      let bookingCountByMonth = Array(12).fill(0);
+      const monthlyBookingCountRes = await fetch(API_ENDPOINTS.BOOKING_COMPANY_MONTHLY_BOOKING_COUNT(companyId, selectedYear), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (monthlyBookingCountRes.status === 401) {
+        await checkAndHandle401(monthlyBookingCountRes);
+        return;
+      }
+      
+      if (monthlyBookingCountRes.ok) {
+        const monthlyBookingCountData = await monthlyBookingCountRes.json();
+        const monthlyBookingCount = monthlyBookingCountData.monthlyBookingCount || {};
+        
+        // Convert map to array (month 1-12 -> index 0-11)
+        // Handle both string keys ("1", "2") and number keys (1, 2) from JSON
+        bookingCountByMonth = Array.from({ length: 12 }, (_, i) => {
+          const month = i + 1;
+          // Try number key first, then string key
+          const count = monthlyBookingCount[month] ?? monthlyBookingCount[String(month)];
+          if (count !== undefined && count !== null) {
+            return typeof count === 'number' ? count : parseInt(count, 10);
+          }
+          return 0;
+        });
+      }
+      
+      setBookingCountData(bookingCountByMonth);
+    } catch (e) {
+      console.error('Error fetching monthly booking count:', e);
+    }
+  }, [companyId, selectedYear, getToken]);
+
+  useEffect(() => {
+    fetchMonthlyBookingCount();
+  }, [fetchMonthlyBookingCount]);
+
+  // Handle refresh button click
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      fetchDashboardData(),
+      fetchMonthlyBookingCount()
+    ]);
+  }, [fetchDashboardData, fetchMonthlyBookingCount]);
 
   // Stats cards data
   const statsCards = [
@@ -267,8 +315,8 @@ const Dashboard = () => {
     }
   ];
 
-  // Revenue chart options
-  const revenueChartOptions = {
+  // Bookings chart options
+  const bookingsChartOptions = {
     chart: {
       type: 'area',
       height: 350,
@@ -306,8 +354,6 @@ const Dashboard = () => {
           fontSize: '12px'
         },
         formatter: (value) => {
-          if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-          if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
           return value.toFixed(0);
         }
       }
@@ -324,29 +370,63 @@ const Dashboard = () => {
     }
   };
 
-  const revenueChartSeries = [{
-    name: 'Revenue',
-    data: revenueData
+  const bookingsChartSeries = [{
+    name: 'Bookings',
+    data: bookingCountData || []
   }];
 
-  // Booking status donut chart
+  // Booking status donut chart - show all statuses
+  const bookingStatusMap = stats.bookingStatusMap || {};
+  const statusColors = [
+    '#1a8eea', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#ec4899', '#14b8a6', '#f97316', '#84cc16', '#06b6d4',
+    '#6366f1', '#a855f7', '#eab308', '#22c55e', '#3b82f6'
+  ];
+  
+  // Mapping for short status names
+  const statusShortNames = {
+    'PENDING_PAYMENT': 'Pending Payment',
+    'PENDING_DEPOSIT_PAYMENT': 'Pending Deposit',
+    'PENDING_BALANCE_PAYMENT': 'Pending Balance',
+    'WAITING_FOR_APPROVED': 'Waiting Approval',
+    'BOOKING_REJECTED': 'Rejected',
+    'WAITING_FOR_UPDATE': 'Waiting Update',
+    'BOOKING_FAILED': 'Failed',
+    'BOOKING_BALANCE_SUCCESS': 'Balance Success',
+    'BOOKING_SUCCESS_PENDING': 'Success Pending',
+    'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED': 'Wait Confirmed',
+    'BOOKING_UNDER_COMPLAINT': 'Complaint',
+    'BOOKING_SUCCESS': 'Success',
+    'BOOKING_CANCELLED': 'Cancelled'
+  };
+  
+  // Get all statuses that have count > 0
+  const statusEntries = Object.entries(bookingStatusMap)
+    .filter(([_, count]) => count > 0)
+    .sort(([_, a], [__, b]) => b - a); // Sort by count descending
+
+  const bookingStatusLabels = statusEntries.map(([status]) => {
+    // Use short name if available, otherwise format the status name
+    return statusShortNames[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  });
+  
+  const bookingStatusSeries = statusEntries.map(([_, count]) => count);
+  
   const bookingStatusOptions = {
     chart: {
       type: 'donut',
       height: 350
     },
-    colors: ['#1a8eea', '#10b981', '#f59e0b', '#ef4444'],
-    labels: [
-      t('companyDashboard.dashboard.chartLabels.pending'),
-      t('companyDashboard.dashboard.chartLabels.completed'),
-      t('companyDashboard.dashboard.chartLabels.active'),
-      t('companyDashboard.dashboard.chartLabels.cancelled')
-    ],
+    colors: statusColors.slice(0, bookingStatusLabels.length),
+    labels: bookingStatusLabels,
     legend: {
       position: 'bottom',
-      fontSize: '14px',
+      fontSize: '12px',
       labels: {
         colors: '#64748b'
+      },
+      formatter: function(seriesName, opts) {
+        return seriesName + ": " + opts.w.globals.series[opts.seriesIndex];
       }
     },
     dataLabels: {
@@ -372,16 +452,12 @@ const Dashboard = () => {
       }
     },
     tooltip: {
-      theme: 'light'
+      theme: 'light',
+      y: {
+        formatter: (val) => val + ' bookings'
+      }
     }
   };
-
-  const bookingStatusSeries = [
-    stats.pendingBookings,
-    stats.completedBookings,
-    stats.totalBookings - stats.pendingBookings - stats.completedBookings - stats.cancelledBookings,
-    stats.cancelledBookings
-  ];
 
   if (loading) {
     return (
@@ -402,19 +478,9 @@ const Dashboard = () => {
           </p>
         </div>
         <div className={styles.headerActions}>
-          <select 
-            className={styles.periodSelect}
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-          >
-            <option value="thisMonth">{t('companyDashboard.filters.thisMonth') || 'This Month'}</option>
-            <option value="thisQuarter">{t('companyDashboard.filters.thisQuarter') || 'This Quarter'}</option>
-            <option value="thisYear">{t('companyDashboard.filters.thisYear') || 'This Year'}</option>
-            <option value="lastYear">{t('companyDashboard.filters.lastYear') || 'Last Year'}</option>
-          </select>
-          <button className={styles.downloadButton}>
-            <CalendarIcon className={styles.downloadIcon} />
-            {t('companyDashboard.actions.download') || 'Download Report'}
+          <button className={styles.downloadButton} onClick={handleRefresh}>
+            <ArrowPathIcon className={styles.downloadIcon} />
+            {t('companyDashboard.actions.refresh') || 'Refresh'}
           </button>
         </div>
       </div>
@@ -449,21 +515,42 @@ const Dashboard = () => {
 
       {/* Charts Section */}
       <div className={styles.chartsGrid}>
-        {/* Revenue Chart */}
+        {/* Bookings Chart */}
         <div className={styles.chartCard}>
           <div className={styles.chartHeader}>
             <div>
-              <h3 className={styles.chartTitle}>{t('companyDashboard.dashboard.revenueOverview')}</h3>
-              <p className={styles.chartSubtitle}>{t('companyDashboard.dashboard.revenueTrends')}</p>
+              <h3 className={styles.chartTitle}>Bookings Overview</h3>
+              <p className={styles.chartSubtitle}>Monthly booking trends</p>
             </div>
+            <select
+              className={styles.yearSelect}
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            >
+              {Array.from({ length: 6 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                );
+              })}
+            </select>
           </div>
           <div className={styles.chartContainer}>
-            <Chart
-              options={revenueChartOptions}
-              series={revenueChartSeries}
-              type="area"
-              height={350}
-            />
+            {bookingCountData.length > 0 ? (
+              <Chart
+                key={`bookings-chart-${selectedYear}`}
+                options={bookingsChartOptions}
+                series={bookingsChartSeries}
+                type="area"
+                height={350}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '350px', color: '#64748b' }}>
+                Loading chart data...
+              </div>
+            )}
           </div>
         </div>
 

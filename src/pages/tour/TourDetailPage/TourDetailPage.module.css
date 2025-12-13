@@ -992,7 +992,7 @@
 }
 
 .itinerary-content .activity img {
-  width: 100%;
+  width: 75%;
   height: auto;
   display: block;
   border-radius: 12px;
@@ -1023,7 +1023,7 @@
 
 .activity {
   color: #1f2937;
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 1.75;
   font-weight: 500;
   flex: 1;
