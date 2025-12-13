@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,6 @@ import DeleteConfirmModal from '../../../../../components/modals/DeleteConfirmMo
 import { CheckCircle } from 'lucide-react';
 import {
   ExclamationTriangleIcon,
-  ArrowPathIcon,
   MagnifyingGlassIcon,
   EyeIcon,
   CheckCircleIcon,
@@ -30,17 +29,17 @@ const ForumReportManagement = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize] = useState(10);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [reportToApprove, setReportToApprove] = useState(null);
+  const isInitialMountRef = useRef(true);
 
   // Check if user has permission to manage forum reports
   const canManageForumReports = user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || user?.role === 'ADMIN';
 
   // Fetch reports from API
-  const fetchReports = useCallback(async (page = currentPage) => {
+  const fetchReports = useCallback(async (page = currentPage, skip401Check = false) => {
     if (!canManageForumReports) return;
     
     try {
@@ -53,7 +52,11 @@ const ForumReportManagement = () => {
       });
 
       if (!response.ok && response.status === 401) {
-        await checkAndHandle401(response);
+        // Don't call checkAndHandle401 in initial background loading to avoid premature logout
+        // Only check 401 in user-initiated actions (like pagination, search, filter)
+        if (!skip401Check) {
+          await checkAndHandle401(response);
+        }
         return;
       }
 
@@ -85,8 +88,14 @@ const ForumReportManagement = () => {
   }, [currentPage, pageSize, getToken, canManageForumReports]);
 
   useEffect(() => {
-    fetchReports(currentPage);
-  }, [currentPage, fetchReports, refreshTrigger]);
+    // Skip 401 check only on initial mount to avoid premature logout
+    // After initial mount, always check 401 (including pagination)
+    const skip401Check = isInitialMountRef.current;
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+    }
+    fetchReports(currentPage, skip401Check);
+  }, [currentPage, fetchReports]);
 
   // Fetch stats from API
   useEffect(() => {
@@ -100,7 +109,8 @@ const ForumReportManagement = () => {
         });
 
         if (!response.ok && response.status === 401) {
-          await checkAndHandle401(response);
+          // Don't call checkAndHandle401 here to avoid premature logout in background loading
+          // Just skip this data load
           return;
         }
 
@@ -166,7 +176,7 @@ const ForumReportManagement = () => {
 
       if (response.ok) {
         // Refresh reports and stats
-        setRefreshTrigger(prev => prev + 1);
+        fetchReports(currentPage);
         alert(t('staff.forumReportManagement.success.approve'));
       } else {
         const errorText = await response.text();
@@ -221,7 +231,7 @@ const ForumReportManagement = () => {
 
       if (response.ok) {
         // Refresh reports and stats
-        setRefreshTrigger(prev => prev + 1);
+        fetchReports(currentPage);
         alert(t('staff.forumReportManagement.success.reject'));
       } else {
         const errorText = await response.text();
@@ -323,13 +333,6 @@ const ForumReportManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={() => fetchReports(currentPage)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
         </div>
       </div>
 

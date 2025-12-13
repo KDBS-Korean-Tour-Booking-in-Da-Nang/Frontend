@@ -10,7 +10,6 @@ import { Tooltip } from '../../../components';
 import { CheckCircle } from 'lucide-react';
 import {
   ExclamationTriangleIcon,
-  ArrowPathIcon,
   MagnifyingGlassIcon,
   EyeIcon,
   CheckCircleIcon,
@@ -294,13 +293,6 @@ const ForumReportManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={() => fetchReports(currentPage)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
         </div>
       </div>
 

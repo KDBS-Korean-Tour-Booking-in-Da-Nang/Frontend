@@ -12,7 +12,6 @@ import {
   XMarkIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
-  ArrowPathIcon,
   EyeIcon
 } from '@heroicons/react/24/outline';
 import { Package, CheckCircle2, FileText, Eye, CheckCircle, XCircle, Check, Clock, X, Edit3, Trash2, RefreshCw } from 'lucide-react';
@@ -75,7 +74,7 @@ const TourApproval = () => {
   const BOOKINGS_PER_PAGE = 5;
 
   // Fetch tours from API
-  const fetchTours = useCallback(async () => {
+  const fetchTours = useCallback(async (skip401Check = false) => {
     if (!canManageTours) return;
 
     try {
@@ -86,7 +85,11 @@ const TourApproval = () => {
       });
 
       if (!response.ok && response.status === 401) {
-        await checkAndHandle401(response);
+        // Don't call checkAndHandle401 in background loading to avoid premature logout
+        // Only check 401 in user-initiated actions (skip401Check = false)
+        if (!skip401Check) {
+          await checkAndHandle401(response);
+        }
         return;
       }
 
@@ -118,13 +121,9 @@ const TourApproval = () => {
   }, [canManageTours, getToken, t]);
 
   useEffect(() => {
-    fetchTours();
+    // Skip 401 check in background loading to avoid premature logout
+    fetchTours(true);
   }, [fetchTours]);
-
-  // Handle refresh
-  const handleRefresh = () => {
-    fetchTours();
-  };
 
   // Fetch pending requests counts on page load for notification badges
   useEffect(() => {
@@ -138,6 +137,11 @@ const TourApproval = () => {
         const updateResponse = await fetch(API_ENDPOINTS.TOUR_UPDATE_REQUESTS_PENDING, {
           headers: createAuthHeaders(token)
         });
+        if (!updateResponse.ok && updateResponse.status === 401) {
+          // Don't call checkAndHandle401 here to avoid premature logout in background loading
+          // Just skip this data load
+          return;
+        }
         if (updateResponse.ok) {
           const data = await updateResponse.json();
           setUpdateRequests(Array.isArray(data) ? data : []);
@@ -147,6 +151,11 @@ const TourApproval = () => {
         const deleteResponse = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUESTS_PENDING, {
           headers: createAuthHeaders(token)
         });
+        if (!deleteResponse.ok && deleteResponse.status === 401) {
+          // Don't call checkAndHandle401 here to avoid premature logout in background loading
+          // Just skip this data load
+          return;
+        }
         if (deleteResponse.ok) {
           const data = await deleteResponse.json();
           setDeleteRequests(Array.isArray(data) ? data : []);
@@ -167,6 +176,10 @@ const TourApproval = () => {
       const response = await fetch(API_ENDPOINTS.TOUR_UPDATE_REQUESTS_PENDING, {
         headers: createAuthHeaders(token)
       });
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         setUpdateRequests(Array.isArray(data) ? data : []);
@@ -186,6 +199,10 @@ const TourApproval = () => {
       const response = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUESTS_PENDING, {
         headers: createAuthHeaders(token)
       });
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         setDeleteRequests(Array.isArray(data) ? data : []);
@@ -234,6 +251,10 @@ const TourApproval = () => {
         headers: { ...createAuthHeaders(token), 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: updateApproveNote })
       });
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       if (response.ok) {
         showSuccess(t('admin.tourManagement.updateRequests.approveSuccess') || 'Update request approved');
         setIsApproveUpdateModalOpen(false);
@@ -242,6 +263,10 @@ const TourApproval = () => {
         fetchUpdateRequests();
         // Refresh tours list
         const toursResponse = await fetch(API_ENDPOINTS.TOURS, { headers: createAuthHeaders(token) });
+        if (!toursResponse.ok && toursResponse.status === 401) {
+          await checkAndHandle401(toursResponse);
+          return;
+        }
         if (toursResponse.ok) {
           const data = await toursResponse.json();
           setTours(Array.isArray(data) ? data : []);
@@ -269,6 +294,10 @@ const TourApproval = () => {
         headers: { ...createAuthHeaders(token), 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: updateRejectNote })
       });
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       if (response.ok) {
         showSuccess(t('admin.tourManagement.updateRequests.rejectSuccess') || 'Update request rejected');
         setIsRejectUpdateModalOpen(false);
@@ -298,6 +327,10 @@ const TourApproval = () => {
         headers: { ...createAuthHeaders(token), 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: deleteApproveNote })
       });
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       if (response.ok) {
         showSuccess(t('admin.tourManagement.deleteRequests.approveSuccess') || 'Delete request approved');
         setIsApproveDeleteModalOpen(false);
@@ -306,6 +339,10 @@ const TourApproval = () => {
         fetchDeleteRequests();
         // Refresh tours list
         const toursResponse = await fetch(API_ENDPOINTS.TOURS, { headers: createAuthHeaders(token) });
+        if (!toursResponse.ok && toursResponse.status === 401) {
+          await checkAndHandle401(toursResponse);
+          return;
+        }
         if (toursResponse.ok) {
           const data = await toursResponse.json();
           setTours(Array.isArray(data) ? data : []);
@@ -333,6 +370,10 @@ const TourApproval = () => {
         headers: { ...createAuthHeaders(token), 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: deleteRejectNote })
       });
+      if (!response.ok && response.status === 401) {
+        await checkAndHandle401(response);
+        return;
+      }
       if (response.ok) {
         showSuccess(t('admin.tourManagement.deleteRequests.rejectSuccess') || 'Delete request rejected');
         setIsRejectDeleteModalOpen(false);
@@ -543,6 +584,10 @@ const TourApproval = () => {
         const refreshResponse = await fetch(API_ENDPOINTS.TOURS, {
           headers: createAuthHeaders(token)
         });
+        if (!refreshResponse.ok && refreshResponse.status === 401) {
+          await checkAndHandle401(refreshResponse);
+          return;
+        }
         if (refreshResponse.ok) {
           const data = await refreshResponse.json();
           // Handle different response formats
@@ -602,6 +647,10 @@ const TourApproval = () => {
         const refreshResponse = await fetch(API_ENDPOINTS.TOURS, {
           headers: createAuthHeaders(token)
         });
+        if (!refreshResponse.ok && refreshResponse.status === 401) {
+          await checkAndHandle401(refreshResponse);
+          return;
+        }
         if (refreshResponse.ok) {
           const data = await refreshResponse.json();
           // Handle different response formats
@@ -842,13 +891,6 @@ const TourApproval = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={handleRefresh}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
         </div>
       </div>
 
@@ -1044,17 +1086,18 @@ const TourApproval = () => {
                 <p>{t('admin.tourManagement.updateRequests.empty')}</p>
               </div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-amber-50/70">
-                  <tr>
-                    {['STT', t('admin.tourManagement.updateRequests.tourName'), t('admin.tourManagement.updateRequests.status'), t('admin.tourManagement.updateRequests.bookingCount'), t('admin.tourManagement.updateRequests.companyNote'), t('admin.tourManagement.updateRequests.requestedAt'), t('admin.tourApproval.table.headers.actions')].map((header) => (
-                      <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-50">
+              <div className="bg-white rounded-[24px] overflow-hidden border border-[#FFF7ED] shadow-sm">
+                <table className="min-w-full divide-y divide-[#FFF7ED]">
+                  <thead className="bg-[#FFF7ED]">
+                    <tr>
+                      {['STT', t('admin.tourManagement.updateRequests.tourName'), t('admin.tourManagement.updateRequests.status'), t('admin.tourManagement.updateRequests.bookingCount'), t('admin.tourManagement.updateRequests.companyNote'), t('admin.tourManagement.updateRequests.requestedAt'), t('admin.tourApproval.table.headers.actions')].map((header) => (
+                        <th key={header} className="px-6 py-4 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#FFF7ED]">
                   {sortedUpdateRequests.map((request, index) => {
                     const isExpanded = expandedUpdateRequestId === request.id;
                     const bookings = request.bookings || [];
@@ -1065,64 +1108,64 @@ const TourApproval = () => {
                     return (
                       <React.Fragment key={request.id}>
                         <tr 
-                          className="transition cursor-pointer"
+                          className="transition-all duration-200 cursor-pointer hover:bg-[#FFF7ED]/30"
                           onClick={() => toggleUpdateRequestBooking(request.id)}
                         >
-                          <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-5 text-sm text-[#8B6F47]">{index + 1}</td>
+                          <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
                               {request.originalTour?.tourImgPath && (
                                 <img
                                   src={getTourImageUrl(request.originalTour.tourImgPath)}
                                   alt={request.originalTour?.tourName}
-                                  className="w-10 h-10 rounded-lg object-cover"
+                                  className="w-12 h-12 rounded-[16px] object-cover"
                                   onError={(e) => { e.target.src = '/default-Tour.jpg'; }}
                                 />
                               )}
                               <div>
-                                <p className="font-semibold text-gray-900">{request.originalTour?.tourName || 'N/A'}</p>
-                                <p className="text-xs text-gray-500">ID: {request.originalTour?.tourId || request.originalTourId}</p>
+                                <p className="font-medium text-[#5A4A3A]">{request.originalTour?.tourName || 'N/A'}</p>
+                                <p className="text-xs text-[#A6927A]">ID: {request.originalTour?.tourId || request.originalTourId}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                              request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                                request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                                  'bg-gray-100 text-gray-600'
+                          <td className="px-6 py-5">
+                            <span className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px] ${request.status === 'PENDING' ? 'bg-[#FFE4CC] text-[#D97706]' :
+                              request.status === 'APPROVED' ? 'bg-[#D1FAE5] text-[#059669]' :
+                                request.status === 'REJECTED' ? 'bg-[#FEE2E2] text-[#DC2626]' :
+                                  'bg-[#F3F4F6] text-[#6B7280]'
                             }`}>
                               {request.status || 'N/A'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-5 text-sm text-[#8B6F47]">
                             {request.bookingCount || 0}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                          <td className="px-6 py-5 text-sm text-[#8B6F47] max-w-xs">
                             <p className="line-clamp-2">{request.companyNote || '-'}</p>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-5 text-sm text-[#8B6F47]">
                             {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
                           </td>
-                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
                               <Tooltip text={t('admin.tourApproval.actions.viewDetails') + ' - ' + t('admin.tourDetailModal.viewingUpdateRequest')} position="top">
                                 <button
                                   onClick={() => handleViewDetails(request.originalTour?.tourId || request.originalTourId, request)}
                                   disabled={loadingDetail}
-                                  className="relative p-2 rounded-full border-2 border-amber-500 bg-amber-100 text-amber-700 hover:text-amber-800 hover:border-amber-600 hover:bg-amber-200 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(245,158,11,0.3)]"
+                                  className="relative p-2.5 rounded-[20px] border border-[#FED7AA] bg-[#FFE4CC] text-[#D97706] hover:text-[#B45309] hover:border-[#FDBA74] hover:bg-[#FFEDD5] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                   title={t('admin.tourDetailModal.viewingUpdateRequest')}
                                 >
-                                  <Eye className="h-4 w-4" strokeWidth={2} />
+                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
                                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-600"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F59E0B] opacity-60"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#D97706]"></span>
                                   </span>
                                 </button>
                               </Tooltip>
                               <Tooltip text={t('admin.tourManagement.updateRequests.approve')} position="top">
                                 <button
                                   onClick={() => handleApproveUpdateRequest(request)}
-                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                                  className="p-2.5 rounded-[20px] border border-[#A7F3D0] bg-[#D1FAE5] text-[#059669] hover:text-[#047857] hover:border-[#6EE7B7] hover:bg-[#ECFDF5] transition-all duration-200"
                                 >
                                   <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1130,7 +1173,7 @@ const TourApproval = () => {
                               <Tooltip text={t('admin.tourManagement.updateRequests.reject')} position="top">
                                 <button
                                   onClick={() => handleRejectUpdateRequest(request)}
-                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                                  className="p-2.5 rounded-[20px] border border-[#FCA5A5] bg-[#FEE2E2] text-[#DC2626] hover:text-[#B91C1C] hover:border-[#F87171] hover:bg-[#FEF2F2] transition-all duration-200"
                                 >
                                   <XCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1140,47 +1183,57 @@ const TourApproval = () => {
                         </tr>
                         {isExpanded && bookings.length > 0 && (
                           <tr>
-                            <td colSpan={7} className="px-6 py-4 bg-amber-50/30">
-                              <div className="space-y-4 pl-8">
-                                <h4 className="text-sm font-semibold text-amber-700 mb-3">
+                            <td colSpan={7} className="px-6 py-5 bg-[#FFF7ED]/20">
+                              <div className="space-y-4 pl-4">
+                                <h4 className="text-sm font-medium text-[#C0845D] mb-4">
                                   {t('admin.tourManagement.updateRequests.bookings')} ({bookings.length})
                                 </h4>
-                                <div className="overflow-x-auto">
-                                  <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-100">
+                                <div className="overflow-x-auto bg-white rounded-[24px] border border-[#FFF7ED] shadow-sm">
+                                  <table className="min-w-full divide-y divide-[#FFF7ED]">
+                                    <thead className="bg-[#FFF7ED]/50">
                                       <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactName')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactPhone')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactEmail')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.departureDate')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.status')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.createdAt')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">ID</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactName')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactPhone')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactEmail')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.departureDate')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.status')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#C0845D] uppercase tracking-wider">{t('admin.tourManagement.bookings.createdAt')}</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-white divide-y divide-[#FFF7ED]">
                                       {paginatedBookings.map((booking) => {
                                         const statusColor = getBookingStatusColor(booking.status);
+                                        // Convert to pastel colors
+                                        const pastelColors = {
+                                          '#10b981': { bg: '#D1FAE5', text: '#059669', border: '#A7F3D0' },
+                                          '#f59e0b': { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' },
+                                          '#ef4444': { bg: '#FEE2E2', text: '#DC2626', border: '#FCA5A5' },
+                                          '#3b82f6': { bg: '#DBEAFE', text: '#2563EB', border: '#93C5FD' },
+                                          '#6b7280': { bg: '#F3F4F6', text: '#6B7280', border: '#D1D5DB' }
+                                        };
+                                        const colorKey = statusColor || '#6b7280';
+                                        const pastelColor = pastelColors[colorKey] || pastelColors['#6b7280'];
                                         return (
-                                          <tr key={booking.bookingId} className="hover:bg-gray-50">
-                                            <td className="px-4 py-2 text-sm text-gray-600">#{booking.bookingId}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-900">{booking.contactName || 'N/A'}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactPhone || 'N/A'}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactEmail || 'N/A'}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDate(booking.departureDate)}</td>
-                                            <td className="px-4 py-2">
+                                          <tr key={booking.bookingId} className="hover:bg-[#FFF7ED]/20 transition-all duration-200">
+                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">#{booking.bookingId}</td>
+                                            <td className="px-5 py-3 text-sm text-[#5A4A3A] font-medium">{booking.contactName || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{booking.contactPhone || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{booking.contactEmail || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{formatBookingDate(booking.departureDate)}</td>
+                                            <td className="px-5 py-3">
                                               <span 
-                                                className="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                className="inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px]"
                                                 style={{
-                                                  backgroundColor: `${statusColor}15`,
-                                                  color: statusColor,
-                                                  border: `1px solid ${statusColor}30`
+                                                  backgroundColor: pastelColor.bg,
+                                                  color: pastelColor.text,
+                                                  border: `1px solid ${pastelColor.border}`
                                                 }}
                                               >
                                                 {formatBookingStatusDisplay(booking.status)}
                                               </span>
                                             </td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDateTime(booking.createdAt)}</td>
+                                            <td className="px-5 py-3 text-sm text-[#8B6F47]">{formatBookingDateTime(booking.createdAt)}</td>
                                           </tr>
                                         );
                                       })}
@@ -1188,8 +1241,8 @@ const TourApproval = () => {
                                   </table>
                                 </div>
                                 {totalBookingPages > 1 && (
-                                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                                    <div className="text-sm text-gray-600">
+                                  <div className="flex items-center justify-between pt-4 border-t border-[#FFF7ED]">
+                                    <div className="text-sm text-[#8B6F47]">
                                       {t('admin.tourApproval.pagination.page', { 
                                         current: currentBookingPage + 1, 
                                         total: totalBookingPages, 
@@ -1206,7 +1259,7 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage === 0}
-                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                        className="px-4 py-2 text-sm border border-[#FED7AA] bg-white text-[#C0845D] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FFF7ED] transition-all duration-200"
                                       >
                                         {t('admin.tourApproval.pagination.previous')}
                                       </button>
@@ -1219,7 +1272,7 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage >= totalBookingPages - 1}
-                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                        className="px-4 py-2 text-sm border border-[#FED7AA] bg-white text-[#C0845D] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FFF7ED] transition-all duration-200"
                                       >
                                         {t('admin.tourApproval.pagination.next')}
                                       </button>
@@ -1235,6 +1288,7 @@ const TourApproval = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         ) : showDeleteRequests ? (
@@ -1251,17 +1305,18 @@ const TourApproval = () => {
                 <p>{t('admin.tourManagement.deleteRequests.empty')}</p>
               </div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-red-50/70">
-                  <tr>
-                    {['STT', t('admin.tourManagement.deleteRequests.tourName'), t('admin.tourManagement.deleteRequests.status'), t('admin.tourManagement.deleteRequests.bookingCount'), t('admin.tourManagement.deleteRequests.companyNote'), t('admin.tourManagement.deleteRequests.requestedAt'), t('admin.tourApproval.table.headers.actions')].map((header) => (
-                      <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-50">
+              <div className="bg-white rounded-[24px] overflow-hidden border border-[#FEF2F2] shadow-sm">
+                <table className="min-w-full divide-y divide-[#FEF2F2]">
+                  <thead className="bg-[#FEF2F2]">
+                    <tr>
+                      {['STT', t('admin.tourManagement.deleteRequests.tourName'), t('admin.tourManagement.deleteRequests.status'), t('admin.tourManagement.deleteRequests.bookingCount'), t('admin.tourManagement.deleteRequests.companyNote'), t('admin.tourManagement.deleteRequests.requestedAt'), t('admin.tourApproval.table.headers.actions')].map((header) => (
+                        <th key={header} className="px-6 py-4 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#FEF2F2]">
                   {sortedDeleteRequests.map((request, index) => {
                     const isExpanded = expandedDeleteRequestId === request.id;
                     const bookings = request.bookings || [];
@@ -1272,56 +1327,56 @@ const TourApproval = () => {
                     return (
                       <React.Fragment key={request.id}>
                         <tr 
-                          className="transition cursor-pointer"
+                          className="transition-all duration-200 cursor-pointer hover:bg-[#FEF2F2]/30"
                           onClick={() => toggleDeleteRequestBooking(request.id)}
                         >
-                          <td className="px-6 py-4 text-sm text-gray-600">{index + 1}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-5 text-sm text-[#A66B73]">{index + 1}</td>
+                          <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
                               <div>
-                                <p className="font-semibold text-gray-900">{request.tourName || 'N/A'}</p>
-                                <p className="text-xs text-gray-500">ID: {request.tourId}</p>
+                                <p className="font-medium text-[#7F1D1D]">{request.tourName || 'N/A'}</p>
+                                <p className="text-xs text-[#B8818F]">ID: {request.tourId}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${request.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                              request.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                                request.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                                  'bg-gray-100 text-gray-600'
+                          <td className="px-6 py-5">
+                            <span className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px] ${request.status === 'PENDING' ? 'bg-[#FEF3C7] text-[#D97706]' :
+                              request.status === 'APPROVED' ? 'bg-[#D1FAE5] text-[#059669]' :
+                                request.status === 'REJECTED' ? 'bg-[#FEE2E2] text-[#DC2626]' :
+                                  'bg-[#F3F4F6] text-[#6B7280]'
                             }`}>
                               {request.status || 'N/A'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-5 text-sm text-[#A66B73]">
                             {request.bookingCount || 0}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                          <td className="px-6 py-5 text-sm text-[#A66B73] max-w-xs">
                             <p className="line-clamp-2">{request.companyNote || '-'}</p>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-6 py-5 text-sm text-[#A66B73]">
                             {request.createdAt ? new Date(request.createdAt).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : 'N/A'}
                           </td>
-                          <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
                               <Tooltip text={t('admin.tourApproval.actions.viewDetails')} position="top">
                                 <button
                                   onClick={() => handleViewDetails(request.tourId)}
                                   disabled={loadingDetail}
-                                  className="relative p-2 rounded-full border-2 border-red-400 bg-red-50 text-red-600 hover:text-red-700 hover:border-red-500 hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(239,68,68,0.2)]"
+                                  className="relative p-2.5 rounded-[20px] border border-[#FCA5A5] bg-[#FEE2E2] text-[#DC2626] hover:text-[#B91C1C] hover:border-[#F87171] hover:bg-[#FEF2F2] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                   title={t('admin.tourDetailModal.viewingDeleteRequest') || 'Viewing Delete Request'}
                                 >
-                                  <Eye className="h-4 w-4" strokeWidth={2} />
+                                  <Eye className="h-4 w-4" strokeWidth={1.5} />
                                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F87171] opacity-60"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#DC2626]"></span>
                                   </span>
                                 </button>
                               </Tooltip>
                               <Tooltip text={t('admin.tourManagement.deleteRequests.approve')} position="top">
                                 <button
                                   onClick={() => handleApproveDeleteRequest(request)}
-                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-green-600 hover:border-green-200 transition"
+                                  className="p-2.5 rounded-[20px] border border-[#A7F3D0] bg-[#D1FAE5] text-[#059669] hover:text-[#047857] hover:border-[#6EE7B7] hover:bg-[#ECFDF5] transition-all duration-200"
                                 >
                                   <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1329,7 +1384,7 @@ const TourApproval = () => {
                               <Tooltip text={t('admin.tourManagement.deleteRequests.reject')} position="top">
                                 <button
                                   onClick={() => handleRejectDeleteRequest(request)}
-                                  className="p-2 rounded-full border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition"
+                                  className="p-2.5 rounded-[20px] border border-[#FCA5A5] bg-[#FEE2E2] text-[#DC2626] hover:text-[#B91C1C] hover:border-[#F87171] hover:bg-[#FEF2F2] transition-all duration-200"
                                 >
                                   <XCircle className="h-4 w-4" strokeWidth={1.5} />
                                 </button>
@@ -1339,47 +1394,57 @@ const TourApproval = () => {
                         </tr>
                         {isExpanded && bookings.length > 0 && (
                           <tr>
-                            <td colSpan={7} className="px-6 py-4 bg-red-50/30">
-                              <div className="space-y-4 pl-8">
-                                <h4 className="text-sm font-semibold text-red-700 mb-3">
+                            <td colSpan={7} className="px-6 py-5 bg-[#FEF2F2]/20">
+                              <div className="space-y-4 pl-4">
+                                <h4 className="text-sm font-medium text-[#DC6875] mb-4">
                                   {t('admin.tourManagement.deleteRequests.bookings')} ({bookings.length})
                                 </h4>
-                                <div className="overflow-x-auto">
-                                  <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-100">
+                                <div className="overflow-x-auto bg-white rounded-[24px] border border-[#FEF2F2] shadow-sm">
+                                  <table className="min-w-full divide-y divide-[#FEF2F2]">
+                                    <thead className="bg-[#FEF2F2]/50">
                                       <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactName')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactPhone')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.contactEmail')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.departureDate')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.status')}</th>
-                                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">{t('admin.tourManagement.bookings.createdAt')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">ID</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactName')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactPhone')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.contactEmail')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.departureDate')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.status')}</th>
+                                        <th className="px-5 py-3 text-left text-xs font-medium text-[#DC6875] uppercase tracking-wider">{t('admin.tourManagement.bookings.createdAt')}</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-white divide-y divide-[#FEF2F2]">
                                       {paginatedBookings.map((booking) => {
                                         const statusColor = getBookingStatusColor(booking.status);
+                                        // Convert to pastel colors
+                                        const pastelColors = {
+                                          '#10b981': { bg: '#D1FAE5', text: '#059669', border: '#A7F3D0' },
+                                          '#f59e0b': { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' },
+                                          '#ef4444': { bg: '#FEE2E2', text: '#DC2626', border: '#FCA5A5' },
+                                          '#3b82f6': { bg: '#DBEAFE', text: '#2563EB', border: '#93C5FD' },
+                                          '#6b7280': { bg: '#F3F4F6', text: '#6B7280', border: '#D1D5DB' }
+                                        };
+                                        const colorKey = statusColor || '#6b7280';
+                                        const pastelColor = pastelColors[colorKey] || pastelColors['#6b7280'];
                                         return (
-                                          <tr key={booking.bookingId} className="hover:bg-gray-50">
-                                            <td className="px-4 py-2 text-sm text-gray-600">#{booking.bookingId}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-900">{booking.contactName || 'N/A'}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactPhone || 'N/A'}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{booking.contactEmail || 'N/A'}</td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDate(booking.departureDate)}</td>
-                                            <td className="px-4 py-2">
+                                          <tr key={booking.bookingId} className="hover:bg-[#FEF2F2]/20 transition-all duration-200">
+                                            <td className="px-5 py-3 text-sm text-[#A66B73]">#{booking.bookingId}</td>
+                                            <td className="px-5 py-3 text-sm text-[#7F1D1D] font-medium">{booking.contactName || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{booking.contactPhone || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{booking.contactEmail || 'N/A'}</td>
+                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{formatBookingDate(booking.departureDate)}</td>
+                                            <td className="px-5 py-3">
                                               <span 
-                                                className="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                className="inline-flex px-3 py-1.5 text-xs font-medium rounded-[20px]"
                                                 style={{
-                                                  backgroundColor: `${statusColor}15`,
-                                                  color: statusColor,
-                                                  border: `1px solid ${statusColor}30`
+                                                  backgroundColor: pastelColor.bg,
+                                                  color: pastelColor.text,
+                                                  border: `1px solid ${pastelColor.border}`
                                                 }}
                                               >
                                                 {formatBookingStatusDisplay(booking.status)}
                                               </span>
                                             </td>
-                                            <td className="px-4 py-2 text-sm text-gray-600">{formatBookingDateTime(booking.createdAt)}</td>
+                                            <td className="px-5 py-3 text-sm text-[#A66B73]">{formatBookingDateTime(booking.createdAt)}</td>
                                           </tr>
                                         );
                                       })}
@@ -1387,8 +1452,8 @@ const TourApproval = () => {
                                   </table>
                                 </div>
                                 {totalBookingPages > 1 && (
-                                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                                    <div className="text-sm text-gray-600">
+                                  <div className="flex items-center justify-between pt-4 border-t border-[#FEF2F2]">
+                                    <div className="text-sm text-[#A66B73]">
                                       {t('admin.tourApproval.pagination.page', { 
                                         current: currentBookingPage + 1, 
                                         total: totalBookingPages, 
@@ -1405,7 +1470,7 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage === 0}
-                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                        className="px-4 py-2 text-sm border border-[#FCA5A5] bg-white text-[#DC6875] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FEF2F2] transition-all duration-200"
                                       >
                                         {t('admin.tourApproval.pagination.previous')}
                                       </button>
@@ -1418,7 +1483,7 @@ const TourApproval = () => {
                                           }));
                                         }}
                                         disabled={currentBookingPage >= totalBookingPages - 1}
-                                        className="px-3 py-1 text-sm border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                        className="px-4 py-2 text-sm border border-[#FCA5A5] bg-white text-[#DC6875] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FEF2F2] transition-all duration-200"
                                       >
                                         {t('admin.tourApproval.pagination.next')}
                                       </button>
@@ -1434,6 +1499,7 @@ const TourApproval = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         ) : (

@@ -8,7 +8,6 @@ import {
   EyeIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  ArrowPathIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -267,13 +266,6 @@ const Dashboard = () => {
     fetchMonthlyBookingCount();
   }, [fetchMonthlyBookingCount]);
 
-  // Handle refresh button click
-  const handleRefresh = useCallback(async () => {
-    await Promise.all([
-      fetchDashboardData(),
-      fetchMonthlyBookingCount()
-    ]);
-  }, [fetchDashboardData, fetchMonthlyBookingCount]);
 
   // Stats cards data
   const statsCards = [
@@ -478,10 +470,6 @@ const Dashboard = () => {
           </p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.downloadButton} onClick={handleRefresh}>
-            <ArrowPathIcon className={styles.downloadIcon} />
-            {t('companyDashboard.actions.refresh') || 'Refresh'}
-          </button>
         </div>
       </div>
 

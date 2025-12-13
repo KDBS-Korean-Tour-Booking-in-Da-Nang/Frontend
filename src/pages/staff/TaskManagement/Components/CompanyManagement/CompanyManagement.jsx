@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ArrowTopRightOnSquareIcon,
-  ArrowPathIcon,
+  ArrowDownTrayIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
   MapPinIcon,
@@ -53,9 +53,10 @@ const CompanyManagement = () => {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [companyToApprove, setCompanyToApprove] = useState(null);
   const [companyToReject, setCompanyToReject] = useState(null);
+  const isInitialMountRef = useRef(true);
 
   // Fetch companies (users with role COMPANY/BUSINESS) from API
-  const fetchCompanies = async () => {
+  const fetchCompanies = async (skip401Check = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -73,8 +74,12 @@ const CompanyManagement = () => {
       
       if (!response.ok) {
         if (response.status === 401) {
-          await checkAndHandle401(response);
-          setError(t('staff.companyManagement.error.sessionExpired'));
+          // Don't call checkAndHandle401 in initial background loading to avoid premature logout
+          // Only check 401 in user-initiated actions (like refresh, approve, reject)
+          if (!skip401Check) {
+            await checkAndHandle401(response);
+            setError(t('staff.companyManagement.error.sessionExpired'));
+          }
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -129,7 +134,13 @@ const CompanyManagement = () => {
 
   useEffect(() => {
     if (canManageCompanies) {
-      fetchCompanies();
+      // Skip 401 check only on initial mount to avoid premature logout
+      // After initial mount, always check 401 (including when called from user actions)
+      const skip401Check = isInitialMountRef.current;
+      if (isInitialMountRef.current) {
+        isInitialMountRef.current = false;
+      }
+      fetchCompanies(skip401Check);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManageCompanies]);
@@ -530,6 +541,10 @@ const CompanyManagement = () => {
           method: 'GET'
         });
 
+        if (!response.ok && response.status === 401) {
+          await checkAndHandle401(response);
+          return;
+        }
         if (!response.ok) {
           throw new Error('Failed to download file');
         }
@@ -614,13 +629,6 @@ const CompanyManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={fetchCompanies}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
         </div>
       </div>
 

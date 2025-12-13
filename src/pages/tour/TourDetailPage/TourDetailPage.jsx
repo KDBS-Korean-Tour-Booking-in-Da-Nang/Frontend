@@ -8,13 +8,9 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 import { useTourRated } from "../../../hooks/useTourRated";
-import useWeatherFromTour from "../../../hooks/useWeatherFromTour";
 import DeleteConfirmModal from "../../../components/modals/DeleteConfirmModal/DeleteConfirmModal";
 import { API_ENDPOINTS, createAuthHeaders } from "../../../config/api";
 import { checkAndHandle401 } from "../../../utils/apiErrorHandler";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import {
   ArrowLeft,
   Clock,
@@ -51,14 +47,6 @@ const shadeColor = (hex, percent) => {
   } catch {
     return hex;
   }
-};
-
-// Helper build params for weather hook without changing page logic
-const _BUILD_WEATHER_PARAMS = (tourData) => {
-  if (!tourData) return { tourName: "", tourSchedule: "" };
-  const tourName = tourData.tour_name || tourData.title || "";
-  const tourSchedule = tourData.tour_schedule || tourData.tourSchedule || "";
-  return { tourName, tourSchedule };
 };
 
 const TourDetailPage = () => {
@@ -308,34 +296,6 @@ const TourDetailPage = () => {
     };
   }, [tour?.id, t]);
 
-  // Weather hook params and data (must be before early returns)
-  const { tourName, tourSchedule } = _BUILD_WEATHER_PARAMS(tour);
-  const {
-    data: weatherData,
-    loading: weatherLoading,
-    error: weatherError,
-  } = useWeatherFromTour({ tourName, tourSchedule, multi: true, limit: 3 });
-
-  const iconFromDesc = (desc = "") => {
-    const s = (desc || "").toLowerCase();
-    if (/(mưa|rain)/.test(s)) return "🌧️";
-    if (/(giông|thunder|storm)/.test(s)) return "⛈️";
-    if (/(tuyết|snow)/.test(s)) return "❄️";
-    if (/(mây rải rác|few clouds)/.test(s)) return "⛅";
-    if (/(mây|cloud)/.test(s)) return "☁️";
-    if (/(sương|mist|fog)/.test(s)) return "🌫️";
-    if (/(nắng|clear|trong)/.test(s)) return "☀️";
-    return "🌤️";
-  };
-  const formatDay = (unix) => {
-    const dt = new Date((unix || 0) * 1000);
-    return dt.toLocaleDateString("vi-VN", {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-    });
-  };
-
   if (loading || !tour) {
     return (
       <div className={styles["tour-detail-loading"]}>
@@ -560,155 +520,6 @@ const TourDetailPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      {/* Weather Section under hero */}
-      <div className={styles["tour-detail-content"]}>
-        <div
-          className={`${styles["container"]} ${styles["container-wide"]} ${styles["container-narrow"]}`}
-        >
-          <div style={{ margin: "16px 0 8px" }}>
-            <h2 className={styles["weather-title"]}>
-              {t("tourPage.detail.weather.title")}
-            </h2>
-            {weatherLoading && (
-              <div className={styles["weather-loading"]}>
-                {t("tourPage.detail.weather.loading")}
-              </div>
-            )}
-            {!weatherLoading && weatherError && (
-              <div className={styles["weather-error"]}>{weatherError}</div>
-            )}
-            {!weatherLoading && !weatherError && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(1, minmax(0, 1fr))",
-                  gap: 12,
-                }}
-              >
-                {weatherData.length === 0 ? (
-                  <div className={styles["weather-empty"]}>
-                    {t("tourPage.detail.weather.empty")}
-                  </div>
-                ) : (
-                  weatherData.map((w, i) => {
-                    const WeatherCarousel = ({ days }) => {
-                      const MAX_DAYS = 6;
-                      const validDays = Array.isArray(days)
-                        ? days.filter(Boolean).slice(0, MAX_DAYS)
-                        : [];
-
-                      if (validDays.length === 0) {
-                        return null;
-                      }
-
-                      const slidesDesktop = Math.min(4, validDays.length);
-                      const slidesLaptop = Math.min(3, validDays.length);
-                      const slidesTablet = Math.min(2, validDays.length);
-
-                      const sliderSettings = {
-                        arrows: false,
-                        dots: false,
-                        infinite: validDays.length > 1,
-                        slidesToShow: slidesDesktop,
-                        slidesToScroll: 1,
-                        autoplay: true,
-                        autoplaySpeed: 4000,
-                        speed: 600,
-                        pauseOnHover: true,
-                        swipeToSlide: true,
-                        cssEase: "ease-in-out",
-                        responsive: [
-                          {
-                            breakpoint: 1536,
-                            settings: {
-                              slidesToShow: slidesLaptop,
-                            },
-                          },
-                          {
-                            breakpoint: 1024,
-                            settings: {
-                              slidesToShow: slidesTablet,
-                            },
-                          },
-                          {
-                            breakpoint: 640,
-                            settings: {
-                              slidesToShow: 1,
-                            },
-                          },
-                        ],
-                      };
-
-                      return (
-                        <div className={styles["weather-slider"]}>
-                          <Slider key={validDays.length} {...sliderSettings}>
-                            {validDays.map((d, di) => {
-                              const desc = d?.weather?.[0]?.description || "";
-                              const t = Math.round(d?.temp?.day ?? 0);
-                              const tMin = Math.round(d?.temp?.min ?? t);
-                              const tMax = Math.round(d?.temp?.max ?? t);
-                              const range = Math.max(1, tMax - tMin);
-                              const pos = Math.min(
-                                100,
-                                Math.max(0, ((t - tMin) / range) * 100)
-                              );
-                              const icon = iconFromDesc(desc);
-
-                              return (
-                                <div key={`${d?.dt || di}`}>
-                                  <div className={styles["weather-card"]}>
-                                    <div className={styles["weather-card-header"]}>
-                                      <div className={styles["weather-card-date"]}>
-                                        {formatDay(d?.dt)}
-                                      </div>
-                                      <div
-                                        className={styles["weather-card-icon"]}
-                                        aria-label="weather-icon"
-                                      >
-                                        {icon}
-                                      </div>
-                                    </div>
-                                    <div className={styles["weather-card-desc"]}>
-                                      {desc}
-                                    </div>
-                                    <div className={styles["weather-card-temp"]}>
-                                      <div className={styles["weather-card-temp-value"]}>
-                                        {t}°C
-                                      </div>
-                                      <div className={styles["weather-card-temp-range"]}>
-                                        min {tMin}° / max {tMax}°
-                                      </div>
-                                    </div>
-                                    <div className={styles["weather-card-range"]}>
-                                      <div
-                                        className={styles["weather-card-range-fill"]}
-                                        style={{ width: `${pos}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </Slider>
-                        </div>
-                      );
-                    };
-                    return (
-                      <div key={`${w.cityKey}-${i}`} className={styles["tour-overview"]}>
-                        <h3 className={styles["weather-city-title"]}>
-                          {w.query}
-                        </h3>
-                        <WeatherCarousel days={w.days} />
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
       {/* Main Content */}
       <div className={styles["tour-detail-content"]}>
         <div className={styles["container"]}>

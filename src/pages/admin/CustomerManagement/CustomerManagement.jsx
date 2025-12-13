@@ -10,8 +10,6 @@ import { Tooltip } from '../../../components';
 import {
   UsersIcon,
   UserCircleIcon,
-  StarIcon,
-  ArrowPathIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
   EnvelopeIcon,
@@ -223,13 +221,8 @@ const CustomerManagement = () => {
   const stats = useMemo(() => {
     const total = customers.length;
     const active = customers.filter((c) => c.status === 'active').length;
-    const vip = customers.filter((c) => c.tier === 'VIP').length;
-    const value = customers.reduce((sum, c) => sum + c.lifetimeValue, 0);
-    return { total, active, vip, value };
+    return { total, active };
   }, [customers]);
-
-  const formatCurrency = (value) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
 
   const handleBanClick = (customer) => {
     // If unbanning, do it directly without modal
@@ -334,21 +327,12 @@ const CustomerManagement = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={fetchCustomers}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#4c9dff] text-white rounded-lg text-sm font-semibold shadow-[0_12px_30px_rgba(76,157,255,0.35)] hover:bg-[#3f85d6] transition-all duration-200"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            Refresh
-          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StatCard icon={UsersIcon} label={t('admin.customerManagement.stats.totalCustomers')} value={stats.total} trend={t('admin.customerManagement.stats.totalCustomersTrend')} />
         <StatCard icon={UserCircleIcon} label={t('admin.customerManagement.stats.active')} value={stats.active} trend={t('admin.customerManagement.stats.activeTrend')} color="text-green-600" />
-        <StatCard icon={StarIcon} label={t('admin.customerManagement.stats.vip')} value={stats.vip} trend={t('admin.customerManagement.stats.vipTrend')} color="text-amber-500" />
-        <StatCard icon={CurrencyFormatter} label={t('admin.customerManagement.stats.lifetimeValue')} value={formatCurrency(stats.value)} trend={t('admin.customerManagement.stats.lifetimeValueTrend')} color="text-blue-600" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -380,7 +364,7 @@ const CustomerManagement = () => {
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50/70">
               <tr>
-                {[t('admin.customerManagement.tableHeaders.customer'), t('admin.customerManagement.tableHeaders.status'), t('admin.customerManagement.tableHeaders.accumulated'), t('admin.customerManagement.tableHeaders.lastBooking'), t('admin.customerManagement.tableHeaders.actions')].map((header) => (
+                {[t('admin.customerManagement.tableHeaders.customer'), t('admin.customerManagement.tableHeaders.status'), t('admin.customerManagement.tableHeaders.bookings'), t('admin.customerManagement.tableHeaders.lastBooking'), t('admin.customerManagement.tableHeaders.actions')].map((header) => (
                   <th key={header} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {header}
                   </th>
@@ -434,8 +418,8 @@ const CustomerManagement = () => {
                     <StatusBadge status={customer.status} />
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-gray-900">{formatCurrency(customer.lifetimeValue)}</div>
-                    <div className="text-xs text-gray-500">{customer.totalBookings} {t('admin.customerManagement.bookings')}</div>
+                    <div className="text-sm font-semibold text-gray-900">{customer.totalBookings}</div>
+                    <div className="text-xs text-gray-500">{t('admin.customerManagement.bookings')}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {customer.lastBooking ? new Date(customer.lastBooking).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN') : t('admin.customerManagement.noBooking')}
@@ -511,11 +495,7 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-          {IconComponent === CurrencyFormatter ? (
-            <span className="text-xl font-semibold text-blue-500">₫</span>
-          ) : (
-            <IconComponent className="h-6 w-6 text-blue-600" />
-          )}
+          <IconComponent className="h-6 w-6 text-blue-600" />
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
@@ -538,8 +518,6 @@ const StatusBadge = ({ status }) => {
     </span>
   );
 };
-
-const CurrencyFormatter = () => null;
 
 export default CustomerManagement;
 

@@ -87,7 +87,7 @@ const TaskManagement = () => {
         try {
           const response = await fetch(API_ENDPOINTS.USERS, { headers });
           if (response.status === 401) {
-            // Don't call checkAndHandle401 here to avoid logout loop
+            // Don't call checkAndHandle401 here to avoid premature logout in background loading
             // Just skip this data load
             return;
           }
@@ -110,7 +110,7 @@ const TaskManagement = () => {
         try {
           const response = await fetch(API_ENDPOINTS.TOURS, { headers });
           if (response.status === 401) {
-            // Don't call checkAndHandle401 here to avoid logout loop
+            // Don't call checkAndHandle401 here to avoid premature logout in background loading
             // Just skip this data load
             return;
           }

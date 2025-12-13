@@ -708,6 +708,7 @@
         "customer": "Khách hàng",
         "status": "Trạng thái",
         "accumulated": "Tích lũy",
+        "bookings": "Số đặt tour",
         "lastBooking": "Lần đặt gần nhất",
         "actions": "Thao tác"
       },
@@ -1172,12 +1173,12 @@
       "stats": {
         "total": "Tổng nhân viên",
         "totalTrend": "+2 tuần này",
-        "active": "Đang hoạt động",
-        "activeTrend": "+1 tuần này",
-        "admin": "Quản trị viên",
-        "adminTrend": "Không đổi",
-        "inactive": "Tạm dừng",
-        "inactiveTrend": "0 thay đổi"
+        "forumReport": "Báo cáo diễn đàn & Khiếu nại đặt tour",
+        "forumReportTrend": "nhân viên quản lý",
+        "companyRequest": "Yêu cầu công ty & Giải quyết ticket",
+        "companyRequestTrend": "nhân viên quản lý",
+        "approveTour": "Duyệt tour & Bài viết",
+        "approveTourTrend": "nhân viên quản lý"
       },
       "searchPlaceholder": "Tìm theo tên, email hoặc mã nhân viên...",
       "roleFilter": {
@@ -4659,11 +4660,10 @@
       "close": "Đóng"
     },
     "confirmModal": {
-      "title": "Xác nhận booking",
-      "message": "Bạn có chắc chắn muốn xác nhận booking #",
-      "confirm": "Xác nhận",
-      "cancel": "Hủy",
-      "description": "Booking sẽ được chuyển sang trạng thái BOOKING_SUCCESS_PENDING. Khi tour kết thúc, hệ thống sẽ yêu cầu công ty và khách hàng xác nhận hoàn tất."
+      "title": "Hoàn thành duyệt booking",
+      "message": "Bạn có chắc chắn muốn hoàn tất việc duyệt booking #{{bookingId}}?",
+      "confirm": "Hoàn thành",
+      "cancel": "Hủy"
     },
     "loading": {
       "booking": "Đang tải thông tin booking..."
@@ -4727,8 +4727,8 @@
         "allSuccessRequired": "Tất cả khách phải có trạng thái bảo hiểm SUCCESS để tiếp tục."
       },
       "confirmModal": {
-        "title": "Xác nhận duyệt bảo hiểm",
-        "message": "Bạn có chắc chắn muốn ghi nhận các thay đổi bảo hiểm và chuyển sang bước cuối?"
+        "title": "Xác nhận lưu trạng thái bảo hiểm",
+        "message": "Bạn có chắc chắn muốn lưu trạng thái bảo hiểm và chuyển sang bước cuối cùng cho booking #{{bookingId}}?"
       },
       "rejectModal": {
         "title": "Lý do từ chối booking",
@@ -4780,9 +4780,8 @@
         "requestedUpdate": "Đã gửi yêu cầu cập nhật booking"
       },
       "confirmModal": {
-        "title": "Xác nhận duyệt booking",
-        "message": "Bạn có chắc chắn muốn duyệt booking #{{bookingId}}?",
-        "description": "Sau khi xác nhận, bạn sẽ chuyển sang bước duyệt bảo hiểm. Tất cả thay đổi chỉ được ghi vào hệ thống ở bước hoàn tất cuối cùng."
+        "title": "Xác nhận duyệt thông tin khách hàng",
+        "message": "Bạn có chắc chắn muốn duyệt thông tin khách hàng cho booking #{{bookingId}} và chuyển sang bước kiểm tra bảo hiểm?"
       },
       "requestUpdateModal": {
         "title": "Yêu cầu cập nhật booking",

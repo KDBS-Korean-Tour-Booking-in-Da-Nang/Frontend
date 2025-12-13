@@ -707,6 +707,7 @@
 				"customer": "고객",
 				"status": "상태",
 				"accumulated": "누적",
+				"bookings": "예약 수",
 				"lastBooking": "마지막 예약",
 				"actions": "작업"
 			},
@@ -1171,12 +1172,12 @@
 			"stats": {
 				"total": "총 직원",
 				"totalTrend": "이번 주 +2",
-				"active": "활성",
-				"activeTrend": "이번 주 +1",
-				"admin": "관리자",
-				"adminTrend": "변화 없음",
-				"inactive": "비활성",
-				"inactiveTrend": "0 변화"
+				"forumReport": "포럼 신고 & 예약 불만",
+				"forumReportTrend": "직원 관리 중",
+				"companyRequest": "회사 요청 & 티켓 해결",
+				"companyRequestTrend": "직원 관리 중",
+				"approveTour": "투어 & 기사 승인",
+				"approveTourTrend": "직원 관리 중"
 			},
 			"searchPlaceholder": "이름, 이메일 또는 직원 코드로 검색...",
 			"roleFilter": {
@@ -4570,11 +4571,10 @@
 			"close": "닫기"
 		},
 		"confirmModal": {
-			"title": "예약 확인",
-			"message": "예약 #을(를) 확인하시겠습니까?",
-			"confirm": "확인",
-			"cancel": "취소",
-			"description": "예약이 BOOKING_SUCCESS_PENDING 상태로 이동됩니다. 투어가 종료되면 시스템이 회사와 고객 모두에게 완료 확인을 요청합니다."
+			"title": "예약 승인 완료",
+			"message": "예약 #{{bookingId}}의 승인을 완료하시겠습니까?",
+			"confirm": "완료",
+			"cancel": "취소"
 		},
 		"loading": {
 			"booking": "예약 정보 로딩 중..."
@@ -4638,8 +4638,8 @@
 				"allSuccessRequired": "모든 고객의 보험 상태가 SUCCESS여야 계속 진행할 수 있습니다."
 			},
 			"confirmModal": {
-				"title": "보험 승인 확인",
-				"message": "보험 변경 사항을 저장하고 마지막 단계로 이동하시겠습니까?"
+				"title": "보험 상태 저장 확인",
+				"message": "예약 #{{bookingId}}의 보험 상태를 저장하고 마지막 단계로 이동하시겠습니까?"
 			},
 			"rejectModal": {
 				"title": "예약 거절 사유",
@@ -4686,9 +4686,8 @@
 				"requestedUpdate": "예약 정보 업데이트 요청이 전송되었습니다"
 			},
 			"confirmModal": {
-				"title": "예약 승인 확인",
-				"message": "예약 #{{bookingId}}을(를) 승인하시겠습니까?",
-				"description": "확인 후 보험 승인 단계로 이동합니다. 모든 변경 사항은 마지막 완료 단계에서만 시스템에 저장됩니다."
+				"title": "고객 정보 승인 확인",
+				"message": "예약 #{{bookingId}}의 고객 정보를 승인하고 보험 확인 단계로 진행하시겠습니까?"
 			},
 			"requestUpdateModal": {
 				"title": "예약 업데이트 요청",

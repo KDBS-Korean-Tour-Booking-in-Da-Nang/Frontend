@@ -744,19 +744,13 @@ useEffect(() => {
         onClose={() => !confirmingBooking && setShowConfirmModal(false)}
         onConfirm={handleConfirmBooking}
         title={t('companyBookingWizard.confirmModal.title')}
-        message={`${t('companyBookingWizard.confirmModal.message')}${booking?.bookingId}?`}
+        message={t('companyBookingWizard.confirmModal.message', { bookingId: booking?.bookingId })}
         confirmText={t('companyBookingWizard.confirmModal.confirm')}
         cancelText={t('companyBookingWizard.confirmModal.cancel')}
         icon="✓"
         danger={false}
         disableBackdropClose={confirmingBooking}
-      >
-        <div style={{ marginTop: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
-          <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.6', color: '#374151' }}>
-            {t('companyBookingWizard.confirmModal.description')}
-          </p>
-        </div>
-      </DeleteConfirmModal>
+      />
     )}
     </>
   );

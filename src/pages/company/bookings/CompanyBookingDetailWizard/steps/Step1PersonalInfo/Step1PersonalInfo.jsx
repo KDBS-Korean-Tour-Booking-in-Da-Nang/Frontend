@@ -410,13 +410,7 @@ const Step1PersonalInfo = ({ booking, guests, onBookingUpdate, onNext, onBack, i
           icon="✓"
           danger={false}
           disableBackdropClose={false}
-        >
-          <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', background: '#f4f8ff', borderRadius: '1rem' }}>
-            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.6', color: '#1e293b' }}>
-              {t('companyBookingWizard.step1.confirmModal.description')}
-            </p>
-          </div>
-        </DeleteConfirmModal>
+        />
       )}
 
       {/* Request Update Modal */}
