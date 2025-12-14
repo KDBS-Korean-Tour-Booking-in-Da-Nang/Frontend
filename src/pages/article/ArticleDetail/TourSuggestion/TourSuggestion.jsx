@@ -20,7 +20,7 @@ const TourSuggestion = () => {
   const [error, setError] = useState(null);
   const sliderRef = useRef(null);
   const hasFetchedRef = useRef(false);
-  const lastUserIdRef = useRef(null);
+  const lastArticleIdRef = useRef(null);
 
   // Transform tour from backend to TourCard format
   const transformTour = (tour) => {
@@ -37,58 +37,44 @@ const TourSuggestion = () => {
   };
 
   useEffect(() => {
-    // Chỉ fetch khi user đã đăng nhập
-    if (!user) {
+    // Lấy articleId từ URL params (id param trong ArticleDetail)
+    const articleIdFromUrl = searchParams.get('id');
+    
+    if (!articleIdFromUrl) {
       setLoading(false);
       setTours([]);
       setError(null);
       hasFetchedRef.current = false;
-      lastUserIdRef.current = null;
+      lastArticleIdRef.current = null;
       return;
     }
 
-    // Lấy userId từ URL params hoặc từ user object
-    const userIdFromUrl = searchParams.get('userId');
-    const userIdFromUser = user?.userId || user?.id;
-    
-    // Ưu tiên userId từ URL, nếu không có thì lấy từ user object
-    const userIdToUse = userIdFromUrl ? userIdFromUrl : (userIdFromUser ? String(userIdFromUser) : null);
-    
-    if (!userIdToUse) {
-      setLoading(false);
-      setTours([]);
-      setError(null);
-      hasFetchedRef.current = false;
-      lastUserIdRef.current = null;
-      return;
-    }
-
-    // Parse userId
-    const parsedUserId = Number.parseInt(userIdToUse, 10);
-    if (Number.isNaN(parsedUserId) || parsedUserId <= 0) {
-      setError(t('articleDetail.tourSuggestion.errorInvalidUser', { defaultValue: 'Không thể xác định người dùng.' }));
+    // Parse articleId
+    const parsedArticleId = Number.parseInt(articleIdFromUrl, 10);
+    if (Number.isNaN(parsedArticleId) || parsedArticleId <= 0) {
+      setError(t('articleDetail.tourSuggestion.errorInvalidArticle', { defaultValue: 'Không thể xác định bài viết.' }));
       setLoading(false);
       return;
     }
 
-    // Chỉ fetch nếu userId thay đổi hoặc chưa fetch lần nào
-    if (hasFetchedRef.current && lastUserIdRef.current === parsedUserId) {
+    // Chỉ fetch nếu articleId thay đổi hoặc chưa fetch lần nào
+    if (hasFetchedRef.current && lastArticleIdRef.current === parsedArticleId) {
       return; // Đã fetch rồi, không fetch lại
     }
 
-    // Đánh dấu đã fetch và lưu userId
+    // Đánh dấu đã fetch và lưu articleId
     hasFetchedRef.current = true;
-    lastUserIdRef.current = parsedUserId;
+    lastArticleIdRef.current = parsedArticleId;
 
-    // Reset state khi userId thay đổi
+    // Reset state khi articleId thay đổi
     setLoading(true);
     setError(null);
     setTours([]);
 
     const fetchSuggestedTours = async () => {
       try {
-        // Build URL với userId (theo backend API, userId là optional nhưng chúng ta luôn truyền nếu có)
-        const url = API_ENDPOINTS.TOURS_SUGGEST_BY_ARTICLE(parsedUserId);
+        // Build URL với articleId (theo backend API, articleId là optional)
+        const url = API_ENDPOINTS.TOURS_SUGGEST_BY_ARTICLE(parsedArticleId);
         
         // Get token for authentication
         const token = localStorage.getItem('token') || 
@@ -164,7 +150,7 @@ const TourSuggestion = () => {
     };
 
     fetchSuggestedTours();
-  }, [user, searchParams, t]);
+  }, [searchParams, t]);
 
   // Slick carousel settings - chỉ dùng carousel khi có từ 4 tours trở lên
   const settings = {
@@ -217,12 +203,7 @@ const TourSuggestion = () => {
     }
   };
 
-  // Chỉ hiển thị khi user đã đăng nhập
-  if (!user) {
-    return null;
-  }
-
-  // Luôn hiển thị component khi có userId trong URL
+  // Luôn hiển thị component khi có articleId trong URL (không cần user đăng nhập)
   // Hiển thị error message nếu có lỗi
   if (error) {
     return (

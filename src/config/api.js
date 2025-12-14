@@ -102,7 +102,7 @@ export const API_ENDPOINTS = {
   TOUR_DELETE_BY_ID: (id, userEmail) => `${BaseURL}/api/tour/${id}?userEmail=${encodeURIComponent(userEmail)}`,
   TOURS_SEARCH: `${BaseURL}/api/tour/search`,
   TOUR_PREVIEW_BY_ID: (id) => `${BaseURL}/api/tour/preview/${id}`,
-  TOURS_SUGGEST_BY_ARTICLE: (userId) => `${BaseURL}/api/tour/suggestByArticle${userId ? `?userId=${userId}` : ''}`,
+  TOURS_SUGGEST_BY_ARTICLE: (articleId) => `${BaseURL}/api/tour/suggestByArticle${articleId ? `?articleId=${articleId}` : ''}`,
   TOURS_SUGGEST_VIA_BEHAVIOR: (userId) => `${BaseURL}/api/tour/suggestViaBehavior${userId ? `?userId=${userId}` : ''}`,
 
   // Tour Update Requests
