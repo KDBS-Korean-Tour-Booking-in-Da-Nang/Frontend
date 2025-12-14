@@ -392,7 +392,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
                   const trimmed = part.trim();
                   return !trimmed || /^https?:\/\/.+/.test(trimmed);
                 }) 
-                  ? "Tiêu đề (không bắt buộc khi chỉ đăng link)" 
+                  ? t('forum.createPost.titlePlaceholderLinkOnly')
                   : t('forum.createPost.titlePlaceholder')
               }
               value={title}

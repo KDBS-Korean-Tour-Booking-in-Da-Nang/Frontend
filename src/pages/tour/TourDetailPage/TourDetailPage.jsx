@@ -1052,20 +1052,23 @@ const TourDetailPage = () => {
                   borderRadius: 8,
                   padding: 16,
                   margin: "12px 0",
+                  opacity: isCompany ? 0.6 : 1,
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
                       key={s}
-                      onClick={() => setNewStar(s)}
+                      onClick={() => !isCompany && setNewStar(s)}
                       aria-label={`star-${s}`}
+                      disabled={isCompany}
                       style={{
                         background: "transparent",
                         border: "none",
-                        cursor: "pointer",
+                        cursor: isCompany ? "not-allowed" : "pointer",
                         fontSize: 22,
                         color: s <= newStar ? "#f59e0b" : "#d1d5db",
+                        opacity: isCompany ? 0.5 : 1,
                       }}
                     >
                       ★
@@ -1083,11 +1086,16 @@ const TourDetailPage = () => {
                 </div>
                 <textarea
                   value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
+                  onChange={(e) => !isCompany && setNewComment(e.target.value)}
                   placeholder={
-                    t("tourPage.detail.reviews.placeholder") ||
-                    "Chia sẻ trải nghiệm của bạn..."
+                    isCompany
+                      ? t("tourPage.detail.reviews.companyPlaceholder") ||
+                        "Tài khoản doanh nghiệp không thể đánh giá tour"
+                      : t("tourPage.detail.reviews.placeholder") ||
+                        "Chia sẻ trải nghiệm của bạn..."
                   }
+                  readOnly={isCompany}
+                  disabled={isCompany}
                   style={{
                     width: "100%",
                     marginTop: 10,
@@ -1096,11 +1104,14 @@ const TourDetailPage = () => {
                     borderRadius: 6,
                     minHeight: 80,
                     resize: "vertical",
+                    backgroundColor: isCompany ? "#f9fafb" : "#ffffff",
+                    cursor: isCompany ? "not-allowed" : "text",
                   }}
                 />
                 <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                   <button
                     onClick={async () => {
+                      if (isCompany) return;
                       await submitRating({
                         star: newStar,
                         comment: newComment,
@@ -1109,11 +1120,29 @@ const TourDetailPage = () => {
                       setNewStar(5);
                       await refresh();
                     }}
+                    disabled={isCompany}
                     className={styles["book-now-btn"]}
+                    style={{
+                      opacity: isCompany ? 0.5 : 1,
+                      cursor: isCompany ? "not-allowed" : "pointer",
+                    }}
                   >
                     {t("tourPage.detail.reviews.submit") || "Gửi đánh giá"}
                   </button>
                 </div>
+                {isCompany && (
+                  <p
+                    style={{
+                      marginTop: 8,
+                      fontSize: 12,
+                      color: "#9ca3af",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {t("tourPage.detail.reviews.companyNote") ||
+                      "Tài khoản doanh nghiệp không thể đánh giá tour vì không thể đặt tour."}
+                  </p>
+                )}
               </div>
             )}
 

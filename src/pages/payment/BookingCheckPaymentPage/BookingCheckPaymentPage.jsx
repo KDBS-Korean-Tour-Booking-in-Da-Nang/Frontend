@@ -1410,9 +1410,6 @@ const BookingCheckPaymentPage = () => {
                             <span className="flex-1">{booking.voucherCode}</span>
                             <span className="ml-2 text-xs text-gray-500">({t('payment.checkPayment.voucherApplied')})</span>
                           </div>
-                          <p className="text-xs text-gray-500 leading-relaxed italic">
-                            {t('booking.step3.payment.voucherNotAvailable')}
-                          </p>
                         </div>
                       )}
                     </div>

@@ -170,7 +170,7 @@ const ArticleDetail = () => {
         {/* Header */}
         <div className={`${styles.contentWrap} pt-2 pb-0`}>
           <div className={`${styles.card} px-4 sm:px-6 lg:px-8 py-3`}>
-            <div className="flex flex-wrap items-center gap-3 justify-end">
+            <div className="flex flex-wrap items-center gap-3 justify-start">
               <Link
                 to="/article"
                 className="text-primary hover:text-primary-hover font-medium transition-colors text-sm"

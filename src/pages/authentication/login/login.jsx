@@ -293,10 +293,17 @@ const Login = () => {
             localStorage.removeItem('company_onboarding_pending');
           }
           
-          if ((user.role === 'COMPANY' || user.role === 'BUSINESS') && 
-              (user.status === 'COMPANY_PENDING' || user.status === 'WAITING_FOR_APPROVAL')) {
-            window.location.href = '/pending-page';
-            return;
+          // Handle COMPANY/BUSINESS role routing based on status
+          if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
+            if (user.status === 'COMPANY_PENDING') {
+              // Status COMPANY_PENDING: user needs to upload documents, go to company-info
+              navigate('/company-info', { replace: true });
+              return;
+            } else if (user.status === 'WAITING_FOR_APPROVAL') {
+              // Status WAITING_FOR_APPROVAL: documents uploaded, waiting for admin approval, go to pending-page
+              navigate('/pending-page', { replace: true });
+              return;
+            }
           }
 
           const returnAfterLogin = localStorage.getItem('returnAfterLogin');

@@ -44,30 +44,50 @@ export const useStepValidation = (tourData) => {
     },
     step3: {
       isValid: (() => {
-        const MIN_PRICE = 10000; // Minimum price: 10,000 VND
+        const MIN_PRICE_ADULT = 10000; // Minimum price for adult: 10,000 VND
+        const MIN_PRICE_CHILDREN_BABY = 0; // Minimum price for children and baby: 0 VND (free allowed)
         
-        // Check if all prices are non-empty
+        // Check if adult price is non-empty (required)
         const adultPrice = tourData.adultPrice ? String(tourData.adultPrice).trim() : '';
-        const childrenPrice = tourData.childrenPrice ? String(tourData.childrenPrice).trim() : '';
-        const babyPrice = tourData.babyPrice ? String(tourData.babyPrice).trim() : '';
-        
-        if (!adultPrice || !childrenPrice || !babyPrice) {
+        if (!adultPrice) {
           return false;
         }
         
-        // Check if all prices meet minimum requirement
+        // Parse adult price and validate
         const adultPriceNum = parseInt(adultPrice.replace(/[^0-9]/g, ''), 10);
-        const childrenPriceNum = parseInt(childrenPrice.replace(/[^0-9]/g, ''), 10);
-        const babyPriceNum = parseInt(babyPrice.replace(/[^0-9]/g, ''), 10);
+        if (isNaN(adultPriceNum) || adultPriceNum < MIN_PRICE_ADULT) {
+          return false;
+        }
         
-        return !isNaN(adultPriceNum) && adultPriceNum >= MIN_PRICE &&
-               !isNaN(childrenPriceNum) && childrenPriceNum >= MIN_PRICE &&
-               !isNaN(babyPriceNum) && babyPriceNum >= MIN_PRICE;
+        // Children and Baby prices are optional - can be empty, 0, or >= 0
+        const childrenPrice = tourData.childrenPrice !== null && tourData.childrenPrice !== undefined 
+          ? String(tourData.childrenPrice).trim() 
+          : '';
+        const babyPrice = tourData.babyPrice !== null && tourData.babyPrice !== undefined 
+          ? String(tourData.babyPrice).trim() 
+          : '';
+        
+        // If childrenPrice is provided, validate it >= 0
+        if (childrenPrice !== '') {
+          const childrenPriceNum = parseInt(childrenPrice.replace(/[^0-9]/g, ''), 10);
+          if (isNaN(childrenPriceNum) || childrenPriceNum < MIN_PRICE_CHILDREN_BABY) {
+            return false;
+          }
+        }
+        
+        // If babyPrice is provided, validate it >= 0
+        if (babyPrice !== '') {
+          const babyPriceNum = parseInt(babyPrice.replace(/[^0-9]/g, ''), 10);
+          if (isNaN(babyPriceNum) || babyPriceNum < MIN_PRICE_CHILDREN_BABY) {
+            return false;
+          }
+        }
+        
+        return true;
       })(),
       missingFields: [
-        (!tourData.adultPrice || !String(tourData.adultPrice).trim()) && 'tourWizard.step3.pricing.adultPrice',
-        (!tourData.childrenPrice || !String(tourData.childrenPrice).trim()) && 'tourWizard.step3.pricing.childrenPrice',
-        (!tourData.babyPrice || !String(tourData.babyPrice).trim()) && 'tourWizard.step3.pricing.babyPrice'
+        (!tourData.adultPrice || !String(tourData.adultPrice).trim()) && 'tourWizard.step3.pricing.adultPrice'
+        // Children and Baby prices are optional, so we don't add them to missingFields
       ].filter(Boolean)
     },
     step4: {
