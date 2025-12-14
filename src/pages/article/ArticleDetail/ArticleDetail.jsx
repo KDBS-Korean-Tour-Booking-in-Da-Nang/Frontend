@@ -28,22 +28,6 @@ const ArticleDetail = () => {
     }
   }, [id]);
 
-  // Tự động thêm userId vào URL params khi có user đăng nhập
-  useEffect(() => {
-    if (user) {
-      const userId = user?.userId || user?.id;
-      if (userId) {
-        const userIdFromUrl = searchParams.get('userId');
-        // Chỉ thêm userId vào URL nếu chưa có hoặc khác với userId hiện tại
-        if (!userIdFromUrl || userIdFromUrl !== String(userId)) {
-          const newSearchParams = new URLSearchParams(searchParams);
-          newSearchParams.set('userId', String(userId));
-          setSearchParams(newSearchParams, { replace: true });
-        }
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
 
   // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
   const getLocalizedArticleField = (article, baseField) => {
@@ -244,12 +228,10 @@ const ArticleDetail = () => {
           </article>
         </div>
 
-        {/* Tour Suggestion Section - Tự động hiển thị khi có user đăng nhập */}
-        {user && (
-          <div id="tour-suggestion-section">
-            <TourSuggestion />
-          </div>
-        )}
+        {/* Tour Suggestion Section - Hiển thị tour gợi ý dựa trên nội dung bài viết */}
+        <div id="tour-suggestion-section">
+          <TourSuggestion />
+        </div>
       </div>
     </div>
   );
