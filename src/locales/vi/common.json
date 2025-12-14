@@ -363,6 +363,7 @@
     "note2": "Bạn sẽ nhận được email thông báo khi tài khoản được duyệt.",
     "btnHome": "Về trang chủ",
     "btnLogout": "Đăng xuất",
+    "btnBackToCompanyInfo": "Quay về trang thông tin của công ty",
     "info_submit_success": "Thông tin doanh nghiệp đã được gửi thành công!",
     "info_submit_failed": "Có lỗi xảy ra khi gửi thông tin. Vui lòng thử lại."
   },
@@ -2311,6 +2312,7 @@
       "editTitle": "Chỉnh sửa bài viết",
       "titleLabel": "Tiêu đề",
       "titlePlaceholder": "Nhập tiêu đề bài viết...",
+      "titlePlaceholderLinkOnly": "Tiêu đề (không bắt buộc khi chỉ đăng link)",
       "contentLabel": "Nội dung",
       "contentPlaceholder": "Chia sẻ suy nghĩ của bạn...",
       "hashtagsLabel": "Hashtags",
@@ -3245,7 +3247,9 @@
         "delete": "Xóa",
         "editPrompt": "Sửa nhận xét của bạn:",
         "editStarPrompt": "Sửa số sao (1-5):",
-        "deleteConfirm": "Xóa đánh giá này?"
+        "deleteConfirm": "Xóa đánh giá này?",
+        "companyPlaceholder": "Tài khoản doanh nghiệp không thể đánh giá tour",
+        "companyNote": "Tài khoản doanh nghiệp không thể đánh giá tour vì không thể đặt tour."
       },
       "durationTemplate": "{{days}} ngày {{nights}} đêm",
       "booking": {
@@ -4064,7 +4068,7 @@
       },
       "noBookingFound": "Không tìm thấy thông tin booking. Vui lòng kiểm tra lại mã booking.",
       "paymentInfo": "Thông tin thanh toán",
-      "voucherCode": "Mã voucher (tuỳ chọn)",
+      "voucherCode": "Mã voucher",
       "voucherPlaceholder": "Nhập mã voucher nếu có",
       "voucherHint": "Nhập mã voucher và bấm \"Áp dụng voucher\" để xem chi tiết giảm giá. Voucher sẽ được lưu vào database khi bấm \"Thanh toán\".",
       "applyVoucher": "Áp dụng voucher",

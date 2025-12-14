@@ -362,6 +362,7 @@
 		"note2": "You will receive an email once approved.",
 		"btnHome": "Go to Home",
 		"btnLogout": "Logout",
+		"btnBackToCompanyInfo": "Back to Company Information Page",
 		"info_submit_success": "Business information submitted successfully!",
 		"info_submit_failed": "An error occurred while submitting information. Please try again."
 	},
@@ -2308,6 +2309,7 @@
 			"editTitle": "Edit Post",
 			"titleLabel": "Title",
 			"titlePlaceholder": "Enter post title...",
+			"titlePlaceholderLinkOnly": "Title (optional when posting link only)",
 			"contentLabel": "Content",
 			"contentPlaceholder": "Share your thoughts...",
 			"hashtagsLabel": "Hashtags",
@@ -3239,7 +3241,9 @@
 				"delete": "Delete",
 				"editPrompt": "Edit your comment:",
 				"editStarPrompt": "Edit stars (1-5):",
-				"deleteConfirm": "Delete this review?"
+				"deleteConfirm": "Delete this review?",
+				"companyPlaceholder": "Company accounts cannot rate tours",
+				"companyNote": "Company accounts cannot rate tours because they cannot book tours."
 			},
 			"durationTemplate": "{{days}} days {{nights}} nights",
 			"booking": {
@@ -4088,7 +4092,7 @@
 			},
 			"noBookingFound": "Booking information not found. Please check the booking code.",
 			"paymentInfo": "Payment Information",
-			"voucherCode": "Voucher Code (Optional)",
+			"voucherCode": "Voucher Code",
 			"voucherPlaceholder": "Enter voucher code if available",
 			"voucherHint": "Enter voucher code and click \"Apply voucher\" to see discount details. Voucher will be saved to database when you click \"Pay\".",
 			"applyVoucher": "Apply Voucher",

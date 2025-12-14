@@ -12,7 +12,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
-  ArrowLeft, 
   FileCheck, 
   Shield, 
   Info,
@@ -729,15 +728,6 @@ const CompanyInfo = () => {
               </div>
 
               <div className={styles.buttonGroup}>
-                <button
-                  type="button"
-                  onClick={() => navigate('/register')}
-                  className={styles.secondaryButton}
-                  aria-label={t('company.back')}
-                >
-                  <ArrowLeft size={16} strokeWidth={2} />
-                  <span>{t('company.back')}</span>
-                </button>
                 <button
                   type="submit"
                   disabled={loading}

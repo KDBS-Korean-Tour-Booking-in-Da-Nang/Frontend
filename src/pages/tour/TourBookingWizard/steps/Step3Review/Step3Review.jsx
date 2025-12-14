@@ -493,7 +493,7 @@ const Step3Review = () => {
           {/* Voucher Code Section */}
           <div className={styles['voucher-section']}>
             <div className={styles['voucher-header']}>
-              <Tag className={styles['voucher-icon']} />
+              <Tag className={styles['voucher-icon']} size={18} strokeWidth={1.5} />
               <span>{t('booking.step3.payment.voucher')}</span>
             </div>
             <div className={styles['voucher-input-group']}>
@@ -506,7 +506,7 @@ const Step3Review = () => {
                     handleApplyVoucher();
                   }
                 }}
-                placeholder={t('booking.step3.payment.voucherPlaceholder') || 'Nhập mã voucher'}
+                placeholder={t('booking.step3.payment.voucherPlaceholder') || 'Enter voucher code'}
                 className={styles['voucher-input']}
                 disabled={!!appliedVoucher}
               />
@@ -518,7 +518,7 @@ const Step3Review = () => {
                   title={t('booking.step3.payment.removeVoucher') || 'Gỡ bỏ voucher'}
                 >
                   <span className={styles['voucher-code-display']}>{appliedVoucher.code || appliedVoucher.voucherCode}</span>
-                  <X size={16} />
+                  <X size={16} strokeWidth={1.5} />
                 </button>
               ) : (
                 <button
@@ -527,7 +527,7 @@ const Step3Review = () => {
                   className={styles['voucher-list-btn']}
                   title={t('booking.step3.payment.selectVoucher') || 'Chọn voucher từ danh sách'}
                 >
-                  <Ticket size={16} />
+                  <Ticket size={18} strokeWidth={1.5} />
                 </button>
               )}
             </div>

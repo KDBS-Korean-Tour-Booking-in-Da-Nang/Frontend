@@ -95,10 +95,10 @@ const PendingPage = () => {
               <button
                 onClick={() => navigate('/company-info')}
                 className={styles.primaryButton}
-                aria-label="Quay về trang thông tin công ty"
+                aria-label={t('pending.btnBackToCompanyInfo')}
               >
                 <ArrowLeft style={{ width: '1rem', height: '1rem', strokeWidth: 2 }} />
-                <span>Quay về trang thông tin công ty</span>
+                <span>{t('pending.btnBackToCompanyInfo')}</span>
               </button>
             </div>
           </div>

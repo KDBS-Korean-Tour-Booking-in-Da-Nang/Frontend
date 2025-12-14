@@ -362,6 +362,7 @@
 		"note2": "승인 시 이메일로 안내됩니다.",
 		"btnHome": "홈으로",
 		"btnLogout": "로그아웃",
+		"btnBackToCompanyInfo": "회사 정보 페이지로 돌아가기",
 		"info_submit_success": "사업자 정보가 성공적으로 제출되었습니다!",
 		"info_submit_failed": "정보 제출 중 오류가 발생했습니다. 다시 시도해주세요."
 	},
@@ -2245,6 +2246,7 @@
 			"editTitle": "게시물 수정",
 			"titleLabel": "제목",
 			"titlePlaceholder": "게시물 제목을 입력하세요...",
+			"titlePlaceholderLinkOnly": "제목 (링크만 게시할 경우 선택사항)",
 			"contentLabel": "내용",
 			"contentPlaceholder": "생각을 공유해보세요...",
 			"hashtagsLabel": "해시태그",
@@ -3170,7 +3172,9 @@
 				"delete": "삭제",
 				"editPrompt": "내 코멘트 수정:",
 				"editStarPrompt": "별점 수정 (1-5):",
-				"deleteConfirm": "이 리뷰를 삭제하시겠습니까?"
+				"deleteConfirm": "이 리뷰를 삭제하시겠습니까?",
+				"companyPlaceholder": "기업 계정은 투어를 평가할 수 없습니다",
+				"companyNote": "기업 계정은 투어를 예약할 수 없기 때문에 투어를 평가할 수 없습니다."
 			},
 			"durationTemplate": "{{days}}일 {{nights}}박",
 			"booking": {
@@ -4018,7 +4022,7 @@
 			},
 			"noBookingFound": "예약 정보를 찾을 수 없습니다. 예약 코드를 확인해 주세요.",
 			"paymentInfo": "결제 정보",
-			"voucherCode": "바우처 코드 (선택사항)",
+			"voucherCode": "바우처 코드",
 			"voucherPlaceholder": "바우처 코드가 있으면 입력하세요",
 			"voucherHint": "바우처 코드를 입력하고 \"바우처 적용\"을 클릭하여 할인 상세 내역을 확인하세요. \"결제\"를 클릭하면 바우처가 데이터베이스에 저장됩니다.",
 			"applyVoucher": "바우처 적용",

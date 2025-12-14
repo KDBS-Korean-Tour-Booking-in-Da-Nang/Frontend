@@ -165,20 +165,11 @@ function AppContent() {
       return;
     }
 
-    // If status is COMPANY_PENDING, check if user has submitted documents
+    // If status is COMPANY_PENDING, always redirect to company-info (guard)
+    // Note: Main routing logic is handled in login page
     if (isCompanyRole && isPending && !onCompanyInfoPage && !onPendingPage) {
-      // Check if user has submitted documents (from localStorage as quick check)
-      const email = user?.email || localStorage.getItem('userEmail');
-      const hasSubmitted = email && localStorage.getItem(`businessUploadStatus:${email}`) === 'submitted';
-
-      // If submitted, go to pending-page; otherwise allow company-info access
-      // When user logs in again with COMPANY_PENDING, if they've submitted before, go to pending-page
-      if (hasSubmitted) {
-        navigate('/pending-page', { replace: true });
-      } else {
-        // Allow access to company-info to upload documents
-        navigate('/company-info', { replace: true });
-      }
+      navigate('/company-info', { replace: true });
+      return;
     }
   }, [user, loading, location.pathname, navigate]);
 
