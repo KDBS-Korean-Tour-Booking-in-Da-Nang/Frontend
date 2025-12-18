@@ -244,10 +244,13 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [getToken, balance]);
 
-  // Format currency sang KRW: chia VND cho 18 và format với Intl.NumberFormat ko-KR
+  // Format currency sang VND: giữ nguyên giá trị, không chia cho 18
   const formatCurrency = (value) => {
-    const krwValue = Math.round(Number(value) / 18);
-    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
+    if (value === null || value === undefined) return '0 ₫';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(Number(value || 0));
   };
 
   // Stats cards data với pastel colors: định nghĩa các card hiển thị total revenue, customer management, staff management, company management, article management, tour management với icon, màu sắc và giá trị tương ứng

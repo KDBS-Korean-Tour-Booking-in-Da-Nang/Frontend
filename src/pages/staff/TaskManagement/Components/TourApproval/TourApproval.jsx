@@ -648,11 +648,14 @@ const TourApproval = () => {
     }
   };
 
-  // Format price sang KRW: VND / 18, sử dụng Intl.NumberFormat với locale 'ko-KR', return 'N/A' nếu không có price
+  // Format price sang VND: giữ nguyên giá trị, không chia cho 18
   const formatPrice = (price) => {
     if (!price) return t('admin.tourApproval.status.na');
-    const krwValue = Math.round(Number(price) / 18);
-    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0
+    }).format(Number(price));
   };
 
   // Format date: format dateString với locale dựa trên i18n.language (ko-KR, en-US, vi-VN), return 'N/A' nếu không hợp lệ

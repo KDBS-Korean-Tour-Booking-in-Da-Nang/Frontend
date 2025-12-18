@@ -138,10 +138,13 @@ const TransactionManagement = () => {
     return { total, completed, totalRevenue, pending };
   }, [transactions]);
 
-  // Format as KRW (VND / 18)
+  // Format as VND (keep original value, no conversion)
   const formatCurrency = (value) => {
-    const krwValue = Math.round(Number(value) / 18);
-    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
+    if (value === null || value === undefined) return '0 ₫';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(Number(value || 0));
   };
 
   // Chỉ hiển thị màn hình loading toàn trang khi lần load đầu tiên chưa có dữ liệu

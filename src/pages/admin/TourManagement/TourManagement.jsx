@@ -604,11 +604,14 @@ const TourManagement = () => {
     }
   };
 
-  // Format as KRW (VND / 18)
+  // Format as VND (keep original value, no conversion)
   const formatPrice = (price) => {
     if (!price) return 'N/A';
-    const krwValue = Math.round(Number(price) / 18);
-    return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0
+    }).format(Number(price));
   };
 
   const formatDate = (dateString) => {
