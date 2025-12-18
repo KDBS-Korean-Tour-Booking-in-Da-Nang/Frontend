@@ -45,23 +45,19 @@ const VoucherDetailPage = () => {
   const [toursMap, setToursMap] = useState(new Map()); // Map tourId -> tour name
   const [companyName, setCompanyName] = useState('N/A');
 
-  // Fetch tour details from tourIds
   const fetchTourDetails = async (tourIds) => {
     if (!tourIds || tourIds.length === 0) return;
 
     try {
-      // Get token
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) return;
 
-      // Fetch all tours and create a map
       const response = await fetch(API_ENDPOINTS.TOURS, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         const { checkAndHandle401 } = await import('../../../utils/apiErrorHandler');
         await checkAndHandle401(response);
@@ -72,7 +68,6 @@ const VoucherDetailPage = () => {
         const allTours = await response.json();
         const toursMap = new Map();
         
-        // Filter tours that match tourIds and create map
         if (Array.isArray(allTours)) {
           allTours.forEach(tour => {
             const tourId = tour.id || tour.tourId;
@@ -86,8 +81,6 @@ const VoucherDetailPage = () => {
         setToursMap(toursMap);
       }
     } catch (error) {
-      // Silently handle error fetching tour details
-      // Don't show error to user - tours are optional information
     }
   };
 
@@ -97,7 +90,6 @@ const VoucherDetailPage = () => {
         setLoading(true);
         setError(null);
         
-        // Fetch all vouchers from API and find by ID
         const allVouchers = await getAllVouchers();
         
         if (!Array.isArray(allVouchers)) {
@@ -106,7 +98,6 @@ const VoucherDetailPage = () => {
           return;
         }
 
-        // Find voucher by ID (voucherId or id)
         const voucherId = parseInt(id);
         const foundVoucher = allVouchers.find(v => 
           (v.voucherId && v.voucherId === voucherId) || 
@@ -119,9 +110,6 @@ const VoucherDetailPage = () => {
           return;
         }
 
-        // Map backend response to frontend format
-        // Map FIXED -> AMOUNT for display
-        // Include tourIds from VoucherResponse
         const mappedVoucher = {
           id: foundVoucher.voucherId || foundVoucher.id,
           voucherId: foundVoucher.voucherId || foundVoucher.id,
@@ -142,18 +130,15 @@ const VoucherDetailPage = () => {
 
         setVoucher(mappedVoucher);
         
-        // Fetch company name
         if (mappedVoucher.companyId) {
           const name = await getCompanyName(mappedVoucher.companyId);
           setCompanyName(name);
         }
         
-        // Fetch tour details if tourIds exist
         if (foundVoucher.tourIds && foundVoucher.tourIds.length > 0) {
           fetchTourDetails(foundVoucher.tourIds);
         }
       } catch (err) {
-        // Silently handle error fetching voucher
         setError(t('tourList.voucherDetail.loadError'));
       } finally {
         setLoading(false);
@@ -226,9 +211,7 @@ const VoucherDetailPage = () => {
             </span>
             <span>{t('tourList.voucherDetail.backToVoucherList')}</span>
           </button>
-          {/* Voucher Header Card - Auto height based on content */}
           <div className={styles.voucherCard}>
-            {/* Gradient Header with Serrated Bottom Edge */}
             <div className={`${styles.gradientHeader} ${
               voucher.discountType === 'PERCENT' 
                 ? styles.gradientHeaderPercent 
@@ -271,10 +254,8 @@ const VoucherDetailPage = () => {
               </div>
             </div>
 
-            {/* Content Sections */}
             <div className={styles.contentSections}>
               <div className={styles.sectionGroup}>
-                {/* Thời gian sử dụng mã */}
                 <div className={styles.section}>
                   <div className={styles.sectionHeader}>
                     <h3 className={styles.sectionTitle}>
@@ -302,7 +283,6 @@ const VoucherDetailPage = () => {
                   </div>
                 </div>
 
-                {/* Đơn tối thiểu - Only show if minOrderValue exists */}
                 {voucher.minOrderValue && (
                   <div className={styles.section}>
                     <h3 className={styles.sectionTitle}>
@@ -316,7 +296,6 @@ const VoucherDetailPage = () => {
                   </div>
                 )}
 
-                {/* Ưu đãi */}
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>
                     {t('tourList.voucherDetail.sections.benefitTitle')}
@@ -355,7 +334,6 @@ const VoucherDetailPage = () => {
                 </div>
               </div>
 
-              {/* Áp dụng cho tour */}
               <div className={styles.tourSection}>
                 <h3 className={styles.sectionTitle}>
                   {t('tourList.voucherDetail.sections.appliesToTitle')}
@@ -387,7 +365,6 @@ const VoucherDetailPage = () => {
               </div>
             </div>
 
-            {/* Action Button - Fixed at bottom */}
             <div className={styles.actionSection}>
               <button
                 onClick={async () => {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { getApiPath } from '../../../config/api';
@@ -12,6 +13,7 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const { t } = useTranslation();
   const { login } = useAuth();
   const { showSuccess } = useToast();
   const navigate = useNavigate();
@@ -87,7 +89,7 @@ const AdminLogin = () => {
           };
 
           login(user, token, false);
-          showSuccess('Login successful!');
+          showSuccess(t('toast.auth.login_success'));
           navigate('/admin');
         } else {
           setError(`This account does not have permission to access admin area. Current role: ${userData.role}. Only ADMIN can log in to this page.`);

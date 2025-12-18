@@ -10,9 +10,11 @@ import styles from './EditPostModal.module.css';
 const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showSuccess, showBatch } = useToast();
+  const { showSuccess } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const [contentError, setContentError] = useState('');
   const [hashtags, setHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState([]);
@@ -24,7 +26,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
   const [linkPreview, setLinkPreview] = useState(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
-  // Load edit data when post changes or modal opens
+  // Load edit data khi post thay đổi hoặc modal mở: set title, content, hashtags từ post, load existing images (resolve URLs), load existing preview từ metadata nếu có (linkType=TOUR)
   useEffect(() => {
     if (isOpen && post) {
       setTitle(post.title || '');
@@ -41,8 +43,6 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         setImages([]);
       }
       
-      // Load existing preview from metadata if available
-      // Always check and load preview when modal opens with a post
       if (post.metadata && post.metadata.linkType === 'TOUR') {
         setLinkPreview({
           type: post.metadata.linkType,
@@ -61,10 +61,11 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
     }
   }, [post, isOpen]);
 
+  // Commit tag: clean raw tag (remove leading #, collapse delimiters, trim, lowercase), add vào hashtags nếu chưa có
   const commitTag = (raw) => {
     const cleaned = (raw || '')
-      .replace(/^#+/, '') // remove leading #
-      .replace(/[,\s]+/g, ' ') // collapse delimiters
+      .replace(/^#+/, '')
+      .replace(/[,\s]+/g, ' ')
       .trim()
       .toLowerCase();
     if (!cleaned) return;
@@ -85,7 +86,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
     setHashtags(hashtags.filter(tag => tag !== tagToRemove));
   };
 
-  // fetch hashtag suggestions (debounced)
+  // Fetch hashtag suggestions (debounced): gọi HASHTAGS_SEARCH endpoint với keyword và limit=8, filter suggestions (startsWith keyword, không trùng với hashtags đã chọn), debounce 250ms
   useEffect(() => {
     const q = hashtagInput.trim();
     if (!q) {
@@ -127,12 +128,8 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
   const detectAndFetchPreview = async (text) => {
     if (!text) return;
     
-    // Check for tour links - support both old format /tour/123 and new format /tour/detail?id=123
-    // Supports: full URL (with domain), relative path, or just the path part
     const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    // Match format 1: /tour/123 or http://domain/tour/123
     const tourRegexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
-    // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
     const tourRegexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
     const tourMatchOld = text.match(tourRegexOld);
     const tourMatchNew = text.match(tourRegexNew);
@@ -145,7 +142,6 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
         if (response.ok) {
           const preview = await response.json();
-          // Normalize thumbnailUrl về relative path để không lưu BaseURL vào metadata
           const rawThumbnail = preview.thumbnailUrl || preview.tourImgPath;
           setLinkPreview({
             type: 'TOUR',
@@ -161,7 +157,6 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
           previewFromMetadataRef.current = false;
         }
       } catch (error) {
-        // Silently handle error fetching tour preview
         setLinkPreview(null);
         previewFromMetadataRef.current = false;
       } finally {
@@ -176,23 +171,18 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
   // Function to check if content contains any links
   const hasLinksInContent = (text) => {
     if (!text) return false;
-    // Check for any HTTP/HTTPS links
     const urlRegex = /https?:\/\/[^\s]+/gi;
     return urlRegex.test(text);
   };
 
-  // Track if preview was loaded from metadata to prevent override
   const previewFromMetadataRef = useRef(false);
 
-  // Debounced preview detection
+  // Debounced preview detection: nếu preview được load từ metadata và content chưa thay đổi đáng kể thì không override, chỉ detect new preview nếu content thực sự thay đổi, check nếu content vẫn chứa tour link thì giữ metadata preview, nếu không có preview từ metadata thì detect từ content
   useEffect(() => {
     if (!isOpen) return;
     
     const timer = setTimeout(() => {
-      // If preview was loaded from metadata and content hasn't changed significantly,
-      // don't override it. Only detect new preview if content actually changed.
       if (previewFromMetadataRef.current && linkPreview) {
-        // Check if content still contains the tour link
         const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
         const tourRegexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
         const tourRegexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
@@ -202,9 +192,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
           setLinkPreview(null);
           previewFromMetadataRef.current = false;
         }
-        // If link still exists, keep the metadata preview
       } else {
-        // No preview from metadata, detect from content
         detectAndFetchPreview(content);
       }
     }, 500);
@@ -222,17 +210,19 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
     // Collect all validation errors
     const errors = [];
     
+    // Clear previous errors
+    setTitleError('');
+    setContentError('');
+
     if (!title.trim()) {
-      errors.push('Tiêu đề bài viết là bắt buộc');
+      setTitleError('Tiêu đề bài viết là bắt buộc');
     }
     
     if (!content.trim()) {
-      errors.push('Nội dung bài viết là bắt buộc');
+      setContentError('Nội dung bài viết là bắt buộc');
     }
     
-    // Show all errors if any
-    if (errors.length > 0) {
-      showBatch(errors, 'error', 5000);
+    if (!title.trim() || !content.trim()) {
       return;
     }
 
@@ -270,7 +260,6 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         body: formData,
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         await checkAndHandle401(response);
         return;
@@ -292,9 +281,8 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
           };
         }
         
-        // Call onPostUpdated with the updated post
         onPostUpdated(result);
-        showSuccess('toast.forum.post_update_success');
+        showSuccess(t('toast.forum.post_update_success'));
         onClose();
         resetForm();
       } else {
@@ -310,7 +298,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         throw new Error(errorData.message || 'Failed to update post');
       }
     } catch (error) {
-      // Error updating post - handled in UI or silently
+      // Silently handle error
     } finally {
       setIsLoading(false);
     }
@@ -325,7 +313,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
     setLinkPreview(null);
   };
 
-  // Reset form when modal closes
+  // Reset form khi modal đóng: clear title, content, hashtags, images, linkPreview, hashtagInput
   useEffect(() => {
     if (!isOpen) {
       setLinkPreview(null);
@@ -352,19 +340,31 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
               type="text"
               placeholder={t('forum.createPost.titlePlaceholder')}
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className={styles['title-input']}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError('');
+              }}
+              className={`${styles['title-input']} ${titleError ? styles['input-error'] : ''}`}
             />
+            {titleError && (
+              <span className={styles['form-error']}>{titleError}</span>
+            )}
           </div>
 
           <div className={styles['form-group']}>
             <textarea
               placeholder={t('forum.createPost.contentPlaceholder')}
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className={styles['content-input']}
+              onChange={(e) => {
+                setContent(e.target.value);
+                if (contentError) setContentError('');
+              }}
+              className={`${styles['content-input']} ${contentError ? styles['input-error'] : ''}`}
               rows="4"
             />
+            {contentError && (
+              <span className={styles['form-error']}>{contentError}</span>
+            )}
             
             {/* Render content with clickable links */}
             {content && (

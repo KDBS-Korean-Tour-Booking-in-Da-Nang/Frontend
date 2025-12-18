@@ -177,9 +177,9 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
   // Format guests array
   const guests = [];
   
-  // Add adult guests
+  // Thêm khách người lớn
   plan.members.adult.forEach((member, index) => {
-    // For representative (index 0), use contact data as fallback for name and dob
+    // Với người đại diện (index 0), dùng dữ liệu contact làm fallback cho name và dob
     const isRepresentative = index === 0;
     const effectiveFullName = isRepresentative ? (member.fullName?.trim() || contact.fullName?.trim()) : member.fullName?.trim();
     const effectiveDob = isRepresentative ? (member.dob || contact.dob) : member.dob;
@@ -187,7 +187,7 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
     if (effectiveFullName && effectiveDob) {
       try {
         const formattedBirthDate = formatDateForAPI(effectiveDob, language);
-        // Validate birthDate format
+        // Validate định dạng birthDate (phải là YYYY-MM-DD)
         if (!formattedBirthDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedBirthDate)) {
           throw new Error(`Invalid birth date format for adult ${index + 1}: ${effectiveDob}`);
         }
@@ -269,23 +269,26 @@ export const formatBookingData = (bookingContext, tourId, language = 'vi', userE
     throw new Error('Some guests are missing required information (name and birth date)');
   }
   
-  // Determine departure date format from plan.date (supports object or string)
+  // Xác định định dạng ngày khởi hành từ plan.date (hỗ trợ cả object và string)
   let formattedDepartureDate = '';
   try {
+    // Nếu là string, parse theo định dạng hiển thị (DD/MM/YYYY, MM/DD/YYYY, YYYY.MM.DD)
     if (typeof plan?.date === 'string') {
       formattedDepartureDate = formatDateForAPI(plan.date, language);
-    } else if (plan?.date && typeof plan.date === 'object' && plan.date.day && plan.date.month && plan.date.year) {
+    } 
+    // Nếu là object {day, month, year}, format trực tiếp
+    else if (plan?.date && typeof plan.date === 'object' && plan.date.day && plan.date.month && plan.date.year) {
       formattedDepartureDate = formatDate(plan.date);
     } else {
       throw new Error('Invalid date format');
     }
     
-    // Validate that formatted date is not empty and is in correct format (YYYY-MM-DD)
+    // Validate định dạng ngày đã format (phải là YYYY-MM-DD và không rỗng)
     if (!formattedDepartureDate || !/^\d{4}-\d{2}-\d{2}$/.test(formattedDepartureDate)) {
       throw new Error('Invalid departure date format');
     }
   } catch (error) {
-    // Log error in development mode
+    // Log lỗi trong development mode
     if (import.meta.env.DEV) {
       console.error('[formatBookingData] Error formatting departure date:', error, plan?.date);
     }
@@ -382,14 +385,14 @@ export const validateBookingData = (bookingData) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(bookingData.departureDate)) {
       errors.push('Departure date must be in YYYY-MM-DD format');
     } else {
-      // Parse departure date (should be in YYYY-MM-DD format)
-      // Use UTC to avoid timezone issues
+      // Parse ngày khởi hành (phải ở định dạng YYYY-MM-DD)
+      // Sử dụng UTC để tránh vấn đề timezone
       const [year, month, day] = bookingData.departureDate.split('-').map(Number);
       const departureDate = new Date(Date.UTC(year, month - 1, day));
       const today = new Date();
       today.setUTCHours(0, 0, 0, 0);
       
-      // Backend requires @Future, so date must be strictly in the future (not today)
+      // Backend yêu cầu @Future, nên ngày phải chặt chẽ trong tương lai (không phải hôm nay)
       if (departureDate <= today) {
         errors.push('Departure date must be in the future (at least tomorrow)');
       }

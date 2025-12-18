@@ -18,9 +18,9 @@ export const AuthProvider = ({ children }) => {
   const inactivityTimerRef = useRef(null);
   const rememberRef = useRef(false);
 
-  // Configurable timeouts
-  const INACTIVITY_LIMIT_MS = 60 * 60 * 1000; // 60 minutes
-  const REMEMBER_ME_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+  // Cấu hình timeout: giới hạn không hoạt động 60 phút cho session không nhớ, thời hạn remember me 14 ngày
+  const INACTIVITY_LIMIT_MS = 60 * 60 * 1000;
+  const REMEMBER_ME_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000;
 
   const getStorageByRemember = (remember) => (remember ? localStorage : sessionStorage);
 
@@ -38,8 +38,8 @@ export const AuthProvider = ({ children }) => {
     }, INACTIVITY_LIMIT_MS);
   };
 
+  // Xử lý hoạt động của user: chỉ áp dụng logic inactivity cho session không nhớ (non-remembered), reset timer khi có hoạt động
   const handleActivity = () => {
-    // Only apply inactivity logic for non-remembered sessions
     if (!rememberRef.current && user) {
       startInactivityTimer();
     }
@@ -49,17 +49,14 @@ export const AuthProvider = ({ children }) => {
     let mounted = true;
     let cleanupFn = null;
 
-    // Use requestAnimationFrame to defer the initialization
-    // This allows the UI to render first before running auth checks
+    // Sử dụng requestAnimationFrame để trì hoãn khởi tạo, cho phép UI render trước khi chạy auth checks, so sánh build session id để force re-auth khi frontend rebuild/restart
     const rafId = requestAnimationFrame(() => {
       if (!mounted) return;
 
-      // Force re-auth on frontend rebuild/restart: compare build session id
       try {
         const currentBuildId = (typeof __BUILD_SESSION_ID__ !== 'undefined') ? __BUILD_SESSION_ID__ : null;
         const lastBuildId = localStorage.getItem('last_build_session_id');
         if (currentBuildId && lastBuildId && currentBuildId !== lastBuildId) {
-          // Different FE runtime detected → clear persisted auth to require login again
           try {
             localStorage.removeItem('user');
             localStorage.removeItem('token');
@@ -67,34 +64,31 @@ export const AuthProvider = ({ children }) => {
             sessionStorage.removeItem('user');
             sessionStorage.removeItem('token');
           } catch {
-            // Silently handle error clearing storage on build change
+            // Silently handle error
           }
         }
         if (currentBuildId && currentBuildId !== lastBuildId) {
           localStorage.setItem('last_build_session_id', currentBuildId);
         }
       } catch {
-        // Silently handle error checking build session
+        // Silently handle error
       }
 
       const remembered = localStorage.getItem('rememberMe') === 'true';
       rememberRef.current = remembered;
 
-      // Read from both storages to allow cross-tab sharing
-      // Check for role-specific storage first (ADMIN, STAFF), then fallback to legacy keys
+      // Đọc từ cả sessionStorage và localStorage để cho phép chia sẻ cross-tab, ưu tiên role-specific storage (ADMIN, STAFF) trước rồi mới fallback về legacy keys
       const sessionUser = sessionStorage.getItem('user_ADMIN') || sessionStorage.getItem('user_STAFF') || sessionStorage.getItem('user');
       const sessionToken = sessionStorage.getItem('token_ADMIN') || sessionStorage.getItem('token_STAFF') || sessionStorage.getItem('token');
       const localUser = localStorage.getItem('user_ADMIN') || localStorage.getItem('user_STAFF') || localStorage.getItem('user');
       const localToken = localStorage.getItem('token_ADMIN') || localStorage.getItem('token_STAFF') || localStorage.getItem('token');
-      // Prefer session-based values if present, else fall back to localStorage
       const savedUser = sessionUser || localUser;
       const token = sessionToken || localToken;
 
-      // For remember me, also verify expiry
+      // Với remember me, kiểm tra thời hạn expiry
       if (remembered) {
         const expiry = localStorage.getItem('tokenExpiry');
         if (expiry && Date.now() > Number(expiry)) {
-          // Expired - clear it
           if (mounted) {
             setUser(null);
             setLoading(false);
@@ -106,7 +100,7 @@ export const AuthProvider = ({ children }) => {
               setUser(JSON.parse(savedUser));
             }
           } catch (e) {
-            // Silently handle error parsing user data
+            // Silently handle error
           }
         }
       } else {
@@ -116,7 +110,7 @@ export const AuthProvider = ({ children }) => {
             if (mounted) {
               setUser(parsed);
             }
-            // If we loaded from localStorage (no session values yet), mirror to session for current tab session semantics
+            // Nếu load từ localStorage (chưa có session values), mirror sang sessionStorage để đảm bảo session semantics cho tab hiện tại
             if (!sessionUser || !sessionToken) {
               try {
                 const role = parsed.role;
@@ -126,11 +120,11 @@ export const AuthProvider = ({ children }) => {
                 sessionStorage.setItem(userKey, JSON.stringify(parsed));
                 sessionStorage.setItem(tokenKey, token);
               } catch {
-                // Silently handle error mirroring user data to sessionStorage
+                // Silently handle error
               }
             }
           } catch (e) {
-            // Silently handle error parsing user data
+            // Silently handle error
           }
         }
       }
@@ -139,17 +133,16 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
 
-      // Setup activity listeners for inactivity logout (non-remembered only)
+      // Thiết lập activity listeners cho inactivity logout (chỉ cho non-remembered sessions), lắng nghe mousemove, keydown, click, touchstart để reset timer
       const events = ['mousemove', 'keydown', 'click', 'touchstart'];
       events.forEach((evt) => window.addEventListener(evt, handleActivity));
-      // Start timer if applicable
       if (!remembered && savedUser && token) {
         startInactivityTimer();
       }
 
-      // Listen for auth changes across tabs
+      // Lắng nghe auth changes across tabs để đồng bộ logout/login giữa các tab
       const onStorage = (e) => {
-        // Handle role-specific logout (ADMIN or STAFF)
+        // Xử lý role-specific logout (ADMIN hoặc STAFF) với key forceLogout_ADMIN hoặc forceLogout_STAFF
         if (e.key && (e.key === 'forceLogout_ADMIN' || e.key === 'forceLogout_STAFF') && e.newValue && mounted) {
           const logoutRole = e.key.replace('forceLogout_', '');
           const currentUserRole = savedUser ? (() => {
@@ -161,7 +154,6 @@ export const AuthProvider = ({ children }) => {
             }
           })() : null;
           
-          // Only clear if the logout is for the current user's role
           if (currentUserRole === logoutRole) {
             setUser(null);
             clearInactivityTimer();
@@ -172,33 +164,28 @@ export const AuthProvider = ({ children }) => {
               sessionStorage.removeItem(tokenKey);
               localStorage.removeItem(userKey);
               localStorage.removeItem(tokenKey);
-              // Clear chat history on logout
               sessionStorage.removeItem('chat_history');
             } catch {
-              // Silently handle error clearing role-specific storage
+              // Silently handle error
             }
           }
-          // If different role, do nothing - let that role continue
         }
-        // Handle general logout (backward compatibility for USER/COMPANY)
+        // Xử lý general logout (backward compatibility cho USER/COMPANY) với key forceLogout
         if (e.key === 'forceLogout' && e.newValue && mounted) {
-          // Another tab triggered logout
           setUser(null);
           clearInactivityTimer();
           try {
             sessionStorage.removeItem('user');
             sessionStorage.removeItem('token');
-            // Clear chat history on logout
             sessionStorage.removeItem('chat_history');
           } catch {
-            // Silently handle error clearing sessionStorage on logout
+            // Silently handle error
           }
         }
+        // Xử lý authLogin event khi tab khác hoàn thành login hoặc cập nhật credentials
         if (e.key === 'authLogin' && e.newValue && mounted) {
-          // Another tab completed login or updated credentials
           const nowRemembered = localStorage.getItem('rememberMe') === 'true';
           rememberRef.current = nowRemembered;
-          // Check for role-specific storage first, then legacy
           const sUser = sessionStorage.getItem('user_ADMIN') || sessionStorage.getItem('user_STAFF') || sessionStorage.getItem('user');
           const sToken = sessionStorage.getItem('token_ADMIN') || sessionStorage.getItem('token_STAFF') || sessionStorage.getItem('token');
           const lUser = localStorage.getItem('user_ADMIN') || localStorage.getItem('user_STAFF') || localStorage.getItem('user');
@@ -209,7 +196,7 @@ export const AuthProvider = ({ children }) => {
             try {
               const parsed = JSON.parse(nextUserStr);
               setUser(parsed);
-              // Ensure current tab session mirrors state for non-remember sessions
+              // Đảm bảo tab hiện tại mirror state cho non-remember sessions
               if (!nowRemembered) {
                 try {
                   const role = parsed.role;
@@ -219,19 +206,19 @@ export const AuthProvider = ({ children }) => {
                   sessionStorage.setItem(userKey, JSON.stringify(parsed));
                   sessionStorage.setItem(tokenKey, nextToken);
                 } catch {
-                  // Silently handle error mirroring user data to sessionStorage on authLogin
+                  // Silently handle error
                 }
                 startInactivityTimer();
               }
             } catch {
-              // Silently handle error parsing user data on authLogin
+              // Silently handle error
             }
           }
         }
       };
       window.addEventListener('storage', onStorage);
 
-      // Store cleanup function
+      // Lưu cleanup function để remove event listeners khi component unmount
       cleanupFn = () => {
         events.forEach((evt) => window.removeEventListener(evt, handleActivity));
         window.removeEventListener('storage', onStorage);
@@ -248,46 +235,40 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  // Đăng nhập: lưu userData và token vào storage, với ADMIN/STAFF dùng role prefix để tránh conflict, remember me lưu vào localStorage với expiry 14 ngày, non-remember lưu vào sessionStorage và localStorage (để cross-tab), broadcast login event cho các tab khác, giữ legacy keys cho backward compatibility
   const login = (userData, token, remember = false) => {
     rememberRef.current = remember;
     const storage = getStorageByRemember(remember);
     setUser(userData);
 
-    // For ADMIN and STAFF, store data with role prefix to avoid conflicts
     const role = userData?.role;
     const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
     const userKey = isAdminOrStaff ? `user_${role}` : 'user';
     const tokenKey = isAdminOrStaff ? `token_${role}` : 'token';
 
-    // Persist selections and data
     localStorage.setItem('rememberMe', remember ? 'true' : 'false');
     
     if (remember) {
-      // Remember me: store in localStorage
       localStorage.setItem(userKey, JSON.stringify(userData));
     if (token) {
         localStorage.setItem(tokenKey, token);
-        localStorage.setItem('accessToken', token); // For chat API (shared)
+        localStorage.setItem('accessToken', token);
     }
       const expiryAt = Date.now() + REMEMBER_ME_EXPIRY_MS;
       localStorage.setItem('tokenExpiry', String(expiryAt));
     } else {
-      // Non-remember: store in sessionStorage, but also keep a copy in localStorage for cross-tab
       sessionStorage.setItem(userKey, JSON.stringify(userData));
       if (token) {
         sessionStorage.setItem(tokenKey, token);
-        localStorage.setItem('accessToken', token); // For chat API (shared)
+        localStorage.setItem('accessToken', token);
       }
       localStorage.removeItem('tokenExpiry');
-      // Also keep a copy in localStorage so new tabs can hydrate immediately
       localStorage.setItem(userKey, JSON.stringify(userData));
       if (token) localStorage.setItem(tokenKey, token);
       startInactivityTimer();
     }
 
-    // Mirror state for cross-tab sharing and backward compatibility
     try {
-      // Also keep legacy keys for backward compatibility (USER, COMPANY)
       if (!isAdminOrStaff) {
         if (remember) {
           localStorage.setItem('user', JSON.stringify(userData));
@@ -299,72 +280,56 @@ export const AuthProvider = ({ children }) => {
       if (token) localStorage.setItem('token', token);
         }
       }
-      // Broadcast login to other tabs
       localStorage.setItem('authLogin', String(Date.now()));
       setTimeout(() => localStorage.removeItem('authLogin'), 0);
     } catch {
-      // Silently handle error broadcasting login to other tabs
+      // Silently handle error
     }
-
-    // Note: Navigation is handled by the component that calls login
-    // No automatic redirects here to avoid page reloads
   };
 
+  // Đăng xuất: xóa user state và storage, với ADMIN/STAFF chỉ xóa role-specific storage, với USER/COMPANY xóa legacy storage, xóa chat history và dispatch aiChatClear event, notify các tab khác qua localStorage event, clear inactivity timer
   const logout = (roleToLogout = null) => {
-    // Helper: clear AI chat state (session + notify UI)
     const clearAiChat = () => {
       try {
         sessionStorage.removeItem('chat_history');
       } catch {
-        // Silently handle error clearing chat history
+        // Silently handle error
       }
       try {
         window.dispatchEvent(new Event('aiChatClear'));
       } catch {
-        // Silently handle environments without window
+        // Silently handle error
       }
     };
 
-    // Get current role before clearing user state
     const currentRole = user?.role;
     const role = roleToLogout || currentRole;
     
-    // Clear user state
     setUser(null);
     
     if (role === 'ADMIN' || role === 'STAFF') {
-      // For ADMIN and STAFF, clear only role-specific storage
       const userKey = `user_${role}`;
       const tokenKey = `token_${role}`;
       
       try {
-        // Clear role-specific storage
         localStorage.removeItem(userKey);
         localStorage.removeItem(tokenKey);
         sessionStorage.removeItem(userKey);
         sessionStorage.removeItem(tokenKey);
-        
-        // Clear shared settings (these are role-agnostic, but safe to clear)
         localStorage.removeItem('tokenExpiry');
         localStorage.removeItem('rememberMe');
-        // Note: We don't clear 'accessToken' as it might be used by other roles
-        
-        // Clear chat history on logout
         clearAiChat();
-        
         clearInactivityTimer();
-        // Notify other tabs of this role's logout
         try {
           localStorage.setItem(`forceLogout_${role}`, String(Date.now()));
           setTimeout(() => localStorage.removeItem(`forceLogout_${role}`), 0);
         } catch {
-          // Silently handle error notifying other tabs of role logout
+          // Silently handle error
         }
       } catch {
-        // Silently handle error clearing role-specific storage on logout
+        // Silently handle error
       }
     } else {
-      // For USER and COMPANY, or no role specified, clear legacy storage (backward compatibility)
     try {
       localStorage.removeItem('user');
       localStorage.removeItem('token');
@@ -372,59 +337,52 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('rememberMe');
     } catch {
-      // Silently handle error clearing localStorage on logout
+      // Silently handle error
     }
     try {
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('token');
     } catch {
-      // Silently handle error clearing sessionStorage on logout
+      // Silently handle error
     }
-    // Clear chat history on logout
     clearAiChat();
     clearInactivityTimer();
-    // Notify other tabs
     try {
       localStorage.setItem('forceLogout', String(Date.now()));
       setTimeout(() => localStorage.removeItem('forceLogout'), 0);
     } catch {
-      // Silently handle error notifying other tabs of logout
+      // Silently handle error
     }
     }
   };
 
+  // Cập nhật thông tin user: lưu vào storage tương ứng (remembered => localStorage, non-remembered => sessionStorage), mirror sang cả hai storage để updates survive app restarts/new tabs, giữ legacy keys cho backward compatibility, notify các tab khác về profile update
   const updateUser = (userData) => {
     setUser(userData);
     const remembered = rememberRef.current;
     const storage = getStorageByRemember(remembered);
     
-    // For ADMIN and STAFF, store data with role prefix
     const role = userData?.role;
     const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
     const userKey = isAdminOrStaff ? `user_${role}` : 'user';
     
     storage.setItem(userKey, JSON.stringify(userData));
-    // Mirror to both session and local storage so updates survive app restarts/new tabs
     try {
       sessionStorage.setItem(userKey, JSON.stringify(userData));
       localStorage.setItem(userKey, JSON.stringify(userData));
-      // Also keep legacy keys for backward compatibility (USER, COMPANY)
       if (!isAdminOrStaff) {
       sessionStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('user', JSON.stringify(userData));
       }
-      // Notify other tabs about profile update
       localStorage.setItem('authLogin', String(Date.now()));
       setTimeout(() => localStorage.removeItem('authLogin'), 0);
     } catch {
-      // Silently handle error notifying other tabs about profile update
+      // Silently handle error
     }
   };
 
+  // Lấy token: ưu tiên sessionStorage (non-remembered session) rồi mới fallback localStorage, kiểm tra role-specific storage (ADMIN, STAFF) trước rồi mới legacy keys, kiểm tra role của user hiện tại để lấy đúng token
   const getToken = () => {
-    // Prefer sessionStorage if exists (non-remembered session), else fallback to localStorage
-    // Check for role-specific storage first (ADMIN, STAFF), then legacy keys
-    // Also check current user role to get the right token
     if (user?.role === 'ADMIN') {
       const sessionToken = sessionStorage.getItem('token_ADMIN');
       if (sessionToken) return sessionToken;
@@ -434,7 +392,6 @@ export const AuthProvider = ({ children }) => {
       if (sessionToken) return sessionToken;
       return localStorage.getItem('token_STAFF');
     } else {
-      // For USER/COMPANY or when user is null, check all possible keys
       const sessionToken = sessionStorage.getItem('token_ADMIN') || sessionStorage.getItem('token_STAFF') || sessionStorage.getItem('token');
     if (sessionToken) return sessionToken;
       return localStorage.getItem('token_ADMIN') || localStorage.getItem('token_STAFF') || localStorage.getItem('token');
@@ -454,13 +411,9 @@ export const AuthProvider = ({ children }) => {
 
       const userData = await getUserByEmail(user.email, token);
       if (userData) {
-        // IMPORTANT:
-        //  - Cho phép backend trả về null/"" để xóa dữ liệu (phone, dob, gender, address, avatar, ...)
-        //  - Vì vậy KHÔNG được dùng toán tử `||` vì nó sẽ fallback về giá trị cũ khi field = '' hoặc null
-        //  - Thay vào đó, chỉ fallback khi field === undefined (không có trong response)
+        // QUAN TRỌNG: cho phép backend trả về null/"" để xóa dữ liệu (phone, dob, gender, address, avatar), KHÔNG dùng toán tử `||` vì sẽ fallback về giá trị cũ khi field = '' hoặc null, chỉ fallback khi field === undefined (không có trong response)
         const updatedUser = {
           ...user,
-          // username / name: nếu backend không gửi thì giữ nguyên, còn nếu gửi (kể cả rỗng/null) thì dùng giá trị đó
           username:
             userData.username !== undefined
               ? (userData.username ?? userData.name ?? '')
@@ -469,7 +422,6 @@ export const AuthProvider = ({ children }) => {
             userData.username !== undefined || userData.name !== undefined
               ? (userData.username ?? userData.name ?? '')
               : user.name,
-          // Các field có thể bị xóa hoàn toàn
           phone: userData.phone !== undefined ? userData.phone : user.phone,
           dob: userData.dob !== undefined ? userData.dob : user.dob,
           gender: userData.gender !== undefined ? userData.gender : user.gender,
@@ -483,13 +435,12 @@ export const AuthProvider = ({ children }) => {
       }
       return null;
     } catch (error) {
-      // Silently handle error refreshing user data
-      // If 401, logout will be handled by apiErrorHandler
+      // Silently handle error, nếu 401 logout sẽ được xử lý bởi apiErrorHandler
       return null;
     }
   };
 
-  // Register logout callback for API error handler
+  // Đăng ký logout callback cho API error handler để tự động logout khi có 401 error
   useEffect(() => {
     setLogoutCallback(logout);
     return () => {

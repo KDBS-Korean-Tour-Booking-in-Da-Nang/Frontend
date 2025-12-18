@@ -20,14 +20,13 @@ const STEPS = [
   { id: 3, titleKey: 'bookingWizard.steps.step3.title', descKey: 'bookingWizard.steps.step3.description' }
 ];
 
-// Inner component that uses the booking context
 const BookingWizardContent = () => {
   const [searchParams] = useSearchParams();
   const tourId = searchParams.get('id');
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const { showBatch, showSuccess } = useToast();
+  const { showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
   const {
     resetBooking,
@@ -56,33 +55,28 @@ const BookingWizardContent = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
-  const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 1
-  const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 2
+  const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false);
+  const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false);
 
-  // Removed showError ref - using setBookingError instead
-
-  // Removed VNPay return handling effect
-
-  // Serialize contact and plan for stable dependencies to prevent infinite loops
+  // Tạo key từ contact và plan để theo dõi thay đổi và auto-save
   const contactKey = useMemo(() => contact ? JSON.stringify(contact) : '', [contact]);
   const planKey = useMemo(() => plan ? JSON.stringify(plan) : '', [plan]);
   const lastSavedRef = useRef('');
-  const isRestoringRef = useRef(false); // Flag to disable auto-save during restore
-  const skipNextAutoSaveRef = useRef(false); // Flag to skip next auto-save after restore
+  const isRestoringRef = useRef(false);
+  const skipNextAutoSaveRef = useRef(false);
 
-  // Auto-save booking data when contact or plan changes
+  // Auto-save booking data vào localStorage khi contact hoặc plan thay đổi
+  // Bỏ qua khi đang restore hoặc skipNextAutoSave được set
   useEffect(() => {
-    // Skip auto-save if we're currently restoring data or should skip next one
     if (isRestoringRef.current || skipNextAutoSaveRef.current) {
-      skipNextAutoSaveRef.current = false; // Reset flag after skipping once
+      skipNextAutoSaveRef.current = false;
       return;
     }
 
-    // Only save if we have meaningful data (not initial empty state)
     if (contactKey && planKey && tourId) {
       const currentKey = `${contactKey}_${planKey}_${tourId}`;
 
-      // Only save if data actually changed (prevent infinite loop)
+      // Chỉ save nếu key thay đổi và không phải key rỗng
       if (currentKey !== lastSavedRef.current && currentKey !== '___') {
         try {
           const bookingData = {
@@ -94,13 +88,13 @@ const BookingWizardContent = () => {
           localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
           lastSavedRef.current = currentKey;
         } catch (error) {
-          // Error auto-saving booking data
         }
       }
     }
   }, [contactKey, planKey, tourId]);
 
-  // Simple beforeunload handler like TourWizard
+  // Cảnh báo khi user đóng tab/refresh nếu đã có dữ liệu nhập vào
+  // Lưu flag vào localStorage để biết user đã xác nhận rời trang
   useEffect(() => {
     const hasData = contact && (contact.fullName || contact.phone || contact.email) &&
       plan && (plan.date || plan.pax);
@@ -110,7 +104,6 @@ const BookingWizardContent = () => {
       e.preventDefault();
       e.returnValue = '';
       try {
-        // Mark as confirmed leave so next mount clears data
         localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
       } catch (_) { }
     };
@@ -119,17 +112,19 @@ const BookingWizardContent = () => {
     return () => window.removeEventListener('beforeunload', handler);
   }, [contactKey, planKey, tourId]);
 
-  // Intercept clicks on navigation links like TourWizard
+  // Chặn navigation khi user click link nếu đã có dữ liệu nhập vào
+  // Cho phép điều hướng đến /tour/ và /payment/ mà không cần xác nhận
   useEffect(() => {
     const hasData = contact && (contact.fullName || contact.phone || contact.email) &&
       plan && (plan.date || plan.pax);
 
     const onClick = (ev) => {
-      if (!hasData) return; // allow normal nav if not dirty
+      if (!hasData) return; // Cho phép navigation bình thường nếu chưa có dữ liệu
       const anchor = ev.target.closest('a');
       if (!anchor) return;
       const url = new URL(anchor.href, window.location.origin);
       const isSameOrigin = url.origin === window.location.origin;
+      // Chặn navigation nếu là same origin và không phải /tour/ hoặc /payment/
       if (isSameOrigin && url.pathname !== window.location.pathname &&
         !url.pathname.includes('/tour/') && !url.pathname.includes('/payment/')) {
         ev.preventDefault();
@@ -142,49 +137,38 @@ const BookingWizardContent = () => {
     return () => document.removeEventListener('click', onClick, true);
   }, [contactKey, planKey]);
 
-
-  // Use custom hook for step validation
   const { getStepErrors, isStepCompleted, stepValidations } = useBookingStepValidation({ contact, plan, user });
 
-  // Reset step1ValidationAttempted when step1 becomes valid
   useEffect(() => {
     if (currentStep === 1 && stepValidations.step1?.isValid) {
       setStep1ValidationAttempted(false);
     }
   }, [currentStep, stepValidations.step1?.isValid]);
 
-  // Reset step2ValidationAttempted when step2 becomes valid
   useEffect(() => {
     if (currentStep === 2 && stepValidations.step2?.isValid) {
       setStep2ValidationAttempted(false);
     }
   }, [currentStep, stepValidations.step2?.isValid]);
 
-  // Authentication and role guard
   useEffect(() => {
     if (!authLoading && !user) {
-      // Store current URL to return after login
       localStorage.setItem('returnAfterLogin', window.location.pathname);
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
 
-  // Block COMPANY role from booking
   useEffect(() => {
     if (!authLoading && user && user.role === 'COMPANY') {
       setBookingError(t('bookingWizard.toast.companyNotAllowedError') || 'Tài khoản công ty không thể đặt tour');
     }
   }, [authLoading, user]);
 
-  // Reset booking when component mounts or tourId changes
   useEffect(() => {
-    // Reset restore flag when tourId changes
     hasRestoredRef.current = false;
   }, [tourId]);
 
-  // Handle navigation state (step, clearExistingData)
   useEffect(() => {
-    // If clearExistingData flag is set (from payment page), clear all data
     if (location.state?.clearExistingData) {
       try {
         localStorage.removeItem(`bookingData_${tourId}`);
@@ -194,12 +178,10 @@ const BookingWizardContent = () => {
         setCurrentStep(1);
         hasRestoredRef.current = true;
       } catch (error) {
-        // Error clearing existing booking data
       }
       return;
     }
 
-    // Handle step from navigation state
     if (location.state?.step && location.state.step >= 1 && location.state.step <= 3) {
       setCurrentStep(location.state.step);
     }
@@ -207,65 +189,51 @@ const BookingWizardContent = () => {
 
   useEffect(() => {
     if (user && !hasRestoredRef.current) {
-      // Check if clearExistingData was set - if so, skip restore
       if (location.state?.clearExistingData) {
         hasRestoredRef.current = true;
         return;
       }
 
-      // Check if user has confirmed to leave before
       const hasConfirmedLeaveFlag = localStorage.getItem(`hasConfirmedLeave_${tourId}`);
       if (hasConfirmedLeaveFlag === 'true') {
         resetBooking();
-        // Clear the flag after processing so reload can restore data
         try {
           localStorage.removeItem(`hasConfirmedLeave_${tourId}`);
         } catch (error) {
-          // Error clearing hasConfirmedLeave flag
         }
         hasRestoredRef.current = true;
         return;
       }
 
-      // Try to restore existing booking data from localStorage
       try {
         const savedBookingData = localStorage.getItem(`bookingData_${tourId}`);
         if (savedBookingData) {
           const parsedData = JSON.parse(savedBookingData);
 
-          // Set flag to disable auto-save during restore
           isRestoringRef.current = true;
 
-          // Restore all data in one batch action to prevent infinite loops
           if (parsedData.contact || parsedData.plan) {
-            // Set flag to disable auto-save and skip next auto-save
             isRestoringRef.current = true;
             skipNextAutoSaveRef.current = true;
 
-            // Restore everything in one action - restoreBookingData handles pax and members
             restoreBookingData({
               contact: parsedData.contact || null,
               plan: parsedData.plan || null
             });
 
-            // Update lastSavedRef immediately to prevent auto-save
             const savedKey = `${JSON.stringify(parsedData.contact || {})}_${JSON.stringify(parsedData.plan || {})}_${tourId}`;
             lastSavedRef.current = savedKey;
 
-            // Re-enable auto-save after restore completes (delay to ensure state is updated)
             setTimeout(() => {
               isRestoringRef.current = false;
             }, 500);
           }
         } else {
-          // No saved data, reset to initial state
           resetBooking();
         }
 
-        // Mark as restored to avoid duplicate restores
         hasRestoredRef.current = true;
       } catch (error) {
-        // Error restoring booking data
         isRestoringRef.current = false;
         resetBooking();
         hasRestoredRef.current = true;
@@ -275,51 +243,24 @@ const BookingWizardContent = () => {
   }, [tourId, user]);
 
   const handleNext = () => {
-    if (currentStep < STEPS.length) {
-      // Check if current step is valid using stepValidations
+      if (currentStep < STEPS.length) {
       const currentStepKey = `step${currentStep}`;
       const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
 
       if (!isCurrentStepValid) {
-        // For step 1, find the first missing (unfilled) field and show only 1 toast
         if (currentStep === 1) {
-          // Mark that user has attempted validation for Step 1
           setStep1ValidationAttempted(true);
-          // Trigger validation in Step1Contact to show inline error messages
           window.dispatchEvent(new CustomEvent('validateStep1'));
         } else if (currentStep === 2) {
-          // Mark that user has attempted validation for Step 2
           setStep2ValidationAttempted(true);
-
-          // Trigger validation in Step2Details to show error messages for missing fields
           window.dispatchEvent(new CustomEvent('validateStep2'));
         } else {
-          // For other steps, use the original batch toast logic
-          const errors = getStepErrors(currentStep);
-
-          if (errors.length > 0) {
-            const messages = errors.map(errorKey => {
-              // Check if it's a toast message key (contains 'toast')
-              if (errorKey.includes('toast')) {
-                return { i18nKey: errorKey };
-              } else {
-                // It's a field name, use the required toast format
-                const fieldName = t(errorKey);
-                return { i18nKey: 'toast.required', values: { field: fieldName } };
-              }
-            });
-
-            // Queue this batch; if another click happens, the next batch will wait until this one is done
-            showBatch(messages, 'error', 5000);
-          }
+          // Step 3 validation errors are handled by individual step components
+          // No need to show toast errors here
         }
       } else {
-        // Special handling when moving from step 1 to step 2
         if (currentStep === 1) {
-          // Reset members array and ensure we have 1 empty adult passenger
-          // Clear all existing members first
           if (plan.members.adult.length > 0) {
-            // Clear all adult members
             for (let i = plan.members.adult.length - 1; i >= 0; i--) {
               setMember('adult', i, {
                 fullName: '',
@@ -331,17 +272,14 @@ const BookingWizardContent = () => {
             }
           }
 
-          // Ensure we have exactly 1 adult passenger
           if (plan.pax.adult < 1) {
             setPax({ ...plan.pax, adult: 1 });
           }
 
-          // Rebuild members to ensure we have 1 empty adult
           setTimeout(() => {
             rebuildMembers();
           }, 0);
 
-          // Save booking data before moving to step 2
           try {
             const bookingData = {
               contact,
@@ -351,17 +289,12 @@ const BookingWizardContent = () => {
             };
             localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
           } catch (error) {
-            // Error saving booking data
           }
 
-          // Reset Step 1 validation attempted state when leaving Step 1
           setStep1ValidationAttempted(false);
-          // Reset Step 2 validation attempted state when entering Step 2
           setStep2ValidationAttempted(false);
           setCurrentStep(2);
         } else {
-          // For other steps, save and move forward normally
-          // Save booking data to localStorage before moving to next step
           try {
             const bookingData = {
               contact,
@@ -371,10 +304,8 @@ const BookingWizardContent = () => {
             };
             localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(bookingData));
           } catch (error) {
-            // Error saving booking data
           }
 
-          // Reset Step 2 validation attempted state when leaving Step 2
           if (currentStep === 2) {
             setStep2ValidationAttempted(false);
           }
@@ -387,7 +318,6 @@ const BookingWizardContent = () => {
 
   const handleBack = () => {
     if (currentStep > 1) {
-      // Reset validation attempted state when going back
       if (currentStep === 2) {
         setStep2ValidationAttempted(false);
       } else if (currentStep === 1) {
@@ -397,7 +327,6 @@ const BookingWizardContent = () => {
     }
   };
 
-  // Show payment confirmation modal before proceeding
   const handlePaymentClick = () => {
     setShowPaymentModal(true);
   };
@@ -406,36 +335,30 @@ const BookingWizardContent = () => {
     setShowPaymentModal(false); // Close modal before processing
     const currentLanguage = (i18n && i18n.language) ? i18n.language : 'vi';
 
-    // Validate tour prices before proceeding
-    // Check if prices are valid (not null, not undefined, > 0 if pax > 0)
     const priceValidation = {
       adult: plan.price?.adult !== null && plan.price?.adult !== undefined && plan.price.adult >= 0,
       child: plan.price?.child !== null && plan.price?.child !== undefined && plan.price.child >= 0,
       infant: plan.price?.infant !== null && plan.price?.infant !== undefined && plan.price.infant >= 0,
     };
 
-    // If there are adults but adult price is invalid
     if (plan.pax.adult > 0 && (!priceValidation.adult || plan.price.adult === null || plan.price.adult === undefined)) {
       setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
       setBookingLoading(false);
       return;
     }
 
-    // If there are children but child price is invalid
     if (plan.pax.child > 0 && (!priceValidation.child || plan.price.child === null || plan.price.child === undefined)) {
       setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
       setBookingLoading(false);
       return;
     }
 
-    // If there are infants but infant price is invalid
     if (plan.pax.infant > 0 && (!priceValidation.infant || plan.price.infant === null || plan.price.infant === undefined)) {
       setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
       setBookingLoading(false);
       return;
     }
 
-    // Validate total price
     const totalPrice = plan.price?.total || plan.total || 0;
     if (!totalPrice || totalPrice <= 0) {
       setBookingError(t('bookingWizard.toast.missingTourPrices') || 'Tour chưa được thiết lập giá. Vui lòng liên hệ hỗ trợ.');
@@ -443,7 +366,6 @@ const BookingWizardContent = () => {
       return;
     }
 
-    // Get voucher code from localStorage
     let voucherCode = '';
     try {
       const savedData = localStorage.getItem(`bookingData_${tourId}`);
@@ -452,14 +374,12 @@ const BookingWizardContent = () => {
         voucherCode = parsed.voucherCode || '';
       }
     } catch (err) {
-      // Silently handle error
     }
 
     let bookingData;
     try {
       bookingData = formatBookingData({ contact, plan, voucherCode }, tourId, currentLanguage, user.email);
     } catch (error) {
-      // Failed to format booking data
       setBookingError(error?.message || t('bookingWizard.toast.formatDataError') || 'Lỗi định dạng dữ liệu');
       return;
     }
@@ -470,7 +390,6 @@ const BookingWizardContent = () => {
       return;
     }
 
-    // Clear error if validation passes
     setBookingError('');
 
     try {
@@ -482,7 +401,6 @@ const BookingWizardContent = () => {
       };
       localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(finalBookingData));
     } catch (error) {
-      // Error saving final booking data
     }
 
     clearBookingStatus();
@@ -492,7 +410,6 @@ const BookingWizardContent = () => {
     try {
       const createdBooking = await createBookingAPI(bookingData);
 
-      // Validate response before using it
       if (!createdBooking || !createdBooking.bookingId) {
         throw new Error('Invalid booking response from server. Please try again.');
       }
@@ -508,7 +425,6 @@ const BookingWizardContent = () => {
 
       showSuccess(t('bookingWizard.toast.bookingSuccess'));
 
-      // Lấy voucherCode từ bookingData để truyền vào navState
       const voucherCodeFromBooking = bookingData.voucherCode || null;
       
       navigate(`/booking/payment?id=${createdBooking.bookingId}`, {
@@ -516,11 +432,10 @@ const BookingWizardContent = () => {
           bookingId: createdBooking.bookingId,
           userEmail: createdBooking.contactEmail || bookingData.userEmail,
           booking: createdBooking,
-          voucherCode: voucherCodeFromBooking // Thêm voucherCode vào navState
+          voucherCode: voucherCodeFromBooking
         }
       });
     } catch (error) {
-      // Create booking failed
       const message = error?.message || t('bookingWizard.toast.bookingError') || 'Đặt tour thất bại';
 
       setBookingError(message);
@@ -537,9 +452,7 @@ const BookingWizardContent = () => {
   };
 
   const handleStepClick = (stepId) => {
-    // Only allow clicking on completed steps or current step
     if (isStepCompletedByValidation(stepId) || stepId === currentStep) {
-      // Reset validation attempted state when leaving a step
       if (currentStep === 1 && stepId !== 1) {
         setStep1ValidationAttempted(false);
       }
@@ -550,35 +463,26 @@ const BookingWizardContent = () => {
     }
   };
 
-  // Handle navigation with confirm leave modal
   const handleNavigation = (path) => {
-    // Check if user has entered any data
     const hasData = contact && (contact.fullName || contact.phone || contact.email) &&
       plan && (plan.date || plan.pax);
 
     if (hasData) {
-      // Show confirm leave modal
-
       setPendingNavigation(path);
       setShowLeaveModal(true);
     } else {
-      // No data, navigate directly
       navigate(path);
     }
   };
 
-  // Handle confirm leave modal actions - simple like TourWizard
   const handleConfirmLeave = () => {
-    // Allow closing tab without prompt
     window.removeEventListener('beforeunload', () => { });
     setShowLeaveModal(false);
 
-    // Clear booking data when user confirms to leave
     try {
       localStorage.removeItem(`bookingData_${tourId}`);
       localStorage.setItem(`hasConfirmedLeave_${tourId}`, 'true');
     } catch (error) {
-      // Error clearing booking data
     }
 
     if (pendingNavigation) {
@@ -667,12 +571,9 @@ const BookingWizardContent = () => {
     );
   }
 
-  // Note: Success and error handling is now done via redirect to SuccessPage/FailPage
-
   return (
     <div className={styles['wizard-fullscreen-bg']}>
       <div className={styles['tour-booking-wizard']}>
-        {/* Progress Bar */}
         <div className={styles['progress-container']}>
           <div className={styles['progress-bar']}>
             <div
@@ -703,12 +604,10 @@ const BookingWizardContent = () => {
           </div>
         </div>
 
-        {/* Step Content */}
         <div className={styles['step-content']}>
           {renderCurrentStep()}
         </div>
 
-        {/* Navigation Buttons */}
         <div className={styles['step-navigation']}>
           <button
             type="button"
@@ -725,31 +624,24 @@ const BookingWizardContent = () => {
               className={styles['btn-primary']}
               onClick={handleNext}
               disabled={(() => {
-                // For Step 1: only disable after user has attempted validation and form is still invalid
                 if (currentStep === 1) {
                   if (!step1ValidationAttempted) {
-                    // Allow clicking before validation attempt
                     return false;
                   }
-                  // After validation attempt, disable if form is still invalid
                   const currentStepKey = `step${currentStep}`;
                   const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
                   return !isCurrentStepValid;
                 }
 
-                // For Step 2: only disable after user has attempted validation and form is still invalid
                 if (currentStep === 2) {
                   if (!step2ValidationAttempted) {
-                    // Allow clicking before validation attempt
                     return false;
                   }
-                  // After validation attempt, disable if form is still invalid
                   const currentStepKey = `step${currentStep}`;
                   const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
                   return !isCurrentStepValid;
                 }
 
-                // For other steps, use default validation
                 const currentStepKey = `step${currentStep}`;
                 const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
                 return !isCurrentStepValid;
@@ -779,14 +671,12 @@ const BookingWizardContent = () => {
           )}
         </div>
 
-        {/* Confirm Leave Modal */}
         <ConfirmLeaveModal
           open={showLeaveModal}
           onCancel={handleCancelLeave}
           onConfirm={handleConfirmLeave}
         />
 
-        {/* Payment Confirmation Modal */}
         <PaymentConfirmModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
@@ -800,7 +690,6 @@ const BookingWizardContent = () => {
   );
 };
 
-// Main component - Redux store is already provided at App level
 const TourBookingWizard = () => {
   return <BookingWizardContent />;
 };

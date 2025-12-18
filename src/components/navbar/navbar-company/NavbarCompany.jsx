@@ -26,14 +26,14 @@ const NavbarCompany = () => {
   const [balance, setBalance] = useState(null);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
-  // Fetch unread count on mount and when user changes
+  // Lấy số lượng thông báo chưa đọc khi component mount và khi user thay đổi
   useEffect(() => {
     if (user?.email && fetchUnreadCount) {
       fetchUnreadCount();
     }
   }, [user?.email, fetchUnreadCount]);
 
-  // Function to refresh balance from API
+  // Hàm làm mới số dư từ API
   const refreshBalance = useCallback(async () => {
     if (!user || user.role !== 'COMPANY') {
       setBalance(null);
@@ -56,9 +56,7 @@ const NavbarCompany = () => {
         const userData = await response.json();
         const newBalance = userData.balance || 0;
         setBalance(newBalance);
-        // Also update user object in AuthContext if balance changed
         if (user.balance !== newBalance) {
-          // Trigger balance update event
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: newBalance } }));
           }
@@ -71,7 +69,7 @@ const NavbarCompany = () => {
     }
   }, [user, getToken]);
 
-  // Fetch balance from API
+  // Lấy số dư từ API
   useEffect(() => {
     const loadBalance = async () => {
       if (!user || user.role !== 'COMPANY') {
@@ -79,13 +77,10 @@ const NavbarCompany = () => {
         return;
       }
 
-      // Always fetch balance from API to get the latest value
-      // Use user.balance as temporary value while loading if available
       if (user.balance !== undefined && user.balance !== null) {
         setBalance(user.balance);
       }
 
-      // Always fetch from API to ensure we have the latest balance
       refreshBalance();
     };
 
@@ -93,7 +88,7 @@ const NavbarCompany = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email, getToken, refreshBalance]);
 
-  // Listen for balance update events
+  // Lắng nghe sự kiện cập nhật số dư
   useEffect(() => {
     if (!user || user.role !== 'COMPANY') {
       return;
@@ -101,11 +96,8 @@ const NavbarCompany = () => {
 
     const handleBalanceUpdate = async (event) => {
       if (event.detail?.balance !== undefined) {
-        // If balance is provided in event, use it directly
         setBalance(event.detail.balance);
       } else {
-        // If no balance in event, refresh from API
-        // Force refresh by calling the API directly
         setIsLoadingBalance(true);
         try {
           const token = getToken();
@@ -126,7 +118,7 @@ const NavbarCompany = () => {
             }
           }
         } catch {
-          // Silently fail - balance will remain unchanged
+          // Silently fail
         } finally {
           setIsLoadingBalance(false);
         }
@@ -141,7 +133,7 @@ const NavbarCompany = () => {
     }
   }, [user?.email, user?.role, getToken]);
 
-  // Format balance with proper decimal places (precision 15, scale 2)
+  // Định dạng số dư với 2 chữ số thập phân
   const formatBalance = (bal) => {
     if (bal === null || bal === undefined) return '0.00';
     const num = typeof bal === 'string' ? parseFloat(bal) : bal;
@@ -152,14 +144,13 @@ const NavbarCompany = () => {
     }).format(num);
   };
   
-  // Add error boundary for chat context
+  // Xử lý lỗi cho chat context
   let chatState, chatActions;
   try {
     const chatContext = useChat();
     chatState = chatContext.state;
     chatActions = chatContext.actions;
   } catch (error) {
-    // Provide fallback values
     chatState = { isChatDropdownOpen: false, isChatBoxOpen: false };
     chatActions = { 
       toggleChatDropdown: () => {}, 
@@ -177,12 +168,12 @@ const NavbarCompany = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
-  // COMPANY can use all languages including Vietnamese
+  // COMPANY có thể sử dụng tất cả ngôn ngữ bao gồm tiếng Việt
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
 
-  // Determine if Vietnamese should be shown (only for COMPANY role)
+  // Xác định xem có hiển thị tiếng Việt không (chỉ cho COMPANY role)
   const showVietnamese = user && user.role === 'COMPANY';
 
   const toggleNotification = () => {
@@ -191,7 +182,6 @@ const NavbarCompany = () => {
       return;
     }
     setIsNotificationOpen(!isNotificationOpen);
-    // Don't close chat when opening notification
   };
 
   const toggleChat = () => {
@@ -200,14 +190,9 @@ const NavbarCompany = () => {
       return;
     }
     chatActions.toggleChatDropdown();
-    // Don't close notification when opening chat
   };
 
-  
-
-  // Handle scroll behavior
-  // On forum page and dashboard pages: always visible (fixed)
-  // On other pages: hide when scrolling down, show when scrolling up
+  // Xử lý hành vi scroll: trên trang forum và dashboard luôn hiển thị, các trang khác ẩn khi scroll xuống
   useEffect(() => {
     const isForumPage = location.pathname === '/forum' || location.pathname.startsWith('/forum/');
     const isDashboardPage = location.pathname.startsWith('/company/');
@@ -216,18 +201,14 @@ const NavbarCompany = () => {
       const currentScrollY = window.scrollY;
 
       if (isForumPage || isDashboardPage) {
-        // Forum and Dashboard pages: always visible, only update scrolled state for styling
         setIsVisible(true);
         setIsScrolled(currentScrollY > 10);
       } else {
-        // Other pages: hide/show behavior
         if (currentScrollY < 10) {
           setIsVisible(true);
           setIsScrolled(false);
         } else {
           setIsScrolled(true);
-
-          // Hide navbar when scrolling down, show when scrolling up
           if (currentScrollY > lastScrollY && currentScrollY > 100) {
             setIsVisible(false);
           } else {
@@ -242,14 +223,12 @@ const NavbarCompany = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, location.pathname]);
 
-  // Check if current path is active
+  // Kiểm tra xem path hiện tại có active không
   const isActive = (path) => {
     if (path === '/tour') {
-      // For tour, also check if we're on tour detail page
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
     }
     if (path === '/article') {
-      // For article, also check if we're on article detail page
       return location.pathname === '/article' || location.pathname.startsWith('/article/');
     }
     if (path === '/about') {
@@ -307,7 +286,6 @@ const NavbarCompany = () => {
           {/* Desktop Navigation */}
           <div className={styles['nav-links']} style={{ overflow: 'visible' }}>
             {isLockedToCompanyInfo ? (
-              // Render disabled lookalike links that redirect to company-info
               <>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.home')}</a>
                 <a href="#" onClick={disableIfPending} className={`${styles['nav-link']}${disabledClass}`}>{t('nav.forum')}</a>
@@ -445,7 +423,6 @@ const NavbarCompany = () => {
                       </button>
                     )}
                     
-                    {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}
                     </button>

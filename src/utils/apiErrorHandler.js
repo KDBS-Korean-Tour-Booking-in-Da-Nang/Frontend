@@ -70,27 +70,27 @@ export const redirectToErrorPage = (status, autoRedirect = false) => {
 export const handleApiError = async (response, autoRedirect = false) => {
   const status = response.status;
 
-  // Handle 401 Unauthorized - token expired or invalid
+  // Xử lý lỗi 401 Unauthorized - token hết hạn hoặc không hợp lệ
   if (status === 401) {
-    // Clear tokens first
+    // Xóa tokens khỏi storage trước
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('accessToken');
       sessionStorage.removeItem('token');
     } catch {
-      // Failed to clear tokens, continue anyway
+      // Nếu không xóa được tokens, tiếp tục xử lý
     }
     
-    // Call logout if available to properly clear user state
+    // Gọi logout callback nếu có để xóa user state
     if (logoutCallback) {
       try {
         logoutCallback();
       } catch {
-        // Failed to call logout callback, continue anyway
+        // Nếu không gọi được logout callback, tiếp tục xử lý
       }
     }
     
-    // Redirect to 401 page (which will redirect to login)
+    // Redirect đến trang 401 (sẽ redirect đến login)
     if (autoRedirect) {
       redirectToErrorPage(401, true);
     }
@@ -98,9 +98,9 @@ export const handleApiError = async (response, autoRedirect = false) => {
     return new Error('Session expired. Please login again.');
   }
 
-  // Handle 403 Forbidden - not enough permissions or banned user
+  // Xử lý lỗi 403 Forbidden - không đủ quyền hoặc user bị ban
   if (status === 403) {
-    // Try to detect banned user (ErrorCode.USER_IS_BANNED: code 1012, message \"User is banned.\")
+    // Thử phát hiện user bị ban (ErrorCode.USER_IS_BANNED: code 1012, message "User is banned.")
     let apiCode = null;
     let apiMessage = null;
     try {
@@ -115,21 +115,22 @@ export const handleApiError = async (response, autoRedirect = false) => {
         }
       }
     } catch {
-      // ignore parsing errors, fallback to generic handling
+      // Bỏ qua lỗi parse, fallback về xử lý chung
     }
 
+    // Kiểm tra xem có phải user bị ban không
     const isBanned =
       apiCode === 1012 ||
       (typeof apiMessage === 'string' &&
         apiMessage.toLowerCase().includes('user is banned'));
 
     if (isBanned) {
-      // Banned user: force logout and redirect to banned page
+      // User bị ban: force logout và redirect đến trang banned
       if (logoutCallback) {
         try {
           logoutCallback();
         } catch {
-          // Failed to call logout callback for banned user, continue anyway
+          // Nếu không gọi được logout callback, tiếp tục xử lý
         }
       }
       if (navigateCallback) {

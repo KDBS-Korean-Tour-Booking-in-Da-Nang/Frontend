@@ -1,4 +1,4 @@
-// Company Layout
+// Export Company Layout và Pages: CompanyLayout, Dashboard, CompanyInfo, TourManagement, TourWizard, BookingManagement, VoucherManagement
 export { default as CompanyLayout } from './CompanyLayout';
 export { default as BusinessDashboard } from './CompanyLayout';
 

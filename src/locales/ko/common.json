@@ -2742,6 +2742,7 @@
 				"description": "투어 개요, 하이라이트 및 고객 혜택"
 			},
 			"itinerary": {
+				"dayAdded": "일정에 하루가 추가되었습니다.",
 				"mainSectionTitle": "목적지 & 일정",
 				"activities": "활동 & 장소",
 				"images": "참고 이미지 (최대 5장)",
@@ -4007,6 +4008,7 @@
 				"tourName": "투어명",
 				"departureDate": "출발일",
 				"guestCount": "인원 수",
+				"contactName": "연락처 이름",
 				"contactEmail": "연락처 이메일",
 				"createdAt": "예약 생성일"
 			},
@@ -4609,7 +4611,8 @@
 			"toasts": {
 				"statusUpdated": "{{guestName}}의 보험 상태가 업데이트되었습니다. 예약을 완료하면 변경 사항이 저장됩니다.",
 				"rejected": "예약이 거절되었습니다",
-				"saved": "보험 변경 사항이 저장되었습니다. 예약을 완료하여 시스템에 반영해주세요."
+				"saved": "보험 변경 사항이 저장되었습니다. 예약을 완료하여 시스템에 반영해주세요.",
+				"approvedAll": "모든 보험이 승인되었습니다. 예약을 완료하면 변경 사항이 저장됩니다."
 			},
 			"header": {
 				"title": "보험 정보",
@@ -4718,7 +4721,10 @@
 		"confirmation": {
 			"toasts": {
 				"completedByBoth": "투어가 양측에 의해 완료로 확인되었습니다! 결제가 업체로 이체됩니다.",
-				"companyConfirmed": "투어 완료가 확인되었습니다! 고객도 확인하면 결제가 즉시 이체됩니다. 그렇지 않으면 3일 후( {{date}} 이후 ) 시스템이 자동으로 확인합니다."
+				"companyConfirmed": "투어 완료가 확인되었습니다! 고객도 확인하면 결제가 즉시 이체됩니다. 그렇지 않으면 3일 후( {{date}} 이후 ) 시스템이 자동으로 확인합니다.",
+				"approvedPendingBalance": "예약이 승인되었습니다. 고객은 잔액을 결제해야 합니다.",
+				"approvedFullPayment": "예약이 승인되었습니다. 고객이 전액을 결제했습니다. 출발일이 되면 시스템이 자동으로 BOOKING_SUCCESS_PENDING으로 전환됩니다.",
+				"confirmError": "예약을 확인할 수 없습니다"
 			},
 			"header": {
 				"successTitle": "예약이 성공적으로 확인되었습니다!",

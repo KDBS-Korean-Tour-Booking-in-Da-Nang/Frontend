@@ -35,10 +35,10 @@ const ForumReportManagement = () => {
   const [reportToApprove, setReportToApprove] = useState(null);
   const isInitialMountRef = useRef(true);
 
-  // Check if user has permission to manage forum reports
+  // Kiểm tra user có permission để manage forum reports không: check staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' hoặc role === 'ADMIN'
   const canManageForumReports = user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || user?.role === 'ADMIN';
 
-  // Fetch reports from API
+  // Fetch reports từ API: gọi REPORTS_ADMIN_ALL endpoint với pagination, map ReportSummaryResponse sang component format, không gọi checkAndHandle401 trong initial background loading (skip401Check = true) để tránh premature logout, set reports và totalPages state
   const fetchReports = useCallback(async (page = currentPage, skip401Check = false) => {
     if (!canManageForumReports) return;
     
@@ -52,8 +52,6 @@ const ForumReportManagement = () => {
       });
 
       if (!response.ok && response.status === 401) {
-        // Don't call checkAndHandle401 in initial background loading to avoid premature logout
-        // Only check 401 in user-initiated actions (like pagination, search, filter)
         if (!skip401Check) {
           await checkAndHandle401(response);
         }
@@ -62,7 +60,6 @@ const ForumReportManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Map ReportSummaryResponse to component format
         const mappedReports = (data.content || []).map(report => ({
           reportId: report.reportId,
           targetType: report.targetType,
@@ -87,9 +84,8 @@ const ForumReportManagement = () => {
     }
   }, [currentPage, pageSize, getToken, canManageForumReports]);
 
+  // Fetch reports khi currentPage thay đổi: skip 401 check chỉ trên initial mount để tránh premature logout, sau initial mount luôn check 401 (bao gồm pagination)
   useEffect(() => {
-    // Skip 401 check only on initial mount to avoid premature logout
-    // After initial mount, always check 401 (including pagination)
     const skip401Check = isInitialMountRef.current;
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
@@ -109,8 +105,6 @@ const ForumReportManagement = () => {
         });
 
         if (!response.ok && response.status === 401) {
-          // Don't call checkAndHandle401 here to avoid premature logout in background loading
-          // Just skip this data load
           return;
         }
 
@@ -131,9 +125,9 @@ const ForumReportManagement = () => {
     };
 
     fetchStats();
-  }, [getToken, reports, canManageForumReports]); // Re-fetch stats when reports change
+  }, [getToken, reports, canManageForumReports]);
 
-  // Filter reports based on search and filters
+  // Filter reports dựa trên search và filters: filter theo search (reportId, reporterName, postTitle, reason), filter theo status (ALL hoặc status cụ thể), filter theo reason type (first reason trong string), return filtered reports array
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
       const searchLower = search.toLowerCase();
@@ -143,7 +137,6 @@ const ForumReportManagement = () => {
         report.postTitle?.toLowerCase().includes(searchLower) ||
         report.reason?.toLowerCase().includes(searchLower);
       const matchesStatus = statusFilter === 'ALL' || report.status === statusFilter;
-      // Filter by reason type (first reason in the string)
       const matchesType = typeFilter === 'ALL' || 
         (report.reason && report.reason.toUpperCase().includes(typeFilter));
       return matchesSearch && matchesStatus && matchesType;
@@ -175,7 +168,6 @@ const ForumReportManagement = () => {
       }
 
       if (response.ok) {
-        // Refresh reports and stats
         fetchReports(currentPage);
         alert(t('staff.forumReportManagement.success.approve'));
       } else {
@@ -183,7 +175,6 @@ const ForumReportManagement = () => {
         alert(t('staff.forumReportManagement.error.approve', { error: errorText }));
       }
     } catch (error) {
-      // Silently handle error approving report
       alert(t('staff.forumReportManagement.error.approveGeneric'));
     }
   };
@@ -230,7 +221,6 @@ const ForumReportManagement = () => {
       }
 
       if (response.ok) {
-        // Refresh reports and stats
         fetchReports(currentPage);
         alert(t('staff.forumReportManagement.success.reject'));
       } else {
@@ -257,7 +247,6 @@ const ForumReportManagement = () => {
 
       if (response.ok) {
         const fullReport = await response.json();
-        // Map ReportResponse to component format
         const mappedReport = {
           reportId: fullReport.reportId,
           targetType: fullReport.targetType,
@@ -283,7 +272,6 @@ const ForumReportManagement = () => {
         alert(t('staff.forumReportManagement.error.loadDetail', { error: errorText }));
       }
     } catch (error) {
-      // Silently handle error fetching report details
       alert(t('staff.forumReportManagement.error.loadDetailGeneric'));
     }
   };

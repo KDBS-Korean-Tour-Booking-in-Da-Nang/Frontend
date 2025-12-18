@@ -28,7 +28,7 @@ const TourWizardContent = () => {
   const [step4ValidationAttempted, setStep4ValidationAttempted] = useState(false); // Track if user has attempted to proceed from Step 4
   const pendingNavigationRef = useRef(null);
   
-  // Use custom hook for step validation
+  // Sử dụng custom hook cho step validation: useStepValidation cung cấp isStepCompleted, getStepErrors, stepValidations
   const { isStepCompleted, getStepErrors, stepValidations } = useStepValidation(tourData);
 
   // Calculate if Next button should be disabled based on step validation errors
@@ -54,7 +54,6 @@ const TourWizardContent = () => {
       if (stepHasErrors[3]) {
         return true;
       }
-      // Also check stepValidations to ensure prices meet minimum requirement
       const stepKey = `step${currentStep}`;
       const isCurrentStepValid = stepValidations[stepKey]?.isValid;
       if (!isCurrentStepValid) {
@@ -81,7 +80,6 @@ const TourWizardContent = () => {
       setStep4ValidationAttempted(false);
       setStepHasErrors(prev => ({ ...prev, [4]: false }));
     }
-    // Clear errors for the current step
     window.dispatchEvent(new CustomEvent('clearStepErrors', { detail: { step: currentStep } }));
   }, [currentStep]);
 
@@ -105,13 +103,14 @@ const TourWizardContent = () => {
     }
   }, [currentStep, stepValidations, step1ValidationAttempted, step2ValidationAttempted, step3ValidationAttempted, step4ValidationAttempted]);
 
-  // Clear submit error when user adds thumbnail on Step 4
+  // Clear submit error khi user thêm thumbnail trên Step 4: nếu currentStep === 4 và tourData.thumbnail có giá trị và submitError có giá trị thì clear submitError
   useEffect(() => {
     if (currentStep === 4 && tourData.thumbnail && submitError) {
       setSubmitError('');
     }
   }, [currentStep, tourData.thumbnail, submitError]);
 
+  // Steps configuration: định nghĩa 4 steps với id, title và description từ i18n
   const steps = [
     { id: 1, title: t('tourWizard.steps.step1.title'), description: t('tourWizard.steps.step1.description') },
     { id: 2, title: t('tourWizard.steps.step2.title'), description: t('tourWizard.steps.step2.description') },
@@ -141,7 +140,7 @@ const TourWizardContent = () => {
     );
   }, [tourData]);
 
-  // Warn user when closing browser/tab if form has unsaved changes
+  // Cảnh báo user khi đóng browser/tab nếu form có unsaved changes: addEventListener 'beforeunload', prevent default và set returnValue = '' nếu isDirty
   useEffect(() => {
     const handler = (e) => {
       if (!isDirty) return;
@@ -152,7 +151,7 @@ const TourWizardContent = () => {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
-  // Intercept navigation (browser back button and link clicks) when form has unsaved changes
+  // Intercept navigation (browser back button và link clicks) khi form có unsaved changes: lắng nghe popstate event (back button), pushState để prevent navigation, show leave confirmation modal, intercept link clicks để show confirmation nếu form dirty
   useEffect(() => {
     const onPopState = () => {
       if (isDirty) {
@@ -167,7 +166,6 @@ const TourWizardContent = () => {
     };
     window.addEventListener('popstate', onPopState);
 
-    // Intercept link clicks to show leave confirmation when form is dirty
     const onClick = (ev) => {
       if (!isDirty) return; // allow normal nav if not dirty
       const anchor = ev.target.closest('a');
@@ -200,12 +198,12 @@ const TourWizardContent = () => {
     }
   };
 
-  // Cancel leaving wizard - stay on current page
+  // Cancel leaving wizard: đóng leave confirmation modal, stay trên current page
   const handleCancelLeave = () => {
     setShowLeaveConfirm(false);
   };
 
-  // Listen for validation status updates from step components
+  // Lắng nghe validation status updates từ step components: lắng nghe 'stepValidationStatus' event, update stepHasErrors state
   useEffect(() => {
     const handleValidationStatus = (event) => {
       const { step, hasErrors } = event.detail;
@@ -221,14 +219,13 @@ const TourWizardContent = () => {
     };
   }, []);
 
-  // Navigate to next step after validating current step
+  // Navigate đến next step sau khi validate current step: check stepValidations[stepKey].isValid, nếu không valid thì trigger validation events (validateStep1/2/3 hoặc validateStep với errors), nếu valid thì move to next step và reset validation state
   const nextStep = () => {
     if (currentStep < 4) {
       const stepKey = `step${currentStep}`;
       const isCurrentStepValid = stepValidations[stepKey]?.isValid;
       
       if (!isCurrentStepValid) {
-        // Trigger validation events to show error messages
         if (currentStep === 1) {
           setStep1ValidationAttempted(true);
           window.dispatchEvent(new CustomEvent('validateStep1'));
@@ -244,7 +241,6 @@ const TourWizardContent = () => {
         }
         return;
       } else {
-        // Move to next step and reset validation state
         if (currentStep === 1) {
           setStep2ValidationAttempted(false);
           setCurrentStep(2);
@@ -258,14 +254,12 @@ const TourWizardContent = () => {
           setCurrentStep(currentStep + 1);
         }
         
-        // Clear errors for current step
         window.dispatchEvent(new CustomEvent('clearStepErrors', { detail: { step: currentStep } }));
         setStepHasErrors(prev => ({
           ...prev,
           [currentStep]: false
         }));
         
-        // Reset validation attempted state for current step
         if (currentStep === 1) {
           setStep1ValidationAttempted(false);
         } else if (currentStep === 2) {
@@ -277,7 +271,7 @@ const TourWizardContent = () => {
     }
   };
 
-  // Navigate to previous step and reset validation state
+  // Navigate đến previous step và reset validation state: giảm currentStep, reset stepValidationAttempted cho step hiện tại
   const prevStep = () => {
     if (currentStep > 1) {
       if (currentStep === 2) {
@@ -291,7 +285,7 @@ const TourWizardContent = () => {
     }
   };
 
-  // Submit tour creation form: validate data, prepare FormData, and call API
+  // Submit tour creation form: validate data (tourName, thumbnail), prepare FormData với multipart/form-data, gọi API TOURS_CREATE, tính tourIntDuration (max của days và nights), parse và validate min advance days, validate expiration date, build tour request object với tất cả wizard data, handle 401, navigate đến tour management sau khi thành công
   const handleSubmit = async () => {
     if (isSubmitting) {
       return;
@@ -301,7 +295,6 @@ const TourWizardContent = () => {
       setIsSubmitting(true);
       setSubmitError('');
       
-      // Validate required fields before submission
       if (!tourData.tourName || !tourData.thumbnail) {
         const missingFieldLabel = !tourData.tourName
           ? t('tourWizard.step1.fields.tourName')
@@ -314,10 +307,8 @@ const TourWizardContent = () => {
         return;
       }
 
-      // Prepare FormData for multipart/form-data upload
       const formData = new FormData();
       
-      // Get user authentication data from storage
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const savedUser = storage.getItem('user');
@@ -352,7 +343,7 @@ const TourWizardContent = () => {
       const nights = parseInt(tourData.nights) || 0;
       const tourIntDuration = Math.max(days, nights);
 
-      // Parse and validate min advance days against expiration date
+      // Parse và validate min advance days đối với expiration date: parse value, clamp >= 0, nếu có expirationDate thì tính leadDays (diff giữa expirationDate và today), nếu clamped >= leadDays thì return max(0, leadDays - 1), nếu không return clamped
       const parseMinAdvance = (value, expirationDate) => {
         if (value === undefined || value === null || value === '') return null;
         const parsed = parseInt(value, 10);
@@ -371,7 +362,6 @@ const TourWizardContent = () => {
         return clamped >= leadDays ? Math.max(0, leadDays - 1) : clamped;
       };
 
-      // Validate expiration date and minimum advance days
       const expirationDate = tourData.tourExpirationDate || null;
       const minAdvanceDays = parseMinAdvance(tourData.minAdvancedDays ?? tourData.tourDeadline, expirationDate);
 
@@ -403,16 +393,14 @@ const TourWizardContent = () => {
         return;
       }
 
-      // Build tour request object with all wizard data
       const tourRequest = {
-        companyEmail: userEmail, // Use current user's email
+        companyEmail: userEmail,
         tourName: tourData.tourName,
         tourDescription: tourData.tourDescription || `Tour ${tourData.tourName} - ${tourData.duration} ngày ${tourData.nights} đêm`,
         tourDuration: `${tourData.duration} ngày ${tourData.nights} đêm`,
-        tourIntDuration: tourIntDuration, // Max(days, nights) - duration là số ngày
-        tourDeparturePoint: 'Đà Nẵng', // All tours depart from Da Nang
-        tourVehicle: 'Xe du lịch', // Hardcoded as requested
-        // If Step 1 captured vehicle, prefer that
+        tourIntDuration: tourIntDuration,
+        tourDeparturePoint: 'Đà Nẵng',
+        tourVehicle: 'Xe du lịch',
         ...(tourData.vehicle ? { tourVehicle: tourData.vehicle } : {}),
         tourType: tourData.tourType,
         tourSchedule: tourData.tourSchedule || '', // User-defined schedule summary
@@ -482,7 +470,7 @@ const TourWizardContent = () => {
       
       if (response.ok) {
         setSubmitError('');
-        showSuccess('toast.tour.create_success');
+        showSuccess(t('toast.tour.create_success'));
         navigate('/company/tours');
       } else {
           let errorData;

@@ -7,6 +7,7 @@ import {
   clearError 
 } from '../store/tourSlice';
 
+// Custom hook để quản lý tours từ Redux store: select state (tours, filteredTours, selectedTour, loading, error, currentCategory, searchQuery), cung cấp actions (loadTours, loadToursByCategory, searchTours, clearToursError), cung cấp selectors (getToursByCategory, getFeaturedTours, getTourById)
 export const useTours = () => {
   const dispatch = useDispatch();
   const { tours, filteredTours, selectedTour, loading, error, currentCategory, searchQuery } = useSelector(
@@ -43,7 +44,6 @@ export const useTours = () => {
   };
 
   return {
-    // State
     tours,
     filteredTours,
     selectedTour,
@@ -51,14 +51,10 @@ export const useTours = () => {
     error,
     currentCategory,
     searchQuery,
-    
-    // Actions
     loadTours: loadToursAction,
     loadToursByCategory: loadToursByCategoryAction,
     searchTours,
     clearToursError,
-    
-    // Selectors
     getToursByCategory,
     getFeaturedTours,
     getTourById

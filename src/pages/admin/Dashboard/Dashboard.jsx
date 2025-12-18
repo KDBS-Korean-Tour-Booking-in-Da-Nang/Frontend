@@ -21,14 +21,14 @@ import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import { useAuth } from '../../../contexts/AuthContext';
 import worldMapData from '../../../assets/data/world-110m.json';
 
-// World map geo data imported locally to avoid CORS issues
+// World map geo data import local để tránh CORS issues
 const geoData = worldMapData;
 
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
   const { user, getToken } = useAuth();
   const [loading, setLoading] = useState(true);
-  // Initialize balance from user object if available
+  // Khởi tạo balance từ user object nếu có: nếu user.role === 'ADMIN' và user.balance !== undefined/null thì dùng user.balance, nếu không trả về null
   const [balance, setBalance] = useState(() => {
     if (user?.role === 'ADMIN' && user?.balance !== undefined && user?.balance !== null) {
       return user.balance;
@@ -61,13 +61,12 @@ const Dashboard = () => {
     completedBookings: 0
   });
 
-  // Sync balance with user object when user changes
+  // Đồng bộ balance với user object khi user thay đổi: nếu user.role === 'ADMIN' và user.balance có giá trị thì set balance, nếu balance vẫn null (initial state) thì set = 0, nếu không phải ADMIN thì set null
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       if (user.balance !== undefined && user.balance !== null) {
         setBalance(user.balance);
       } else if (balance === null) {
-        // Only set to 0 if balance is still null (initial state)
         setBalance(0);
       }
     } else {
@@ -75,18 +74,16 @@ const Dashboard = () => {
     }
   }, [user?.balance, user?.role]);
 
-  // Listen for balance update events
+  // Lắng nghe balance update events: nếu balance được provide trong event thì dùng trực tiếp, nếu không thì refresh từ user object
   useEffect(() => {
     if (!user || user.role !== 'ADMIN') {
       return;
     }
 
     const handleBalanceUpdate = (event) => {
-      // If balance is provided in event, use it directly
       if (event.detail?.balance !== undefined) {
         setBalance(event.detail.balance);
       } else {
-        // Otherwise, refresh from user object
         if (user.balance !== undefined && user.balance !== null) {
           setBalance(user.balance);
         }
@@ -115,11 +112,8 @@ const Dashboard = () => {
 
         const headers = createAuthHeaders(token);
 
-        // Total Revenue should use balance from API (same as company dashboard)
-        // Balance is already synced with user object via useEffect above
         const totalRevenue = balance !== null ? balance : 0;
 
-        // Fetch Tour Statistics
         let tourStats = { totalTours: 0, byStatus: {} };
         try {
           const tourStatsRes = await fetch(API_ENDPOINTS.ADMIN_TOUR_STATISTICS, { headers });
@@ -133,7 +127,6 @@ const Dashboard = () => {
           // Silently handle error
         }
 
-        // Fetch Booking Statistics
         let bookingStats = { totalBookings: 0, byStatus: {} };
         try {
           const bookingStatsRes = await fetch(API_ENDPOINTS.ADMIN_BOOKING_STATISTICS, { headers });
@@ -147,7 +140,6 @@ const Dashboard = () => {
           // Silently handle error
         }
 
-        // Fetch Monthly Booking Count (for last 6 months)
         const currentYear = new Date().getFullYear();
         let monthlyBookingCount = {};
         try {
@@ -163,10 +155,8 @@ const Dashboard = () => {
           // Silently handle error
         }
 
-        // Calculate completed bookings from booking statistics
         const completedBookings = bookingStats.byStatus?.BOOKING_SUCCESS || bookingStats.byStatus?.BOOKING_BALANCE_SUCCESS || 0;
 
-        // Fetch Customer Count (Unbanned Users with role USER)
         let totalCustomers = 0;
         try {
           const customerRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_UNBANNED_USERS, { headers });
@@ -180,7 +170,6 @@ const Dashboard = () => {
           // Silently handle error
         }
 
-        // Fetch Staff Count (Unbanned Staff)
         let totalStaff = 0;
         try {
           const staffRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_UNBANNED_STAFF, { headers });
@@ -194,7 +183,6 @@ const Dashboard = () => {
           // Silently handle error
         }
 
-        // Fetch Company Count (Unbanned Companies)
         let totalCompanies = 0;
         try {
           const companyRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_UNBANNED_COMPANIES, { headers });
@@ -208,7 +196,6 @@ const Dashboard = () => {
           // Silently handle error
         }
 
-        // Fetch Article Count (Approved Articles)
         let totalArticles = 0;
         try {
           const articleRes = await fetch(API_ENDPOINTS.ADMIN_COUNT_APPROVED_ARTICLES, { headers });
@@ -248,7 +235,7 @@ const Dashboard = () => {
           completedBookings: completedBookings
         });
       } catch {
-        // Silently handle error fetching dashboard data
+        // Silently handle error
       } finally {
         setLoading(false);
       }
@@ -257,13 +244,13 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [getToken, balance]);
 
-  // Format currency as KRW (VND / 18)
+  // Format currency sang KRW: chia VND cho 18 và format với Intl.NumberFormat ko-KR
   const formatCurrency = (value) => {
     const krwValue = Math.round(Number(value) / 18);
     return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
-  // Stats cards data with pastel colors
+  // Stats cards data với pastel colors: định nghĩa các card hiển thị total revenue, customer management, staff management, company management, article management, tour management với icon, màu sắc và giá trị tương ứng
   const statsCards = [
     {
       name: 'Total Revenue',
@@ -327,7 +314,7 @@ const Dashboard = () => {
     }
   ];
 
-  // Booking trend data (last 6 months from monthlyBookingCount)
+  // Booking trend data (last 6 tháng từ monthlyBookingCount): tính currentMonth, tạo array 6 tháng gần nhất, lấy data từ monthlyBookingCount cho mỗi tháng
   const getLast6MonthsData = () => {
     const currentMonth = new Date().getMonth() + 1; // 1-12
     const months = [];
@@ -400,7 +387,7 @@ const Dashboard = () => {
     }
   };
 
-  // Tour status distribution (from tour statistics byStatus)
+  // Tour status distribution từ tour statistics byStatus: tạo series và labels cho donut chart (PUBLIC, NOT_APPROVED, DISABLED), format labels theo i18n language
   const tourStatusData = stats.tourManagement.byStatus || {};
   const tourStatusSeries = [
     tourStatusData.PUBLIC || 0,
@@ -474,7 +461,7 @@ const Dashboard = () => {
     }
   };
 
-  // Booking status data for cards (from booking statistics)
+  // Booking status data cho cards từ booking statistics: lấy counts cho các status (BOOKING_SUCCESS, BOOKING_BALANCE_SUCCESS, BOOKING_PENDING, BOOKING_CANCELLED), tính percentage và tạo cards với pastel colors
   const bookingStatusData = stats.bookingManagement.byStatus || {};
   const totalBookings = stats.bookingManagement.totalBookings || 0;
   

@@ -16,7 +16,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   const { user: authUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Resolve current user's login name to filter out self from lists
+  // Lấy tên đăng nhập của user hiện tại để lọc bỏ khỏi danh sách
   const currentLoginName = (() => {
     const n = state.currentUser?.userName || state.currentUser?.username || state.currentUser?.name || authUser?.username || authUser?.userName || authUser?.name || '';
     return (n || '').toLowerCase();
@@ -40,7 +40,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   };
 
   useEffect(() => {
-    // Load conversations when dropdown opens (only users with conversations will show)
+    // Tải danh sách cuộc trò chuyện khi dropdown mở
     if (isOpen) {
       actions.loadConversations();
       if (!state.allUsers || state.allUsers.length === 0) {
@@ -104,7 +104,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
   };
 
   const filteredConversations = (state.conversations || [])
-    // Exclude current user from conversations list (using userId)
+    // Loại bỏ user hiện tại khỏi danh sách cuộc trò chuyện
     .filter(conv => {
       const currentUserId = state.currentUser?.userId || state.currentUser?.id;
       const otherUserId = conv.user?.userId || conv.user?.id;
@@ -118,7 +118,7 @@ const ChatDropdown = ({ isOpen, onClose }) => {
     })
     .sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
 
-  // Transform conversations to user list format - only show users with conversations
+  // Chuyển đổi danh sách cuộc trò chuyện sang định dạng danh sách user
   const mergedUserList = filteredConversations.map(conv => {
     const enrichedUser = {
       ...conv.user,

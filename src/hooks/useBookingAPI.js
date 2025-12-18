@@ -1,18 +1,12 @@
 import { useState, useCallback } from 'react';
 import { createBooking, getBookingById, getAllBookings } from '../services/bookingAPI';
 
-/**
- * Custom hook for booking API operations
- */
+// Custom hook cho booking API operations: quản lý loading và error state, cung cấp createBookingAPI, fetchBookingById, fetchAllBookings, clearError
 export const useBookingAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  /**
-   * Create a new booking
-   * @param {Object} bookingData - The booking data
-   * @returns {Promise<Object>} - The created booking
-   */
+  // Tạo booking mới: set loading và clear error, gọi createBooking API, trả về created booking hoặc throw error
   const createBookingAPI = useCallback(async (bookingData) => {
     setLoading(true);
     setError(null);
@@ -28,11 +22,7 @@ export const useBookingAPI = () => {
     }
   }, []);
 
-  /**
-   * Get booking by ID
-   * @param {number} bookingId - The booking ID
-   * @returns {Promise<Object>} - The booking data
-   */
+  // Lấy booking theo ID: set loading và clear error, gọi getBookingById API, trả về booking data hoặc throw error
   const fetchBookingById = useCallback(async (bookingId) => {
     setLoading(true);
     setError(null);
@@ -48,10 +38,7 @@ export const useBookingAPI = () => {
     }
   }, []);
 
-  /**
-   * Get all bookings
-   * @returns {Promise<Array>} - Array of bookings
-   */
+  // Lấy tất cả bookings: set loading và clear error, gọi getAllBookings API, trả về array of bookings hoặc throw error
   const fetchAllBookings = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -67,9 +54,7 @@ export const useBookingAPI = () => {
     }
   }, []);
 
-  /**
-   * Clear error state
-   */
+  // Clear error state: set error về null
   const clearError = useCallback(() => {
     setError(null);
   }, []);

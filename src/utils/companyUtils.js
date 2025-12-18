@@ -15,19 +15,19 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 export const getCompanyName = async (companyId) => {
   if (!companyId) return 'N/A';
 
-  // Check cache first
+  // Kiểm tra cache trước
   if (companyNameCache.has(companyId)) {
     return companyNameCache.get(companyId);
   }
 
-  // Check if cache is still valid
+  // Kiểm tra xem cache còn hợp lệ không (5 phút)
   const now = Date.now();
   if (cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION && companyNameCache.size > 0) {
     return companyNameCache.get(companyId) || 'N/A';
   }
 
   try {
-    // Fetch all users with COMPANY role to get company information
+    // Fetch tất cả users có role COMPANY để lấy thông tin công ty
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
     const usersResponse = await fetch(API_ENDPOINTS.USERS, {
@@ -38,7 +38,7 @@ export const getCompanyName = async (companyId) => {
       const users = await usersResponse.json();
       const usersArray = Array.isArray(users) ? users : (users.result || []);
       
-      // Filter users with COMPANY role and create map
+      // Lọc users có role COMPANY và tạo map companyId -> companyName
       usersArray.forEach(user => {
         if (user.role === 'COMPANY' || user.role === 'BUSINESS') {
           const userId = user.userId || user.id || user.user_id;
@@ -50,10 +50,10 @@ export const getCompanyName = async (companyId) => {
       });
     }
 
-    // Update cache timestamp
+    // Cập nhật timestamp cache
     cacheTimestamp = now;
 
-    // Return the company name from cache
+    // Trả về tên công ty từ cache
     return companyNameCache.get(companyId) || 'N/A';
   } catch {
     return 'N/A';
@@ -73,11 +73,11 @@ export const getCompanyNames = async (companyIds) => {
   const uniqueIds = [...new Set(companyIds.filter(id => id != null))];
   const result = new Map();
 
-  // Check cache first
+  // Kiểm tra cache trước, chỉ fetch các ID chưa có trong cache
   const missingIds = uniqueIds.filter(id => !companyNameCache.has(id));
   
   if (missingIds.length === 0) {
-    // All IDs are in cache
+    // Tất cả ID đã có trong cache, trả về ngay
     uniqueIds.forEach(id => {
       result.set(id, companyNameCache.get(id) || 'N/A');
     });

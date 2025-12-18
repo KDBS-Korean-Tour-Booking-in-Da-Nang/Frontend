@@ -57,7 +57,6 @@ const TourCard = ({ tour }) => {
   };
 
   const handleCardClick = () => {
-    // Không navigate nếu modal đang mở hoặc đang trong quá trình đóng
     if (openShare || showLoginRequired || modalClosingRef.current) {
       return;
     }
@@ -65,7 +64,7 @@ const TourCard = ({ tour }) => {
   };
 
   const handleButtonClick = (e) => {
-    e.stopPropagation(); // Ngăn event bubbling lên card
+    e.stopPropagation();
   };
 
   return (
@@ -129,14 +128,12 @@ const TourCard = ({ tour }) => {
           onClose={() => {
             modalClosingRef.current = true;
             setOpenShare(false);
-            // Reset flag sau một khoảng thời gian ngắn để đảm bảo event đã xử lý xong
             setTimeout(() => {
               modalClosingRef.current = false;
             }, 100);
           }}
           tourId={tour.id}
           onShared={(post) => {
-            // Close modal then navigate to forum like TourDetailPage
             modalClosingRef.current = true;
             setOpenShare(false);
             setTimeout(() => {
@@ -153,7 +150,6 @@ const TourCard = ({ tour }) => {
           onClose={() => {
             modalClosingRef.current = true;
             setShowLoginRequired(false);
-            // Reset flag sau một khoảng thời gian ngắn để đảm bảo event đã xử lý xong
             setTimeout(() => {
               modalClosingRef.current = false;
             }, 100);

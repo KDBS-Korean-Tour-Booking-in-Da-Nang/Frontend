@@ -43,12 +43,10 @@ const ReportModal = ({ isOpen, onClose, onReport, post }) => {
         description: description.trim() || null
       });
       
-      // Reset form
       setSelectedReasons([]);
       setDescription('');
       onClose();
     } catch (error) {
-      // Silently handle error reporting post
       alert(t('forum.modals.report.submitError'));
     } finally {
       setIsSubmitting(false);

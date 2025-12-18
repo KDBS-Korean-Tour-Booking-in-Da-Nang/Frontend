@@ -13,11 +13,10 @@ import {
   resetVouchers
 } from '../store/voucherSlice';
 
-// Custom hook for voucher management
+// Custom hook cho voucher management: select individual pieces với shallowEqual để tránh unnecessary re-renders, dùng ref để lưu stable action creators, trả về state (vouchers, loading, error, filters, pagination, tours, allToursMap) và actions
 export function useVoucher() {
   const dispatch = useDispatch();
   
-  // Select individual pieces with shallowEqual to prevent unnecessary re-renders
   const vouchers = useSelector((state) => state.vouchers.vouchers, shallowEqual);
   const loading = useSelector((state) => state.vouchers.loading);
   const error = useSelector((state) => state.vouchers.error);
@@ -26,7 +25,6 @@ export function useVoucher() {
   const tours = useSelector((state) => state.vouchers.tours, shallowEqual);
   const allToursMap = useSelector((state) => state.vouchers.allToursMap, shallowEqual);
 
-  // Use ref to store stable action creators
   const actionsRef = useRef({
     setVouchers: (vouchers) => dispatch(setVouchers(vouchers)),
     setLoading: (loading) => dispatch(setLoading(loading)),
@@ -40,9 +38,8 @@ export function useVoucher() {
     resetVouchers: () => dispatch(resetVouchers())
   });
 
-  // Return object with state and stable actions
+  // Trả về object với state và stable actions (actions stable qua ref)
   return {
-    // State values
     vouchers,
     loading,
     error,
@@ -50,8 +47,6 @@ export function useVoucher() {
     pagination,
     tours,
     allToursMap,
-    
-    // Action creators - stable via ref
     ...actionsRef.current
   };
 }

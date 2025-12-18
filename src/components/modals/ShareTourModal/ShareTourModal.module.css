@@ -152,9 +152,20 @@
   font-family: inherit;
   resize: vertical;
   min-height: 100px;
-  background: #ffffff;
-  color: #1e293b;
-  transition: all 0.2s ease;
+}
+
+.caption-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  display: block;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: -12px;
+  margin-bottom: 16px;
+  margin-left: 0.25rem;
 }
 
 .caption:focus {

@@ -31,14 +31,13 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     fetchPopularHashtags();
     loadSearchHistory();
     
-    // Load saved search keyword
     const savedSearchKeyword = localStorage.getItem('forum-search-keyword');
     if (savedSearchKeyword) {
       setSearchKeyword(savedSearchKeyword);
     }
   }, []);
 
-  // Sync with external selected hashtags (from forum.jsx)
+  // Đồng bộ với external selected hashtags (từ forum.jsx): sync selectedHashtags với externalSelectedHashtags nếu không phải internal update
   useEffect(() => {
     if (externalSelectedHashtags && !isInternalUpdate.current) {
       setSelectedHashtags(externalSelectedHashtags);
@@ -54,6 +53,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     }
   }, [selectedHashtags, onHashtagFilter]);
 
+  // Load search history từ localStorage: parse JSON và set vào searchHistory state
   const loadSearchHistory = () => {
     try {
       const history = localStorage.getItem('forum-search-history');
@@ -62,30 +62,32 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
         setSearchHistory(parsedHistory);
       }
     } catch (error) {
-      // Silently handle error loading search history
+      // Silently handle error
     }
   };
 
+  // Save search history vào localStorage: thêm keyword vào đầu history, remove duplicates, giữ tối đa 10 recent searches
   const saveSearchHistory = (keyword) => {
     if (!keyword || keyword.trim() === '') return;
     
     try {
       const trimmedKeyword = keyword.trim();
-      const newHistory = [trimmedKeyword, ...searchHistory.filter(item => item !== trimmedKeyword)].slice(0, 10); // Keep only 10 recent searches
+      const newHistory = [trimmedKeyword, ...searchHistory.filter(item => item !== trimmedKeyword)].slice(0, 10);
       setSearchHistory(newHistory);
       localStorage.setItem('forum-search-history', JSON.stringify(newHistory));
     } catch (error) {
-      // Silently handle error saving search history
+      // Silently handle error
     }
   };
 
-  // Expose a refresh method to parent via global event
+  // Expose refresh method cho parent qua global event: lắng nghe 'refresh-popular-hashtags' event và gọi fetchPopularHashtags
   useEffect(() => {
     const handler = () => fetchPopularHashtags();
     window.addEventListener('refresh-popular-hashtags', handler);
     return () => window.removeEventListener('refresh-popular-hashtags', handler);
   }, []);
 
+  // Fetch popular hashtags từ API: gọi HASHTAGS_POPULAR endpoint với limit=30, map hashtags sang format (content, count), fallback về mock data nếu API fail
   const fetchPopularHashtags = async () => {
     try {
       const response = await fetch(`${API_ENDPOINTS.HASHTAGS_POPULAR}?limit=30`);
@@ -96,7 +98,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
           count: h.postCount || 0
         })));
       } else {
-        // Fallback to mock data
         const mockHashtags = [
           { content: 'technology', count: 156 },
           { content: 'business', count: 89 },
@@ -110,7 +111,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
         setPopularHashtags(mockHashtags);
       }
     } catch (error) {
-      // Fallback to mock data
       const mockHashtags = [
         { content: 'technology', count: 156 },
         { content: 'business', count: 89 },
@@ -142,21 +142,16 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     
     const hashtagContent = hashtag.content;
     
-    // Toggle hashtag selection
     setSelectedHashtags(prev => {
       let newSelected;
       if (prev.includes(hashtagContent)) {
-        // Remove if already selected
         newSelected = prev.filter(tag => tag !== hashtagContent);
       } else {
-        // Add if not selected
         newSelected = [...prev, hashtagContent];
       }
       
-      // Mark as internal update to prevent sync loop
       isInternalUpdate.current = true;
       
-      // Store pending update to be applied in useEffect
       pendingFilterUpdate.current = newSelected;
       
       return newSelected;
@@ -176,25 +171,19 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     
-    // Set flag to prevent re-fetching suggestions
     isUpdatingFromSuggestion.current = true;
     
-    // Set keyword in input
     setSearchKeyword(keyword);
-    // Trigger search immediately
     onSearch(keyword);
     
-    // Close dropdown completely
     setShowSuggest(false);
-    setSuggestions([]); // Clear suggestions to prevent re-display
-    setSelectedIndex(-1); // Reset selected index
+    setSuggestions([]);
+    setSelectedIndex(-1);
     
-    // Reset flag after a short delay
     setTimeout(() => {
       isUpdatingFromSuggestion.current = false;
     }, 500);
     
-    // Keep input focused for better UX
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -211,16 +200,17 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
     try {
       localStorage.setItem('forum-search-history', JSON.stringify(newHistory));
     } catch (error) {
-      // Silently handle error updating search history
+      // Silently handle error
     }
   };
 
+  // Clear tất cả search history: clear searchHistory state và remove từ localStorage
   const handleClearAllHistory = () => {
     setSearchHistory([]);
     try {
       localStorage.removeItem('forum-search-history');
     } catch (error) {
-      // Silently handle error clearing search history
+      // Silently handle error
     }
   };
 

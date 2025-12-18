@@ -59,6 +59,7 @@ export function createTour(partial) {
   return newTour;
 }
 
+// Cập nhật tour: merge updates vào tour hiện tại và điều chỉnh itineraryDays theo durationDays
 export function updateTour(id, updates) {
   const tours = readAllTours();
   const idx = tours.findIndex(t => t.id === id);
@@ -66,7 +67,9 @@ export function updateTour(id, updates) {
   const now = Date.now();
   const merged = { ...tours[idx], ...updates };
   const targetDays = Number(merged.durationDays) || 1;
+  // Đảm bảo itineraryDays là mảng
   if (!Array.isArray(merged.itineraryDays)) merged.itineraryDays = [];
+  // Điều chỉnh số lượng ngày trong itineraryDays theo durationDays
   if (merged.itineraryDays.length !== targetDays) {
     const next = Array.from({ length: targetDays }, (_, i) => merged.itineraryDays[i] || '');
     merged.itineraryDays = next;

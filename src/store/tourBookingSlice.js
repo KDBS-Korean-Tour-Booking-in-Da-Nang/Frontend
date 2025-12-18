@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Initial state - giống hệt với TourBookingConstants
+// Trạng thái ban đầu cho quá trình đặt tour
+// Bao gồm thông tin liên hệ, kế hoạch tour (ngày, số lượng người, thành viên, giá) và trạng thái booking
 const initialState = {
   contact: {
     fullName: '',
@@ -49,23 +50,28 @@ const tourBookingSlice = createSlice({
       state.plan.pax[incrementType] += 1;
     },
     
+    // Giảm số lượng người theo loại (người lớn, trẻ em, trẻ sơ sinh)
+    // Đảm bảo số người lớn không bao giờ dưới 1 (yêu cầu tối thiểu)
     decrementPax: (state, action) => {
       const { type: decrementType } = action.payload;
       
-      // Ensure adult count never goes below 1
+      // Nếu là người lớn và số lượng đã <= 1, không cho phép giảm thêm
       if (decrementType === 'adult' && state.plan.pax[decrementType] <= 1) {
-        return; // No change if trying to go below 1 adult
+        return;
       }
       
+      // Chỉ giảm nếu số lượng hiện tại > 0
       if (state.plan.pax[decrementType] > 0) {
         state.plan.pax[decrementType] -= 1;
       }
     },
     
+    // Cập nhật thông tin thành viên theo loại và chỉ số
+    // Tự động mở rộng mảng nếu chỉ số vượt quá độ dài hiện tại để tránh lỗi
     setMember: (state, action) => {
       const { memberType, index, partial } = action.payload;
       
-      // Ensure array has enough elements for the index
+      // Đảm bảo mảng có đủ phần tử cho chỉ số được chỉ định
       while (state.plan.members[memberType].length <= index) {
         state.plan.members[memberType].push({
           fullName: '',
@@ -76,12 +82,15 @@ const tourBookingSlice = createSlice({
         });
       }
       
+      // Cập nhật thông tin thành viên bằng cách merge với dữ liệu mới
       state.plan.members[memberType][index] = {
         ...state.plan.members[memberType][index],
         ...partial
       };
     },
     
+    // Xây dựng lại danh sách thành viên dựa trên số lượng người hiện tại (pax)
+    // Giữ lại thông tin thành viên hiện có, thêm thành viên mới nếu thiếu
     rebuildMembers: (state) => {
       const { pax } = state.plan;
       const newMembers = {
@@ -90,19 +99,20 @@ const tourBookingSlice = createSlice({
         infant: []
       };
 
-      // Rebuild members arrays based on current pax counts
+      // Xử lý từng loại thành viên (người lớn, trẻ em, trẻ sơ sinh)
       ['adult', 'child', 'infant'].forEach(type => {
         const currentMembers = state.plan.members[type] || [];
         const targetCount = pax[type];
         
-        // Keep existing members up to target count
+        // Tạo danh sách thành viên với số lượng bằng targetCount
         for (let i = 0; i < targetCount; i++) {
           const currentMember = currentMembers[i];
           
+          // Nếu đã có thông tin thành viên ở vị trí này, giữ lại
           if (currentMember && currentMember !== undefined && currentMember !== null) {
             newMembers[type].push(currentMember);
           } else {
-            // Add new empty member
+            // Nếu chưa có, tạo thành viên mới với thông tin rỗng
             newMembers[type].push({
               fullName: '',
               dob: '',
@@ -117,13 +127,15 @@ const tourBookingSlice = createSlice({
       state.plan.members = newMembers;
     },
     
+    // Tính lại tổng tiền dựa trên số lượng người và giá từ API
+    // Chỉ tính cho các loại có giá (không null), nếu không có giá thì = 0
     recalcTotal: (state, action) => {
       const { adult, child, infant } = state.plan.pax;
       
-      // Use prices from API if provided, otherwise set to 0
+      // Nhận giá từ API, nếu không có thì mặc định null
       const prices = action.payload || { adult: null, child: null, infant: null };
       
-      // Calculate totals only for non-null prices
+      // Tính tổng cho từng loại: số lượng × giá (nếu có giá)
       const adultTotal = prices.adult ? adult * prices.adult : 0;
       const childTotal = prices.child ? child * prices.child : 0;
       const infantTotal = prices.infant ? infant * prices.infant : 0;
@@ -164,14 +176,17 @@ const tourBookingSlice = createSlice({
       state.booking.bookingData = null;
     },
     
-    // Restore booking data from localStorage - batch restore to prevent infinite loops
+    // Khôi phục dữ liệu booking từ localStorage
+    // Khôi phục theo batch để tránh vòng lặp vô hạn (không trigger các effect khác trong quá trình restore)
     restoreBookingData: (state, action) => {
       const { contact, plan } = action.payload;
       
+      // Khôi phục thông tin liên hệ nếu có
       if (contact) {
         state.contact = { ...contact };
       }
       
+      // Khôi phục kế hoạch tour nếu có
       if (plan) {
         if (plan.date) {
           state.plan.date = plan.date;
@@ -179,15 +194,15 @@ const tourBookingSlice = createSlice({
         if (plan.pax) {
           state.plan.pax = { ...plan.pax };
         }
+        // Khôi phục danh sách thành viên nếu có
         if (plan.members) {
-          // Restore members if available
           state.plan.members = {
             adult: Array.isArray(plan.members.adult) ? [...plan.members.adult] : [],
             child: Array.isArray(plan.members.child) ? [...plan.members.child] : [],
             infant: Array.isArray(plan.members.infant) ? [...plan.members.infant] : []
           };
         } else if (plan.pax) {
-          // If no members but have pax, rebuild members based on pax
+          // Nếu không có danh sách thành viên nhưng có số lượng người, tự động tạo danh sách rỗng
           const { pax } = plan;
           const newMembers = {
             adult: [],

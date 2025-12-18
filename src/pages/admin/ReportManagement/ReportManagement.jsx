@@ -91,13 +91,13 @@ const ReportManagement = () => {
     setIsModalOpen(true);
   };
 
+  // Mock download functionality: hiển thị alert thông báo download started
   const handleDownloadReport = (reportId) => {
-    // Mock download functionality
     alert('Report download started!');
   };
 
+  // Mock report generation: hiển thị alert thông báo generation started
   const handleGenerateReport = (reportId) => {
-    // Mock report generation
     alert('Report generation started! You will be notified when it\'s ready.');
   };
 

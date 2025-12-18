@@ -35,21 +35,20 @@ import styles from './Step3Review.module.css';
 const Step3Review = () => {
   const { contact, plan } = useTourBooking();
   const { t } = useTranslation();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [searchParams] = useSearchParams();
   const tourId = searchParams.get('id');
   const { fetchTourById } = useToursAPI();
   const [tour, setTour] = useState(null);
   const bookingCreatedAtRef = useRef(new Date().toISOString());
   
-  // Voucher state
   const [voucherCode, setLocalVoucherCode] = useState('');
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [availableVouchers, setAvailableVouchers] = useState([]);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
+  const [voucherError, setVoucherError] = useState('');
 
-  // Load tour data to get depositPercentage
   useEffect(() => {
     let isMounted = true;
     let isCancelled = false;
@@ -63,7 +62,6 @@ const Step3Review = () => {
           setTour(tourData);
         }
       } catch (err) {
-        // Silently handle error
       }
     };
 
@@ -74,12 +72,10 @@ const Step3Review = () => {
       isCancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tourId]); // Only depend on tourId, not fetchTourById to avoid infinite loop
+  }, [tourId]);
 
-  // Load available vouchers using preview-all endpoint when component mounts or when data is ready
   useEffect(() => {
     const loadVouchers = async () => {
-      // Ensure we have all required data: tourId, adultsCount, childrenCount, babiesCount
       if (!tourId || !plan?.pax) return;
       
       const parsedTourId = Number.parseInt(tourId, 10);
@@ -89,7 +85,6 @@ const Step3Review = () => {
       const childrenCount = plan.pax.child || 0;
       const babiesCount = plan.pax.infant || 0;
       
-      // At least 1 adult is required
       if (adultsCount < 1) return;
       
       setIsLoadingVouchers(true);
@@ -101,7 +96,6 @@ const Step3Review = () => {
           babiesCount
         });
         
-        // Map response to include code field for compatibility
         const mappedVouchers = vouchers.map(v => ({
           ...v,
           code: v.voucherCode || v.code || '',
@@ -110,7 +104,6 @@ const Step3Review = () => {
         
         setAvailableVouchers(mappedVouchers);
       } catch (err) {
-        // Silently handle error
         setAvailableVouchers([]);
       } finally {
         setIsLoadingVouchers(false);
@@ -120,7 +113,6 @@ const Step3Review = () => {
     loadVouchers();
   }, [tourId, plan?.pax?.adult, plan?.pax?.child, plan?.pax?.infant]);
 
-  // Format currency helper
   const formatCurrency = (value) => {
     if (!Number.isFinite(Number(value))) return '—';
     try {
@@ -159,10 +151,8 @@ const Step3Review = () => {
   const formatNationality = (nationalityCode) => {
     if (!nationalityCode) return t('booking.step3.labels.notSet');
 
-    // Get the translated country name using the same pattern as Step2Details
     const countryName = t(`booking.step2.countries.${nationalityCode}`);
 
-    // If translation doesn't exist, return the code itself
     return countryName !== `booking.step2.countries.${nationalityCode}` ? countryName : nationalityCode;
   };
 
@@ -228,13 +218,10 @@ const Step3Review = () => {
     );
   };
 
-  // Calculate payment amounts
-  // Use values from API response if voucher is applied, otherwise calculate from plan
   const originalTotal = plan.price?.total || plan.total || 0;
   const depositPercentage = tour?.depositPercentage || 0;
   const isOneTimePayment = depositPercentage === 100;
   
-  // If voucher is applied, use values from API response
   let discountAmount = 0;
   let finalTotal = originalTotal;
   let finalDepositAmount = depositPercentage < 100 
@@ -246,23 +233,23 @@ const Step3Review = () => {
   let oneTimePayment = isOneTimePayment;
   
   if (appliedVoucher) {
-    // Use values from API response (ApplyVoucherResponse)
     discountAmount = Number(appliedVoucher.discountAmount || 0);
     finalTotal = Number(appliedVoucher.finalTotal || appliedVoucher.finalTotalAmount || originalTotal);
     finalDepositAmount = Number(appliedVoucher.finalDepositAmount || finalDepositAmount);
     finalRemainingAmount = Number(appliedVoucher.finalRemainingAmount || finalRemainingAmount);
-    // Use oneTimePayment from API response if available
     oneTimePayment = appliedVoucher.oneTimePayment !== undefined 
       ? appliedVoucher.oneTimePayment 
       : isOneTimePayment;
   }
 
-  // Handle voucher code input
   const handleVoucherCodeChange = (e) => {
     setLocalVoucherCode(e.target.value);
+    // Clear error when user types
+    if (voucherError) {
+      setVoucherError('');
+    }
   };
 
-  // Save voucher code to localStorage
   useEffect(() => {
     if (tourId) {
       try {
@@ -273,12 +260,10 @@ const Step3Review = () => {
           localStorage.setItem(`bookingData_${tourId}`, JSON.stringify(parsed));
         }
       } catch (err) {
-        // Silently handle error
       }
     }
   }, [appliedVoucher, tourId]);
 
-  // Load voucher code from localStorage on mount
   useEffect(() => {
     if (tourId) {
       try {
@@ -296,38 +281,34 @@ const Step3Review = () => {
           }
         }
       } catch (err) {
-        // Silently handle error
       }
     }
   }, [tourId, availableVouchers.length]);
 
-  // Handle apply voucher from code
   const handleApplyVoucher = () => {
     const codeToApply = voucherCode.trim().toUpperCase();
     if (!codeToApply) {
-      showError(t('booking.step3.payment.voucherCodeRequired') || 'Vui lòng nhập mã voucher');
+      setVoucherError(t('booking.step3.payment.voucherCodeRequired') || 'Vui lòng nhập mã voucher');
       return;
     }
 
-    // Find voucher in available vouchers list (from API response)
     const matched = availableVouchers.find(v => {
       const vCode = (v.code || v.voucherCode || '').toUpperCase().trim();
       return vCode === codeToApply;
     });
 
     if (!matched) {
-      showError(t('booking.step3.payment.voucherInvalid') || 'Mã voucher không hợp lệ');
+      setVoucherError(t('booking.step3.payment.voucherInvalid') || 'Mã voucher không hợp lệ');
       setAppliedVoucher(null);
       return;
     }
 
-    // Apply voucher - the matched voucher already contains all calculated values from API
+    setVoucherError('');
     setAppliedVoucher(matched);
     setLocalVoucherCode(matched.code || matched.voucherCode || codeToApply);
     showSuccess(t('booking.step3.payment.voucherApplied') || 'Voucher đã được áp dụng');
   };
 
-  // Handle select voucher from list
   const handleSelectVoucherFromList = (voucher) => {
     const code = voucher.code || voucher.voucherCode || '';
     if (!code) return;
@@ -338,22 +319,17 @@ const Step3Review = () => {
     showSuccess(t('booking.step3.payment.voucherApplied') || 'Voucher đã được áp dụng');
   };
 
-  // Handle remove voucher
   const handleRemoveVoucher = () => {
     setLocalVoucherCode('');
     setAppliedVoucher(null);
     showSuccess(t('booking.step3.payment.voucherRemoved') || 'Voucher đã được gỡ bỏ');
   };
 
-  // Confirmation is handled by parent component
-
   return (
     <div className={styles['review-form']}>
-      {/* Tour Preview */}
       <TourPreview createdAt={bookingCreatedAtRef.current} />
 
       <div className={styles['summary-columns']}>
-        {/* Contact Information Review */}
         <div className={styles['review-section']}>
           <h3 className={styles['review-title']}>
             <UserCircle2 className={styles['title-icon']} />
@@ -420,7 +396,6 @@ const Step3Review = () => {
           )}
         </div>
 
-        {/* Guests Information Review */}
         <div className={styles['review-section']}>
           <h3 className={styles['review-title']}>
             <Users className={styles['title-icon']} />
@@ -461,7 +436,6 @@ const Step3Review = () => {
         </div>
       </div>
 
-      {/* Members List Review */}
       <div className={styles['form-section']}>
         <h3 className={styles['section-title']}>
           <Users className={styles['title-icon']} />
@@ -472,7 +446,6 @@ const Step3Review = () => {
         {renderMembersTable('infant', plan.members.infant)}
       </div>
 
-      {/* ========== PAYMENT SUMMARY SECTION - NEW ========== */}
       <div className={styles['form-section']}>
         <h3 className={styles['section-title']}>
           <CreditCard className={styles['title-icon']} />
@@ -480,7 +453,6 @@ const Step3Review = () => {
         </h3>
 
         <div className={styles['payment-summary']}>
-          {/* Total Tour Price - strikethrough when voucher is applied */}
           <div className={styles['payment-row']}>
             <span className={styles['payment-label']}>
               {t('booking.step3.payment.totalAmount')}
@@ -490,7 +462,6 @@ const Step3Review = () => {
             </span>
           </div>
 
-          {/* Voucher Code Section */}
           <div className={styles['voucher-section']}>
             <div className={styles['voucher-header']}>
               <Tag className={styles['voucher-icon']} size={18} strokeWidth={1.5} />
@@ -507,7 +478,7 @@ const Step3Review = () => {
                   }
                 }}
                 placeholder={t('booking.step3.payment.voucherPlaceholder') || 'Enter voucher code'}
-                className={styles['voucher-input']}
+                className={`${styles['voucher-input']} ${voucherError ? styles['voucher-input-error'] : ''}`}
                 disabled={!!appliedVoucher}
               />
               {appliedVoucher ? (
@@ -531,6 +502,9 @@ const Step3Review = () => {
                 </button>
               )}
             </div>
+            {voucherError && (
+              <span className={styles['voucher-error']}>{voucherError}</span>
+            )}
             {!appliedVoucher && voucherCode && (
               <button
                 type="button"
@@ -542,24 +516,19 @@ const Step3Review = () => {
             )}
           </div>
 
-          {/* Discount Amount (when voucher is applied) */}
           {appliedVoucher && discountAmount > 0 && (() => {
             const discountType = appliedVoucher.discountType || appliedVoucher.meta?.discountType;
             const discountValue = appliedVoucher.discountValue || appliedVoucher.meta?.discountValue || 0;
             
-            // Display based on discount type
             let discountDisplay = '';
             if (discountType === 'PERCENT' || discountType === 'PERCENTAGE') {
-              // Show percentage discount (e.g., -20%)
               const percentValue = Number.isFinite(Number(discountValue)) 
                 ? Math.round(Number(discountValue))
                 : discountValue;
               discountDisplay = `-${percentValue}%`;
             } else if (discountType === 'FIXED' || discountType === 'AMOUNT') {
-              // Show fixed amount discount (e.g., -50,000 KRW)
               discountDisplay = `-${formatCurrency(discountAmount)}`;
             } else {
-              // Fallback: show amount if type is unknown
               discountDisplay = `-${formatCurrency(discountAmount)}`;
             }
             
@@ -575,7 +544,6 @@ const Step3Review = () => {
             );
           })()}
 
-          {/* Final Total (after voucher) - always show when voucher is applied */}
           {appliedVoucher && (
             <div className={styles['payment-row']}>
               <span className={styles['payment-label']}>
@@ -587,10 +555,8 @@ const Step3Review = () => {
             </div>
           )}
 
-          {/* Deposit and Balance - only show if NOT oneTimePayment */}
           {!oneTimePayment && (
             <>
-              {/* Deposit (after voucher if applied) */}
               <div className={styles['payment-row']}>
                 <span className={styles['payment-label']}>
                   {t('booking.step3.payment.depositAmount')}
@@ -601,7 +567,6 @@ const Step3Review = () => {
                 </span>
               </div>
 
-              {/* Balance (after voucher if applied) */}
               {depositPercentage < 100 && (
                 <div className={styles['payment-row']}>
                   <span className={styles['payment-label']}>
@@ -615,7 +580,6 @@ const Step3Review = () => {
             </>
           )}
 
-          {/* Amount to Pay */}
           <div className={`${styles['payment-row']} ${styles['payment-due']}`}>
             <span className={styles['payment-label']}>
               {t('booking.step3.payment.paymentDue')}
@@ -627,7 +591,6 @@ const Step3Review = () => {
         </div>
       </div>
 
-      {/* Voucher List Modal */}
       {isVoucherModalOpen && (
         <div className={styles['voucher-modal-overlay']} onClick={() => setIsVoucherModalOpen(false)}>
           <div className={styles['voucher-modal-container']} onClick={(e) => e.stopPropagation()}>
@@ -699,12 +662,8 @@ const Step3Review = () => {
           </div>
         </div>
       )}
-
-      {/* Navigation is handled by parent component */}
     </div>
   );
 };
-
-// No props needed - navigation handled by parent
 
 export default Step3Review;

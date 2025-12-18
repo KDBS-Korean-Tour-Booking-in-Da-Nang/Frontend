@@ -35,7 +35,7 @@ const ComplaintManagement = () => {
 
   const isAdminOrStaff = user && (user.role === 'ADMIN' || user.role === 'STAFF');
 
-  // Load all complaints on mount
+  // Load all complaints khi mount: gọi getAllComplaints với auto redirect 401 cho user-initiated actions
   useEffect(() => {
     loadAllComplaints();
   }, []);
@@ -44,30 +44,26 @@ const ComplaintManagement = () => {
     setLoading(true);
     setError('');
     try {
-      // Auto redirect on 401 for user-initiated actions
       const data = await getAllComplaints(true);
       setAllComplaints(Array.isArray(data) ? data : []);
       setComplaints(Array.isArray(data) ? data : []);
     } catch (err) {
-      // Silently handle error loading complaints
       setError(err?.message || 'Failed to load complaints.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter complaints based on search and status
+  // Filter complaints dựa trên search và status: filter theo status (pending=không có resolutionType, resolved=có resolutionType), search trong complaintId (number) hoặc message (case-insensitive)
   const filteredComplaints = useMemo(() => {
     let filtered = [...allComplaints];
 
-    // Filter by status
     if (filterStatus === 'pending') {
       filtered = filtered.filter((c) => !c.resolutionType);
     } else if (filterStatus === 'resolved') {
       filtered = filtered.filter((c) => c.resolutionType);
     }
 
-    // Filter by search
     if (searchInput.trim()) {
       if (searchType === 'complaintId') {
         const id = Number(searchInput.trim());
@@ -77,7 +73,6 @@ const ComplaintManagement = () => {
           filtered = [];
         }
       } else {
-        // Search in message
         const searchLower = searchInput.toLowerCase();
         filtered = filtered.filter((c) =>
           c.message?.toLowerCase().includes(searchLower)
@@ -97,7 +92,7 @@ const ComplaintManagement = () => {
 
   const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset về page đầu tiên khi filters thay đổi (searchInput, searchType, filterStatus)
   useEffect(() => {
     setCurrentPage(0);
   }, [searchInput, searchType, filterStatus]);
@@ -128,7 +123,6 @@ const ComplaintManagement = () => {
     try {
       const complaint = await getComplaintById(id);
       if (complaint) {
-        // Check if complaint already exists in list, otherwise add it
         const exists = allComplaints.some((c) => c.complaintId === complaint.complaintId);
         if (!exists) {
           setAllComplaints([...allComplaints, complaint]);

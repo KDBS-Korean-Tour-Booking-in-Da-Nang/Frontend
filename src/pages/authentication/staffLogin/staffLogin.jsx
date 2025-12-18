@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { getApiPath } from '../../../config/api';
@@ -12,6 +13,7 @@ const StaffLogin = () => {
   const [error, setError] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const { t } = useTranslation();
   const { login } = useAuth();
   const { showSuccess } = useToast();
   const navigate = useNavigate();
@@ -89,7 +91,7 @@ const StaffLogin = () => {
           };
 
           login(user, token, false);
-          showSuccess('Login successful!');
+          showSuccess(t('toast.auth.login_success'));
           navigate('/staff/tasks');
         } else {
           setError(`This account does not have permission to access staff area. Current role: ${userData.role}. Only STAFF can log in to this page.`);

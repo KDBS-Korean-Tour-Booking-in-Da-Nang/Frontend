@@ -37,29 +37,29 @@ const STATUS_KEYS = {
 };
 
 const statusColorMap = {
-  // Thanh toán chờ: cam đậm
-  [STATUS_KEYS.PENDING_PAYMENT]: '#F97316',              // Orange
-  [STATUS_KEYS.PENDING_DEPOSIT_PAYMENT]: '#EA580C',      // Orange darker (riêng biệt)
-  [STATUS_KEYS.PENDING_BALANCE_PAYMENT]: '#F59E0B',      // Amber
-  [STATUS_KEYS.WAITING_FOR_APPROVED]: '#3B82F6',         // Blue
-  [STATUS_KEYS.WAITING_FOR_UPDATE]: '#8B5CF6',           // Purple
-  [STATUS_KEYS.BOOKING_REJECTED]: '#EF4444',             // Red
-  [STATUS_KEYS.BOOKING_FAILED]: '#DC2626',               // Red darker
-  // Đã duyệt nhưng chờ tour diễn ra: teal
-  [STATUS_KEYS.BOOKING_BALANCE_SUCCESS]: '#14B8A6',      // Teal
-  [STATUS_KEYS.BOOKING_SUCCESS_PENDING]: '#06B6D4',      // Cyan (riêng biệt)
-  [STATUS_KEYS.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED]: '#2563EB', // Blue darker
-  // Đang khiếu nại: vàng tươi
-  [STATUS_KEYS.BOOKING_UNDER_COMPLAINT]: '#EAB308',      // Yellow
-  [STATUS_KEYS.BOOKING_SUCCESS]: '#10B981',              // Green
-  [STATUS_KEYS.BOOKING_CANCELLED]: '#9CA3AF'             // Gray
+  [STATUS_KEYS.PENDING_PAYMENT]: '#F97316',
+  [STATUS_KEYS.PENDING_DEPOSIT_PAYMENT]: '#EA580C',
+  [STATUS_KEYS.PENDING_BALANCE_PAYMENT]: '#F59E0B',
+  [STATUS_KEYS.WAITING_FOR_APPROVED]: '#3B82F6',
+  [STATUS_KEYS.WAITING_FOR_UPDATE]: '#8B5CF6',
+  [STATUS_KEYS.BOOKING_REJECTED]: '#EF4444',
+  [STATUS_KEYS.BOOKING_FAILED]: '#DC2626',
+  [STATUS_KEYS.BOOKING_BALANCE_SUCCESS]: '#14B8A6',
+  [STATUS_KEYS.BOOKING_SUCCESS_PENDING]: '#06B6D4',
+  [STATUS_KEYS.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED]: '#2563EB',
+  [STATUS_KEYS.BOOKING_UNDER_COMPLAINT]: '#EAB308',
+  [STATUS_KEYS.BOOKING_SUCCESS]: '#10B981',
+  [STATUS_KEYS.BOOKING_CANCELLED]: '#9CA3AF'
 };
 
+// Chuẩn hóa status booking từ nhiều định dạng về key thống nhất
+// Hỗ trợ: number, string numeric, legacy status, new status
 const normalizeStatus = (status) => {
   if (status === null || status === undefined) {
     return STATUS_KEYS.PENDING_PAYMENT;
   }
 
+  // Xử lý status dạng number (legacy format)
   if (typeof status === 'number') {
     if (status === 1) return STATUS_KEYS.BOOKING_SUCCESS;
     if (status === 2) return STATUS_KEYS.BOOKING_REJECTED;
@@ -68,14 +68,17 @@ const normalizeStatus = (status) => {
 
   const raw = String(status).trim().toUpperCase();
 
+  // Xử lý string numeric
   if (raw === '0') return STATUS_KEYS.PENDING_PAYMENT;
   if (raw === '1') return STATUS_KEYS.BOOKING_SUCCESS;
   if (raw === '2') return STATUS_KEYS.BOOKING_REJECTED;
 
+  // Kiểm tra xem có phải key mới không
   if (STATUS_KEYS[raw]) {
     return STATUS_KEYS[raw];
   }
 
+  // Map các status legacy (từ hệ thống cũ)
   const legacyMap = {
     PURCHASED: STATUS_KEYS.BOOKING_SUCCESS,
     CONFIRMED: STATUS_KEYS.WAITING_FOR_APPROVED,
@@ -85,7 +88,7 @@ const normalizeStatus = (status) => {
     SUCCESS: STATUS_KEYS.BOOKING_SUCCESS
   };
 
-  // Thêm mapping cho status mới
+  // Map các status mới
   const newStatusMap = {
     PENDING_DEPOSIT_PAYMENT: STATUS_KEYS.PENDING_DEPOSIT_PAYMENT,
     PENDING_BALANCE_PAYMENT: STATUS_KEYS.PENDING_BALANCE_PAYMENT,
@@ -100,11 +103,15 @@ const normalizeStatus = (status) => {
   return legacyMap[raw] || STATUS_KEYS.PENDING_PAYMENT;
 };
 
+// Chuẩn hóa transaction status từ nhiều định dạng về string thống nhất
+// Hỗ trợ: number (1=SUCCESS, 2=FAILED, 3=CANCELLED), string
 const normalizeTransaction = (trx) => {
   if (!trx && typeof trx !== 'number') return undefined;
+  // Xử lý transaction status dạng number (legacy format)
   if (typeof trx === 'number') {
     return trx === 1 ? 'SUCCESS' : trx === 2 ? 'FAILED' : trx === 3 ? 'CANCELLED' : 'PENDING';
   }
+  // Chuyển string về uppercase
   return String(trx || '').toUpperCase();
 };
 
@@ -125,7 +132,7 @@ const getTransactionStatusColor = (status) => {
   }
 };
 
-// Statuses that allow cancellation
+// Danh sách các status cho phép hủy booking
 const CANCELLABLE_STATUSES = [
   'WAITING_FOR_APPROVED',
   'WAITING_FOR_UPDATE',
@@ -133,7 +140,6 @@ const CANCELLABLE_STATUSES = [
   'BOOKING_BALANCE_SUCCESS'
 ];
 
-// Format currency helper
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '0 ₫';
   return new Intl.NumberFormat('vi-VN', {
@@ -142,7 +148,7 @@ const formatCurrency = (value) => {
   }).format(Number(value || 0));
 };
 
-// Format VND to KRW (VND / 18)
+// Format giá trị VND sang KRW (tỷ lệ 1 KRW = 18 VND)
 const formatKRW = (vndValue) => {
   if (vndValue === null || vndValue === undefined) return '0 KRW';
   const krwValue = Math.round(Number(vndValue || 0) / 18);
@@ -163,9 +169,8 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   const [voucherPreview, setVoucherPreview] = useState(null);
   const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentType, setPaymentType] = useState(null); // 'deposit', 'full', 'balance'
+  const [paymentType, setPaymentType] = useState(null);
 
-  // Map i18n language to locale
   const getLocale = () => {
     const lang = localStorage.getItem('i18nextLng') || 'vi';
     const localeMap = { vi: 'vi-VN', en: 'en-US', ko: 'ko-KR' };
@@ -185,21 +190,20 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     navigate(`/user/booking?id=${booking.bookingId}`);
   };
 
-  // Load voucher preview using bookingId (backend will get voucherCode from booking)
-  // Chỉ gọi API khi booking có voucherCode hợp lệ để tránh lỗi 404
+  // Load voucher preview cho booking
+  // Chỉ load nếu có voucherCode hợp lệ để tránh lỗi 404
   useEffect(() => {
     const loadVoucherPreview = async () => {
       if (!booking?.bookingId) return;
       
-      // Kiểm tra xem booking có voucherCode hợp lệ hay không
       const bookingVoucherCode = booking?.voucherCode;
+      // Kiểm tra voucherCode có hợp lệ không (không phải 'none', null, undefined, hoặc rỗng)
       const hasValidVoucherCode = bookingVoucherCode && 
         bookingVoucherCode !== 'none' && 
         bookingVoucherCode.trim() !== '' &&
         bookingVoucherCode !== null &&
         bookingVoucherCode !== undefined;
       
-      // Nếu không có voucher, không gọi API
       if (!hasValidVoucherCode) {
         setVoucherPreview(null);
         setIsLoadingVoucher(false);
@@ -208,13 +212,11 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
       
       setIsLoadingVoucher(true);
       try {
-        // Call API without voucherCode - backend will get it from booking
         const preview = await previewApplyVoucher(booking.bookingId);
         if (preview) {
           setVoucherPreview(preview);
         }
       } catch {
-        // Silently handle error - booking may not have voucher
         setVoucherPreview(null);
       } finally {
         setIsLoadingVoucher(false);
@@ -224,18 +226,17 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     loadVoucherPreview();
   }, [booking?.bookingId, booking?.voucherCode]);
 
+  // Xử lý thanh toán: xác định loại thanh toán (deposit, full, balance) dựa trên status
   const handlePay = (e) => {
     e.stopPropagation();
     if (!booking?.bookingId) return;
     
-    // Determine payment type based on status (same logic as BookingDetail)
-    // Check raw bookingStatus first, then fallback to effectiveStatus
     const rawStatus = booking?.bookingStatus || booking?.status;
     const statusString = String(rawStatus || '').toUpperCase();
     
-    let type = 'full'; // Default for PENDING_PAYMENT (full payment)
+    let type = 'full';
     
-    // Priority: PENDING_DEPOSIT_PAYMENT -> deposit, PENDING_BALANCE_PAYMENT -> balance
+    // Xác định loại thanh toán dựa trên status
     if (statusString === 'PENDING_DEPOSIT_PAYMENT') {
       type = 'deposit';
     } else if (statusString === 'PENDING_BALANCE_PAYMENT') {
@@ -243,7 +244,7 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     } else if (statusString === 'PENDING_PAYMENT') {
       type = 'full';
     } else {
-      // Fallback to effectiveStatus if rawStatus doesn't match
+      // Fallback: dùng effectiveStatus nếu statusString không khớp
       if (effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT) {
         type = 'deposit';
       } else if (effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) {
@@ -261,28 +262,29 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     setShowPaymentModal(false);
     if (!booking?.bookingId) return;
 
-    // Navigate to payment page - BookingCheckPaymentPage will call preview-apply with bookingId automatically
     const state = {
       booking,
       fromBookingHistory: true,
       fromBookingDetail: false,
-      paymentType: paymentType, // 'deposit', 'full', or 'balance'
+      paymentType: paymentType,
       isBalancePayment: paymentType === 'balance'
     };
 
     navigate(`/booking/payment?id=${booking.bookingId}`, { state });
   };
 
-  // Compute effective booking status based on transaction
+  // Xác định status hiệu quả: ưu tiên transaction status (nếu SUCCESS thì booking thành công)
+  // Nếu không có transaction SUCCESS thì dùng booking status
   const effectiveStatus = (() => {
     const trxRaw = booking?.transactionStatus ?? booking?.latestTransactionStatus;
     const trx = normalizeTransaction(trxRaw);
+    // Nếu transaction đã thành công, booking được coi là thành công
     if (trx === 'SUCCESS') return STATUS_KEYS.BOOKING_SUCCESS;
+    // Nếu không, dùng booking status
     const rawStatus = booking?.status ?? booking?.bookingStatus;
     return normalizeStatus(rawStatus);
   })();
 
-  // Check if booking can be cancelled
   const canCancelBooking = useMemo(() => {
     const rawStatus = booking?.status ?? booking?.bookingStatus;
     const statusString = String(rawStatus || '').toUpperCase();
@@ -314,7 +316,6 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   const statusColor = getStatusColor(effectiveStatus);
 
   const handleCardClick = (e) => {
-    // Prevent navigation if clicking on the button itself (to avoid double navigation)
     if (e.target.closest(`.${styles['view-details-btn']}`)) {
       return;
     }
@@ -322,10 +323,11 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   };
 
   const handleButtonClick = (e) => {
-    e.stopPropagation(); // Prevent card click from firing
+    e.stopPropagation();
     handleViewDetails();
   };
 
+  // Xử lý click hủy booking: mở modal ngay và load preview thông tin hoàn tiền
   const handleCancelClick = async (e) => {
     e.stopPropagation();
     setIsLoadingPreview(true);
@@ -333,9 +335,10 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     setCancelPreview(null);
     setHasConfirmedCancel(false);
     modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
-    setShowCancelModal(true); // Open modal immediately
+    setShowCancelModal(true); // Mở modal ngay để user thấy loading state
 
     try {
+      // Load preview thông tin hoàn tiền từ API
       const preview = await previewCancelBooking(booking.bookingId);
       setCancelPreview(preview);
     } catch (error) {
@@ -348,29 +351,23 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
   const handleCloseModal = useCallback(async (e) => {
     if (e) e.stopPropagation();
     
-    // If modal was showing success, show loading and call the refresh callback
     if (hasConfirmedCancel && modalShouldStayOpenRef.current?.callback) {
       setIsClosingModal(true);
       const callback = modalShouldStayOpenRef.current.callback;
-      // Reset ref first
       modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
       
-      // Wait a bit for smooth transition, then call callback
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Call refresh callback
       if (callback) {
         callback();
       }
       
-      // Close modal after callback
       setShowCancelModal(false);
       setHasConfirmedCancel(false);
       setCancelPreview(null);
       setCancelError(null);
       setIsClosingModal(false);
     } else {
-      // Normal close
       modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
       setShowCancelModal(false);
       setHasConfirmedCancel(false);
@@ -388,24 +385,16 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
     try {
       const result = await cancelBooking(booking.bookingId);
       
-      // Mark that modal should stay open to show success message
       modalShouldStayOpenRef.current = { 
         shouldStayOpen: true, 
         callback: onBookingCancelled || null 
       };
       
-      // Ensure modal is open
       setShowCancelModal(true);
-      
-      // Set success state - this will trigger the slide animation
       setHasConfirmedCancel(true);
-      
-      // Don't call onBookingCancelled() immediately - wait until user closes modal
-      // This prevents re-render from closing the modal
-      // Store the callback to call later when modal closes
     } catch (error) {
       setCancelError(error.message || 'Không thể hủy booking. Vui lòng thử lại.');
-      setHasConfirmedCancel(false); // Reset on error
+      setHasConfirmedCancel(false);
       modalShouldStayOpenRef.current = { shouldStayOpen: false, callback: null };
     } finally {
       setIsCancelling(false);
@@ -635,18 +624,18 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
               </div>
             </div>
 
-            {/* Show amount to pay based on status - use voucher preview if available */}
-            {/* Only show deposit/remaining if NOT oneTimePayment */}
+            {/* Hiển thị thông tin thanh toán: ưu tiên số tiền đã lưu (totalDiscountAmount, depositDiscountAmount), sau đó dùng voucherPreview */}
             {(() => {
+              // Xác định xem có phải thanh toán một lần không (100% deposit hoặc 0% deposit)
               const isOneTimePayment = voucherPreview?.oneTimePayment || 
                 (booking?.depositPercentage === 100) || 
                 (booking?.depositPercentage === 0);
               
+              // Nếu thanh toán một lần, hiển thị tổng tiền cần thanh toán
               if (isOneTimePayment) {
-                // For oneTimePayment, show total amount to pay
                 if (effectiveStatus === STATUS_KEYS.PENDING_PAYMENT || 
                     effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT) {
-                  // Priority: booking.totalDiscountAmount (saved in DB) > voucherPreview > booking.totalAmount
+                  // Ưu tiên totalDiscountAmount đã lưu, sau đó voucherPreview, cuối cùng là booking.totalAmount
                   const totalAmount = booking?.totalDiscountAmount != null && booking.totalDiscountAmount > 0
                     ? booking.totalDiscountAmount
                     : (voucherPreview?.finalTotal ?? booking.totalAmount ?? booking.totalPrice ?? 0);
@@ -666,14 +655,14 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 return null;
               }
               
-              // For non-oneTimePayment, show deposit or balance
+              // Nếu cần thanh toán cọc, hiển thị số tiền cọc
               if (effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT ||
                   effectiveStatus === STATUS_KEYS.PENDING_PAYMENT) {
-                // Priority: booking.depositDiscountAmount (saved in DB) > voucherPreview > booking.depositAmount
                 const depositDiscountAmount = booking?.depositDiscountAmount;
                 const finalDepositFromPreview = voucherPreview?.finalDepositAmount;
                 const originalDeposit = booking.depositAmount ?? booking.deposit ?? 0;
                 
+                // Ưu tiên depositDiscountAmount đã lưu, sau đó voucherPreview, cuối cùng là originalDeposit
                 const depositAmount = depositDiscountAmount != null && depositDiscountAmount > 0
                   ? depositDiscountAmount
                   : (finalDepositFromPreview != null 
@@ -693,19 +682,19 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                 );
               }
               
+              // Nếu cần thanh toán số tiền còn lại, tính toán và hiển thị
               if (effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) {
-                // Calculate remaining amount
-                // Priority: Calculate from booking.depositDiscountAmount & totalDiscountAmount > voucherPreview > booking values
                 let remainingAmount = 0;
                 
                 const depositDiscountAmount = booking?.depositDiscountAmount;
                 const totalDiscountAmount = booking?.totalDiscountAmount;
                 
-                // If booking has depositDiscountAmount and totalDiscountAmount (voucher was applied and saved in DB)
+                // Ưu tiên dùng số tiền đã lưu (totalDiscountAmount - depositDiscountAmount)
                 if (depositDiscountAmount != null && totalDiscountAmount != null) {
                   remainingAmount = Math.max(0, Number(totalDiscountAmount) - Number(depositDiscountAmount));
-                } else if (voucherPreview) {
-                  // Use voucherPreview if available
+                } 
+                // Nếu không có, dùng voucherPreview
+                else if (voucherPreview) {
                   if (voucherPreview.finalRemainingAmount != null && voucherPreview.finalRemainingAmount !== undefined) {
                     remainingAmount = Number(voucherPreview.finalRemainingAmount) || 0;
                   } else if (voucherPreview.finalTotal && voucherPreview.finalDepositAmount != null && voucherPreview.finalDepositAmount !== undefined) {
@@ -713,8 +702,9 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
                   } else {
                     remainingAmount = 0;
                   }
-                } else {
-                  // No voucher: calculate from booking values
+                } 
+                // Cuối cùng, tính từ booking (total - deposit)
+                else {
                   const total = booking.totalPrice || booking.totalAmount || 0;
                   const deposit = booking.depositAmount || booking.deposit || 0;
                   remainingAmount = Math.max(0, total - deposit);
@@ -751,7 +741,6 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
 
         <div className={styles['card-footer']}>
           <div className={styles['action-buttons']}>
-            {/* Pay button for pending payment statuses */}
             {(effectiveStatus === STATUS_KEYS.PENDING_DEPOSIT_PAYMENT ||
               effectiveStatus === STATUS_KEYS.PENDING_PAYMENT ||
               effectiveStatus === STATUS_KEYS.PENDING_BALANCE_PAYMENT) && (
@@ -787,7 +776,6 @@ const BookingHistoryCard = ({ booking, onBookingCancelled }) => {
       </div>
       {modalNode}
       
-      {/* Payment Confirmation Modal */}
       <PaymentConfirmModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}

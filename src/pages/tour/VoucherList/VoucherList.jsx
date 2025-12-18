@@ -50,7 +50,6 @@ const VoucherList = () => {
   const { showSuccess } = useToast();
   const { user, loading: authLoading } = useAuth();
   
-  // Use Redux hook for state management
   const {
     vouchers,
     loading,
@@ -64,7 +63,6 @@ const VoucherList = () => {
     resetVouchers
   } = useVoucher();
   
-  // Local state (UI only)
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY);
   const [refreshing, setRefreshing] = useState(false);
   const [_companyNamesMap, setCompanyNamesMap] = useState(new Map());
@@ -72,7 +70,6 @@ const VoucherList = () => {
   const filterType = filters.filterType;
   const sortBy = filters.sortBy;
 
-  // Redirect to login if user is not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login', { 
@@ -84,13 +81,11 @@ const VoucherList = () => {
     }
   }, [user, authLoading, navigate]);
   
-  // Refetch function that can be called manually
   const fetchVouchers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Fetch all vouchers from API
       const allVouchers = await getAllVouchers();
       
       if (!Array.isArray(allVouchers)) {
@@ -99,8 +94,6 @@ const VoucherList = () => {
         return;
       }
       
-      // Map backend response to frontend format
-      // Map FIXED -> AMOUNT for display (backend uses FIXED, frontend displays as AMOUNT)
       const mappedVouchers = allVouchers.map(v => ({
         id: v.voucherId || v.id,
         voucherId: v.voucherId || v.id,
@@ -116,46 +109,36 @@ const VoucherList = () => {
         endDate: v.endDate,
         status: v.status,
         createdAt: v.createdAt || v.startDate || new Date().toISOString(),
-        // Note: tourIds is not in VoucherResponse, so we set it to empty array
-        // If voucher has tour mappings, it will be handled in detail page
         tourIds: []
       }));
       
-      // Filter only ACTIVE vouchers for users
       const now = new Date();
       const isCompany = user && user.role === 'COMPANY';
       
       const activeVouchers = mappedVouchers.filter(v => {
-        // Check status - allow ACTIVE status (case-insensitive)
         const status = v.status ? v.status.toUpperCase() : '';
         if (status !== 'ACTIVE') {
           return false;
         }
         
-        // For non-company users: only show vouchers that have started (startDate <= now)
-        // For company users: show all vouchers regardless of startDate
         if (!isCompany) {
           const startDate = v.startDate ? new Date(v.startDate) : null;
           if (startDate) {
             startDate.setHours(0, 0, 0, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            // If startDate is in the future, don't show to regular users
             if (startDate > today) {
               return false;
             }
           }
         }
         
-        // Check if voucher is currently valid (between startDate and endDate)
         const endDate = v.endDate ? new Date(v.endDate) : null;
         
-        // Only filter out if endDate is in the past
         if (endDate && now > endDate) {
           return false;
         }
         
-        // Check remaining quantity
         if (v.remainingQuantity !== null && v.remainingQuantity !== undefined && v.remainingQuantity <= 0) {
           return false;
         }
@@ -165,7 +148,6 @@ const VoucherList = () => {
       
       setVouchers(activeVouchers);
       
-      // Fetch company names for all unique companyIds
       const uniqueCompanyIds = [...new Set(activeVouchers.map(v => v.companyId).filter(Boolean))];
       if (uniqueCompanyIds.length > 0) {
         const namesMap = await getCompanyNames(uniqueCompanyIds);
@@ -181,22 +163,18 @@ const VoucherList = () => {
   }, [setLoading, setError, setVouchers, t]);
 
   useEffect(() => {
-    // Chỉ fetch vouchers nếu user đã đăng nhập
     if (user && !authLoading) {
       fetchVouchers();
     }
   }, [fetchVouchers, user, authLoading]);
 
-  // Filter and sort vouchers
   const filteredAndSortedVouchers = useMemo(() => {
     let filtered = [...vouchers];
     
-    // Filter by type (PERCENT, AMOUNT, or ALL)
     if (filterType !== 'ALL') {
       filtered = filtered.filter(v => v.discountType === filterType);
     }
     
-    // Sort by newest/oldest
     filtered.sort((a, b) => {
       const dateA = new Date(a.createdAt || a.startDate || 0);
       const dateB = new Date(b.createdAt || b.startDate || 0);
@@ -217,7 +195,6 @@ const VoucherList = () => {
 
   const hasMore = filteredAndSortedVouchers.length > displayCount;
   
-  // Reset display count when filter changes
   useEffect(() => {
     setDisplayCount(INITIAL_DISPLAY);
   }, [filterType, sortBy]);
@@ -252,7 +229,6 @@ const VoucherList = () => {
     return null;
   };
 
-  // Show loading while checking auth or fetching vouchers
   if (authLoading || (!user && !authLoading) || loading) {
     return (
       <div className="page-gradient">
@@ -291,7 +267,6 @@ const VoucherList = () => {
     <div className="min-h-screen bg-white">
       <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-transparent">
-        {/* Header */}
         <div className="mb-8 px-1">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <button
@@ -333,9 +308,7 @@ const VoucherList = () => {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="mb-10 flex flex-wrap gap-4 items-center bg-white/90 rounded-[30px] shadow-sm px-6 py-4 border border-[#e5edff]">
-          {/* Filter by Type */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-600 inline-flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-400" />
@@ -375,7 +348,6 @@ const VoucherList = () => {
             </div>
           </div>
 
-          {/* Sort by Newest */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm font-medium text-gray-700">
               {t('tourList.voucherList.sort.label')}
@@ -406,7 +378,6 @@ const VoucherList = () => {
 
         </div>
 
-        {/* Vouchers Grid */}
         {filteredAndSortedVouchers.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-md p-12 text-center border border-[#e4e9fb]">
             <svg
@@ -461,10 +432,8 @@ const VoucherList = () => {
                   key={voucher.id}
                   className={styles.voucherCard}
                 >
-                  {/* Status Badge */}
                   {getStatusBadge(voucher)}
                   
-                  {/* LEFT SECTION - 30% with serrated edge */}
                   <div 
                     className={`${styles.leftSection} ${
                       voucher.discountType === 'PERCENT' 
@@ -472,7 +441,6 @@ const VoucherList = () => {
                         : styles.leftSectionAmount
                     }`}
                   >
-                    {/* Discount Icon/Percentage */}
                     <div className={styles.leftContent}>
                       {voucher.discountType === 'PERCENT' ? (
                         <>
@@ -506,14 +474,11 @@ const VoucherList = () => {
                     </div>
                   </div>
 
-                  {/* RIGHT SECTION - 70% with light background */}
                   <div className={styles.rightSection}>
-                    {/* Voucher Name */}
                     <h3 className={styles.voucherName}>
                       {voucher.name}
                     </h3>
 
-                    {/* Discount Info & Remaining */}
                     <div className={styles.discountInfoRow}>
                       <div className="flex items-center">
                         <span
@@ -545,7 +510,6 @@ const VoucherList = () => {
                       </div>
                     </div>
 
-                    {/* Date Range */}
                     <div className={styles.dateRangeContainer}>
                       <div className={styles.dateRangeBox}>
                         <div className={styles.dateRangeHeader}>
@@ -588,7 +552,6 @@ const VoucherList = () => {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className={styles.actionButtons}>
                       <button
                         onClick={async () => {
@@ -636,7 +599,6 @@ const VoucherList = () => {
               ))}
             </div>
 
-            {/* Load More Button - Minimal Soft Korean */}
             {hasMore && (
               <div className="flex justify-center mt-10 mb-6">
                 <button

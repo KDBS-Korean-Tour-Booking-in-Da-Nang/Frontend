@@ -59,27 +59,28 @@ const UserProfile = () => {
   });
   const [passwordErrors, setPasswordErrors] = useState({});
   
-  // Check if user is OAuth-only (no real password) from localStorage
+  // Kiểm tra xem user có phải OAuth-only (không có mật khẩu thật) không từ localStorage
+  // Logic: nếu user đăng nhập qua Google/Naver và chưa từng đặt mật khẩu thì ẩn form đổi mật khẩu
   const [isOAuthOnly, setIsOAuthOnly] = useState(() => {
     if (user?.email) {
       try {
         const oauthOnlyFlag = localStorage.getItem(`isOAuthOnly_${user.email}`);
         const hasPasswordFlag = localStorage.getItem(`hasPassword_${user.email}`);
         
-        // If explicitly marked as OAuth-only, hide form
+        // Nếu được đánh dấu rõ ràng là OAuth-only, ẩn form
         if (oauthOnlyFlag === 'true') {
           return true;
         }
         
-        // If social provider and no hasPassword flag, assume OAuth-only (hide form)
-        // This handles: user logs in with Google for first time → no form shown
+        // Nếu là social provider và không có flag hasPassword, giả định OAuth-only (ẩn form)
+        // Xử lý trường hợp: user đăng nhập với Google lần đầu → không hiển thị form
         if (isSocialProvider && hasPasswordFlag !== 'true') {
           return true;
         }
         
         return false;
       } catch {
-        // If error reading localStorage, check if social provider
+        // Nếu lỗi khi đọc localStorage, kiểm tra xem có phải social provider không
         return isSocialProvider;
       }
     }
@@ -141,11 +142,43 @@ const UserProfile = () => {
     setPasswordErrors({});
   };
 
-  const handlePasswordInputChange = (e) => {
-    const { name, value } = e.target;
+  // Block space character input in password
+  const handlePasswordBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return;
+    if (data === ' ' || data === '\u00A0') {
+      e.preventDefault();
+    }
+  };
+
+  // Handle paste in password: remove spaces
+  const handlePasswordPaste = (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const cleaned = pasted.replace(/\s/g, '');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const newValue = current.slice(0, start) + cleaned + current.slice(end);
+    
     setPasswordForm((prev) => ({
       ...prev,
-      [name]: value
+      [target.name]: newValue
+    }));
+    setPasswordErrors((prev) => ({
+      ...prev,
+      [target.name]: ''
+    }));
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    // Remove all spaces from password fields
+    const cleaned = value.replace(/\s/g, '');
+    setPasswordForm((prev) => ({
+      ...prev,
+      [name]: cleaned
     }));
     setPasswordErrors((prev) => ({
       ...prev,
@@ -236,13 +269,9 @@ const UserProfile = () => {
       setIsChangingPassword(false);
     }
   };
-  const isDeletingRef = useRef(false);          // for DOB input deletion detection
-  const previousDobValueRef = useRef('');       // track previous DOB value like Step1Contact
-  const datePickerRef = useRef(null);           // Ref for DatePicker to trigger programmatically
-
-  // All users can change avatar regardless of login method
-
-  // Update isOAuthOnly when user email or authProvider changes
+  const isDeletingRef = useRef(false);
+  const previousDobValueRef = useRef('');
+  const datePickerRef = useRef(null);
   useEffect(() => {
     if (user?.email) {
       try {
@@ -282,23 +311,19 @@ const UserProfile = () => {
     }
   }, [user?.email, isSocialProvider]);
 
-  // Fetch user data on component mount and after updates
   useEffect(() => {
     const fetchUserData = async () => {
       if (user?.email) {
         try {
-          // Use refreshUser from AuthContext to ensure consistency
           await refreshUser();
         } catch {
-          // Silently handle error fetching user data on mount
         }
       }
     };
 
     fetchUserData();
-  }, []); // Only run on mount
+  }, []);
 
-  // Update editForm when user data changes (after successful update)
   useEffect(() => {
     if (user) {
       setEditForm({
@@ -308,13 +333,11 @@ const UserProfile = () => {
         gender: user?.gender || '',
         address: user?.address || ''
       });
-      // Only update avatarPreview if no file is currently selected
-      // This ensures we don't override user's current avatar selection
       if (!avatarFile) {
         setAvatarPreview(user?.avatar || '/default-avatar.png');
       }
     }
-  }, [user, i18n.language]); // Reformat DOB on language change
+  }, [user, i18n.language]);
 
   const getDateSeparator = () => {
     switch (currentLanguage) {
@@ -325,10 +348,14 @@ const UserProfile = () => {
     }
   };
 
+  // Format ngày từ giá trị đã normalized (ISO format) sang định dạng hiển thị theo ngôn ngữ
+  // Hỗ trợ: vi (DD/MM/YYYY), en (MM/DD/YYYY), ko (YYYY.MM.DD)
   const formatDateFromNormalizedSafe = (val) => {
     try {
       let iso = '';
+      // Nếu đã là ISO format (YYYY-MM-DD), dùng trực tiếp
       if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) iso = val;
+      // Nếu không, thử parse thành Date rồi chuyển sang ISO
       else if (val) {
         const d = new Date(val);
         if (!isNaN(d.getTime())) iso = d.toISOString().slice(0, 10);
@@ -336,6 +363,7 @@ const UserProfile = () => {
       if (!iso) return '';
       const [y, m, d] = iso.split('-');
       const sep = getDateSeparator();
+      // Format theo ngôn ngữ: ko (YYYY.MM.DD), vi (DD/MM/YYYY), en (MM/DD/YYYY)
       if (currentLanguage === 'ko') return `${y}${sep}${m}${sep}${d}`;
       if (currentLanguage === 'vi') return `${d}${sep}${m}${sep}${y}`;
       return `${m}${sep}${d}${sep}${y}`;
@@ -344,7 +372,8 @@ const UserProfile = () => {
     }
   };
 
-  // --- Date helpers copied from Step1Contact (parsing + validation) ---
+  // Parse ngày từ định dạng hiển thị về ISO format (YYYY-MM-DD)
+  // Hỗ trợ các định dạng: vi (DD/MM/YYYY), en (MM/DD/YYYY), ko (YYYY.MM.DD)
   const parseDateFromDisplay = (displayValue) => {
     if (!displayValue || displayValue.trim() === '') {
       return null;
@@ -353,12 +382,14 @@ const UserProfile = () => {
     const separator = getDateSeparator();
     const parts = displayValue.split(separator);
     
+    // Phải có đúng 3 phần (ngày, tháng, năm)
     if (parts.length !== 3) {
       return null;
     }
 
     let day, month, year;
     
+    // Parse theo định dạng của từng ngôn ngữ
     switch (currentLanguage) {
       case 'vi': // DD/MM/YYYY
         day = parts[0];
@@ -377,6 +408,7 @@ const UserProfile = () => {
         break;
     }
     
+    // Tạo Date object và chuyển sang ISO format
     const date = new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
     return isNaN(date.getTime()) ? null : date.toISOString().split('T')[0];
   };
@@ -386,24 +418,24 @@ const UserProfile = () => {
       return null;
     }
 
-    // First try to parse using language-specific format
     const parsedDate = parseDateFromDisplay(inputValue);
     
     if (parsedDate) {
-      return parsedDate; // ISO yyyy-mm-dd
+      return parsedDate;
     }
     
-    // If parsing failed, return null
     return null;
   };
 
+  // Validate ngày sinh: kiểm tra format và tính hợp lệ
   const validateDob = (displayValue) => {
-    // Cho phép DOB trống (user không bắt buộc phải nhập DOB trong hồ sơ)
+    // Cho phép để trống (optional field)
     if (!displayValue || !displayValue.trim()) {
       setDobError('');
       return true;
     }
 
+    // Parse và normalize ngày từ định dạng hiển thị
     const normalized = validateDateInput(displayValue);
     if (!normalized) {
       setDobError(t('booking.errors.dobInvalidFormat'));
@@ -412,7 +444,6 @@ const UserProfile = () => {
 
     const birth = new Date(normalized);
     const today = new Date();
-    // must be strictly in the past
     if (birth.getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) {
       setDobError(t('booking.errors.dobInvalidFormat'));
       return false;
@@ -420,12 +451,10 @@ const UserProfile = () => {
     let age = today.getFullYear() - birth.getFullYear();
     const md = today.getMonth() - birth.getMonth();
     if (md < 0 || (md === 0 && today.getDate() < birth.getDate())) age--;
-    // Require at least 13 years old
     if (age < 13) {
       setDobError(t('profile.errors.mustBe13'));
       return false;
     }
-    // No upper age limit, just check for negative age (future date)
     if (age < 0) {
       setDobError(t('booking.errors.dobInvalidFormat'));
       return false;
@@ -444,7 +473,6 @@ const UserProfile = () => {
     const separator = getDateSeparator();
     let parts = cleanValue.split(separator);
     
-    // Detect deletion by comparing with previous value
     const previousValue = previousDobValueRef.current;
     const isDeletingNow = cleanValue.length < previousValue.length;
     
@@ -462,12 +490,9 @@ const UserProfile = () => {
     const isInDeletionMode = isDeletingRef.current;
     const shouldBeFormatted = previousValue.includes(separator) || cleanValue.includes(separator);
     const isDeletingFromFormatted =
-      shouldBeFormatted && cleanValue.length <= previousValue.replace(/[\/\.]/g, '').length;
+      shouldBeFormatted &&       cleanValue.length <= previousValue.replace(/[\/\.]/g, '').length;
     
-    // update previous for next call
     previousDobValueRef.current = cleanValue;
-
-    // Leap year & days-in-month helpers
     const isLeapYear = (year) =>
       (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 
@@ -510,7 +535,6 @@ const UserProfile = () => {
       return { day, month, year };
     };
 
-    // Allow deletion freely
     if (isDeletingNow || isDeletingTrailingSeparator || isDeletingLastSeparator || isInDeletionMode || isDeletingFromFormatted) {
       isDeletingRef.current = true;
       return cleanValue;
@@ -537,16 +561,14 @@ const UserProfile = () => {
     const hasIncompleteParts = parts.some(part => {
       if (currentLanguage === 'ko') {
         return part.length > 0 && (
-          (part === parts[0] && part.length < 4) || // year incomplete
-          (part !== parts[0] && part.length < 2)    // month/day incomplete
+          (part === parts[0] && part.length < 4) ||
+          (part !== parts[0] && part.length < 2)
         );
       }
-      // vi / en: month/day 2 digits
       return part.length > 0 && part.length < 2;
     });
     if (hasIncompleteParts) return cleanValue;
 
-    // Language-specific formatting
     switch (currentLanguage) {
       case 'vi': { // DD/MM/YYYY
         if (parts.length === 1) {
@@ -696,7 +718,6 @@ const UserProfile = () => {
     if ((baseline.dob || '') !== (editForm.dob || '')) return true;
     if ((baseline.gender || '') !== (editForm.gender || '')) return true;
     if ((baseline.address || '') !== (editForm.address || '')) return true;
-    // Any newly selected avatar file also counts as a change
     if (avatarFile) return true;
     return false;
   };
@@ -723,17 +744,14 @@ const UserProfile = () => {
   const isValidUsername = (val) => {
     if (val === undefined || val === null) return false;
     const trimmed = String(val).normalize('NFC').trim();
-    if (trimmed.length === 0) return false; // name cannot be empty in edit modal
-    // Start with a letter; allow any letters (all languages), combining marks, digits, and spaces
+    if (trimmed.length === 0) return false;
     const usernameRegex = /^\p{L}[\p{L}\p{M}\p{N}\s]*$/u;
     return usernameRegex.test(trimmed);
   };
 
   const sanitizeUsername = (val) => {
     const str = String(val || '').normalize('NFC');
-    // Keep Unicode letters, combining marks, digits, and spaces only
     let cleaned = str.replace(/[^\p{L}\p{M}\p{N}\s]/gu, '');
-    // Ensure the first non-space character is a letter; drop leading digits
     cleaned = cleaned.replace(/^[\s\p{N}]+/u, '');
     return cleaned;
   };
@@ -753,8 +771,6 @@ const UserProfile = () => {
   };
 
   const handleNameBeforeInput = () => {
-    // Allow IME composition and let onChange sanitize/validate.
-    // Intentionally left empty to avoid blocking Vietnamese diacritics input.
   };
 
   const handleNamePaste = (e) => {
@@ -783,8 +799,7 @@ const UserProfile = () => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     
-    // Validate file
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
     if (file.size > maxSize) {
@@ -797,12 +812,9 @@ const UserProfile = () => {
       return;
     }
     
-    setAvatarError(''); // Clear error if validation passes
-    
-    // Save the file for later upload
+    setAvatarError('');
     setAvatarFile(file);
     
-    // Create preview
     const reader = new FileReader();
     reader.onload = () => {
       setAvatarPreview(reader.result);
@@ -813,7 +825,6 @@ const UserProfile = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     
-    // Prepare user data for API
     const userData = {
       name: editForm.name,
       email: user?.email, // Keep original email
@@ -821,16 +832,14 @@ const UserProfile = () => {
       dob: editForm.dob,
       gender: editForm.gender,
       address: editForm.address,
-      avatarFile: avatarFile, // Include avatar file if selected
-      currentAvatarUrl: user?.avatar // Provide current avatar so FE can reattach if no new file
+      avatarFile: avatarFile,
+      currentAvatarUrl: user?.avatar
     };
 
-    // Clear previous errors
     setNameError('');
     setDobError('');
     setUpdateError('');
     
-    // Real-time guard: name required
     const trimmedName = (userData.name || '').trim();
     if (!trimmedName) {
       const errorMsg = t('toast.name_required') || 'Tên là bắt buộc';
@@ -839,10 +848,8 @@ const UserProfile = () => {
       return;
     }
 
-    // Additional name validation for LOCAL users only
     if (!isSocialProvider) {
       const name = (userData.name || '').trim();
-      // Must start with a letter; allow letters (including accents), spaces, and digits after the first letter; no special characters
       const nameRegex = /^[A-Za-zÀ-ỹ][A-Za-zÀ-ỹ\s\d]*$/;
       if (!nameRegex.test(name)) {
         const errorMsg = t('profile.errors.invalidName') || 'Tên không hợp lệ';
@@ -852,28 +859,23 @@ const UserProfile = () => {
       }
     }
     
-    // Normalize DOB to ISO before validation (using same logic as Step1Contact)
     const normalizedDob = validateDateInput(userData.dob || '');
-    // Only validate DOB if user entered something - allow empty DOB
     if (userData.dob && userData.dob.trim() && !normalizedDob) {
       const errorMsg = t('booking.errors.dobInvalidFormat') || 'Định dạng ngày sinh không hợp lệ';
       setDobError(errorMsg);
       setUpdateError(errorMsg);
       return;
     }
-    // Prepare data for validation: use normalized DOB if available, otherwise empty
     const dataForValidation = {
       ...userData,
       dob: normalizedDob || ''
     };
     const validation = validateUserProfile(dataForValidation);
     if (!validation.isValid) {
-      // Set field-level errors
       if (validation.errors.name) setNameError(validation.errors.name);
       if (validation.errors.dob) setDobError(validation.errors.dob);
       if (validation.errors.phone) setUpdateError(validation.errors.phone);
       if (validation.errors.email) setUpdateError(validation.errors.email);
-      // Show first error as general error
       const firstError = Object.values(validation.errors)[0];
       if (firstError && !updateError) {
         setUpdateError(firstError);
@@ -889,17 +891,13 @@ const UserProfile = () => {
         throw new Error(t('profile.errors.tokenMissing'));
       }
       
-      // Call API to update user profile with normalized DOB
       const result = await updateUserProfile({ ...userData, dob: normalizedDob || '' }, token);
       
-      // Use avatar URL from backend response if available, otherwise keep current
       const newAvatarUrl = result?.avatar || user.avatar || '/default-avatar.png';
       
-      // Fetch fresh user data from server after update using refreshUser
       try {
         const refreshedUser = await refreshUser();
         if (refreshedUser) {
-          // refreshUser already updates the context, but we may need to merge avatar URL
           if (newAvatarUrl && newAvatarUrl !== refreshedUser.avatar) {
             const updatedUser = {
               ...refreshedUser,
@@ -908,7 +906,6 @@ const UserProfile = () => {
             updateUser(updatedUser);
           }
         } else {
-          // Fallback to local update if refresh fails
           const updatedUser = {
             ...user,
             username: editForm.name,
@@ -922,7 +919,6 @@ const UserProfile = () => {
           updateUser(updatedUser);
         }
       } catch {
-        // Silently handle error fetching updated user data, fallback to local update
         const updatedUser = {
           ...user,
           username: editForm.name,
@@ -938,10 +934,7 @@ const UserProfile = () => {
       
       showSuccess(t('profile.toast.updateSuccess'));
       
-      // Clear avatar file after successful update
       setAvatarFile(null);
-      
-      // Close modal immediately after successful update
       setIsEditModalOpen(false);
       
     } catch (error) {
@@ -1091,6 +1084,8 @@ const UserProfile = () => {
                     name="currentPassword"
                     value={passwordForm.currentPassword}
                     onChange={handlePasswordInputChange}
+                    onBeforeInput={handlePasswordBeforeInput}
+                    onPaste={handlePasswordPaste}
                     className={styles['form-input']}
                   />
                   {passwordErrors.currentPassword && (
@@ -1110,6 +1105,8 @@ const UserProfile = () => {
                     name="newPassword"
                     value={passwordForm.newPassword}
                     onChange={handlePasswordInputChange}
+                    onBeforeInput={handlePasswordBeforeInput}
+                    onPaste={handlePasswordPaste}
                     className={styles['form-input']}
                   />
                   {passwordErrors.newPassword && (
@@ -1129,6 +1126,8 @@ const UserProfile = () => {
                     name="confirmNewPassword"
                     value={passwordForm.confirmNewPassword}
                     onChange={handlePasswordInputChange}
+                    onBeforeInput={handlePasswordBeforeInput}
+                    onPaste={handlePasswordPaste}
                     className={styles['form-input']}
                   />
                   {passwordErrors.confirmNewPassword && (
@@ -1215,9 +1214,8 @@ const UserProfile = () => {
   }
 
   return (
-    <div className={styles['user-profile-container']}>
+      <div className={styles['user-profile-container']}>
       <div className={styles['user-profile-wrapper']}>
-        {/* Sidebar */}
         <div className={styles['sidebar']}>
           <div className={styles['sidebar-header']}>
             <div className={styles['avatar-container']}>
@@ -1257,7 +1255,6 @@ const UserProfile = () => {
           </ul>
         </div>
 
-        {/* Content Area */}
         <div className={styles['content-area']}>
           <div className={styles['content-header']}>
             <h1 className={styles['content-title']}>
@@ -1267,7 +1264,6 @@ const UserProfile = () => {
               <button
                 className={styles['edit-button']}
                 onClick={() => {
-                  // Reset form to current user data when opening modal
                   setEditForm({
                     name: user?.username || user?.name || '',
                     phone: user?.phone || '',
@@ -1275,7 +1271,6 @@ const UserProfile = () => {
                     gender: user?.gender || '',
                     address: user?.address || ''
                   });
-                  // Set avatar preview to current user avatar
                   setAvatarPreview(user?.avatar || '/default-avatar.png');
                   setAvatarFile(null);
                   setIsEditModalOpen(true);
@@ -1291,13 +1286,11 @@ const UserProfile = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false);
           setAvatarFile(null);
-          // Reset form to current user data when closing modal
           setEditForm({
             name: user?.username || user?.name || '',
             phone: user?.phone || '',
@@ -1306,14 +1299,11 @@ const UserProfile = () => {
             address: user?.address || '',
             cccd: user?.cccd || ''
           });
-          // Reset avatar preview to current user avatar
           setAvatarPreview(user?.avatar || '/default-avatar.png');
         }}
         title={t('profile.editModalTitle')}
         size="lg"
       >
-        {/* Success messages removed - only show toast notifications */}
-
         {updateError && (
           <div className={styles['field-hint']} style={{ color: '#e11d48', marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '0.5rem' }}>
             {updateError}
@@ -1323,7 +1313,6 @@ const UserProfile = () => {
         <form onSubmit={handleEditSubmit} className={styles['edit-form']}>
           <div className={styles['modal-card']}>
            <div className={styles['avatar-upload']}>
-             {/* Show avatar preview (current or newly selected) */}
              {avatarPreview ? (
                <img 
                  src={avatarPreview} 
@@ -1338,7 +1327,6 @@ const UserProfile = () => {
                />
              )}
              
-              {/* All users can change avatar */}
               <input 
                 type="file" 
                 accept="image/*" 
@@ -1448,11 +1436,9 @@ const UserProfile = () => {
                 onFocus={() => setEditingFields(prev => new Set(prev).add('dob'))}
                 onChange={(e) => {
                   const raw = e.target.value;
-                  // clean & format like Step1Contact while typing
                   const clean = raw.replace(/[^\d\/\.]/g, '');
                   const formatted = formatDobInput(clean, 'dob');
                   setEditForm(prev => ({ ...prev, dob: formatted }));
-                  // optional: early validation when user đã gõ tương đối đủ
                   const digitsCount = formatted.replace(/[^\d]/g, '').length;
                   if (digitsCount >= 6) {
                     validateDob(formatted);
@@ -1553,7 +1539,6 @@ const UserProfile = () => {
               onClick={() => {
                 setIsEditModalOpen(false);
                 setAvatarFile(null);
-                // Reset form to current user data when canceling
                 setEditForm({
                   name: user?.username || user?.name || '',
                   phone: user?.phone || '',
@@ -1561,7 +1546,6 @@ const UserProfile = () => {
                   gender: user?.gender || '',
                   address: user?.address || ''
                 });
-                // Reset avatar preview to current user avatar
                 setAvatarPreview(user?.avatar || '/default-avatar.png');
               }}
               className={styles['btn-secondary']}

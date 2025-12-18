@@ -12,10 +12,12 @@ import styles from './SupportTicketBubble.module.css';
 const SupportTicketBubble = () => {
   const { t, i18n } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState(null);
   const [otherMessage, setOtherMessage] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+  const [messageError, setMessageError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -61,19 +63,24 @@ const SupportTicketBubble = () => {
 
   const handleCategorySelect = (category) => {
     setSelectedReason(category);
+    if (categoryError) setCategoryError('');
     if (category !== 'OTHER') {
       setOtherMessage('');
+      if (messageError) setMessageError('');
     }
   };
 
   const handleSubmit = async () => {
+    setCategoryError('');
+    setMessageError('');
+
     if (!selectedReason) {
-      showError(t('supportTicket.errors.selectCategory'));
+      setCategoryError(t('supportTicket.errors.selectCategory'));
       return;
     }
 
     if (selectedReason === 'OTHER' && !otherMessage.trim()) {
-      showError(t('supportTicket.errors.enterMessage'));
+      setMessageError(t('supportTicket.errors.enterMessage'));
       return;
     }
 
@@ -113,10 +120,10 @@ const SupportTicketBubble = () => {
         setIsOpen(false);
       } else {
         const errorText = await response.text();
-        showError(t('supportTicket.errors.submitError'));
+        setMessageError(t('supportTicket.errors.submitError'));
       }
     } catch (error) {
-      showError(t('supportTicket.errors.submitError'));
+      setMessageError(t('supportTicket.errors.submitError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -156,7 +163,7 @@ const SupportTicketBubble = () => {
                 {supportCategories.map((category) => (
                   <div
                     key={category.value}
-                    className={`${styles['category-item']} ${selectedReason === category.value ? styles['selected'] : ''}`}
+                    className={`${styles['category-item']} ${selectedReason === category.value ? styles['selected'] : ''} ${categoryError ? styles['category-item-error'] : ''}`}
                     onClick={() => handleCategorySelect(category.value)}
                   >
                     <span className={styles['category-icon']}>
@@ -171,14 +178,20 @@ const SupportTicketBubble = () => {
                   </div>
                 ))}
               </div>
+              {categoryError && (
+                <span className={styles['error-message']}>{categoryError}</span>
+              )}
 
               {/* Other input field - shown when OTHER is selected */}
               {selectedReason === 'OTHER' && (
                 <div className={styles['other-input-container']}>
                   <textarea
-                    className={styles['other-input']}
+                    className={`${styles['other-input']} ${messageError ? styles['input-error'] : ''}`}
                     value={otherMessage}
-                    onChange={(e) => setOtherMessage(e.target.value)}
+                    onChange={(e) => {
+                      setOtherMessage(e.target.value);
+                      if (messageError) setMessageError('');
+                    }}
                     placeholder={t('supportTicket.otherPlaceholder')}
                     rows={4}
                     maxLength={500}
@@ -186,6 +199,9 @@ const SupportTicketBubble = () => {
                   <div className={styles['char-count']}>
                     {otherMessage.length}/500
                   </div>
+                  {messageError && (
+                    <span className={styles['error-message']}>{messageError}</span>
+                  )}
                 </div>
               )}
 

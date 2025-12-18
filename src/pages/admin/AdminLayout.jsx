@@ -45,13 +45,11 @@ const AdminLayout = ({ children }) => {
     setShowLanguageDropdown(false);
   };
 
-  // Set default language to English for ADMIN role
+  // Set default language là English cho ADMIN role: chỉ auto-set nếu không có language được set hoặc language là Vietnamese, chỉ set khi user chưa explicitly chọn non-Vietnamese language
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       const currentLang = i18n.language;
       const savedLang = localStorage.getItem('i18nextLng');
-      // If no language is set or language is Vietnamese, set to English
-      // Only auto-set to English if user hasn't explicitly chosen a non-Vietnamese language
       if ((!savedLang || savedLang === 'vi' || savedLang.startsWith('vi')) && 
           (!currentLang || currentLang === 'vi' || currentLang.startsWith('vi'))) {
         i18n.changeLanguage('en');
@@ -60,7 +58,7 @@ const AdminLayout = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role, user]);
 
-  // Close dropdowns when clicking outside
+  // Đóng dropdowns khi click bên ngoài: lắng nghe mousedown event trên document, check nếu click không phải trong languageRef hoặc userRef thì đóng dropdown tương ứng
   useEffect(() => {
     const onDocClick = (e) => {
       if (languageRef.current && !languageRef.current.contains(e.target)) {
@@ -98,8 +96,9 @@ const AdminLayout = ({ children }) => {
     },
   ];
 
+  // Đăng xuất: chỉ logout admin role, navigate về /admin/login
   const handleLogout = () => {
-    logout('ADMIN'); // Only logout admin role
+    logout('ADMIN');
     navigate('/admin/login');
   };
 
@@ -113,7 +112,7 @@ const AdminLayout = ({ children }) => {
     };
   });
 
-  // Format balance with proper decimal places (precision 15, scale 2)
+  // Format balance với decimal places đúng (precision 15, scale 2): sử dụng Intl.NumberFormat với minimumFractionDigits và maximumFractionDigits = 2
   const formatBalance = (bal) => {
     if (bal === null || bal === undefined) return '0.00';
     const num = typeof bal === 'string' ? parseFloat(bal) : bal;

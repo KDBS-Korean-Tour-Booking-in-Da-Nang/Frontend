@@ -18,7 +18,7 @@ import {
   TransactionManagement
 } from './';
 
-// Lazy load components to avoid top-level import issues with useAuth
+// Lazy load components để tránh top-level import issues với useAuth
 const ForumReportManagement = lazy(() => import('./ForumReportManagement/ForumReportManagement'));
 const TourManagement = lazy(() => import('./TourManagement/TourManagement'));
 
@@ -26,12 +26,12 @@ const AdminDashboard = () => {
   const { t } = useTranslation();
   const { user, loading } = useAuth();
 
-  // Avoid flicker: wait for auth to resolve before role-checking
+  // Tránh flicker: đợi auth resolve trước khi kiểm tra role
   if (loading) {
     return null;
   }
 
-  // Check if user has admin role
+  // Kiểm tra user có role ADMIN không, nếu không hiển thị access denied page
   if (!user || user.role !== 'ADMIN') {
     return (
       <div style={{

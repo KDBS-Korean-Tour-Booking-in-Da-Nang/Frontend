@@ -16,9 +16,8 @@ import styles from './Step3Pricing.module.css';
 const Step3Pricing = () => {
   const { t } = useTranslation();
   const { tourData, updateTourData } = useTourWizardContext();
-  // Removed showError - errors will be handled in UI
 
-  // TinyMCE configuration with image upload
+  // TinyMCE configuration với image upload: TinyMCE 8 compatible options (forced_root_block='div', remove_redundant_brs, cleanup), configure image upload handler (POST /api/tour/content-image, normalize về relative path), handle 401
   const getTinyMCEConfig = (height = 200) => ({
     apiKey: import.meta.env.VITE_TINYMCE_API_KEY,
     height,
@@ -33,22 +32,17 @@ const Step3Pricing = () => {
     toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | table tabledelete | tableprops tablerowprops tablecellprops | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | code | help',
     branding: false,
     content_style: 'body { font-family: Inter, system-ui, Arial, sans-serif; font-size: 14px }',
-    // TinyMCE 8 compatible options
     forced_root_block: 'div',
     remove_redundant_brs: true,
-    // Clean up HTML
     cleanup: true,
     cleanup_on_startup: true,
     verify_html: false,
-    // Additional settings to prevent <p> tags
     entity_encoding: 'raw',
     convert_urls: false,
-    // Configure image upload
     images_upload_handler: async (blobInfo) => {
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
-      // Get token for authentication
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const token = storage.getItem('token');
@@ -66,7 +60,6 @@ const Step3Pricing = () => {
           body: formData
         });
         
-        // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           const { checkAndHandle401 } = await import('../../../../../../utils/apiErrorHandler');
           await checkAndHandle401(response);
@@ -75,14 +68,12 @@ const Step3Pricing = () => {
         
         if (response.ok) {
           const imageUrl = await response.text();
-          // Normalize về relative path để đảm bảo không lưu BaseURL vào HTML content
           return normalizeToRelativePath(imageUrl);
         } else {
           const errorText = await response.text();
           throw new Error('Upload failed: ' + errorText);
         }
       } catch (error) {
-        // Silently handle image upload error
         throw new Error('Không thể upload ảnh. Vui lòng thử lại.');
       }
     },
@@ -96,32 +87,26 @@ const Step3Pricing = () => {
   });
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Surcharges feature removed
-
-  // Update form data when tourData changes
+  // Update form data khi tourData thay đổi: sync formData (adultPrice, childrenPrice, babyPrice) với tourData
   useEffect(() => {
     setFormData({
       adultPrice: tourData.adultPrice || '',
       childrenPrice: tourData.childrenPrice || '',
       babyPrice: tourData.babyPrice || ''
     });
-    // no-op for surcharges
   }, [tourData]);
 
-  // Listen for validation trigger from parent (TourWizard) - similar to Step3Pricing pattern
+  // Lắng nghe validation trigger từ parent (TourWizard): sử dụng latest values từ cả formData và tourData để đảm bảo có most current values, validate tất cả required fields (adultPrice >= 10000, childrenPrice/babyPrice >= 0), notify parent về validation status, scroll to first error field nếu có errors
   useEffect(() => {
     const handleValidateAll = () => {
-      // Use latest values from both formData and tourData to ensure we have the most current values
       const currentAdultPrice = formData.adultPrice || tourData.adultPrice || '';
       const currentChildrenPrice = formData.childrenPrice || tourData.childrenPrice || '';
       const currentBabyPrice = formData.babyPrice || tourData.babyPrice || '';
       
-      // Validate all required fields and show errors
       const errors = {};
-      const MIN_PRICE_ADULT = 10000; // Minimum price for adult: 10,000 VND
-      const MIN_PRICE_CHILDREN_BABY = 0; // Minimum price for children and baby: 0 VND (free allowed)
+      const MIN_PRICE_ADULT = 10000;
+      const MIN_PRICE_CHILDREN_BABY = 0;
       
-      // Check adultPrice - must be non-empty and >= 10000
       if (!currentAdultPrice || String(currentAdultPrice).trim() === '') {
         errors.adultPrice = t('toast.required', { field: t('tourWizard.step3.pricing.adultPrice') }) || 'Giá người lớn là bắt buộc';
       } else {
@@ -131,7 +116,6 @@ const Step3Pricing = () => {
         }
       }
       
-      // Check childrenPrice - can be 0 (free) or >= 0
       if (currentChildrenPrice !== null && currentChildrenPrice !== undefined && String(currentChildrenPrice).trim() !== '') {
         const childrenPriceNum = parseInt(String(currentChildrenPrice).replace(/[^0-9]/g, ''), 10);
         if (isNaN(childrenPriceNum) || childrenPriceNum < MIN_PRICE_CHILDREN_BABY) {
@@ -139,7 +123,6 @@ const Step3Pricing = () => {
         }
       }
       
-      // Check babyPrice - can be 0 (free) or >= 0
       if (currentBabyPrice !== null && currentBabyPrice !== undefined && String(currentBabyPrice).trim() !== '') {
         const babyPriceNum = parseInt(String(currentBabyPrice).replace(/[^0-9]/g, ''), 10);
         if (isNaN(babyPriceNum) || babyPriceNum < MIN_PRICE_CHILDREN_BABY) {
@@ -148,12 +131,10 @@ const Step3Pricing = () => {
       }
       
       setFieldErrors(errors);
-      // Notify parent about validation status
       window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
         detail: { step: 3, hasErrors: Object.keys(errors).length > 0 } 
       }));
       
-      // Scroll to first error field if there are errors
       if (Object.keys(errors).length > 0) {
         setTimeout(() => {
           const firstErrorKey = Object.keys(errors)[0];
@@ -169,7 +150,6 @@ const Step3Pricing = () => {
 
     const handleClearErrors = () => {
       setFieldErrors({});
-      // Notify parent that errors are cleared
       window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
         detail: { step: 3, hasErrors: false } 
       }));
@@ -248,7 +228,6 @@ const Step3Pricing = () => {
                 }
               }}
               onBlur={(e) => {
-                // Validate minimum price on blur
                 const value = e.target.value.replace(/[^0-9]/g,'');
                 if (value && value !== '') {
                   const priceNum = parseInt(value, 10);
@@ -293,12 +272,10 @@ const Step3Pricing = () => {
                 const newFormData = { ...formData, childrenPrice: value };
                 setFormData(newFormData);
                 updateTourData(newFormData);
-                // Clear error for this field when user starts typing
                 if (fieldErrors.childrenPrice) {
                   setFieldErrors(prev => {
                     const newErrors = { ...prev };
                     delete newErrors.childrenPrice;
-                    // Notify parent about validation status change
                     const hasErrors = Object.keys(newErrors).length > 0;
                     window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
                       detail: { step: 3, hasErrors } 
@@ -308,11 +285,10 @@ const Step3Pricing = () => {
                 }
               }}
               onBlur={(e) => {
-                // Validate minimum price on blur - allow 0 (free)
                 const value = e.target.value.replace(/[^0-9]/g,'');
                 if (value !== '') {
                   const priceNum = parseInt(value, 10);
-                  const MIN_PRICE = 0; // Allow 0 VND for children (free)
+                  const MIN_PRICE = 0;
                   if (!isNaN(priceNum) && priceNum < MIN_PRICE) {
                     setFieldErrors(prev => ({
                       ...prev,
@@ -353,12 +329,10 @@ const Step3Pricing = () => {
                 const newFormData = { ...formData, babyPrice: value };
                 setFormData(newFormData);
                 updateTourData(newFormData);
-                // Clear error for this field when user starts typing
                 if (fieldErrors.babyPrice) {
                   setFieldErrors(prev => {
                     const newErrors = { ...prev };
                     delete newErrors.babyPrice;
-                    // Notify parent about validation status change
                     const hasErrors = Object.keys(newErrors).length > 0;
                     window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
                       detail: { step: 3, hasErrors } 

@@ -30,9 +30,10 @@ const CompanyManagement = () => {
   const { t, i18n } = useTranslation();
   const { user, getToken } = useAuth();
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Check if user has permission to manage companies
+  // Kiểm tra user có permission để manage companies không: check staffTask === 'COMPANY_REQUEST_AND_RESOLVE_TICKET' hoặc role === 'ADMIN'
   const canManageCompanies = user?.staffTask === 'COMPANY_REQUEST_AND_RESOLVE_TICKET' || user?.role === 'ADMIN';
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -56,7 +57,7 @@ const CompanyManagement = () => {
   const [companyToReject, setCompanyToReject] = useState(null);
   const isInitialMountRef = useRef(true);
 
-  // Fetch companies (users with role COMPANY/BUSINESS) from API
+  // Fetch companies (users với role COMPANY/BUSINESS) từ API: gọi USERS endpoint, filter users với role COMPANY hoặc BUSINESS, map backend data sang frontend format (approvalStatus: pending, not_updated, approved, rejected), không gọi checkAndHandle401 trong initial background loading (skip401Check = true) để tránh premature logout, set companies state
   const fetchCompanies = async (skip401Check = false) => {
     try {
       setLoading(true);
@@ -89,7 +90,6 @@ const CompanyManagement = () => {
       const data = await response.json();
       const users = data.result || data || [];
       
-      // Filter users with role COMPANY or BUSINESS (hiển thị full status)
       const companyUsers = users.filter(user => {
         const role = (user.role || '').toUpperCase();
         return role === 'COMPANY' || role === 'BUSINESS';
@@ -126,17 +126,15 @@ const CompanyManagement = () => {
 
       setCompanies(mappedCompanies);
     } catch (err) {
-      // Silently handle error fetching companies
       setError(t('staff.companyManagement.error.loadCompanies'));
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch companies khi component mount: skip 401 check chỉ trên initial mount để tránh premature logout, sau initial mount luôn check 401 (bao gồm khi gọi từ user actions)
   useEffect(() => {
     if (canManageCompanies) {
-      // Skip 401 check only on initial mount to avoid premature logout
-      // After initial mount, always check 401 (including when called from user actions)
       const skip401Check = isInitialMountRef.current;
       if (isInitialMountRef.current) {
         isInitialMountRef.current = false;
@@ -161,7 +159,7 @@ const CompanyManagement = () => {
     });
   }, [companies, search, statusFilter]);
 
-  // Pagination
+  // Pagination: slice filteredCompanies theo currentPage và itemsPerPage, return paginated companies array
   const paginatedCompanies = useMemo(() => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -175,8 +173,8 @@ const CompanyManagement = () => {
     setCurrentPage(0);
   }, [search, statusFilter]);
 
+  // Tính stats: filter out not_updated companies, tính total, pending, approved, rejected, return stats object
   const stats = useMemo(() => {
-    // Filter out not_updated companies for stats
     const filteredCompanies = companies.filter((c) => c.approvalStatus !== 'not_updated');
     const total = filteredCompanies.length;
     const pending = filteredCompanies.filter((c) => c.approvalStatus === 'pending').length;
@@ -191,7 +189,7 @@ const CompanyManagement = () => {
     setIsApproveModalOpen(true);
   };
 
-  // Confirm approve - calls API
+  // Confirm approve: gọi staff/update-role endpoint với PUT và role=COMPANY (backend sẽ tự cập nhật Status từ WAITING_FOR_APPROVAL -> UNBANNED), refresh companies list sau khi thành công, handle 401, show success toast
   const confirmApprove = async () => {
     if (!companyToApprove) return;
 
@@ -199,13 +197,12 @@ const CompanyManagement = () => {
     try {
       const token = getToken();
       if (!token) {
-        showError('Vui lòng đăng nhập lại');
+        setErrorMessage('Vui lòng đăng nhập lại');
         return;
       }
 
       const headers = createAuthHeaders(token);
 
-      // Chỉ update role lên COMPANY. Backend sẽ tự cập nhật Status (ví dụ: từ WAITING_FOR_APPROVAL -> UNBANNED).
       const roleResponse = await fetch(`${BaseURL}/api/staff/update-role/${companyToApprove.userId}?role=COMPANY`, {
         method: 'PUT',
         headers
@@ -214,7 +211,7 @@ const CompanyManagement = () => {
       if (!roleResponse.ok) {
         if (roleResponse.status === 401) {
           await checkAndHandle401(roleResponse);
-          showError(t('staff.companyManagement.error.sessionExpired'));
+          setErrorMessage(t('staff.companyManagement.error.sessionExpired'));
           return;
         }
         const errorData = await roleResponse.json().catch(() => ({}));
@@ -228,13 +225,13 @@ const CompanyManagement = () => {
       await fetchCompanies();
     } catch (err) {
       // Silently handle error approving company
-      showError(err.message || t('staff.companyManagement.error.approve'));
+      setErrorMessage(err.message || t('staff.companyManagement.error.approve'));
     } finally {
       setProcessing(false);
     }
   };
 
-  // Handle reject - opens modal
+  // Xử lý reject: set companyToReject và mở reject modal
   const handleReject = (company) => {
     setCompanyToReject(company);
     setIsRejectModalOpen(true);
@@ -251,8 +248,7 @@ const CompanyManagement = () => {
       showSuccess(t('staff.companyManagement.success.reject'));
       setModalOpen(false);
     } catch (err) {
-      // Silently handle error rejecting company
-      showError(err.message || t('staff.companyManagement.error.reject'));
+      setErrorMessage(err.message || t('staff.companyManagement.error.reject'));
     } finally {
       setProcessing(false);
     }
@@ -264,13 +260,12 @@ const CompanyManagement = () => {
       setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: true });
       const token = getToken();
       if (!token) {
-        showError(t('staff.companyManagement.error.loginRequired'));
+        setErrorMessage(t('staff.companyManagement.error.loginRequired'));
         return;
       }
 
       const headers = createAuthHeaders(token);
       
-      // Get business upload status to get file names
       const apiUrl = `${BaseURL}/api/users/business-upload-status?email=${encodeURIComponent(company.email)}`;
       const statusResponse = await fetch(apiUrl, {
         headers
@@ -293,13 +288,7 @@ const CompanyManagement = () => {
         return;
       }
 
-      // Construct file URLs from file names using getImageUrl helper
-      // Backend behavior:
-      // - Local: Returns relative path like "/uploads/business/registrationFile/filename.pdf"
-      // - Azure: Returns full Azure Blob Storage URL like "https://kdbsstorage.blob.core.windows.net/..."
-      // getImageUrl will:
-      // - Extract full Azure URL if it's embedded in the path
-      // - Convert relative paths to absolute URLs (BaseURL + path) for local files
+      // Construct file URLs từ file names sử dụng getImageUrl helper: backend có thể return relative path (local) hoặc full Azure Blob Storage URL, getImageUrl sẽ extract full Azure URL nếu embedded trong path hoặc convert relative paths sang absolute URLs (BaseURL + path) cho local files
       const getFileUrl = (fileName, basePath) => {
         if (!fileName) return null;
         
@@ -320,19 +309,14 @@ const CompanyManagement = () => {
           const httpIndex = trimmed.indexOf('http://');
           const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
           if (urlStartIndex >= 0) {
-            return trimmed.substring(urlStartIndex); // Extract full URL
+            return trimmed.substring(urlStartIndex);
           }
         }
         
-        // Case 3: Starts with / (relative path from backend)
-        // This happens in local development
         if (trimmed.startsWith('/')) {
-          // Use getImageUrl to convert to absolute URL (BaseURL + path)
           return getImageUrl(trimmed);
         }
         
-        // Case 4: Just a filename (no path prefix)
-        // Prepend the appropriate base path and convert to absolute URL
         const fullPath = `${basePath}/${trimmed}`;
         return getImageUrl(fullPath);
       };
@@ -348,8 +332,7 @@ const CompanyManagement = () => {
         loading: false
       });
     } catch (err) {
-      // Silently handle error fetching company files
-      showError(t('staff.companyManagement.error.loadFiles'));
+      setErrorMessage(t('staff.companyManagement.error.loadFiles'));
       setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: false });
     }
   };
@@ -426,7 +409,7 @@ const CompanyManagement = () => {
         }
       }
     } catch (error) {
-      showError(t('staff.companyManagement.modal.openPdfError') || 'Không thể mở PDF. Vui lòng thử lại.');
+      setErrorMessage(t('staff.companyManagement.modal.openPdfError') || 'Không thể mở PDF. Vui lòng thử lại.');
     }
   };
 
@@ -532,7 +515,7 @@ const CompanyManagement = () => {
         // Đối với local URLs, cần authentication headers
         const token = getToken();
         if (!token) {
-          showError(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
+          setErrorMessage(t('common.errors.loginRequired') || 'Vui lòng đăng nhập lại');
           return;
         }
 
@@ -569,7 +552,7 @@ const CompanyManagement = () => {
         }, 100);
       }
     } catch (error) {
-      showError(t('staff.companyManagement.modal.downloadError') || 'Không thể tải file. Vui lòng thử lại.');
+      setErrorMessage(t('staff.companyManagement.modal.downloadError') || 'Không thể tải file. Vui lòng thử lại.');
     }
   };
 
@@ -624,6 +607,20 @@ const CompanyManagement = () => {
             onMouseLeave={(e) => e.target.style.backgroundColor = '#FFB3B3'}
           >
             {t('staff.companyManagement.retry')}
+          </button>
+        </div>
+      )}
+      {errorMessage && (
+        <div className="px-4 py-3 rounded-[20px] flex items-center justify-between text-sm" style={{ backgroundColor: '#FFE6F0', borderColor: '#FFB3B3', color: '#FF80B3', borderWidth: '1px', borderStyle: 'solid' }}>
+          <span>{errorMessage}</span>
+          <button
+            onClick={() => setErrorMessage('')}
+            className="ml-4 px-3 py-1 text-xs font-semibold rounded-[16px] transition"
+            style={{ backgroundColor: '#FFB3B3', color: '#FFFFFF' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#FF80B3'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#FFB3B3'}
+          >
+            <X size={16} />
           </button>
         </div>
       )}

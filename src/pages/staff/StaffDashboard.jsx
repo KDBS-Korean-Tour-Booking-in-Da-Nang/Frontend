@@ -9,7 +9,7 @@ const StaffDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Avoid flicker on refresh: wait for auth to finish
+  // Tránh flicker khi refresh: đợi auth hoàn tất, return null nếu đang loading
   if (loading) {
     return null;
   }
@@ -34,8 +34,7 @@ const StaffDashboard = () => {
           padding: '48px 40px',
           textAlign: 'center',
           border: '1px solid #F0F0F0'
-        }}>
-          {/* Pastel Orange Icon */}
+          }}>
           <div style={{
             width: '72px',
             height: '72px',

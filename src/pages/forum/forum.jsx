@@ -9,7 +9,7 @@ import SearchSidebar from './components/SearchSidebar/SearchSidebar';
 import SavedPostsModal from './components/SavedPostsModal/SavedPostsModal';
 import styles from './forum.module.css';
 
-// Lazy load PostCard for better initial load performance
+// Lazy load PostCard để cải thiện initial load performance: sử dụng React.lazy để code split PostCard component
 const PostCard = lazy(() => import('./components/PostCard/PostCard'));
 
 // Constants
@@ -95,7 +95,7 @@ const Forum = () => {
     setFixedSBStyle({ position: 'fixed', top, left, width, height });
   }, [isNarrow]);
 
-  // Utility: Find post in current list as fallback
+  // Utility: Tìm post trong current list làm fallback: tìm post theo forumPostId trong posts array
   const findPostInList = useCallback((postId) => {
     return posts.find(p => p.forumPostId === postId);
   }, [posts]);
@@ -113,7 +113,6 @@ const Forum = () => {
       // Silently handle error
     }
     
-    // Fallback: find post in current posts list
     const post = findPostInList(postId);
     if (post) {
       setSinglePost(post);
@@ -136,7 +135,7 @@ const Forum = () => {
         const parsedHashtags = JSON.parse(savedHashtags);
         setSelectedHashtags(parsedHashtags);
       } catch {
-        // Invalid data, ignore
+        // Silently handle error
       }
     }
     
@@ -147,14 +146,13 @@ const Forum = () => {
     setIsSearchMode(savedSearchMode);
   }, []);
 
-  // Handle query params for highlighting post/comment and admin/staff view
+  // Xử lý query params cho highlighting post/comment và admin/staff view: lấy postId, commentId, fromAdmin, fromStaff từ URL, check user role và set isAdminStaffView, highlight post/comment và scroll to element, remove highlight sau 5s nếu không phải admin/staff view
   useEffect(() => {
     const postId = searchParams.get('postId');
     const commentId = searchParams.get('commentId');
     const fromAdmin = searchParams.get('fromAdmin') === 'true';
     const fromStaff = searchParams.get('fromStaff') === 'true';
     
-    // Check if user is admin/staff and coming from admin/staff page
     const isAdminStaffMode = (fromAdmin && user?.role === 'ADMIN') || (fromStaff && user?.role === 'STAFF');
     
     if (isAdminStaffMode) {
@@ -170,12 +168,10 @@ const Forum = () => {
       const postIdNum = Number(postId);
       setHighlightPostId(postIdNum);
       showSinglePost(postIdNum);
-      // Scroll to post after a short delay to ensure it's rendered
       setTimeout(() => {
         const postElement = document.getElementById(`post-${postIdNum}`);
         if (postElement) {
           postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          // Remove highlight after 5 seconds (only if not in admin/staff view)
           if (!isAdminStaffMode) {
             setTimeout(() => {
               setHighlightPostId(null);
@@ -191,18 +187,15 @@ const Forum = () => {
     if (commentId) {
       const commentIdNum = Number(commentId);
       setHighlightCommentId(commentIdNum);
-      // Fetch comment to get its post ID
       fetch(`${API_ENDPOINTS.COMMENTS}/${commentIdNum}`)
         .then(res => res.ok ? res.json() : null)
         .then(comment => {
           if (comment && comment.forumPostId) {
             showSinglePost(comment.forumPostId);
-            // Scroll to comment after post is loaded - wait longer for comments to render
             setTimeout(() => {
               const commentElement = document.getElementById(`comment-${commentIdNum}`);
               if (commentElement) {
                 commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Remove highlight after 5 seconds (only if not in admin/staff view)
                 if (!isAdminStaffMode) {
                   setTimeout(() => {
                     setHighlightCommentId(null);
@@ -212,7 +205,6 @@ const Forum = () => {
                   }, 5000);
                 }
               } else {
-                // Retry if comment not found yet (might be nested or still loading)
                 setTimeout(() => {
                   const retryElement = document.getElementById(`comment-${commentIdNum}`);
                   if (retryElement) {
@@ -229,7 +221,7 @@ const Forum = () => {
     }
   }, [searchParams, showSinglePost, setSearchParams, user]);
 
-  // Detect narrow screen (≤1024px)
+  // Phát hiện narrow screen (≤1024px): sử dụng window.matchMedia để detect, update isNarrow state khi media query thay đổi
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1024px)');
     const update = () => setIsNarrow(mq.matches);
@@ -238,7 +230,7 @@ const Forum = () => {
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  // Measure and update fixed sidebar position (only on wide screens)
+  // Đo và update fixed sidebar position (chỉ trên wide screens): gọi measure khi resize hoặc scroll, tính toán position dựa trên leftSlotRef và navbar height
   useEffect(() => {
     if (isNarrow) return;
     const onResize = () => measure();
@@ -252,16 +244,16 @@ const Forum = () => {
     };
   }, [measure, isNarrow]);
 
-  // Re-measure when user/login or header changes (only on wide screens)
+  // Re-measure khi user/login hoặc header thay đổi (chỉ trên wide screens): gọi measure sau khi user hoặc header thay đổi
   useEffect(() => {
     if (isNarrow) return;
     setTimeout(measure, 0);
   }, [user, measure, isNarrow]);
 
-  // Cache for posts to avoid unnecessary refetches
+  // Cache cho posts để tránh unnecessary refetches: sử dụng Map để cache posts data theo cacheKey
   const postsCache = useRef(new Map());
   
-  // Utility: Clear cache and localStorage
+  // Utility: Clear cache và localStorage: xóa postsCache và các localStorage keys (SELECTED_HASHTAGS, SEARCH_KEYWORD, SEARCH_MODE)
   const clearFiltersStorage = useCallback(() => {
     postsCache.current.clear();
     localStorage.removeItem(STORAGE_KEYS.SELECTED_HASHTAGS);
@@ -269,7 +261,7 @@ const Forum = () => {
     localStorage.removeItem(STORAGE_KEYS.SEARCH_MODE);
   }, []);
 
-  // Utility: Build API URL
+  // Utility: Build API URL: nếu isMyPostsMode thì dùng MY_POSTS endpoint, nếu không thì dùng POST_SEARCH với keyword và hashtags params
   const buildPostsUrl = useCallback((page) => {
     if (isMyPostsMode && user) {
       return `${API_ENDPOINTS.MY_POSTS}?page=${page}&size=${PAGE_SIZE}`;
@@ -290,7 +282,7 @@ const Forum = () => {
     return url;
   }, [isMyPostsMode, user, searchKeyword, selectedHashtags]);
 
-  // Utility: Get auth headers
+  // Utility: Lấy auth headers: nếu isMyPostsMode và user có thì thêm User-Email và Authorization headers
   const getAuthHeaders = useCallback(() => {
     const headers = {};
     if (isMyPostsMode && user) {
@@ -303,7 +295,7 @@ const Forum = () => {
     return headers;
   }, [isMyPostsMode, user]);
 
-  // Utility: Prefetch next page
+  // Utility: Prefetch next page: fetch next page data sau PREFETCH_DELAY và cache vào postsCache để cải thiện performance
   const prefetchNextPage = useCallback((url, headers, currentPageNum) => {
     setTimeout(() => {
       const nextPageUrl = url.replace(`page=${currentPageNum}`, `page=${currentPageNum + 1}`);
@@ -315,16 +307,16 @@ const Forum = () => {
             postsCache.current.set(nextCacheKey, data);
           }
         })
-        .catch(() => {}); // Silently fail prefetch
+        .catch(() => {});
     }, PREFETCH_DELAY);
   }, []);
 
+  // Fetch posts từ API: check cache trước cho initial page load, set loading state, gọi API với timeout (FETCH_TIMEOUT), handle 401, update posts (deduplicate), prefetch next page nếu conditions met
   const fetchPosts = useCallback(async () => {
     try {
       const url = buildPostsUrl(currentPage);
       const cacheKey = `${url}_${currentPage}`;
       
-      // Check cache first for initial page load
       if (currentPage === 0 && postsCache.current.has(cacheKey)) {
         const cachedData = postsCache.current.get(cacheKey);
         setPosts(cachedData.content || []);
@@ -334,7 +326,6 @@ const Forum = () => {
         return;
       }
 
-      // Set loading state
       if (isSwitchingModeRef.current) {
         isSwitchingModeRef.current = false;
       } else if (currentPage === 0 && posts.length === 0) {
@@ -354,7 +345,6 @@ const Forum = () => {
       
       clearTimeout(timeoutId);
       
-      // Handle 401 if token expired (only for authenticated requests)
       if (!response.ok && response.status === 401 && headers['Authorization']) {
         const { checkAndHandle401 } = await import('../../utils/apiErrorHandler');
         await checkAndHandle401(response);
@@ -364,12 +354,10 @@ const Forum = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Cache the response for initial page loads
         if (currentPage === 0) {
           postsCache.current.set(cacheKey, data);
         }
         
-        // Update posts - deduplicate to avoid duplicate keys
         const newPosts = (data.content || []).filter(post => post?.forumPostId);
         if (currentPage === 0) {
           setPosts(newPosts);
@@ -383,7 +371,6 @@ const Forum = () => {
         
         setHasMorePosts(!data.last);
         
-        // Prefetch next page if conditions are met
         if (!data.last && currentPage === 0 && !searchKeyword && selectedHashtags.length === 0 && !isMyPostsMode) {
           prefetchNextPage(url, headers, currentPage);
         }
@@ -392,7 +379,6 @@ const Forum = () => {
       }
     } catch (error) {
       if (error.name !== 'AbortError' && currentPage === 0) {
-        // Only show error on initial load, not on pagination
         setPosts([]);
       }
     } finally {
@@ -406,7 +392,7 @@ const Forum = () => {
     fetchPosts();
   }, [fetchPosts]);
 
-  // Cleanup Intersection Observer on unmount
+  // Cleanup Intersection Observer khi unmount: disconnect observer nếu có
   useEffect(() => {
     return () => {
       if (observerRef.current) {
@@ -441,15 +427,13 @@ const Forum = () => {
     window.dispatchEvent(new Event('refresh-popular-hashtags'));
   }, [buildPostsUrl]);
 
+  // Xử lý post deleted: xóa post khỏi danh sách hiện tại, nếu đang ở single post view và đó là post vừa xóa thì quay lại list, update cache trang đầu tiên để tránh tải lại post đã xóa
   const handlePostDeleted = useCallback((postId) => {
-    // Xóa post khỏi danh sách hiện tại
     setPosts(prev => prev.filter(post => post.forumPostId !== postId));
 
-    // Nếu đang ở chế độ xem single post và đó là post vừa xóa → quay lại list
     setSinglePost(current => (current && current.forumPostId === postId ? null : current));
     setSelectedPostId(currentId => (currentId === postId ? null : currentId));
 
-    // Cập nhật cache trang đầu tiên để tránh tải lại post đã xóa
     const cacheKey = `${buildPostsUrl(0)}_0`;
     const cachedPage = postsCache.current.get(cacheKey);
     if (cachedPage) {
@@ -463,7 +447,7 @@ const Forum = () => {
     }
   }, [buildPostsUrl]);
 
-  // Utility: Reset to default state
+  // Utility: Reset về default state: clear selectedPostId, singlePost, searchKeyword, selectedHashtags, currentPage, isSearchMode, isMyPostsMode, clear filters storage
   const resetToDefaultState = useCallback(() => {
     setSelectedPostId(null);
     setSinglePost(null);
@@ -476,6 +460,7 @@ const Forum = () => {
     clearFiltersStorage();
   }, [clearFiltersStorage]);
 
+  // Xử lý search: clear selectedHashtags, set searchKeyword, reset currentPage về 0, set isSearchMode = true, clear filters storage, save search state vào localStorage
   const handleSearch = useCallback((keyword) => {
     setSelectedHashtags([]);
     setSearchKeyword(keyword);
@@ -488,6 +473,7 @@ const Forum = () => {
     localStorage.setItem(STORAGE_KEYS.SEARCH_MODE, 'true');
   }, [clearFiltersStorage]);
 
+  // Xử lý hashtag filter: clear searchKeyword, set selectedHashtags, reset currentPage về 0, set isSearchMode = false, clear filters storage, save hashtag state vào localStorage
   const handleHashtagFilter = useCallback((hashtags) => {
     setSearchKeyword('');
     const hashtagArray = Array.isArray(hashtags) ? hashtags : [hashtags];
@@ -501,21 +487,25 @@ const Forum = () => {
     localStorage.setItem(STORAGE_KEYS.SEARCH_MODE, 'false');
   }, [clearFiltersStorage]);
 
+  // Clear tất cả filters: gọi resetToDefaultState
   const clearAllFilters = useCallback(() => {
     resetToDefaultState();
   }, [resetToDefaultState]);
 
+  // Xử lý my posts click: reset to default state, set isMyPostsMode = true, close saved posts modal
   const handleMyPostsClick = useCallback(() => {
     resetToDefaultState();
     setIsMyPostsMode(true);
     setShowSavedPostsModal(false);
   }, [resetToDefaultState]);
 
+  // Xử lý saved posts click: reset to default state, open saved posts modal
   const handleSavedPostsClick = useCallback(() => {
     resetToDefaultState();
     setShowSavedPostsModal(true);
   }, [resetToDefaultState]);
 
+  // Xử lý load more: tăng currentPage nếu không đang loading và còn more posts
   const handleLoadMore = useCallback(() => {
     if (!isLoadingMore && hasMorePosts) {
       setIsLoadingMore(true);
@@ -523,7 +513,7 @@ const Forum = () => {
     }
   }, [isLoadingMore, hasMorePosts]);
 
-  // Intersection Observer for infinite scroll
+  // Intersection Observer cho infinite scroll: observe last post element, trigger handleLoadMore khi element vào viewport và có more posts
   const lastPostElementRefCallback = useCallback((node) => {
     if (isLoadingMore) return;
     if (observerRef.current) observerRef.current.disconnect();
@@ -535,22 +525,25 @@ const Forum = () => {
     if (node) observerRef.current.observe(node);
   }, [isLoadingMore, hasMorePosts, handleLoadMore]);
 
+  // Mở edit modal: set editingPost và mở edit modal
   const openEditModal = useCallback((post) => {
     setEditingPost(post);
     setShowEditModal(true);
   }, []);
 
+  // Đóng post modal: set showPostModal = false
   const closePostModal = useCallback(() => {
     setShowPostModal(false);
   }, []);
 
+  // Đóng edit modal: set showEditModal = false, clear editingPost
   const closeEditModal = useCallback(() => {
     setShowEditModal(false);
     setEditingPost(null);
   }, []);
 
+  // Xử lý comment added: update comment count trong post (tăng commentCount trong reactions object)
   const handleCommentAdded = useCallback((comment) => {
-    // Update comment count in the post
     setPosts(prev => 
       prev.map(post => {
         if (post.forumPostId === comment.postId) {
@@ -567,10 +560,8 @@ const Forum = () => {
       );
   }, []);
 
-  // Memoize posts list rendering to avoid unnecessary re-renders
-  // Deduplicate posts and ensure unique keys
+  // Memoize posts list rendering để tránh unnecessary re-renders: deduplicate posts theo forumPostId, đảm bảo unique keys
   const postsList = useMemo(() => {
-    // Deduplicate posts by forumPostId
     const seenIds = new Set();
     const uniquePosts = posts.filter(post => {
       const id = post?.forumPostId;

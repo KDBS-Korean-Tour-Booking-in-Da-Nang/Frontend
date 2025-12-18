@@ -34,7 +34,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const postMenuRef = useRef(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
-  // Use initial data from API response if available
   const [likeCount, setLikeCount] = useState(
     post.reactions?.likeCount ?? 0
   );
@@ -45,7 +44,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const [openViewer, setOpenViewer] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
-  // Use initial saveCount from API response if available
   const [saveCount, setSaveCount] = useState(post.saveCount || 0);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showReportSuccess, setShowReportSuccess] = useState(false);
@@ -66,22 +64,20 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   const [translateError, setTranslateError] = useState('');
   const [showAllHashtags, setShowAllHashtags] = useState(false);
 
-  // Cache for resolved image URLs to avoid repeated processing
+  // Cache cho resolved image URLs để tránh repeated processing: sử dụng Map để cache resolved URLs
   const imageUrlCache = useRef(new Map());
 
-  // Resolve image URL helper function
+  // Resolve image URL helper function: trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure), check cache trước, normalize path và resolve bằng getImageUrl, cache resolved URL
   const resolveImageUrl = (imgPath) => {
     if (!imgPath) return '';
     if (typeof imgPath !== 'string') return '';
 
-    // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
     const trimmed = imgPath.trim();
     if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
-      return trimmed.substring(1); // Loại bỏ dấu / ở đầu và return luôn
+      return trimmed.substring(1);
     }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
 
-    // Check cache first
     if (imageUrlCache.current.has(imgPath)) {
       return imageUrlCache.current.get(imgPath);
     }
@@ -89,7 +85,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     const normalized = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
     const resolvedUrl = getImageUrl(normalized);
 
-    // Cache the resolved URL
     imageUrlCache.current.set(imgPath, resolvedUrl);
     return resolvedUrl;
   };
@@ -107,14 +102,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
   const [imageSources, setImageSources] = useState(initialImageSources);
 
-  // Update image sources when post images change (e.g., after edit)
+  // Update image sources khi post images thay đổi (ví dụ sau khi edit): sync imageSources với initialImageSources
   useEffect(() => {
     setImageSources(initialImageSources);
   }, [initialImageSources]);
 
-  // Update state values when post data changes (e.g., after edit)
+  // Update state values khi post data thay đổi (ví dụ sau khi edit): update likeCount, dislikeCount, saveCount, commentCount từ post data
   useEffect(() => {
-    // Update reaction counts if provided in post
     if (post.reactions?.likeCount !== undefined && post.reactions.likeCount !== null) {
       setLikeCount(post.reactions.likeCount);
     }
@@ -122,48 +116,41 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setDislikeCount(post.reactions.dislikeCount);
     }
 
-    // Update save count if provided in post
     if (post.saveCount !== undefined && post.saveCount !== null) {
       setSaveCount(post.saveCount);
     }
 
-    // Update comment count if provided in post
     if (post.comments !== undefined) {
       setCommentCount(post.comments.length || 0);
     }
   }, [post.reactions?.likeCount, post.reactions?.dislikeCount, post.saveCount, post.comments?.length]);
 
-  // Reset translation state when post content changes (e.g., after edit)
+  // Reset translation state khi post content thay đổi (ví dụ sau khi edit): clear translatedText, showTranslated, translateError
   useEffect(() => {
     setTranslatedText('');
     setShowTranslated(false);
     setTranslateError('');
   }, [post.content]);
 
+  // Load reaction summary và user data: sử dụng initial data từ API response nếu có, chỉ fetch nếu missing, set user reaction từ initial data nếu có, fetch save count nếu không có trong initial data, check user-specific data (saved, reported) nếu user logged in (defer với requestIdleCallback)
   useEffect(() => {
-    // Use initial data from API response if available, only fetch if missing
     const hasReactionData = post.reactions && (
       (post.reactions.likeCount !== undefined && post.reactions.likeCount !== null) ||
       (post.reactions.dislikeCount !== undefined && post.reactions.dislikeCount !== null)
     );
 
-    // Only fetch if we don't have initial data or need user-specific reaction status
     if (!hasReactionData || (user && !post.reactions?.userReaction)) {
       fetchReactionSummary();
     } else if (post.reactions?.userReaction && user) {
-      // Set user reaction from initial data
       setIsLiked(post.reactions.userReaction === 'LIKE');
       setIsDisliked(post.reactions.userReaction === 'DISLIKE');
     }
 
-    // Only fetch save count if not provided in initial data
     if (post.saveCount === undefined || post.saveCount === null) {
       fetchSaveCount();
     }
 
-    // Only check user-specific data if user is logged in (defer to avoid blocking)
     if (user) {
-      // Use requestIdleCallback to defer non-critical user data fetching
       const fetchUserData = () => {
         checkIfSaved();
         checkIfReported();
@@ -197,7 +184,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Preload all images in parallel when post is about to enter viewport
             if (initialImageSources.length > 0) {
               initialImageSources.forEach((url) => {
                 if (url) {
@@ -250,7 +236,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     }
   }, [post.content, post.metadata]);
 
-  // Set loading state immediately if tour ID exists (for skeleton display)
+  // Set loading state ngay nếu tour ID tồn tại (cho skeleton display): set isLoadingTourPreview = true nếu có tourId, nếu không thì clear tourLinkPreview
   useEffect(() => {
     if (tourId) {
       setIsLoadingTourPreview(true);
@@ -260,7 +246,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     }
   }, [tourId]);
 
-  // Load tour preview immediately if tour ID is detected
+  // Load tour preview ngay nếu tour ID được detect: gọi TOUR_PREVIEW_BY_ID endpoint, preload tour preview image ngay, cho first post hoặc posts trong viewport thì load ngay, cho posts khác thì load trong next microtask
   useEffect(() => {
     if (!tourId) return;
 
@@ -276,7 +262,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             image: imageUrl
           };
 
-          // Preload tour preview image immediately
           if (imageUrl) {
             const img = new Image();
             img.src = imageUrl;
@@ -288,11 +273,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         .finally(() => setIsLoadingTourPreview(false));
     };
 
-    // Load immediately for first post or posts in viewport
     if (isFirstPost || imagesInViewport) {
       loadTourPreview();
     } else {
-      // Use Promise.resolve().then() to load in next microtask - faster than setTimeout
       Promise.resolve().then(loadTourPreview);
     }
   }, [tourId, isFirstPost, imagesInViewport]);
@@ -312,7 +295,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     }
   }, [initialImageSources, isFirstPost, imagesInViewport]);
 
-  // Close menu when clicking outside
+  // Đóng menu khi click outside: lắng nghe mousedown event trên document, check nếu click không phải trong postMenuRef thì đóng menu
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!showMenu) return;
@@ -379,14 +362,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         setIsLiked(false);
         setLikeCount(prev => prev - 1);
       } else {
-        // Add reaction (legacy spec)
         const response = await fetch(API_ENDPOINTS.REACTIONS_ADD, {
           method: 'POST',
           headers: createAuthHeaders(token, { 'Content-Type': 'application/json' }),
           body: JSON.stringify(reactionRequest),
         });
 
-        // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
@@ -402,7 +383,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (error) {
-      // Silently handle error handling reaction
+      // Silently handle error
     }
   };
 
@@ -438,7 +419,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           body: JSON.stringify(reactionRequest),
         });
 
-        // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
@@ -454,7 +434,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (e) {
-      // Silently handle error handling dislike
+      // Silently handle error
     }
   };
 
@@ -466,9 +446,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
     setCommentCount(count);
   };
 
+  // Fetch reaction summary từ API: gọi REACTIONS_POST_SUMMARY endpoint (không cần authentication cho public summary), set likeCount, dislikeCount, set user reaction status nếu user logged in
   const fetchReactionSummary = async () => {
     try {
-      // No authentication required for public reaction summary
       const userEmail = user?.email || null;
       const response = await fetch(API_ENDPOINTS.REACTIONS_POST_SUMMARY(post.forumPostId, userEmail));
       if (response.ok) {
@@ -483,11 +463,11 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (error) {
-      // Silently fail - use initial data as fallback
+      // Silently handle error
     }
   };
 
-
+  // Check nếu post đã được save: gọi SAVED_POSTS_CHECK endpoint, set isSaved state
   const checkIfSaved = async () => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
@@ -504,23 +484,24 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         setIsSaved(data.result || false);
       }
     } catch (error) {
-      // Silently fail - user can still interact, will update on next check
+      // Silently handle error
     }
   };
 
+  // Fetch save count từ API: gọi SAVED_POSTS_COUNT endpoint (không cần authentication cho public count), set saveCount state
   const fetchSaveCount = async () => {
     try {
-      // No authentication required for public save count
       const response = await fetch(API_ENDPOINTS.SAVED_POSTS_COUNT(post.forumPostId));
       if (response.ok) {
         const data = await response.json();
         setSaveCount(data.result || 0);
       }
     } catch (error) {
-      // Silently fail - use initial data as fallback
+      // Silently handle error
     }
   };
 
+  // Check nếu post đã được report: gọi REPORTS_CHECK endpoint với targetType=POST và targetId, set hasReported state
   const checkIfReported = async () => {
     try {
       const email = user?.email || localStorage.getItem('email') || '';
@@ -535,16 +516,16 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         setHasReported(hasReportedResult);
       }
     } catch (error) {
-      // Silently fail - user can still interact
+      // Silently handle error
     }
   };
 
+  // Xử lý save post: nếu isSaved = true thì unsave (gọi SAVED_POSTS_UNSAVE với DELETE), nếu false thì save (gọi SAVED_POSTS_SAVE với POST), update isSaved và saveCount state, dispatch 'post-unsaved' event nếu unsave, handle 401
   const handleSavePost = async () => {
     if (!user) {
       return;
     }
 
-    // Get authentication token
     const token = getToken();
     const email = user?.email || localStorage.getItem('email') || '';
 
@@ -561,7 +542,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           headers: createAuthHeaders(token, { 'User-Email': email })
         });
 
-        // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           await checkAndHandle401(response);
           return;
@@ -572,7 +552,6 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
           setSaveCount(prev => Math.max(0, prev - 1));
         }
       } else {
-        // Save post
         const response = await fetch(API_ENDPOINTS.SAVED_POSTS_SAVE, {
           method: 'POST',
           headers: createAuthHeaders(token, { 'User-Email': email }),
@@ -594,7 +573,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
         }
       }
     } catch (error) {
-      // Silently handle error saving/unsaving post
+      // Silently handle error
     }
   };
 

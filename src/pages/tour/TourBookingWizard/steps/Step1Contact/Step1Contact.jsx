@@ -725,10 +725,23 @@ const Step1Contact = () => {
       // Map user data to contact fields (use currentUser which may be refreshed)
       const profileName = currentUser.username || currentUser.name || currentUser.fullName;
       if (profileName) {
-        newContact.fullName = profileName;
-        newAutoFilledFields.add('fullName');
-        // Store original auto-filled name to allow special characters even after manual edit
-        originalAutoFilledNameRef.current = profileName;
+        // Clean the name to allow letters, numbers, spaces, and common special characters
+        // Allowed special characters: parentheses (), hyphens -, apostrophes ', dots .
+        const hasLetter = /[\p{L}\p{M}]/u.test(profileName);
+        const cleanedName = profileName.split('').filter(char => {
+          const isLetter = /[\p{L}\p{M}]/u.test(char);
+          const isDigit = /\d/u.test(char);
+          const isSpace = /\s/u.test(char);
+          const isAllowedSpecialChar = /[()\-'.]/u.test(char);
+          if (isLetter || isSpace || isAllowedSpecialChar) return true;
+          if (isDigit && hasLetter) return true;
+          return false;
+        }).join('').replace(/\s+/g, ' ');
+        
+        if (cleanedName.trim()) {
+          newContact.fullName = cleanedName;
+          newAutoFilledFields.add('fullName');
+        }
       }
       if (currentUser.email) {
         newContact.email = currentUser.email;
@@ -829,8 +842,6 @@ const Step1Contact = () => {
     } else {
       // Clear auto-filled fields when unchecked
       setAutoFilledFields(new Set());
-      // Clear original auto-filled name ref when unchecked
-      originalAutoFilledNameRef.current = null;
       // Note: We don't clear the contact data when unchecked to preserve user input
       // The user can manually edit the fields if they want to change them
     }
@@ -874,10 +885,10 @@ const Step1Contact = () => {
 
       switch (name) {
       case 'fullName': {
-        // Regex to allow letters, numbers, spaces, hyphens, and apostrophes
+        // Regex to allow letters, numbers, spaces, and common special characters: parentheses, hyphens, apostrophes, dots
         // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
-        // Also allows numbers like: John123, Mary2, etc.
-        const nameRegex = /^[\p{L}\p{M}\d\s\-']+$/u;
+        // Also allows numbers and special chars like: John123, Mary2, Tran Viet Tinh (K17 DN), etc.
+        const nameRegex = /^[\p{L}\p{M}\d\s()\-'.]+$/u;
         
         if (!value.trim()) {
           newErrors.fullName = t('booking.errors.fullNameRequired');
@@ -889,38 +900,11 @@ const Step1Contact = () => {
             // No letter found, invalid name
             newErrors.fullName = t('booking.errors.fullNameInvalid');
           } else {
-            // If name originally came from auto-fill, allow special characters from original
-            // This allows auto-filled names with special characters to pass validation
-            const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
-            
-            if (hasOriginalAutoFilledName) {
-              // Extract allowed special characters from original auto-filled name
-              const original = originalAutoFilledNameRef.current;
-              const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-'\d]/gu) || [];
-              const allowedSpecialCharsSet = new Set(allowedSpecialChars);
-              
-              // Check if current value only contains allowed characters (letters, numbers, spaces, hyphens, apostrophes, and original special chars)
-              const isValidName = value.trim().split('').every(char => {
-                const isLetter = /[\p{L}\p{M}]/u.test(char);
-                const isDigit = /\d/u.test(char);
-                const isSpaceOrPunctuation = /[\s\-']/u.test(char);
-                const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
-                return isLetter || isDigit || isSpaceOrPunctuation || isAllowedSpecialChar;
-              });
-              
-              if (!isValidName) {
-                // Contains new special characters not in original
-                newErrors.fullName = t('booking.errors.fullNameInvalid');
-              } else {
-                delete newErrors.fullName;
-              }
+            // Validate that name contains letters, numbers, spaces, and allowed special characters
+            if (!nameRegex.test(value.trim())) {
+              newErrors.fullName = t('booking.errors.fullNameInvalid');
             } else {
-              // No original auto-filled name, use validation that allows letters, numbers, spaces, hyphens, apostrophes
-              if (!nameRegex.test(value.trim())) {
-                newErrors.fullName = t('booking.errors.fullNameInvalid');
-              } else {
-                delete newErrors.fullName;
-              }
+              delete newErrors.fullName;
             }
           }
         }
@@ -1178,73 +1162,36 @@ const Step1Contact = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Special handling for full name input - allow letters, numbers, spaces, hyphens, apostrophes
+    // Special handling for full name input - allow letters, numbers, spaces, and common special characters
+    // Supports: parentheses (), hyphens -, apostrophes ', dots .
     // But require at least one letter before allowing numbers
     let processedValue = value;
     if (name === 'fullName') {
-      // If name originally came from auto-fill, allow special characters from original
-      // but prevent adding new special characters that weren't in the original
-      const hasOriginalAutoFilledName = originalAutoFilledNameRef.current !== null;
+      // Check if there's at least one letter in the current value
+      const hasLetter = /[\p{L}\p{M}]/u.test(value);
       
-      if (hasOriginalAutoFilledName) {
-        // Extract allowed special characters from original auto-filled name
-        const original = originalAutoFilledNameRef.current;
-        const allowedSpecialChars = original.match(/[^\p{L}\p{M}\s\-'\d]/gu) || [];
-        const allowedSpecialCharsSet = new Set(allowedSpecialChars);
+      // Filter characters: allow letters, spaces, and allowed special characters always
+      // Allow digits only if there's at least one letter
+      // Allowed special characters: parentheses (), hyphens -, apostrophes ', dots .
+      processedValue = value.split('').filter(char => {
+        const isLetter = /[\p{L}\p{M}]/u.test(char);
+        const isDigit = /\d/u.test(char);
+        const isSpace = /\s/u.test(char);
+        const isAllowedSpecialChar = /[()\-'.]/u.test(char);
         
-        // Check if there's at least one letter in the current value
-        const hasLetter = /[\p{L}\p{M}]/u.test(value);
-        
-        // Allow letters, numbers, spaces, hyphens, apostrophes, and special chars from original
-        // But only allow numbers if there's at least one letter
-        processedValue = value.split('').filter(char => {
-          const isLetter = /[\p{L}\p{M}]/u.test(char);
-          const isDigit = /\d/u.test(char);
-          const isSpaceOrPunctuation = /[\s\-']/u.test(char);
-          const isAllowedSpecialChar = allowedSpecialCharsSet.has(char);
-          
-          // Always allow letters, spaces, hyphens, apostrophes, and original special chars
-          if (isLetter || isSpaceOrPunctuation || isAllowedSpecialChar) {
-            return true;
-          }
-          // Allow digits only if there's at least one letter in the value
-          if (isDigit && hasLetter) {
-            return true;
-          }
-          return false;
-        }).join('');
-        
-        // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
-        processedValue = processedValue.replace(/\s+/g, ' ');
-      } else {
-        // No original auto-filled name, allow letters, numbers, spaces, hyphens, apostrophes
-        // But require at least one letter before allowing numbers
-        // Supports international names using Unicode properties
-        
-        // Check if there's at least one letter in the current value
-        const hasLetter = /[\p{L}\p{M}]/u.test(value);
-        
-        // Filter characters: allow letters, spaces, hyphens, apostrophes always
-        // Allow digits only if there's at least one letter
-        processedValue = value.split('').filter(char => {
-          const isLetter = /[\p{L}\p{M}]/u.test(char);
-          const isDigit = /\d/u.test(char);
-          const isSpaceOrPunctuation = /[\s\-']/u.test(char);
-          
-          // Always allow letters, spaces, hyphens, apostrophes
-          if (isLetter || isSpaceOrPunctuation) {
-            return true;
-          }
-          // Allow digits only if there's at least one letter in the value
-          if (isDigit && hasLetter) {
-            return true;
-          }
-          return false;
-        }).join('');
-        
-        // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
-        processedValue = processedValue.replace(/\s+/g, ' ');
-      }
+        // Always allow letters, spaces, and allowed special characters
+        if (isLetter || isSpace || isAllowedSpecialChar) {
+          return true;
+        }
+        // Allow digits only if there's at least one letter in the value
+        if (isDigit && hasLetter) {
+          return true;
+        }
+        return false;
+      }).join('');
+      
+      // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
+      processedValue = processedValue.replace(/\s+/g, ' ');
     }
     // Special handling for phone number input
     else if (name === 'phone') {

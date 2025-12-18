@@ -32,9 +32,9 @@ export const calcPriceBreakdown = ({ adult, child, infant }) => {
 };
 
 /**
- * Format price to Korean Won currency
- * @param {number} price - Price in VND
- * @returns {string} Formatted price string in KRW
+ * Format giá từ VND sang KRW (tỷ lệ 1 KRW = 18 VND)
+ * @param {number} price - Giá tiền VND
+ * @returns {string} Chuỗi giá đã format theo định dạng KRW
  */
 export const formatPrice = (price) => {
   const krwPrice = Math.round(price / 18);

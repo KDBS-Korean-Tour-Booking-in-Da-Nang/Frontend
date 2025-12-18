@@ -30,12 +30,12 @@ const CustomerContact = () => {
   const retryCountRef = useRef(0);
   const hasOpenedChatFromUrlRef = useRef(false);
 
-  // Resolve current user's ID
+  // Resolve current user's ID: lấy userId từ state.currentUser hoặc authUser
   const currentUserId = (() => {
     return state.currentUser?.userId || state.currentUser?.id || authUser?.userId || authUser?.id || null;
   })();
 
-  // Load users with error handling and retry
+  // Load users với error handling và retry: load allUsers và conversations từ API (cache đã load trong ChatContext), delay để tránh ERR_INSUFFICIENT_RESOURCES nhưng cache hiển thị ngay, retry với exponential backoff (max 3 retries)
   const loadUsersWithRetry = async (retryDelay = 500) => {
     if (hasLoadedUsersRef.current && state.allUsers?.length > 0) {
       return; // Already loaded
@@ -46,19 +46,16 @@ const CustomerContact = () => {
       await actions.loadAllUsers();
       retryCountRef.current = 0;
       
-      // Load conversations from API (cache already loaded in ChatContext)
-      // Delay to avoid ERR_INSUFFICIENT_RESOURCES, but cache shows instantly
       setTimeout(async () => {
         try {
           await actions.loadConversations();
         } catch {
-          // Don't show error, conversations are optional
+          // Silently handle error
         }
       }, retryDelay + 200);
     } catch {
       hasLoadedUsersRef.current = false;
       
-      // Retry with exponential backoff (max 3 retries)
       if (retryCountRef.current < 3) {
         retryCountRef.current += 1;
         const delay = retryDelay * Math.pow(2, retryCountRef.current);
@@ -66,32 +63,28 @@ const CustomerContact = () => {
           loadUsersWithRetry(delay);
         }, delay);
       } else {
-        // After max retries, keep empty list but allow chat to work
+        // Silently handle error
       }
     }
   };
 
   useEffect(() => {
-    // Conversations are already loaded from cache in ChatContext initialization
-    // Load fresh data in background without blocking UI
     if (!hasLoadedUsersRef.current) {
       loadUsersWithRetry();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-open chat with user from URL query params
+  // Auto-open chat với user từ URL query params: tìm user theo userId, mở chat, remove userId khỏi URL sau khi mở
   useEffect(() => {
     const userIdFromUrl = searchParams.get('userId');
     if (userIdFromUrl && !hasOpenedChatFromUrlRef.current && state.allUsers?.length > 0) {
       const userId = parseInt(userIdFromUrl, 10);
       if (!isNaN(userId)) {
-        // Find user by userId
         const targetUser = state.allUsers.find(u => (u.userId || u.id) === userId);
         if (targetUser) {
           hasOpenedChatFromUrlRef.current = true;
           actions.openChatWithUser(targetUser);
-          // Remove userId from URL after opening chat
           searchParams.delete('userId');
           setSearchParams(searchParams, { replace: true });
         }
@@ -99,22 +92,20 @@ const CustomerContact = () => {
     }
   }, [searchParams, state.allUsers, actions, setSearchParams]);
   
-  // Re-subscribe to WebSocket messages when active chat changes
+  // Re-subscribe WebSocket messages khi active chat thay đổi: ChatContext tự động handle WebSocket subscription, messages sẽ được nhận qua WebSocket và thêm vào state.messages
   useEffect(() => {
     if (state.activeChatUser && state.currentUser) {
-      // ChatContext handles WebSocket subscription automatically
-      // Messages will be received via WebSocket and added to state.messages
+      // ChatContext handles automatically
     }
   }, [state.activeChatUser, state.currentUser]);
 
   useEffect(() => {
-    // Scroll to bottom when new messages arrive
     if (messagesContainerRef.current && state.messages.length > 0) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [state.messages]);
 
-  // Focus input when active chat changes
+  // Focus input khi active chat thay đổi
   useEffect(() => {
     if (state.activeChatUser && inputRef.current) {
       inputRef.current.focus();
@@ -137,7 +128,7 @@ const CustomerContact = () => {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
     } catch (error) {
-      // Silently handle error sending message
+      // Silently handle error
     }
   };
 
@@ -442,7 +433,6 @@ const CustomerContact = () => {
                            "rounded-br-lg", // góc dưới-phải nhỏ hơn để ra dáng bubble
                          ];
 
-                         // Nối khối theo nhóm
                          if (first) {
                            baseClasses.push("rounded-tr-2xl");
                          } else {
@@ -465,7 +455,6 @@ const CustomerContact = () => {
                            "rounded-bl-lg", // góc dưới-trái nhỏ hơn
                          ];
 
-                         // Nối khối theo nhóm
                          if (first) {
                            baseClasses.push("rounded-tl-2xl");
                          } else {

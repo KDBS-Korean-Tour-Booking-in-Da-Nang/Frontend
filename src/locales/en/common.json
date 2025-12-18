@@ -2808,6 +2808,7 @@
 				"placeholder": "Enter text description (no images)..."
 			},
 			"itinerary": {
+				"dayAdded": "A day has been added to the itinerary.",
 				"mainSectionTitle": "DESTINATIONS & ITINERARY",
 				"activities": "Activities & Locations",
 				"images": "Illustrative Images (max 5 images)",
@@ -4077,6 +4078,7 @@
 				"tourName": "Tour Name",
 				"departureDate": "Departure Date",
 				"guestCount": "Guest Count",
+				"contactName": "Contact Name",
 				"contactEmail": "Contact Email",
 				"createdAt": "Created At"
 			},
@@ -4689,7 +4691,8 @@
 			"toasts": {
 				"statusUpdated": "Insurance status updated for {{guestName}}. Changes will be saved when you complete the booking.",
 				"rejected": "Booking has been rejected",
-				"saved": "Insurance changes have been recorded. Please complete the booking to save them to the system."
+				"saved": "Insurance changes have been recorded. Please complete the booking to save them to the system.",
+				"approvedAll": "All insurance has been approved. Changes will be saved when you complete the booking."
 			},
 			"header": {
 				"title": "Insurance information",
@@ -4798,7 +4801,10 @@
 		"confirmation": {
 			"toasts": {
 				"completedByBoth": "The tour has been confirmed as completed by both parties! Payment will be transferred to the company.",
-				"companyConfirmed": "Tour completion has been confirmed! If the customer also confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}})."
+				"companyConfirmed": "Tour completion has been confirmed! If the customer also confirms, payment will be transferred immediately. Otherwise, the system will auto-confirm after 3 days (after {{date}}).",
+				"approvedPendingBalance": "Booking approved. Customer needs to pay the remaining balance.",
+				"approvedFullPayment": "Booking approved. Customer has paid in full. The system will automatically switch to BOOKING_SUCCESS_PENDING when the departure date arrives.",
+				"confirmError": "Unable to confirm booking"
 			},
 			"header": {
 				"successTitle": "Booking has been successfully confirmed!",

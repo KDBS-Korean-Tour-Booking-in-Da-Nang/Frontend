@@ -18,7 +18,7 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { API_ENDPOINTS, getTourImageUrl } from '../../../../../config/api';
 import { sanitizeHtml } from '../../../../../utils/sanitizeHtml';
 
-// Helper function to convert HTML to text (same as EditTourModal)
+// Helper function để convert HTML sang text: replace br tags với newline, replace closing p tags với newline, remove tất cả HTML tags, collapse multiple newlines, trim
 const htmlToText = (html) => {
   if (!html) return '';
   return String(html)
@@ -34,11 +34,10 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
   
   if (!isOpen || !tour) return null;
 
-  // When viewing update request, use originalTour for display (to compare with updatedTour)
-  // Otherwise use the provided tour
+  // Khi viewing update request: dùng originalTour để display (để compare với updatedTour), nếu không thì dùng tour được provide
   const displayTour = updateRequest?.originalTour || tour;
 
-  // Helper function to parse duration string to get days and nights
+  // Helper function để parse duration string lấy days và nights: parse "X ngày Y đêm" hoặc "X days Y nights" format, return { days, nights }
   const parseDuration = (durationStr) => {
     if (!durationStr) return { days: 0, nights: 0 };
     const normalized = String(durationStr).toLowerCase().trim();
@@ -65,7 +64,7 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
     return { days: 0, nights: 0 };
   };
 
-  // Helper function to calculate minAdvancedDays from expiration date
+  // Helper function để tính minAdvancedDays từ expiration date: parse expirationDate, tính diff với today, return diff - 1 nếu >= 0, return null nếu không hợp lệ
   const calculateMinAdvancedDays = (expirationDate) => {
     if (!expirationDate) return null;
     try {
@@ -82,7 +81,7 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
     }
   };
 
-  // Helper function to normalize values for comparison
+  // Helper function để normalize values cho comparison: trim string, return null nếu null/undefined, return value as-is cho number/boolean
   const normalizeValue = (value) => {
     if (value === null || value === undefined) return null;
     if (typeof value === 'string') return value.trim();
@@ -91,12 +90,11 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
     return value;
   };
 
-  // Helper function to compare two values (handles numbers, strings, dates)
+  // Helper function để compare hai values (handle numbers, strings, dates): normalize values, handle null/undefined, handle numbers (allow small floating point differences), handle strings, default comparison
   const compareValues = (val1, val2) => {
     const norm1 = normalizeValue(val1);
     const norm2 = normalizeValue(val2);
     
-    // Handle null/undefined
     if (norm1 === null && norm2 === null) return true;
     if (norm1 === null || norm2 === null) return false;
     
@@ -104,22 +102,18 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
     const num1 = typeof norm1 === 'string' && !isNaN(norm1) && !isNaN(parseFloat(norm1)) ? parseFloat(norm1) : norm1;
     const num2 = typeof norm2 === 'string' && !isNaN(norm2) && !isNaN(parseFloat(norm2)) ? parseFloat(norm2) : norm2;
     if (typeof num1 === 'number' && typeof num2 === 'number') {
-      return Math.abs(num1 - num2) < 0.01; // Allow small floating point differences
+      return Math.abs(num1 - num2) < 0.01;
     }
     
-    // Handle strings
     if (typeof norm1 === 'string' && typeof norm2 === 'string') {
       return norm1 === norm2;
     }
     
-    // Default comparison
     return norm1 === norm2;
   };
 
-  // Helper function to get value from original tour (TourResponse) or updated tour (TourRequest)
-  // Handles field name differences between TourResponse and TourRequest
+  // Helper function để lấy value từ original tour (TourResponse) hoặc updated tour (TourRequest): handle field name differences giữa TourResponse và TourRequest, try cả hai field names
   const getOriginalValue = (original, fieldName) => {
-    // TourResponse might use different field names, try both
     switch (fieldName) {
       case 'tourName':
         return original.tourName || original.title;
@@ -146,29 +140,24 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
     }
   };
 
-  // Helper function to check if a field has changed in update request
+  // Helper function để check nếu field đã thay đổi trong update request: exclude readonly fields (refundFloor, companyEmail), get values với proper field mapping, special handling cho tourIntDuration (calculated từ duration và nights), minAdvancedDays (calculated từ tourExpirationDate), balancePaymentDays (calculated từ minAdvancedDays - tourCheckDays), tourDescription (normalize HTML to text)
   const isFieldChanged = (fieldName) => {
     if (!updateRequest || !updateRequest.originalTour || !updateRequest.updatedTour) return false;
     const original = updateRequest.originalTour;
     const updated = updateRequest.updatedTour;
     
-    // Exclude readonly fields that company cannot change
     const readonlyFields = ['refundFloor', 'companyEmail'];
     if (readonlyFields.includes(fieldName)) {
       return false;
     }
     
-    // Get values with proper field mapping
     let originalValue = getOriginalValue(original, fieldName);
     let updatedValue = updated[fieldName];
     
-    // Special handling for tourIntDuration: calculated from duration and nights
-    // Only highlight if tourDuration actually changed
     if (fieldName === 'tourIntDuration') {
-      // Check if tourDuration changed first
       const originalDuration = original.tourDuration || '';
       const updatedDuration = updated.tourDuration || '';
-      if (originalDuration === updatedDuration) return false; // No change if duration unchanged
+      if (originalDuration === updatedDuration) return false;
       
       const originalParsed = parseDuration(originalDuration);
       const updatedParsed = parseDuration(updatedDuration);
@@ -182,35 +171,29 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
       const originalExpiration = original.tourExpirationDate;
       const updatedExpiration = updated.tourExpirationDate;
       
-      // If expiration dates are the same, minAdvancedDays should be the same
       if (originalExpiration === updatedExpiration) {
-        return false; // No change if expiration date unchanged
+        return false;
       }
       
       // Calculate expected minAdvancedDays from expiration dates
       const calculatedOriginal = calculateMinAdvancedDays(originalExpiration);
       const calculatedUpdated = calculateMinAdvancedDays(updatedExpiration);
       
-      // Compare calculated values
       if (calculatedOriginal === null && calculatedUpdated === null) return false;
       if (calculatedOriginal === null || calculatedUpdated === null) return true;
       return calculatedOriginal !== calculatedUpdated;
     }
     
-    // Special handling for balancePaymentDays: calculated from minAdvancedDays - tourCheckDays
     if (fieldName === 'balancePaymentDays') {
-      // Check if dependent fields changed
       const originalExpiration = original.tourExpirationDate;
       const updatedExpiration = updated.tourExpirationDate;
       const originalCheckDays = original.tourCheckDays !== undefined && original.tourCheckDays !== null ? Number(original.tourCheckDays) : 0;
       const updatedCheckDays = updated.tourCheckDays !== undefined && updated.tourCheckDays !== null ? Number(updated.tourCheckDays) : 0;
       
-      // If neither expiration date nor check days changed, balancePaymentDays should not change
       if (originalExpiration === updatedExpiration && originalCheckDays === updatedCheckDays) {
         return false;
       }
       
-      // Calculate minAdvancedDays from expiration dates
       let originalMinAdv = original.minAdvancedDays !== undefined && original.minAdvancedDays !== null ? Number(original.minAdvancedDays) : 0;
       let updatedMinAdv = updated.minAdvancedDays !== undefined && updated.minAdvancedDays !== null ? Number(updated.minAdvancedDays) : 0;
       
@@ -223,18 +206,15 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
         if (calculated !== null) updatedMinAdv = calculated;
       }
       
-      // Calculate expected balancePaymentDays
       const calculatedOriginal = Math.max(0, originalMinAdv - originalCheckDays);
       const calculatedUpdated = Math.max(0, updatedMinAdv - updatedCheckDays);
       
       return calculatedOriginal !== calculatedUpdated;
     }
     
-    // Special handling for tourDescription: normalize HTML to text for comparison
-    // EditTourModal sends text, but originalTour (TourResponse) may have HTML
     if (fieldName === 'tourDescription') {
       const originalText = htmlToText(originalValue || '');
-      const updatedText = String(updatedValue || '').trim(); // updatedTour already has text (not HTML)
+      const updatedText = String(updatedValue || '').trim();
       return originalText.trim() !== updatedText;
     }
     
@@ -246,31 +226,23 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
       return origName !== updName;
     }
     
-    // Special handling for tourImgPath: check updatedImagePath in updateRequest
     if (fieldName === 'tourImgPath') {
       const originalPath = original.tourImgPath || original.thumbnailUrl || '';
       const updatedPath = updateRequest?.updatedImagePath || '';
-      if (!updatedPath) return false; // No new image uploaded
+      if (!updatedPath) return false;
       return originalPath !== updatedPath;
     }
     
-    // Special handling for tourSchedule: compare as strings
-    // Also check originalTour directly for tourSchedule field (may have different field name)
     if (fieldName === 'tourSchedule') {
       // Get original value from multiple possible locations
       const origSchedule = original.tourSchedule || original.schedule || originalValue || '';
       const originalStr = origSchedule ? String(origSchedule).trim() : '';
       const updatedStr = updatedValue ? String(updatedValue).trim() : '';
-      // If both are empty/null/undefined, no change
       if (!originalStr && !updatedStr) return false;
-      // If one is empty and the other is not, it's a change
       if (!originalStr || !updatedStr) return true;
-      // Compare trimmed strings
       return originalStr !== updatedStr;
     }
     
-    // Special handling for price fields (adultPrice, childrenPrice, babyPrice)
-    // These might come as BigDecimal (string or number)
     if (fieldName === 'adultPrice' || fieldName === 'childrenPrice' || fieldName === 'babyPrice') {
       const origNum = originalValue !== null && originalValue !== undefined ? parseFloat(originalValue) : null;
       const updNum = updatedValue !== null && updatedValue !== undefined ? parseFloat(updatedValue) : null;
@@ -279,7 +251,6 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
       return Math.abs(origNum - updNum) >= 0.01;
     }
     
-    // Handle numeric fields
     if (fieldName === 'amount' || fieldName === 'tourCheckDays' || fieldName === 'depositPercentage') {
       const origNum = originalValue !== null && originalValue !== undefined ? Number(originalValue) : null;
       const updNum = updatedValue !== null && updatedValue !== undefined ? Number(updatedValue) : null;
@@ -288,7 +259,6 @@ const TourDetailModal = ({ isOpen, onClose, tour, onApprove, onReject, updateReq
       return origNum !== updNum;
     }
     
-    // Deep comparison for objects/arrays (e.g., contents)
     if (typeof originalValue === 'object' || typeof updatedValue === 'object') {
       if (Array.isArray(originalValue) || Array.isArray(updatedValue)) {
         if (!Array.isArray(originalValue) || !Array.isArray(updatedValue)) return true;

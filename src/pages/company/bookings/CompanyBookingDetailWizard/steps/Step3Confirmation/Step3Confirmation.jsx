@@ -104,12 +104,11 @@ const Step3Confirmation = ({
     }
   };
 
-  // Update company/user confirmed status from booking props
+  // Update company/user confirmed status từ booking props: set companyConfirmed và userConfirmed, check tour completed (cả hai confirmed hoặc backend đã finalized)
   useEffect(() => {
     if (booking) {
       setCompanyConfirmed(booking.companyConfirmedCompletion || false);
       setUserConfirmed(booking.userConfirmedCompletion || false);
-      // Check if tour is completed (both confirmed or backend already finalized)
       const isCompleted =
         booking.bookingStatus === STATUS_SUCCESS ||
         (booking.companyConfirmedCompletion && booking.userConfirmedCompletion) ||
@@ -118,7 +117,7 @@ const Step3Confirmation = ({
     }
   }, [booking, STATUS_SUCCESS]);
 
-  // Check tour completion status on mount and refresh periodically
+  // Kiểm tra tour completion status khi mount và refresh định kỳ: gọi getTourCompletionStatus mỗi 30s nếu booking status là waiting confirm hoặc completed, set tourCompleted state
 useEffect(() => {
   if (!booking?.bookingId) return;
 
@@ -140,7 +139,7 @@ useEffect(() => {
         setTourCompleted(isCompleted);
       }
     } catch (error) {
-      // Error checking tour completion status
+      // Silently handle error
     } finally {
       if (isMounted) {
         setCheckingStatus(false);
@@ -157,20 +156,17 @@ useEffect(() => {
   };
 }, [booking?.bookingId, booking?.bookingStatus, isStatusCompleted, isStatusWaitingConfirm]);
 
-  // Handle finish button - show confirmation modal
+  // Xử lý finish button: nếu booking đã confirmed (BOOKING_SUCCESS) thì navigate đến booking management, nếu không thì show confirmation modal
   const handleFinish = () => {
-    // Check if booking is already confirmed
     if (booking?.bookingStatus === 'BOOKING_SUCCESS') {
-      // Already confirmed, just navigate to booking management
       navigateToBookingManagement();
       return;
     }
 
-    // Show confirmation modal
     setShowConfirmModal(true);
   };
 
-  // Navigate to booking management page
+  // Navigate đến booking management page: preserve tourId trong URL nếu có
   const navigateToBookingManagement = () => {
     if (tourId) {
       navigate(`/company/bookings?tourId=${tourId}`);
@@ -179,7 +175,7 @@ useEffect(() => {
     }
   };
 
-  // Handle booking confirmation - called from modal
+  // Xử lý booking confirmation (được gọi từ modal): save pending insurance updates trước, determine next status dựa trên payment status, check voucher applied, sử dụng discount amounts nếu có voucher, gọi companyConfirmTourCompletion, update booking, navigate đến booking management
   const handleConfirmBooking = async () => {
     if (!booking?.bookingId) return;
 
@@ -262,9 +258,9 @@ useEffect(() => {
       
       // Show success message based on new status
       if (nextStatus === 'PENDING_BALANCE_PAYMENT') {
-        showSuccess('Đã duyệt booking. Khách hàng cần thanh toán số tiền còn lại.');
+        showSuccess(t('companyBookingWizard.confirmation.toasts.approvedPendingBalance'));
       } else if (nextStatus === 'BOOKING_BALANCE_SUCCESS') {
-        showSuccess('Đã duyệt booking. Khách hàng đã thanh toán đủ số tiền. Hệ thống sẽ tự động chuyển sang BOOKING_SUCCESS_PENDING khi đến ngày khởi hành.');
+        showSuccess(t('companyBookingWizard.confirmation.toasts.approvedFullPayment'));
       }
       
       // Navigate to booking management after a short delay to show success message
@@ -273,7 +269,7 @@ useEffect(() => {
       }, 1500);
     } catch (error) {
       // Silently handle error confirming booking
-      showSuccess(error.message || 'Không thể xác nhận booking');
+      showSuccess(error.message || t('companyBookingWizard.confirmation.toasts.confirmError'));
     } finally {
       setConfirmingBooking(false);
     }

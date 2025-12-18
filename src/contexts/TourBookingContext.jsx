@@ -18,14 +18,14 @@ import {
   createClearBookingStatusAction
 } from './TourBookingActions';
 
-// Create context
+// Create context cho tour booking state management
 export const TourBookingContext = createContext();
 
-// Provider component
+// Provider component: quản lý booking state với useReducer, cung cấp action creators (setContact, setDate, setPax, incrementPax, decrementPax, setMember, rebuildMembers, recalcTotal, resetBooking, setBookingLoading, setBookingError, setBookingSuccess, clearBookingStatus)
 export function TourBookingProvider({ children }) {
   const [state, dispatch] = useReducer(bookingReducer, initialState);
 
-  // Action creators
+  // Action creators: các hàm dispatch actions để update booking state
   const setContact = useCallback((partial) => {
     dispatch(createSetContactAction(partial));
   }, []);

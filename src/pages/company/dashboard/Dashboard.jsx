@@ -35,7 +35,7 @@ const Dashboard = () => {
   const [period, setPeriod] = useState('thisMonth');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Fetch user balance from API
+  // Fetch user balance từ API: gọi GET_USER endpoint với user.email, set balance từ userData.balance, handle 401 với checkAndHandle401
   const fetchBalance = useCallback(async () => {
     if (!user || user.role !== 'COMPANY') {
       setBalance(null);
@@ -64,7 +64,7 @@ const Dashboard = () => {
     }
   }, [user, getToken]);
 
-  // Extract companyId from user object (try multiple possible field names)
+  // Extract companyId từ user object: thử nhiều field names có thể (companyId, companyID, company.companyId, company.id, id), chỉ extract nếu user.role === 'COMPANY' hoặc 'BUSINESS'
   useEffect(() => {
     if (!user) {
       setCompanyId(null);
@@ -88,7 +88,7 @@ const Dashboard = () => {
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
 
-  // Listen for balance update events and refresh balance when event is fired
+  // Lắng nghe balance update events và refresh balance khi event được fire: addEventListener 'balanceUpdated', gọi fetchBalance khi event xảy ra
   useEffect(() => {
     const handleBalanceUpdate = () => {
       fetchBalance();
@@ -102,7 +102,7 @@ const Dashboard = () => {
     }
   }, [user?.email, getToken, fetchBalance]);
 
-  // Fetch all dashboard data: tours, bookings, calculate stats and revenue chart data
+  // Fetch tất cả dashboard data: fetch balance trước, fetch tour statistics (totalTours, activeTours = PUBLIC status), fetch booking statistics (totalBookings, pending/completed/cancelled counts, bookingStatusMap), sử dụng balance từ API làm totalRevenue, set tất cả vào stats state
   const fetchDashboardData = useCallback(async () => {
     if (!companyId) {
       setLoading(false);
@@ -117,10 +117,8 @@ const Dashboard = () => {
 
       if (!token) return;
 
-      // Fetch balance first
       await fetchBalance();
 
-      // Fetch tour statistics
       let totalTours = 0;
       let activeTours = 0;
       try {
@@ -136,14 +134,12 @@ const Dashboard = () => {
         if (toursStatsRes.ok) {
           const toursStats = await toursStatsRes.json();
           totalTours = toursStats.totalTours || 0;
-          // Active tours are tours with PUBLIC status
           activeTours = toursStats.byStatus?.PUBLIC || 0;
         }
       } catch {
-        // Failed to fetch tour statistics, continue with default values
+        // Silently handle error
       }
 
-      // Fetch booking statistics
       let totalBookings = 0;
       let pendingBookings = 0;
       let completedBookings = 0;
@@ -163,15 +159,12 @@ const Dashboard = () => {
           const bookingsStats = await bookingsStatsRes.json();
           totalBookings = bookingsStats.totalBookings || 0;
           
-          // Extract status counts from byStatus map
           const byStatus = bookingsStats.byStatus || {};
           
-          // Store all status map for booking status chart
           Object.keys(byStatus).forEach(status => {
             bookingStatusMap[status] = byStatus[status] || 0;
           });
           
-          // Pending bookings: various pending/waiting states
           pendingBookings = (byStatus.BOOKING_SUCCESS_PENDING || 0) +
                           (byStatus.PENDING_PAYMENT || 0) +
                           (byStatus.PENDING_DEPOSIT_PAYMENT || 0) +
@@ -179,19 +172,16 @@ const Dashboard = () => {
                           (byStatus.WAITING_FOR_APPROVED || 0) +
                           (byStatus.WAITING_FOR_UPDATE || 0);
           
-          // Completed bookings: success states
           completedBookings = (byStatus.BOOKING_SUCCESS || 0) +
                             (byStatus.BOOKING_SUCCESS_WAIT_FOR_CONFIRMED || 0) +
                             (byStatus.BOOKING_BALANCE_SUCCESS || 0);
           
-          // Cancelled bookings
           cancelledBookings = byStatus.BOOKING_CANCELLED || 0;
         }
       } catch {
-        // Failed to fetch booking statistics, continue with default values
+        // Silently handle error
       }
       
-      // Use balance from API as total revenue
       const currentBalance = balance !== null ? balance : 0;
 
       setStats({
@@ -205,7 +195,7 @@ const Dashboard = () => {
         bookingStatusMap
       });
     } catch {
-      // Failed to fetch dashboard data, continue with default values
+      // Silently handle error
     } finally {
       setLoading(false);
     }
@@ -215,7 +205,7 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  // Fetch monthly booking count statistics separately when year changes
+  // Fetch monthly booking count statistics riêng khi year thay đổi: gọi BOOKING_COMPANY_MONTHLY_BOOKING_COUNT endpoint, convert map sang array (month 1-12 -> index 0-11), handle cả string keys và number keys từ JSON
   const fetchMonthlyBookingCount = useCallback(async () => {
     if (!companyId) {
       return;
@@ -242,11 +232,8 @@ const Dashboard = () => {
         const monthlyBookingCountData = await monthlyBookingCountRes.json();
         const monthlyBookingCount = monthlyBookingCountData.monthlyBookingCount || {};
         
-        // Convert map to array (month 1-12 -> index 0-11)
-        // Handle both string keys ("1", "2") and number keys (1, 2) from JSON
         bookingCountByMonth = Array.from({ length: 12 }, (_, i) => {
           const month = i + 1;
-          // Try number key first, then string key
           const count = monthlyBookingCount[month] ?? monthlyBookingCount[String(month)];
           if (count !== undefined && count !== null) {
             return typeof count === 'number' ? count : parseInt(count, 10);
@@ -257,7 +244,7 @@ const Dashboard = () => {
       
       setBookingCountData(bookingCountByMonth);
     } catch {
-      // Failed to fetch monthly booking count, continue with default values
+      // Silently handle error
     }
   }, [companyId, selectedYear, getToken]);
 
@@ -265,8 +252,7 @@ const Dashboard = () => {
     fetchMonthlyBookingCount();
   }, [fetchMonthlyBookingCount]);
 
-
-  // Stats cards data
+  // Stats cards data: định nghĩa các card hiển thị totalTours, totalBookings, totalRevenue (format VND), activeTours với icon, color, bgColor, change và trend
   const statsCards = [
     {
       label: t('companyDashboard.stats.totalTours') || 'Total Tours',
@@ -306,7 +292,7 @@ const Dashboard = () => {
     }
   ];
 
-  // Bookings chart options
+  // Bookings chart options: area chart với smooth curve, gradient fill, xaxis categories (12 tháng), yaxis formatter số nguyên, grid với borderColor và strokeDashArray
   const bookingsChartOptions = {
     chart: {
       type: 'area',
@@ -366,7 +352,7 @@ const Dashboard = () => {
     data: bookingCountData || []
   }];
 
-  // Booking status donut chart - show all statuses
+  // Booking status donut chart: hiển thị tất cả statuses có count > 0, sort theo count descending, map status sang short names (statusShortNames), sử dụng statusColors cho màu sắc
   const bookingStatusMap = stats.bookingStatusMap || {};
   const statusColors = [
     '#1a8eea', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -391,13 +377,11 @@ const Dashboard = () => {
     'BOOKING_CANCELLED': 'Cancelled'
   };
   
-  // Get all statuses that have count > 0
   const statusEntries = Object.entries(bookingStatusMap)
     .filter(([_, count]) => count > 0)
-    .sort(([_, a], [__, b]) => b - a); // Sort by count descending
+    .sort(([_, a], [__, b]) => b - a);
 
   const bookingStatusLabels = statusEntries.map(([status]) => {
-    // Use short name if available, otherwise format the status name
     return statusShortNames[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   });
   

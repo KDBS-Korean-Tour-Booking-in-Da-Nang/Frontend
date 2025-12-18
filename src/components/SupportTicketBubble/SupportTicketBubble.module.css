@@ -89,6 +89,23 @@
   box-shadow: 0 2px 8px rgba(76, 157, 255, 0.15);
 }
 
+.category-item-error {
+  border-color: #ef4444 !important;
+}
+
+.error-message {
+  display: block;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  margin-left: 0.25rem;
+}
+
+.input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
 .category-icon {
   flex-shrink: 0;
   display: flex;

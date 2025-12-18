@@ -28,11 +28,15 @@ import {
 } from '@heroicons/react/24/outline';
 import styles from './BookingDetail.module.css';
 
+// Chuẩn hóa status booking từ nhiều định dạng về string thống nhất
+// Hỗ trợ: number (0, 1, 2), string numeric, legacy status, new status
 const normalizeStatus = (status) => {
+  // Nếu null/undefined, mặc định là PENDING_PAYMENT
   if (status === null || status === undefined) {
     return 'PENDING_PAYMENT';
   }
 
+  // Xử lý status dạng number (legacy format)
   if (typeof status === 'number') {
     if (status === 1) return 'BOOKING_SUCCESS';
     if (status === 2) return 'BOOKING_REJECTED';
@@ -41,11 +45,12 @@ const normalizeStatus = (status) => {
 
   const raw = String(status).trim().toUpperCase();
 
+  // Xử lý string numeric
   if (raw === '0') return 'PENDING_PAYMENT';
   if (raw === '1') return 'BOOKING_SUCCESS';
   if (raw === '2') return 'BOOKING_REJECTED';
 
-  // Map các status từ backend
+  // Map tất cả các status có thể có (bao gồm cả legacy và mới)
   const statusMap = {
     PENDING_PAYMENT: 'PENDING_PAYMENT',
     PENDING_DEPOSIT_PAYMENT: 'PENDING_DEPOSIT_PAYMENT',
@@ -60,7 +65,7 @@ const normalizeStatus = (status) => {
     BOOKING_UNDER_COMPLAINT: 'BOOKING_UNDER_COMPLAINT',
     BOOKING_SUCCESS: 'BOOKING_SUCCESS',
     BOOKING_CANCELLED: 'BOOKING_CANCELLED',
-    // Legacy mappings
+    // Legacy status mapping
     'PURCHASED': 'BOOKING_SUCCESS',
     'CONFIRMED': 'WAITING_FOR_APPROVED',
     'PENDING': 'PENDING_PAYMENT',
@@ -73,22 +78,19 @@ const normalizeStatus = (status) => {
 };
 
 const STATUS_COLOR_MAP = {
-  // Thanh toán chờ: cam đậm
-  PENDING_PAYMENT: '#F97316',              // Orange
-  PENDING_DEPOSIT_PAYMENT: '#EA580C',     // Orange darker (riêng biệt)
-  PENDING_BALANCE_PAYMENT: '#F59E0B',      // Amber
-  WAITING_FOR_APPROVED: '#3B82F6',         // Blue
-  WAITING_FOR_UPDATE: '#8B5CF6',           // Purple
-  BOOKING_REJECTED: '#EF4444',             // Red
-  BOOKING_FAILED: '#DC2626',               // Red darker
-  // Đã duyệt nhưng chờ tour diễn ra: teal
-  BOOKING_BALANCE_SUCCESS: '#14B8A6',      // Teal
-  BOOKING_SUCCESS_PENDING: '#06B6D4',       // Cyan (riêng biệt)
-  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
-  // Đang khiếu nại: vàng tươi
-  BOOKING_UNDER_COMPLAINT: '#EAB308',      // Yellow
-  BOOKING_SUCCESS: '#10B981',              // Green
-  BOOKING_CANCELLED: '#9CA3AF'            // Gray
+  PENDING_PAYMENT: '#F97316',
+  PENDING_DEPOSIT_PAYMENT: '#EA580C',
+  PENDING_BALANCE_PAYMENT: '#F59E0B',
+  WAITING_FOR_APPROVED: '#3B82F6',
+  WAITING_FOR_UPDATE: '#8B5CF6',
+  BOOKING_REJECTED: '#EF4444',
+  BOOKING_FAILED: '#DC2626',
+  BOOKING_BALANCE_SUCCESS: '#14B8A6',
+  BOOKING_SUCCESS_PENDING: '#06B6D4',
+  BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB',
+  BOOKING_UNDER_COMPLAINT: '#EAB308',
+  BOOKING_SUCCESS: '#10B981',
+  BOOKING_CANCELLED: '#9CA3AF'
 };
 
 const BookingDetail = () => {
@@ -139,21 +141,20 @@ const BookingDetail = () => {
     }
   }, [id, navigate]);
 
-  // Load voucher preview using bookingId (backend will get voucherCode from booking)
-  // Chỉ gọi API khi booking có voucherCode hợp lệ để tránh lỗi 404
+  // Load voucher preview cho booking
+  // Chỉ load nếu có voucherCode hợp lệ để tránh lỗi 404
   useEffect(() => {
     const loadVoucherPreview = async () => {
       if (!booking?.bookingId) return;
       
-      // Kiểm tra xem booking có voucherCode hợp lệ hay không
       const bookingVoucherCode = booking?.voucherCode;
+      // Kiểm tra voucherCode có hợp lệ không (không phải 'none', null, undefined, hoặc rỗng)
       const hasValidVoucherCode = bookingVoucherCode && 
         bookingVoucherCode !== 'none' && 
         bookingVoucherCode.trim() !== '' &&
         bookingVoucherCode !== null &&
         bookingVoucherCode !== undefined;
       
-      // Nếu không có voucher, không gọi API
       if (!hasValidVoucherCode) {
         setVoucherPreview(null);
         setIsLoadingVoucher(false);
@@ -162,13 +163,11 @@ const BookingDetail = () => {
       
       setIsLoadingVoucher(true);
       try {
-        // Call API without voucherCode - backend will get it from booking
         const preview = await previewApplyVoucher(booking.bookingId);
         if (preview) {
           setVoucherPreview(preview);
         }
       } catch {
-        // If booking doesn't have voucher, set to null
         setVoucherPreview(null);
       } finally {
         setIsLoadingVoucher(false);
@@ -186,7 +185,6 @@ const BookingDetail = () => {
   const isSuccessPending = status === 'BOOKING_SUCCESS_PENDING';
   const isWaitingForConfirmation = status === 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED';
   const isUnderComplaint = status === 'BOOKING_UNDER_COMPLAINT';
-  // NEW flags
   const isPendingDepositPayment = status === 'PENDING_DEPOSIT_PAYMENT';
   const isPendingBalancePayment = status === 'PENDING_BALANCE_PAYMENT';
   const isBookingBalanceSuccess = status === 'BOOKING_BALANCE_SUCCESS';
@@ -197,16 +195,13 @@ const BookingDetail = () => {
   };
 
   const handleConfirmEdit = async (formData) => {
-    // Close edit modal first
     setShowEditModal(false);
 
-    // Directly submit update (confirmation already done in EditBookingModal)
     if (!formData || !booking) return;
 
     try {
       setLoading(true);
 
-      // Format booking data for API
       const bookingData = {
         tourId: booking.tourId || booking.tour?.tourId || booking.tour?.id,
         userEmail: booking.userEmail || booking.contactEmail,
@@ -234,7 +229,6 @@ const BookingDetail = () => {
       setBooking(updatedBooking);
       showSuccess(t('bookingDetail.edit.toastSuccess'));
 
-      // Refresh booking data
       const [refreshedBooking, refreshedGuests] = await Promise.all([
         getBookingById(id),
         getGuestsByBookingId(id).catch(() => [])
@@ -310,7 +304,6 @@ const BookingDetail = () => {
     }
   })();
 
-  // Format currency helper
   const formatCurrency = (value) => {
     if (!Number.isFinite(Number(value))) return '—';
     try {
@@ -321,7 +314,6 @@ const BookingDetail = () => {
     }
   };
 
-  // Get locale based on i18n language
   const getLocale = () => {
     const lang = localStorage.getItem('i18nextLng') || 'vi';
     const localeMap = { vi: 'vi-VN', en: 'en-US', ko: 'ko-KR' };
@@ -337,11 +329,7 @@ const BookingDetail = () => {
       const refreshedBooking = await getBookingById(booking.bookingId);
       setBooking(refreshedBooking);
 
-      // Refresh balance for company if booking is now BOOKING_SUCCESS
-      // This will update company's balance in navbar and dashboard
       if (refreshedBooking?.bookingStatus === 'BOOKING_SUCCESS') {
-        // Trigger balance update event for company users
-        // Use a small delay to ensure the event listener is ready
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('balanceUpdated'));
         }, 100);
@@ -380,12 +368,10 @@ const BookingDetail = () => {
     setShowPaymentModal(false);
     if (!booking?.bookingId) return;
 
-    // Navigate to payment page with appropriate state based on type
-    // BookingCheckPaymentPage will call preview-apply with bookingId automatically
     const state = {
       booking,
       fromBookingDetail: true,
-      paymentType: paymentType, // 'deposit', 'full', or 'balance'
+      paymentType: paymentType,
       isBalancePayment: paymentType === 'balance'
     };
 
@@ -434,7 +420,6 @@ const BookingDetail = () => {
 
   return (
     <div className={styles['booking-detail-container']}>
-      {/* Header */}
       <div className={styles['header']}>
         <button className={styles['back-btn']} onClick={() => navigate(-1)}>
           <ArrowLeftIcon className={styles['back-icon']} />
@@ -443,9 +428,7 @@ const BookingDetail = () => {
         <h1 className={styles['page-title']}>{t('bookingHistory.title')}</h1>
       </div>
 
-      {/* Main Card */}
       <div className={styles['card']}>
-        {/* Header with Tour Name and Status */}
         <div className={styles['card-header']}>
           <div className={styles['booking-id-section']}>
             <DocumentTextIcon className={styles['header-icon']} />
@@ -467,7 +450,6 @@ const BookingDetail = () => {
           </div>
         </div>
 
-        {/* Tour Information */}
         <div className={styles['info-section']}>
           <div className={styles['section-header']}>
             <MapPinIcon className={styles['section-icon']} />
@@ -499,7 +481,6 @@ const BookingDetail = () => {
           </div>
         </div>
 
-        {/* Contact Information */}
         <div className={styles['info-section']}>
           <div className={styles['section-header']}>
             <UserIcon className={styles['section-icon']} />
@@ -529,7 +510,6 @@ const BookingDetail = () => {
           </div>
         </div>
 
-        {/* Payment Information Section - NEW */}
         {(booking?.totalAmount || booking?.payedAmount || booking?.depositAmount || voucherPreview) && (
           <div className={styles['info-section']}>
             <div className={styles['section-header']}>
@@ -537,9 +517,7 @@ const BookingDetail = () => {
               <h2 className={styles['section-title']}>{t('bookingDetail.sections.paymentInfo')}</h2>
             </div>
             <div className={styles['info-grid']}>
-              {/* Total Amount - show original with strikethrough if voucher applied */}
               {(() => {
-                // Check if voucher was applied (has voucherCode or depositDiscountAmount/totalDiscountAmount)
                 const hasVoucher = booking?.voucherCode && 
                   booking.voucherCode !== 'none' && 
                   booking.voucherCode.trim() !== '';
@@ -558,7 +536,6 @@ const BookingDetail = () => {
                 ) : null;
               })()}
               
-              {/* Voucher Code if applied */}
               {booking?.voucherCode && booking.voucherCode !== 'none' && booking.voucherCode.trim() !== '' && (
                 <div className={styles['info-item']}>
                   <div className={styles['info-label']}>
@@ -570,7 +547,6 @@ const BookingDetail = () => {
                 </div>
               )}
 
-              {/* Discount Amount (when voucher is applied) */}
               {voucherPreview && (() => {
                 const discountAmount = Number(voucherPreview.discountAmount || 0);
                 if (discountAmount <= 0) return null;
@@ -578,19 +554,15 @@ const BookingDetail = () => {
                 const discountType = voucherPreview.discountType || voucherPreview.meta?.discountType;
                 const discountValue = voucherPreview.discountValue || voucherPreview.meta?.discountValue || 0;
                 
-                // Display based on discount type
                 let discountDisplay = '';
                 if (discountType === 'PERCENT' || discountType === 'PERCENTAGE') {
-                  // Show percentage discount (e.g., -20%)
                   const percentValue = Number.isFinite(Number(discountValue)) 
                     ? Math.round(Number(discountValue))
                     : discountValue;
                   discountDisplay = `-${percentValue}%`;
                 } else if (discountType === 'FIXED' || discountType === 'AMOUNT') {
-                  // Show fixed amount discount (e.g., -50,000 KRW)
                   discountDisplay = `-${formatCurrency(discountAmount)}`;
                 } else {
-                  // Fallback: show amount if type is unknown
                   discountDisplay = `-${formatCurrency(discountAmount)}`;
                 }
                 
@@ -606,9 +578,7 @@ const BookingDetail = () => {
                 );
               })()}
 
-              {/* Final Total (after voucher) - always show when voucher is applied */}
               {(() => {
-                // Check if voucher was applied
                 const hasVoucher = booking?.voucherCode && 
                   booking.voucherCode !== 'none' && 
                   booking.voucherCode.trim() !== '';
@@ -617,7 +587,6 @@ const BookingDetail = () => {
                 
                 if (!shouldShowFinalTotal) return null;
                 
-                // Priority: booking.totalDiscountAmount (saved in DB) > voucherPreview > booking.totalAmount
                 const finalTotal = booking?.totalDiscountAmount != null && booking.totalDiscountAmount > 0
                   ? booking.totalDiscountAmount
                   : (voucherPreview?.finalTotal ?? booking.totalAmount ?? 0);
@@ -634,7 +603,6 @@ const BookingDetail = () => {
                 );
               })()}
 
-              {/* Deposit and Balance - only show if NOT oneTimePayment */}
               {(() => {
                 const isOneTimePayment = voucherPreview?.oneTimePayment || 
                   (booking?.depositPercentage === 100) || 
@@ -644,9 +612,7 @@ const BookingDetail = () => {
                 
                 return (
                   <>
-                    {/* Deposit Amount - use finalDepositAmount if voucher applied */}
                     {(() => {
-                      // Priority: booking.depositDiscountAmount (saved in DB) > voucherPreview > booking.depositAmount
                       const depositAmount = booking?.depositDiscountAmount != null && booking.depositDiscountAmount > 0
                         ? booking.depositDiscountAmount
                         : (voucherPreview?.finalDepositAmount != null 
@@ -668,17 +634,12 @@ const BookingDetail = () => {
                       ) : null;
                     })()}
 
-                    {/* Remaining Amount - use finalRemainingAmount if voucher applied */}
                     {(() => {
-                      // Calculate remaining amount
-                      // Priority: Calculate from booking.depositDiscountAmount & totalDiscountAmount > voucherPreview > booking values
                       let remainingAmount = 0;
                       
-                      // If booking has depositDiscountAmount and totalDiscountAmount (voucher was applied and saved in DB)
                       if (booking?.depositDiscountAmount != null && booking?.totalDiscountAmount != null) {
                         remainingAmount = Math.max(0, Number(booking.totalDiscountAmount) - Number(booking.depositDiscountAmount));
                       } else if (voucherPreview) {
-                        // Use voucherPreview if available
                         if (voucherPreview.finalRemainingAmount != null && voucherPreview.finalRemainingAmount !== undefined) {
                           remainingAmount = Number(voucherPreview.finalRemainingAmount) || 0;
                         } else if (voucherPreview.finalTotal && voucherPreview.finalDepositAmount != null && voucherPreview.finalDepositAmount !== undefined) {
@@ -687,7 +648,6 @@ const BookingDetail = () => {
                           remainingAmount = 0;
                         }
                       } else {
-                        // No voucher: calculate from booking values
                         const total = booking?.totalAmount || 0;
                         const deposit = booking?.depositAmount || 0;
                         remainingAmount = Math.max(0, total - deposit);
@@ -722,7 +682,6 @@ const BookingDetail = () => {
           </div>
         )}
 
-        {/* Guests Information */}
         {guests && guests.length > 0 && (
           <div className={styles['info-section']}>
             <div className={styles['section-header']}>
@@ -809,12 +768,10 @@ const BookingDetail = () => {
             )}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Action Buttons */}
       {booking?.bookingId && (
         <>
-          {/* Pay Deposit Button */}
           {isPendingDepositPayment && (
             <div className={styles['action-section']}>
               <button
@@ -845,7 +802,6 @@ const BookingDetail = () => {
             </div>
           )}
 
-          {/* Pay Balance Button - NEW */}
           {isPendingBalancePayment && (
             <div className={styles['action-section']}>
               <div className={styles['info-banner']} style={{ backgroundColor: '#FEF3C7', marginBottom: '1rem' }}>
@@ -867,7 +823,6 @@ const BookingDetail = () => {
             </div>
           )}
 
-          {/* Balance Success Info */}
           {isBookingBalanceSuccess && (
             <div className={styles['action-section']}>
               <div className={styles['info-banner']} style={{ backgroundColor: '#D1FAE5' }}>
@@ -877,7 +832,6 @@ const BookingDetail = () => {
             </div>
           )}
 
-          {/* Cancelled Booking Info */}
           {isBookingCancelled && (
             <div className={styles['action-section']}>
               <div className={styles['info-banner']} style={{ backgroundColor: '#F3F4F6' }}>
@@ -955,7 +909,6 @@ const BookingDetail = () => {
         </>
       )}
 
-      {/* Edit Booking Modal */}
       {showEditModal && booking && (
         <EditBookingModal
           isOpen={showEditModal}
@@ -966,7 +919,6 @@ const BookingDetail = () => {
         />
       )}
 
-      {/* Modal xác nhận hoàn thành tour */}
       {showCompletionConfirmModal && (
         <DeleteConfirmModal
           isOpen={showCompletionConfirmModal}
@@ -998,7 +950,6 @@ const BookingDetail = () => {
         />
       )}
 
-      {/* Guests Modal - full list */}
       {showGuestsModal && guests && guests.length > 0 && (
         <div
           className={styles['guests-modal-overlay']}
@@ -1094,7 +1045,6 @@ const BookingDetail = () => {
         </div>
       )}
 
-      {/* Payment Confirmation Modal */}
       <PaymentConfirmModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}

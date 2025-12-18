@@ -35,7 +35,7 @@ const BookingComplaint = () => {
   const canManageBookingComplaints = user?.staffTask === 'FORUM_REPORT_AND_BOOKING_COMPLAINT' || user?.role === 'ADMIN';
   const isAdminOrStaff = user && (user.role === 'ADMIN' || user.role === 'STAFF');
 
-  // Load all complaints on mount
+  // Load tất cả complaints khi mount: gọi loadAllComplaints
   useEffect(() => {
     loadAllComplaints();
   }, []);
@@ -49,18 +49,16 @@ const BookingComplaint = () => {
       setAllComplaints(Array.isArray(data) ? data : []);
       setComplaints(Array.isArray(data) ? data : []);
     } catch (err) {
-      // Silently handle error loading complaints
       setError(err?.message || 'Failed to load complaints.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter complaints based on search and status
+  // Filter complaints dựa trên search và status: filter theo status (all, pending, resolved), filter theo search (complaintId hoặc message), return filtered complaints array
   const filteredComplaints = useMemo(() => {
     let filtered = [...allComplaints];
 
-    // Filter by status
     if (filterStatus === 'pending') {
       filtered = filtered.filter((c) => !c.resolutionType);
     } else if (filterStatus === 'resolved') {
@@ -88,7 +86,7 @@ const BookingComplaint = () => {
     return filtered;
   }, [allComplaints, searchInput, searchType, filterStatus]);
 
-  // Pagination
+  // Pagination: slice filteredComplaints theo currentPage và itemsPerPage, return paginated complaints array
   const paginatedComplaints = useMemo(() => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -97,7 +95,7 @@ const BookingComplaint = () => {
 
   const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset về page đầu tiên khi filters thay đổi: set currentPage = 0 khi searchInput, searchType, hoặc filterStatus thay đổi
   useEffect(() => {
     setCurrentPage(0);
   }, [searchInput, searchType, filterStatus]);
@@ -138,7 +136,6 @@ const BookingComplaint = () => {
         setError('Complaint not found.');
       }
     } catch (err) {
-      // Silently handle error fetching complaint
       setError(err?.message || 'Failed to load complaint.');
       setComplaints([]);
     } finally {
@@ -176,7 +173,6 @@ const BookingComplaint = () => {
       await loadAllComplaints();
       handleCloseResolveModal();
     } catch (err) {
-      // Silently handle error resolving complaint
       setError(err?.message || 'Failed to resolve complaint.');
     } finally {
       setResolvingId(null);

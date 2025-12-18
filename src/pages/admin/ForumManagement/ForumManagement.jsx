@@ -37,9 +37,9 @@ const ForumManagement = () => {
   const [reportFilter, setReportFilter] = useState('all'); // 'all', 'POST', 'COMMENT'
   const [selectedPost, setSelectedPost] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tourPreviews, setTourPreviews] = useState({}); // Store tour previews by tour ID
+  const [tourPreviews, setTourPreviews] = useState({});
   
-  // Pagination and filters
+  // Pagination và filters: searchQuery, statusFilter, sortBy, currentPage, itemsPerPage, totalPages, totalItems
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -89,13 +89,13 @@ const ForumManagement = () => {
         setError(t('admin.forumManagement.error') || 'Không thể tải danh sách bài viết');
       }
     } catch (error) {
-      // Silently handle error fetching posts
       setError(t('admin.forumManagement.error') || 'Có lỗi xảy ra khi tải danh sách bài viết');
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch reports từ API: gọi REPORTS_ADMIN_ALL endpoint với pagination, handle 401
   const fetchReports = async () => {
     try {
       setReportsLoading(true);
@@ -120,17 +120,16 @@ const ForumManagement = () => {
         setError(t('admin.forumManagement.error') || 'Không thể tải danh sách báo cáo');
       }
     } catch (error) {
-      // Silently handle error fetching reports
       setError(t('admin.forumManagement.error') || 'Có lỗi xảy ra khi tải danh sách báo cáo');
     } finally {
       setReportsLoading(false);
     }
   };
 
+  // Filter và paginate posts: search trong content, author (username), userId (case-insensitive), sort theo newest/oldest, paginate theo currentPage và itemsPerPage
   const filterAndPaginatePosts = () => {
     let filtered = [...allPosts];
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(post => {

@@ -10,9 +10,11 @@ import styles from './PostModal.module.css';
 const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showSuccess, showBatch } = useToast();
+  const { showSuccess } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const [contentError, setContentError] = useState('');
   const [hashtags, setHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState([]);
@@ -26,7 +28,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const [linkPreview, setLinkPreview] = useState(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
-  // Reset form when modal opens
+  // Reset form khi modal mở: clear title, content, hashtags, images, imageFiles, linkPreview, hashtagInput
   useEffect(() => {
     if (isOpen) {
       setTitle('');
@@ -36,6 +38,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
       setImageFiles([]);
       setLinkPreview(null);
       setHashtagInput('');
+      setTitleError('');
+      setContentError('');
     }
   }, [isOpen]);
 
@@ -85,7 +89,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         setTagSuggestions(filtered);
         setShowTagSuggest(true);
       } catch (e) {
-        // fallback: hide suggestions
         setTagSuggestions([]);
         setShowTagSuggest(false);
       }
@@ -131,12 +134,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const detectAndFetchPreview = async (text) => {
     if (!text) return;
     
-    // Check for tour links - support both old format /tour/123 and new format /tour/detail?id=123
-    // Supports: full URL (with domain), relative path, or just the path part
     const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    // Match format 1: /tour/123 or http://domain/tour/123
     const tourRegexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/(\\d+)(?:[\\s\\?&#]|$)`, 'i');
-    // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123
     const tourRegexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=(\\d+)(?:[\\s&#]|$)`, 'i');
     const tourMatchOld = text.match(tourRegexOld);
     const tourMatchNew = text.match(tourRegexNew);
@@ -149,7 +148,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         const response = await fetch(API_ENDPOINTS.TOUR_PREVIEW_BY_ID(tourId));
         if (response.ok) {
           const preview = await response.json();
-          // Normalize thumbnailUrl về relative path để không lưu BaseURL vào metadata
           const rawThumbnail = preview.thumbnailUrl || preview.tourImgPath;
           setLinkPreview({
             type: 'TOUR',
@@ -163,7 +161,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
           setLinkPreview(null);
         }
       } catch (error) {
-        // Silently handle error fetching tour preview
         setLinkPreview(null);
       } finally {
         setIsLoadingPreview(false);
@@ -173,15 +170,14 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     }
   };
 
-  // Function to check if content contains any links
+  // Function để check content có chứa links không: check HTTP/HTTPS links bằng regex
   const hasLinksInContent = (text) => {
     if (!text) return false;
-    // Check for any HTTP/HTTPS links
     const urlRegex = /https?:\/\/[^\s]+/gi;
     return urlRegex.test(text);
   };
 
-  // Debounced preview detection
+  // Debounced preview detection: gọi detectAndFetchPreview sau 500ms khi content thay đổi
   useEffect(() => {
     const timer = setTimeout(() => {
       detectAndFetchPreview(content);
@@ -190,7 +186,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     return () => clearTimeout(timer);
   }, [content]);
 
-  // Auto-remove images when links are detected
+  // Tự động remove images khi links được detect: clear images và imageFiles nếu content có links
   useEffect(() => {
     if (hasLinksInContent(content) && images.length > 0) {
       setImages([]);
@@ -211,28 +207,22 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Clear previous errors
+    setTitleError('');
+    setContentError('');
+
     if (!hasTitle && !hasContent) {
-      showBatch(['Nội dung hoặc tiêu đề không được để trống'], 'error', 5000);
+      setContentError('Nội dung hoặc tiêu đề không được để trống');
       return;
     }
     
-    // Collect all validation errors
-    const errors = [];
-    
-    // Check if content contains only links (no other text)
     const hasOnlyLinks = hasContent && trimmedContent.split(/\s+/).every(part => {
       const trimmed = part.trim();
       return !trimmed || /^https?:\/\/.+/.test(trimmed);
     });
     
-    // If content has only links, title is not required
     if (!hasOnlyLinks && !trimmedTitle) {
-      errors.push('Tiêu đề bài viết là bắt buộc');
-    }
-    
-    // Show all errors if any
-    if (errors.length > 0) {
-      showBatch(errors, 'error', 5000);
+      setTitleError('Tiêu đề bài viết là bắt buộc');
       return;
     }
 
@@ -247,7 +237,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         formData.append('hashtags', tag);
       });
 
-      // Add link preview metadata if available
       if (linkPreview) {
         formData.append('metadata', JSON.stringify({
           linkType: linkPreview.type,
@@ -259,7 +248,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         }));
       }
       
-      // Only append new image files when no links in content
       if (!hasLinksInContent(content)) {
         imageFiles.forEach(file => {
           formData.append('images', file);
@@ -275,7 +263,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         body: formData,
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         await checkAndHandle401(response);
         return;
@@ -284,18 +271,13 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
       if (response.ok) {
         const result = await response.json();
         
-        // Ensure images array exists and is properly formatted (only if no links in content)
         if (!result.images && imageFiles.length > 0 && !hasLinksInContent(content)) {
-          // If backend didn't return images but we sent some, create a fallback
           result.images = imageFiles.map((file, index) => ({
             imgPath: `/uploads/posts/images/${Date.now()}_${index}_${file.name}`,
-            // This is a fallback - in reality, backend should return the correct path
           }));
         }
         
-        // Ensure metadata is properly set if we had a link preview
         if (linkPreview && !result.metadata) {
-          // Normalize thumbnailUrl để đảm bảo không lưu BaseURL vào database
           result.metadata = {
             linkType: linkPreview.type,
             linkRefId: linkPreview.id,
@@ -306,7 +288,6 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
           };
         }
         
-        // If we sent images but backend didn't return them, try to fetch the post again
         if (imageFiles.length > 0 && !hasLinksInContent(content) && (!result.images || result.images.length === 0)) {
           try {
             const token = getToken();
@@ -325,13 +306,12 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
               }
             }
           } catch (fetchError) {
-            // Silently handle error fetching post after creation
+            // Silently handle error
           }
         }
 
-        // Call onPostCreated with the new post
           onPostCreated(result);
-          showSuccess('toast.forum.post_create_success');
+          showSuccess(t('toast.forum.post_create_success'));
         onClose();
         resetForm();
       } else {
@@ -347,7 +327,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
         throw new Error(errorData.message || 'Failed to create post');
       }
     } catch (error) {
-      // Error creating post - handled in UI or silently
+      // Silently handle error
     } finally {
       setIsLoading(false);
     }
@@ -363,7 +343,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     setLinkPreview(null);
   };
 
-  // Clear link preview when modal closes
+  // Clear link preview khi modal đóng: set linkPreview = null khi isOpen = false
   useEffect(() => {
     if (!isOpen) {
       setLinkPreview(null);
@@ -396,19 +376,31 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
                   : t('forum.createPost.titlePlaceholder')
               }
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className={styles['title-input']}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError('');
+              }}
+              className={`${styles['title-input']} ${titleError ? styles['input-error'] : ''}`}
             />
+            {titleError && (
+              <span className={styles['form-error']}>{titleError}</span>
+            )}
           </div>
 
           <div className={styles['form-group']}>
             <textarea
               placeholder={t('forum.createPost.contentPlaceholder')}
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className={styles['content-input']}
+              onChange={(e) => {
+                setContent(e.target.value);
+                if (contentError) setContentError('');
+              }}
+              className={`${styles['content-input']} ${contentError ? styles['input-error'] : ''}`}
               rows="4"
             />
+            {contentError && (
+              <span className={styles['form-error']}>{contentError}</span>
+            )}
             
             {/* Render content with clickable links */}
             {content && (

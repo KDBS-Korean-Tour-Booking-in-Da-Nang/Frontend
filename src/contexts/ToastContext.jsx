@@ -28,6 +28,7 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
+  // Resolve message: nếu input là object với i18nKey thì dùng i18n.t với values, nếu là string và i18n.exists thì translate, fallback về String(input), ignore errors
   const resolveMessage = (input) => {
     try {
       if (typeof input === 'object' && input !== null) {
@@ -38,16 +39,16 @@ export const ToastProvider = ({ children }) => {
         return i18n.t(input);
       }
     } catch {
-      // Silently handle error resolving message
+      // Silently handle error
     }
     return String(input ?? '');
   };
 
+  // Thêm toast: resolve message, tạo unique ID, de-dup bằng key (type:message) để tránh duplicate cùng lúc, auto remove sau duration, trả về toast ID
   const addToast = (message, type = 'error', duration = 5000) => {
     const id = Date.now() + Math.random();
     const resolved = resolveMessage(message);
     const key = `${type}:${resolved}`;
-    // de-dup by same message+type while visible
     if (activeKeysRef.current.has(key)) {
       return null;
     }
@@ -62,7 +63,6 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => [...prev, newToast]);
     idToKeyRef.current.set(id, key);
 
-    // Auto remove toast after duration
     if (duration > 0) {
       setTimeout(() => {
         removeToast(id);
@@ -72,16 +72,15 @@ export const ToastProvider = ({ children }) => {
     return id;
   };
 
-  // Show a batch immediately only if none is active; ignore while active (no queue)
+  // Hiển thị batch toasts: chỉ hiển thị ngay nếu không có batch nào đang active, ignore khi đang active (không queue), normalize messages, clear active flag sau duration và cleanup
   const showBatch = (messages, type = 'error', duration = 5000) => {
     const normalized = (messages || []).filter(Boolean).map(m => resolveMessage(m));
     if (normalized.length === 0) return;
-    if (isBatchingRef.current) return; // ignore new batches while one is active
+    if (isBatchingRef.current) return;
 
     isBatchingRef.current = true;
 
     const ids = normalized.map(msg => addToast(msg, type, duration));
-    // Clear active flag after duration; also ensure cleanup
     const ms = Math.max(duration, 0);
     if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
     batchTimerRef.current = setTimeout(() => {

@@ -12,7 +12,7 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
   const modalContainerRef = useRef(null);
   const bodyOverflowRef = useRef('');
 
-  // Resolve portal container once on mount
+  // Xác định portal container khi component mount
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -20,7 +20,7 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
     }
   }, []);
 
-  // Lock body scroll while open
+  // Khóa scroll của body khi modal mở
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isOpen) {
@@ -66,12 +66,11 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
     
     try {
       await onConfirm(reason);
-      // Reset form
       setSelectedReason('');
       setCustomReason('');
       onClose();
     } catch (error) {
-      // Silently handle error banning user
+      // Silently handle error
     } finally {
       setIsSubmitting(false);
     }
@@ -175,8 +174,7 @@ const BanReasonModal = ({ isOpen, onClose, customer, onConfirm }) => {
     </div>
   );
 
-  // Render modal using portal to escape container constraints
-  // Always use portal if container is available, otherwise render directly (fallback)
+  // Render modal sử dụng portal để tránh ràng buộc container
   return modalContainerRef.current 
     ? createPortal(modalContent, modalContainerRef.current)
     : modalContent;

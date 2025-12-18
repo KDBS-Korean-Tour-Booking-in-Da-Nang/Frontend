@@ -79,7 +79,6 @@ const TourDetailPage = () => {
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherError, setVoucherError] = useState("");
   const [voucherEmptyReason, setVoucherEmptyReason] = useState("");
-  // close open menu on outside click
   useEffect(() => {
     if (!openMenuId) return;
     const onDocClick = (e) => {
@@ -98,7 +97,6 @@ const TourDetailPage = () => {
     if (!tourData) return [];
     if (Array.isArray(tourData.contents) && tourData.contents.length > 0) {
       return tourData.contents.map((item, index) => {
-        // Check if description is default text and treat as empty
         const defaultTexts = [
           `Hoạt động ngày ${index + 1}`,
           `Activity Day ${index + 1}`,
@@ -118,7 +116,6 @@ const TourDetailPage = () => {
               ? ""
               : item.tourContentDescription,
           images: item.images || [],
-          // Optional presentation data if present from wizard
           dayColor: item.dayColor || item.color,
           titleAlignment: item.titleAlignment || "left",
         };
@@ -153,7 +150,6 @@ const TourDetailPage = () => {
           setTour(tourData);
         }
       } catch (error) {
-        // Silently handle error loading tour
         if (isMounted) {
           navigate("/tour");
         }
@@ -165,7 +161,7 @@ const TourDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, navigate]); // fetchTourById is stable from hook
+  }, [id, navigate]);
 
   useEffect(() => {
     let isSubscribed = true;
@@ -183,7 +179,6 @@ const TourDetailPage = () => {
           return;
         }
 
-        // Lấy token giống logic getToken trong AuthContext nhưng không gọi hook
         const sessionToken =
           sessionStorage.getItem("token_ADMIN") ||
           sessionStorage.getItem("token_STAFF") ||
@@ -203,7 +198,6 @@ const TourDetailPage = () => {
           }
         );
 
-        // Handle 401 explicitly so không bị auto logout bất ngờ ở chỗ khác
         if (response.status === 401) {
           await checkAndHandle401(response);
           if (!isSubscribed) return;
@@ -226,9 +220,8 @@ const TourDetailPage = () => {
               const text = await response.text();
               errorData = { message: text };
             }
-          } catch {
-            // ignore parse error
-          }
+            } catch {
+            }
 
           if (!isSubscribed) return;
           setVoucherSuggestions([]);
@@ -248,20 +241,16 @@ const TourDetailPage = () => {
             ? data.vouchers
             : [];
 
-        // Lọc bỏ voucher đã hết hạn dựa trên endDate hoặc đã hết số lượng
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const isCompany = user && user.role === "COMPANY";
         
         vouchers = vouchers.filter((voucher) => {
-          // Lọc bỏ voucher hết số lượng (remainingQuantity <= 0)
           const remaining = voucher?.remainingQuantity;
           if (remaining !== null && remaining !== undefined && remaining <= 0) {
             return false;
           }
 
-          // For non-company users: only show vouchers that have started (startDate <= now)
-          // For company users: show all vouchers regardless of startDate
           if (!isCompany) {
             const rawStartDate =
               voucher?.startDate || voucher?.meta?.startDate;
@@ -269,7 +258,6 @@ const TourDetailPage = () => {
               const start = new Date(rawStartDate);
               if (!Number.isNaN(start.getTime())) {
                 start.setHours(0, 0, 0, 0);
-                // If startDate is in the future, don't show to regular users
                 if (start > today) {
                   return false;
                 }
@@ -277,13 +265,12 @@ const TourDetailPage = () => {
             }
           }
 
-          // Lọc bỏ voucher hết hạn
           const rawEndDate =
             voucher?.endDate || voucher?.meta?.endDate || voucher?.expiryDate;
-          if (!rawEndDate) return true; // nếu BE không gửi endDate thì coi như luôn hiển thị
+          if (!rawEndDate) return true;
           const end = new Date(rawEndDate);
           if (Number.isNaN(end.getTime())) return true;
-          end.setHours(23, 59, 59, 999); // còn hiệu lực đến hết ngày endDate
+          end.setHours(23, 59, 59, 999);
           return end >= today;
         });
 
@@ -339,7 +326,6 @@ const TourDetailPage = () => {
     );
   }
 
-  // Format as KRW (VND / 18)
   const formatPrice = (price) => {
     const krwValue = Math.round(Number(price) / 18);
     return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
@@ -349,7 +335,6 @@ const TourDetailPage = () => {
     if (!duration) return '';
     const raw = String(duration);
 
-    // Try to parse "X ngày Y đêm" or "X days Y nights" or "X일 Y박" format
     const viMatch = raw.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
     const enMatch = raw.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
     const koMatch = raw.match(/(\d+)\s*일\s*(\d+)\s*박/i);
@@ -365,12 +350,10 @@ const TourDetailPage = () => {
       }
     }
 
-    // If can't parse, return as is
     return raw;
   };
 
 
-  // Format currency helper as KRW (VND / 18)
   const formatCurrency = (value) => {
     try {
       const krwValue = Math.round(Number(value || 0) / 18);
@@ -380,7 +363,6 @@ const TourDetailPage = () => {
     }
   };
 
-  // Format date helper (similar to VoucherList)
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     try {
@@ -395,7 +377,6 @@ const TourDetailPage = () => {
     }
   };
 
-  // Get status badge (similar to VoucherList)
   const getStatusBadge = (voucher) => {
     const now = new Date();
     const endDate = voucher.endDate
@@ -417,7 +398,6 @@ const TourDetailPage = () => {
     return null;
   };
 
-  // Get days left text for date range badge
   const getDaysLeftText = (voucher) => {
     if (!voucher?.endDate) return null;
     const now = new Date();
@@ -438,10 +418,8 @@ const TourDetailPage = () => {
       return;
     }
     if (user && user.role === "COMPANY") {
-      // Company accounts cannot book tours - this is handled by UI state
       return;
     }
-    // Clear any previous booking wizard data for this tour before starting a new booking
     localStorage.removeItem(`bookingData_${id}`);
     localStorage.removeItem(`hasConfirmedLeave_${id}`);
     sessionStorage.removeItem("pendingBooking");
@@ -482,7 +460,6 @@ const TourDetailPage = () => {
 
   return (
     <div className={styles["tour-detail-page"]}>
-      {/* Hero Section */}
       <div className={styles["tour-hero-section"]}>
         <div className={styles["hero-background"]}>
           <img
@@ -539,13 +516,10 @@ const TourDetailPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className={styles["tour-detail-content"]}>
         <div className={styles["container"]}>
           <div className={styles["tour-detail-grid"]}>
-            {/* Left Column - Content */}
             <div className={styles["tour-detail-left"]}>
-              {/* Tour Overview */}
               <div className={styles["tour-overview"]}>
                 <h2>{t("tourPage.detail.overview.title")}</h2>
                 <div
@@ -653,7 +627,6 @@ const TourDetailPage = () => {
                       <>
                         <div className={styles["voucher-list"]}>
                           {voucherSuggestions.slice(0, 3).map((voucher) => {
-                            // --- LOGIC XỬ LÝ DỮ LIỆU ---
                             const rawDiscountType =
                               voucher.discountType ||
                               voucher.meta?.discountType ||
@@ -685,7 +658,6 @@ const TourDetailPage = () => {
                               voucher.meta?.discountValue ||
                               0;
 
-                            // --- RENDER ---
                             return (
                               <div
                                 key={
@@ -695,13 +667,11 @@ const TourDetailPage = () => {
                                 }
                                 className={styles["voucher-card-horizontal"]}
                               >
-                                {/* Status Badge */}
                                 {getStatusBadge({
                                   endDate,
                                   meta: { endDate },
                                 })}
 
-                                {/* LEFT SECTION (MÀU) */}
                                 <div
                                   className={`${styles["voucher-left-section"]} ${discountType === "PERCENT"
                                     ? styles["voucher-header-gradient-percent"]
@@ -762,7 +732,6 @@ const TourDetailPage = () => {
                                   </div>
                                 </div>
 
-                                {/* RIGHT SECTION (TRẮNG) */}
                                 <div className={styles["voucher-right-section"]}>
                                   <div>
                                     <div className={styles["voucher-info-top"]}>
@@ -885,11 +854,8 @@ const TourDetailPage = () => {
                     )}
                 </div>
               </div>
-
-              {/* Itinerary, Gallery, Reviews are rendered after the grid */}
             </div>
 
-            {/* Right Column - Booking Info (inside grid) */}
             <div className={styles["tour-detail-right"]}>
               <div className={styles["booking-card"]}>
                 <div className={styles["booking-header"]}>
@@ -964,9 +930,7 @@ const TourDetailPage = () => {
                 </div>
               </div>
             </div>
-            {/* Close grid (left + right columns) */}
           </div>
-          {/* Row 2: Tour Itinerary - full width */}
           <div className={styles["tour-itinerary"]}>
             <div className={styles["itinerary-header"]}>
               <h2>{t("tourPage.detail.itinerary.header")}</h2>
@@ -1039,12 +1003,10 @@ const TourDetailPage = () => {
               )}
             </div>
           </div>
-          {/* Row 3: Ratings & Reviews - full width */}
           <div className={styles["tour-reviews"]} style={{ marginTop: "32px" }}>
             <h2>
               {t("tourPage.detail.reviews.title") || "Đánh giá & Nhận xét"}
             </h2>
-            {/* Create Rating */}
             {user && canRate && (
               <div
                 style={{
@@ -1146,7 +1108,6 @@ const TourDetailPage = () => {
               </div>
             )}
 
-            {/* Summary */}
             <div
               className={styles["reviews-summary"]}
               style={{
@@ -1243,7 +1204,6 @@ const TourDetailPage = () => {
               </div>
             </div>
 
-            {/* Reviews List */}
             <div
               style={{
                 marginTop: 16,
@@ -1430,7 +1390,6 @@ const TourDetailPage = () => {
               )}
             </div>
 
-            {/* Delete Confirm Modal */}
             <DeleteConfirmModal
               isOpen={!!confirmDeleteId}
               onClose={() => setConfirmDeleteId(null)}

@@ -6,112 +6,68 @@ import { CHAT_EVENTS } from '../components/chatAI/BubbleChatAI';
 
 const ChatContext = createContext();
 
-// Initial state
+// Initial state: connection status (isConnected, isConnecting), current user, active chat (activeChat, activeChatUser), messages/conversations/allUsers arrays, pagination (currentPage, hasMoreMessages, isLoadingMoreMessages), UI state (isChatDropdownOpen, isChatBoxOpen, isChatBoxMinimized, hasUnreadMessages), minimizedChats array cho multiple chat bubbles, loading states (loadingMessages, loadingConversations, loadingUsers), error state, websocketAvailable flag
 const initialState = {
-  // Connection status
   isConnected: false,
   isConnecting: false,
-
-  // Current user
   currentUser: null,
-
-  // Active chat
   activeChat: null,
   activeChatUser: null,
-
-  // Messages
   messages: [],
   conversations: [],
   allUsers: [],
-
-  // Pagination
   currentPage: 0,
   hasMoreMessages: true,
   isLoadingMoreMessages: false,
-
-  // UI state
   isChatDropdownOpen: false,
   isChatBoxOpen: false,
   isChatBoxMinimized: false,
   hasUnreadMessages: false,
-
-  // Multiple chat bubbles
-  minimizedChats: [], // Array of minimized chat bubbles
-
-  // Loading states
+  minimizedChats: [],
   loadingMessages: false,
   loadingConversations: false,
   loadingUsers: false,
-
-  // Error states
   error: null,
-
-  // WebSocket availability
   websocketAvailable: true
 };
 
-// Action types
+// Action types: Connection (SET_CONNECTING, SET_CONNECTED, SET_DISCONNECTED), User (SET_CURRENT_USER), Chat (SET_ACTIVE_CHAT, SET_ACTIVE_CHAT_USER), Messages (SET_MESSAGES, ADD_MESSAGE, UPDATE_MESSAGE, PREPEND_MESSAGES, SET_HAS_UNREAD_MESSAGES), Pagination (SET_CURRENT_PAGE, SET_HAS_MORE_MESSAGES, SET_LOADING_MORE_MESSAGES), Message sorting (SORT_MESSAGES), Conversations (SET_CONVERSATIONS, UPDATE_CONVERSATION, UPSERT_CONVERSATION, SORT_CONVERSATIONS_BY_LATEST), Users (SET_ALL_USERS), UI (SET_CHAT_DROPDOWN_OPEN, SET_CHAT_BOX_OPEN, SET_CHAT_BOX_MINIMIZED), Multiple chat bubbles (ADD_MINIMIZED_CHAT, REMOVE_MINIMIZED_CHAT, SET_MINIMIZED_CHATS), Loading (SET_LOADING_MESSAGES, SET_LOADING_CONVERSATIONS, SET_LOADING_USERS), Error (SET_ERROR, CLEAR_ERROR), WebSocket availability (SET_WEBSOCKET_AVAILABLE)
 const ActionTypes = {
-  // Connection
   SET_CONNECTING: 'SET_CONNECTING',
   SET_CONNECTED: 'SET_CONNECTED',
   SET_DISCONNECTED: 'SET_DISCONNECTED',
-
-  // User
   SET_CURRENT_USER: 'SET_CURRENT_USER',
-
-  // Chat
   SET_ACTIVE_CHAT: 'SET_ACTIVE_CHAT',
   SET_ACTIVE_CHAT_USER: 'SET_ACTIVE_CHAT_USER',
-
-  // Messages
   SET_MESSAGES: 'SET_MESSAGES',
   ADD_MESSAGE: 'ADD_MESSAGE',
   UPDATE_MESSAGE: 'UPDATE_MESSAGE',
   PREPEND_MESSAGES: 'PREPEND_MESSAGES',
   SET_HAS_UNREAD_MESSAGES: 'SET_HAS_UNREAD_MESSAGES',
-
-  // Pagination
   SET_CURRENT_PAGE: 'SET_CURRENT_PAGE',
   SET_HAS_MORE_MESSAGES: 'SET_HAS_MORE_MESSAGES',
   SET_LOADING_MORE_MESSAGES: 'SET_LOADING_MORE_MESSAGES',
-
-  // Message sorting
   SORT_MESSAGES: 'SORT_MESSAGES',
-
-  // Conversations
   SET_CONVERSATIONS: 'SET_CONVERSATIONS',
   UPDATE_CONVERSATION: 'UPDATE_CONVERSATION',
   UPSERT_CONVERSATION: 'UPSERT_CONVERSATION',
   SORT_CONVERSATIONS_BY_LATEST: 'SORT_CONVERSATIONS_BY_LATEST',
-
-  // Users
   SET_ALL_USERS: 'SET_ALL_USERS',
-
-  // UI
   SET_CHAT_DROPDOWN_OPEN: 'SET_CHAT_DROPDOWN_OPEN',
   SET_CHAT_BOX_OPEN: 'SET_CHAT_BOX_OPEN',
   SET_CHAT_BOX_MINIMIZED: 'SET_CHAT_BOX_MINIMIZED',
-
-  // Multiple chat bubbles
   ADD_MINIMIZED_CHAT: 'ADD_MINIMIZED_CHAT',
   REMOVE_MINIMIZED_CHAT: 'REMOVE_MINIMIZED_CHAT',
   SET_MINIMIZED_CHATS: 'SET_MINIMIZED_CHATS',
-
-  // Loading
   SET_LOADING_MESSAGES: 'SET_LOADING_MESSAGES',
   SET_LOADING_CONVERSATIONS: 'SET_LOADING_CONVERSATIONS',
   SET_LOADING_USERS: 'SET_LOADING_USERS',
-
-  // Error
   SET_ERROR: 'SET_ERROR',
   CLEAR_ERROR: 'CLEAR_ERROR',
-
-  // WebSocket availability
   SET_WEBSOCKET_AVAILABLE: 'SET_WEBSOCKET_AVAILABLE'
 };
 
-// Reducer
+// Reducer: xử lý tất cả các action types để cập nhật state, bao gồm connection status, user, messages, conversations, pagination, UI state, loading states, error states
 const chatReducer = (state, action) => {
   switch (action.type) {
     case ActionTypes.SET_CONNECTING:
@@ -162,10 +118,10 @@ const chatReducer = (state, action) => {
         loadingMessages: false
       };
 
+    // Thêm message mới: de-duplication mạnh mẽ kiểm tra ID trước, sau đó kiểm tra content + sender + time, bỏ qua temp messages (sẽ được thay thế), normalize sender/receiver IDs để so sánh, kiểm tra cùng direction (sender->receiver) và timestamp (cho phép 5 giây chênh lệch để xử lý network delays)
     case ActionTypes.ADD_MESSAGE: {
       const incoming = action.payload;
 
-      // Stronger de-duplication: check by ID first, then by content + sender + time
       if (incoming.id) {
         const existsById = state.messages.some(existing => existing.id === incoming.id);
         if (existsById) {
@@ -173,9 +129,7 @@ const chatReducer = (state, action) => {
         }
       }
 
-      // De-duplicate: skip if a very similar message already exists (same sender/ownership, same content, within 5s)
       const alreadyExists = state.messages.some(existing => {
-        // Skip temp messages in comparison (they will be replaced)
         if (existing.id && typeof existing.id === 'string' && existing.id.startsWith('temp-')) {
           return false;
         }
@@ -186,22 +140,19 @@ const chatReducer = (state, action) => {
           return false;
         }
 
-        // Normalize sender and receiver IDs for comparison
         const existingSenderId = String(existing.sender?.userId || existing.sender?.id || existing.senderId || '');
         const incomingSenderId = String(incoming.sender?.userId || incoming.sender?.id || incoming.senderId || '');
         const existingReceiverId = String(existing.receiver?.userId || existing.receiver?.id || existing.receiverId || '');
         const incomingReceiverId = String(incoming.receiver?.userId || incoming.receiver?.id || incoming.receiverId || '');
 
-        // Check same direction (sender->receiver) using userId
         const sameDirection = existingSenderId === incomingSenderId && existingReceiverId === incomingReceiverId;
         if (!sameDirection) {
           return false;
         }
 
-        // Check timestamp - allow up to 5 seconds difference to handle network delays
         const existingTs = new Date(existing.timestamp).getTime();
         const incomingTs = new Date(incoming.timestamp).getTime();
-        const closeInTime = Math.abs(existingTs - incomingTs) <= 5000; // 5 seconds window
+        const closeInTime = Math.abs(existingTs - incomingTs) <= 5000;
 
         return closeInTime;
       });
@@ -238,8 +189,8 @@ const chatReducer = (state, action) => {
         )
       };
 
+    // Prepend messages cho infinite scroll: lọc duplicate messages dựa trên ID hoặc near-identical signature (same ownership, content, direction, timestamp trong 5 giây), kết hợp và sort tất cả messages theo timestamp (oldest first)
     case ActionTypes.PREPEND_MESSAGES: {
-      // Filter out duplicate messages based on ID or near-identical signature
       const existing = state.messages;
       const existingIds = new Set(existing.map(msg => msg.id));
       const dedupedIncoming = (action.payload || []).filter(msg => {
@@ -260,7 +211,6 @@ const chatReducer = (state, action) => {
         return !existsSimilar;
       });
 
-      // Combine and sort all messages by timestamp
       const combinedMessages = [...dedupedIncoming, ...existing];
       const sortedMessages = combinedMessages.sort((a, b) =>
         new Date(a.timestamp) - new Date(b.timestamp)
@@ -299,8 +249,8 @@ const chatReducer = (state, action) => {
         )
       };
 
+    // Set conversations: sort theo latest timestamp desc, cập nhật cache vào localStorage với timestamp để sử dụng cho instant display
     case ActionTypes.SET_CONVERSATIONS:
-      // Update cache when conversations are set
       const sortedConversations = (action.payload || []).sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
       try {
         localStorage.setItem('chatConversations', JSON.stringify(sortedConversations));
@@ -338,10 +288,8 @@ const chatReducer = (state, action) => {
       } else {
         updated = [payload, ...state.conversations];
       }
-      // sort by latest timestamp desc
       updated.sort((a, b) => new Date(b.lastMessage?.timestamp || 0) - new Date(a.lastMessage?.timestamp || 0));
 
-      // Update cache immediately
       try {
         localStorage.setItem('chatConversations', JSON.stringify(updated));
         localStorage.setItem('chatConversationsTimestamp', String(Date.now()));
@@ -450,16 +398,15 @@ const chatReducer = (state, action) => {
   }
 };
 
-// Provider component
+// Provider component: quản lý chat state, WebSocket connection, messages, conversations, và multiple chat bubbles
 export const ChatProvider = ({ children }) => {
-  // Load cached users and conversations immediately for instant display
+  // Load cached users từ localStorage nếu cache < 5 phút để instant display, ignore cache errors
   const getCachedUsers = () => {
     try {
       const cachedUsers = localStorage.getItem('chatAllUsers');
       const cacheTimestamp = localStorage.getItem('chatAllUsersTimestamp');
       const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
 
-      // Use cache if less than 5 minutes old
       if (cachedUsers && cacheAge < 5 * 60 * 1000) {
         return JSON.parse(cachedUsers);
       }
@@ -469,13 +416,13 @@ export const ChatProvider = ({ children }) => {
     return [];
   };
 
+  // Load cached conversations từ localStorage nếu cache < 2 phút (conversations thay đổi thường xuyên hơn), ignore cache errors
   const getCachedConversations = () => {
     try {
       const cachedConversations = localStorage.getItem('chatConversations');
       const cacheTimestamp = localStorage.getItem('chatConversationsTimestamp');
       const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
 
-      // Use cache if less than 2 minutes old (conversations change more frequently)
       if (cachedConversations && cacheAge < 2 * 60 * 1000) {
         return JSON.parse(cachedConversations);
       }
@@ -485,17 +432,17 @@ export const ChatProvider = ({ children }) => {
     return [];
   };
 
+  // Load cached minimized chats từ localStorage, restore ngay lập tức với messages rỗng (sẽ load khi bubble được click), ignore cache errors
   const getCachedMinimizedChats = () => {
     try {
       const cachedMinimizedChats = localStorage.getItem('minimizedChats');
       if (cachedMinimizedChats) {
         const parsedChats = JSON.parse(cachedMinimizedChats) || [];
         if (parsedChats.length > 0) {
-          // Restore minimized chats immediately from localStorage
           return parsedChats.map(c => ({
             userId: c.userId,
-            user: c.user, // already minimal
-            messages: [], // Messages will be loaded when bubble is clicked
+            user: c.user,
+            messages: [],
             timestamp: c.timestamp || Date.now()
           }));
         }
@@ -516,11 +463,10 @@ export const ChatProvider = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialStateWithCache);
   const { user: authUser, getToken, refreshUser } = useAuth();
 
-  // Use ref to store current user for WebSocket handlers
+  // Sử dụng ref để lưu current user cho WebSocket handlers, đảm bảo luôn có username available cho chat endpoints/websocket
   const currentUserRef = useRef(null);
   const hasRequestedProfileRef = useRef(false);
 
-  // Ensure we always have a username available for chat endpoints/websocket
   useEffect(() => {
     if (!authUser) {
       hasRequestedProfileRef.current = false;
@@ -537,16 +483,14 @@ export const ChatProvider = ({ children }) => {
     }
   }, [authUser?.userId, authUser?.username, authUser?.userName, refreshUser]);
 
-  // Initialize connection function
+  // Khởi tạo kết nối WebSocket: lấy current user từ AuthContext (luôn lấy fresh), thử lấy từ authUser trước rồi mới từ storage, refresh user nếu thiếu username, tạo currentUser object, connect WebSocket với userId, subscribe to user messages, filter messages từ current user để tránh duplicates, upsert conversation cho sender
   const initializeConnection = async () => {
     try {
       dispatch({ type: ActionTypes.SET_CONNECTING });
 
-      // Get current user from AuthContext (from login) - always get fresh
       const token = getToken() || sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
 
       if (token) {
-        // Try to get user from authUser first, otherwise from storage
         let userData = authUser;
         if (!userData) {
           try {
@@ -566,12 +510,11 @@ export const ChatProvider = ({ children }) => {
               userData = refreshed;
             }
           } catch (refreshError) {
-            // Ignore refresh failures - we'll fallback to whatever data we have
+            // Ignore refresh failures
           }
         }
 
         if (userData) {
-          // Always create fresh currentUser from userData
           const currentUser = {
             userId: userData.userId || userData.id,
             userName: userData.username || userData.userName || userData.name,
@@ -579,37 +522,27 @@ export const ChatProvider = ({ children }) => {
             role: userData.role || 'USER'
           };
 
-          // Always update currentUser to ensure it's the latest
           dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: currentUser });
-          // Update ref for WebSocket handlers
           currentUserRef.current = currentUser;
 
           try {
-            // Connect to WebSocket with current user's userId
             const userId = currentUser.userId || currentUser.id;
             if (!userId) {
               throw new Error('User ID is required for WebSocket connection');
             }
 
-            // Only connect if not already connected (to avoid duplicate connections)
             if (!websocketService.getConnectionStatus()) {
               await websocketService.connect(userId);
             }
             dispatch({ type: ActionTypes.SET_CONNECTED });
-            // Set websocketAvailable to true when connection succeeds
             dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
 
-            // Subscribe to user messages - use userId for subscription
             const subscriptionResult = websocketService.subscribeToUserMessages(userId, (message) => {
-              // Get fresh currentUser from ref (updated when user changes)
               const freshCurrentUser = currentUserRef.current || currentUser;
               const currentUserId = freshCurrentUser.userId || freshCurrentUser.id;
-              // Backend sends ChatMessageRequest with senderId field
               const messageSenderId = message.senderId || message.sender?.userId || message.sender?.id;
 
-              // Filter out messages from current user to avoid duplicates
               if (messageSenderId !== currentUserId) {
-                // Add isOwn field for display
                 const messageWithOwnership = {
                   ...message,
                   isOwn: false,
@@ -617,9 +550,7 @@ export const ChatProvider = ({ children }) => {
                 };
                 dispatch({ type: ActionTypes.ADD_MESSAGE, payload: messageWithOwnership });
 
-                // Upsert conversation for sender - need to get username from allUsers
                 const otherUserId = messageSenderId;
-                // Get username from allUsers if available, otherwise use userId as fallback
                 const otherUser = (state.allUsers || []).find(u => (u.userId || u.id) === otherUserId);
                 const otherUsername = otherUser?.username || otherUser?.userName || otherUser?.name || String(otherUserId);
                 const currentUsername = freshCurrentUser.userName || freshCurrentUser.username || freshCurrentUser.name || String(currentUserId);
@@ -653,17 +584,13 @@ export const ChatProvider = ({ children }) => {
               dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: true });
             }
           } catch (wsError) {
-            // Set as connected anyway for UI purposes, but disable real-time features
             dispatch({ type: ActionTypes.SET_CONNECTED });
-            // Set a flag to indicate WebSocket is not available
             dispatch({ type: ActionTypes.SET_WEBSOCKET_AVAILABLE, payload: false });
           }
         } else {
-          // No user data available yet, but we have token - wait a bit and retry
           dispatch({ type: ActionTypes.SET_DISCONNECTED });
         }
       } else {
-        // No user logged in
         dispatch({ type: ActionTypes.SET_DISCONNECTED });
       }
 
@@ -672,7 +599,7 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_DISCONNECTED });
     }
   };
-  // Keep only minimal safe fields when persisting to storage
+  // Chỉ giữ các field tối thiểu và an toàn khi persist vào storage để tránh lưu quá nhiều dữ liệu không cần thiết
   const pickMinimalUser = (user) => {
     if (!user) return null;
     const minimal = {
@@ -687,9 +614,8 @@ export const ChatProvider = ({ children }) => {
     return minimal;
   };
 
-  // Get freshest current user immediately after profile update (no F5)
+  // Lấy current user mới nhất ngay sau profile update (không cần F5): luôn lấy fresh từ authUser không dựa vào cached state, update nếu mapped khác với current, trả về fresh mapped user nếu có hoặc fallback về state
   const getLiveCurrentUser = () => {
-    // Always get fresh from authUser, don't rely on cached state
     const mapped = authUser ? {
       userId: authUser.userId || authUser.id,
       userName: authUser.username || authUser.userName || authUser.name,
@@ -697,7 +623,6 @@ export const ChatProvider = ({ children }) => {
       role: authUser.role || 'USER'
     } : null;
 
-    // Always update if mapped exists and is different from current
     if (mapped && mapped.userName) {
       const currentUserName = state.currentUser?.userName || '';
       const mappedUserName = mapped.userName || '';
@@ -709,12 +634,10 @@ export const ChatProvider = ({ children }) => {
       }
     }
 
-    // Always return fresh mapped user if available, otherwise fallback to state
     return mapped || state.currentUser;
   };
 
-
-  // Resolve a safe login username from user object or name string
+  // Resolve safe login username từ user object hoặc name string: nếu là object tìm trong userName/username/name, nếu là string kiểm tra trong allUsers để match, trả về trimmed string không có khoảng trắng
   const resolveLoginUsername = (input) => {
     if (!input) return '';
     // If object with potential fields
@@ -740,19 +663,15 @@ export const ChatProvider = ({ children }) => {
     return '';
   };
 
-  // Initialize chat system using existing chat API
-  // Connect WebSocket immediately when token is available, don't wait for authUser object
+  // Khởi tạo chat system: connect WebSocket ngay khi token available không đợi authUser object, kiểm tra user logged in bằng token, lấy userId từ authUser hoặc storage, delay nhỏ để cleanup hoàn tất trước khi re-initialize, cleanup khi unmount hoặc user logout
   useEffect(() => {
     const token = getToken() || sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-    // Check if user is logged in (by token, not just authUser object)
     if (token) {
-      // Get userId from authUser if available, otherwise try to get from storage
       let userId = null;
       if (authUser) {
         userId = authUser.userId || authUser.id;
       } else {
-        // Try to get userId from storage if authUser not yet loaded
         try {
           const savedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
           if (savedUser) {
@@ -764,15 +683,12 @@ export const ChatProvider = ({ children }) => {
         }
       }
 
-      // If we have token and userId, connect immediately
       if (userId) {
-        // Small delay to ensure cleanup completes before re-initializing
         const timer = setTimeout(() => {
           initializeConnection();
         }, 100);
         return () => clearTimeout(timer);
       } else if (authUser) {
-        // If we have authUser but no userId yet, wait a bit and retry
         const timer = setTimeout(() => {
           initializeConnection();
         }, 500);
@@ -780,30 +696,26 @@ export const ChatProvider = ({ children }) => {
       }
     }
 
-    // Cleanup on unmount or when user logs out
     if (!token) {
       websocketService.disconnect();
       dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
     }
-  }, [authUser?.userId, authUser?.id, getToken]); // Re-initialize when user changes
+  }, [authUser?.userId, authUser?.id, getToken]);
 
-  // Restore minimized chats when currentUser is set (backup restore in case initialState didn't work)
-  // Note: minimizedChats should already be restored in initialState, but this is a safety net
+  // Restore minimized chats khi currentUser được set (backup restore nếu initialState không work), chỉ restore nếu state hiện tại rỗng, reset flag khi user logout
   const hasRestoredMinimizedChatsRef = useRef(false);
   useEffect(() => {
     if (state.currentUser && !hasRestoredMinimizedChatsRef.current) {
-      // Only restore if current state is empty (initialState should have already restored)
       if (!state.minimizedChats || state.minimizedChats.length === 0) {
         try {
           const savedMinimizedChats = localStorage.getItem('minimizedChats');
           if (savedMinimizedChats) {
             const parsedChats = JSON.parse(savedMinimizedChats) || [];
             if (parsedChats.length > 0) {
-              // Restore from localStorage if initialState didn't work
               const minimizedChats = parsedChats.map(c => ({
                 userId: c.userId,
-                user: c.user, // already minimal
-                messages: [], // Messages will be loaded when bubble is clicked
+                user: c.user,
+                messages: [],
                 timestamp: c.timestamp || Date.now()
               }));
               dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: minimizedChats });
@@ -811,29 +723,25 @@ export const ChatProvider = ({ children }) => {
             }
           }
         } catch (error) {
-          // Silently handle error restoring minimized chats on mount
+          // Silently handle error
         }
       } else {
-        // Already restored in initialState, mark as restored
         hasRestoredMinimizedChatsRef.current = true;
       }
     }
-    // Reset flag when user logs out
     if (!state.currentUser) {
       hasRestoredMinimizedChatsRef.current = false;
     }
   }, [state.currentUser]);
 
-  // Track previous state to detect actual logout (not just initial load)
+  // Track previous state để detect actual logout (không phải initial load), skip initial mount để tránh false logout detection, kiểm tra hadTokenBefore và hasTokenNow để xác định real logout
   const previousAuthUserRef = useRef(authUser);
   const previousTokenRef = useRef(null);
   const isInitialMountRef = useRef(true);
 
-  // Listen for auth changes (only handle logout, initialization is handled above)
   useEffect(() => {
     const token = getToken() || sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-    // Skip on initial mount to avoid false logout detection
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
       previousAuthUserRef.current = authUser;
@@ -841,26 +749,19 @@ export const ChatProvider = ({ children }) => {
       return;
     }
 
-    // Check if user actually logged out:
-    // 1. Had user/token before
-    // 2. Now has no token (real logout, not just loading)
     const hadTokenBefore = previousTokenRef.current !== null;
     const hasTokenNow = token !== null;
     const isRealLogout = hadTokenBefore && !hasTokenNow;
 
-    // Also check if we had authUser before and now don't (additional check)
     const hadUserBefore = previousAuthUserRef.current !== null;
     const hasUserNow = authUser !== null;
     const userLoggedOut = hadUserBefore && !hasUserNow && !hasTokenNow;
 
     if (isRealLogout || userLoggedOut) {
-      // User actually logged out - cleanup
       websocketService.disconnect();
       dispatch({ type: ActionTypes.SET_DISCONNECTED });
       dispatch({ type: ActionTypes.SET_CURRENT_USER, payload: null });
-      // Clear ref when user logs out
       currentUserRef.current = null;
-      // Close chat UI and clear state when logging out
       dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
       dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
       dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
@@ -871,16 +772,15 @@ export const ChatProvider = ({ children }) => {
         localStorage.removeItem('chatBoxState');
         localStorage.removeItem('minimizedChats');
       } catch {
-        // Silently handle error removing localStorage items
+        // Silently handle error
       }
     }
 
-    // Update refs for next comparison
     previousAuthUserRef.current = authUser;
     previousTokenRef.current = token;
   }, [authUser, getToken]);
 
-  // WebSocket event handlers - Only for connection status
+  // WebSocket event handlers chỉ cho connection status (không xử lý messages vì đã có subscription handler), subscribe onConnection và onDisconnection events
   useEffect(() => {
     const handleConnection = () => {
       dispatch({ type: ActionTypes.SET_CONNECTED });
@@ -890,10 +790,8 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_DISCONNECTED });
     };
 
-    // Subscribe to WebSocket events - Only connection status, not messages
     const unsubscribeConnection = websocketService.onConnection(handleConnection);
     const unsubscribeDisconnection = websocketService.onDisconnection(handleDisconnection);
-    // Remove message handler to avoid duplicate with subscription handler
 
     return () => {
       unsubscribeConnection();
@@ -901,9 +799,9 @@ export const ChatProvider = ({ children }) => {
     };
   }, []);
 
-  // Actions
+  // Actions: các hàm để thao tác với chat state, connection, messages, conversations, UI state
   const actions = {
-    // Connection
+    // Kết nối WebSocket: lấy userId từ currentUser, connect nếu chưa connected, dispatch SET_CONNECTED khi thành công
     connect: async () => {
       try {
         dispatch({ type: ActionTypes.SET_CONNECTING });
@@ -923,18 +821,15 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_DISCONNECTED });
     },
 
-    // Chat actions
+    // Mở chat với user: nếu đã có active chat thì minimize trước (kiểm tra đã minimized chưa), emit event để AI chat minimize, set active chat user và UI state ngay lập tức, set empty messages để instant UI render, save chat state vào localStorage, defer load conversation để UI render trước (performance optimization), sort messages theo timestamp (oldest first), one-shot retry với refreshed users nếu receiver renamed mid-session
     openChatWithUser: async (user) => {
       try {
-        // If there's already an active chat, minimize it first
         if (state.activeChatUser && state.messages.length > 0) {
           const currentUserId = state.activeChatUser.userId || state.activeChatUser.id;
 
-          // Check if this chat is already minimized
           const existingChat = (state.minimizedChats || []).find(chat => chat.userId === currentUserId);
 
           if (!existingChat) {
-            // Add current chat to minimized chats
             const minimizedChat = {
               userId: currentUserId,
               user: state.activeChatUser,
@@ -943,29 +838,24 @@ export const ChatProvider = ({ children }) => {
             };
             dispatch({ type: ActionTypes.ADD_MINIMIZED_CHAT, payload: minimizedChat });
 
-            // Update localStorage to persist minimized chats
             const updatedMinimizedChats = [...(state.minimizedChats || []), minimizedChat]
               .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
             localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
           }
         }
 
-        // Emit event to tell AI chat to minimize
         window.dispatchEvent(new CustomEvent(CHAT_EVENTS.REGULAR_CHAT_OPENED));
 
-        // Set new active chat user - do this first for instant UI update
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: user });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
-        dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false }); // Ensure chatbox is visible
+        dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
         dispatch({ type: ActionTypes.SET_CHAT_DROPDOWN_OPEN, payload: false });
         dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
 
-        // Set empty messages immediately for instant UI render
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
         dispatch({ type: ActionTypes.SET_CURRENT_PAGE, payload: 0 });
         dispatch({ type: ActionTypes.SET_HAS_MORE_MESSAGES, payload: true });
 
-        // Save chat state to localStorage for persistence (defer to avoid blocking)
         setTimeout(() => {
           const minimalUser = pickMinimalUser(user);
           localStorage.setItem('chatBoxState', JSON.stringify({
@@ -974,8 +864,6 @@ export const ChatProvider = ({ children }) => {
           }));
         }, 0);
 
-        // Defer loading conversation to allow UI to render first (performance optimization)
-        // This prevents lag when opening chatbox
         setTimeout(async () => {
           dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: true });
 
@@ -984,7 +872,6 @@ export const ChatProvider = ({ children }) => {
           const receiverId = user.userId || user.id;
 
           if (!senderId || !receiverId) {
-            // Still set messages to empty array so user can start chatting
             dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
             return;
           }
@@ -993,18 +880,16 @@ export const ChatProvider = ({ children }) => {
             let messages = await chatApiService.getConversation(
               senderId,
               receiverId,
-              0, // page 0 for latest messages
-              25 // size 25 for initial load
+              0,
+              25
             );
 
-            // Ensure messages is an array
             if (!Array.isArray(messages)) {
               messages = [];
             }
 
             const formattedMessages = chatApiService.formatConversation(messages, liveUser, state.allUsers || []);
 
-            // Sort messages by timestamp (oldest first for display - newest at bottom)
             const sortedMessages = formattedMessages.sort((a, b) =>
               new Date(a.timestamp) - new Date(b.timestamp)
             );
@@ -1012,7 +897,6 @@ export const ChatProvider = ({ children }) => {
             dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
             dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
           } catch (error) {
-            // One-shot retry with refreshed users in case receiver renamed mid-session
             try {
               await actions.loadAllUsers();
               const liveUser = getLiveCurrentUser();
@@ -1030,27 +914,24 @@ export const ChatProvider = ({ children }) => {
                 25
               );
 
-              // Ensure messages is an array
               const messagesArray = Array.isArray(messages) ? messages : [];
               const formattedMessages = chatApiService.formatConversation(messagesArray, liveUser, state.allUsers || []);
               const sortedMessages = formattedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
               dispatch({ type: ActionTypes.SET_MESSAGES, payload: sortedMessages });
               dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
             } catch (e2) {
-              // Even if loading conversation fails, allow user to start chatting
-              // Set empty messages array so user can send first message
               dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
               dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
             }
           }
-        }, 50); // Small delay to allow UI to render first
+        }, 50);
       } catch (error) {
-        // If there's any error, still allow user to start chatting
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
         dispatch({ type: ActionTypes.SET_LOADING_MESSAGES, payload: false });
       }
     },
 
+    // Gửi message: thêm message vào local state ngay lập tức (optimistic update) với temp ID, lấy receiver username từ allUsers nếu có, update conversations ngay để dropdown hiển thị preview mới nhất và reorder lên top, thử WebSocket trước (kiểm tra flag và connection status), fallback về API nếu WebSocket fail, reload conversations sau 500ms để đảm bảo conversation mới xuất hiện trong dropdown
     sendMessage: async (content) => {
       if (!state.activeChatUser || !content.trim()) {
         return;
@@ -1068,9 +949,8 @@ export const ChatProvider = ({ children }) => {
         const senderUsername = liveUser2?.userName || liveUser2?.username || liveUser2?.name || String(senderId);
         const receiverUsername = state.activeChatUser?.userName || state.activeChatUser?.username || state.activeChatUser?.name || String(receiverId);
 
-        // Add message to local state immediately (optimistic update)
         const tempMessage = {
-          id: `temp-${Date.now()}`, // Temporary ID
+          id: `temp-${Date.now()}`,
           content: content.trim(),
           timestamp: new Date().toISOString(),
           sender: {
@@ -1090,12 +970,10 @@ export const ChatProvider = ({ children }) => {
 
         dispatch({ type: ActionTypes.ADD_MESSAGE, payload: tempMessage });
 
-        // Get receiver username from allUsers if available for better display
         const receiverUser = (state.allUsers || []).find(u => (u.userId || u.id) === receiverId);
         const finalReceiverUsername = receiverUser?.username || receiverUser?.userName || receiverUser?.name || receiverUsername;
         const finalReceiverAvatar = receiverUser?.avatar || receiverUser?.userAvatar || state.activeChatUser?.avatar;
 
-        // Update conversations immediately so dropdown shows latest preview and reorders to top
         const upsertForSelf = {
           user: {
             userId: receiverId,
@@ -1110,7 +988,7 @@ export const ChatProvider = ({ children }) => {
             timestamp: tempMessage.timestamp,
             senderId: senderId,
             receiverId: receiverId,
-            isOwn: true, // Message from current user
+            isOwn: true,
             sender: tempMessage.sender
           },
           unreadCount: 0
@@ -1123,16 +1001,13 @@ export const ChatProvider = ({ children }) => {
           content: content.trim()
         };
 
-        // Try WebSocket first - check both flag and connection status
         const wsConnected = websocketService.getConnectionStatus();
-        const wsAvailable = state.websocketAvailable !== false; // Default to true if not explicitly set to false
+        const wsAvailable = state.websocketAvailable !== false;
 
         if (wsConnected && wsAvailable) {
           const success = websocketService.sendMessage(messageData);
 
           if (success) {
-            // Message already added to local state, WebSocket will handle delivery
-            // Reload conversations to ensure new conversation appears in dropdown
             setTimeout(() => {
               actions.loadConversations();
             }, 500);
@@ -1140,17 +1015,12 @@ export const ChatProvider = ({ children }) => {
           }
         }
 
-        // Fallback to API if WebSocket fails or not available
         try {
           await chatApiService.sendMessage(senderId, receiverId, content.trim());
-          // Message already added to local state via optimistic update
-          // Reload conversations to ensure new conversation appears in dropdown
           setTimeout(() => {
             actions.loadConversations();
           }, 500);
         } catch (apiError) {
-          // Silently handle API send failed error
-          // Remove the temporary message if API also fails
           dispatch({
             type: ActionTypes.UPDATE_MESSAGE,
             payload: { ...tempMessage, id: null, content: 'Failed to send' }
@@ -1158,12 +1028,11 @@ export const ChatProvider = ({ children }) => {
         }
 
       } catch (error) {
-        // Silently handle error in sendMessage
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       }
     },
 
-    // UI actions
+    // UI actions: toggle/close/open chat dropdown và chat box, minimize/restore chat box, close minimized chat
     toggleChatDropdown: () => {
       const willOpen = !state.isChatDropdownOpen;
       dispatch({
@@ -1190,13 +1059,12 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
     },
 
+    // Đóng chat box: đóng minimized chat bubble tương ứng nếu có, update localStorage (remove chat này khỏi minimizedChats), clear saved chat state từ localStorage (nhưng giữ minimizedChats), clear active chat user và messages
     closeChatBox: () => {
-      // Close the corresponding minimized chat bubble if exists
       if (state.activeChatUser) {
         const userId = state.activeChatUser.userId || state.activeChatUser.id;
         dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
 
-        // Update localStorage - remove only this chat from minimizedChats
         const updatedMinimizedChats = (state.minimizedChats || []).filter(chat => chat.userId !== userId);
         if (updatedMinimizedChats.length > 0) {
           localStorage.setItem('minimizedChats', JSON.stringify(
@@ -1212,19 +1080,17 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
       dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
 
-      // Clear saved chat state from localStorage (but keep minimizedChats)
       localStorage.removeItem('chatBoxState');
     },
 
+    // Minimize chat box: kiểm tra chat đã minimized chưa, thêm vào minimizedChats nếu chưa có, lưu vào localStorage với minimal user fields (không lưu messages), update saved chat state để reflect minimized state
     minimizeChatBox: () => {
       if (state.activeChatUser) {
         const userId = state.activeChatUser.userId || state.activeChatUser.id;
 
-        // Check if this chat is already minimized
         const existingChat = (state.minimizedChats || []).find(chat => chat.userId === userId);
 
         if (!existingChat) {
-          // Add current chat to minimized chats only if not already minimized
           const minimizedChat = {
             userId: userId,
             user: state.activeChatUser,
@@ -1233,7 +1099,6 @@ export const ChatProvider = ({ children }) => {
           };
           dispatch({ type: ActionTypes.ADD_MINIMIZED_CHAT, payload: minimizedChat });
 
-          // Save minimized chats to localStorage with minimal user fields only (no messages)
           const updatedMinimizedChats = [...(state.minimizedChats || []), minimizedChat]
             .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
           localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
@@ -1242,7 +1107,6 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: true });
       dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: false });
 
-      // Update saved chat state to reflect minimized state
       const minimalUser = pickMinimalUser(state.activeChatUser);
       localStorage.setItem('chatBoxState', JSON.stringify({
         isOpen: false,
@@ -1255,22 +1119,18 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
     },
 
+    // Restore chat từ bubble: tìm minimized chat, nếu đã có active chat thì minimize trước (giống logic openChatWithUser), remove restored chat khỏi minimizedChats, set làm active chat, nếu không có messages (vì không persist) thì load từ API, save restored chat state và update minimizedChats trong localStorage
     restoreChatFromBubble: (userId) => {
-      // Find the minimized chat
       const minimizedChat = state.minimizedChats.find(chat => chat.userId === userId);
       if (minimizedChat) {
-        // Prepare the final minimized chats list
         let finalMinimizedChats = [...(state.minimizedChats || [])];
 
-        // If there's already an active chat, minimize it first (same logic as openChatWithUser)
         if (state.activeChatUser && state.messages.length > 0) {
           const currentUserId = state.activeChatUser.userId || state.activeChatUser.id;
 
-          // Check if this chat is already minimized
           const existingChat = finalMinimizedChats.find(chat => chat.userId === currentUserId);
 
           if (!existingChat) {
-            // Add current chat to minimized chats
             const minimizedChatToAdd = {
               userId: currentUserId,
               user: state.activeChatUser,
@@ -1282,32 +1142,26 @@ export const ChatProvider = ({ children }) => {
           }
         }
 
-        // Remove the restored chat from minimized chats
         finalMinimizedChats = finalMinimizedChats.filter(chat => chat.userId !== userId);
         dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
 
-        // Set as active chat
         dispatch({ type: ActionTypes.SET_ACTIVE_CHAT_USER, payload: minimizedChat.user });
-        // If we don't have messages (because we don't persist them), load from API; else restore
         if (Array.isArray(minimizedChat.messages) && minimizedChat.messages.length > 0) {
           dispatch({ type: ActionTypes.SET_MESSAGES, payload: minimizedChat.messages });
         } else {
           dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
-          // Fire and forget load
           actions.loadConversation(minimizedChat.user);
         }
         dispatch({ type: ActionTypes.SET_CHAT_BOX_OPEN, payload: true });
         dispatch({ type: ActionTypes.SET_CHAT_BOX_MINIMIZED, payload: false });
         dispatch({ type: ActionTypes.SET_HAS_UNREAD_MESSAGES, payload: false });
 
-        // Save restored chat state to localStorage
         const minimalUser = pickMinimalUser(minimizedChat.user);
         localStorage.setItem('chatBoxState', JSON.stringify({
           isOpen: true,
           activeChatUser: minimalUser
         }));
 
-        // Update minimized chats in localStorage
         const minimizedChatsForStorage = finalMinimizedChats
           .map(c => ({ userId: c.userId, user: pickMinimalUser(c.user), timestamp: c.timestamp }));
 
@@ -1319,10 +1173,10 @@ export const ChatProvider = ({ children }) => {
       }
     },
 
+    // Đóng minimized chat: remove khỏi minimizedChats, update localStorage (remove chat này)
     closeMinimizedChat: (userId) => {
       dispatch({ type: ActionTypes.REMOVE_MINIMIZED_CHAT, payload: userId });
 
-      // Update localStorage
       const updatedMinimizedChats = (state.minimizedChats || []).filter(chat => chat.userId !== userId);
       if (updatedMinimizedChats.length > 0) {
         localStorage.setItem('minimizedChats', JSON.stringify(updatedMinimizedChats));
@@ -1331,14 +1185,11 @@ export const ChatProvider = ({ children }) => {
       }
     },
 
-    // Data loading
+    // Load conversations: kiểm tra đã có conversations chưa (từ cache initialization), nếu có thì không set loading để tránh UI flicker, thử load từ cache trước (< 2 phút) cho instant display, load fresh data từ API trong background, save vào cache, nếu API fail thì dùng cache dù cũ
     loadConversations: async () => {
       try {
-        // Check if we already have conversations (from cache initialization)
-        // If yes, don't set loading state to avoid UI flicker
         const hasExistingConversations = state.conversations && state.conversations.length > 0;
 
-        // First, try to load from cache for instant display (if not already loaded)
         let cacheLoaded = false;
         if (!hasExistingConversations) {
           try {
@@ -1346,7 +1197,6 @@ export const ChatProvider = ({ children }) => {
             const cacheTimestamp = localStorage.getItem('chatConversationsTimestamp');
             const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
 
-            // Use cache if less than 2 minutes old
             if (cachedConversations && cacheAge < 2 * 60 * 1000) {
               const parsedConversations = JSON.parse(cachedConversations);
               dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: parsedConversations });
@@ -1358,12 +1208,10 @@ export const ChatProvider = ({ children }) => {
           }
         }
 
-        // Only set loading if we don't have cache and don't have existing conversations
         if (!hasExistingConversations && !cacheLoaded) {
           dispatch({ type: ActionTypes.SET_LOADING_CONVERSATIONS, payload: true });
         }
 
-        // Load fresh data from API in background
         const liveUser = getLiveCurrentUser();
         const userId = liveUser.userId || liveUser.id;
 
@@ -1374,7 +1222,6 @@ export const ChatProvider = ({ children }) => {
         const messages = await chatApiService.getAllMessagesFromUser(userId);
         const conversations = chatApiService.getConversationsList(messages, liveUser, state.allUsers || []);
 
-        // Save to cache
         try {
           localStorage.setItem('chatConversations', JSON.stringify(conversations));
           localStorage.setItem('chatConversationsTimestamp', String(Date.now()));
@@ -1384,7 +1231,6 @@ export const ChatProvider = ({ children }) => {
 
         dispatch({ type: ActionTypes.SET_CONVERSATIONS, payload: conversations });
       } catch (error) {
-        // If API fails, try to use cache even if old
         try {
           const cachedConversations = localStorage.getItem('chatConversations');
           if (cachedConversations) {
@@ -1399,7 +1245,7 @@ export const ChatProvider = ({ children }) => {
       }
     },
 
-    // Load conversation with a specific user
+    // Load conversation với user cụ thể: set loading state, set active chat user, gọi API getConversationLegacy, format messages, set messages vào state
     loadConversation: async (user) => {
       if (!user || !getLiveCurrentUser()) return;
 
@@ -1421,7 +1267,6 @@ export const ChatProvider = ({ children }) => {
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: formattedMessages });
 
       } catch (error) {
-        // Silently handle error loading conversation
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
         dispatch({ type: ActionTypes.SET_MESSAGES, payload: [] });
       } finally {
@@ -1429,7 +1274,7 @@ export const ChatProvider = ({ children }) => {
       }
     },
 
-    // Load more messages for infinite scroll
+    // Load more messages cho infinite scroll: kiểm tra điều kiện (activeChatUser, currentUser, isLoadingMoreMessages, hasMoreMessages), load page tiếp theo với size 25, sort older messages theo timestamp (oldest first) để prepend, kiểm tra có new messages để add không
     loadMoreMessages: async () => {
       if (!state.activeChatUser || !getLiveCurrentUser() || state.isLoadingMoreMessages || !state.hasMoreMessages) {
         return;
@@ -1455,43 +1300,37 @@ export const ChatProvider = ({ children }) => {
         );
 
         if (!messages || messages.length === 0) {
-          // No more messages
           dispatch({ type: ActionTypes.SET_HAS_MORE_MESSAGES, payload: false });
         } else {
           const formattedMessages = chatApiService.formatConversation(messages, state.currentUser, state.allUsers || []);
 
-          // Sort older messages by timestamp (oldest first for prepending)
           const sortedOlderMessages = formattedMessages.sort((a, b) =>
             new Date(a.timestamp) - new Date(b.timestamp)
           );
 
-          // Check if we actually have new messages to add
           if (sortedOlderMessages.length > 0) {
             dispatch({ type: ActionTypes.PREPEND_MESSAGES, payload: sortedOlderMessages });
             dispatch({ type: ActionTypes.SET_CURRENT_PAGE, payload: nextPage });
           } else {
-            // No new messages, set hasMore to false
             dispatch({ type: ActionTypes.SET_HAS_MORE_MESSAGES, payload: false });
           }
         }
 
       } catch (error) {
-        // Silently handle error loading more messages
         dispatch({ type: ActionTypes.SET_ERROR, payload: error.message });
       } finally {
         dispatch({ type: ActionTypes.SET_LOADING_MORE_MESSAGES, payload: false });
       }
     },
 
+    // Load all users: thử load từ cache trước (< 5 phút) cho instant display, load fresh data từ API, filter out current user khỏi list, save vào cache, nếu API fail thì dùng cache dù cũ
     loadAllUsers: async () => {
       try {
-        // First, try to load from cache for instant display
         try {
           const cachedUsers = localStorage.getItem('chatAllUsers');
           const cacheTimestamp = localStorage.getItem('chatAllUsersTimestamp');
           const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : Infinity;
 
-          // Use cache if less than 5 minutes old
           if (cachedUsers && cacheAge < 5 * 60 * 1000) {
             const parsedUsers = JSON.parse(cachedUsers);
             dispatch({ type: ActionTypes.SET_ALL_USERS, payload: parsedUsers });
@@ -1503,14 +1342,11 @@ export const ChatProvider = ({ children }) => {
           dispatch({ type: ActionTypes.SET_LOADING_USERS, payload: true });
         }
 
-        // Load fresh data from API
         const users = await chatApiService.getAllUsers();
-        // Filter out current user from the list
         const currentUserId = state.currentUser?.userId || state.currentUser?.id;
         const filteredUsers = (users || [])
           .filter(user => (user.userId || user.id) !== currentUserId);
 
-        // Save to cache
         try {
           localStorage.setItem('chatAllUsers', JSON.stringify(filteredUsers));
           localStorage.setItem('chatAllUsersTimestamp', String(Date.now()));
@@ -1520,7 +1356,6 @@ export const ChatProvider = ({ children }) => {
 
         dispatch({ type: ActionTypes.SET_ALL_USERS, payload: filteredUsers });
       } catch (error) {
-        // If API fails, try to use cache even if old
         try {
           const cachedUsers = localStorage.getItem('chatAllUsers');
           if (cachedUsers) {
@@ -1535,8 +1370,8 @@ export const ChatProvider = ({ children }) => {
       }
     },
 
+    // Mock users cho testing
     loadMockUsers: () => {
-      // Mock users for testing
       const mockUsers = [
         {
           userId: 2,
@@ -1557,42 +1392,37 @@ export const ChatProvider = ({ children }) => {
       dispatch({ type: ActionTypes.SET_ALL_USERS, payload: mockUsers });
     },
 
-    // Error handling
+    // Clear error state
     clearError: () => {
       dispatch({ type: ActionTypes.CLEAR_ERROR });
     },
 
-    // Restore minimized chats from localStorage
+    // Restore minimized chats từ localStorage: chỉ restore nếu có valid chats, luôn restore nếu current state rỗng hoặc khác, restore với messages rỗng (sẽ load khi bubble được click)
     restoreMinimizedChats: () => {
       try {
         const savedMinimizedChats = localStorage.getItem('minimizedChats');
         if (savedMinimizedChats) {
           const parsedChats = JSON.parse(savedMinimizedChats) || [];
-          // Only restore if we have valid chats
           if (parsedChats.length > 0) {
             const minimizedChats = parsedChats.map(c => ({
               userId: c.userId,
-              user: c.user, // already minimal
-              messages: [], // Messages will be loaded when bubble is clicked
+              user: c.user,
+              messages: [],
               timestamp: c.timestamp || Date.now()
             }));
-            // Always restore if current state is empty or different
             const currentUserIds = (state.minimizedChats || []).map(c => c.userId).sort().join(',');
             const restoredUserIds = minimizedChats.map(c => c.userId).sort().join(',');
-            // Restore if empty or different
             if (!state.minimizedChats || state.minimizedChats.length === 0 || currentUserIds !== restoredUserIds) {
               dispatch({ type: ActionTypes.SET_MINIMIZED_CHATS, payload: minimizedChats });
             }
           }
         }
       } catch (error) {
-        // Silently handle error restoring minimized chats
-        // Don't remove localStorage on error
-        // localStorage.removeItem('minimizedChats');
+        // Silently handle error
       }
     },
 
-    // Initialize chat when user logs in
+    // Khởi tạo chat khi user login: lấy current user, connect WebSocket, subscribe to user messages
     initializeChat: async () => {
       try {
         dispatch({ type: ActionTypes.SET_CONNECTING });
@@ -1629,11 +1459,10 @@ export const ChatProvider = ({ children }) => {
   );
 };
 
-// Hook to use chat context
+// Hook để sử dụng chat context: throw error nếu không tìm thấy ChatContext (không được dùng ngoài ChatProvider)
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (!context) {
-    // Silently handle ChatContext not found
     throw new Error('useChat must be used within a ChatProvider');
   }
   return context;

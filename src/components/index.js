@@ -1,10 +1,7 @@
-// Navbar components
 export { Navbar, ConditionalNavbar } from './navbar';
 
-// Modal components
 export { Modal, DeleteConfirmModal, LoginRequiredModal, ShareTourModal, VoucherDetailModal, VoucherListModal } from './modals';
 
-// Other components
 export { default as ChatBox } from './ChatBox/ChatBox';
 export { default as ChatDropdown } from './ChatDropdown/ChatDropdown';
 export { default as NotificationDropdown } from './NotificationDropdown/NotificationDropdown';
@@ -14,5 +11,4 @@ export { default as WebSocketStatus } from './WebSocketStatus/WebSocketStatus';
 export { default as Footer } from './Footer/Footer';
 export { default as SupportTicketBubble } from './SupportTicketBubble/SupportTicketBubble';
 
-// AI Chat components
 export { BubbleChatAI, ChatBoxAI } from './chatAI';

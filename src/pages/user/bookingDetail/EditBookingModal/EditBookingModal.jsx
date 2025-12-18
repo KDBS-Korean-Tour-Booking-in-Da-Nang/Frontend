@@ -48,10 +48,8 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
     }
   }, [isOpen]);
 
-  // Initialize form data from booking and guests
   useEffect(() => {
     if (booking && isOpen) {
-      // Parse departure date
       let departureDate = '';
       if (booking.departureDate) {
         try {
@@ -64,7 +62,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
         }
       }
 
-      // Organize guests by type
       const organizedGuests = {
         adult: [],
         child: [],
@@ -153,7 +150,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
     if (!formData.departureDate) errors.push('Ngày khởi hành');
     if (formData.adultsCount < 1) errors.push('Ít nhất 1 người lớn');
 
-    // Validate guests
     const totalGuests = formData.adultsCount + formData.childrenCount + formData.babiesCount;
     if (totalGuests !== formData.guests.length) {
       errors.push('Số lượng khách không khớp với danh sách');
@@ -176,7 +172,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
       return;
     }
 
-    // Prepare data for confirmation
     const formDataForConfirm = {
       contactName: formData.contactName.trim(),
       contactAddress: formData.contactAddress.trim(),
@@ -198,7 +193,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
       }))
     };
 
-    // Show confirmation modal inside edit modal
     setPendingFormData(formDataForConfirm);
     setShowConfirmModal(true);
   };
@@ -206,10 +200,7 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
   const handleConfirmUpdate = () => {
     if (!pendingFormData) return;
     
-    // Close confirmation modal
     setShowConfirmModal(false);
-    
-    // Call onConfirm to trigger update in parent component
     onConfirm(pendingFormData);
   };
 
@@ -268,7 +259,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
             </div>
 
             <form onSubmit={handleSubmit} className={styles['edit-form']}>
-            {/* Tabs */}
             <div className={styles['tabs-container']}>
               <button
                 type="button"
@@ -293,7 +283,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
               </button>
             </div>
 
-            {/* Tab Content */}
             <div className={styles['tab-content']}>
               {activeTab === 'contact' && (
                 <div className={styles['form-section']}>
@@ -580,7 +569,6 @@ const EditBookingModal = ({ isOpen, onClose, onConfirm, booking, guests = [] }) 
         </div>
       </div>
 
-      {/* Confirmation Modal - rendered separately with higher z-index */}
       {showConfirmModal && (
         <DeleteConfirmModal
           isOpen={showConfirmModal}

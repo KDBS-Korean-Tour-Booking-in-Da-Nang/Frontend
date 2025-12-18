@@ -17,7 +17,6 @@ import {
 import BookingHistoryCard from './BookingHistoryCard/BookingHistoryCard';
 import styles from './BookingHistory.module.css';
 
-// Booking status helpers
 const STATUS_KEYS = {
   PENDING_PAYMENT: 'pendingPayment',
   PENDING_DEPOSIT_PAYMENT: 'pendingDepositPayment',       // NEW
@@ -34,11 +33,15 @@ const STATUS_KEYS = {
   BOOKING_CANCELLED: 'bookingCancelled'                   // NEW
 };
 
+// Chuẩn hóa status booking từ nhiều định dạng khác nhau (number, string, legacy) về key thống nhất
+// Hỗ trợ: number (0, 1, 2), string numeric ('0', '1', '2'), legacy status (PURCHASED, CONFIRMED...), new status
 const normalizeStatus = (status) => {
+  // Nếu null/undefined, mặc định là PENDING_PAYMENT
   if (status === null || status === undefined) {
     return STATUS_KEYS.PENDING_PAYMENT;
   }
 
+  // Xử lý status dạng number (legacy format)
   if (typeof status === 'number') {
     if (status === 1) return STATUS_KEYS.BOOKING_SUCCESS;
     if (status === 2) return STATUS_KEYS.BOOKING_REJECTED;
@@ -47,10 +50,12 @@ const normalizeStatus = (status) => {
 
   const raw = String(status).trim().toUpperCase();
 
+  // Xử lý string numeric
   if (raw === '0') return STATUS_KEYS.PENDING_PAYMENT;
   if (raw === '1') return STATUS_KEYS.BOOKING_SUCCESS;
   if (raw === '2') return STATUS_KEYS.BOOKING_REJECTED;
 
+  // Map các status legacy (từ hệ thống cũ)
   const legacyMap = {
     PURCHASED: STATUS_KEYS.BOOKING_SUCCESS,
     CONFIRMED: STATUS_KEYS.WAITING_FOR_APPROVED,
@@ -60,11 +65,12 @@ const normalizeStatus = (status) => {
     SUCCESS: STATUS_KEYS.BOOKING_SUCCESS
   };
 
+  // Kiểm tra xem có phải key mới không
   if (STATUS_KEYS[raw]) {
     return STATUS_KEYS[raw];
   }
 
-  // Thêm mapping cho status mới
+  // Map các status mới
   const newStatusMap = {
     PENDING_DEPOSIT_PAYMENT: STATUS_KEYS.PENDING_DEPOSIT_PAYMENT,
     PENDING_BALANCE_PAYMENT: STATUS_KEYS.PENDING_BALANCE_PAYMENT,
@@ -76,21 +82,27 @@ const normalizeStatus = (status) => {
     return newStatusMap[raw];
   }
 
+  // Fallback về legacy map
   if (legacyMap[raw]) {
     return legacyMap[raw];
   }
 
+  // Mặc định là PENDING_PAYMENT
   return STATUS_KEYS.PENDING_PAYMENT;
 };
 
+// Chuẩn hóa transaction status từ nhiều định dạng về string thống nhất
+// Hỗ trợ: number (1=success, 2=failed, 3=cancelled), string
 const normalizeTrx = (trx) => {
   if (!trx && typeof trx !== 'number') return undefined;
+  // Xử lý transaction status dạng number (legacy format)
   if (typeof trx === 'number') {
     if (trx === 1) return 'success';
     if (trx === 2) return 'failed';
     if (trx === 3) return 'cancelled';
     return 'pending';
   }
+  // Chuyển string về lowercase
   return String(trx || '').toLowerCase();
 };
 
@@ -109,7 +121,6 @@ const BookingHistory = () => {
   const itemsPerPage = 3;
   const prevFiltersRef = useRef({ statusFilter, dateFilter });
 
-  // Extract fetchBookings function so it can be reused
   const fetchBookings = React.useCallback(async () => {
     if (!user) return;
     
@@ -117,7 +128,6 @@ const BookingHistory = () => {
       setLoading(true);
       setError(null);
       
-      // Get token from storage (check both localStorage and sessionStorage)
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const token = storage.getItem('token');
@@ -143,21 +153,19 @@ const BookingHistory = () => {
       }
       
       const data = await response.json();
-      // Fetch total amounts for all bookings in parallel
-      // IMPORTANT: Keep all fields from BookingResponse, especially voucher-related fields
+      // Fetch tổng tiền cho từng booking song song (parallel) để tối ưu performance
+      // Giữ lại tất cả các field từ BookingResponse, bao gồm cả các field liên quan đến voucher
       const bookingsWithTotals = await Promise.all(
         data.map(async (booking) => {
           try {
+            // Lấy tổng tiền từ API (có thể khác với totalAmount trong booking nếu có voucher)
             const totalResp = await getBookingTotal(booking.bookingId);
             return {
-              // Keep all original fields from BookingResponse
               ...booking,
-              // Map bookingStatus to status for compatibility
               status: booking.bookingStatus || booking.status,
               bookingStatus: booking.bookingStatus,
-              // Override totalAmount with calculated total if available
               totalAmount: totalResp?.totalAmount || booking.totalAmount || 0,
-              // Ensure voucher fields are preserved
+              // Giữ lại tất cả thông tin voucher để hiển thị
               voucherCode: booking.voucherCode,
               voucherId: booking.voucherId,
               voucherDiscountApplied: booking.voucherDiscountApplied,
@@ -168,7 +176,7 @@ const BookingHistory = () => {
               payedAmount: booking.payedAmount
             };
           } catch {
-            // On error, still preserve all fields
+            // Nếu không lấy được total từ API, dùng totalAmount từ booking
             return {
               ...booking,
               status: booking.bookingStatus || booking.status,
@@ -188,12 +196,10 @@ const BookingHistory = () => {
       );
       setAllBookings(bookingsWithTotals);
       
-      // Calculate pagination
       const totalItems = bookingsWithTotals.length;
       const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
       setTotalPages(totalPagesCount);
       
-      // Set initial page data
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
       setBookings(bookingsWithTotals.slice(startIndex, endIndex));
@@ -208,25 +214,25 @@ const BookingHistory = () => {
     fetchBookings();
   }, [fetchBookings]);
 
-  // Refresh callback for when booking is cancelled
   const handleBookingCancelled = React.useCallback(() => {
     fetchBookings();
   }, [fetchBookings]);
 
-  // Handle pagination and filtering - combined into one useEffect
+  // Effect kết hợp: xử lý phân trang và lọc booking
+  // Reset về trang 1 khi filter thay đổi
   useEffect(() => {
     if (allBookings.length === 0) {
       return;
     }
 
-    // Apply filters
     let filteredBookings = [...allBookings];
 
-    // Status filter
+    // Lọc theo status
     if (statusFilter !== 'all') {
       filteredBookings = filteredBookings.filter(booking => {
         const status = normalizeStatus(booking.status ?? booking.bookingStatus);
         const trx = normalizeTrx(booking.transactionStatus ?? booking.latestTransactionStatus);
+        // Với BOOKING_SUCCESS, bao gồm cả WAITING_FOR_APPROVED và transaction success
         if (statusFilter === STATUS_KEYS.BOOKING_SUCCESS) {
           return status === STATUS_KEYS.BOOKING_SUCCESS || status === STATUS_KEYS.WAITING_FOR_APPROVED || trx === 'success';
         }
@@ -234,33 +240,31 @@ const BookingHistory = () => {
       });
     }
 
-    // Date filter
+    // Sắp xếp theo ngày
     if (dateFilter === 'newest') {
       filteredBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (dateFilter === 'oldest') {
       filteredBookings.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     }
 
-    // Calculate pagination for filtered results
     const totalItems = filteredBookings.length;
     const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
     setTotalPages(totalPagesCount);
 
-    // Check if we need to reset to page 1 (only when filters change, not when page changes)
+    // Kiểm tra xem filter có thay đổi không
     const filtersChanged = 
       prevFiltersRef.current.statusFilter !== statusFilter || 
       prevFiltersRef.current.dateFilter !== dateFilter;
     
-    // Determine which page to use: if filters changed, use page 1, otherwise use currentPage
+    // Nếu filter thay đổi, reset về trang 1, nếu không thì giữ nguyên trang hiện tại
     const pageToUse = filtersChanged ? 1 : currentPage;
     
     if (filtersChanged) {
       prevFiltersRef.current = { statusFilter, dateFilter };
-      // Reset to page 1 when filters change
       setCurrentPage(1);
     }
 
-    // Get current page data (use pageToUse instead of currentPage)
+    // Tính toán dữ liệu cho trang hiện tại
     const startIndex = (pageToUse - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const pageData = filteredBookings.slice(startIndex, endIndex);
@@ -410,25 +414,20 @@ const BookingHistory = () => {
                     <ChevronLeftIcon className={styles['pagination-icon']} />
                   </button>
                   
-                  {/* Page numbers */}
                   {(() => {
                     const pages = [];
                     const maxVisible = 5;
                     
                     if (totalPages <= maxVisible) {
-                      // Hiển thị tất cả các trang nếu tổng số trang <= 5
                       for (let i = 1; i <= totalPages; i++) {
                         pages.push(i);
                       }
                     } else {
-                      // Luôn hiển thị trang đầu
                       pages.push(1);
                       
-                      // Tính toán các trang xung quanh currentPage
                       let startPage = Math.max(2, currentPage - 1);
                       let endPage = Math.min(totalPages - 1, currentPage + 1);
                       
-                      // Điều chỉnh nếu quá gần đầu hoặc cuối
                       if (currentPage <= 3) {
                         startPage = 2;
                         endPage = Math.min(4, totalPages - 1);
@@ -437,22 +436,18 @@ const BookingHistory = () => {
                         endPage = totalPages - 1;
                       }
                       
-                      // Thêm ellipsis trước nếu cần
                       if (startPage > 2) {
                         pages.push('ellipsis-start');
                       }
                       
-                      // Thêm các trang ở giữa
                       for (let i = startPage; i <= endPage; i++) {
                         pages.push(i);
                       }
                       
-                      // Thêm ellipsis sau nếu cần
                       if (endPage < totalPages - 1) {
                         pages.push('ellipsis-end');
                       }
                       
-                      // Luôn hiển thị trang cuối
                       pages.push(totalPages);
                     }
                     

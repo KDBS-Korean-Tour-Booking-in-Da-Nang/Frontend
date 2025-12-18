@@ -52,21 +52,20 @@ const CompanyInfo = () => {
   });
   const [initialized, setInitialized] = useState(false);
 
-  // Mark company onboarding as pending in localStorage for easy return on next login
+  // Đánh dấu company onboarding là pending trong localStorage để dễ quay lại khi login lần sau: set 'company_onboarding_pending' = 'true'
   useEffect(() => {
     try {
       localStorage.setItem('company_onboarding_pending', 'true');
     } catch (error) {
-      // Silently fail if localStorage is not available
+      // Silently handle error
     }
   }, []);
 
-  // Initialize component: get user email and check if files have been submitted
+  // Khởi tạo component: lấy user email (từ logged-in user hoặc localStorage fallback), check backend trước cho upload status (fallback localStorage), mark as submitted nếu backend confirm files đã upload, lưu metadata vào localStorage để cache
   useEffect(() => {
     if (authLoading) {
       return;
     }
-    // Get email from logged-in user, fallback to email saved after registration
     let email = user?.email || null;
     if (!email) {
       email = localStorage.getItem('userEmail');
@@ -76,7 +75,6 @@ const CompanyInfo = () => {
       setUserEmail(email);
       const statusKey = `businessUploadStatus:${email}`;
       const status = localStorage.getItem(statusKey);
-      // Check backend first for upload status, fallback to localStorage
       const fetchStatus = async () => {
         try {
           const headers = {};
@@ -85,7 +83,6 @@ const CompanyInfo = () => {
           const res = await fetch(getApiPath(`/api/users/business-upload-status?email=${encodeURIComponent(email)}`), { headers });
           const data = await res.json();
           if ((data.code === 1000 || data.code === 0) && data.result) {
-            // Mark as submitted if backend confirms files were uploaded
             if (data.result.uploaded) {
               setAlreadySubmitted(true);
               setSubmittedData({
@@ -93,7 +90,6 @@ const CompanyInfo = () => {
                 idCardFrontName: data.result.idCardFrontFileName || '',
                 idCardBackName: data.result.idCardBackFileName || ''
               });
-              // Save to localStorage for faster check next time (fallback cache)
               localStorage.setItem(`businessUploadStatus:${email}`, 'submitted');
               localStorage.setItem(
                 `businessUploadData:${email}`,
@@ -106,7 +102,6 @@ const CompanyInfo = () => {
             }
           }
         } catch (e) {
-          // Fallback to localStorage data if backend call fails
           if (status === 'submitted') {
             setAlreadySubmitted(true);
             const dataKey = `businessUploadData:${email}`;
@@ -120,7 +115,7 @@ const CompanyInfo = () => {
                   idCardBackName: parsed.idCardBackName || ''
                 });
               } catch {
-                // Silently handle parse error
+                // Silently handle error
               }
             }
           }
@@ -128,12 +123,11 @@ const CompanyInfo = () => {
       };
       fetchStatus().finally(() => setInitialized(true));
     } else {
-      // No email found, mark as initialized to show appropriate UI
       setInitialized(true);
     }
   }, [navigate, user, authLoading]);
 
-  // Handle file selection: validate and store file, clear errors
+  // Xử lý file selection: validate và store file, clear errors cho file type đó khi user chọn file mới
   const handleFileChange = (e, fileType) => {
     const file = e.target.files[0];
     if (file) {
@@ -141,7 +135,6 @@ const CompanyInfo = () => {
         ...prev,
         [fileType]: file
       }));
-      // Clear error for this file type when user selects new file
       setFileErrors(prev => ({
         ...prev,
         [fileType]: ''
@@ -150,7 +143,7 @@ const CompanyInfo = () => {
     }
   };
 
-  // Handle form submit: validate files and upload to backend
+  // Xử lý form submit: validate files (required files, file types, file sizes max 25MB), upload lên backend với FormData, handle 401, handle ID card recognition errors, refresh user data để get updated status, navigate đến pending-page nếu thành công
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (alreadySubmitted) {
@@ -159,17 +152,14 @@ const CompanyInfo = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    // Clear all previous file validation errors
     setFileErrors({
       businessLicense: '',
       idCardFront: '',
       idCardBack: ''
     });
 
-    // Collect all validation errors for display
     const errors = [];
 
-    // Validate that all required files are selected
     if (!files.businessLicense) {
       errors.push('Vui lòng upload giấy phép kinh doanh');
     }
@@ -180,7 +170,6 @@ const CompanyInfo = () => {
       errors.push('Vui lòng upload mặt sau CCCD');
     }
 
-    // Validate file types match allowed formats
     const allowedTypes = {
       businessLicense: ['application/pdf'],
       idCardFront: ['image/jpeg', 'image/jpg', 'image/png'],
@@ -199,7 +188,6 @@ const CompanyInfo = () => {
       errors.push('File mặt sau CCCD phải là định dạng JPG, JPEG hoặc PNG');
     }
 
-    // Validate file sizes: maximum 25MB per file
     const maxSize = 25 * 1024 * 1024;
     if (files.businessLicense && files.businessLicense.size > maxSize) {
       errors.push('File giấy phép kinh doanh không được vượt quá 25MB');
@@ -211,9 +199,7 @@ const CompanyInfo = () => {
       errors.push('File mặt sau CCCD không được vượt quá 25MB');
     }
 
-    // Display all validation errors if any found
     if (errors.length > 0) {
-      // Map error messages to specific file fields
       const newFileErrors = { businessLicense: '', idCardFront: '', idCardBack: '' };
       errors.forEach((errorMsg) => {
         if (errorMsg.includes('Giấy phép kinh doanh')) {
@@ -237,10 +223,8 @@ const CompanyInfo = () => {
       formData.append('idCardBack', files.idCardBack);
       formData.append('email', userEmail);
 
-      // Chuẩn bị headers
       const headers = {};
       
-      // Kiểm tra xem có user đã đăng nhập không
       const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
@@ -254,7 +238,6 @@ const CompanyInfo = () => {
         body: formData,
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         const { handleApiError } = await import('../../../utils/apiErrorHandler');
         await handleApiError(response);
@@ -262,12 +245,10 @@ const CompanyInfo = () => {
       }
       
       if (response.ok) {
-        showSuccess('toast.company.info_submit_success');
-        // Ghi nhận đã nộp hồ sơ (theo email) trên thiết bị này để chặn nộp lại
+        showSuccess(t('toast.company.info_submit_success'));
         const statusKey = `businessUploadStatus:${userEmail}`;
         localStorage.setItem(statusKey, 'submitted');
         setAlreadySubmitted(true);
-        // Lưu metadata để hiển thị lại tên file đã gửi
         const dataKey = `businessUploadData:${userEmail}`;
         localStorage.setItem(
           dataKey,
@@ -283,24 +264,19 @@ const CompanyInfo = () => {
           idCardBackName: files.idCardBack?.name || ''
         });
         
-        // Refresh user data to get updated status (WAITING_FOR_APPROVAL)
         try {
           const updatedUser = await refreshUser();
           if (updatedUser) {
-            // User context is already updated by refreshUser
-            // Status should now be WAITING_FOR_APPROVAL
+            // User context updated
           }
         } catch (refreshError) {
-          // Silently handle error refreshing user data
-          // Continue with navigation even if refresh fails
+          // Silently handle error
         }
         
-        // Chuyển đến trang pending ngay lập tức
         navigate('/pending-page', { replace: true });
       } else {
-        // Reset ID card files to force re-upload (keep business license)
         const resetIdCards = {
-          businessLicense: files.businessLicense, // Keep business license if valid
+          businessLicense: files.businessLicense,
           idCardFront: null,
           idCardBack: null
         };
@@ -309,39 +285,32 @@ const CompanyInfo = () => {
         let idCardError = '';
         
         try {
-          // Try to parse JSON response
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             errorMessage = data.message || errorMessage;
             
-            // Check for ID card recognition errors
             const lowerMessage = (errorMessage || '').toLowerCase();
             
             if (lowerMessage.includes('unable to find id card') || 
                 lowerMessage.includes('id card') ||
                 lowerMessage.includes('không thể nhận diện') ||
                 lowerMessage.includes('runtime exception')) {
-              // This is an ID card recognition error - typically affects front image
               idCardError = 'Không thể nhận diện CCCD trong ảnh. Vui lòng đảm bảo:\n1) Ảnh CCCD rõ ràng, không bị mờ\n2) Không bị che khuất hoặc cắt xén\n3) Là ảnh thật (không phải ảnh chụp màn hình)\n4) Đủ ánh sáng, không bị phản quang\n5) CCCD phải còn nguyên vẹn, không bị rách';
               
-              // Set error for front ID card (usually processed first)
               setFileErrors({
                 businessLicense: '',
                 idCardFront: idCardError,
                 idCardBack: ''
               });
               
-              // Clear the problematic files
               setFiles(resetIdCards);
               
               setError('Không thể xử lý ảnh CCCD. Vui lòng kiểm tra và upload lại ảnh CCCD hợp lệ.');
             } else {
-              // Other errors
               setError(errorMessage);
             }
           } else {
-            // Response is not JSON, try to read as text
             const text = await response.text();
             
             if (text.includes('Unable to find ID card') || text.toLowerCase().includes('id card')) {
@@ -359,8 +328,6 @@ const CompanyInfo = () => {
             }
           }
         } catch (parseError) {
-          // Silently handle parse error response
-          // Fallback error handling
           if (response.status === 500) {
             errorMessage = 'Lỗi xử lý trên máy chủ. Vui lòng kiểm tra lại ảnh CCCD và thử lại.';
             idCardError = 'Có vấn đề với ảnh CCCD. Vui lòng upload lại ảnh CCCD hợp lệ.';
@@ -383,6 +350,7 @@ const CompanyInfo = () => {
     }
   };
 
+  // Require login để truy cập company info upload page: hiển thị LoginRequiredModal nếu không có user
   if (authLoading || !initialized) {
     return (
       <div className={styles.loadingContainer}>
@@ -392,7 +360,6 @@ const CompanyInfo = () => {
     );
   }
 
-  // Require login for accessing company info upload page
   if (!user) {
     return (
       <LoginRequiredModal 
@@ -432,12 +399,10 @@ const CompanyInfo = () => {
     );
   }
 
-  // Trạng thái cho tài khoản doanh nghiệp
   const isCompanyApproved = user && user.role === 'COMPANY' && user.status === 'UNBANNED';
   const isCompanyPending = user && user.role === 'COMPANY' && user.status === 'COMPANY_PENDING';
   
-  // Nếu đã upload files rồi và đang pending, tự động redirect đến pending-page
-  // (sẽ được xử lý ở phần alreadySubmitted check phía dưới, nơi có nút điều hướng đến pending-page)
+  // Nếu company đã approved: hiển thị success message với nút vào trang quản lý và về trang chủ
   if (isCompanyApproved) {
     return (
       <div className={styles.emptyContainer}>
@@ -478,12 +443,11 @@ const CompanyInfo = () => {
     );
   }
 
-  // Nếu người dùng không phải role COMPANY: chỉ cho phép nếu có ý định đăng ký business
+  // Nếu user không phải role COMPANY: chỉ cho phép nếu có registration_intent = 'business' (cho phép vào trang upload để hoàn tất KYC), nếu không hiển thị message yêu cầu đăng ký/đăng nhập bằng tài khoản Company
   if (user && user.role !== 'COMPANY') {
     const intent = (typeof window !== 'undefined') ? localStorage.getItem('registration_intent') : null;
     if (intent === 'business') {
-      // Cho phép vào trang upload để hoàn tất KYC
-      // (tiếp tục xuống phần render form phía dưới)
+      // Continue to render form
     } else {
     return (
       <div className={styles.emptyContainer}>
@@ -522,7 +486,7 @@ const CompanyInfo = () => {
     }
   }
 
-  // Nếu đã nộp hồ sơ trước đó, hiển thị lại các mục với dấu tick và tên file
+  // Nếu đã nộp hồ sơ trước đó: hiển thị lại các mục với dấu tick và tên file đã submit, hiển thị nút điều hướng đến pending-page
   if (alreadySubmitted) {
     return (
       <div className={styles.container}>

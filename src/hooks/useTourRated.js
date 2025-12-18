@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_ENDPOINTS, createAuthFormHeaders } from '../config/api';
 import { useAuth } from '../contexts/AuthContext';
 
+// Kiểm tra booking đã completed: xem transaction status là SUCCESS hoặc status là PURCHASED/CONFIRMED
 const isCompletedBooking = (booking) => {
   const status = String(booking?.status || '').toUpperCase();
   const txStatus = String(booking?.transactionStatus || '').toUpperCase();
-  // Consider completed when transaction succeeded, or status marked as purchased/confirmed
   return txStatus === 'SUCCESS' || status === 'PURCHASED' || status === 'CONFIRMED';
 };
 
-// Helper: Kiểm tra JWT hết hạn (UNIX timestamp)
+// Helper: kiểm tra JWT hết hạn (UNIX timestamp): parse payload từ token, so sánh exp với Date.now() / 1000
 function isTokenExpired(token) {
   if (!token) return true;
   try {
@@ -27,6 +27,7 @@ export const useTourRated = (tourId) => {
   const [error, setError] = useState(null);
   const [ratedByMe, setRatedByMe] = useState(false);
 
+  // Kiểm tra user có thể rate không: user phải tồn tại, tourId phải có, chưa rated (kiểm tra userId trong ratings)
   const canRate = useMemo(() => {
     if (!user) return false;
     if (!tourId) return false;
@@ -35,6 +36,7 @@ export const useTourRated = (tourId) => {
     return !alreadyRated;
   }, [user, tourId, ratings, ratedByMe]);
 
+  // Fetch ratings theo tour: kiểm tra token và expiry, gửi token nếu valid, fetch từ API, set ratings và ratedByMe (kiểm tra userId trong list)
   const fetchRatingsByTour = useCallback(async () => {
     if (!tourId) return;
     let shouldSendToken = false;
@@ -69,10 +71,12 @@ export const useTourRated = (tourId) => {
     }
   }, [tourId, getToken, user]);
 
+  // Refresh ratings: gọi lại fetchRatingsByTour
   const refresh = useCallback(async () => {
     await fetchRatingsByTour();
   }, [fetchRatingsByTour]);
 
+  // Submit rating mới: tạo FormData với tourId, userEmail, star, comment (optional), POST đến API, thêm created rating vào đầu list, set ratedByMe = true
   const submitRating = useCallback(
     async ({ star, comment }) => {
       const token = getToken();
@@ -100,6 +104,7 @@ export const useTourRated = (tourId) => {
     [tourId, user, getToken]
   );
 
+  // Update rating: tạo FormData với star và comment (nếu có), PUT đến API, update rating trong list, nếu error có 'rated' hoặc 'existed' thì set ratedByMe = true và refresh
   const updateRating = useCallback(
     async (id, { star, comment }) => {
       const token = getToken();
@@ -115,7 +120,6 @@ export const useTourRated = (tourId) => {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        // If already rated, reflect state to hide form
         if ((err.message || '').toLowerCase().includes('rated') || (err.message || '').toLowerCase().includes('existed')) {
           setRatedByMe(true);
           await fetchRatingsByTour();

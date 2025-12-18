@@ -9,7 +9,7 @@ const ConfirmLeaveModal = ({ open, onCancel, onConfirm }) => {
   const modalContainerRef = useRef(null);
   const bodyOverflowRef = useRef('');
 
-  // Resolve portal container once on mount
+  // Xác định portal container khi component mount
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -17,7 +17,7 @@ const ConfirmLeaveModal = ({ open, onCancel, onConfirm }) => {
     }
   }, []);
 
-  // Lock body scroll while open
+  // Khóa scroll của body khi modal mở
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (open) {

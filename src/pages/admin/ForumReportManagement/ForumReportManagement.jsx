@@ -36,7 +36,7 @@ const ForumReportManagement = () => {
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [reportToApprove, setReportToApprove] = useState(null);
 
-  // Fetch reports from API
+  // Fetch reports từ API: gọi REPORTS_ADMIN_ALL endpoint với pagination, map ReportSummaryResponse sang component format (reportId, targetType, targetId, reporterName, reason, status, createdAt, reportCount), handle 401
   const fetchReports = useCallback(async (page = currentPage) => {
     try {
       setLoading(true);
@@ -54,7 +54,6 @@ const ForumReportManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Map ReportSummaryResponse to component format
         const mappedReports = (data.content || []).map(report => ({
           reportId: report.reportId,
           targetType: report.targetType,
@@ -70,10 +69,10 @@ const ForumReportManagement = () => {
         setReports(mappedReports);
         setTotalPages(data.totalPages || 0);
       } else {
-        // Silently handle failed to fetch reports
+        // Silently handle error
       }
     } catch (error) {
-      // Silently handle error fetching reports
+      // Silently handle error
     } finally {
       setLoading(false);
     }
@@ -83,7 +82,7 @@ const ForumReportManagement = () => {
     fetchReports(currentPage);
   }, [currentPage, fetchReports, refreshTrigger]);
 
-  // Fetch stats from API
+  // Fetch stats từ API: gọi REPORTS_ADMIN_STATS endpoint, set stats (total, pending, resolved, dismissed, investigating, closed), handle 401
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -109,14 +108,14 @@ const ForumReportManagement = () => {
           });
         }
       } catch (error) {
-        // Silently handle error fetching stats
+        // Silently handle error
       }
     };
 
     fetchStats();
-  }, [getToken, reports]); // Re-fetch stats when reports change
+  }, [getToken, reports]);
 
-  // Filter reports based on search and filters
+  // Filter reports dựa trên search và filters: search trong reportId, reporterName, postTitle, reason (case-insensitive), filter theo status và type (reason type - first reason trong string)
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
       const searchLower = search.toLowerCase();
@@ -126,7 +125,6 @@ const ForumReportManagement = () => {
         report.postTitle?.toLowerCase().includes(searchLower) ||
         report.reason?.toLowerCase().includes(searchLower);
       const matchesStatus = statusFilter === 'ALL' || report.status === statusFilter;
-      // Filter by reason type (first reason in the string)
       const matchesType = typeFilter === 'ALL' || 
         (report.reason && report.reason.toUpperCase().includes(typeFilter));
       return matchesSearch && matchesStatus && matchesType;
@@ -158,7 +156,6 @@ const ForumReportManagement = () => {
       }
 
       if (response.ok) {
-        // Refresh reports and stats
         setRefreshTrigger(prev => prev + 1);
         alert(t('admin.forumReportManagement.approveSuccess'));
       } else {
@@ -166,11 +163,11 @@ const ForumReportManagement = () => {
         alert(t('admin.forumReportManagement.approveError', { error: errorText }));
       }
     } catch (error) {
-      // Silently handle error approving report
       alert(t('admin.forumReportManagement.loadError'));
     }
   };
 
+  // Xử lý approve report: set reportToApprove và mở approve modal
   const handleApprove = (reportId) => {
     const report = reports.find(r => r.reportId === reportId) || { reportId };
     setReportToApprove(report);
@@ -213,7 +210,6 @@ const ForumReportManagement = () => {
       }
 
       if (response.ok) {
-        // Refresh reports and stats
         setRefreshTrigger(prev => prev + 1);
         alert(t('admin.forumReportManagement.rejectSuccess'));
       } else {
@@ -221,11 +217,11 @@ const ForumReportManagement = () => {
         alert(t('admin.forumReportManagement.rejectError', { error: errorText }));
       }
     } catch (error) {
-      // Silently handle error rejecting report
       alert(t('admin.forumReportManagement.loadError'));
     }
   };
 
+  // Xử lý view details: fetch report details từ API, map ReportResponse sang component format, set selectedReport và mở detail modal
   const handleViewDetails = async (reportId) => {
     try {
       const token = getToken();
@@ -240,7 +236,6 @@ const ForumReportManagement = () => {
 
       if (response.ok) {
         const fullReport = await response.json();
-        // Map ReportResponse to component format
         const mappedReport = {
           reportId: fullReport.reportId,
           targetType: fullReport.targetType,
@@ -618,7 +613,7 @@ const TypeBadge = ({ reasons }) => {
     );
   }
 
-  // Reasons is a string (joined from Set), try to find the first matching type
+  // Reasons là string (joined từ Set), tìm first matching type: map reasons sang type tương ứng (SPAM, INAPPROPRIATE, HARASSMENT, COPYRIGHT, VIOLENCE, HATE_SPEECH, FALSE_INFO, OTHER), trả về bgColor, textColor và label
   const reasonsUpper = reasons.toUpperCase();
   const typeMap = {
     'SPAM': { bgColor: '#F0E6FF', textColor: '#B380FF', label: t('admin.forumReportManagement.violationTypes.spam') },
@@ -631,7 +626,6 @@ const TypeBadge = ({ reasons }) => {
     'OTHER': { bgColor: '#F5F5F5', textColor: '#9CA3AF', label: t('admin.forumReportManagement.violationTypes.other') }
   };
   
-  // Find first matching type
   let matchedType = 'OTHER';
   for (const [type] of Object.entries(typeMap)) {
     if (reasonsUpper.includes(type)) {

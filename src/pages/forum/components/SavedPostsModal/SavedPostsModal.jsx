@@ -17,22 +17,21 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
   const postsPerPage = 3;
   const savedPostsCacheRef = useRef(null);
 
+  // Load saved posts khi modal mở: nếu có cached data thì hiển thị ngay không loading, fetch trong background để update cache, chỉ show loading khi first load và không có cache
   useEffect(() => {
     if (isOpen && user) {
       setCurrentPage(1);
-      // If we have cached data, show it immediately without loading
       if (savedPostsCacheRef.current) {
         setSavedPosts(savedPostsCacheRef.current);
         setTotalPages(Math.ceil(savedPostsCacheRef.current.length / postsPerPage));
-        // Fetch in background to update cache
         fetchSavedPosts(false);
       } else {
-        // Only show loading on first load when no cache exists
         fetchSavedPosts(true);
       }
     }
   }, [isOpen, user]);
 
+  // Fetch saved posts từ API: gọi SAVED_POSTS_MY_SAVED endpoint, cache data vào savedPostsCacheRef, chỉ show error nếu showLoading = true (user-initiated fetch), handle 401
   const fetchSavedPosts = async (showLoading = false) => {
     if (showLoading) {
       setIsLoading(true);
@@ -57,9 +56,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
         const allPosts = data.result || [];
         setSavedPosts(allPosts);
         setTotalPages(Math.ceil(allPosts.length / postsPerPage));
-        // Cache the data for next time
         savedPostsCacheRef.current = allPosts;
-        // Clear error if fetch was successful
         setError(null);
       } else {
         throw new Error('Failed to fetch saved posts');
@@ -74,6 +71,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     }
   };
 
+  // Xử lý unsave post: gọi SAVED_POSTS_UNSAVE endpoint với DELETE, remove post khỏi local state, update cache, notify PostCard components qua 'post-unsaved' event, handle 401
   const handleUnsavePost = async (postId) => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
@@ -87,40 +85,36 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
         }
       });
       
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         await checkAndHandle401(response);
         return;
       }
       
       if (response.ok) {
-        // Remove from local state
         const updatedPosts = savedPosts.filter(post => post.postId !== postId);
         const newTotalPages = Math.ceil(updatedPosts.length / postsPerPage);
         
         setSavedPosts(updatedPosts);
         setTotalPages(newTotalPages);
         
-        // If current page is greater than new total pages, go to last page (or page 1 if no posts)
         if (currentPage > newTotalPages && newTotalPages > 0) {
           setCurrentPage(newTotalPages);
         } else if (newTotalPages === 0) {
           setCurrentPage(1);
         }
         
-        // Update cache
         savedPostsCacheRef.current = updatedPosts;
         
-        // Notify PostCard components to refresh their save status
         window.dispatchEvent(new CustomEvent('post-unsaved', { 
           detail: { postId: postId } 
         }));
-      }
-    } catch (error) {
-      // Silently handle error unsaving post
+        }
+      } catch (error) {
+      // Silently handle error
     }
   };
 
+  // Format date: format dateString với Intl.DateTimeFormat vi-VN locale
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', {
@@ -132,7 +126,7 @@ const SavedPostsModal = ({ isOpen, onClose, onPostClick }) => {
     });
   };
 
-  // Calculate posts for current page
+  // Tính posts cho current page: slice savedPosts theo currentPage và postsPerPage
   const getCurrentPagePosts = () => {
     const startIndex = (currentPage - 1) * postsPerPage;
     const endIndex = startIndex + postsPerPage;

@@ -28,12 +28,12 @@ const CustomerContact = () => {
   const retryCountRef = useRef(0);
   const hasOpenedChatFromUrlRef = useRef(false);
 
-  // Resolve current user's ID
+  // Resolve current user's ID: lấy userId từ state.currentUser hoặc authUser, return null nếu không có
   const currentUserId = (() => {
     return state.currentUser?.userId || state.currentUser?.id || authUser?.userId || authUser?.id || null;
   })();
 
-  // Load users with error handling and retry
+  // Load users với error handling và retry: gọi actions.loadAllUsers, load conversations từ API với delay để tránh ERR_INSUFFICIENT_RESOURCES, retry với exponential backoff (max 3 retries)
   const loadUsersWithRetry = async (retryDelay = 500) => {
     if (hasLoadedUsersRef.current && state.allUsers?.length > 0) {
       return; // Already loaded
@@ -63,15 +63,12 @@ const CustomerContact = () => {
         setTimeout(() => {
           loadUsersWithRetry(delay);
         }, delay);
-      } else {
-        // After max retries, keep empty list but allow chat to work
       }
     }
   };
 
+  // Load users khi component mount: conversations đã được load từ cache trong ChatContext initialization, load fresh data trong background không block UI
   useEffect(() => {
-    // Conversations are already loaded from cache in ChatContext initialization
-    // Load fresh data in background without blocking UI
     if (!hasLoadedUsersRef.current) {
       loadUsersWithRetry();
     }
@@ -84,12 +81,10 @@ const CustomerContact = () => {
     if (userIdFromUrl && !hasOpenedChatFromUrlRef.current && state.allUsers?.length > 0) {
       const userId = parseInt(userIdFromUrl, 10);
       if (!isNaN(userId)) {
-        // Find user by userId
         const targetUser = state.allUsers.find(u => (u.userId || u.id) === userId);
         if (targetUser) {
           hasOpenedChatFromUrlRef.current = true;
           actions.openChatWithUser(targetUser);
-          // Remove userId from URL after opening chat
           searchParams.delete('userId');
           setSearchParams(searchParams, { replace: true });
         }
@@ -97,22 +92,21 @@ const CustomerContact = () => {
     }
   }, [searchParams, state.allUsers, actions, setSearchParams]);
   
-  // Re-subscribe to WebSocket messages when active chat changes
+  // Re-subscribe to WebSocket messages khi active chat thay đổi: ChatContext tự động handle WebSocket subscription, messages sẽ được receive qua WebSocket và add vào state.messages
   useEffect(() => {
     if (state.activeChatUser && state.currentUser) {
       // ChatContext handles WebSocket subscription automatically
-      // Messages will be received via WebSocket and added to state.messages
     }
   }, [state.activeChatUser, state.currentUser]);
 
+  // Scroll to bottom khi new messages arrive: scroll messagesContainerRef đến bottom khi state.messages thay đổi
   useEffect(() => {
-    // Scroll to bottom when new messages arrive
     if (messagesContainerRef.current && state.messages.length > 0) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [state.messages]);
 
-  // Focus input when active chat changes
+  // Focus input khi active chat thay đổi: focus inputRef khi state.activeChatUser thay đổi
   useEffect(() => {
     if (state.activeChatUser && inputRef.current) {
       inputRef.current.focus();
@@ -135,10 +129,11 @@ const CustomerContact = () => {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
     } catch (error) {
-      // Silently handle error sending message
+      // Silently handle error
     }
   };
 
+  // Xử lý key press: nếu Enter (không có Shift) thì prevent default và gọi handleSendMessage
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -146,6 +141,7 @@ const CustomerContact = () => {
     }
   };
 
+  // Format time: format timestamp sang HH:mm với locale vi-VN, return '' nếu không có timestamp
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
@@ -168,7 +164,7 @@ const CustomerContact = () => {
     });
   };
 
-  // Filter users - Staff only see USER role, exclude ADMIN, STAFF, COMPANY, and current user
+  // Filter users: Staff chỉ thấy USER role, exclude ADMIN, STAFF, COMPANY, và current user, return filtered users array
   const filteredUsers = (state.allUsers || [])
     .filter(user => {
       // Only show USER role, exclude ADMIN, STAFF, COMPANY

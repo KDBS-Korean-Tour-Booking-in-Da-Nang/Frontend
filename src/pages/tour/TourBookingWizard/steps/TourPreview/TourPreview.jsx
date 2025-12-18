@@ -66,7 +66,6 @@ const TourPreview = ({ createdAt = null }) => {
           setIsLoading(false);
         }
       } catch (err) {
-        // Silently handle error loading tour for preview
         if (isMounted) {
           setHasError(true);
           setIsLoading(false);
@@ -81,21 +80,14 @@ const TourPreview = ({ createdAt = null }) => {
     };
   }, [tourId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // formatPrice function removed as it's not used in this component
-
-  // tour.image is already a full URL from useToursAPI (processed by getTourImageUrl)
-  // So we can use it directly without additional processing
   const getImageUrl = (imagePath) => {
     if (!imagePath) return '';
-    // If it's already a full URL (from useToursAPI), return as is
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    // If it starts with /uploads, it's already a path, use getTourImageUrl
     if (imagePath.startsWith('/uploads')) {
       return getTourImageUrl(imagePath, '');
     }
-    // Otherwise, assume it's a relative path and prepend the uploads path
     return getTourImageUrl(`/uploads/tours/thumbnails/${imagePath}`, '');
   };
 
@@ -126,7 +118,6 @@ const TourPreview = ({ createdAt = null }) => {
     );
   }
 
-  // Fallback tour data when API fails
   const fallbackTour = {
     id: tourId || 'DNX-TQ3',
     title: t('booking.tourPreview.fallback.title'),
@@ -153,11 +144,9 @@ const TourPreview = ({ createdAt = null }) => {
   };
 
   if (hasError || error) {
-    // Show fallback data when API fails
     return (
       <div className={styles['tour-preview']}>
         <div className={styles['tour-preview-container']}>
-          {/* Tour Image */}
           <div className={styles['tour-preview-image']}>
             <div className={styles['tour-placeholder']}>
               <span className={styles['placeholder-icon']}>🏞️</span>
@@ -168,7 +157,6 @@ const TourPreview = ({ createdAt = null }) => {
             </div>
           </div>
 
-          {/* Tour Details */}
           <div className={styles['tour-preview-details']}>
             <h3 className={styles['tour-preview-title']}>{fallbackTour.title}</h3>
             
@@ -214,7 +202,6 @@ const TourPreview = ({ createdAt = null }) => {
   return (
     <div className={styles['tour-preview']}>
       <div className={styles['tour-preview-container']}>
-        {/* Tour Image */}
         <div className={styles['tour-preview-image']}>
           {tour.image ? (
             <img 
@@ -236,7 +223,6 @@ const TourPreview = ({ createdAt = null }) => {
           )}
         </div>
 
-        {/* Tour Details */}
         <div className={styles['tour-preview-details']}>
           <h3 className={styles['tour-preview-title']}>{tour.title}</h3>
           

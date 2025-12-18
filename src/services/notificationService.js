@@ -1,6 +1,8 @@
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
 import { BaseURL } from '../config/api';
 
+// Lấy headers xác thực với Bearer token từ storage
+// Ưu tiên sessionStorage, sau đó localStorage
 const getAuthHeaders = () => {
   const token =
     sessionStorage.getItem('token') ||
@@ -11,17 +13,18 @@ const getAuthHeaders = () => {
   return headers;
 };
 
+// Thêm User-Email vào headers để xác định người dùng
 const withUserEmail = (headers, userEmail) => ({
   ...headers,
   'User-Email': userEmail || ''
 });
 
+// Parse response JSON, xử lý lỗi và trường hợp 204 No Content
 const parseJson = async (res) => {
   if (!res.ok) {
-    // Handle 401, 403, 404, 500 with global error handler (auto redirect)
+    // Xử lý lỗi 401, 403, 404, 500 bằng global error handler (tự động redirect)
     const wasHandled = await checkAndHandleApiError(res, true);
     if (wasHandled) {
-      // Đã redirect, throw error để dừng xử lý tiếp
       throw new Error('Session expired. Please login again.');
     }
     const text = await res.text().catch(() => '');
@@ -29,7 +32,7 @@ const parseJson = async (res) => {
     err.body = text;
     throw err;
   }
-  // Handle 204 No Content response
+  // Xử lý response 204 No Content (không có body)
   if (res.status === 204) {
     return null;
   }

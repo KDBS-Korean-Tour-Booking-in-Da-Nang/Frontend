@@ -51,7 +51,7 @@ const StaffManagement = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // Fetch staff list from API
+  // Fetch staff list từ API: lấy token, gọi USERS endpoint, filter users có role STAFF, map backend data sang frontend format (format createdAt để tránh timezone issues), handle 401
   const fetchStaffList = async () => {
     try {
       setLoading(true);
@@ -80,38 +80,30 @@ const StaffManagement = () => {
       const data = await response.json();
       const users = data.result || data || [];
       
-      // Filter users with role STAFF
       const staffUsers = users.filter(user => {
         const role = (user.role || '').toUpperCase();
         return role === 'STAFF';
       });
 
-      // Map backend data to frontend format
       const mappedStaff = staffUsers.map(user => {
-        // Format createdAt properly to avoid timezone issues
-        // Backend returns LocalDateTime which is serialized as string
         let formattedDate = '';
         let rawDate = null;
         
-        // Try different possible field names and formats
         const dateValue = user.createdAt || user.created_at || user.createAt;
         
         if (dateValue) {
           try {
-            // Parse the date - handle both ISO string and other formats
             const date = new Date(dateValue);
             
-            // Check if date is valid
             if (!isNaN(date.getTime())) {
               rawDate = dateValue;
-              // Get local date components to avoid timezone shift
               const year = date.getFullYear();
               const month = String(date.getMonth() + 1).padStart(2, '0');
               const day = String(date.getDate()).padStart(2, '0');
               formattedDate = `${year}-${month}-${day}`;
             }
           } catch (e) {
-            // Date parsing failed, continue without date
+            // Silently handle error
           }
         }
         
@@ -139,7 +131,7 @@ const StaffManagement = () => {
     }
   };
 
-  // Map StaffTask enum to task ID
+  // Map StaffTask enum sang task ID: map enum value sang task ID tương ứng (FORUM_REPORT_AND_BOOKING_COMPLAINT=forum_report, COMPANY_REQUEST_AND_RESOLVE_TICKET=company_request, APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE=approve_tour)
   const mapStaffTaskToTaskId = (staffTask) => {
     const taskMap = {
       'FORUM_REPORT_AND_BOOKING_COMPLAINT': 'forum_report',
@@ -149,7 +141,7 @@ const StaffManagement = () => {
     return taskMap[staffTask] || null;
   };
 
-  // Map task ID to StaffTask enum
+  // Map task ID sang StaffTask enum: map task ID sang enum value tương ứng (forum_report=FORUM_REPORT_AND_BOOKING_COMPLAINT, company_request=COMPANY_REQUEST_AND_RESOLVE_TICKET, approve_tour=APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE)
   const mapTaskIdToStaffTask = (taskId) => {
     const taskMap = {
       'forum_report': 'FORUM_REPORT_AND_BOOKING_COMPLAINT',
@@ -170,9 +162,8 @@ const StaffManagement = () => {
     setIsModalOpen(true);
   };
 
+  // Xử lý edit staff: backend không có update endpoint nên disable edit và hiển thị message edit không available
   const handleEditStaff = (staff) => {
-    // Note: Backend doesn't have update endpoint, so we'll disable edit for now
-    // or show a message that edit is not available
     setError(t('admin.staffManagement.editNotSupported'));
   };
 
@@ -210,14 +201,12 @@ const StaffManagement = () => {
         throw new Error(errorData.message || 'Không thể xóa nhân viên');
       }
 
-      // Refresh staff list
       await fetchStaffList();
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
-      setError(''); // Clear error on success
+      setError('');
       showSuccess(t('admin.staffManagement.deleteSuccess'));
     } catch (err) {
-      // Silently handle error deleting staff
       setError(err.message || t('admin.staffManagement.deleteError'));
       setIsDeleteModalOpen(false);
       setStaffToDelete(null);
@@ -255,9 +244,8 @@ const StaffManagement = () => {
         throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
       }
 
-      // Refresh staff list
       await fetchStaffList();
-      setError(''); // Clear error on success
+      setError('');
       showSuccess(newBanStatus ? t('admin.staffManagement.banSuccess') : t('admin.staffManagement.unbanSuccess'));
     } catch (err) {
       setError(err.message || t('admin.staffManagement.statusError'));
@@ -277,7 +265,6 @@ const StaffManagement = () => {
         return;
       }
 
-      // Prepare request body according to StaffCreateRequest
       const requestBody = {
         username: formData.username.trim(),
         password: formData.password.trim(),
@@ -335,11 +322,9 @@ const StaffManagement = () => {
 
       const headers = createAuthHeaders(token);
 
-      // Prepare request body according to StaffTaskUpdateRequest
-      // Backend expects: { username: string, staffTask: StaffTask | null }
       const requestBody = {
         username: selectedStaffForTask.username,
-        staffTask: selectedTask || null // null means no task assigned
+        staffTask: selectedTask || null
       };
 
       const response = await fetch(`${BaseURL}/api/staff/staffTask`, {
@@ -358,12 +343,10 @@ const StaffManagement = () => {
         throw new Error(errorData.message || 'Không thể cập nhật nhiệm vụ');
       }
 
-      // Refresh staff list
       await fetchStaffList();
-      setError(''); // Clear error on success
+      setError('');
       showSuccess(t('admin.assignTaskModal.updateSuccess'));
     } catch (err) {
-      // Silently handle error updating staff task
       setError(err.message || t('admin.assignTaskModal.updateError'));
       throw err; // Re-throw to let modal handle it
     }
@@ -375,26 +358,23 @@ const StaffManagement = () => {
     { id: 'approve_tour', label: t('admin.staffManagement.tasks.approveTour'), icon: MapPin, value: 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' }
   ];
 
-  // Filter staff list based on search and filters
+  // Filter staff list dựa trên search và filters: search trong username, email, userId (case-insensitive), filter theo role và status nếu có
   const filteredStaffList = useMemo(() => {
     return staffList.filter(staff => {
-    // Search filter
     const matchesSearch = !searchTerm || 
       staff.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       staff.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       staff.userId?.toString().includes(searchTerm);
     
-    // Role filter
     const matchesRole = roleFilter === 'ALL' || staff.role === roleFilter.toLowerCase();
     
-    // Status filter
     const matchesStatus = statusFilter === 'ALL' || staff.status === statusFilter;
     
     return matchesSearch && matchesRole && matchesStatus;
   });
   }, [staffList, searchTerm, roleFilter, statusFilter]);
 
-  // Pagination
+  // Paginate staff: slice filteredStaffList theo currentPage và itemsPerPage
   const paginatedStaffList = useMemo(() => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -403,7 +383,7 @@ const StaffManagement = () => {
 
   const totalPages = Math.ceil(filteredStaffList.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset về page đầu tiên khi filters thay đổi (searchTerm, roleFilter, statusFilter)
   useEffect(() => {
     setCurrentPage(0);
   }, [searchTerm, roleFilter, statusFilter]);
@@ -580,9 +560,7 @@ const StaffManagement = () => {
                       {staff.createdAtRaw ? (() => {
                         try {
                           const date = new Date(staff.createdAtRaw);
-                          // Check if date is valid
                           if (isNaN(date.getTime())) {
-                            // If invalid, try to parse from createdAt string format
                             if (staff.createdAt) {
                               const parts = staff.createdAt.split('-');
                               if (parts.length === 3) {
@@ -591,13 +569,11 @@ const StaffManagement = () => {
                             }
                             return 'N/A';
                           }
-                          // Format date in local timezone to avoid timezone shift
                           const day = String(date.getDate()).padStart(2, '0');
                           const month = String(date.getMonth() + 1).padStart(2, '0');
                           const year = date.getFullYear();
                           return `${day}/${month}/${year}`;
                         } catch (e) {
-                          // Fallback to formatted createdAt if available
                           if (staff.createdAt) {
                             const parts = staff.createdAt.split('-');
                             if (parts.length === 3) {
@@ -607,7 +583,6 @@ const StaffManagement = () => {
                           return 'N/A';
                         }
                       })() : (staff.createdAt ? (() => {
-                        // Fallback: use createdAt if createdAtRaw is not available
                         const parts = staff.createdAt.split('-');
                         if (parts.length === 3) {
                           return `${parts[2]}/${parts[1]}/${parts[0]}`;

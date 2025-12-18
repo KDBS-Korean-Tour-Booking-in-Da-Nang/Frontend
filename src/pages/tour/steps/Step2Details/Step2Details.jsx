@@ -11,19 +11,17 @@ const Step2Details = () => {
     decrementPax, 
     setMember, 
     rebuildMembers, 
-    recalcTotal 
+    recalcTotal
   } = useBooking();
 
   const [errors, setErrors] = useState({});
   const [confirmedNationalities, setConfirmedNationalities] = useState({});
 
-  // Update members when pax changes
   useEffect(() => {
     rebuildMembers();
     recalcTotal();
   }, [plan.pax, rebuildMembers, recalcTotal]);
 
-  // Compute earliest selectable date based on Minimum Advance Days (fallback 0)
   const computeEarliestDate = () => {
     const minAdvance = Number(plan?.minAdvancedDays ?? 0) || 0;
     const base = new Date();
@@ -34,11 +32,9 @@ const Step2Details = () => {
 
   const earliestDate = computeEarliestDate();
 
-  // Validate form
   useEffect(() => {
     const newErrors = {};
 
-    // Check date
     if (!plan.date.day || !plan.date.month || !plan.date.year) {
       newErrors.date = 'Vui lòng chọn ngày khởi hành';
     } else {
@@ -51,7 +47,6 @@ const Step2Details = () => {
       }
     }
 
-    // Check members
     const allMembers = [
       ...plan.members.adult,
       ...plan.members.child,
@@ -74,7 +69,6 @@ const Step2Details = () => {
     if (action === 'increment') {
       incrementPax(type);
     } else if (action === 'decrement') {
-      // Prevent adult count from going below 1
       if (type === 'adult' && plan.pax.adult <= 1) {
         return;
       }
@@ -88,7 +82,6 @@ const Step2Details = () => {
 
   const handleNationalityChange = (memberType, index, value) => {
     handleMemberChange(memberType, index, 'nationality', value);
-    // Clear confirmed nationality when user types
     const key = `${memberType}-${index}`;
     setConfirmedNationalities(prev => {
       const newState = { ...prev };
@@ -196,11 +189,10 @@ const Step2Details = () => {
                   }}
                   className="form-input"
                   placeholder="VD: Việt Nam (Nhấn Enter để xác nhận)"
-                />
-              </div>
+              />
+            </div>
 
-              {/* Dynamic ID/Passport field based on confirmed nationality */}
-              {confirmedNationalities[`${memberType}-${index}`] && (
+            {confirmedNationalities[`${memberType}-${index}`] && (
                 <div className="form-group">
                   <label htmlFor={`${memberType}-${index}-idNumber`} className="form-label">
                     {confirmedNationalities[`${memberType}-${index}`].toLowerCase() === 'việt nam' || confirmedNationalities[`${memberType}-${index}`].toLowerCase() === 'vietnam' 
@@ -231,11 +223,9 @@ const Step2Details = () => {
 
   return (
     <div className="details-form">
-      {/* Date Selection */}
       <div className="form-section">
         <h3 className="section-title">Ngày khởi hành</h3>
         <div className="date-section">
-          {/* Date Picker Input */}
           <div className="date-picker-group">
             <label htmlFor="departureDate" className="form-label required">Chọn ngày khởi hành</label>
             <input
@@ -263,7 +253,6 @@ const Step2Details = () => {
             />
           </div>
 
-          {/* Display Selected Date in 3 separate boxes */}
           {plan.date.day && plan.date.month && plan.date.year && (
             <div className="date-display-section">
               <div className="date-display-group">
@@ -295,7 +284,6 @@ const Step2Details = () => {
         </div>
       </div>
 
-      {/* Pax Counter */}
       <div className="form-section">
         <h3 className="section-title">Tổng số khách</h3>
         <div className="pax-section">
@@ -365,7 +353,6 @@ const Step2Details = () => {
         </div>
       </div>
 
-      {/* Members List */}
       <div className="form-section">
         <h3 className="section-title">Danh sách đoàn</h3>
         <div className="members-section">
@@ -375,7 +362,6 @@ const Step2Details = () => {
         </div>
       </div>
 
-      {/* Price Summary */}
       <div className="price-summary">
         <div className="price-breakdown">
           {plan.pax.adult > 0 && (
@@ -402,12 +388,8 @@ const Step2Details = () => {
           <span className="price-total-value">{formatPrice(plan.price.total)}</span>
         </div>
       </div>
-
-      {/* Navigation is handled by parent component */}
     </div>
   );
 };
-
-// No props needed - navigation handled by parent
 
 export default Step2Details;

@@ -7,22 +7,20 @@ const ConditionalNavbar = () => {
   const location = useLocation();
   const { loading, user } = useAuth();
 
-  // Check if current path is staff/admin pages
+  // Kiểm tra xem path hiện tại có phải là trang staff/admin không
   const isStaffAdminPage = location.pathname.startsWith('/staff/') || 
                           location.pathname.startsWith('/admin/');
 
-  // Don't show navbar for staff/admin pages
   if (isStaffAdminPage) {
     return null;
   }
 
-  // Wait until auth state resolves; keep space to avoid layout shift
+  // Chờ auth state resolve, giữ không gian để tránh layout shift
   if (loading) {
-    return <div style={{ height: '64px' }} />; // match pt-16 (4rem)
+    return <div style={{ height: '64px' }} />;
   }
 
-  // Choose navbar based on user role
-  // COMPANY role uses NavbarCompany, others (USER, GUEST) use Navbar
+  // Chọn navbar dựa trên role: COMPANY dùng NavbarCompany, các role khác dùng Navbar
   if (user && user.role === 'COMPANY') {
     return <NavbarCompany />;
   }

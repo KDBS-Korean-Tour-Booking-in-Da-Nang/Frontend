@@ -8,7 +8,6 @@ class ArticleCommentService {
    * @returns {Object} - Headers object with Authorization
    */
   getAuthHeaders() {
-    // Check for role-specific storage first (ADMIN, STAFF), then fallback to legacy keys
     const sessionToken = sessionStorage.getItem('token_ADMIN') || 
                          sessionStorage.getItem('token_STAFF') || 
                          sessionStorage.getItem('token');
@@ -34,6 +33,9 @@ class ArticleCommentService {
    * Get user email from storage
    * @returns {string} - User email or empty string
    */
+  // Lấy email người dùng từ storage
+  // Ưu tiên theo role (ADMIN, STAFF), sau đó user chung
+  // Kiểm tra sessionStorage trước, sau đó localStorage
   getUserEmail() {
     try {
       const sessionUser = sessionStorage.getItem('user_ADMIN') || 
@@ -48,7 +50,6 @@ class ArticleCommentService {
         return user?.email || '';
       }
     } catch (e) {
-      // Ignore parse errors
     }
     return '';
   }
@@ -101,7 +102,7 @@ class ArticleCommentService {
         articleId: commentData.articleId,
         content: commentData.content,
         imgPath: commentData.imgPath || null,
-        parentCommentId: null, // Only parent comments, no replies
+        parentCommentId: null, // Chỉ hỗ trợ comment cha, không có reply
       };
 
       const response = await fetch(API_ENDPOINTS.ARTICLE_COMMENTS, {

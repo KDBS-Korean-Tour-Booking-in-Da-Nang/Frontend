@@ -53,44 +53,49 @@ const TourList = () => {
 
   useEffect(() => {
     if (!isSearchMode) {
-      // Tours from /public endpoint are already PUBLIC, but filter for safety
       const publicTours = (tours || []).filter(tour => tour.tourStatus === 'PUBLIC');
       setFilteredTours(publicTours);
       setCurrentPage(1); // Reset về trang 1 khi tours thay đổi
     }
   }, [tours, isSearchMode]);
 
+  // Debounce search: đợi 350ms sau khi user ngừng gõ mới gọi API
+  // Hủy request cũ nếu có request mới để tránh race condition
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
     const query = localSearchQuery.trim();
+    // Nếu query rỗng, reset về danh sách tour PUBLIC và tắt search mode
     if (!query) {
       if (controllerRef.current) controllerRef.current.abort();
       setIsSearchMode(false);
       setPage(0);
       setTotalPages(0);
-      // Filter only PUBLIC tours when clearing search
       const publicTours = (tours || []).filter(tour => tour.tourStatus === 'PUBLIC');
       setFilteredTours(publicTours);
-      setCurrentPage(1); // Reset về trang 1 khi clear search
+      setCurrentPage(1);
       return;
     }
 
+    // Debounce: đợi 350ms trước khi gọi API
     debounceRef.current = setTimeout(async () => {
+      // Hủy request cũ nếu có
       if (controllerRef.current) controllerRef.current.abort();
       const controller = new AbortController();
       controllerRef.current = controller;
       setIsSearchMode(true);
+      // Gọi API search với AbortController để có thể hủy nếu cần
       const res = await searchToursServer(query, 0, 20, controller.signal);
       setFilteredTours(res.items || []);
       setPage(res.pageNumber || 0);
       setTotalPages(res.totalPages || 0);
-      setCurrentPage(1); // Reset về trang 1 khi search mới
+      setCurrentPage(1);
     }, 350);
 
     return () => {
+      // Cleanup: hủy timeout và abort request khi unmount hoặc dependency thay đổi
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (controllerRef.current) controllerRef.current.abort();
     };
@@ -119,10 +124,13 @@ const TourList = () => {
     }
   };
 
+  // Load thêm tour khi scroll xuống (pagination cho server-side search)
+  // Append kết quả mới vào danh sách hiện tại thay vì replace
   const handleLoadMore = async () => {
     if (!isSearchMode) return;
-    if (page + 1 >= totalPages) return;
+    if (page + 1 >= totalPages) return; // Đã hết trang
     const nextPage = page + 1;
+    // Hủy request cũ nếu có
     if (controllerRef.current) controllerRef.current.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -132,6 +140,7 @@ const TourList = () => {
       20,
       controller.signal
     );
+    // Append kết quả mới vào danh sách hiện tại (infinite scroll)
     setFilteredTours((prev) => [...prev, ...(res.items || [])]);
     setPage(res.pageNumber || nextPage);
     setTotalPages(res.totalPages || totalPages);
@@ -145,7 +154,6 @@ const TourList = () => {
     navigate("/user/booking-history");
   };
 
-  // React Slick settings
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -160,13 +168,10 @@ const TourList = () => {
     arrows: false
   };
 
-  // Tính toán pagination cho client-side (khi không ở search mode)
   const getPaginatedTours = () => {
     if (isSearchMode) {
-      // Trong search mode, sử dụng filteredTours từ server
       return filteredTours;
     }
-    // Client-side pagination
     const startIndex = (currentPage - 1) * TOURS_PER_PAGE;
     const endIndex = startIndex + TOURS_PER_PAGE;
     return filteredTours.slice(startIndex, endIndex);
@@ -186,7 +191,6 @@ const TourList = () => {
 
   return (
     <div className={styles["tour-list-container"]}>
-      {/* Banner Carousel with React Slick */}
       <div className={styles["banner-carousel"]}>
         <Slider ref={sliderRef} {...sliderSettings} className={styles["banner-slider"]}>
           {bannerImages.map((img, index) => (
@@ -209,7 +213,6 @@ const TourList = () => {
         </Slider>
       </div>
 
-      {/* Search Section */}
       <div className={styles["search-section"]}>
         <div className={styles["container"]}>
           <div className={styles["search-wrapper"]}>
@@ -227,9 +230,7 @@ const TourList = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className={styles["action-buttons"]}>
-              {/* History Booking Button - Ẩn nếu user có role COMPANY */}
               {user && user.role !== "COMPANY" && (
                 <button
                   className={styles["action-btn"]}
@@ -243,7 +244,6 @@ const TourList = () => {
                 </button>
               )}
 
-              {/* List All Voucher Button - Chỉ hiển thị khi user đã đăng nhập */}
               {user && (
                 <button
                   className={styles["action-btn"]}
@@ -261,13 +261,10 @@ const TourList = () => {
         </div>
       </div>
 
-      {/* Tours Section - Tour Behavior Suggestion and All Tours */}
       <div className={styles["tours-section"]}>
         <div className={styles["container"]}>
-          {/* Tour Behavior Suggestion Section - chỉ hiển thị khi user đã đăng nhập và không ở search mode */}
           {!isSearchMode && user && <TourBehaviorSuggestion />}
 
-          {/* All Tours Grid */}
           {loading ? (
             <div className={styles["loading-container"]}>
               <div className={styles["loading-spinner"]}></div>
@@ -301,7 +298,6 @@ const TourList = () => {
                 </div>
               )}
 
-              {/* Pagination - chỉ hiển thị khi có nhiều hơn 12 tours và có tours */}
               {shouldShowPagination && displayTours.length > 0 && (
                 <div className={styles["pagination-container"]}>
                   <div className={styles["pagination"]}>
@@ -324,7 +320,6 @@ const TourList = () => {
                       <ChevronLeftIcon className={styles["pagination-icon"]} />
                     </button>
 
-                    {/* Page numbers */}
                     {Array.from(
                       { length: Math.min(5, clientTotalPages) },
                       (_, i) => {

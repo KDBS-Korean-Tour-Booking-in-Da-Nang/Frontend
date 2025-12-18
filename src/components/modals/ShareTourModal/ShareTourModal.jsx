@@ -12,7 +12,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, getToken } = useAuth();
-  const { showError } = useToast();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState(null);
@@ -44,7 +44,6 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
         const data = await res.json();
         
         if (isMounted) {
-          // Normalize thumbnailUrl về relative path để không lưu BaseURL vào metadata
           const rawThumbnail = data.tourImgPath || data.thumbnailUrl;
           setPreview({
             title: data.tourName || '',
@@ -54,7 +53,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           });
         }
       } catch {
-        // Error creating post - handled silently or in UI
+        // Error handled silently
       }
     })();
     
@@ -63,7 +62,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
     };
   }, [isOpen, tourId]);
 
-  // Hashtag suggestions (debounced) like PostModal
+  // Gợi ý hashtag (debounced)
   useEffect(() => {
     const q = (hashtagInput || '').trim();
     if (!q) {
@@ -92,7 +91,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
     return () => suggestTimerRef.current && clearTimeout(suggestTimerRef.current);
   }, [hashtagInput, hashtags]);
 
-  // Resolve portal container once on mount
+  // Xác định portal container khi component mount
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -100,7 +99,7 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
     }
   }, []);
 
-  // Lock body scroll while open
+  // Khóa scroll của body khi modal mở
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isOpen) {
@@ -114,7 +113,6 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
 
   const createPost = async () => {
     if (!user) {
-      // User not logged in - handled by LoginRequiredModal
       return;
     }
     try {
@@ -123,25 +121,19 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
       const formData = new FormData();
       formData.append('userEmail', user.email);
       
-      // Title: Use tour name from preview or default title (backend requires @NotBlank)
       const title = preview?.title || t('forum.shareTour.title') || 'Chia sẻ tour';
       formData.append('title', title);
       
-      // Content: caption + linkUrl (để FE nhận diện và render preview), FE sẽ ẩn dòng link khi hiển thị
       const parts = [];
       if ((caption || '').trim()) parts.push((caption || '').trim());
       if ((preview?.linkUrl || '').trim()) parts.push(preview.linkUrl.trim());
       const content = parts.join('\n');
-      // Backend requires @NotBlank, so ensure content is not empty or just whitespace
       formData.append('content', content.trim() || title);
       
-      // Append hashtags like Post modal
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);
       });
       
-      // Embed link metadata into content fields so backend stores them as normal post
-      // Normalize thumbnailUrl để đảm bảo không lưu BaseURL vào database
       formData.append('metadata', JSON.stringify({
         linkType: 'TOUR',
         linkRefId: String(tourId),
@@ -151,19 +143,16 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
         linkUrl: preview?.linkUrl || ''
       }));
 
-      // Download thumbnail and append as file if available
       if (preview?.thumbnailUrl) {
         try {
-          // Convert relative path to full URL for fetching (preview.thumbnailUrl is normalized to relative path)
           const imageUrl = getTourImageUrl(preview.thumbnailUrl);
           const imgRes = await fetch(imageUrl);
           if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
           const blob = await imgRes.blob();
           const file = new File([blob], 'thumbnail.jpg', { type: blob.type || 'image/jpeg' });
-          // Fix: Use 'images' instead of 'imageUrls' to match backend ForumPostRequest
           formData.append('images', file);
         } catch {
-          // Failed to fetch thumbnail, continue without image (silently fail)
+          // Failed to fetch thumbnail
         }
       }
 
@@ -181,26 +170,21 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
         } catch {
           // If errorText is not JSON, use default message
         }
-        showError(errorMessage);
+        setErrorMessage(errorMessage);
         throw new Error(`Failed to create post: ${res.status}`);
       }
       
       const post = await res.json();
       
-      // Call onShared callback if provided
       onShared && onShared(post);
-      
-      // Close modal
       onClose && onClose();
       
-      // Navigate to forum after a short delay to ensure modal closes smoothly
       setTimeout(() => {
         navigate('/forum');
       }, 100);
     } catch (e) {
-      // Error creating post - Error toast already shown in the res.ok check above
       if (!e.message || !e.message.includes('Failed to create post:')) {
-        showError(t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.');
+        setErrorMessage(t('toast.post.create_error') || 'Không thể chia sẻ tour. Vui lòng thử lại.');
       }
     } finally {
       setLoading(false);
@@ -248,12 +232,18 @@ const ShareTourModal = ({ isOpen, onClose, tourId, onShared }) => {
           )}
 
           <textarea
-            className={styles['caption']}
+            className={`${styles['caption']} ${errorMessage ? styles['caption-error'] : ''}`}
             rows={4}
             placeholder={t('forum.shareTour.captionPlaceholder') || 'Viết cảm nghĩ của bạn...'}
             value={caption}
-            onChange={(e) => setCaption(e.target.value)}
+            onChange={(e) => {
+              setCaption(e.target.value);
+              if (errorMessage) setErrorMessage('');
+            }}
           />
+          {errorMessage && (
+            <span className={styles['error-message']}>{errorMessage}</span>
+          )}
           {/* Hashtag input (below content) */}
           <div className={styles['hashtag-input-container']}>
             <div className={styles['hashtag-input-wrapper']}>

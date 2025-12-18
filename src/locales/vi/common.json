@@ -1,4 +1,4 @@
-{
+﻿{
   "brand": "Korea - Đà Nẵng Hệ Thống Đặt Tour",
   "nav": {
     "home": "Trang chủ",
@@ -2814,6 +2814,7 @@
         "placeholder": "Nhập mô tả văn bản (không chèn hình ảnh)..."
       },
       "itinerary": {
+        "dayAdded": "Đã thêm một ngày lịch trình.",
         "mainSectionTitle": "ĐIỂM ĐẾN VÀ HÀNH TRÌNH",
         "activities": "Hoạt động & địa điểm",
         "images": "Hình ảnh minh họa (tối đa 5 ảnh)",
@@ -4053,6 +4054,7 @@
         "tourName": "Tên tour",
         "departureDate": "Ngày khởi hành",
         "guestCount": "Số khách",
+        "contactName": "Tên liên hệ",
         "contactEmail": "Email liên hệ",
         "createdAt": "Ngày tạo"
       },
@@ -4698,7 +4700,8 @@
       "toasts": {
         "statusUpdated": "Đã cập nhật trạng thái bảo hiểm cho {{guestName}}. Thay đổi sẽ được lưu khi bạn hoàn thành booking.",
         "rejected": "Đã từ chối booking",
-        "saved": "Đã ghi nhận các thay đổi bảo hiểm. Vui lòng hoàn thành booking để lưu vào hệ thống."
+        "saved": "Đã ghi nhận các thay đổi bảo hiểm. Vui lòng hoàn thành booking để lưu vào hệ thống.",
+        "approvedAll": "Đã duyệt tất cả bảo hiểm. Thay đổi sẽ được lưu khi bạn hoàn thành booking."
       },
       "header": {
         "title": "Thông tin bảo hiểm",
@@ -4812,7 +4815,10 @@
     "confirmation": {
       "toasts": {
         "completedByBoth": "Tour đã được xác nhận hoàn thành bởi cả hai bên! Thanh toán sẽ được chuyển đến công ty.",
-        "companyConfirmed": "Đã xác nhận tour hoàn thành! Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay. Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {{date}})."
+        "companyConfirmed": "Đã xác nhận tour hoàn thành! Nếu khách hàng cũng xác nhận, thanh toán sẽ được chuyển ngay. Nếu không, hệ thống sẽ tự động xác nhận sau 3 ngày (sau ngày {{date}}).",
+        "approvedPendingBalance": "Đã duyệt booking. Khách hàng cần thanh toán số tiền còn lại.",
+        "approvedFullPayment": "Đã duyệt booking. Khách hàng đã thanh toán đủ số tiền. Hệ thống sẽ tự động chuyển sang BOOKING_SUCCESS_PENDING khi đến ngày khởi hành.",
+        "confirmError": "Không thể xác nhận booking"
       },
       "header": {
         "successTitle": "Booking đã được xác nhận thành công!",

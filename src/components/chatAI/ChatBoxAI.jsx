@@ -14,8 +14,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
     const { t, i18n } = useTranslation();
     const { user } = useAuth();
 
-    // Create welcome message with translation (updates when language changes)
-    // Use i18n.language as dependency instead of t to prevent recreation on every render
     const welcomeMessage = useMemo(() => ({
         id: 'welcome-message',
         content: t('chatAI.box.greeting'),
@@ -24,19 +22,15 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [i18n.language]);
 
-    // Helper function to convert history array to messages format
-    // Always includes welcome message at the top
-    // Wrapped in useCallback to prevent recreation on every render (fixes infinite loop)
     const historyToMessages = useCallback((historyArray) => {
-        const messageObjects = [welcomeMessage]; // Always start with welcome message
+        const messageObjects = [welcomeMessage];
 
         if (historyArray && historyArray.length > 0) {
-            // Reconstruct messages from history (alternating user/AI)
             for (let i = 0; i < historyArray.length; i++) {
                 messageObjects.push({
                     id: `history-${i}`,
                     content: historyArray[i],
-                    isAI: i % 2 === 1, // Odd indices (1, 3, 5...) are AI responses
+                    isAI: i % 2 === 1,
                     timestamp: new Date()
                 });
             }
@@ -45,7 +39,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
         return messageObjects;
     }, [welcomeMessage]);
 
-    // Initialize history from sessionStorage
     const [history, setHistory] = useState(() => {
         try {
             if (!user) return [];
@@ -56,7 +49,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
         }
     });
 
-    // Convert history to messages format for display
     const [messages, setMessages] = useState(() => {
         try {
             if (!user) {
@@ -89,20 +81,17 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
         }
     }, [isOpen]);
 
-    // If user is guest, clear stored history on mount or when becoming guest
     useEffect(() => {
         if (!user) {
             try {
                 sessionStorage.removeItem('chat_history');
             } catch {
-                // ignore
             }
             setHistory([]);
             setMessages(historyToMessages([]));
         }
     }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Clear chat when receiving global clear event (e.g., logout)
     useEffect(() => {
         const handleClear = () => {
             setHistory([]);
@@ -114,7 +103,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
         return () => window.removeEventListener('aiChatClear', handleClear);
     }, [historyToMessages]);
 
-    // When guest closes chat, clear history immediately
     useEffect(() => {
         if (!isOpen && !user) {
             setHistory([]);
@@ -124,10 +112,8 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
         }
     }, [isOpen, user, historyToMessages]);
 
-    // Update welcome message when language changes
     useEffect(() => {
         setMessages(prev => {
-            // Find and update welcome message, keep rest of messages
             const updated = prev.map(msg =>
                 msg.id === 'welcome-message'
                     ? { ...msg, content: t('chatAI.box.greeting') }
@@ -149,19 +135,16 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             timestamp: new Date()
         };
 
-        // Add user message to UI immediately (after welcome message)
         setMessages(prev => [...prev, userMessage]);
         setNewMessage('');
         setIsTyping(true);
 
         try {
-            // Prepare payload for backend
             const payload = {
                 history: history,
                 message: userMessageText
             };
 
-            // Call backend API
             const response = await fetch(getApiPath('/api/gemini/chat'), {
                 method: 'POST',
                 headers: {
@@ -176,16 +159,13 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
 
             const assistantReply = await response.text();
 
-            // Update history: add both user message and AI reply
             const updatedHistory = [...history, userMessageText, assistantReply];
             setHistory(updatedHistory);
 
-            // Save to sessionStorage only for logged-in users
             if (user) {
                 sessionStorage.setItem('chat_history', JSON.stringify(updatedHistory));
             }
 
-            // Add AI response to UI
             const aiResponse = {
                 id: Date.now() + 1,
                 content: assistantReply,
@@ -194,7 +174,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
             };
             setMessages(prev => [...prev, aiResponse]);
         } catch {
-            // Show error message to user
             const errorMessage = {
                 id: Date.now() + 1,
                 content: t('chatAI.box.error'),
@@ -216,7 +195,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
 
     const formatTime = (timestamp) => {
         if (!timestamp) return '';
-        // Map i18n language to locale for time formatting
         const localeMap = {
             'vi': 'vi-VN',
             'en': 'en-US',
@@ -231,7 +209,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
 
     return (
         <div className={`${styles.chatBox} ${isOpen ? styles.show : styles.hide}`}>
-            {/* Header */}
             <div className={styles.chatHeader}>
                 <div className={styles.chatInfo}>
                     <div className={styles.aiAvatar}>
@@ -263,7 +240,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
                 </div>
             </div>
 
-            {/* Messages */}
             <div className={styles.messagesContainer}>
                 <div className={styles.messages}>
                     {messages.map((message) => (
@@ -302,7 +278,6 @@ const ChatBoxAI = ({ isOpen, onClose, onMinimize }) => {
                 </div>
             </div>
 
-            {/* Input */}
             <div className={styles.chatInput}>
                 <div className={styles.inputContainer}>
                     <textarea

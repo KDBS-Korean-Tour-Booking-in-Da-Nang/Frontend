@@ -35,7 +35,7 @@ const CustomerManagement = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // Fetch customers (users with role USER) from API
+  // Fetch customers từ API: lấy users có role USER (exclude ADMIN, STAFF, COMPANY), map backend data sang frontend format (tính tier dựa trên lifetimeValue: >=50M=VIP, >=30M=Gold, >=15M=Silver, <15M=Bronze), handle 401
   const fetchCustomers = async () => {
     try {
       setLoading(true);
@@ -64,17 +64,14 @@ const CustomerManagement = () => {
       const data = await response.json();
       const users = data.result || data || [];
       
-      // Filter users with role USER (exclude ADMIN, STAFF, COMPANY)
       const customerUsers = users.filter(user => {
         const role = (user.role || '').toUpperCase();
         return role === 'USER';
       });
 
-      // Map backend data to frontend format
       const mappedCustomers = customerUsers.map(user => {
         const bookingData = userBookings[user.email] || { totalBookings: 0, lifetimeValue: 0, lastBooking: null };
         
-        // Calculate tier based on lifetime value (if available)
         let tier = 'Bronze';
         if (bookingData.lifetimeValue >= 50_000_000) tier = 'VIP';
         else if (bookingData.lifetimeValue >= 30_000_000) tier = 'Gold';
@@ -108,17 +105,15 @@ const CustomerManagement = () => {
 
       setCustomers(mappedCustomers);
 
-      // Fetch booking data for each customer (optional, can be done in background)
       fetchBookingDataForUsers(customerUsers.map(u => u.email));
     } catch (err) {
-      // Silently handle error fetching customers
       setError('Không thể tải danh sách khách hàng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch booking summary for users to calculate lifetime value and total bookings
+  // Fetch booking summary cho users để tính lifetime value và total bookings: fetch booking summary cho mỗi user (limit 50 để tránh quá nhiều requests), tính totalBookings, lifetimeValue (sum totalAmount), lastBooking, update customers với booking data và tính lại tier
   const fetchBookingDataForUsers = async (emails) => {
     try {
       const token = getToken();
@@ -127,8 +122,7 @@ const CustomerManagement = () => {
       const headers = createAuthHeaders(token);
       const bookingsMap = {};
 
-      // Fetch booking summary for each user (limit to avoid too many requests)
-      const emailBatch = emails.slice(0, 50); // Limit to first 50 users
+      const emailBatch = emails.slice(0, 50);
       
       await Promise.all(
         emailBatch.map(async (email) => {
@@ -158,14 +152,13 @@ const CustomerManagement = () => {
               };
             }
           } catch (err) {
-            // Silently handle error fetching bookings
+            // Silently handle error
           }
         })
       );
 
       setUserBookings(bookingsMap);
       
-      // Update customers with booking data
       setCustomers(prev => prev.map(customer => {
         const bookingData = bookingsMap[customer.email] || { totalBookings: 0, lifetimeValue: 0, lastBooking: null };
         
@@ -180,11 +173,10 @@ const CustomerManagement = () => {
           totalBookings: bookingData.totalBookings,
           lifetimeValue: bookingData.lifetimeValue,
           lastBooking: bookingData.lastBooking
-          // Keep existing additional fields (dob, cccd, gender, balance, banReason, role)
         };
       }));
     } catch (err) {
-      // Silently handle error fetching booking data
+      // Silently handle error
     }
   };
 
@@ -193,6 +185,7 @@ const CustomerManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Filter customers: search trong name, email, id (case-insensitive), filter theo status nếu statusFilter !== 'ALL'
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) => {
       const matchesSearch =
@@ -204,7 +197,7 @@ const CustomerManagement = () => {
     });
   }, [customers, search, statusFilter]);
 
-  // Pagination
+  // Paginate customers: slice filteredCustomers theo currentPage và itemsPerPage
   const paginatedCustomers = useMemo(() => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -213,7 +206,7 @@ const CustomerManagement = () => {
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset về page đầu tiên khi filters thay đổi (search, statusFilter)
   useEffect(() => {
     setCurrentPage(0);
   }, [search, statusFilter]);
@@ -224,14 +217,13 @@ const CustomerManagement = () => {
     return { total, active };
   }, [customers]);
 
+  // Xử lý ban click: nếu unbanning thì làm trực tiếp không cần modal, nếu banning thì mở modal để chọn reason
   const handleBanClick = (customer) => {
-    // If unbanning, do it directly without modal
     if (customer.status === 'inactive') {
       handleBanToggle(customer, false, null);
       return;
     }
     
-    // If banning, open modal to select reason
     setSelectedCustomerForBan(customer);
     setBanModalOpen(true);
   };
@@ -256,12 +248,9 @@ const CustomerManagement = () => {
 
       const headers = createAuthHeaders(token);
 
-      // Prepare request body according to backend logic:
-      // - If ban = true: send banReason (backend will use "No reason provided" if null)
-      // - If ban = false: send banReason = null (backend will clear it)
       const requestBody = {
         ban: ban,
-        banReason: ban ? (banReason || null) : null // When unban, always send null
+        banReason: ban ? (banReason || null) : null
       };
 
       const response = await fetch(`${BaseURL}/api/staff/ban-user/${customer.userId}`, {
@@ -279,10 +268,8 @@ const CustomerManagement = () => {
         throw new Error(errorData.message || 'Không thể cập nhật trạng thái');
       }
 
-      // Refresh customer list
       await fetchCustomers();
       
-      // Close modal if open
       if (banModalOpen) {
         setBanModalOpen(false);
         setSelectedCustomerForBan(null);

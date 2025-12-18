@@ -19,10 +19,7 @@ export const NotificationProvider = ({ children }) => {
 
   const userEmail = user?.email;
 
-  /**
-   * Fetch notifications from API
-   * Called when dropdown is opened
-   */
+  // Fetch notifications từ API: được gọi khi dropdown mở, backend trả về Page object với content array, set notifications và unreadCount vào state
   const fetchList = useCallback(async () => {
     if (!userEmail) {
       setNotifications([]);
@@ -40,7 +37,6 @@ export const NotificationProvider = ({ children }) => {
       );
 
       if (response && response.notifications) {
-        // Backend returns Page object with content array
         const notificationList = response.notifications.content || [];
         setNotifications(notificationList);
         setUnreadCount(response.unreadCount || 0);
@@ -49,7 +45,6 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(0);
       }
     } catch (err) {
-      // Silently handle error fetching notifications
       setError(err.message || 'Failed to fetch notifications');
       setNotifications([]);
       setUnreadCount(0);
@@ -58,9 +53,7 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [userEmail]);
 
-  /**
-   * Fetch unread count only (for badge display)
-   */
+  // Fetch unread count only cho badge display: gọi API getUnreadCount, set vào state, ignore errors
   const fetchUnreadCount = useCallback(async () => {
     if (!userEmail) {
       setUnreadCount(0);
@@ -71,20 +64,17 @@ export const NotificationProvider = ({ children }) => {
       const count = await NotificationAPI.getUnreadCount(userEmail);
       setUnreadCount(count || 0);
     } catch (err) {
-      // Silently handle error fetching unread count
+      // Silently handle error
     }
   }, [userEmail]);
 
-  /**
-   * Mark a notification as read
-   */
+  // Đánh dấu notification là đã đọc: gọi API markAsRead, update local state optimistically (set isRead = true), giảm unreadCount, nếu fail thì re-fetch để sync với server
   const markAsRead = useCallback(async (notificationId) => {
     if (!userEmail) return;
 
     try {
       await NotificationAPI.markAsRead(notificationId, userEmail);
       
-      // Update local state optimistically
       setNotifications(prev => 
         prev.map(n => 
           n.notificationId === notificationId 
@@ -93,19 +83,14 @@ export const NotificationProvider = ({ children }) => {
         )
       );
       
-      // Update unread count
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
-      // Silently handle error marking notification as read
       setError(err.message || 'Failed to mark notification as read');
-      // Re-fetch to sync with server
       await fetchList();
     }
   }, [userEmail, fetchList]);
 
-  /**
-   * Mark a notification as unread (client-side only, backend doesn't support this)
-   */
+  // Đánh dấu notification là chưa đọc (chỉ client-side, backend không support): update local state (set isRead = false), tăng unreadCount
   const markAsUnread = useCallback((notificationId) => {
     setNotifications(prev => 
       prev.map(n => 
@@ -117,10 +102,7 @@ export const NotificationProvider = ({ children }) => {
     setUnreadCount(prev => prev + 1);
   }, []);
 
-  /**
-   * Mark all notifications as read
-   * Since backend doesn't have this endpoint, we'll mark each unread one
-   */
+  // Đánh dấu tất cả notifications là đã đọc: vì backend không có endpoint này nên mark từng unread notification bằng Promise.all, update local state (set tất cả isRead = true), set unreadCount = 0, nếu fail thì re-fetch để sync
   const markAllAsRead = useCallback(async () => {
     if (!userEmail) return;
 
@@ -128,30 +110,23 @@ export const NotificationProvider = ({ children }) => {
     if (unreadNotifications.length === 0) return;
 
     try {
-      // Mark all unread notifications as read
       await Promise.all(
         unreadNotifications.map(n => 
           NotificationAPI.markAsRead(n.notificationId, userEmail)
         )
       );
 
-      // Update local state
       setNotifications(prev => 
         prev.map(n => ({ ...n, isRead: true }))
       );
       setUnreadCount(0);
     } catch (err) {
-      // Silently handle error marking all as read
       setError(err.message || 'Failed to mark all as read');
-      // Re-fetch to sync with server
       await fetchList();
     }
   }, [userEmail, notifications, fetchList]);
 
-  /**
-   * Delete notification (client-side only, backend doesn't support this)
-   * Just remove from local state
-   */
+  // Xóa notification (chỉ client-side, backend không support): remove khỏi local state, update unreadCount nếu deleted notification là unread
   const deleteNotification = useCallback((notificationId) => {
     const notification = notifications.find(n => n.notificationId === notificationId);
     setNotifications(prev => prev.filter(n => n.notificationId !== notificationId));

@@ -8,19 +8,19 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
   const { user } = useAuth();
   const [current, setCurrent] = useState(0);
 
-  // apply index when opening
+  // Apply index khi mở modal: set current = initialIndex khi open = true
   useEffect(() => {
     if (open) {
       setCurrent(typeof initialIndex === 'number' ? initialIndex : 0);
     }
   }, [open, initialIndex]);
 
+  // Map images sang resolved URLs: trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure), resolve bằng getImageUrl nếu không phải absolute URL
   const imgs = ((post && post.images) ? post.images : []).map(i => {
     const p = i.imgPath || '';
-    // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
     const trimmed = p.trim();
     if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
-      return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+      return trimmed.substring(1);
     }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
     return getImageUrl(trimmed);
@@ -38,8 +38,6 @@ const ImageViewerModal = ({ open, onClose, post, initialIndex = 0 }) => {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-
-  // Preview-only: remove reaction logic
 
   if (!open || !post) return null;
 
