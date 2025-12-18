@@ -24,9 +24,9 @@ const ArticleManagement = () => {
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [lastArticleCount, setLastArticleCount] = useState(0);
   const [error, setError] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'oldest'
+  const [sortOrder, setSortOrder] = useState('newest');
 
-  // Check if user has permission to manage articles
+  // Kiểm tra user có permission để manage articles không: check staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' hoặc role === 'ADMIN'
   const canManageArticles = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
   const softUI = {
@@ -52,29 +52,24 @@ const ArticleManagement = () => {
         showSuccess(t('articleManagement.messages.autoCrawlSuccess', { count: newCount }));
       }
       
-      // Store raw articles, sorting will be handled by useMemo based on sortOrder
       setArticles(newArticles);
       setLastArticleCount(newArticles.length);
-      setError(''); // Clear error on success
+      setError('');
     } catch (error) {
-      // Don't show error or logout if it's a 401 from background polling
       if (isBackgroundPoll && error?.status === 401) {
-        // Silently fail - token might be expired, but don't logout from background polling
         return;
       }
-      // Silently handle error loading articles
       setError(t('articleManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
     } finally {
       setLoadingArticles(false);
     }
   }, [showSuccess, lastArticleCount, t]);
   
-  // Sort articles based on sortOrder
+  // Sort articles dựa trên sortOrder: sort theo pending status trước (pending first), sau đó sort theo date (newest hoặc oldest), return sorted articles array
   const sortedArticles = useMemo(() => {
     if (!articles || articles.length === 0) return [];
     
     return [...articles].sort((a, b) => {
-      // First, sort by pending status (pending first)
       const aPending = a.articleStatus !== 'APPROVED';
       const bPending = b.articleStatus !== 'APPROVED';
       if (aPending !== bPending) return aPending ? -1 : 1;
@@ -84,26 +79,25 @@ const ArticleManagement = () => {
       const bTime = new Date(b.articleCreatedDate).getTime() || 0;
       
       if (sortOrder === 'newest') {
-        return bTime - aTime; // Newest first
+        return bTime - aTime;
       } else {
-        return aTime - bTime; // Oldest first
+        return aTime - bTime;
       }
     });
   }, [articles, sortOrder]);
   
-  // Reset to page 1 when sort order changes
   useEffect(() => {
     setCurrentPage(1);
   }, [sortOrder]);
 
-  // Load articles on component mount
+  // Load articles khi component mount: gọi loadArticles nếu user có và canManageArticles = true
   useEffect(() => {
     if (user && canManageArticles) {
       loadArticles();
     }
   }, [user, canManageArticles, loadArticles]);
 
-  // Auto-refresh articles every 5 minutes to check for new auto-crawled articles
+  // Auto-refresh articles mỗi 5 phút để check new auto-crawled articles: set interval gọi loadArticles với showNewArticlesNotification = true và isBackgroundPoll = true
   useEffect(() => {
     if (user && canManageArticles) {
       const interval = setInterval(() => {
@@ -114,25 +108,24 @@ const ArticleManagement = () => {
     }
   }, [user, canManageArticles, loadArticles]);
 
-  // Handle article detail modal
+  // Xử lý article detail modal: gọi getArticleById, set selectedArticle và mở modal, handle error
   const handleViewArticle = async (articleId) => {
     try {
       const article = await articleService.getArticleById(articleId);
       setSelectedArticle(article);
       setShowArticleModal(true);
-      setError(''); // Clear error on success
+      setError('');
     } catch (error) {
-      // Silently handle error fetching article
       setError(t('articleManagement.messages.crawlError') || 'Không thể tải bài viết');
     }
   };
 
-  // Avoid access-denied flicker on refresh: wait for auth to resolve
+  // Tránh access-denied flicker khi refresh: đợi auth resolve, return null nếu đang authLoading
   if (authLoading) {
     return null;
   }
 
-  // Check if user has permission to manage articles
+  // Kiểm tra user có permission để manage articles không: nếu user có nhưng không có canManageArticles thì hiển thị Access Denied message
   if (user && !canManageArticles) {
     return (
       <div className={`min-h-screen ${softUI.pageBg} flex items-center justify-center px-4`}>
@@ -166,7 +159,6 @@ const ArticleManagement = () => {
       }
       await loadArticles(false);
     } catch (error) {
-      // Silently handle error crawling articles
       setError(t('articleManagement.messages.crawlError') || 'Không thể crawl bài viết');
     } finally {
       setLoading(false);

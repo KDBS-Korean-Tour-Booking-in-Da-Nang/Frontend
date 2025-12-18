@@ -16,7 +16,7 @@ const TourApproval = () => {
   const navigate = useNavigate();
   const { showSuccess } = useToast();
 
-  // Check if user has permission to manage tours
+  // Kiểm tra user có permission để manage tours không: check staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' hoặc role === 'ADMIN'
   const canManageTours = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,7 @@ const TourApproval = () => {
   const [tourToApprove, setTourToApprove] = useState(null);
   const [tourToReject, setTourToReject] = useState(null);
 
-  // Update Requests State
+  // Update Requests State: showUpdateRequests, updateRequests, loadingUpdateRequests, selectedUpdateRequest, modal states, approve/reject notes, search và sort states
   const [showUpdateRequests, setShowUpdateRequests] = useState(false);
   const [updateRequests, setUpdateRequests] = useState([]);
   const [loadingUpdateRequests, setLoadingUpdateRequests] = useState(false);
@@ -48,7 +48,7 @@ const TourApproval = () => {
   const [searchUpdateQuery, setSearchUpdateQuery] = useState('');
   const [sortUpdateBy, setSortUpdateBy] = useState('newest');
 
-  // Delete Requests State
+  // Delete Requests State: showDeleteRequests, deleteRequests, loadingDeleteRequests, selectedDeleteRequest, modal states, approve/reject notes, search và sort states
   const [showDeleteRequests, setShowDeleteRequests] = useState(false);
   const [deleteRequests, setDeleteRequests] = useState([]);
   const [loadingDeleteRequests, setLoadingDeleteRequests] = useState(false);
@@ -67,7 +67,7 @@ const TourApproval = () => {
   const [deleteRequestBookingPages, setDeleteRequestBookingPages] = useState({});
   const BOOKINGS_PER_PAGE = 5;
 
-  // Fetch tours from API
+  // Fetch tours từ API: gọi TOURS endpoint, handle different response formats (array, result, content, data), không gọi checkAndHandle401 trong background loading (skip401Check = true) để tránh premature logout, set tours state
   const fetchTours = useCallback(async (skip401Check = false) => {
     if (!canManageTours) return;
 
@@ -79,8 +79,6 @@ const TourApproval = () => {
       });
 
       if (!response.ok && response.status === 401) {
-        // Don't call checkAndHandle401 in background loading to avoid premature logout
-        // Only check 401 in user-initiated actions (skip401Check = false)
         if (!skip401Check) {
           await checkAndHandle401(response);
         }
@@ -89,7 +87,6 @@ const TourApproval = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Handle different response formats
         let toursList = [];
         if (Array.isArray(data)) {
           toursList = data;
@@ -101,25 +98,23 @@ const TourApproval = () => {
           toursList = data.data;
         }
         setTours(toursList);
-        setError(''); // Clear error on success
+        setError('');
       } else {
-        // Silently handle failed to fetch tours
         setError(t('admin.tourApproval.error.loadTours'));
       }
     } catch (error) {
-      // Silently handle error fetching tours
       setError(t('admin.tourApproval.error.loadTours'));
     } finally {
       setLoading(false);
     }
   }, [canManageTours, getToken, t]);
 
+  // Fetch tours khi component mount: gọi fetchTours với skip401Check = true để tránh premature logout trong background loading
   useEffect(() => {
-    // Skip 401 check in background loading to avoid premature logout
     fetchTours(true);
   }, [fetchTours]);
 
-  // Fetch pending requests counts on page load for notification badges
+  // Fetch pending requests counts khi page load cho notification badges: fetch update requests và delete requests từ API, không gọi checkAndHandle401 trong background loading, set updateRequests và deleteRequests state
   useEffect(() => {
     const fetchPendingRequestsCounts = async () => {
       if (!canManageTours) return;
@@ -127,13 +122,10 @@ const TourApproval = () => {
       if (!token) return;
 
       try {
-        // Fetch update requests
         const updateResponse = await fetch(API_ENDPOINTS.TOUR_UPDATE_REQUESTS_PENDING, {
           headers: createAuthHeaders(token)
         });
         if (!updateResponse.ok && updateResponse.status === 401) {
-          // Don't call checkAndHandle401 here to avoid premature logout in background loading
-          // Just skip this data load
           return;
         }
         if (updateResponse.ok) {
@@ -141,13 +133,10 @@ const TourApproval = () => {
           setUpdateRequests(Array.isArray(data) ? data : []);
         }
 
-        // Fetch delete requests
         const deleteResponse = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUESTS_PENDING, {
           headers: createAuthHeaders(token)
         });
         if (!deleteResponse.ok && deleteResponse.status === 401) {
-          // Don't call checkAndHandle401 here to avoid premature logout in background loading
-          // Just skip this data load
           return;
         }
         if (deleteResponse.ok) {
@@ -162,7 +151,7 @@ const TourApproval = () => {
     fetchPendingRequestsCounts();
   }, [canManageTours, getToken]);
 
-  // Fetch Update Requests
+  // Fetch Update Requests: gọi TOUR_UPDATE_REQUESTS_PENDING endpoint, set updateRequests state, handle 401, set loadingUpdateRequests state
   const fetchUpdateRequests = useCallback(async () => {
     try {
       setLoadingUpdateRequests(true);
@@ -185,7 +174,7 @@ const TourApproval = () => {
     }
   }, [getToken]);
 
-  // Fetch Delete Requests
+  // Fetch Delete Requests: gọi TOUR_DELETE_REQUESTS_PENDING endpoint, set deleteRequests state, handle 401, set loadingDeleteRequests state
   const fetchDeleteRequests = useCallback(async () => {
     try {
       setLoadingDeleteRequests(true);
@@ -208,7 +197,7 @@ const TourApproval = () => {
     }
   }, [getToken]);
 
-  // Toggle Update Requests View
+  // Toggle Update Requests View: toggle showUpdateRequests state, nếu mở thì đóng Delete Requests View và fetch update requests
   const toggleUpdateRequestsView = () => {
     const newState = !showUpdateRequests;
     setShowUpdateRequests(newState);
@@ -218,7 +207,7 @@ const TourApproval = () => {
     }
   };
 
-  // Toggle Delete Requests View
+  // Toggle Delete Requests View: toggle showDeleteRequests state, nếu mở thì đóng Update Requests View và fetch delete requests
   const toggleDeleteRequestsView = () => {
     const newState = !showDeleteRequests;
     setShowDeleteRequests(newState);
@@ -228,14 +217,14 @@ const TourApproval = () => {
     }
   };
 
-  // Handle Approve Update Request
+  // Xử lý approve update request: set selectedUpdateRequest, clear updateApproveNote, mở approve modal
   const handleApproveUpdateRequest = (request) => {
     setSelectedUpdateRequest(request);
     setUpdateApproveNote('');
     setIsApproveUpdateModalOpen(true);
   };
 
-  // Confirm Approve Update Request
+  // Confirm approve update request: gọi TOUR_UPDATE_REQUEST_APPROVE endpoint với PUT, refresh update requests list và tours list sau khi thành công, handle 401, show success toast
   const confirmApproveUpdateRequest = async () => {
     if (!selectedUpdateRequest) return;
     try {
@@ -271,14 +260,14 @@ const TourApproval = () => {
     }
   };
 
-  // Handle Reject Update Request
+  // Xử lý reject update request: set selectedUpdateRequest, clear updateRejectNote, mở reject modal
   const handleRejectUpdateRequest = (request) => {
     setSelectedUpdateRequest(request);
     setUpdateRejectNote('');
     setIsRejectUpdateModalOpen(true);
   };
 
-  // Confirm Reject Update Request
+  // Confirm reject update request: gọi TOUR_UPDATE_REQUEST_REJECT endpoint với PUT, refresh update requests list sau khi thành công, handle 401, show success toast
   const confirmRejectUpdateRequest = async () => {
     if (!selectedUpdateRequest) return;
     try {
@@ -304,7 +293,7 @@ const TourApproval = () => {
     }
   };
 
-  // Handle Approve Delete Request
+  // Xử lý approve delete request: set selectedDeleteRequest, clear deleteApproveNote, mở approve modal
   const handleApproveDeleteRequest = (request) => {
     setSelectedDeleteRequest(request);
     setDeleteApproveNote('');
@@ -331,7 +320,6 @@ const TourApproval = () => {
         setSelectedDeleteRequest(null);
         setDeleteApproveNote('');
         fetchDeleteRequests();
-        // Refresh tours list
         const toursResponse = await fetch(API_ENDPOINTS.TOURS, { headers: createAuthHeaders(token) });
         if (!toursResponse.ok && toursResponse.status === 401) {
           await checkAndHandle401(toursResponse);
@@ -354,7 +342,7 @@ const TourApproval = () => {
     setIsRejectDeleteModalOpen(true);
   };
 
-  // Confirm Reject Delete Request
+  // Confirm reject delete request: gọi TOUR_DELETE_REQUEST_REJECT endpoint với PUT, refresh delete requests list sau khi thành công, handle 401, show success toast
   const confirmRejectDeleteRequest = async () => {
     if (!selectedDeleteRequest) return;
     try {
@@ -380,11 +368,10 @@ const TourApproval = () => {
     }
   };
 
-  // Filter and sort tours
+  // Filter và sort tours: filter theo status (all, NOT_APPROVED, APPROVED, REJECTED), search filter (title, description, departurePoint), sort (newest, oldest, name-asc, name-desc), return filtered và sorted tours array
   const filteredAndSortedTours = useMemo(() => {
     let filtered = [...tours];
 
-    // Filter by status
     if (statusFilter !== 'all') {
       filtered = filtered.filter(t => {
         const status = (t.tourStatus || t.status || '').toUpperCase();
@@ -392,7 +379,6 @@ const TourApproval = () => {
       });
     }
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(tour => {
@@ -403,7 +389,6 @@ const TourApproval = () => {
       });
     }
 
-    // Sort
     filtered.sort((a, b) => {
       if (sortBy === 'newest') {
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -424,7 +409,7 @@ const TourApproval = () => {
     return filtered;
   }, [tours, searchQuery, statusFilter, sortBy]);
 
-  // Paginate
+  // Paginate tours: tính totalPages, slice filteredAndSortedTours theo currentPage và pageSize, return paginated tours array
   const paginatedTours = useMemo(() => {
     const total = Math.ceil(filteredAndSortedTours.length / pageSize);
     setTotalPages(total);
@@ -433,11 +418,10 @@ const TourApproval = () => {
     return filteredAndSortedTours.slice(startIndex, endIndex);
   }, [filteredAndSortedTours, currentPage, pageSize]);
 
-  // Filter and sort update requests
+  // Filter và sort update requests: search filter (tourName, companyNote), sort (newest, oldest, name-asc, name-desc), return filtered và sorted update requests array
   const sortedUpdateRequests = useMemo(() => {
     let filtered = [...updateRequests];
 
-    // Search filter
     if (searchUpdateQuery.trim()) {
       const query = searchUpdateQuery.toLowerCase();
       filtered = filtered.filter(request => {
@@ -447,7 +431,6 @@ const TourApproval = () => {
       });
     }
 
-    // Sort
     filtered.sort((a, b) => {
       if (sortUpdateBy === 'newest') {
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -468,11 +451,10 @@ const TourApproval = () => {
     return filtered;
   }, [updateRequests, searchUpdateQuery, sortUpdateBy]);
 
-  // Filter and sort delete requests
+  // Filter và sort delete requests: search filter (tourName, companyNote), sort (newest, oldest, name-asc, name-desc), return filtered và sorted delete requests array
   const sortedDeleteRequests = useMemo(() => {
     let filtered = [...deleteRequests];
 
-    // Search filter
     if (searchDeleteQuery.trim()) {
       const query = searchDeleteQuery.toLowerCase();
       filtered = filtered.filter(request => {
@@ -482,7 +464,6 @@ const TourApproval = () => {
       });
     }
 
-    // Sort
     filtered.sort((a, b) => {
       if (sortDeleteBy === 'newest') {
         return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -503,16 +484,12 @@ const TourApproval = () => {
     return filtered;
   }, [deleteRequests, searchDeleteQuery, sortDeleteBy]);
 
-  // Handle view details
+  // Xử lý view details: nếu có updateRequestData thì dùng originalTour từ updateRequest (không cần fetch từ database), nếu không thì fetch tour từ TOUR_BY_ID endpoint, set selectedTour và mở detail modal, handle 401
   const handleViewDetails = async (tourId, updateRequestData = null) => {
     try {
       setLoadingDetail(true);
       
-      // If viewing from update request, use originalTour from updateRequest directly
-      // No need to fetch from database since we already have the data
       if (updateRequestData && updateRequestData.originalTour) {
-        // Use originalTour as the display tour, and pass updateRequest separately
-        // Store updateRequest separately so modal can access both originalTour and updatedTour
         setSelectedTour({
           ...updateRequestData.originalTour,
           _updateRequest: updateRequestData
@@ -542,7 +519,6 @@ const TourApproval = () => {
         setError(t('admin.tourApproval.error.loadDetail'));
       }
     } catch (error) {
-      // Silently handle error fetching tour details
       setError(t('admin.tourApproval.error.loadDetail'));
     } finally {
       setLoadingDetail(false);
@@ -556,7 +532,7 @@ const TourApproval = () => {
     setIsApproveModalOpen(true);
   };
 
-  // Confirm approve tour - calls API
+  // Confirm approve tour: gọi TOURS/change-status endpoint với PUT và status=PUBLIC, refresh tours list sau khi thành công, handle different response formats, handle 401, show success toast, đóng modal
   const confirmApproveTour = async () => {
     if (!tourToApprove) return;
     const tourId = tourToApprove.tourId || tourToApprove.id;
@@ -606,19 +582,18 @@ const TourApproval = () => {
         setError(t('admin.tourApproval.error.approve', { error: errorText }));
       }
     } catch (error) {
-      // Silently handle error approving tour
       setError(t('admin.tourApproval.error.approveGeneric'));
     }
   };
 
-  // Handle reject tour - opens modal
+  // Xử lý reject tour: tìm tour trong tours list, set tourToReject và mở reject modal
   const handleRejectTour = (tourId) => {
     const tour = tours.find(t => (t.tourId || t.id) === tourId) || { tourId: tourId || tour.id };
     setTourToReject(tour);
     setIsRejectModalOpen(true);
   };
 
-  // Confirm reject tour - calls API
+  // Confirm reject tour: gọi TOURS/change-status endpoint với PUT và status=DISABLED, refresh tours list sau khi thành công, handle different response formats, handle 401, show success toast, đóng modal
   const confirmRejectTour = async () => {
     if (!tourToReject) return;
     const tourId = tourToReject.tourId || tourToReject.id;
@@ -669,18 +644,18 @@ const TourApproval = () => {
         setError(t('admin.tourApproval.error.reject', { error: errorText }));
       }
     } catch (error) {
-      // Silently handle error rejecting tour
       setError(t('admin.tourApproval.error.rejectGeneric'));
     }
   };
 
-  // Format as KRW (VND / 18)
+  // Format price sang KRW: VND / 18, sử dụng Intl.NumberFormat với locale 'ko-KR', return 'N/A' nếu không có price
   const formatPrice = (price) => {
     if (!price) return t('admin.tourApproval.status.na');
     const krwValue = Math.round(Number(price) / 18);
     return new Intl.NumberFormat('ko-KR').format(krwValue) + ' KRW';
   };
 
+  // Format date: format dateString với locale dựa trên i18n.language (ko-KR, en-US, vi-VN), return 'N/A' nếu không hợp lệ
   const formatDate = (dateString) => {
     if (!dateString) return t('admin.tourApproval.status.na');
     try {
@@ -696,11 +671,11 @@ const TourApproval = () => {
     }
   };
 
+  // Format duration: parse "X ngày Y đêm" hoặc "X days Y nights" hoặc "X일 Y박" format, return formatted string với i18n template, nếu không parse được thì return raw string
   const formatDuration = (duration) => {
     if (!duration) return t('admin.tourApproval.status.na');
     const raw = String(duration);
 
-    // Try to parse "X ngày Y đêm" or "X days Y nights" or "X일 Y박" format
     const viMatch = raw.match(/(\d+)\s*ngày\s*(\d+)\s*đêm/i);
     const enMatch = raw.match(/(\d+)\s*days?\s*(\d+)\s*nights?/i);
     const koMatch = raw.match(/(\d+)\s*일\s*(\d+)\s*박/i);
@@ -736,7 +711,7 @@ const TourApproval = () => {
     }
   };
 
-  // Format booking datetime
+  // Format booking datetime: format dateString với locale dựa trên i18n.language (ko-KR, en-US, vi-VN), bao gồm hour và minute, return 'N/A' nếu không hợp lệ
   const formatBookingDateTime = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -766,7 +741,7 @@ const TourApproval = () => {
     }
   };
 
-  // Toggle delete request booking dropdown
+  // Toggle delete request booking dropdown: toggle expandedDeleteRequestId, nếu mở thì init booking page = 0 cho requestId đó
   const toggleDeleteRequestBooking = (requestId) => {
     if (expandedDeleteRequestId === requestId) {
       setExpandedDeleteRequestId(null);

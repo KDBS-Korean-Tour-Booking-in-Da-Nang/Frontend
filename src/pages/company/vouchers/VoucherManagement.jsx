@@ -42,21 +42,21 @@ const VoucherManagement = () => {
     setAllToursMap
   } = useVoucher();
 
-  // Local state (UI only)
+  // Local state cho UI: isCreateOpen (modal state), companyId, hasAttemptedCompanyId (flag để track đã thử extract companyId)
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [companyId, setCompanyId] = useState(null);
   const [hasAttemptedCompanyId, setHasAttemptedCompanyId] = useState(false);
 
   const currentPage = pagination.currentPage;
 
-  // Get authentication token from localStorage or sessionStorage
+  // Lấy authentication token từ localStorage hoặc sessionStorage: check rememberMe flag, nếu true dùng localStorage, nếu không dùng sessionStorage
   const getToken = () => {
     const remembered = localStorage.getItem('rememberMe') === 'true';
     const storage = remembered ? localStorage : sessionStorage;
     return storage.getItem('token');
   };
 
-  // Fetch company tours for dropdown selection and create tourId -> tourName map for display
+  // Fetch company tours cho dropdown selection và tạo tourId -> tourName map để hiển thị: gọi TOURS_BY_COMPANY_ID, filter chỉ PUBLIC tours cho dropdown, map tours cho dropdown (id, name), tạo toursMapObj cho quick lookup khi hiển thị voucher tours, handle 401
   const fetchTours = useCallback(async () => {
     if (!companyId) {
       return Promise.resolve();
@@ -84,19 +84,16 @@ const VoucherManagement = () => {
       if (response.ok) {
         const data = await response.json();
         const toursList = Array.isArray(data) ? data : [];
-        // Only show PUBLIC tours in the Apply Tour dropdown
         const publicTours = toursList.filter(tour => {
           const status = (tour.tourStatus || tour.status || '').toUpperCase();
           return status === 'PUBLIC';
         });
-        // Map tours for dropdown selection in modal
         const toursForDropdown = publicTours.map(tour => ({
           id: tour.id || tour.tourId,
           name: tour.tourName || tour.name || `Tour #${tour.id || tour.tourId}`
         }));
         setTours(toursForDropdown);
 
-        // Create a map of tourId -> tour name for quick lookup when displaying voucher tours
         const toursMapObj = {};
         toursList.forEach(tour => {
           const tourId = tour.id || tour.tourId;
@@ -112,14 +109,14 @@ const VoucherManagement = () => {
     return Promise.resolve();
   }, [companyId, setTours, setAllToursMap]);
 
-  // Fetch tours when companyId is available
+  // Fetch tours khi companyId có sẵn: gọi fetchTours nếu companyId có giá trị
   useEffect(() => {
     if (companyId) {
       fetchTours();
     }
   }, [companyId, fetchTours]);
 
-  // Fetch all vouchers for company and map backend response to frontend format
+  // Fetch tất cả vouchers cho company và map backend response sang frontend format: gọi getVouchersByCompanyId, map VoucherResponse (voucherId, companyId, code, name, discountType, discountValue, minOrderValue, totalQuantity, remainingQuantity, startDate, endDate, status, createdAt, updatedAt, tourIds), reset pagination
   const fetchVouchers = useCallback(async (cid) => {
     if (!cid) return;
 
@@ -132,7 +129,6 @@ const VoucherManagement = () => {
     try {
       setLoading(true);
       const data = await getVouchersByCompanyId(cid);
-      // Map backend VoucherResponse to frontend format, including tourIds array
       const mappedVouchers = Array.isArray(data) ? data.map(v => ({
         id: v.voucherId || v.id,
         companyId: v.companyId,
@@ -153,7 +149,6 @@ const VoucherManagement = () => {
       setVouchers(mappedVouchers);
       resetPagination();
     } catch (error) {
-      // Silently handle error fetching vouchers
       setError(error.message || 'Không thể tải danh sách voucher');
       setVouchers([]);
     } finally {
@@ -161,7 +156,7 @@ const VoucherManagement = () => {
     }
   }, [setLoading, setVouchers, setError, resetPagination]);
 
-  // Derive companyId from user: try user.companyId, then user.id (for COMPANY role), then fetch from vouchers
+  // Derive companyId từ user: thử user.companyId, sau đó user.id (cho COMPANY role), nếu không có thì fetch từ vouchers (lấy companyId từ voucher đầu tiên), set hasAttemptedCompanyId = true sau khi thử
   useEffect(() => {
     if (!user) {
       setLoading(false);
@@ -178,14 +173,12 @@ const VoucherManagement = () => {
       return;
     }
 
-    // Priority 1: Use user.companyId field if available
     if (user.companyId) {
       setCompanyId(user.companyId);
       setHasAttemptedCompanyId(true);
       return;
     }
 
-    // Priority 2: For COMPANY role, user.id equals companyId
     if (user.id) {
       const userIdAsCompanyId = typeof user.id === 'number' ? user.id : parseInt(user.id);
       if (!isNaN(userIdAsCompanyId)) {
@@ -195,7 +188,6 @@ const VoucherManagement = () => {
       }
     }
 
-    // Priority 3: Fallback - fetch all vouchers and extract companyId from voucher data
     const token = getToken();
     if (!token) {
       setLoading(false);
@@ -212,7 +204,6 @@ const VoucherManagement = () => {
           return;
         }
 
-        // Strategy 1: If user.id exists, find matching voucher to confirm it's the companyId
         if (user.id) {
           const userId = typeof user.id === 'number' ? user.id : parseInt(user.id);
           if (!isNaN(userId)) {
@@ -222,7 +213,6 @@ const VoucherManagement = () => {
               setHasAttemptedCompanyId(true);
               return;
             } else {
-              // No matching voucher found but user.id exists - use it anyway (user may not have created vouchers yet)
               setCompanyId(userId);
               setHasAttemptedCompanyId(true);
               return;
@@ -230,7 +220,6 @@ const VoucherManagement = () => {
           }
         }
 
-        // Strategy 2: Get companyId from first voucher (last resort when user.id unavailable)
         const firstVoucher = allVouchers[0];
         if (firstVoucher && firstVoucher.companyId) {
           setCompanyId(firstVoucher.companyId);
@@ -242,7 +231,6 @@ const VoucherManagement = () => {
         setHasAttemptedCompanyId(true);
       })
       .catch((error) => {
-        // Fallback: use user.id if available (user may not have vouchers yet)
         if (user.id) {
           const userId = typeof user.id === 'number' ? user.id : parseInt(user.id);
           if (!isNaN(userId)) {

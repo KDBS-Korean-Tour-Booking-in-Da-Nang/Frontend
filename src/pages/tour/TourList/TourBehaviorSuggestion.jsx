@@ -9,11 +9,11 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import styles from './TourBehaviorSuggestion.module.css';
 
-// Cache helper functions
 const getCacheKey = (userId) => `tourBehaviorSuggestion_${userId || 'guest'}`;
 const getCacheTimestampKey = (userId) => `tourBehaviorSuggestion_timestamp_${userId || 'guest'}`;
 
-// Get cached tours if available and not expired (24 hours)
+// Lấy tour đã cache từ localStorage
+// Cache có thời hạn 1 ngày, nếu hết hạn thì xóa và trả về null
 const getCachedTours = (userId) => {
   try {
     const cacheKey = getCacheKey(userId);
@@ -25,22 +25,21 @@ const getCachedTours = (userId) => {
       const cacheAge = Date.now() - Number.parseInt(cachedTimestamp, 10);
       const ONE_DAY_MS = 24 * 60 * 60 * 1000;
       
-      // Use cache if less than 24 hours old (matching backend logic)
+      // Nếu cache còn trong thời hạn (dưới 1 ngày), trả về dữ liệu
       if (cacheAge < ONE_DAY_MS) {
         return JSON.parse(cachedData);
       } else {
-        // Cache expired, remove it
+        // Cache hết hạn, xóa khỏi localStorage
         localStorage.removeItem(cacheKey);
         localStorage.removeItem(timestampKey);
       }
       }
     } catch {
-      // Silently handle error reading cache
     }
   return null;
 };
 
-// Save tours to cache
+// Lưu tour vào cache với timestamp để kiểm tra thời hạn sau
 const saveToursToCache = (userId, toursData) => {
   try {
     const cacheKey = getCacheKey(userId);
@@ -48,7 +47,6 @@ const saveToursToCache = (userId, toursData) => {
     localStorage.setItem(cacheKey, JSON.stringify(toursData));
     localStorage.setItem(timestampKey, String(Date.now()));
   } catch {
-    // Silently handle error saving cache
   }
 };
 
@@ -61,7 +59,6 @@ const TourBehaviorSuggestion = () => {
   const lastUserIdRef = useRef(null);
   const sliderRef = useRef(null);
 
-  // Transform tour from backend to TourCard format
   const transformTour = (tour) => {
     return {
       id: tour.tourId || tour.id,
@@ -75,28 +72,26 @@ const TourBehaviorSuggestion = () => {
     };
   };
 
+  // Effect fetch tour suggestion: chỉ fetch khi userId thay đổi
+  // Sử dụng cache để hiển thị ngay, sau đó fetch từ API
   useEffect(() => {
     const userId = user?.userId || user?.id || 0;
     
-    // Kiểm tra xem userId có thay đổi không
+    // Tránh fetch trùng lặp nếu đã fetch cho userId này
     if (hasFetchedRef.current && lastUserIdRef.current === userId) {
       return;
     }
     
-    // Kiểm tra cache trước khi fetch
+    // Lấy tour từ cache trước để hiển thị ngay
     const cachedTours = getCachedTours(userId);
     
-    // Nếu có cache hợp lệ, load ngay
     if (cachedTours && cachedTours.length > 0) {
       setTours(cachedTours);
       setLoading(false);
-      // Vẫn fetch trong background để cập nhật cache
     } else {
-      // Không có cache, cần loading state
       setLoading(true);
     }
     
-    // Đánh dấu đã fetch cho userId này
     hasFetchedRef.current = true;
     lastUserIdRef.current = userId;
 
@@ -119,62 +114,52 @@ const TourBehaviorSuggestion = () => {
         });
 
         if (!response.ok) {
-          // Re-check cache in case it was updated
           const currentCachedTours = getCachedTours(userId);
           
-          // Handle 401 with global error handler
+          // Xử lý lỗi 401: nếu có cache thì dùng cache, nếu không thì giữ loading state
           const is401 = await checkAndHandle401(response);
           if (is401) {
-            // Nếu có cache, dùng cache thay vì hiển thị lỗi
             if (currentCachedTours && currentCachedTours.length > 0) {
               setTours(currentCachedTours);
               setLoading(false);
               return;
             }
-            // Không có cache, giữ loading state thay vì hiển thị lỗi
             if (!currentCachedTours || currentCachedTours.length === 0) {
-              // Giữ loading state, không set error
-              // Component sẽ hiển thị loading thay vì error
               return;
             }
             return;
           }
           
-          // Nếu lỗi 500, kiểm tra xem có phải AI hết quota không
+          // Xử lý lỗi 500: fallback về cache nếu có
+          // Nếu là quota exceeded (429) thì không fallback, giữ loading state
           if (response.status === 500) {
             const errorText = await response.text().catch(() => 'Server error');
             
-            // Luôn dùng cache nếu có (bất kể loại lỗi)
             if (currentCachedTours && currentCachedTours.length > 0) {
               setTours(currentCachedTours);
               setLoading(false);
               return;
             }
             
-            // Nếu là lỗi quota của Gemini và không có cache, giữ loading state
+            // Nếu là quota exceeded, không fallback về cache (giữ loading state)
             if (errorText.includes('Quota exceeded') || errorText.includes('429') || errorText.includes('quota')) {
-              // Không có cache, giữ loading state
               return;
             }
             
-            // Không có cache, giữ loading state thay vì hiển thị lỗi
             if (!currentCachedTours || currentCachedTours.length === 0) {
-              // Giữ loading state, không set error
               return;
             }
             return;
           }
           
-          // Với các lỗi HTTP khác (400, 404, v.v.), dùng cache nếu có
+          // Với các lỗi khác: fallback về cache nếu có
           if (currentCachedTours && currentCachedTours.length > 0) {
             setTours(currentCachedTours);
             setLoading(false);
             return;
           }
           
-          // Không có cache, giữ loading state thay vì hiển thị lỗi
           if (!currentCachedTours || currentCachedTours.length === 0) {
-            // Giữ loading state, không set error
             return;
           }
           return;
@@ -182,12 +167,10 @@ const TourBehaviorSuggestion = () => {
 
         const data = await response.json();
         
-        // Transform tours to match TourCard format và chỉ lấy 3 tours đầu tiên
         const transformedTours = Array.isArray(data) 
           ? data.slice(0, 3).map(transformTour).filter(tour => tour.id) 
           : [];
 
-        // Lưu vào cache
         if (transformedTours.length > 0) {
           saveToursToCache(userId, transformedTours);
         }
@@ -195,9 +178,6 @@ const TourBehaviorSuggestion = () => {
         setTours(transformedTours);
         setLoading(false);
       } catch {
-        // Silently handle error fetching suggested tours
-        
-        // Nếu có cache, dùng cache thay vì hiển thị lỗi
         const currentCachedTours = getCachedTours(userId);
         if (currentCachedTours && currentCachedTours.length > 0) {
           setTours(currentCachedTours);
@@ -205,10 +185,7 @@ const TourBehaviorSuggestion = () => {
           return;
         }
         
-        // Không có cache, giữ loading state thay vì hiển thị lỗi
-        // Component sẽ hiển thị loading thay vì error
         if (!currentCachedTours || currentCachedTours.length === 0) {
-          // Giữ loading state, không set error
           return;
         }
       }
@@ -217,7 +194,6 @@ const TourBehaviorSuggestion = () => {
     fetchSuggestedTours();
   }, [user, getToken, t]);
 
-  // Slick carousel settings - hiển thị 3 tours
   const settings = {
     dots: false,
     infinite: false, // Không infinite vì chỉ có 3 tours
@@ -273,7 +249,6 @@ const TourBehaviorSuggestion = () => {
     sliderRef.current?.slickNext();
   };
 
-  // Hiển thị loading nếu đang loading hoặc chưa có tours (giống TourSuggestion)
   if (loading || tours.length === 0) {
     return (
       <div className={styles.container}>
@@ -288,9 +263,6 @@ const TourBehaviorSuggestion = () => {
     );
   }
 
-  // Không hiển thị error - chỉ hiển thị loading hoặc tours
-  // Error sẽ được xử lý bằng cách dùng cache hoặc tiếp tục loading
-
   return (
     <>
       <div className={styles.container}>
@@ -299,7 +271,6 @@ const TourBehaviorSuggestion = () => {
         </div>
 
         <div className={styles.carouselWrapper}>
-          {/* Nút điều hướng bên trái */}
           {tours.length > 0 && (
             <button 
               className={styles.navButtonLeft} 
@@ -312,7 +283,6 @@ const TourBehaviorSuggestion = () => {
             </button>
           )}
 
-          {/* Carousel với slick */}
           <div className={styles.carouselContainer} style={{ zIndex: 1, overflow: 'visible' }}>
             <Slider ref={sliderRef} {...settings}>
               {tours.map((tour) => (
@@ -334,7 +304,6 @@ const TourBehaviorSuggestion = () => {
             </Slider>
           </div>
 
-          {/* Nút điều hướng bên phải */}
           {tours.length > 0 && (
             <button 
               className={styles.navButtonRight} 
@@ -349,7 +318,6 @@ const TourBehaviorSuggestion = () => {
         </div>
       </div>
 
-      {/* Separator line */}
       <div className={styles.separator}>
         <div className={styles.separatorLine}></div>
         <div className={styles.separatorText}>

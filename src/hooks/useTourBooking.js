@@ -17,17 +17,14 @@ import {
   restoreBookingData
 } from '../store/tourBookingSlice';
 
-// Custom hook to replace useBooking from Context
-// Interface giống hệt với useBooking để đảm bảo backward compatibility
+// Custom hook để thay thế useBooking từ Context: interface giống hệt với useBooking để đảm bảo backward compatibility, select individual pieces với shallowEqual để tránh unnecessary re-renders, dùng ref để lưu stable action creators
 export function useTourBooking() {
   const dispatch = useDispatch();
   
-  // Select individual pieces with shallowEqual to prevent unnecessary re-renders
   const contact = useSelector((state) => state.tourBooking.contact, shallowEqual);
   const plan = useSelector((state) => state.tourBooking.plan, shallowEqual);
   const booking = useSelector((state) => state.tourBooking.booking, shallowEqual);
 
-  // Use ref to store stable action creators
   const actionsRef = useRef({
     setContact: (partial) => dispatch(setContact(partial)),
     setDate: (dateData) => dispatch(setDate(dateData)),
@@ -45,7 +42,7 @@ export function useTourBooking() {
     restoreBookingData: (data) => dispatch(restoreBookingData(data))
   });
 
-  // Return object - actions are stable via ref, only state changes trigger re-render
+  // Trả về object: actions stable qua ref, chỉ state changes mới trigger re-render
   return {
     contact,
     plan,

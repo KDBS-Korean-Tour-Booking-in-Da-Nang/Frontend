@@ -1,14 +1,10 @@
 import { useMemo } from 'react';
 
-/**
- * Custom hook for validating tour booking wizard steps
- * @param {Object} bookingData - The current booking data (contact, plan)
- * @returns {Object} Validation results and utilities
- */
+// Custom hook để validate tour booking wizard steps: validate step1 (contact info với format checks), step2 (date, pax, members với age requirements và ID validation), step3 (chỉ valid nếu step1 và step2 valid), trả về stepValidations, completionPercentage, isStepCompleted, getStepErrors, isAllStepsCompleted
 export const useBookingStepValidation = (bookingData) => {
   const { contact, plan, user } = bookingData;
   
-  // Helper function to validate phone format
+  // Validate phone format: kiểm tra Vietnamese format (0xxxxxxxxx) hoặc international format (+country code + digits)
   const isValidPhone = (phone) => {
     if (!phone?.trim()) return false;
     const vietnameseRegex = /^0\d{9}$/;
@@ -16,50 +12,41 @@ export const useBookingStepValidation = (bookingData) => {
     return vietnameseRegex.test(phone) || internationalRegex.test(phone);
   };
 
-  // Helper function to validate email format
+  // Validate email format: kiểm tra format cơ bản với regex
   const isValidEmail = (email) => {
     if (!email?.trim()) return false;
     const emailRegex = /^\S+@\S+\.\S+$/;
     return emailRegex.test(email);
   };
 
-  // Helper function to validate full name format (letters, numbers, spaces, hyphens, apostrophes)
-  // Requires at least one letter
+  // Validate full name format: hỗ trợ international names (José, François, Müller, 李小明, 田中太郎), cho phép numbers (John123, Mary2), yêu cầu ít nhất một chữ cái, regex hỗ trợ Unicode letters, marks, digits, spaces, hyphens, apostrophes, parentheses, dots
   const isValidFullName = (fullName) => {
     if (!fullName?.trim()) return false;
-    // Supports international names like: José, François, Müller, 李小明, 田中太郎, etc.
-    // Also allows numbers like: John123, Mary2, etc.
-    const nameRegex = /^[\p{L}\p{M}\d\s\-']+$/u;
+    const nameRegex = /^[\p{L}\p{M}\d\s()\-'.]+$/u;
     const trimmed = fullName.trim();
-    // Must match regex and have at least one letter
     return nameRegex.test(trimmed) && /[\p{L}\p{M}]/u.test(trimmed);
   };
 
-  // Helper function to calculate age from date of birth at a specific date (same as Step2Details)
+  // Tính age từ date of birth tại referenceDate (giống logic Step2Details): xử lý DD/MM/YYYY và YYYY-MM-DD format, tính age dựa trên year, month, day difference
   const calculateAge = (dob, referenceDate = null) => {
     if (!dob) return null;
     
     const refDate = referenceDate ? new Date(referenceDate) : new Date();
     
-    // Handle different date formats
     let birthDate;
     if (typeof dob === 'string') {
-      // Check if it's DD/MM/YYYY format
       if (/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) {
         const [day, month, year] = dob.split('/');
-        birthDate = new Date(year, month - 1, day); // month is 0-indexed
+        birthDate = new Date(year, month - 1, day);
       } else if (/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
-        // YYYY-MM-DD format
         birthDate = new Date(dob);
       } else {
-        // Try default Date constructor
         birthDate = new Date(dob);
       }
     } else {
       birthDate = new Date(dob);
     }
     
-    // Check if birthDate is valid
     if (isNaN(birthDate.getTime())) {
       return null;
     }
@@ -73,7 +60,7 @@ export const useBookingStepValidation = (bookingData) => {
     return age;
   };
 
-  // Helper function to validate date of birth format and age
+  // Validate date of birth format và age: kiểm tra format và age >= minAge (mặc định 18)
   const isValidDob = (dob, minAge = 18) => {
     if (!dob?.trim()) return false;
     
@@ -81,38 +68,26 @@ export const useBookingStepValidation = (bookingData) => {
     return age !== null && age >= minAge;
   };
 
-  // Helper function to check if ID is required based on age and nationality
+  // Kiểm tra ID có bắt buộc không dựa trên age và nationality: VN: <2 tuổi không cần, 2-<12 không cần, 12-<14 không cần, 14-<18 cần CCCD, >=18 cần CCCD/CMND; các nationality khác: luôn cần passport
   const isIdRequired = (dob, nationality) => {
     if (!dob || !nationality) return false;
     
     const age = calculateAge(dob);
     if (age === null) return false;
     
-    // For Vietnamese nationality (tour nội địa) - use country code VN
     if (nationality === 'VN') {
-      // Em bé (0 - dưới 2 tuổi): Không bắt buộc CCCD/CMND
       if (age < 2) return false;
-      
-      // Trẻ em (2 - dưới 12 tuổi): Không bắt buộc CCCD/CMND
       if (age >= 2 && age < 12) return false;
-      
-      // Trẻ em (12 - dưới 14 tuổi): Không bắt buộc CCCD/CMND (có thể có hoặc không)
       if (age >= 12 && age < 14) return false;
-      
-      // Trẻ em (14 - dưới 18 tuổi): Bắt buộc CCCD (vì đã có thể làm CCCD)
       if (age >= 14 && age < 18) return true;
-      
-      // Người lớn (18 tuổi trở lên): Bắt buộc CCCD/CMND
       if (age >= 18) return true;
     }
     
-    // For other nationalities: Always require passport
     return true;
   };
 
-  // Step validation logic
+  // Step validation logic: step1 kiểm tra contact info (fullName với format, phone với format, email với format, dob với age >= 18, address, pickupPoint), step2 kiểm tra date (trong range today đến 1 tháng), pax (adult > 0), members (tất cả có basic info, age requirements theo member type, ID validation), step3 chỉ valid nếu step1 và step2 valid
   const stepValidations = useMemo(() => {
-    // Get DOB from either contact or plan.members.adult[0]
     const representativeDob = contact?.dob || plan?.members?.adult?.[0]?.dob;
     
     return {
@@ -124,13 +99,9 @@ export const useBookingStepValidation = (bookingData) => {
         representativeDob?.trim() &&
         contact?.address?.trim() &&
         contact?.pickupPoint?.trim() &&
-        // Check full name format
         isValidFullName(contact?.fullName) &&
-        // Check phone format
         isValidPhone(contact?.phone) &&
-        // Check email format
         isValidEmail(contact?.email) &&
-        // Check DOB format and age (representative must be >= 18)
         isValidDob(representativeDob, 18)
       ),
       missingFields: [
@@ -151,7 +122,6 @@ export const useBookingStepValidation = (bookingData) => {
         const hasDate = plan?.date?.day && plan?.date?.month && plan?.date?.year;
         const hasAdultPax = plan?.pax?.adult > 0;
         
-        // Check date is within valid range (today to 1 month from now)
         const dateValid = (() => {
           if (!hasDate) return false;
           const selectedDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
@@ -162,12 +132,10 @@ export const useBookingStepValidation = (bookingData) => {
           return selectedDate >= today && selectedDate <= maxDate;
         })();
         
-        // Check all members have required fields
         const allMembers = [...(plan?.members?.adult || []), ...(plan?.members?.child || []), ...(plan?.members?.infant || [])];
         
         const membersValid = allMembers
           .every((member, index) => {
-            // For representative (adult[0]), use contact data as fallback for name and dob
             const isRepresentative = allMembers.indexOf(member) === 0 && plan?.members?.adult?.[0] === member;
             const effectiveFullName = isRepresentative ? (member?.fullName?.trim() || contact?.fullName?.trim()) : member?.fullName?.trim();
             const effectiveDob = isRepresentative ? (member?.dob || contact?.dob) : member?.dob;
@@ -175,10 +143,8 @@ export const useBookingStepValidation = (bookingData) => {
             const hasBasicInfo = effectiveFullName && effectiveDob && member?.gender && member?.nationality;
             if (!hasBasicInfo) return false;
             
-            // Check age requirements based on member type
             if (effectiveDob) {
-              // First validate DOB format using the same logic as Step components
-              const isValidDobFormat = isValidDob(effectiveDob, 0); // Use 0 as minAge to just check format
+              const isValidDobFormat = isValidDob(effectiveDob, 0);
               
               if (!isValidDobFormat) {
                 return false;
@@ -190,9 +156,7 @@ export const useBookingStepValidation = (bookingData) => {
                 return false;
               }
               
-              // Check age requirements based on member type (using same logic as Step2Details)
               const actualMemberType = (() => {
-                // Find which array this member belongs to
                 const adultIndex = plan?.members?.adult?.findIndex(m => m === member);
                 const childIndex = plan?.members?.child?.findIndex(m => m === member);
                 const infantIndex = plan?.members?.infant?.findIndex(m => m === member);
@@ -203,14 +167,11 @@ export const useBookingStepValidation = (bookingData) => {
                 return 'unknown';
               })();
               
-              // Validate age requirements using same logic as Step2Details
               if (actualMemberType === 'representative') {
-                // Representative must be at least 18 years old
                 if (age < 18) {
                   return false;
                 }
                 
-                // Also check age at departure date if available
                 if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
                   const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
                   const ageAtDeparture = calculateAge(effectiveDob, departureDate);
@@ -220,12 +181,10 @@ export const useBookingStepValidation = (bookingData) => {
                   }
                 }
               } else if (actualMemberType === 'adult') {
-                // Adults must be at least 18 years old
                 if (age < 18) {
                   return false;
                 }
                 
-                // Also check age at departure date if available
                 if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
                   const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
                   const ageAtDeparture = calculateAge(effectiveDob, departureDate);
@@ -235,12 +194,10 @@ export const useBookingStepValidation = (bookingData) => {
                   }
                 }
               } else if (actualMemberType === 'child') {
-                // Children must be 2-18 years old
                 if (age < 2 || age >= 18) {
                   return false;
                 }
                 
-                // Also check age at departure date if available
                 if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
                   const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
                   const ageAtDeparture = calculateAge(effectiveDob, departureDate);
@@ -250,12 +207,10 @@ export const useBookingStepValidation = (bookingData) => {
                   }
                 }
               } else if (actualMemberType === 'infant') {
-                // Infants must be under 2 years old
                 if (age >= 2) {
                   return false;
                 }
                 
-                // Also check age at departure date if available
                 if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
                   const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
                   const ageAtDeparture = calculateAge(effectiveDob, departureDate);
@@ -267,25 +222,19 @@ export const useBookingStepValidation = (bookingData) => {
               }
             }
             
-            // Check if ID is required based on age and nationality
             const memberIdRequired = isIdRequired(member.dob, member.nationality);
             
-            // If ID is required, check if it's provided and valid format
             if (memberIdRequired) {
               if (!member?.idNumber?.trim()) return false;
               
-              // Validate format based on nationality
               if (member.nationality === 'VN') {
-                // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
                 const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
                 return vietnameseIdRegex.test(member.idNumber);
               } else {
-                // Passport validation: 6-9 characters, letters and numbers
                 const passportRegex = /^[A-Z0-9]{6,9}$/i;
                 return passportRegex.test(member.idNumber);
               }
             } else if (member?.idNumber?.trim()) {
-              // Not required, but user entered → validate format to prevent bad data
               if (member.nationality === 'VN') {
                 const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
                 return vietnameseIdRegex.test(member.idNumber);
@@ -301,18 +250,13 @@ export const useBookingStepValidation = (bookingData) => {
         return hasDate && hasAdultPax && dateValid && membersValid;
       })(),
       missingFields: [
-        // Check basic requirements
         (!plan?.date?.day || !plan?.date?.month || !plan?.date?.year) && 'booking.step2.toast.dateRequired',
         !plan?.pax?.adult && 'booking.step2.toast.adultPaxRequired',
-        
-        // Check representative (adult[0]) - use contact data as fallback
         (!(plan?.members?.adult?.[0]?.fullName?.trim() || contact?.fullName?.trim())) && 'booking.step2.toast.representativeNameRequired',
         (!(plan?.members?.adult?.[0]?.dob || contact?.dob)) && 'booking.step2.toast.representativeDobRequired',
         ((plan?.members?.adult?.[0]?.dob || contact?.dob) && !isValidDob(plan?.members?.adult?.[0]?.dob || contact?.dob, 0)) && 'booking.step2.toast.representativeDobInvalidFormat',
         (!(plan?.members?.adult?.[0]?.gender || contact?.gender)) && 'booking.step2.toast.representativeGenderRequired',
         (!(plan?.members?.adult?.[0]?.nationality || contact?.nationality)) && 'booking.step2.toast.representativeNationalityRequired',
-        
-        // Check representative ID validation
         ...(plan?.members?.adult?.[0]?.dob || contact?.dob ? (() => {
           const dob = plan?.members?.adult?.[0]?.dob || contact?.dob;
           const nationality = plan?.members?.adult?.[0]?.nationality || contact?.nationality;
@@ -328,13 +272,11 @@ export const useBookingStepValidation = (bookingData) => {
               missingFields.push('booking.step2.toast.representativeIdRequiredPassport');
             }
           } else if (nationality === 'VN') {
-            // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
             const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
             if (!vietnameseIdRegex.test(idNumber)) {
               missingFields.push('booking.step2.toast.representativeIdInvalidFormat');
             }
           } else {
-            // Passport validation: 6-9 characters, letters and numbers
             const passportRegex = /^[A-Z0-9]{6,9}$/i;
             if (!passportRegex.test(idNumber)) {
               missingFields.push('booking.step2.toast.representativeIdInvalidFormatPassport');
@@ -343,8 +285,6 @@ export const useBookingStepValidation = (bookingData) => {
           
           return missingFields;
         })() : []),
-        
-        // Check representative age validation
         ...(plan?.members?.adult?.[0]?.dob || contact?.dob ? (() => {
           const dob = plan?.members?.adult?.[0]?.dob || contact?.dob;
           if (!isValidDob(dob, 0)) return [];
@@ -357,7 +297,6 @@ export const useBookingStepValidation = (bookingData) => {
             ageErrors.push('booking.step2.toast.representativeTooYoung');
           }
           
-          // Check age at departure date if available
           if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
             const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
             const ageAtDeparture = calculateAge(dob, departureDate);
@@ -369,8 +308,6 @@ export const useBookingStepValidation = (bookingData) => {
           
           return ageErrors;
         })() : []),
-        
-        // Check additional adults (adult[1] onwards)
         ...(plan?.members?.adult?.slice(1) || []).map((member, index) => {
           const adultNumber = index + 1;
           const missingFields = [];
@@ -381,14 +318,12 @@ export const useBookingStepValidation = (bookingData) => {
           if (!member?.gender) missingFields.push(`booking.step2.toast.adultGenderRequiredGeneric`);
           if (!member?.nationality) missingFields.push(`booking.step2.toast.adultNationalityRequiredGeneric`);
           
-          // Check adult age validation
           if (member?.dob && isValidDob(member.dob, 0)) {
             const age = calculateAge(member.dob);
             if (age !== null && age < 12) {
               missingFields.push('booking.step2.toast.adultTooYoung');
             }
             
-            // Check age at departure date if available
             if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
               const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
               const ageAtDeparture = calculateAge(member.dob, departureDate);
@@ -399,9 +334,7 @@ export const useBookingStepValidation = (bookingData) => {
             }
           }
           
-          // Check adult ID validation
-          // 1) If ID is required by age/nationality -> require and validate
-          // 2) If ID is NOT required but user entered something -> still validate format and block proceed with a toast
+          // Kiểm tra ID validation: nếu required theo age/nationality thì require và validate, nếu không required nhưng user đã nhập thì vẫn validate format để block proceed
           if (member?.dob && member?.nationality) {
             const required = isIdRequired(member.dob, member.nationality);
             const hasId = !!member?.idNumber?.trim();
@@ -414,20 +347,17 @@ export const useBookingStepValidation = (bookingData) => {
                   missingFields.push('booking.step2.toast.adultIdRequiredGenericPassport');
                 }
               } else if (member.nationality === 'VN') {
-                // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
                 const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
                 if (!vietnameseIdRegex.test(member.idNumber)) {
                   missingFields.push('booking.step2.toast.adultIdInvalidFormatGeneric');
                 }
               } else {
-                // Passport validation: 6-9 characters, letters and numbers
                 const passportRegex = /^[A-Z0-9]{6,9}$/i;
                 if (!passportRegex.test(member.idNumber)) {
                   missingFields.push('booking.step2.toast.adultIdInvalidFormatGenericPassport');
                 }
               }
             } else if (hasId) {
-              // Not required, but user entered → validate format to prevent bad data
               if (member.nationality === 'VN') {
                 const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
                 if (!vietnameseIdRegex.test(member.idNumber)) {
@@ -444,8 +374,6 @@ export const useBookingStepValidation = (bookingData) => {
           
           return missingFields;
         }).flat(),
-        
-        // Check children
         ...(plan?.members?.child || []).map((member, index) => {
           const childNumber = index + 1;
           const missingFields = [];
@@ -456,7 +384,6 @@ export const useBookingStepValidation = (bookingData) => {
           if (!member?.gender) missingFields.push(`booking.step2.toast.childGenderRequiredGeneric`);
           if (!member?.nationality) missingFields.push(`booking.step2.toast.childNationalityRequiredGeneric`);
           
-          // Check child age validation
           if (member?.dob && isValidDob(member.dob, 0)) {
             const age = calculateAge(member.dob);
             if (age !== null) {
@@ -468,7 +395,6 @@ export const useBookingStepValidation = (bookingData) => {
               }
             }
             
-            // Check age at departure date if available
             if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
               const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
               const ageAtDeparture = calculateAge(member.dob, departureDate);
@@ -484,7 +410,6 @@ export const useBookingStepValidation = (bookingData) => {
             }
           }
           
-          // Check child ID validation
           if (member?.dob && member?.nationality && isIdRequired(member.dob, member.nationality)) {
             if (!member?.idNumber?.trim()) {
               if (member.nationality === 'VN') {
@@ -493,13 +418,11 @@ export const useBookingStepValidation = (bookingData) => {
                 missingFields.push('booking.step2.toast.childIdRequiredGenericPassport');
               }
             } else if (member.nationality === 'VN') {
-              // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
               const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
               if (!vietnameseIdRegex.test(member.idNumber)) {
                 missingFields.push('booking.step2.toast.childIdInvalidFormatGeneric');
               }
             } else {
-              // Passport validation: 6-9 characters, letters and numbers
               const passportRegex = /^[A-Z0-9]{6,9}$/i;
               if (!passportRegex.test(member.idNumber)) {
                 missingFields.push('booking.step2.toast.childIdInvalidFormatGenericPassport');
@@ -509,8 +432,6 @@ export const useBookingStepValidation = (bookingData) => {
           
           return missingFields;
         }).flat(),
-        
-        // Check infants
         ...(plan?.members?.infant || []).map((member, index) => {
           const infantNumber = index + 1;
           const missingFields = [];
@@ -521,14 +442,12 @@ export const useBookingStepValidation = (bookingData) => {
           if (!member?.gender) missingFields.push(`booking.step2.toast.infantGenderRequiredGeneric`);
           if (!member?.nationality) missingFields.push(`booking.step2.toast.infantNationalityRequiredGeneric`);
           
-          // Check infant age validation
           if (member?.dob && isValidDob(member.dob, 0)) {
             const age = calculateAge(member.dob);
             if (age !== null && age >= 2) {
               missingFields.push('booking.step2.toast.infantTooOld');
             }
             
-            // Check age at departure date if available
             if (plan?.date?.day && plan?.date?.month && plan?.date?.year) {
               const departureDate = new Date(plan.date.year, plan.date.month - 1, plan.date.day);
               const ageAtDeparture = calculateAge(member.dob, departureDate);
@@ -539,7 +458,6 @@ export const useBookingStepValidation = (bookingData) => {
             }
           }
           
-          // Check infant ID validation
           if (member?.dob && member?.nationality && isIdRequired(member.dob, member.nationality)) {
             if (!member?.idNumber?.trim()) {
               if (member.nationality === 'VN') {
@@ -548,13 +466,11 @@ export const useBookingStepValidation = (bookingData) => {
                 missingFields.push('booking.step2.toast.infantIdRequiredGenericPassport');
               }
             } else if (member.nationality === 'VN') {
-              // Vietnamese ID validation: 12 digits (CCCD) or 9 digits (CMND/CMT)
               const vietnameseIdRegex = /^(?:\d{12}|\d{9})$/;
               if (!vietnameseIdRegex.test(member.idNumber)) {
                 missingFields.push('booking.step2.toast.infantIdInvalidFormatGeneric');
               }
             } else {
-              // Passport validation: 6-9 characters, letters and numbers
               const passportRegex = /^[A-Z0-9]{6,9}$/i;
               if (!passportRegex.test(member.idNumber)) {
                 missingFields.push('booking.step2.toast.infantIdInvalidFormatGenericPassport');
@@ -568,7 +484,6 @@ export const useBookingStepValidation = (bookingData) => {
     },
     step3: {
       isValid: (() => {
-        // Step 3 is only valid if previous steps are completed
         const step1Valid = !!(
           contact?.fullName?.trim() && 
           contact?.phone?.trim() && 
@@ -644,8 +559,7 @@ export const useBookingStepValidation = (bookingData) => {
                 }
               }
               
-              // ID format validation should also block step when provided, even if not required
-              // This ensures cases like Vietnamese 12-<14 entering bad CCCD will not proceed
+              // ID format validation cũng block step khi provided dù không required, đảm bảo trường hợp Vietnamese 12-<14 nhập CCCD sai format sẽ không proceed
               if (member?.nationality && member?.idNumber?.trim()) {
                 if (member.nationality === 'VN') {
                   const vnIdRegex = /^(?:\d{12}|\d{9})$/;
@@ -671,25 +585,25 @@ export const useBookingStepValidation = (bookingData) => {
     };
   }, [contact, plan]);
 
-  // Overall completion percentage
+  // Tính completion percentage: đếm số steps đã valid, chia cho 3 (tổng số steps) nhân 100
   const completionPercentage = useMemo(() => {
     const completedSteps = Object.values(stepValidations).filter(step => step.isValid).length;
     return (completedSteps / 3) * 100;
   }, [stepValidations]);
 
-  // Check if specific step is completed
+  // Kiểm tra step cụ thể đã completed chưa: lấy stepKey từ stepId, trả về isValid hoặc false
   const isStepCompleted = (stepId) => {
     const stepKey = `step${stepId}`;
     return stepValidations[stepKey]?.isValid || false;
   };
 
-  // Get validation errors for a specific step
+  // Lấy validation errors cho step cụ thể: lấy stepKey từ stepId, trả về missingFields hoặc empty array
   const getStepErrors = (stepId) => {
     const stepKey = `step${stepId}`;
     return stepValidations[stepKey]?.missingFields || [];
   };
 
-  // Check if all steps are completed
+  // Kiểm tra tất cả steps đã completed chưa: kiểm tra tất cả steps đều isValid
   const isAllStepsCompleted = useMemo(() => {
     return Object.values(stepValidations).every(step => step.isValid);
   }, [stepValidations]);

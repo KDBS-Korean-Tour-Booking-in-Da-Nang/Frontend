@@ -1,13 +1,12 @@
-// API Configuration
-// Normalize base URLs - remove trailing slashes to avoid double slashes
+// Cấu hình API: lấy URL base từ biến môi trường VITE_API_BASE_URL (mặc định localhost:8080), sử dụng regex /\/+$/ để loại bỏ tất cả trailing slashes đảm bảo URL sạch sẽ và nhất quán
 const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-export const BaseURL = rawBase.replace(/\/+$/, ''); // Remove trailing slash(es)
+export const BaseURL = rawBase.replace(/\/+$/, '');
 
-// Frontend URL for link detection - align with vite.config.js port (3000)
+// Lấy URL frontend từ biến môi trường VITE_FRONTEND_URL (mặc định localhost:3000), tương tự BaseURL loại bỏ trailing slashes để đảm bảo URL nhất quán và tránh lỗi routing
 const rawFrontendUrl = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000';
-export const FrontendURL = rawFrontendUrl.replace(/\/+$/, ''); // Remove trailing slash(es)
+export const FrontendURL = rawFrontendUrl.replace(/\/+$/, '');
 
-// Helper to detect if URL is localhost (for production warnings)
+// Kiểm tra URL có phải localhost không: dùng để phát hiện localhost/127.0.0.1 để cảnh báo trong production, thử parse URL bằng URL constructor trước nếu thất bại thì fallback về kiểm tra string contains để xử lý các trường hợp URL không hợp lệ
 const isLocalhostUrl = (url) => {
   if (!url) return false;
   try {
@@ -18,9 +17,8 @@ const isLocalhostUrl = (url) => {
   }
 };
 
-// Warn in production if using localhost (but don't fail - allows for special cases)
+// Cảnh báo trong production nếu sử dụng localhost: kiểm tra PROD=true và BaseURL là localhost, sử dụng flag __apiConfigWarned để chỉ cảnh báo một lần tránh spam console, giúp developer nhận biết khi chưa cấu hình đúng biến môi trường VITE_API_BASE_URL cho production deployment
 if (import.meta.env.PROD && isLocalhostUrl(BaseURL)) {
-  // Only warn once, not on every import
   if (typeof globalThis.window !== 'undefined' && !globalThis.window.__apiConfigWarned) {
     // eslint-disable-next-line no-console
     console.warn(
@@ -31,11 +29,10 @@ if (import.meta.env.PROD && isLocalhostUrl(BaseURL)) {
   }
 }
 
-// Helper function to safely join URLs (base + path)
-// Prevents double slashes and handles edge cases
+// Nối URL an toàn (base + path) tránh double slashes: loại bỏ tất cả trailing slashes ở base và đảm bảo path bắt đầu bằng một dấu slash, ví dụ joinUrl('http://api.com/', '/users') => 'http://api.com/users' hoặc joinUrl('http://api.com', 'users') => 'http://api.com/users'
 const joinUrl = (base, path) => {
-  const normalizedBase = base.replace(/\/+$/, ''); // Remove trailing slashes from base
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`; // Ensure path starts with /
+  const normalizedBase = base.replace(/\/+$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;
 };
 
@@ -141,7 +138,6 @@ export const API_ENDPOINTS = {
   // Vouchers
   VOUCHERS: `${BaseURL}/api/vouchers`,
   VOUCHERS_BY_COMPANY: (companyId) => `${BaseURL}/api/vouchers/company/${companyId}`,
-  // BE mapping: @RequestMapping("/api/vouchers") + @GetMapping("/{tourId}")
   VOUCHERS_BY_TOUR: (tourId) => `${BaseURL}/api/vouchers/${tourId}`,
 
   // Transactions
@@ -165,15 +161,12 @@ export const API_ENDPOINTS = {
   ADMIN_MONTHLY_REVENUE: (year) => `${BaseURL}/api/admin/booking/monthly-revenue?year=${year}`,
 };
 
-// Helper function để xử lý avatar URLs
+// Xử lý avatar URLs: chuyển đổi avatar path thành URL đầy đủ để hiển thị, xử lý các trường hợp null/undefined/empty => trả về default avatar '/default-avatar.png', full URL (chứa https:// hoặc http://) => tìm vị trí bắt đầu và trích xuất URL từ đó, bắt đầu bằng /https:// hoặc /http:// => loại bỏ slash đầu tiên, relative path => nối với BaseURL để tạo full URL, lý do backend có thể lưu full Azure URL trong path nên cần trích xuất đúng URL
 export const getAvatarUrl = (avatar) => {
   if (!avatar) return '/default-avatar.png';
-  // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
   const trimmed = avatar.trim();
 
-  // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
   if (trimmed.includes('https://') || trimmed.includes('http://')) {
-    // Extract the full URL from the path
     const httpsIndex = trimmed.indexOf('https://');
     const httpIndex = trimmed.indexOf('http://');
     const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
@@ -183,21 +176,18 @@ export const getAvatarUrl = (avatar) => {
   }
 
   if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
-    return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+    return trimmed.substring(1);
   }
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   return joinUrl(BaseURL, trimmed);
 };
 
-// Helper function để xử lý image URLs
+// Xử lý image URLs: chuyển đổi image path thành URL đầy đủ để hiển thị, tương tự getAvatarUrl nhưng trả về empty string thay vì default image khi không có path, xử lý null/undefined/empty => empty string, full URL => tìm vị trí bắt đầu và trích xuất URL, relative path => nối với BaseURL, dùng cho các loại image khác ngoài avatar như post images, tour images, article images
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '';
-  // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
   const trimmed = imagePath.trim();
 
-  // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
   if (trimmed.includes('https://') || trimmed.includes('http://')) {
-    // Extract the full URL from the path
     const httpsIndex = trimmed.indexOf('https://');
     const httpIndex = trimmed.indexOf('http://');
     const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
@@ -207,21 +197,18 @@ export const getImageUrl = (imagePath) => {
   }
 
   if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
-    return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+    return trimmed.substring(1);
   }
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   return joinUrl(BaseURL, trimmed);
 };
 
-// Helper function để xử lý tour image URLs với fallback về default tour image
+// Xử lý tour image URLs với fallback về default tour image: tương tự getImageUrl nhưng có fallback default image khi không có path, thiết kế riêng cho tour images để đảm bảo luôn có image hiển thị (dù là default), xử lý null/undefined/empty => trả về defaultImage (mặc định '/default-Tour.jpg'), full URL => trích xuất URL, relative path => nối với BaseURL, cho phép custom defaultImage nếu cần sử dụng image mặc định khác
 export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') => {
   if (!imagePath) return defaultImage;
-  // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
   const trimmed = imagePath.trim();
 
-  // Check if path contains full URL anywhere (fix: Backend lưu full Azure URL trong path)
   if (trimmed.includes('https://') || trimmed.includes('http://')) {
-    // Extract the full URL from the path
     const httpsIndex = trimmed.indexOf('https://');
     const httpIndex = trimmed.indexOf('http://');
     const urlStartIndex = httpsIndex >= 0 ? httpsIndex : httpIndex;
@@ -231,65 +218,53 @@ export const getTourImageUrl = (imagePath, defaultImage = '/default-Tour.jpg') =
   }
 
   if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
-    return trimmed.substring(1); // Loại bỏ dấu / ở đầu
+    return trimmed.substring(1);
   }
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   return joinUrl(BaseURL, trimmed);
 };
 
-// Helper function để normalize URL về relative path khi lưu (loại bỏ BaseURL nếu có)
-// Chỉ dùng khi LƯU vào database/state, KHÔNG dùng khi HIỂN THỊ
-// Đảm bảo khi deploy, không lưu full URL với backend domain vào database
+// Normalize URL về relative path khi lưu (loại bỏ BaseURL nếu có): QUAN TRỌNG chỉ dùng khi LƯU vào database/state KHÔNG dùng khi HIỂN THỊ, mục đích đảm bảo khi deploy không lưu full URL với backend domain vào database giúp code chạy trên nhiều môi trường khác nhau mà không cần migrate data, xử lý URL rỗng => empty string, relative path (bắt đầu bằng /) => trả về nguyên vẹn, chứa BaseURL => so sánh case-insensitive và loại bỏ BaseURL chỉ giữ relative path, localhost dev environment => trích xuất pathname từ URL (ví dụ http://localhost:8080/uploads/image.jpg => /uploads/image.jpg), external URL => giữ nguyên
 export const normalizeToRelativePath = (url) => {
   if (!url) return '';
   
-  // Trim whitespace
   const trimmed = url.trim();
   if (!trimmed) return '';
   
-  // Nếu đã là relative path (bắt đầu với /), giữ nguyên
   if (trimmed.startsWith('/')) return trimmed;
   
-  // Nếu là absolute URL từ BaseURL (hoặc localhost trong dev), chuyển về relative path
-  // Kiểm tra cả BaseURL hiện tại và localhost để đảm bảo hoạt động trong cả dev và prod
   const baseUrlLower = BaseURL.toLowerCase();
   const trimmedLower = trimmed.toLowerCase();
   
   if (trimmedLower.startsWith(baseUrlLower)) {
     const relativePath = trimmed.substring(BaseURL.length);
-    // Đảm bảo bắt đầu với /
     return relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
   }
   
-  // Kiểm tra localhost URLs (cho trường hợp dev environment)
-  // Chỉ normalize nếu URL chứa localhost và có path giống với BaseURL pattern
   if (isLocalhostUrl(trimmed) && trimmed.includes('/uploads/')) {
-    // Extract path sau domain (ví dụ: /uploads/users/avatar/...)
     try {
       const urlObj = new URL(trimmed);
-      return urlObj.pathname; // Trả về pathname (đã có / ở đầu)
+      return urlObj.pathname;
     } catch {
-      // Nếu không parse được URL, thử extract path manually
       const pathMatch = trimmed.match(/\/uploads\/.*/);
       if (pathMatch) return pathMatch[0];
     }
   }
   
-  // Nếu là absolute URL từ domain khác (external URL), giữ nguyên
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return trimmed; // Giữ nguyên external URLs (ví dụ: từ crawl articles)
+    return trimmed;
   }
   
-  // Nếu không có prefix, thêm / để thành relative path
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 };
 
-// Helper function để tạo headers với auth token
+// Normalize Bearer token: đảm bảo token luôn có prefix "Bearer " để đúng format cho Authorization header, xử lý token rỗng => trả về undefined, token đã có "Bearer " => trả về nguyên vẹn, token chưa có "Bearer " => thêm prefix vào
 const normalizeBearer = (token) => {
   if (!token) return undefined;
   return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
 };
 
+// Tạo headers với auth token cho các request JSON: tạo object headers chuẩn cho API request cần authentication, tự động set Content-Type là application/json và thêm Authorization header với Bearer token, cho phép thêm headers bổ sung thông qua additionalHeaders parameter, sử dụng normalizeBearer để đảm bảo token luôn có format đúng "Bearer <token>"
 export const createAuthHeaders = (token, additionalHeaders = {}) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -304,11 +279,10 @@ export const createAuthHeaders = (token, additionalHeaders = {}) => {
   return headers;
 };
 
-// Helper function để tạo headers cho multipart/form-data với auth token
+// Tạo headers cho multipart/form-data với auth token: tương tự createAuthHeaders nhưng KHÔNG set Content-Type vì khi gửi FormData browser sẽ tự động set Content-Type với boundary parameter, nếu set Content-Type thủ công sẽ làm mất boundary và request sẽ fail, chỉ thêm Authorization header với Bearer token và các additionalHeaders (nếu có), sử dụng khi upload file, image, hoặc gửi form data
 export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
   const headers = {
     ...additionalHeaders
-    // Không set Content-Type cho FormData, browser sẽ tự động set với boundary
   };
 
   const bearer = normalizeBearer(token);
@@ -319,22 +293,13 @@ export const createAuthFormHeaders = (token, additionalHeaders = {}) => {
   return headers;
 };
 
-// Helper function để lấy API path thông minh cho cả development và production
-// - Development: Dùng relative path để Vite proxy xử lý
-// - Production: Dùng full URL từ BaseURL
+// Lấy API path thông minh cho development và production: development dùng relative path (ví dụ '/api/users') để Vite proxy forward request đến backend server tránh CORS issues, production dùng full URL (ví dụ 'https://api.example.com/api/users') vì không có Vite dev server nên cần gọi trực tiếp đến backend, đảm bảo path luôn bắt đầu bằng dấu slash để tránh lỗi routing, sử dụng joinUrl để nối BaseURL với path trong production
 export const getApiPath = (path) => {
-  // Đảm bảo path bắt đầu với /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-
-  // Nếu đang ở production mode, dùng full URL
+  
   if (import.meta.env.PROD) {
-    // Trong production, luôn dùng BaseURL (đã được set trong env)
-    // Nếu BaseURL không được set đúng, API calls sẽ fail - đó là behavior mong muốn
-    // BaseURL đã được validate ở trên với warning nếu là localhost
     return joinUrl(BaseURL, normalizedPath);
   } else {
-    // Trong development, dùng relative path để Vite proxy xử lý
-    // Vite proxy trong vite.config.js sẽ forward /api/* đến backend
     return normalizedPath;
   }
 };

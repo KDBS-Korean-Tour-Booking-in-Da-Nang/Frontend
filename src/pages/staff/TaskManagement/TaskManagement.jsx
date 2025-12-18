@@ -31,7 +31,7 @@ const TaskManagement = () => {
   const [error, setError] = useState('');
   const [searchParams] = useSearchParams();
 
-  // Data for summary cards only
+  // Data cho summary cards: forumReportsCount, bookingComplaintsCount, companyRequestsCount, pendingToursCount, pendingArticlesCount
   const [forumReportsCount, setForumReportsCount] = useState(0);
   const [bookingComplaintsCount, setBookingComplaintsCount] = useState(0);
   const [companyRequestsCount, setCompanyRequestsCount] = useState(0);
@@ -43,7 +43,7 @@ const TaskManagement = () => {
   const canHandleTours = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
   const canHandleArticles = user?.staffTask === 'APPROVE_TOUR_BOOKING_AND_APPROVE_ARTICLE' || user?.role === 'ADMIN';
 
-  // Load summary data for dashboard
+  // Load summary data cho dashboard: load forum reports count, booking complaints count, company requests count, pending tours count, pending articles count, không gọi checkAndHandle401 trong background loading để tránh premature logout
   const loadSummaryData = useCallback(async () => {
     try {
       const token = getToken();
@@ -58,8 +58,6 @@ const TaskManagement = () => {
         try {
           const response = await fetch(`${API_ENDPOINTS.REPORTS_ADMIN_ALL}?page=0&size=1`, { headers });
           if (response.status === 401) {
-            // Don't call checkAndHandle401 here to avoid logout loop
-            // Just skip this data load
             return;
           }
           if (response.ok) {
@@ -67,28 +65,22 @@ const TaskManagement = () => {
             setForumReportsCount(data.totalElements || 0);
           }
         } catch (error) {
-          // Silently handle error loading forum reports count
+          // Silently handle error
         }
 
-        // Load booking complaints count
         try {
-          // Don't auto redirect on 401 when called from background summary load
           const complaints = await getAllComplaints(false);
           const pending = Array.isArray(complaints) ? complaints.filter(c => !c.resolutionType) : [];
           setBookingComplaintsCount(pending.length);
         } catch (error) {
-          // Don't log error if it's a 401 - it will be handled by the service
-          // Silently handle error loading booking complaints count
+          // Silently handle error
         }
       }
 
-      // Load company requests count
       if (canHandleCompanyRequests) {
         try {
           const response = await fetch(API_ENDPOINTS.USERS, { headers });
           if (response.status === 401) {
-            // Don't call checkAndHandle401 here to avoid premature logout in background loading
-            // Just skip this data load
             return;
           }
           if (response.ok) {
@@ -101,17 +93,14 @@ const TaskManagement = () => {
             setCompanyRequestsCount(pending.length);
           }
         } catch (error) {
-          // Silently handle error loading company requests count
+          // Silently handle error
         }
       }
 
-      // Load pending tours count
       if (canHandleTours) {
         try {
           const response = await fetch(API_ENDPOINTS.TOURS, { headers });
           if (response.status === 401) {
-            // Don't call checkAndHandle401 here to avoid premature logout in background loading
-            // Just skip this data load
             return;
           }
           if (response.ok) {
@@ -120,27 +109,23 @@ const TaskManagement = () => {
             setPendingToursCount(pending.length);
           }
         } catch (error) {
-          // Silently handle error loading pending tours count
+          // Silently handle error
         }
       }
 
-      // Load pending articles count
       if (canHandleArticles) {
         try {
-          // Don't auto redirect on 401 when called from background summary load
           const articles = await articleService.getAllArticles(false);
           const pending = articles.filter(a =>
             a.articleStatus && a.articleStatus !== 'APPROVED'
           );
           setPendingArticlesCount(pending.length);
         } catch (error) {
-          // Don't log error if it's a 401 - it will be handled by the service
-          // Silently handle error loading pending articles count
+          // Silently handle error
         }
       }
     } catch (error) {
-      // Don't log error if it's a 401 - it will be handled by the service
-      // Silently handle error loading summary data
+      // Silently handle error
     }
   }, [canHandleForumReports, canHandleCompanyRequests, canHandleTours, canHandleArticles, getToken]);
 
@@ -308,7 +293,7 @@ const TaskManagement = () => {
 
   const hasAnyTaskPermission = sidebarItemsFlat.length > 0;
 
-  // For Article Management, dùng thẳng layout của NewsManagement (bg-gradient riêng)
+  // Cho Article Management: dùng thẳng layout của NewsManagement (bg-gradient riêng), return ArticleManagement component trực tiếp
   if (activeSection === 'article-management') {
     return <ArticleManagement />;
   }

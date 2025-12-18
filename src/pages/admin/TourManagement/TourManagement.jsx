@@ -1150,7 +1150,6 @@ const TourManagement = () => {
                                     <tbody className="bg-white divide-y" style={{ borderColor: '#FFE5CC' }}>
                                       {paginatedBookings.map((booking) => {
                                         const statusColor = getBookingStatusColor(booking.status);
-                                        // Convert to pastel colors
                                         const pastelColors = {
                                           '#10b981': { bg: '#D1FAE5', text: '#059669', border: '#A7F3D0' },
                                           '#f59e0b': { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' },
@@ -1402,7 +1401,6 @@ const TourManagement = () => {
                                     <tbody className="bg-white divide-y" style={{ borderColor: '#FFB3B3' }}>
                                       {paginatedBookings.map((booking) => {
                                         const statusColor = getBookingStatusColor(booking.status);
-                                        // Convert to pastel colors
                                         const pastelColors = {
                                           '#10b981': { bg: '#D1FAE5', text: '#059669', border: '#A7F3D0' },
                                           '#f59e0b': { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' },
@@ -1982,7 +1980,7 @@ const TourManagement = () => {
   );
 };
 
-// Tour Status Badge Component
+// Tour Status Badge Component: hiển thị badge với màu và text tương ứng với tour status (PUBLIC, APPROVED, NOT_APPROVED, DISABLED), map status sang màu pastel và translation key
 const TourStatusBadge = ({ status }) => {
   const { t } = useTranslation();
 

@@ -1,17 +1,12 @@
 import { useMemo } from 'react';
 
-/**
- * Custom hook for validating tour wizard steps
- * @param {Object} tourData - The current tour data
- * @returns {Object} Validation results and utilities
- */
+// Custom hook để validate tour wizard steps: validate step1 (basic info), step2 (itinerary), step3 (pricing với min adultPrice 10000 VND), step4 (thumbnail), trả về stepValidations, completionPercentage, isStepCompleted, getStepErrors, isAllStepsCompleted
 export const useStepValidation = (tourData) => {
-  // Step validation logic
+  // Step validation logic: step1 kiểm tra tourName, duration, nights, tourType, maxCapacity, tourDeadline, tourExpirationDate (departurePoint và vehicle là default fields không cần validate), step2 kiểm tra tourDescription và tourSchedule (trim), step3 kiểm tra adultPrice >= 10000 VND (childrenPrice và babyPrice optional >= 0), step4 kiểm tra thumbnail
   const stepValidations = useMemo(() => ({
     step1: {
       isValid: !!(
         tourData.tourName &&
-        // departurePoint and vehicle are default fields, not required for validation
         tourData.duration &&
         tourData.nights &&
         tourData.tourType &&
@@ -21,7 +16,6 @@ export const useStepValidation = (tourData) => {
       ),
       missingFields: [
         !tourData.tourName && 'tourWizard.step1.fields.tourName',
-        // departurePoint and vehicle are default fields, not required for validation
         !tourData.duration && 'tourWizard.step1.fields.duration',
         !tourData.nights && 'tourWizard.step1.fields.nights',
         !tourData.tourType && 'tourWizard.step1.fields.tourType',
@@ -44,22 +38,19 @@ export const useStepValidation = (tourData) => {
     },
     step3: {
       isValid: (() => {
-        const MIN_PRICE_ADULT = 10000; // Minimum price for adult: 10,000 VND
-        const MIN_PRICE_CHILDREN_BABY = 0; // Minimum price for children and baby: 0 VND (free allowed)
+        const MIN_PRICE_ADULT = 10000;
+        const MIN_PRICE_CHILDREN_BABY = 0;
         
-        // Check if adult price is non-empty (required)
         const adultPrice = tourData.adultPrice ? String(tourData.adultPrice).trim() : '';
         if (!adultPrice) {
           return false;
         }
         
-        // Parse adult price and validate
         const adultPriceNum = parseInt(adultPrice.replace(/[^0-9]/g, ''), 10);
         if (isNaN(adultPriceNum) || adultPriceNum < MIN_PRICE_ADULT) {
           return false;
         }
         
-        // Children and Baby prices are optional - can be empty, 0, or >= 0
         const childrenPrice = tourData.childrenPrice !== null && tourData.childrenPrice !== undefined 
           ? String(tourData.childrenPrice).trim() 
           : '';
@@ -67,7 +58,6 @@ export const useStepValidation = (tourData) => {
           ? String(tourData.babyPrice).trim() 
           : '';
         
-        // If childrenPrice is provided, validate it >= 0
         if (childrenPrice !== '') {
           const childrenPriceNum = parseInt(childrenPrice.replace(/[^0-9]/g, ''), 10);
           if (isNaN(childrenPriceNum) || childrenPriceNum < MIN_PRICE_CHILDREN_BABY) {
@@ -75,7 +65,6 @@ export const useStepValidation = (tourData) => {
           }
         }
         
-        // If babyPrice is provided, validate it >= 0
         if (babyPrice !== '') {
           const babyPriceNum = parseInt(babyPrice.replace(/[^0-9]/g, ''), 10);
           if (isNaN(babyPriceNum) || babyPriceNum < MIN_PRICE_CHILDREN_BABY) {
@@ -87,7 +76,6 @@ export const useStepValidation = (tourData) => {
       })(),
       missingFields: [
         (!tourData.adultPrice || !String(tourData.adultPrice).trim()) && 'tourWizard.step3.pricing.adultPrice'
-        // Children and Baby prices are optional, so we don't add them to missingFields
       ].filter(Boolean)
     },
     step4: {
@@ -98,25 +86,25 @@ export const useStepValidation = (tourData) => {
     }
   }), [tourData]);
 
-  // Overall completion percentage
+  // Tính completion percentage: đếm số steps đã valid, chia cho 4 (tổng số steps) nhân 100
   const completionPercentage = useMemo(() => {
     const completedSteps = Object.values(stepValidations).filter(step => step.isValid).length;
     return (completedSteps / 4) * 100;
   }, [stepValidations]);
 
-  // Check if specific step is completed
+  // Kiểm tra step cụ thể đã completed chưa: lấy stepKey từ stepId, trả về isValid hoặc false
   const isStepCompleted = (stepId) => {
     const stepKey = `step${stepId}`;
     return stepValidations[stepKey]?.isValid || false;
   };
 
-  // Get validation errors for a specific step
+  // Lấy validation errors cho step cụ thể: lấy stepKey từ stepId, trả về missingFields hoặc empty array
   const getStepErrors = (stepId) => {
     const stepKey = `step${stepId}`;
     return stepValidations[stepKey]?.missingFields || [];
   };
 
-  // Check if all steps are completed
+  // Kiểm tra tất cả steps đã completed chưa: kiểm tra tất cả steps đều isValid
   const isAllStepsCompleted = useMemo(() => {
     return Object.values(stepValidations).every(step => step.isValid);
   }, [stepValidations]);

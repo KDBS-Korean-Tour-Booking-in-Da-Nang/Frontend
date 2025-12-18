@@ -7,45 +7,42 @@ import { checkAndHandleApiError } from '../utils/apiErrorHandler';
  * @param {string} token - Authentication token
  * @returns {Promise<Object>} Updated user data
  */
+// Cập nhật thông tin profile người dùng
+// Sử dụng FormData để gửi cả dữ liệu JSON và file avatar
 export const updateUserProfile = async (userData, token) => {
   try {
     if (!token) {
       throw new Error('Token xác thực không được cung cấp');
     }
 
-    // Create FormData for multipart/form-data request
+    // Tạo FormData cho multipart/form-data request
     const formData = new FormData();
     
-    // Add email as request parameter (required by backend)
+    // Thêm email như request parameter (backend yêu cầu)
     if (userData.email && userData.email.trim()) {
       formData.append('email', userData.email.trim());
     }
     
-    // Create the data object that matches UserUpdateRequest structure
+    // Tạo object dữ liệu cập nhật khớp với UserUpdateRequest structure
     const updateData = {};
     
-    // Map frontend fields to backend fields
+    // Map các field từ frontend sang backend
     if (userData.name && userData.name.trim()) {
-      updateData.username = userData.name.trim(); // Backend expects 'username' field
+      updateData.username = userData.name.trim(); // Backend expect 'username' field
     }
-    // Phone: optional. If user leaves it empty, don't send it to avoid false PHONE_EXISTED conflicts.
-    // (Clearing phone in DB will require a small backend change.)
+    // Phone: optional. Nếu user để trống, không gửi để tránh conflict PHONE_EXISTED
     if (userData.phone !== undefined && userData.phone !== null) {
       const trimmedPhone = String(userData.phone).trim();
       if (trimmedPhone) {
         updateData.phone = trimmedPhone;
       }
-      // If trimmedPhone is empty, we intentionally omit phone from updateData
     }
-    // Only include DOB if it's valid (non-empty and normalized)
     if (userData.dob && userData.dob.trim()) {
       updateData.dob = userData.dob.trim();
     }
-    // Always include gender (even if empty) to allow clearing
     if (userData.gender !== undefined && userData.gender !== null) {
       updateData.gender = userData.gender.trim();
     }
-    // Always include address (even if empty) to allow clearing
     if (userData.address !== undefined && userData.address !== null) {
       updateData.address = userData.address.trim();
     }
@@ -53,16 +50,16 @@ export const updateUserProfile = async (userData, token) => {
       updateData.cccd = userData.cccd.trim();
     }
     
-    // Add the data object as a JSON string in the 'data' part with correct Content-Type
+    // Thêm object dữ liệu dưới dạng JSON string trong phần 'data' với Content-Type đúng
     const jsonBlob = new Blob([JSON.stringify(updateData)], { type: 'application/json' });
     formData.append('data', jsonBlob);
     
-    // Always include avatarImg because backend requires a non-null file for avatar processing
+    // Xử lý avatar: nếu có file mới thì dùng, nếu không thì tái sử dụng avatar hiện tại
     if (userData.avatarFile && userData.avatarFile instanceof File) {
       formData.append('avatarImg', userData.avatarFile);
     } else {
-      // Fallback: reuse existing avatar by fetching it as a Blob and re-uploading
-      // This preserves the current avatar without forcing users to pick a new one
+      // Fallback: tái sử dụng avatar hiện tại bằng cách fetch nó như Blob và upload lại
+      // Điều này giữ nguyên avatar hiện tại mà không buộc user phải chọn lại
       const existingUrl = userData.currentAvatarUrl ? getAvatarUrl(userData.currentAvatarUrl) : null;
       if (existingUrl) {
         try {
@@ -75,12 +72,11 @@ export const updateUserProfile = async (userData, token) => {
             formData.append('avatarImg', file);
           }
         } catch (e) {
-          // If fetch fails, we skip attaching avatar; server may reject, but we avoid breaking here
+          // Nếu fetch thất bại, bỏ qua; server có thể reject nhưng không làm crash ở đây
         }
       }
     }
     
-    // Create headers with auth token
     const headers = createAuthFormHeaders(token);
     
     const response = await fetch(API_ENDPOINTS.UPDATE_USER, {
@@ -90,10 +86,9 @@ export const updateUserProfile = async (userData, token) => {
     });
     
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       let errorMessage = `HTTP error! status: ${response.status}`;
@@ -102,7 +97,6 @@ export const updateUserProfile = async (userData, token) => {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
       } catch (parseError) {
-        // If response is not JSON, use status text
         errorMessage = response.statusText || errorMessage;
       }
       
@@ -126,10 +120,11 @@ export const updateUserProfile = async (userData, token) => {
  * @param {Object} userData - User data to validate
  * @returns {Object} Validation result with isValid and errors
  */
+// Validate dữ liệu profile người dùng trước khi gửi lên API
 export const validateUserProfile = (userData) => {
   const errors = {};
   
-  // Validate name (maps to username in backend)
+  // Validate tên (map sang username trong backend)
   if (!userData.name || !userData.name.trim()) {
     errors.name = 'Tên không được để trống';
   } else if (userData.name.trim().length < 2) {
@@ -150,32 +145,32 @@ export const validateUserProfile = (userData) => {
     }
   }
   
-  // Validate phone (optional but if provided, should be valid)
+  // Validate số điện thoại (optional nhưng nếu có thì phải hợp lệ)
+  // Cho phép chuỗi rỗng (để xóa số điện thoại)
   if (userData.phone !== undefined && userData.phone !== null && userData.phone.trim()) {
     const cleanPhone = userData.phone.replace(/\s/g, '');
-    // Allow empty string (for clearing)
     if (cleanPhone.length === 0) {
-      // Empty phone is allowed, skip validation
+      // Số điện thoại rỗng được phép, bỏ qua validation
     } else if (cleanPhone.length > 20) {
       errors.phone = 'Số điện thoại không được vượt quá 20 ký tự';
     } else {
-      // More flexible validation: allow Vietnamese format or international format
+      // Validation linh hoạt: cho phép định dạng Việt Nam hoặc quốc tế
       const vietnameseRegex = /^(\+84|0)[0-9]{9,10}$/;
       const internationalRegex = /^\+[1-9]\d{1,14}$/; // E.164 format
       if (!vietnameseRegex.test(cleanPhone) && !internationalRegex.test(cleanPhone)) {
-        // Only show error if phone is clearly invalid (too short or has invalid chars)
+        // Chỉ hiển thị lỗi nếu số điện thoại rõ ràng không hợp lệ (quá ngắn hoặc có ký tự không hợp lệ)
         if (cleanPhone.length < 7 || !/^[\d+]+$/.test(cleanPhone)) {
           errors.phone = 'Số điện thoại không hợp lệ';
         }
-        // Otherwise, allow it (might be valid format we didn't anticipate)
+        // Nếu không, cho phép (có thể là định dạng hợp lệ mà chúng ta chưa dự đoán)
       }
     }
   }
   
-  // Validate date of birth (optional but if provided, should be valid)
-  // Only validate if DOB is provided and non-empty - allow empty DOB
+  // Validate ngày sinh (optional nhưng nếu có thì phải hợp lệ)
+  // Chỉ validate nếu DOB được cung cấp và không rỗng - cho phép DOB rỗng
   if (userData.dob && userData.dob.trim() && userData.dob.trim().length > 0) {
-    // DOB should be in ISO format (YYYY-MM-DD) when passed here
+    // DOB nên ở định dạng ISO (YYYY-MM-DD) khi truyền vào đây
     const dob = new Date(userData.dob);
     const today = new Date();
     const minDate = new Date('1900-01-01');
@@ -187,13 +182,14 @@ export const validateUserProfile = (userData) => {
     } else if (dob < minDate) {
       errors.dob = 'Ngày sinh không hợp lệ';
     } else {
+      // Tính tuổi chính xác (xét cả tháng và ngày)
       let age = today.getFullYear() - dob.getFullYear();
       const monthDiff = today.getMonth() - dob.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
         age--;
       }
       
-      // Require at least 13 years old, no strict upper limit (allow up to 150 for reasonable validation)
+      // Yêu cầu ít nhất 13 tuổi, không giới hạn trên nghiêm ngặt (cho phép đến 150 để validation hợp lý)
       if (age < 13) {
         errors.dob = 'Bạn phải từ 13 tuổi trở lên';
       } else if (age > 150) {
@@ -202,7 +198,6 @@ export const validateUserProfile = (userData) => {
     }
   }
   
-  // Validate gender (optional but if provided, should be valid)
   if (userData.gender && userData.gender.trim()) {
     const gender = userData.gender.trim().toUpperCase();
     const validGenders = ['M', 'F', 'O'];
@@ -211,7 +206,6 @@ export const validateUserProfile = (userData) => {
     }
   }
   
-  // Validate CCCD (optional but if provided, should be valid)
   if (userData.cccd && userData.cccd.trim()) {
     const cleanCccd = userData.cccd.replace(/\s/g, '');
     if (cleanCccd.length > 12) {
@@ -224,9 +218,6 @@ export const validateUserProfile = (userData) => {
     }
   }
   
-  // Note: Address field is not supported by backend UserUpdateRequest
-  
-  // Validate avatar file (if provided)
   if (userData.avatarFile && userData.avatarFile instanceof File) {
     const maxSize = 5 * 1024 * 1024; // 5MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -268,10 +259,9 @@ export const getUserByEmail = async (email, token) => {
     });
     
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       let errorMessage = `HTTP error! status: ${response.status}`;
@@ -287,8 +277,6 @@ export const getUserByEmail = async (email, token) => {
     }
     
     const result = await response.json();
-    // Backend returns UserResponse directly (not wrapped in ApiResponse)
-    // If result has a 'result' property (ApiResponse wrapper), use it, otherwise use result directly
     return result.result || result;
   } catch (error) {
     if (error.name === 'TypeError' && error.message.includes('fetch')) {

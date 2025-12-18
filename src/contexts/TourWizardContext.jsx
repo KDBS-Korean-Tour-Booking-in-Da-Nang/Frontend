@@ -2,41 +2,36 @@ import { createContext, useContext, useState, useMemo } from 'react';
 
 const TourWizardContext = createContext();
 
+// Provider component: quản lý tour wizard state (Step 1: Basic Info với departurePoint mặc định 'Đà Nẵng', Step 2: Itinerary với mainSectionTitle, Step 3: Pricing, Step 4: Media), cung cấp updateTourData và resetTourData
 export const TourWizardProvider = ({ children }) => {
   const [tourData, setTourData] = useState({
-    // Step 1: Basic Info
     tourName: '',
-    departurePoint: 'Đà Nẵng', // Default departure point for all tours
+    departurePoint: 'Đà Nẵng',
     duration: '',
     nights: '',
     tourType: '',
     maxCapacity: '',
     tourDeadline: '',
     tourExpirationDate: '',
-    
-    // Step 2: Itinerary
     itinerary: [],
-    tourSchedule: '', // User-defined schedule summary
+    tourSchedule: '',
     mainSectionTitle: 'ĐIỂM ĐẾN VÀ HÀNH TRÌNH',
-    
-    // Step 3: Pricing
     adultPrice: '',
     childrenPrice: '',
     babyPrice: '',
-    
-    
-    // Step 4: Media
     thumbnail: null
   });
 
+  // Cập nhật tour data: merge stepData vào tourData hiện tại, dùng cho multi-step wizard form
   const updateTourData = (stepData) => {
     setTourData(prev => ({ ...prev, ...stepData }));
   };
 
+  // Reset tour data về initial state: clear tất cả fields về giá trị mặc định (departurePoint='Đà Nẵng', mainSectionTitle='ĐIỂM ĐẾN VÀ HÀNH TRÌNH')
   const resetTourData = () => {
     setTourData({
       tourName: '',
-      departurePoint: 'Đà Nẵng', // Default departure point
+      departurePoint: 'Đà Nẵng',
       duration: '',
       nights: '',
       tourType: '',
@@ -49,7 +44,6 @@ export const TourWizardProvider = ({ children }) => {
       adultPrice: '',
       childrenPrice: '',
       babyPrice: '',
-      
       thumbnail: null
     });
   };
@@ -68,10 +62,10 @@ export const TourWizardProvider = ({ children }) => {
 };
 
 
+// Hook để sử dụng TourWizardContext: throw error nếu không tìm thấy context (phải dùng trong TourWizardProvider)
 export const useTourWizardContext = () => {
   const context = useContext(TourWizardContext);
   if (!context) {
-    // Silently handle TourWizardContext not available
     throw new Error('useTourWizardContext must be used within a TourWizardProvider');
   }
   return context;

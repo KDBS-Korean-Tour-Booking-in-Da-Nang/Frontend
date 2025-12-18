@@ -6,14 +6,15 @@ const EVENT_HANDLER_ATTR_REGEX = /\s(on[a-z]+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/g
 const JAVASCRIPT_HREF_REGEX = /href\s*=\s*("|')\s*javascript:[^"']*(\1)/gi;
 const JAVASCRIPT_SRC_REGEX = /src\s*=\s*("|')\s*javascript:[^"']*(\1)/gi;
 
+// Sanitize HTML: loại bỏ script/style tags và event handlers để render an toàn
 export const sanitizeHtml = (html) => {
   if (!html || typeof html !== 'string') return '';
   let sanitized = html;
-  // Remove script/style tags completely
+  // Loại bỏ hoàn toàn script/style tags
   sanitized = sanitized.replace(DISALLOWED_TAGS_REGEX, '');
-  // Remove inline event handlers like onclick, onerror, etc.
+  // Loại bỏ inline event handlers như onclick, onerror, etc.
   sanitized = sanitized.replace(EVENT_HANDLER_ATTR_REGEX, '');
-  // Disallow javascript: in href/src
+  // Không cho phép javascript: trong href/src
   sanitized = sanitized.replace(JAVASCRIPT_HREF_REGEX, '');
   sanitized = sanitized.replace(JAVASCRIPT_SRC_REGEX, '');
   return sanitized;

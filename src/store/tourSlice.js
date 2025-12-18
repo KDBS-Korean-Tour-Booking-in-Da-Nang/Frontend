@@ -1,8 +1,8 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
-// Mock data dựa trên hình ảnh và mở rộng
+// Dữ liệu tour mẫu (mock data) để test và demo
+// Bao gồm tour trong nước, tour nước ngoài và tour trong ngày
 const mockTours = [
-  // Tour trong nước
   {
     id: 1,
     title: "Tour Teambuilding Gala Huế",
@@ -83,8 +83,6 @@ const mockTours = [
     category: "domestic",
     featured: false
   },
-
-  // Tour nước ngoài
   {
     id: 9,
     title: "Tour Lệ Giang Shangrila",
@@ -185,8 +183,6 @@ const mockTours = [
     category: "international",
     featured: true
   },
-
-  // Tour trong ngày
   {
     id: 19,
     title: "Vé pháo hoa Đà Nẵng",
@@ -249,12 +245,13 @@ const mockTours = [
   }
 ];
 
-// Simple action để load tours
+// Action để load tất cả tour từ mock data
 export const loadTours = () => (dispatch) => {
   dispatch(setTours(mockTours));
 };
 
-// Simple action để load tours theo category
+// Action để load tour theo danh mục (category)
+// Nếu category là 'all' thì load tất cả, ngược lại filter theo category
 export const loadToursByCategory = (category) => (dispatch) => {
   const filteredTours = category === 'all' 
     ? mockTours 
@@ -263,6 +260,8 @@ export const loadToursByCategory = (category) => (dispatch) => {
   dispatch(setCurrentCategory(category));
 };
 
+// Trạng thái ban đầu cho quản lý tour
+// Bao gồm danh sách tour, tour đã lọc, tour được chọn, trạng thái loading/error, danh mục hiện tại và từ khóa tìm kiếm
 const initialState = {
   tours: [],
   filteredTours: [],
@@ -285,12 +284,15 @@ const tourSlice = createSlice({
     setFilteredTours: (state, action) => {
       state.filteredTours = action.payload;
     },
+    // Cập nhật từ khóa tìm kiếm và lọc tour theo từ khóa
+    // Tìm kiếm không phân biệt hoa thường trong tiêu đề và mô tả tour
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
-      // Filter tours based on search query
+      // Nếu từ khóa rỗng, hiển thị tất cả tour
       if (action.payload.trim() === '') {
         state.filteredTours = state.tours;
       } else {
+        // Lọc tour có tiêu đề hoặc mô tả chứa từ khóa (không phân biệt hoa thường)
         state.filteredTours = state.tours.filter(tour =>
           tour.title.toLowerCase().includes(action.payload.toLowerCase()) ||
           tour.description.toLowerCase().includes(action.payload.toLowerCase())

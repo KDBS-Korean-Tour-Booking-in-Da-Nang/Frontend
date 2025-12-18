@@ -16,7 +16,7 @@ const ArticleCommentSection = ({ articleId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load comments for article: filter parent comments only and sort by newest first
+  // Load comments cho article: filter chỉ parent comments (không có parentCommentId), sort theo newest first (dateB - dateA), set vào comments state
   const loadComments = useCallback(async () => {
     if (!articleId) return;
     
@@ -39,14 +39,14 @@ const ArticleCommentSection = ({ articleId }) => {
     }
   }, [articleId]);
 
-  // Fetch comments when articleId changes
+  // Fetch comments khi articleId thay đổi: gọi loadComments nếu articleId có giá trị
   useEffect(() => {
     if (articleId) {
       loadComments();
     }
   }, [articleId, loadComments]);
 
-  // Format relative time (just now, X minutes/hours/days ago)
+  // Format relative time: tính diffInMinutes, < 1 phút = "Vừa xong", < 60 phút = "X phút trước", < 1440 phút = "X giờ trước", >= 1440 phút = "X ngày trước"
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -59,7 +59,7 @@ const ArticleCommentSection = ({ articleId }) => {
     return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days', { defaultValue: 'ngày' })} ${t('forum.post.ago', { defaultValue: 'trước' })}`;
   };
 
-  // Handle submit new comment
+  // Xử lý submit comment mới: validate commentText và user, gọi articleCommentService.createComment, clear commentText, reload comments sau khi thành công
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim() || !user || !articleId) return;

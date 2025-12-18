@@ -27,7 +27,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef(null);
 
-  // Reset form state when modal closes
+  // Reset form state khi modal đóng: set form về defaultState, clear errors, set isSubmitting = false
   useEffect(() => {
     if (!isOpen) {
       setForm(defaultState);
@@ -36,7 +36,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     }
   }, [isOpen]);
 
-  // Validate form fields before submission
+  // Validate form fields trước khi submission: validate code, name, discountType, discountValue (PERCENT: 1-80, AMOUNT: >= 1), totalQuantity (>= 1), startDate, endDate (phải sau startDate), minOrderValue là optional
   const validate = () => {
     const e = {};
     if (!form.code || !form.code.trim()) e.code = t('voucherCreate.errors.codeRequired');
@@ -54,7 +54,6 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     if (!form.totalQuantity || Number(form.totalQuantity) < 1) {
       e.totalQuantity = t('voucherCreate.errors.totalQuantityRequired');
     }
-    // minOrderValue is optional, no validation needed
     if (!form.startDate) {
       e.startDate = t('voucherCreate.errors.startDateRequired');
     }
@@ -72,7 +71,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     return Object.keys(e).length === 0;
   };
 
-  // Handle voucher creation form submission
+  // Xử lý voucher creation form submission: validate form, map frontend discountType AMOUNT sang backend FIXED, prepare API payload với backend format, gọi createVoucher, show success, call onSuccess callback
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -89,10 +88,8 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
 
     setIsSubmitting(true);
     try {
-      // Map frontend discountType AMOUNT to backend FIXED
       const backendDiscountType = form.discountType === 'AMOUNT' ? 'FIXED' : form.discountType;
 
-      // Prepare API payload with backend format
       const payload = {
         companyId: companyId,
         code: form.code.trim(),
@@ -120,7 +117,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     }
   };
 
-  // Handle form field change and clear field-specific error
+  // Xử lý form field change và clear field-specific error: update form state, clear error cho field đó
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -132,7 +129,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     }
   };
 
-  // Toggle tour selection in tourIds array (add/remove from list)
+  // Toggle tour selection trong tourIds array: add/remove tour ID khỏi list sử dụng Set
   const toggleTour = (id) => {
     setForm((prev) => {
       const set = new Set(prev.tourIds);
@@ -156,7 +153,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     }
   }, [tourDropdownOpen, tours]);
 
-  // Handle click outside dropdown to close it
+  // Xử lý click outside dropdown để đóng: lắng nghe mousedown event trên document, check nếu click không phải trong dropdownRef thì đóng dropdown
   useEffect(() => {
     if (!tourDropdownOpen) return;
     const handleClickOutside = (e) => {
@@ -168,7 +165,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [tourDropdownOpen]);
 
-  // Resolve modal portal container (modal-root or body)
+  // Resolve modal portal container: tìm modal-root element, nếu không có thì fallback về document.body
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -176,7 +173,7 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
     }
   }, []);
 
-  // Prevent body scrolling when modal is open
+  // Ngăn body scrolling khi modal mở: set document.body.style.overflow = 'hidden' khi isOpen = true, restore lại khi unmount
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isOpen) {
@@ -301,14 +298,12 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                   }}
                   onChange={(e) => {
                     let value = e.target.value;
-                    // For PERCENT type, clamp value to 5-80 range immediately
                     if (form.discountType === 'PERCENT' && value !== '') {
                       const num = Number(value);
                       if (!isNaN(num)) {
                         if (num > 80) {
                           value = '80';
                         }
-                        // Don't clamp min during typing to allow building numbers like "50"
                       }
                     }
                     handleChange('discountValue', value);

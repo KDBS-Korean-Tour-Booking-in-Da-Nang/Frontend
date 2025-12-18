@@ -80,7 +80,7 @@ const StaffLayout = ({ children }) => {
     return items;
   }, [user?.staffTask, isAdmin, t]);
 
-  // Luôn hiển thị Task Management trong sidebar, kể cả khi chưa được gán nhiệm vụ
+  // Luôn hiển thị Task Management trong sidebar, kể cả khi chưa được gán nhiệm vụ: set hasTaskMenu = true
   const hasTaskMenu = true;
 
   const currentTaskSection = location.pathname.startsWith('/staff/tasks')
@@ -104,13 +104,11 @@ const StaffLayout = ({ children }) => {
     setShowLanguageDropdown(false);
   };
 
-  // Set default language to English for STAFF role
+  // Set default language to English cho STAFF role: nếu user role là STAFF hoặc ADMIN và language hiện tại là Vietnamese hoặc chưa set thì auto-set về English
   useEffect(() => {
     if (user?.role === 'STAFF' || user?.role === 'ADMIN') {
       const currentLang = i18n.language;
       const savedLang = localStorage.getItem('i18nextLng');
-      // If no language is set or language is Vietnamese, set to English
-      // Only auto-set to English if user hasn't explicitly chosen a non-Vietnamese language
       if ((!savedLang || savedLang === 'vi' || savedLang.startsWith('vi')) && 
           (!currentLang || currentLang === 'vi' || currentLang.startsWith('vi'))) {
         i18n.changeLanguage('en');
@@ -119,7 +117,7 @@ const StaffLayout = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role, user]);
 
-  // Close dropdowns when clicking outside
+  // Đóng dropdowns khi click outside: lắng nghe mousedown event trên document, check nếu click không phải trong languageRef hoặc userRef thì đóng dropdown tương ứng
   useEffect(() => {
     const onDocClick = (e) => {
       if (languageRef.current && !languageRef.current.contains(e.target)) {
@@ -133,6 +131,7 @@ const StaffLayout = ({ children }) => {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
+  // Định nghĩa menu sections: menu (Task Management), contact (Contact Customer)
   const menuSections = [
     {
       title: t('staff.layout.sidebar.sections.menu'),
@@ -148,6 +147,7 @@ const StaffLayout = ({ children }) => {
     },
   ];
 
+  // Xử lý logout: gọi logout với role 'STAFF', navigate đến /staff/login
   const handleLogout = () => {
     logout('STAFF'); // Only logout staff role
     navigate('/staff/login');
@@ -226,7 +226,6 @@ const StaffLayout = ({ children }) => {
                               <span>{t('staff.taskManagement.sidebar.dashboardOverview')}</span>
                             </NavLink>
                             {taskMenuItems.map((task) => {
-                              // Special handling for resolve-ticket: navigate to dedicated route
                               if (task.id === 'resolve-ticket') {
                                 return (
                                   <NavLink

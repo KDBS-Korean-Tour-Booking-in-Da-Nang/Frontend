@@ -42,7 +42,7 @@ const ResolveTicketManagement = () => {
   const isStaff = user && user.role === 'STAFF';
   const isAdminOrStaff = isAdmin || isStaff;
 
-  // Load all tickets and users on mount
+  // Load all tickets và users khi mount: load tickets từ TICKETS endpoint, load users từ USERS endpoint và tạo map userId -> user info
   useEffect(() => {
     loadAllTickets();
     loadAllUsers();
@@ -88,14 +88,12 @@ const ResolveTicketManagement = () => {
           await checkAndHandle401(response);
           return;
         }
-        // Silently fail if can't load users - will show userId instead
         return;
       }
 
       const apiResponse = await response.json();
       const users = Array.isArray(apiResponse?.result) ? apiResponse.result : [];
       
-      // Create map: userId -> user info
       const newUserMap = new Map();
       users.forEach((user) => {
         if (user.userId) {
@@ -108,24 +106,20 @@ const ResolveTicketManagement = () => {
       });
       setUserMap(newUserMap);
     } catch (err) {
-      // Silently fail if can't load users - will show userId instead
+      // Silently handle error
     }
   };
 
-  // Filter tickets based on search and status
-  // Note: Backend doesn't have status field, so all tickets are considered PENDING
+  // Filter tickets dựa trên search và status: backend không có status field nên tất cả tickets được coi là PENDING, filter theo status (pending=không có resolutionType/status, resolved=có resolutionType hoặc status=RESOLVED), search trong ticketId (number) hoặc message (case-insensitive)
   const filteredTickets = useMemo(() => {
     let filtered = [...allTickets];
 
-    // Filter by status (Backend doesn't have status, so all are PENDING)
-    // This filter is kept for future use when status field is added
     if (filterStatus === 'pending') {
       filtered = filtered.filter((t) => !t.resolutionType && !t.status);
     } else if (filterStatus === 'resolved') {
       filtered = filtered.filter((t) => t.resolutionType || t.status === 'RESOLVED');
     }
 
-    // Filter by search
     if (searchInput.trim()) {
       if (searchType === 'ticketId') {
         const id = Number(searchInput.trim());
@@ -135,7 +129,6 @@ const ResolveTicketManagement = () => {
           filtered = [];
         }
       } else {
-        // Search in message
         const searchLower = searchInput.toLowerCase();
         filtered = filtered.filter((t) =>
           t.message?.toLowerCase().includes(searchLower)
@@ -155,14 +148,14 @@ const ResolveTicketManagement = () => {
 
   const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset về page đầu tiên khi filters thay đổi (searchInput, searchType, filterStatus)
   useEffect(() => {
     setCurrentPage(0);
   }, [searchInput, searchType, filterStatus]);
 
+  // Tính stats: backend không có status field nên tất cả tickets được coi là PENDING, đếm total, resolved (có resolutionType hoặc status=RESOLVED), pending = total - resolved
   const stats = useMemo(() => {
     const total = allTickets.length;
-    // Backend doesn't have status field, so all tickets are considered PENDING
     const resolved = allTickets.filter((t) => t.resolutionType || t.status === 'RESOLVED').length;
     const pending = total - resolved;
     return { total, resolved, pending };

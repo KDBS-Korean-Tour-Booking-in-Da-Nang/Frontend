@@ -22,7 +22,7 @@ const TourSuggestion = () => {
   const hasFetchedRef = useRef(false);
   const lastArticleIdRef = useRef(null);
 
-  // Transform tour from backend to TourCard format
+  // Transform tour từ backend sang TourCard format: map tourId/id, tourName, tourDuration, adultPrice, tourImgPath (dùng getTourImageUrl), tourDescription, tourStatus === 'PUBLIC' => featured
   const transformTour = (tour) => {
     return {
       id: tour.tourId || tour.id,
@@ -36,8 +36,8 @@ const TourSuggestion = () => {
     };
   };
 
+  // Fetch suggested tours: lấy articleId từ URL params, parse và validate, chỉ fetch nếu articleId thay đổi hoặc chưa fetch lần nào, build URL với TOURS_SUGGEST_BY_ARTICLE, get token từ localStorage/sessionStorage (ADMIN/STAFF/legacy), handle 401 với checkAndHandle401, handle 500 (kiểm tra quota exceeded), transform tours sang TourCard format
   useEffect(() => {
-    // Lấy articleId từ URL params (id param trong ArticleDetail)
     const articleIdFromUrl = searchParams.get('id');
     
     if (!articleIdFromUrl) {
@@ -49,7 +49,6 @@ const TourSuggestion = () => {
       return;
     }
 
-    // Parse articleId
     const parsedArticleId = Number.parseInt(articleIdFromUrl, 10);
     if (Number.isNaN(parsedArticleId) || parsedArticleId <= 0) {
       setError(t('articleDetail.tourSuggestion.errorInvalidArticle', { defaultValue: 'Không thể xác định bài viết.' }));
@@ -57,26 +56,21 @@ const TourSuggestion = () => {
       return;
     }
 
-    // Chỉ fetch nếu articleId thay đổi hoặc chưa fetch lần nào
     if (hasFetchedRef.current && lastArticleIdRef.current === parsedArticleId) {
-      return; // Đã fetch rồi, không fetch lại
+      return;
     }
 
-    // Đánh dấu đã fetch và lưu articleId
     hasFetchedRef.current = true;
     lastArticleIdRef.current = parsedArticleId;
 
-    // Reset state khi articleId thay đổi
     setLoading(true);
     setError(null);
     setTours([]);
 
     const fetchSuggestedTours = async () => {
       try {
-        // Build URL với articleId (theo backend API, articleId là optional)
         const url = API_ENDPOINTS.TOURS_SUGGEST_BY_ARTICLE(parsedArticleId);
         
-        // Get token for authentication
         const token = localStorage.getItem('token') || 
                      localStorage.getItem('token_ADMIN') || 
                      localStorage.getItem('token_STAFF') ||
@@ -98,30 +92,24 @@ const TourSuggestion = () => {
         });
 
         if (!response.ok) {
-          // Handle 401 with global error handler
           if (await checkAndHandle401(response)) {
             setError(t('articleDetail.tourSuggestion.errorSession', { defaultValue: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' }));
             setLoading(false);
             return;
           }
           
-          // Nếu lỗi 500, kiểm tra xem có phải AI hết quota không
           if (response.status === 500) {
             const errorText = await response.text().catch(() => 'Server error');
             
-            // Nếu là lỗi quota của Gemini, giữ loading state (không hiển thị error)
             if (errorText.includes('Quota exceeded') || errorText.includes('429') || errorText.includes('quota')) {
-              // Giữ loading state để người dùng tự hiểu là AI hết quota
               return;
             }
             
-            // Nếu là lỗi server khác, hiển thị error message
             setError(t('articleDetail.tourSuggestion.errorServer', { defaultValue: 'Lỗi server khi tải tour gợi ý. Vui lòng thử lại sau.' }));
             setLoading(false);
             return;
           }
           
-          // Với các lỗi HTTP khác (400, 404, v.v.), hiển thị error message
           setError(t('articleDetail.tourSuggestion.errorHttp', { status: response.status, defaultValue: `Lỗi khi tải tour gợi ý (${response.status}). Vui lòng thử lại sau.` }));
           setLoading(false);
           return;
@@ -129,17 +117,14 @@ const TourSuggestion = () => {
 
         const data = await response.json();
         
-        // Transform tours to match TourCard format
         const transformedTours = Array.isArray(data) 
           ? data.map(transformTour).filter(tour => tour.id) 
           : [];
 
-        // Chỉ set loading = false và tours khi có data thành công
         setTours(transformedTours);
         setLoading(false);
         setError(null);
       } catch (err) {
-        // Nếu là lỗi network hoặc lỗi không xác định, hiển thị error message
         if (err.name === 'TypeError' && err.message.includes('fetch')) {
           setError(t('articleDetail.tourSuggestion.errorNetwork', { defaultValue: 'Lỗi kết nối. Vui lòng kiểm tra kết nối internet và thử lại.' }));
         } else {
@@ -152,7 +137,7 @@ const TourSuggestion = () => {
     fetchSuggestedTours();
   }, [searchParams, t]);
 
-  // Slick carousel settings - chỉ dùng carousel khi có từ 4 tours trở lên
+  // Slick carousel settings: chỉ dùng carousel khi có từ 4 tours trở lên (infinite, draggable, swipe, touchMove = false), responsive breakpoints (1024: 2 slides, 640: 1 slide)
   const settings = {
     dots: false,
     infinite: tours.length >= 4, // Chỉ infinite khi có >= 4 tours
@@ -189,22 +174,20 @@ const TourSuggestion = () => {
     ]
   };
 
+  // Điều hướng carousel: chỉ cho phép di chuyển khi có từ 4 tours trở lên, gọi slickPrev/slickNext
   const goToPrev = () => {
-    // Chỉ cho phép di chuyển khi có từ 4 tours trở lên
     if (tours.length >= 4) {
       sliderRef.current?.slickPrev();
     }
   };
 
   const goToNext = () => {
-    // Chỉ cho phép di chuyển khi có từ 4 tours trở lên
     if (tours.length >= 4) {
       sliderRef.current?.slickNext();
     }
   };
 
-  // Luôn hiển thị component khi có articleId trong URL (không cần user đăng nhập)
-  // Hiển thị error message nếu có lỗi
+  // Hiển thị error message nếu có lỗi: hiển thị error icon, error text và subtext
   if (error) {
     return (
       <div className={`${articleStyles.contentWrap} pt-6`}>
@@ -224,7 +207,7 @@ const TourSuggestion = () => {
     );
   }
 
-  // Hiển thị loading state nếu đang loading
+  // Hiển thị loading state nếu đang loading: hiển thị spinner và loading text
   if (loading) {
     return (
       <div className={`${articleStyles.contentWrap} pt-6`}>
@@ -243,7 +226,7 @@ const TourSuggestion = () => {
     );
   }
 
-  // Hiển thị message khi không có tour gợi ý (API trả về mảng rỗng)
+  // Hiển thị message khi không có tour gợi ý: API trả về mảng rỗng, hiển thị icon và noTours message
   if (tours.length === 0) {
     return (
       <div className={`${articleStyles.contentWrap} pt-6`}>
@@ -264,7 +247,7 @@ const TourSuggestion = () => {
     );
   }
 
-  // Determine grid class based on number of tours
+  // Xác định grid class dựa trên số lượng tours: 1 tour = singleCard, 2 tours = twoCards, >= 3 tours = toursGrid
   let gridClass = styles.toursGrid;
   if (tours.length === 1) {
     gridClass += ` ${styles.singleCard}`;

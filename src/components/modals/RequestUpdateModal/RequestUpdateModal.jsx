@@ -35,12 +35,11 @@ const RequestUpdateModal = ({
       const t = setTimeout(() => textareaRef.current?.focus(), 0);
       return () => clearTimeout(t);
     } else {
-      // Reset message when modal closes
       setUpdateMessage('');
     }
   }, [isOpen]);
 
-  // Resolve portal container once on mount
+  // Xác định portal container khi component mount
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -48,7 +47,7 @@ const RequestUpdateModal = ({
     }
   }, []);
 
-  // Lock body scroll while open
+  // Khóa scroll của body khi modal mở
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isOpen) {
@@ -90,7 +89,7 @@ const RequestUpdateModal = ({
     }
   };
 
-  // Determine icon based on title (reject vs update)
+  // Xác định icon dựa trên title (reject vs update)
   const isReject = title?.toLowerCase().includes('từ chối') || title?.toLowerCase().includes('reject');
   const IconComponent = isReject ? AlertCircle : Edit3;
 

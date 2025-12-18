@@ -23,8 +23,34 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
     }
   }, [isOpen]);
 
+  // Block space character input in password
+  const handlePasswordBeforeInput = (e) => {
+    const { data } = e;
+    if (data == null) return;
+    if (data === ' ' || data === '\u00A0') {
+      e.preventDefault();
+    }
+  };
+
+  // Handle paste in password: remove spaces
+  const handlePasswordPaste = (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const cleaned = pasted.replace(/\s/g, '');
+    const target = e.target;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const current = target.value;
+    const newValue = current.slice(0, start) + cleaned + current.slice(end);
+    
+    setFormData(prev => ({ ...prev, password: newValue }));
+    setLocalFormErrors(prev => ({ ...prev, password: '' }));
+  };
+
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Remove all spaces from password field
+    const cleanedValue = (field === 'password') ? value.replace(/\s/g, '') : value;
+    setFormData(prev => ({ ...prev, [field]: cleanedValue }));
     setLocalFormErrors(prev => ({ ...prev, [field]: '' }));
   };
 
@@ -132,6 +158,8 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit, submitting, error: externalE
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
+                onBeforeInput={handlePasswordBeforeInput}
+                onPaste={handlePasswordPaste}
                 className={`w-full px-4 py-3 rounded-[20px] border-2 ${
                   formErrors.password 
                     ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-400' 

@@ -6,7 +6,6 @@ import { getApiPath, BaseURL } from '../config/api';
  * @returns {Object} - Headers object with Authorization
  */
 const getAuthHeaders = () => {
-  // Try multiple common token keys
   const token =
     localStorage.getItem('token') ||
     sessionStorage.getItem('token') ||
@@ -28,15 +27,17 @@ const getAuthHeaders = () => {
  * @param {{ bookingId: number|string, userEmail: string, voucherCode?: string }} payload
  * @returns {Promise<Object>}
  */
+// Tạo đơn thanh toán Toss cho booking
+// Hỗ trợ thanh toán cọc (deposit) hoặc thanh toán toàn bộ
 export const createTossBookingPayment = async (payload) => {
-  // Đảm bảo isDeposit là boolean, không phải truthy/falsy
+  // Đảm bảo isDeposit là boolean thực sự, không phải truthy/falsy
   const isDepositValue = Boolean(payload?.isDeposit === true);
   
   const requestBody = {
     bookingId: Number(payload?.bookingId),
     userEmail: payload?.userEmail?.trim(),
     voucherCode: payload?.voucherCode ? payload.voucherCode.trim() : undefined,
-    deposit: isDepositValue,  // Gửi 'deposit' để map vào field 'deposit' trong backend
+    deposit: isDepositValue, // Gửi field 'deposit' để map vào backend
   };
 
   if (!Number.isFinite(requestBody.bookingId)) {
@@ -48,7 +49,7 @@ export const createTossBookingPayment = async (payload) => {
   }
 
   try {
-    // Use getApiPath for consistent URL handling in dev/prod
+    // Sử dụng getApiPath để xử lý URL nhất quán trong dev/prod
     let url = getApiPath('/api/booking/payment');
     
     let response = await fetch(url, {
@@ -57,7 +58,8 @@ export const createTossBookingPayment = async (payload) => {
       body: JSON.stringify(requestBody),
     });
 
-    // Fallback: If 404 in dev mode with relative path, try full URL
+    // Fallback: nếu 404 trong dev mode với relative path, thử full URL
+    // (để xử lý trường hợp Vite proxy chưa được cấu hình đúng)
     if (!response.ok && response.status === 404 && import.meta.env.DEV && url.startsWith('/')) {
       const fallbackUrl = `${BaseURL}/api/booking/payment`;
       
@@ -67,16 +69,14 @@ export const createTossBookingPayment = async (payload) => {
           headers: getAuthHeaders(),
           body: JSON.stringify(requestBody),
         });
-        url = fallbackUrl; // Update url for error messages
+        url = fallbackUrl;
       } catch (fallbackError) {
-        // Continue with original response for error handling
       }
     }
 
     if (!response.ok) {
       const status = response.status;
       
-      // Handle 401 - session expired
       if (status === 401) {
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
@@ -84,18 +84,15 @@ export const createTossBookingPayment = async (payload) => {
         }
       }
       
-      // Handle 404 - endpoint not found (don't treat as session expired)
       if (status === 404) {
         let errorMessage = `Payment endpoint not found (404). Please ensure the backend server is running and accessible.`;
         
-        // Try to get more details
         try {
           const errorData = await response.json();
           if (errorData?.message) {
             errorMessage = errorData.message;
           }
         } catch (_) {
-          // If response is not JSON, provide context about the URL
           if (import.meta.env.DEV) {
             errorMessage = `Payment endpoint not found (404). URL: ${url}. Please check:\n1. Backend server is running on port 8080\n2. Vite proxy is configured correctly\n3. Endpoint /api/booking/payment exists in backend`;
           }
@@ -104,9 +101,7 @@ export const createTossBookingPayment = async (payload) => {
         throw new Error(errorMessage);
       }
       
-      // Handle other errors (403, 500, etc.) with global error handler
       if (status === 403 || status >= 500) {
-        // Try to get error message from response first
         let errorMessage = `Lỗi server (${status})`;
         try {
           const errorData = await response.json();
@@ -116,21 +111,17 @@ export const createTossBookingPayment = async (payload) => {
             errorMessage = errorData.error;
           }
         } catch (_) {
-          // If response is not JSON, use status text
           errorMessage = response.statusText || `Lỗi server (${status})`;
         }
         
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          // Error handler already redirected, throw error with message
           throw new Error(errorMessage);
         }
         
-        // If not handled by global handler, throw with parsed message
         throw new Error(errorMessage);
       }
       
-      // For other status codes, try to parse error message
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorData = await response.json();
@@ -140,7 +131,6 @@ export const createTossBookingPayment = async (payload) => {
           errorMessage = errorData.error;
         }
       } catch (_) {
-        // If response is not JSON, use status text
         errorMessage = response.statusText || `HTTP error! status: ${response.status}`;
       }
       

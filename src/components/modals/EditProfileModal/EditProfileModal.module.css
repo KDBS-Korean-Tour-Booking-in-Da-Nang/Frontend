@@ -169,6 +169,16 @@
   margin-top: 4px;
 }
 
+.error-banner {
+  padding: 12px 16px;
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 12px;
+  color: #ef4444;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;

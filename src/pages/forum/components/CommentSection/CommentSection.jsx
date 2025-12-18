@@ -42,12 +42,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Load comments on mount
+  // Load comments khi mount: gọi loadComments khi post.forumPostId thay đổi
   useEffect(() => {
     loadComments();
   }, [post.forumPostId]);
 
-  // Load reported comments after comments are loaded
+  // Load reported comments sau khi comments được load: gọi loadReportedComments nếu comments.length > 0 và user có giá trị
   useEffect(() => {
     if (comments.length > 0 && user) {
       loadReportedComments();
@@ -59,15 +59,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     if (!user || !commentList || commentList.length === 0) return;
     
     try {
-      // Get all comment IDs from provided comments
       const allCommentIds = [];
       
-      // Add top-level comments
       commentList.forEach(comment => {
         allCommentIds.push(comment.forumCommentId);
       });
       
-      // Add reply comments
       const loadRepliesForComments = async (commentList) => {
         for (const comment of commentList) {
           try {
@@ -77,14 +74,13 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
               replies.forEach(reply => allCommentIds.push(reply.forumCommentId));
             }
           } catch (error) {
-            // Silently handle error loading replies
+            // Silently handle error
           }
         }
       };
       
       await loadRepliesForComments(commentList);
       
-      // Check which comments are already reported
       const reportedIds = [];
       for (const commentId of allCommentIds) {
         try {
@@ -96,25 +92,24 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
             }
           }
         } catch (error) {
-          // Silently handle error checking report status
+          // Silently handle error
         }
       }
       
       setReportedComments(prev => new Set([...prev, ...reportedIds]));
     } catch (error) {
-      // Silently handle error loading reported comments
+      // Silently handle error
     }
   };
 
+  // Load comments từ API: gọi COMMENTS_BY_POST endpoint, filter chỉ top-level comments (không có parentCommentId), load reported status cho comments, call onCountChange với total comments count
   const loadComments = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.COMMENTS_BY_POST(post.forumPostId));
       if (response.ok) {
         const data = await response.json();
-        // Only show top-level comments (no parentCommentId)
         const topLevelComments = data.filter(comment => !comment.parentCommentId);
         setComments(topLevelComments);
-        // Load reported status for these comments
         if (user && topLevelComments.length > 0) {
           loadReportedComments(topLevelComments);
         }
@@ -123,11 +118,11 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         }
       }
     } catch (error) {
-      // Silently handle error loading comments
+      // Silently handle error
     }
   };
 
-  // Submit new comment
+  // Submit comment mới: validate commentText và user, gọi COMMENTS endpoint với POST, clear commentText, reload comments sau khi thành công, call onCommentAdded callback
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim() || !user) return;
@@ -149,7 +144,6 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         body: JSON.stringify(body),
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         await checkAndHandle401(response);
         return;
@@ -170,7 +164,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     }
   };
 
-  // Format time helper
+  // Format time helper: tính diffInMinutes, < 1 phút = "Vừa xong", < 60 phút = "X phút trước", < 1440 phút = "X giờ trước", >= 1440 phút = "X ngày trước"
   const formatTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -182,7 +176,7 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     return `${Math.floor(diffInMinutes / 1440)} ${t('forum.post.days')} ${t('forum.post.ago')}`;
   };
 
-  // Check if user owns comment
+  // Kiểm tra user có sở hữu comment không: check user.email === comment.userEmail
   const isCommentOwner = (comment) => {
     if (!user || !comment) {
       return false;
@@ -197,12 +191,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
     return reportedComments.has(commentId);
   };
 
-  // Handle comment deletion
+  // Xử lý comment deletion: filter comment khỏi comments array
   const handleCommentDeleted = (commentId) => {
     setComments(prev => prev.filter(comment => comment.forumCommentId !== commentId));
   };
 
-  // Submit report
+  // Submit report: gọi REPORTS_CREATE endpoint với targetType, targetId, reasons, description, add comment vào reportedComments Set, show success modal, handle 401, handle already reported error
   const submitReport = async (reportData) => {
     if (!user) return;
     
@@ -220,14 +214,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         }),
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         await checkAndHandle401(response);
         return;
       }
 
       if (response.ok) {
-        // Add comment to reported list
         const newReportedComments = new Set([...reportedComments, reportData.targetId]);
         setReportedComments(newReportedComments);
         
@@ -235,10 +227,8 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         setShowReportSuccessModal(true);
         setReportTarget(null);
       } else if (response.status === 400) {
-        // Handle already reported error
         const errorData = await response.json();
         if (errorData.code === 1022) {
-          // Already reported - add to reported list but don't show success modal
           const newReportedComments = new Set([...reportedComments, reportData.targetId]);
           setReportedComments(newReportedComments);
           
@@ -252,7 +242,6 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
       }
     } catch (error) {
-      // Silently handle error submitting report
       alert('Có lỗi xảy ra khi gửi báo cáo. Vui lòng thử lại.');
     }
   };
@@ -277,15 +266,12 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         headers: createAuthHeaders(token),
       });
       
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         await checkAndHandle401(response);
         return;
       }
       
       if (response.ok) {
-        // Reload all comments to get updated structure after reassignment
-        // This ensures that replies that were reassigned to a new parent are displayed correctly
         await loadComments();
         if (onCountChange) {
           // Reload to get accurate count

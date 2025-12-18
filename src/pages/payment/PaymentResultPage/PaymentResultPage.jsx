@@ -21,7 +21,7 @@ function sanitize(value) {
   return value.replace(/[<>]/g, '').trim();
 }
 
-// Format as KRW (BE already processed the conversion, just display)
+// Format số tiền sang KRW: BE đã xử lý conversion, chỉ cần hiển thị, sử dụng Intl.NumberFormat với locale 'ko-KR', return '—' nếu không hợp lệ
 function formatCurrencyVND(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return '—';

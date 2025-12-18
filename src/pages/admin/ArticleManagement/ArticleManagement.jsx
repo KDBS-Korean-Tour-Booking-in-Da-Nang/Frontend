@@ -35,27 +35,23 @@ const ArticleManagement = () => {
   const secondaryButtonClasses = 'rounded-[28px] px-6 py-3 font-semibold text-[#4c9dff] bg-white/80 border border-[#4c9dff]/40 hover:bg-[#e9f2ff] focus:ring-4 focus:ring-[#bfd7ff] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed';
   const iconButtonClasses = 'p-2 rounded-full border border-transparent hover:border-[#dcd6ca] hover:bg-white/70 transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed';
 
+  // Load articles: không auto redirect 401 khi gọi từ background polling, check new articles từ auto-crawling (chỉ nếu count tăng), store raw articles (sorting sẽ được xử lý bởi useMemo), không show error hoặc logout nếu 401 từ background polling
   const loadArticles = useCallback(async (showNewArticlesNotification = false, isBackgroundPoll = false) => {
     setLoadingArticles(true);
     try {
-      // Don't auto redirect on 401 when called from background polling
       const data = await articleService.getAllArticles(!isBackgroundPoll);
       const newArticles = data || [];
       
-      // Check for new articles from auto-crawling (only if count increased)
       if (showNewArticlesNotification && lastArticleCount > 0 && newArticles.length > lastArticleCount) {
         const newCount = newArticles.length - lastArticleCount;
         showSuccess(t('articleManagement.messages.autoCrawlSuccess', { count: newCount }));
       }
       
-      // Store raw articles, sorting will be handled by useMemo based on sortOrder
       setArticles(newArticles);
       setLastArticleCount(newArticles.length);
-      setError(''); // Clear error on success
+      setError('');
     } catch (error) {
-      // Don't show error or logout if it's a 401 from background polling
       if (isBackgroundPoll && error?.status === 401) {
-        // Silently fail - token might be expired, but don't logout from background polling
         return;
       }
       setError(t('articleManagement.messages.crawlError') || 'Không thể tải danh sách bài viết');
@@ -64,17 +60,15 @@ const ArticleManagement = () => {
     }
   }, [showSuccess, lastArticleCount, t]);
   
-  // Sort articles based on sortOrder
+  // Sort articles dựa trên sortOrder: sort theo pending status trước (pending first), sau đó sort theo date (newest hoặc oldest tùy sortOrder)
   const sortedArticles = useMemo(() => {
     if (!articles || articles.length === 0) return [];
     
     return [...articles].sort((a, b) => {
-      // First, sort by pending status (pending first)
       const aPending = a.articleStatus !== 'APPROVED';
       const bPending = b.articleStatus !== 'APPROVED';
       if (aPending !== bPending) return aPending ? -1 : 1;
       
-      // Then sort by date
       const aTime = new Date(a.articleCreatedDate).getTime() || 0;
       const bTime = new Date(b.articleCreatedDate).getTime() || 0;
       
@@ -86,7 +80,7 @@ const ArticleManagement = () => {
     });
   }, [articles, sortOrder]);
   
-  // Reset to page 1 when sort order changes
+  // Reset về page 1 khi sort order thay đổi
   useEffect(() => {
     setCurrentPage(1);
   }, [sortOrder]);

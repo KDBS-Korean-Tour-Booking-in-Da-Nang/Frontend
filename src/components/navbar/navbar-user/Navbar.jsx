@@ -20,21 +20,20 @@ const Navbar = () => {
   const fetchListRef = useRef(fetchList);
   useEffect(() => { fetchListRef.current = fetchList; }, [fetchList]);
 
-  // Fetch unread count on mount and when user changes
+  // Lấy số lượng thông báo chưa đọc khi component mount và khi user thay đổi
   useEffect(() => {
     if (user?.email && fetchUnreadCount) {
       fetchUnreadCount();
     }
   }, [user?.email, fetchUnreadCount]);
   
-  // Add error boundary for chat context
+  // Xử lý lỗi cho chat context
   let chatState, chatActions;
   try {
     const chatContext = useChat();
     chatState = chatContext.state;
     chatActions = chatContext.actions;
   } catch (error) {
-    // Provide fallback values
     chatState = { isChatDropdownOpen: false, isChatBoxOpen: false };
     chatActions = { 
       toggleChatDropdown: () => {}, 
@@ -52,18 +51,16 @@ const Navbar = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { t, i18n } = useTranslation();
 
-  // Set default language to English for USER role and GUEST (not logged in)
+  // Đặt ngôn ngữ mặc định là tiếng Anh cho USER role và GUEST
   useEffect(() => {
     const currentLang = i18n.language;
-    // For USER role or GUEST (no user), default to English
     if (!user || user.role === 'USER') {
       if (!currentLang || currentLang === 'vi') {
-        // Set default to English, or switch from Vietnamese to English
         i18n.changeLanguage('en');
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.role, i18n.language]); // Check both role and language changes
+  }, [user?.role, i18n.language]);
 
   const handleLogout = () => {
     logout();
@@ -71,31 +68,23 @@ const Navbar = () => {
   };
 
   const changeLanguage = (lng) => {
-    // Prevent USER and GUEST from selecting Vietnamese
     if ((!user || user.role === 'USER') && lng === 'vi') {
       return;
     }
     i18n.changeLanguage(lng);
   };
 
-  // USER/GUEST navbar - Vietnamese is never shown
   const showVietnamese = false;
 
   const toggleNotification = () => {
     setIsNotificationOpen(!isNotificationOpen);
-    // Don't close chat when opening notification
   };
 
   const toggleChat = () => {
     chatActions.toggleChatDropdown();
-    // Don't close notification when opening chat
   };
 
-  
-
-  // Handle scroll behavior
-  // On forum page: always visible (like NavbarCompany)
-  // On other pages: hide when scrolling down, show when scrolling up
+  // Xử lý hành vi scroll: trên trang forum luôn hiển thị, các trang khác ẩn khi scroll xuống
   useEffect(() => {
     const isForumPage = location.pathname === '/forum' || location.pathname.startsWith('/forum/');
     
@@ -103,18 +92,14 @@ const Navbar = () => {
       const currentScrollY = window.scrollY;
 
       if (isForumPage) {
-        // Forum page: always visible, only update scrolled state for styling
         setIsVisible(true);
         setIsScrolled(currentScrollY > 10);
       } else {
-        // Other pages: hide/show behavior
         if (currentScrollY < 10) {
           setIsVisible(true);
           setIsScrolled(false);
         } else {
           setIsScrolled(true);
-
-          // Hide navbar when scrolling down, show when scrolling up
           if (currentScrollY > lastScrollY && currentScrollY > 100) {
             setIsVisible(false);
           } else {
@@ -129,14 +114,12 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, location.pathname]);
 
-  // Check if current path is active
+  // Kiểm tra xem path hiện tại có active không
   const isActive = (path) => {
     if (path === '/tour') {
-      // For tour, also check if we're on tour detail page
       return location.pathname === '/tour' || location.pathname.startsWith('/tour/');
     }
     if (path === '/article') {
-      // For article, also check if we're on article detail page
       return location.pathname === '/article' || location.pathname.startsWith('/article/');
     }
     if (path === '/about') {
@@ -145,7 +128,6 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
-  // USER/GUEST navbar - no company pending logic needed
   const isLockedToCompanyInfo = false;
   const disabledClass = '';
 
@@ -259,7 +241,6 @@ const Navbar = () => {
                       {t('nav.profileFull')}
                     </Link>
                     
-                    {/* Removed Company Info entry from dropdown as requested */}
                     <button onClick={handleLogout} className={`${styles['dropdown-item']} ${styles.logout}`}>
                       {t('nav.logout')}
                     </button>

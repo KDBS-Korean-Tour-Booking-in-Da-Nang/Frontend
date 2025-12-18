@@ -47,7 +47,7 @@ const CompanyManagement = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // Fetch companies (users with role COMPANY/BUSINESS) from API
+  // Fetch companies từ API: lấy users có role COMPANY hoặc BUSINESS, map backend data sang frontend format (map status sang approvalStatus: WAITING_FOR_APPROVAL=pending, COMPANY_PENDING=not_updated, UNBANNED/ACTIVE=approved, BANNED=rejected), handle 401
   const fetchCompanies = async () => {
     try {
       setLoading(true);
@@ -76,13 +76,11 @@ const CompanyManagement = () => {
       const data = await response.json();
       const users = data.result || data || [];
       
-      // Filter users with role COMPANY or BUSINESS (hiển thị full status)
       const companyUsers = users.filter(user => {
         const role = (user.role || '').toUpperCase();
         return role === 'COMPANY' || role === 'BUSINESS';
       });
 
-      // Map backend data to frontend format
       const mappedCompanies = companyUsers.map(user => {
         const status = (user.status || '').toUpperCase();
         let approvalStatus = 'pending';
@@ -113,7 +111,6 @@ const CompanyManagement = () => {
 
       setCompanies(mappedCompanies);
     } catch {
-      // Silently handle error fetching companies
       setError(t('admin.companyManagement.error') || 'Không thể tải danh sách công ty. Vui lòng thử lại.');
     } finally {
       setLoading(false);
@@ -125,9 +122,9 @@ const CompanyManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Filter companies: loại bỏ companies có approvalStatus = 'not_updated', search trong name, email, id (case-insensitive), filter theo status nếu statusFilter !== 'ALL'
   const filteredCompanies = useMemo(() => {
     return companies.filter((company) => {
-      // Filter out companies with not_updated status
       if (company.approvalStatus === 'not_updated') {
         return false;
       }
@@ -140,7 +137,7 @@ const CompanyManagement = () => {
     });
   }, [companies, search, statusFilter]);
 
-  // Pagination
+  // Paginate companies: slice filteredCompanies theo currentPage và itemsPerPage
   const paginatedCompanies = useMemo(() => {
     const startIndex = currentPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -149,13 +146,13 @@ const CompanyManagement = () => {
 
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset về page đầu tiên khi filters thay đổi (search, statusFilter)
   useEffect(() => {
     setCurrentPage(0);
   }, [search, statusFilter]);
 
+  // Tính stats: loại bỏ not_updated companies, đếm total, pending, approved, rejected
   const stats = useMemo(() => {
-    // Filter out not_updated companies for stats
     const filteredCompanies = companies.filter((c) => c.approvalStatus !== 'not_updated');
     const total = filteredCompanies.length;
     const pending = filteredCompanies.filter((c) => c.approvalStatus === 'pending').length;
@@ -164,6 +161,7 @@ const CompanyManagement = () => {
     return { total, pending, approved, rejected };
   }, [companies]);
 
+  // Xử lý approve company: gọi API update-role để nâng role lên COMPANY (backend tự cập nhật status từ WAITING_FOR_APPROVAL sang UNBANNED), update state trên FE ngay để thấy kết quả, refresh lại API để đồng bộ
   const handleApprove = async (company) => {
     try {
       const token = getToken();
@@ -174,8 +172,6 @@ const CompanyManagement = () => {
 
       const headers = createAuthHeaders(token);
 
-      // Dựa vào status hiện tại (WAITING_FOR_APPROVAL) để gọi API nâng role lên COMPANY.
-      // Backend sẽ tự cập nhật Status từ WAITING_FOR_APPROVAL sang UNBANNED.
       const roleResponse = await fetch(
         `${BaseURL}/api/staff/update-role/${company.userId}?role=COMPANY`,
         {
@@ -193,7 +189,6 @@ const CompanyManagement = () => {
         throw new Error(errorData.message || 'Không thể cập nhật role');
       }
 
-      // Cập nhật lại state trên FE để thấy ngay kết quả (status từ WAITING_FOR_APPROVAL -> UNBANNED)
       setCompanies(prev =>
         prev.map(c =>
           c.userId === company.userId
@@ -209,19 +204,19 @@ const CompanyManagement = () => {
       setModalOpen(false);
       setApproveModalOpen(false);
       setCompanyToApprove(null);
-      // Vẫn gọi lại API để đồng bộ với backend
       await fetchCompanies();
     } catch (err) {
-      // Silently handle error approving company
       setError(err.message || t('admin.companyManagement.approveError'));
     }
   };
 
+  // Xử lý reject company: set companyToReject và mở reject modal
   const handleReject = (company) => {
     setCompanyToReject(company);
     setRejectModalOpen(true);
   };
 
+  // Confirm reject company: chỉ thông báo, không đổi status/ban user (backend không có endpoint reject)
   const confirmReject = async () => {
     if (!companyToReject) return;
     
@@ -234,20 +229,18 @@ const CompanyManagement = () => {
         return;
       }
 
-      // Từ chối: chỉ thông báo, không đổi status/bann user ở đây
       alert(t('admin.companyManagement.rejectSuccess'));
       setModalOpen(false);
       setRejectModalOpen(false);
       setCompanyToReject(null);
     } catch (err) {
-      // Silently handle error rejecting company
       alert(err.message || t('admin.companyManagement.rejectError'));
       setRejectModalOpen(false);
       setCompanyToReject(null);
     }
   };
 
-  // Fetch file paths for a company
+  // Fetch file paths cho company: lấy business upload status để get file names, kiểm tra nếu không có files, construct file URLs từ file names (backend trả về relative path, local: /uploads/business/..., production: full Azure URL), sử dụng getImageUrl để normalize URLs
   const fetchCompanyFiles = async (company) => {
     try {
       setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: true });
@@ -259,7 +252,6 @@ const CompanyManagement = () => {
 
       const headers = createAuthHeaders(token);
       
-      // Get business upload status to get file names
       const apiUrl = `${BaseURL}/api/users/business-upload-status?email=${encodeURIComponent(company.email)}`;
       const statusResponse = await fetch(apiUrl, {
         headers
@@ -272,31 +264,22 @@ const CompanyManagement = () => {
       const statusData = await statusResponse.json();
       const uploadStatus = statusData.result || statusData;
 
-      // Kiểm tra nếu không có files
       if (!uploadStatus.uploaded || (!uploadStatus.businessLicenseFileName && !uploadStatus.idCardFrontFileName && !uploadStatus.idCardBackFileName)) {
         setFileData({ businessLicenseUrl: null, idCardFrontUrl: null, idCardBackUrl: null, loading: false });
         return;
       }
 
-      // Construct file URLs from file names
-      // Backend behavior:
-      // - Local: Returns relative path like "/uploads/business/registrationFile/filename.pdf"
-      // - Azure: Returns full Azure Blob Storage URL like "https://kdbsstorage.blob.core.windows.net/..."
+      // Construct file URLs từ file names: xử lý các trường hợp full URL (http:///https://), URL embedded trong path, relative path, sử dụng getImageUrl để normalize
       const getFileUrl = (fileName, basePath) => {
         if (!fileName) return null;
         
-        // Trim whitespace
         const trimmed = fileName.trim();
         if (!trimmed) return null;
         
-        // Case 1: Already a full URL (starts with http:// or https://)
-        // This happens when backend returns Azure Blob Storage URL directly
         if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-          return trimmed; // Return as-is, it's already a full URL
+          return trimmed;
         }
         
-        // Case 2: Contains full URL embedded in path (e.g., "/uploads/path/https://...")
-        // This can happen if backend incorrectly prefixes Azure URL with a path
         if (trimmed.includes('https://') || trimmed.includes('http://')) {
           const httpsIndex = trimmed.indexOf('https://');
           const httpIndex = trimmed.indexOf('http://');

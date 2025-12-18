@@ -11,7 +11,7 @@ import styles from './EditProfileModal.module.css';
 const EditProfileModal = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const { user, getToken, refreshUser, updateUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     phone: ''
@@ -23,7 +23,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
   const modalContainerRef = useRef(null);
   const bodyOverflowRef = useRef('');
 
-  // Initialize form data when modal opens or user changes
+  // Khởi tạo dữ liệu form khi modal mở hoặc user thay đổi
   useEffect(() => {
     if (isOpen && user) {
       setFormData({
@@ -36,7 +36,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     }
   }, [isOpen, user]);
 
-  // Resolve portal container once on mount
+  // Xác định portal container khi component mount
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -44,7 +44,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     }
   }, []);
 
-  // Lock body scroll while modal is open
+  // Khóa scroll của body khi modal mở
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isOpen) {
@@ -62,7 +62,6 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       ...prev,
       [name]: value
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -76,8 +75,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
     if (file.size > maxSize) {
@@ -90,14 +88,12 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Clear avatar error
     setErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors.avatar;
       return newErrors;
     });
 
-    // Set file and preview
     setAvatarFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -110,11 +106,10 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     
     if (!user?.email) {
-      showError(t('common.errors.loginRequired') || 'Vui lòng đăng nhập');
+      setErrors({ general: t('common.errors.loginRequired') || 'Vui lòng đăng nhập' });
       return;
     }
 
-    // Validate form data
     const userData = {
       email: user.email,
       name: formData.name,
@@ -126,10 +121,6 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     const validation = validateUserProfile(userData);
     if (!validation.isValid) {
       setErrors(validation.errors);
-      const firstError = Object.values(validation.errors)[0];
-      if (firstError) {
-        showError(firstError);
-      }
       return;
     }
 
@@ -141,14 +132,11 @@ const EditProfileModal = ({ isOpen, onClose }) => {
         throw new Error(t('common.errors.loginRequired') || 'Vui lòng đăng nhập');
       }
 
-      // Update user profile
       const result = await updateUserProfile(userData, token);
       
-      // Refresh user data
       try {
         await refreshUser();
       } catch (refreshError) {
-        // Fallback to local update
         const updatedUser = {
           ...user,
           username: formData.name,
@@ -163,7 +151,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       onClose();
     } catch (error) {
       const errorMessage = error?.message || t('profile.errors.updateFailed') || 'Không thể cập nhật thông tin';
-      showError(errorMessage);
+      setErrors({ general: errorMessage });
     } finally {
       setIsUpdating(false);
     }
@@ -206,6 +194,11 @@ const EditProfileModal = ({ isOpen, onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit} className={styles['modal-form']}>
+          {errors.general && (
+            <div className={styles['error-banner']}>
+              <span>{errors.general}</span>
+            </div>
+          )}
           {/* Avatar Upload */}
           <div className={styles['avatar-section']}>
             <div className={styles['avatar-preview-container']}>

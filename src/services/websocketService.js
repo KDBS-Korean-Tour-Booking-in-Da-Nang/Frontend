@@ -1,19 +1,22 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
+// Service quản lý kết nối WebSocket sử dụng STOMP protocol
+// Hỗ trợ subscribe/unsubscribe, gửi/nhận message, quản lý connection state
 class WebSocketService {
   constructor() {
     this.stompClient = null;
     this.isConnected = false;
-    this.subscriptions = new Map();
-    this.messageCallbacks = new Map(); // Store current callbacks for each subscription
-    this.messageHandlers = new Set();
-    this.connectionHandlers = new Set();
-    this.disconnectionHandlers = new Set();
+    this.subscriptions = new Map(); // Lưu các subscription đang active
+    this.messageCallbacks = new Map(); // Lưu callback hiện tại cho mỗi subscription (để tránh gọi callback cũ)
+    this.messageHandlers = new Set(); // Global message handlers
+    this.connectionHandlers = new Set(); // Handlers khi kết nối thành công
+    this.disconnectionHandlers = new Set(); // Handlers khi mất kết nối
   }
 
+  // Kết nối WebSocket với server
+  // Tự động ngắt kết nối cũ nếu đang kết nối để đảm bảo kết nối sạch
   connect(userId) {
-    // Always disconnect first if connected to ensure clean reconnection
     if (this.isConnected && this.stompClient) {
       this.disconnect();
     }
@@ -24,56 +27,59 @@ class WebSocketService {
 
     return new Promise((resolve, reject) => {
       try {
+        // Xác định URL WebSocket dựa trên môi trường
+        // Ưu tiên VITE_WS_URL từ env, sau đó tự động detect trong production
         const getWebSocketUrl = () => {
-          // Nếu có VITE_WS_URL được set, dùng nó (có thể là ws://, wss://, http://, hoặc https://)
           if (import.meta.env.VITE_WS_URL) {
             return import.meta.env.VITE_WS_URL;
           }
           
-          // Production: dùng current domain, tự động detect protocol
+          // Production: tự động detect protocol (wss:// cho HTTPS, ws:// cho HTTP)
           if (import.meta.env.PROD) {
-            // Đảm bảo dùng wss:// nếu frontend chạy trên HTTPS
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             return `${protocol}//${window.location.host}/ws`;
           } 
           
-          // Development: fallback về localhost
-          // Có thể dùng ws:// trực tiếp hoặc http:// để qua Vite proxy
-          // Logic convert ở createNativeWebSocket() sẽ xử lý cả hai
+          // Development: mặc định localhost
           return 'http://localhost:8080/ws';
         };
 
         const wsUrl = getWebSocketUrl();
         const token = sessionStorage.getItem('token') || localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-        // Prefer native WebSocket to avoid CORS on SockJS XHR /info
+        // Tạo native WebSocket connection
+        // Chuyển đổi URL từ http/https sang ws/wss và thêm path /ws/websocket
         const createNativeWebSocket = () => {
           let nativeUrl;
           
-          // Normalize URL: convert http/https to ws/wss, or use ws/wss directly
+          // Chuyển đổi http:// sang ws://
           if (wsUrl.startsWith('http://')) {
             nativeUrl = wsUrl.replace(/^http:\/\//, 'ws://').replace('/ws', '/ws/websocket');
-          } else if (wsUrl.startsWith('https://')) {
+          } 
+          // Chuyển đổi https:// sang wss://
+          else if (wsUrl.startsWith('https://')) {
             nativeUrl = wsUrl.replace(/^https:\/\//, 'wss://').replace('/ws', '/ws/websocket');
-          } else if (wsUrl.startsWith('ws://') || wsUrl.startsWith('wss://')) {
-            // Already ws:// or wss://, just replace /ws with /ws/websocket
+          } 
+          // Nếu đã là ws:// hoặc wss://, chỉ cần thay đổi path
+          else if (wsUrl.startsWith('ws://') || wsUrl.startsWith('wss://')) {
             nativeUrl = wsUrl.replace('/ws', '/ws/websocket');
-          } else {
-            // Fallback: assume ws protocol
+          } 
+          // Fallback: giả định ws protocol
+          else {
             nativeUrl = `ws://${wsUrl.replace(/^\/+/, '')}`.replace('/ws', '/ws/websocket');
           }
           
           return new WebSocket(nativeUrl);
         };
 
-        // Create STOMP client
+        // Tạo STOMP client với các cấu hình
         this.stompClient = new Client({
           webSocketFactory: () => createNativeWebSocket(),
           debug: () => {},
-          connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-          heartbeatIncoming: 15000,
-          heartbeatOutgoing: 15000,
-          reconnectDelay: 5000, // auto-reconnect
+          connectHeaders: token ? { Authorization: `Bearer ${token}` } : {}, // Gửi token trong headers
+          heartbeatIncoming: 15000, // Nhận heartbeat mỗi 15s
+          heartbeatOutgoing: 15000, // Gửi heartbeat mỗi 15s
+          reconnectDelay: 5000, // Tự động reconnect sau 5s nếu mất kết nối
           onConnect: () => {
             this.isConnected = true;
             this.notifyConnectionHandlers();
@@ -86,7 +92,7 @@ class WebSocketService {
           onStompError: (frame) => {
             this.isConnected = false;
             this.notifyDisconnectionHandlers();
-            // Do not reject after resolve; only reject if not yet connected
+            // Chỉ reject nếu chưa kết nối thành công (tránh reject sau khi đã resolve)
             if (!this.isConnected) {
               reject(new Error('STOMP Error: ' + (frame.headers?.message || 'Unknown error')));
             }
@@ -106,7 +112,7 @@ class WebSocketService {
 
         this.stompClient.activate();
 
-        // Add timeout for initial connection
+        // Timeout: nếu không kết nối được trong 10s thì reject
         setTimeout(() => {
           if (!this.isConnected) {
             reject(new Error('WebSocket connection timeout'));
@@ -120,14 +126,12 @@ class WebSocketService {
 
   disconnect() {
     if (this.stompClient && this.isConnected) {
-      // Unsubscribe from all subscriptions
       this.subscriptions.forEach((subscription) => {
         subscription.unsubscribe();
       });
       this.subscriptions.clear();
-      this.messageCallbacks.clear(); // Clear all callbacks
+      this.messageCallbacks.clear();
 
-      // Disconnect
       this.stompClient.deactivate();
       this.stompClient = null;
       this.isConnected = false;
@@ -135,38 +139,38 @@ class WebSocketService {
     }
   }
 
+  // Subscribe vào tin nhắn của một user cụ thể
+  // Backend sử dụng userId dạng string để routing
   subscribeToUserMessages(userId, callback) {
     if (!this.isConnected || !this.stompClient) {
       return null;
     }
 
-    // Backend uses userId as string for routing
     const userIdStr = String(userId);
     const destination = `/user/${userIdStr}/queue/messages`;
     
-    // Unsubscribe from existing subscription if it exists to avoid duplicates
+    // Hủy subscription cũ nếu đã tồn tại để tránh duplicate
     const existingSubscription = this.subscriptions.get(destination);
     if (existingSubscription) {
       existingSubscription.unsubscribe();
       this.subscriptions.delete(destination);
-      this.messageCallbacks.delete(destination); // Remove old callback
+      this.messageCallbacks.delete(destination);
     }
     
-    // Store the current callback
+    // Lưu callback hiện tại (callback mới nhất) để tránh gọi callback cũ
     this.messageCallbacks.set(destination, callback);
     
     const subscription = this.stompClient.subscribe(destination, (message) => {
       try {
         const messageData = JSON.parse(message.body);
-        // Get the current callback (latest one) to avoid calling old callbacks
+        // Lấy callback hiện tại (mới nhất) để đảm bảo gọi đúng callback
         const currentCallback = this.messageCallbacks.get(destination);
-        // Only call callback, not notifyMessageHandlers to avoid duplicate processing
-        // notifyMessageHandlers is for global message handlers, not for user-specific subscriptions
         if (currentCallback) {
           currentCallback(messageData);
         }
+        // Không gọi notifyMessageHandlers để tránh xử lý trùng lặp
+        // notifyMessageHandlers dành cho global message handlers, không phải user-specific subscriptions
       } catch (error) {
-        // Error parsing message
       }
     });
 
@@ -178,7 +182,6 @@ class WebSocketService {
     if (!this.isConnected || !this.stompClient) return null;
     const destination = '/topic/notifications';
     
-    // Unsubscribe from existing subscription if it exists to avoid duplicates
     const existingSubscription = this.subscriptions.get(destination);
     if (existingSubscription) {
       existingSubscription.unsubscribe();
@@ -197,11 +200,8 @@ class WebSocketService {
 
   subscribeToUserNotifications(usernameOrId, callback) {
     if (!this.isConnected || !this.stompClient) return null;
-    // Spring user destination: client should subscribe to '/user/queue/notifications'
-    // Server routes to the authenticated user; no username segment is needed here.
     const destination = `/user/queue/notifications`;
     
-    // Unsubscribe from existing subscription if it exists to avoid duplicates
     const existingSubscription = this.subscriptions.get(destination);
     if (existingSubscription) {
       existingSubscription.unsubscribe();
@@ -234,7 +234,6 @@ class WebSocketService {
     }
   }
 
-  // Event handlers
   onMessage(callback) {
     this.messageHandlers.add(callback);
     return () => this.messageHandlers.delete(callback);
@@ -255,7 +254,6 @@ class WebSocketService {
       try {
         handler(message);
       } catch (error) {
-        // Error in message handler
       }
     });
   }
@@ -265,7 +263,6 @@ class WebSocketService {
       try {
         handler();
       } catch (error) {
-        // Error in connection handler
       }
     });
   }
@@ -275,7 +272,6 @@ class WebSocketService {
       try {
         handler();
       } catch (error) {
-        // Error in disconnection handler
       }
     });
   }
@@ -285,6 +281,5 @@ class WebSocketService {
   }
 }
 
-// Create singleton instance
 const websocketService = new WebSocketService();
 export default websocketService;

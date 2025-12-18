@@ -20,7 +20,6 @@ const ComplaintModal = ({ isOpen, onClose, onConfirm, bookingId }) => {
   const bodyOverflowRef = useRef('');
   const textareaRef = useRef(null);
 
-  // Khởi tạo container cho portal ngay từ lần render đầu tiên
   if (!modalContainerRef.current && typeof document !== 'undefined') {
     const root = document.getElementById('modal-root');
     modalContainerRef.current = root || document.body;

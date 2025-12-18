@@ -14,8 +14,6 @@ import { getAvatarUrl } from '../../config/api';
 import { CHAT_EVENTS } from '../chatAI/BubbleChatAI';
 import styles from './ChatBox.module.css';
 
-// Utility functions for time handling - will be moved inside component to use translation
-
 const formatDateHeader = (timestamp) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
@@ -34,14 +32,12 @@ const shouldShowTimestamp = (messages, currentIndex) => {
   const currentMessage = messages[currentIndex];
   const previousMessage = messages[currentIndex - 1];
 
-  // While streaming/live, timestamps might be missing; avoid inserting gaps
   if (!currentMessage.timestamp || !previousMessage.timestamp) return false;
 
   const currentTime = new Date(currentMessage.timestamp);
   const previousTime = new Date(previousMessage.timestamp);
   const diffInMinutes = Math.floor((currentTime - previousTime) / (1000 * 60));
 
-  // Show timestamp if more than 5 minutes apart
   return diffInMinutes > 5;
 };
 
@@ -51,7 +47,6 @@ const shouldShowDateHeader = (messages, currentIndex) => {
   const currentMessage = messages[currentIndex];
   const previousMessage = messages[currentIndex - 1];
 
-  // While streaming/live, timestamps might be missing; do not add date headers
   if (!currentMessage.timestamp || !previousMessage.timestamp) return false;
 
   const currentDate = new Date(currentMessage.timestamp).toDateString();
@@ -89,7 +84,6 @@ const ChatBox = ({ isOpen, onClose }) => {
   const loadingOlderRef = useRef(false); // Prevent double-trigger
   const hasRestoredRef = useRef(false); // Track if chat has been restored
 
-  // Utility functions for time handling with translation
   const formatTime = (timestamp) => {
     if (!timestamp) return t('userChat.time.justNow');
     const date = new Date(timestamp);
@@ -117,20 +111,16 @@ const ChatBox = ({ isOpen, onClose }) => {
     return messageTime.toLocaleDateString('vi-VN');
   };
 
-  // Helper to get active chat key
   const getActiveChatKey = () =>
     state.activeChatUser?.userId ?? state.activeChatUser?.id ?? 'unknown';
 
-  // Memoize activeChatAvatar to avoid recalculating on every render
   const activeChatAvatar = React.useMemo(() => {
     if (!state.activeChatUser) return '/default-avatar.png';
     return resolveUserAvatar(state.activeChatUser);
   }, [state.activeChatUser?.userId, state.activeChatUser?.id, state.activeChatUser?.avatar, state.activeChatUser?.userAvatar]);
 
-  // Lazy load allUsers only when needed (defer to avoid blocking UI)
   useEffect(() => {
     if (isOpen && (!state.allUsers || state.allUsers.length === 0)) {
-      // Defer loading to avoid blocking UI render
       const timer = setTimeout(() => {
         actions.loadAllUsers?.();
       }, 100);
@@ -149,20 +139,16 @@ const ChatBox = ({ isOpen, onClose }) => {
     }
   };
 
-  // Handle scroll events for infinite scroll
-  // Use throttling for better performance in Chrome
   const handleScroll = React.useCallback((e) => {
     const container = e.target;
     const scrollTop = container.scrollTop;
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
 
-    // Check if user is near the top (within 100px)
     if (scrollTop < 100 && state.hasMoreMessages && !state.isLoadingMoreMessages && !loadingOlderRef.current) {
       loadingOlderRef.current = true;
 
       const containerEl = messagesContainerRef.current;
-      // Find the first visible element in viewport
       const children = Array.from(containerEl.querySelectorAll('[data-mid]'));
       const firstVisible = children.find(el => el.offsetTop >= containerEl.scrollTop - 2);
 
@@ -172,67 +158,54 @@ const ChatBox = ({ isOpen, onClose }) => {
           top: firstVisible.offsetTop
         };
       } else {
-        // Fallback if no element found
         anchorRef.current = { id: null, top: containerEl.scrollTop };
         previousScrollHeightRef.current = scrollHeight;
         previousScrollTopRef.current = scrollTop;
       }
 
-      // Clear existing timeout
       if (loadMoreTimeoutRef.current) {
         clearTimeout(loadMoreTimeoutRef.current);
       }
 
-      // Set timeout to load more messages after 500ms of being near top
       loadMoreTimeoutRef.current = setTimeout(() => {
         actions.loadMoreMessages();
       }, 500);
     }
 
-    // Detect if user is manually scrolling
     setIsUserScrolling(true);
 
-    // Clear existing timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Reset user scrolling flag after 1 second of no scrolling
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
     }, 1000);
   }, [state.hasMoreMessages, state.isLoadingMoreMessages, actions]);
 
-  // Handle scroll position when new messages are prepended
   const maintainScrollPosition = () => {
     if (messagesContainerRef.current && previousScrollHeightRef.current > 0) {
       const container = messagesContainerRef.current;
       const newScrollHeight = container.scrollHeight;
       const scrollDiff = newScrollHeight - previousScrollHeightRef.current;
 
-      // Restore scroll position by adding the height difference
       container.scrollTop = previousScrollTopRef.current + scrollDiff;
 
-      // Reset refs
       previousScrollHeightRef.current = 0;
       previousScrollTopRef.current = 0;
     }
   };
 
-  // Effect for handling new messages
   useEffect(() => {
-    // Check if we're currently prepending older messages
     const isPrepending = previousScrollHeightRef.current > 0 || state.isLoadingMoreMessages || loadingOlderRef.current;
 
     if (shouldScrollToBottom && !isPrepending) {
-      scrollToBottom(true); // Instant scroll for new messages
+      scrollToBottom(true);
       setShouldScrollToBottom(false);
     }
   }, [state.messages, shouldScrollToBottom, state.isLoadingMoreMessages]);
 
-  // Effect to maintain scroll position when loading more messages
   useEffect(() => {
-    // When state.isLoadingMoreMessages changes to false => prepend is done
     if (state.isLoadingMoreMessages === false && loadingOlderRef.current) {
       const containerEl = messagesContainerRef.current;
       if (containerEl) {
@@ -241,11 +214,9 @@ const ChatBox = ({ isOpen, onClose }) => {
           const anchorEl = containerEl.querySelector(`[data-mid="${id}"]`);
           if (anchorEl) {
             const newTop = anchorEl.offsetTop;
-            // Adjust scrollTop to keep anchor in the same position
             containerEl.scrollTop += (newTop - top);
           }
         } else {
-          // Fallback using scrollHeight difference (when no id available)
           if (previousScrollHeightRef.current > 0) {
             const diff = containerEl.scrollHeight - previousScrollHeightRef.current;
             containerEl.scrollTop = previousScrollTopRef.current + diff;
@@ -253,7 +224,6 @@ const ChatBox = ({ isOpen, onClose }) => {
         }
       }
 
-      // Reset everything
       anchorRef.current = { id: null, top: 0 };
       previousScrollHeightRef.current = 0;
       previousScrollTopRef.current = 0;
@@ -261,14 +231,12 @@ const ChatBox = ({ isOpen, onClose }) => {
     }
   }, [state.isLoadingMoreMessages]);
 
-  // Effect for initial load - scroll to bottom after messages are loaded
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
 
-  // Listen for AI chat opened event - minimize regular chat when AI chat opens
   useEffect(() => {
     const handleAIChatOpened = () => {
       if (isOpen && !state.isChatBoxMinimized) {
@@ -282,80 +250,64 @@ const ChatBox = ({ isOpen, onClose }) => {
     };
   }, [isOpen, state.isChatBoxMinimized, actions]);
 
-  // Effect to restore minimized chats on page refresh/load
-  // This runs independently to ensure bubble chats are always restored
+  // Khôi phục minimized chats khi trang refresh/load
   useEffect(() => {
-    // Only restore if currentUser is available
     if (!state.currentUser) return;
-
-    // Restore minimized chats - this should always run when currentUser is available
-    // This ensures bubble chats are restored even after page refresh
     actions.restoreMinimizedChats();
-  }, [state.currentUser]); // Depend on currentUser
+  }, [state.currentUser]);
 
-  // Effect to restore chat state on page refresh/load
+  // Khôi phục trạng thái chat từ localStorage khi trang refresh/load
   useEffect(() => {
-    // Only restore if currentUser is available and hasn't been restored yet
     if (!state.currentUser || hasRestoredRef.current) return;
 
-    // Check if chat should be restored from localStorage
     const savedChatState = localStorage.getItem('chatBoxState');
 
     if (savedChatState) {
       try {
         const { isOpen, activeChatUser, isMinimized } = JSON.parse(savedChatState);
 
-        // If chat was minimized, don't restore it as open
-        // The bubble chat should already be restored by the previous useEffect
         if (isMinimized) {
-          // Mark as restored to prevent multiple restores
           hasRestoredRef.current = true;
           return;
         }
 
         if (isOpen && activeChatUser) {
-          // Mark as restored to prevent multiple restores
           hasRestoredRef.current = true;
-
-          // Restore chat state
           actions.openChatWithUser(activeChatUser);
         }
       } catch (error) {
         localStorage.removeItem('chatBoxState');
       }
     }
-  }, [state.currentUser]); // Depend on currentUser
+  }, [state.currentUser]);
 
-  // Effect: whenever chatbox opens or messages arrive while open, ensure we are at the bottom
-  // Use requestAnimationFrame for smoother scrolling performance
+  // Tự động scroll xuống dưới khi chatbox mở hoặc có tin nhắn mới
   useEffect(() => {
     if (!isOpen || state.loadingMessages) return;
 
     if (state.messages.length > 0) {
-      // Use requestAnimationFrame to defer scroll until after render (performance optimization)
       requestAnimationFrame(() => {
         const s = messagesContainerRef.current;
         if (s) {
-          s.scrollTop = s.scrollHeight; // instant scroll to bottom on open/reopen
+          s.scrollTop = s.scrollHeight;
         }
       });
     }
   }, [isOpen, state.loadingMessages, state.activeChatUser, state.messages.length]);
 
-  // Reset scroll position tracking when switching chats
+  // Reset scroll position khi chuyển đổi giữa các chat
   useEffect(() => {
     const key = getActiveChatKey();
     if (key && !initialScrolledRef.current[key]) {
-      // Reset scroll position refs when switching to a new chat
       previousScrollHeightRef.current = 0;
       previousScrollTopRef.current = 0;
       anchorRef.current = { id: null, top: 0 };
       loadingOlderRef.current = false;
-      hasRestoredRef.current = false; // Reset restore flag
+      hasRestoredRef.current = false;
     }
   }, [state.activeChatUser]);
 
-  // Cleanup timeouts
+  // Cleanup timeouts khi component unmount
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) {
@@ -367,7 +319,7 @@ const ChatBox = ({ isOpen, onClose }) => {
     };
   }, []);
 
-  // Handle scroll and resize events to hide tooltip
+  // Ẩn tooltip khi scroll hoặc resize
   useEffect(() => {
     const hideTooltip = () => setTooltip(t => ({ ...t, show: false }));
 
@@ -386,7 +338,6 @@ const ChatBox = ({ isOpen, onClose }) => {
       try {
         await actions.sendMessage(newMessage.trim());
         setNewMessage('');
-        // Scroll to bottom when sending a message
         setShouldScrollToBottom(true);
       } catch (error) {
         // Error handled silently
@@ -420,19 +371,13 @@ const ChatBox = ({ isOpen, onClose }) => {
     setTooltip(t => ({ ...t, show: false }));
   };
 
-  // Tính toán vị trí theo vị trí chuột tương đối với tin nhắn
+  // Tính toán vị trí tooltip dựa trên vị trí chuột so với tin nhắn
   const positionGlobalTooltip = (targetEl, event, timestamp) => {
     const rect = targetEl.getBoundingClientRect();
     const centerY = rect.top + rect.height / 2;
-
-    // Tính vị trí chuột tương đối với tin nhắn
     const mouseX = event.clientX;
     const messageCenterX = rect.left + rect.width / 2;
-
-    // Xác định hướng dựa trên vị trí chuột so với trung tâm tin nhắn
     const side = mouseX < messageCenterX ? 'left' : 'right';
-
-    // Tính vị trí tooltip
     const x = side === 'right' ? (rect.right + 8) : (rect.left - 8);
     const y = centerY;
 
@@ -443,15 +388,12 @@ const ChatBox = ({ isOpen, onClose }) => {
     });
   };
 
+  // Kiểm tra xem tin nhắn có phải là tin nhắn cuối cùng từ người gửi không
   const isLastMessageFromSender = (messages, currentIndex) => {
     const currentMessage = messages[currentIndex];
-
-    // Only show "Đã gửi" for the very last message in the conversation
     if (currentIndex === messages.length - 1) {
       return currentMessage.isOwn;
     }
-
-    // Don't show "Đã gửi" for messages that are not the last one
     return false;
   };
 
@@ -543,11 +485,10 @@ const ChatBox = ({ isOpen, onClose }) => {
                 const prev = index > 0 ? state.messages[index - 1] : null;
                 const sameSender = prev && prev.isOwn === message.isOwn;
                 const closeInTime = prev && (
-                  // If timestamps are missing during live updates, consider them close to compact spacing
                   (!message.timestamp || !prev.timestamp)
                     ? true
                     : Math.abs(new Date(message.timestamp) - new Date(prev.timestamp)) < 2 * 60 * 1000
-                ); // 2 minutes
+                );
                 const compact = sameSender && closeInTime;
 
                 return (
@@ -632,14 +573,10 @@ const ChatBox = ({ isOpen, onClose }) => {
 
       {/* Multiple ChatBubbles - Minimized */}
       {(state.minimizedChats || []).map((minimizedChat, index) => {
-        // Only hide the bubble if it's the currently active chat user
         const activeChatUserId = state.activeChatUser?.userId || state.activeChatUser?.id;
         const isCurrentActiveChat = state.activeChatUser &&
           activeChatUserId === minimizedChat.userId;
         const bubbleAvatar = resolveUserAvatar(minimizedChat.user);
-
-        // Tính toán vị trí bottom: bubble đầu tiên ở 100px (tránh Coze), các bubble tiếp theo cách nhau 80px
-        // Coze bubble thường ở ~76px (56px height + 20px bottom), nên để 100px là an toàn
         const bubbleBottom = 100 + (index * 80);
 
         return (
@@ -647,11 +584,10 @@ const ChatBox = ({ isOpen, onClose }) => {
             key={`${minimizedChat.userId}-${minimizedChat.timestamp}`}
             className={`${styles.chatBubble} ${isCurrentActiveChat && isOpen ? styles.hidden : ''}`}
             style={{
-              bottom: `${bubbleBottom}px`, // Stack bubbles vertically, bắt đầu từ 100px để tránh Coze
+              bottom: `${bubbleBottom}px`,
               zIndex: 999 - index
             }}
             onClick={() => {
-              // Emit event to tell AI chat to minimize
               window.dispatchEvent(new CustomEvent(CHAT_EVENTS.REGULAR_CHAT_OPENED));
               actions.restoreChatFromBubble(minimizedChat.userId);
             }}

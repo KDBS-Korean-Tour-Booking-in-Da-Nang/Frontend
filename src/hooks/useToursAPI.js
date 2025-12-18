@@ -2,22 +2,21 @@ import { useState, useEffect } from 'react';
 import { API_ENDPOINTS, getImageUrl, getTourImageUrl } from '../config/api';
 import { checkAndHandle401 } from '../utils/apiErrorHandler';
 
-// Helper function to strip HTML tags from text
+// Strip HTML tags từ text: remove HTML tags, decode HTML entities (&nbsp;, &amp;, &lt;, &gt;, &quot;, &#39;), trim whitespace
 const stripHtmlTags = (html) => {
   if (!html) return '';
-  // Remove HTML tags and decode HTML entities
   return html
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
-    .replace(/&amp;/g, '&') // Replace &amp; with &
-    .replace(/&lt;/g, '<') // Replace &lt; with <
-    .replace(/&gt;/g, '>') // Replace &gt; with >
-    .replace(/&quot;/g, '"') // Replace &quot; with "
-    .replace(/&#39;/g, "'") // Replace &#39; with '
-    .trim(); // Remove leading/trailing whitespace
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 };
 
-// Hook để fetch tour data từ backend API
+// Hook để fetch tour data từ backend API: quản lý tours state, loading, error, cung cấp fetchTours, fetchTourById, searchToursServer, transformTour để map backend data sang frontend format
 export const useToursAPI = () => {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,7 @@ export const useToursAPI = () => {
   const transformTour = (tour) => ({
     id: tour.id,
     title: stripHtmlTags(tour.tourName),
-    tourName: tour.tourName, // Keep original for display
+    tourName: tour.tourName,
     duration: tour.tourDuration,
     price: tour.adultPrice ? Number(tour.adultPrice) : 0,
     image: getTourImageUrl(tour.tourImgPath || tour.thumbnailUrl),
@@ -34,7 +33,6 @@ export const useToursAPI = () => {
     descriptionHtml: tour.tourDescription || '',
     category: mapTourTypeToCategory(tour.tourType),
     featured: tour.tourStatus === 'APPROVED',
-    // Additional fields from backend
     tourDeparturePoint: stripHtmlTags(tour.tourDeparturePoint),
     tourVehicle: stripHtmlTags(tour.tourVehicle),
     tourSchedule: stripHtmlTags(tour.tourSchedule),
@@ -44,28 +42,24 @@ export const useToursAPI = () => {
     tourStatus: tour.tourStatus,
     createdAt: tour.createdAt,
     contents: tour.contents || [],
-    // Payment-related fields
     depositPercentage: tour.depositPercentage != null ? Number(tour.depositPercentage) : null,
     minAdvanceDays: tour.minAdvanceDays,
     cancelDay: tour.cancelDay,
     balancePaymentDays: tour.balancePaymentDays,
     refundFloor: tour.refundFloor,
-    // Customizable fields by company (optional)
     availableDates: tour.availableDates || [],
     gallery: Array.isArray(tour.gallery) ? tour.gallery.map(getImageUrl) : [],
     attachments: tour.attachments || []
   });
 
-  // Fetch all tours from API
+  // Fetch tất cả tours từ API: lấy token từ localStorage, gọi TOURS_PUBLIC endpoint (chỉ trả về PUBLIC tours), transform backend data sang frontend format, handle 401 với global error handler
   const fetchTours = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get token for authentication
       const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-      // Use /public endpoint to get only PUBLIC tours
       const response = await fetch(API_ENDPOINTS.TOURS_PUBLIC, {
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +68,6 @@ export const useToursAPI = () => {
       });
 
       if (!response.ok) {
-        // Handle 401 with global error handler
         if (await checkAndHandle401(response)) {
           throw new Error('Session expired. Please login again.');
         }
@@ -83,20 +76,17 @@ export const useToursAPI = () => {
 
       const data = await response.json();
 
-      // Transform backend data to match frontend format
-      // Backend already returns only PUBLIC tours, so no need to filter
       const transformedTours = data.map(transformTour);
 
       setTours(transformedTours);
     } catch (err) {
       setError(err.message);
-      // Silently handle error fetching tours
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch single tour by ID
+  // Fetch single tour theo ID: lấy token, gọi TOUR_BY_ID endpoint, transform và trả về tour, handle 401
   const fetchTourById = async (id) => {
     try {
       setLoading(true);
@@ -113,7 +103,6 @@ export const useToursAPI = () => {
       });
 
       if (!response.ok) {
-        // Handle 401 with global error handler
         if (await checkAndHandle401(response)) {
           throw new Error('Session expired. Please login again.');
         }
@@ -122,18 +111,16 @@ export const useToursAPI = () => {
 
       const tour = await response.json();
 
-      // Transform backend data to match frontend format
       return transformTour(tour);
     } catch (err) {
       setError(err.message);
-      // Silently handle error fetching tour
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Map backend tour type to frontend category
+  // Map backend tour type sang frontend category: international (nếu có 'international'/'nước ngoài'/'quốc tế'), day-tour (nếu có 'day'/'ngày'/'1 ngày'), default là domestic
   const mapTourTypeToCategory = (tourType) => {
     if (!tourType) return 'domestic';
 
@@ -147,13 +134,13 @@ export const useToursAPI = () => {
     return 'domestic';
   };
 
-  // Filter tours by category
+  // Filter tours theo category: nếu 'all' trả về tất cả, ngược lại filter theo category
   const getToursByCategory = (category) => {
     if (category === 'all') return tours;
     return tours.filter(tour => tour.category === category);
   };
 
-  // Search tours
+  // Search tours client-side: search trong title, description, tourDeparturePoint (case-insensitive)
   const searchTours = (query) => {
     if (!query || query.trim() === '') return tours;
 
@@ -165,7 +152,7 @@ export const useToursAPI = () => {
     );
   };
 
-  // Server-side search tours via backend pagination API
+  // Server-side search tours qua backend pagination API: gửi keyword, page, size, transform results, filter chỉ PUBLIC tours, ignore abort errors, handle 401
   const searchToursServer = async (query, page = 0, size = 20, signal) => {
     try {
       setLoading(true);
@@ -183,7 +170,6 @@ export const useToursAPI = () => {
         }
       });
       if (!response.ok) {
-        // Handle 401 with global error handler
         if (await checkAndHandle401(response)) {
           throw new Error('Session expired. Please login again.');
         }
@@ -193,7 +179,6 @@ export const useToursAPI = () => {
       const pageData = await response.json();
       const items = Array.isArray(pageData.content) ? pageData.content.map(transformTour) : [];
 
-      // Filter only PUBLIC tours from search results
       const publicItems = items.filter(tour => tour.tourStatus === 'PUBLIC');
 
       return {
@@ -204,46 +189,37 @@ export const useToursAPI = () => {
         pageSize: pageData.size ?? size
       };
     } catch (err) {
-      // Ignore abort errors
       if (err && (err.name === 'AbortError' || err.code === 20)) {
         return { items: [], totalPages: 0, totalElements: 0, pageNumber: 0, pageSize: size };
       }
       setError(err.message);
-      // Silently handle error searching tours
       return { items: [], totalPages: 0, totalElements: 0, pageNumber: 0, pageSize: size };
     } finally {
       setLoading(false);
     }
   };
 
-  // Get featured tours
+  // Lấy featured tours: filter tours có featured = true
   const getFeaturedTours = () => {
     return tours.filter(tour => tour.featured);
   };
 
-  // Get tour by ID
+  // Lấy tour theo ID: tìm tour trong tours array
   const getTourById = (id) => {
     return tours.find(tour => tour.id === id);
   };
 
   return {
-    // State
     tours,
     loading,
     error,
-
-    // Actions
     fetchTours,
     fetchTourById,
     searchToursServer,
-
-    // Selectors
     getToursByCategory,
     searchTours,
     getFeaturedTours,
     getTourById,
-
-    // Utilities
     mapTourTypeToCategory
   };
 };

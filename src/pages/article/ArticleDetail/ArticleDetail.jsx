@@ -21,15 +21,14 @@ const ArticleDetail = () => {
   const [error, setError] = useState('');
   const detailContainerClass = `${styles.pageContainer} ${styles.detailContainer}`;
 
-  // Load article when id changes
+  // Load article khi id thay đổi: gọi loadArticle với id từ URL params
   useEffect(() => {
     if (id) {
       loadArticle(id);
     }
   }, [id]);
 
-
-  // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
+  // Lấy localized article field dựa trên current language: fallback Vietnamese -> English -> Korean, kiểm tra lang startsWith để match (en, ko/kr)
   const getLocalizedArticleField = (article, baseField) => {
     if (!article) return '';
     const lang = (i18n.language || 'vi').toLowerCase();
@@ -44,7 +43,7 @@ const ArticleDetail = () => {
     return vi || en || kr || '';
   };
 
-  // Load article by ID from API
+  // Load article theo ID từ API: gọi articleService.getArticleById, set article state, handle error và loading state
   const loadArticle = async (articleId) => {
     if (!articleId || articleId === 'undefined') {
       setError(t('articleDetail.errorMessage'));
@@ -136,7 +135,7 @@ const ArticleDetail = () => {
 
   const articleContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
   
-  // Add CSS classes to introtext and fulltext divs for different styling
+  // Thêm CSS classes vào introtext và fulltext divs để styling khác nhau: replace class="introtext" với italic text-lg border-l-4, replace class="fulltext" với text-gray-800 leading-relaxed, convert sang JSX với htmlToJsx
   const getStyledContent = (htmlContent) => {
     if (!htmlContent) return '';
     

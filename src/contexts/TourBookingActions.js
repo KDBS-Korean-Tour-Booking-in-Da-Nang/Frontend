@@ -1,6 +1,6 @@
 import { ACTIONS } from './TourBookingConstants';
 
-// Action creators
+// Action creators: các hàm tạo action objects để dispatch vào reducer, mỗi action có type và payload tương ứng
 export const createSetContactAction = (partial) => ({
   type: ACTIONS.SET_CONTACT,
   payload: partial

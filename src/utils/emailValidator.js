@@ -26,11 +26,11 @@ export const validateEmail = (email) => {
     return { isValid: false, error: 'Email must contain @ symbol' };
   }
 
-  // Split into local and domain parts
+  // Tách thành local part (username) và domain part
   const localPart = trimmedEmail.substring(0, atIndex);
   const domainPart = trimmedEmail.substring(atIndex + 1);
 
-  // Validate local part
+  // Validate local part (username)
   const localValidation = validateLocalPart(localPart);
   if (!localValidation.isValid) {
     return localValidation;
@@ -89,35 +89,35 @@ const validateDomainPart = (domainPart) => {
     return { isValid: false, error: 'Email domain cannot start or end with dot' };
   }
 
-  // Split domain into labels
+  // Tách domain thành các labels (ví dụ: example.co.uk -> ['example', 'co', 'uk'])
   const labels = domainPart.split('.');
   
   if (labels.length < 2) {
     return { isValid: false, error: 'Email domain must have at least one dot' };
   }
 
-  // Validate each label
+  // Validate từng label
   for (let i = 0; i < labels.length; i++) {
     const label = labels[i];
     
-    // Check label length (1-63 characters)
+    // Kiểm tra độ dài label (1-63 ký tự)
     if (label.length === 0 || label.length > 63) {
       return { isValid: false, error: 'Email domain label must be 1-63 characters' };
     }
 
-    // Check if starts or ends with hyphen
+    // Kiểm tra không được bắt đầu hoặc kết thúc bằng dấu gạch ngang
     if (label.startsWith('-') || label.endsWith('-')) {
       return { isValid: false, error: 'Email domain label cannot start or end with hyphen' };
     }
 
-    // Check for valid characters: a-z, A-Z, 0-9, -
+    // Kiểm tra ký tự hợp lệ: a-z, A-Z, 0-9, -
     const validDomainRegex = /^[a-zA-Z0-9-]+$/;
     if (!validDomainRegex.test(label)) {
       return { isValid: false, error: 'Email domain contains invalid characters' };
     }
   }
 
-  // Check TLD (last label must be ≥ 2 characters and letters only)
+  // Kiểm tra TLD (label cuối cùng phải ≥ 2 ký tự và chỉ chứa chữ cái)
   const tld = labels[labels.length - 1];
   if (tld.length < 2) {
     return { isValid: false, error: 'Email domain TLD must be at least 2 characters' };

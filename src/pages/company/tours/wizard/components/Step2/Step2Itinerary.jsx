@@ -14,9 +14,7 @@ import {
 import styles from './Step2Itinerary.module.css';
 import ColorPickerModal from './ColorPickerModal/ColorPickerModal';
 
-// Note: Day titles are fully customized by Company; no default prefix is injected
-
-// Helper function to adjust color brightness for gradient
+// Helper function để adjust color brightness cho gradient: parse hex color, tính R/G/B với amt (percent), clamp về 0-255, return hex color mới
 const adjustColor = (color, percent) => {
   const num = parseInt(color.replace('#', ''), 16);
   const amt = Math.round(2.55 * percent);
@@ -42,7 +40,7 @@ const Step2Itinerary = () => {
   const { tourData, updateTourData } = useTourWizardContext();
   const { showInfo } = useToast();
 
-  // TinyMCE configuration with image upload
+  // TinyMCE configuration với image upload: TinyMCE 8 compatible (forced_root_block='div', typing/newline behavior), enable drag and drop images, configure image upload handler (POST /api/tour/content-image, normalize về relative path), handle 401, file picker configuration
   const getTinyMCEConfig = (height = 200) => ({
     apiKey: import.meta.env.VITE_TINYMCE_API_KEY,
     height,
@@ -61,7 +59,6 @@ const Step2Itinerary = () => {
       'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
       'tableinsertcolbefore tableinsertcolafter tabledeletecol | removeformat | help',
     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px } table { width: 100%; border-collapse: collapse; } table, th, td { border: 1px solid #e5e7eb; } th, td { padding: 8px; }',
-    // Typing/newline behavior (TinyMCE 8 compatible)
     forced_root_block: 'div',
     remove_redundant_brs: false,
     cleanup: false,
@@ -69,21 +66,17 @@ const Step2Itinerary = () => {
     verify_html: false,
     br_in_pre: true,
     extended_valid_elements: 'br[class|style]',
-    // Additional settings
     entity_encoding: 'raw',
     convert_urls: false,
-    // Enable drag and drop for images
     paste_data_images: true,
     paste_enable_default_filters: false,
     paste_auto_cleanup_on_paste: true,
     paste_remove_styles_if_webkit: false,
     paste_merge_formats: true,
-    // Configure image upload
     images_upload_handler: async (blobInfo) => {
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
 
-      // Get token for authentication
       const remembered = localStorage.getItem('rememberMe') === 'true';
       const storage = remembered ? localStorage : sessionStorage;
       const token = storage.getItem('token');
@@ -101,7 +94,6 @@ const Step2Itinerary = () => {
           body: formData
         });
 
-        // Handle 401 if token expired
         if (!response.ok && response.status === 401) {
           const { checkAndHandle401 } = await import('../../../../../../utils/apiErrorHandler');
           await checkAndHandle401(response);
@@ -110,24 +102,20 @@ const Step2Itinerary = () => {
 
         if (response.ok) {
           const imageUrl = await response.text();
-          // Normalize về relative path để đảm bảo không lưu BaseURL vào HTML content
           return normalizeToRelativePath(imageUrl);
         } else {
           const errorText = await response.text();
           throw new Error('Upload failed: ' + errorText);
         }
       } catch (error) {
-        // Silently handle image upload error
         throw new Error('Không thể upload ảnh. Vui lòng thử lại.');
       }
     },
     automatic_uploads: true,
     file_picker_types: 'image',
-    // Image upload settings
     images_upload_url: '/api/tour/content-image',
     images_upload_base_path: '/uploads/tours/content/',
     images_upload_credentials: true,
-    // File picker configuration
     file_picker_callback: function (callback, value, meta) {
       if (meta.filetype === 'image') {
         const input = document.createElement('input');
@@ -165,17 +153,14 @@ const Step2Itinerary = () => {
   const [newAppendixTitle, setNewAppendixTitle] = useState('PHỤ LỤC / GHI CHÚ');
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Listen for validation trigger from parent (TourWizard) - similar to Step2Details in TourBookingWizard
+  // Lắng nghe validation trigger từ parent (TourWizard): sử dụng latest values từ cả formData và tourData, validate required fields (tourDescription, tourSchedule phải non-empty sau khi trim), notify parent về validation status, scroll to first error field nếu có errors
   useEffect(() => {
     const handleValidateAll = () => {
-      // Use latest values from both formData and tourData to ensure we have the most current values
       const currentTourSchedule = formData.tourSchedule || tourData.tourSchedule || '';
       const currentTourDescription = formData.tourDescription || tourData.tourDescription || '';
 
-      // Validate required fields and show errors
       const errors = {};
 
-      // Check tourDescription - must be non-empty after trimming
       if (!currentTourDescription || !String(currentTourDescription).trim()) {
         errors.tourDescription = t('toast.required', { field: t('tourWizard.step2.tourDescription.title') }) || 'Mô tả tour là bắt buộc';
       }
@@ -190,12 +175,10 @@ const Step2Itinerary = () => {
       // Force a re-render by setting errors
       setFieldErrors(errors);
 
-      // Notify parent about validation status immediately
       window.dispatchEvent(new CustomEvent('stepValidationStatus', {
         detail: { step: 2, hasErrors: Object.keys(errors).length > 0 }
       }));
 
-      // Scroll to first error field if there are errors
       if (Object.keys(errors).length > 0) {
         setTimeout(() => {
           const firstErrorKey = Object.keys(errors)[0];
@@ -396,7 +379,7 @@ const Step2Itinerary = () => {
     const newFormData = { ...formData, itinerary: reindexed };
     setFormData(newFormData);
     updateTourData(newFormData);
-    showInfo('Đã thêm một ngày lịch trình.');
+    showInfo(t('tourWizard.step2.itinerary.dayAdded'));
   };
 
   const removeItineraryDay = (index) => {

@@ -51,10 +51,8 @@ const TossPaymentPage = () => {
     setShowBackConfirm(false);
   };
 
+  // Xác nhận quay lại: hủy thanh toán và chuyển đến trang lịch sử booking (booking status vẫn giữ nguyên, user có thể thanh toán lại từ Booking History), show warning toast, navigate đến /user/booking-history
   const handleConfirmBack = () => {
-    // Hủy thanh toán và chuyển đến trang lịch sử booking
-    // Booking status vẫn giữ nguyên (PENDING_DEPOSIT_PAYMENT, PENDING_BALANCE_PAYMENT, etc.)
-    // User có thể thanh toán lại từ Booking History
     showWarning(
       t('payment.tossPayment.toast.paymentCancelled', {
         defaultValue: 'Thanh toán đã bị hủy. Vui lòng tiếp tục thanh toán ở Booking History.',

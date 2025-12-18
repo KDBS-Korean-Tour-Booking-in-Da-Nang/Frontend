@@ -56,10 +56,11 @@ const Step2Insurance = ({
       }, {});
       localStorage.setItem(storageKey, JSON.stringify(map));
     } catch {
-      // Unable to persist insurance state
+      // Silently handle error
     }
   };
 
+  // Merge guests với saved state từ localStorage: load saved insurance statuses, merge với guests từ props
   useEffect(() => {
     const merged = mergeWithSavedState(guests || []);
     setGuestsState(merged);
@@ -76,12 +77,10 @@ const Step2Insurance = ({
     }
   }, [booking?.bookingStatus, storageKey]);
 
+  // Xử lý thay đổi insurance status: không save vào DB ngay, chỉ update local state (DB update sẽ xảy ra khi user confirm trong modal), update guestsState, persist vào localStorage, show success toast
   const handleInsuranceStatusChange = (guestId, status) => {
-    // Don't save to DB yet, just update local state
-    // The actual DB update will happen when user confirms in modal
     const statusValue = status === 'SUCCESS' ? 'Success' : status === 'FAILED' ? 'Failed' : status;
     
-    // Update local state
     const updatedGuests = guestsState.map(g => 
       g.bookingGuestId === guestId 
         ? { ...g, insuranceStatus: statusValue }
@@ -98,11 +97,12 @@ const Step2Insurance = ({
     );
   };
 
+  // Xử lý reject: mở reject confirmation modal
   const handleReject = () => {
-    // Show confirmation modal
     setShowRejectModal(true);
   };
 
+  // Confirm reject booking: gọi changeBookingStatus với status BOOKING_REJECTED và message, update booking, show success, navigate back sau 1.5s
   const handleConfirmReject = async (message) => {
     if (!message?.trim()) return;
     try {
@@ -111,42 +111,38 @@ const Step2Insurance = ({
       onBookingUpdate(updatedBooking);
       setShowRejectModal(false);
       showSuccess(t('companyBookingWizard.insurance.toasts.rejected'));
-      // Navigate back after rejection
       setTimeout(() => {
         onBack();
       }, 1500);
     } catch {
-      // Error rejecting booking - show in UI if needed
+      // Silently handle error
     } finally {
       setLoading(prev => ({ ...prev, reject: false }));
     }
   };
 
+  // Approve all insurance: không save vào DB ngay, chỉ update local state (DB update sẽ xảy ra khi user confirm trong modal), set tất cả guests có insuranceStatus = 'Success', persist vào localStorage, show success toast
   const handleApproveAll = () => {
-    // Don't save to DB yet, just update local state
-    // The actual DB update will happen when user confirms in modal
     const updatedGuests = guestsState.map(g => ({ ...g, insuranceStatus: 'Success' }));
     setGuestsState(updatedGuests);
     persistInsuranceState(updatedGuests);
 
-    showSuccess('Đã duyệt tất cả bảo hiểm. Thay đổi sẽ được lưu khi bạn hoàn thành booking.');
+    showSuccess(t('companyBookingWizard.insurance.toasts.approvedAll'));
   };
 
+  // Xử lý continue: kiểm tra tất cả guests có Success insurance không, nếu không thì return (validation error), nếu có thì show confirmation modal trước khi save vào DB và move to step 3
   const handleContinue = () => {
-    // Check if all guests have Success insurance
     const allSuccess = guestsState.length > 0 && 
       guestsState.every(g => g.insuranceStatus === 'Success');
     
     if (!allSuccess) {
-      // Validation error - can be shown in UI
       return;
     }
 
-    // Show confirmation modal before saving to DB and moving to step 3
     setShowConfirmModal(true);
   };
 
-  // Handle confirmation - save all insurance statuses to DB
+  // Xử lý confirmation: save tất cả insurance statuses vào DB, gọi changeBookingGuestInsuranceStatus cho mỗi guest có thay đổi, move to step 3 sau khi thành công
   const handleConfirmContinue = async () => {
     setLoading({ continue: true });
     setShowConfirmModal(false);

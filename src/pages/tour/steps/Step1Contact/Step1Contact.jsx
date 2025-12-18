@@ -7,13 +7,10 @@ const Step1Contact = () => {
   const [errors, setErrors] = useState({});
   const [isValid, setIsValid] = useState(false);
   
-  // Expose isValid to parent component for navigation validation
   useEffect(() => {
-    // This could be used by parent component if needed
     window.bookingStep1Valid = isValid;
   }, [isValid]);
 
-  // Validation rules
   const validateField = (name, value) => {
     const newErrors = { ...errors };
 
@@ -68,7 +65,6 @@ const Step1Contact = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Check if all required fields are valid
   useEffect(() => {
     const requiredFields = ['fullName', 'phone', 'email', 'address'];
     const allValid = requiredFields.every(field => {
@@ -83,8 +79,6 @@ const Step1Contact = () => {
     setContact({ [name]: value });
     validateField(name, value);
   };
-
-  // Navigation is handled by parent component
 
   return (
     <div className="contact-form">
@@ -199,12 +193,8 @@ const Step1Contact = () => {
           </div>
         </div>
       </div>
-
-      {/* Navigation is handled by parent component */}
     </div>
   );
 };
-
-// No props needed - navigation handled by parent
 
 export default Step1Contact;

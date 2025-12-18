@@ -44,7 +44,7 @@ const TourManagement = () => {
   // Check if user has COMPANY role
   const isBusinessUser = user && user.role === 'COMPANY';
 
-  // Extract companyId from user object (try multiple possible field names)
+  // Extract companyId từ user object: thử nhiều field names có thể (companyId, companyID, company.companyId, company.id, id), chỉ extract nếu user.role === 'COMPANY' hoặc 'BUSINESS'
   useEffect(() => {
     if (!user) {
       setCompanyId(null);
@@ -68,7 +68,7 @@ const TourManagement = () => {
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
 
-  // Fetch all tours for company, filtering out DISABLED (soft-deleted) tours
+  // Fetch tất cả tours cho company: filter out DISABLED tours (soft-deleted tours có bookings), gọi TOURS_BY_COMPANY_ID endpoint, handle 401 với checkAndHandle401
   const fetchTours = useCallback(async () => {
     if (!companyId) {
       setAllTours([]);
@@ -95,7 +95,6 @@ const TourManagement = () => {
         }
       });
 
-      // Handle 401 if token expired
       if (!response.ok && response.status === 401) {
         const { checkAndHandle401 } = await import('../../../../utils/apiErrorHandler');
         await checkAndHandle401(response);
@@ -104,7 +103,6 @@ const TourManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Filter out DISABLED tours (soft-deleted tours that have bookings)
         const activeTours = Array.isArray(data)
           ? data.filter(tour => tour.tourStatus !== 'DISABLED')
           : [];
@@ -119,7 +117,7 @@ const TourManagement = () => {
     }
   }, [companyId, t]);
 
-  // Fetch tours when user is COMPANY and companyId is available
+  // Fetch tours khi user là COMPANY và companyId có sẵn: gọi fetchTours nếu isBusinessUser và companyId có giá trị
   useEffect(() => {
     if (isBusinessUser && companyId) {
       fetchTours();
@@ -136,7 +134,7 @@ const TourManagement = () => {
 
   const totalPages = Math.ceil(allTours.length / itemsPerPage);
 
-  // Handle pagination page change and scroll to top
+  // Xử lý pagination page change và scroll to top: validate page trong range, set currentPage, scroll window to top với smooth behavior
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -149,9 +147,8 @@ const TourManagement = () => {
     navigate('/company/tours/wizard');
   };
 
-  // Open edit modal for selected tour - fetch fresh data from API
+  // Mở edit modal cho tour được chọn: fetch fresh tour data từ API để get latest updates, set selectedTour và mở edit modal, handle 401
   const handleEditTour = async (tourId) => {
-    // Get token for authentication
     const remembered = localStorage.getItem('rememberMe') === 'true';
     const storage = remembered ? localStorage : sessionStorage;
     const token = storage.getItem('token');
@@ -180,7 +177,6 @@ const TourManagement = () => {
         setSelectedTour(freshTourData);
         setEditModalOpen(true);
       } else {
-        // Fallback to cached data if API fails
         const tour = tours.find(t => t.id === tourId);
         if (tour) {
           setSelectedTour(tour);
@@ -188,7 +184,6 @@ const TourManagement = () => {
         }
       }
     } catch (error) {
-      // Fallback to cached data on error
       const tour = tours.find(t => t.id === tourId);
       if (tour) {
         setSelectedTour(tour);
@@ -197,12 +192,12 @@ const TourManagement = () => {
     }
   };
 
-  // Navigate to tour detail page
+  // Navigate đến tour detail page: navigate đến /tour/detail với tourId và state fromManagement = true
   const openTourDetail = (tourId) => {
     navigate(`/tour/detail?id=${tourId}`, { state: { fromManagement: true } });
   };
 
-  // Open delete confirmation modal for selected tour
+  // Mở delete confirmation modal cho tour được chọn: tìm tour trong tours list, set selectedTour và deleteNote, mở delete modal
   const handleDeleteTour = (tourId) => {
     const tour = tours.find(t => t.id === tourId);
     if (tour) {
@@ -212,7 +207,7 @@ const TourManagement = () => {
     }
   };
 
-  // Delete tour: send delete request to admin for approval
+  // Delete tour: gửi delete request đến admin để approval, gọi TOUR_DELETE_REQUEST endpoint với deleteNote, refresh tours list sau khi thành công, handle 401
   const confirmDeleteTour = async () => {
     if (!selectedTour) return;
 
@@ -230,7 +225,6 @@ const TourManagement = () => {
     }
 
     try {
-      // Send delete request to admin for approval
       const response = await fetch(API_ENDPOINTS.TOUR_DELETE_REQUEST(selectedTour.id), {
         method: 'POST',
         headers: {

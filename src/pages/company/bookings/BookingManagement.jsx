@@ -80,13 +80,13 @@ const BookingManagement = () => {
     'BOOKING_CANCELLED'
   ];
 
-  // Check if booking status contains "PENDING"
+  // Kiểm tra booking status có chứa "PENDING" không: convert status sang uppercase và kiểm tra includes('PENDING')
   const isPendingStatus = (status) => {
     if (!status) return false;
     return status.toUpperCase().includes('PENDING');
   };
 
-  // Navigate to booking detail page for editing
+  // Navigate đến booking detail page để edit: preserve tourId trong URL khi navigate, nếu booking có status PENDING thì show message và không navigate
   const handleEditBooking = (bookingItem) => {
     if (!bookingItem) return;
 
@@ -98,7 +98,6 @@ const BookingManagement = () => {
       return;
     }
 
-    // Preserve tourId in URL when navigating to booking detail page
     const tourId = selectedTourId || searchParams.get('tourId');
     if (tourId) {
       navigate(`/company/bookings/detail?id=${bookingId}&tourId=${tourId}`);
@@ -107,14 +106,14 @@ const BookingManagement = () => {
     }
   };
 
-  // Open booking detail modal for viewing
+  // Mở booking detail modal để xem: set viewingBooking và mở modal
   const handleViewBooking = (bookingItem) => {
     if (!bookingItem) return;
     setViewingBooking(bookingItem);
     setIsDetailModalOpen(true);
   };
 
-  // Approve tour completion: confirm booking is completed and refresh balance
+  // Approve tour completion: confirm booking đã completed, gọi companyConfirmTourCompletion API, refresh bookings list và user balance (dispatch balanceUpdated event), chỉ xử lý nếu bookingStatus = 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED'
   const handleApproveBooking = async (bookingItem) => {
     if (!bookingItem?.bookingId || bookingItem.bookingStatus !== 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED') {
       return;
@@ -124,10 +123,8 @@ const BookingManagement = () => {
       await companyConfirmTourCompletion(bookingItem.bookingId);
       showSuccessRef.current?.(t('companyBookingWizard.success.bookingPending'));
       
-      // Refresh bookings list to get updated status
       await refreshBookings();
       
-      // Refresh user balance to reflect payment received
       if (user?.email) {
         try {
           const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -139,7 +136,6 @@ const BookingManagement = () => {
             });
             if (response.ok) {
               const userData = await response.json();
-              // Trigger balance update event for navbar and other components
               window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: userData.balance || 0 } }));
             }
           }
@@ -158,12 +154,12 @@ const BookingManagement = () => {
     setViewingBooking(null);
   };
 
-  // Keep showSuccess ref updated
+  // Giữ showSuccess ref được update: set showSuccessRef.current = showSuccess khi showSuccess thay đổi
   useEffect(() => {
     showSuccessRef.current = showSuccess;
   }, [showSuccess]);
 
-  // Extract companyId from user object
+  // Extract companyId từ user object: thử nhiều field names có thể (companyId, companyID, company.companyId, company.id, id), chỉ extract nếu user.role === 'COMPANY' hoặc 'BUSINESS'
   useEffect(() => {
     if (!user) {
       setCompanyId(null);
@@ -187,7 +183,7 @@ const BookingManagement = () => {
     setCompanyId(derivedCompanyId ?? null);
   }, [user]);
 
-  // Handle tour selection: toggle selection and update URL params
+  // Xử lý tour selection: toggle selection và update URL params, reset currentPage về 1, nếu tourId đã được chọn thì deselect và xóa tourId khỏi URL
   const handleTourSelect = (tourId) => {
     if (tourId === undefined || tourId === null) return;
     const normalizedId = tourId.toString();
@@ -207,7 +203,7 @@ const BookingManagement = () => {
     setSearchParams(newSearchParams, { replace: true });
   };
 
-  // Enrich bookings array with totalAmount from booking total API
+  // Enrich bookings array với totalAmount từ booking total API: gọi getBookingTotal cho mỗi booking, thêm totalAmount vào booking object, fallback về 0 nếu fail
   const enrichBookingsWithTotals = useCallback(async (bookings = []) => {
     return Promise.all(
       bookings.map(async (booking) => {
@@ -264,7 +260,7 @@ const BookingManagement = () => {
     }
   }, [companyId, enrichBookingsWithTotals]);
 
-  // Fetch bookings for specific tour ID
+  // Fetch bookings cho tour ID cụ thể: gọi getBookingsByTourId, enrich với totals, set vào allBookings và reset currentPage về 1
   const fetchBookingsByTour = useCallback(async (tourId) => {
     if (!tourId) {
       return;
@@ -302,7 +298,7 @@ const BookingManagement = () => {
     }
   }, [companyId, enrichBookingsWithTotals]);
 
-  // Sync selectedTourId with URL params and set tour pagination page
+  // Đồng bộ selectedTourId với URL params và set tour pagination page: lấy tourId từ URL, kiểm tra tour có tồn tại trong tours list không, nếu có thì set selectedTourId và tính page chứa tour đó, nếu không thì clear URL param
   useEffect(() => {
     if (tours.length === 0 || toursLoading) return;
     
@@ -313,7 +309,6 @@ const BookingManagement = () => {
         if (tourExists) {
           if (selectedTourId !== tourIdFromUrl) {
             setSelectedTourId(tourIdFromUrl);
-            // Calculate which pagination page contains this tour
             const tourIndex = tours.findIndex(t => t?.id?.toString() === tourIdFromUrl);
           if (tourIndex >= 0) {
             const page = Math.floor(tourIndex / toursPerPage) + 1;
@@ -321,7 +316,6 @@ const BookingManagement = () => {
           }
         }
       } else {
-        // Tour not found in list, clear URL param
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('tourId');
         setSearchParams(newSearchParams, { replace: true });
@@ -330,14 +324,13 @@ const BookingManagement = () => {
         }
       }
     } else {
-      // URL param removed, clear selected tour
       if (selectedTourId !== null) {
         setSelectedTourId(null);
       }
     }
   }, [searchParams, tours, toursPerPage, toursLoading, selectedTourId, setSearchParams]);
 
-  // Fetch bookings when tour selection changes (all bookings or filtered by tour)
+  // Fetch bookings khi tour selection thay đổi: nếu selectedTourId có giá trị thì fetch bookings cho tour đó, nếu không thì fetch all bookings
   useEffect(() => {
     if (!companyId) return;
 
@@ -348,7 +341,7 @@ const BookingManagement = () => {
     }
   }, [companyId, selectedTourId, fetchAllBookings, fetchBookingsByTour]);
 
-  // Refresh bookings list (either all or filtered by selected tour)
+  // Refresh bookings list: nếu selectedTourId có giá trị thì refresh bookings cho tour đó, nếu không thì refresh all bookings
   const refreshBookings = useCallback(async () => {
     if (selectedTourId) {
       await fetchBookingsByTour(selectedTourId);
@@ -357,7 +350,7 @@ const BookingManagement = () => {
     }
   }, [selectedTourId, fetchAllBookings, fetchBookingsByTour]);
 
-  // Fetch company tours, filtering to show only PUBLIC status tours
+  // Fetch company tours: filter chỉ hiển thị PUBLIC status tours, gọi TOURS_BY_COMPANY_ID endpoint, handle 401
   const fetchCompanyTours = useCallback(async () => {
     if (!companyId) {
       setTours([]);
@@ -390,7 +383,6 @@ const BookingManagement = () => {
       } else {
         const data = await res.json();
         const allTours = Array.isArray(data) ? data : [];
-        // Filter to show only PUBLIC tours (exclude DRAFT, INACTIVE, etc.)
         const publicTours = allTours.filter(tour => tour.tourStatus === 'PUBLIC');
         setTours(publicTours);
         setCurrentTourPage(1);
@@ -402,14 +394,14 @@ const BookingManagement = () => {
     }
   }, [companyId]);
 
-  // Fetch company tours when companyId is available
+  // Fetch company tours khi companyId có sẵn: gọi fetchCompanyTours nếu companyId có giá trị
   useEffect(() => { 
     if (companyId) {
       fetchCompanyTours(); 
     }
   }, [companyId, fetchCompanyTours]);
 
-  // Calculate booking count per tour for display in tour selector
+  // Tính booking count cho mỗi tour để hiển thị trong tour selector: đếm số bookings cho mỗi tourId, lưu vào tourBookingCounts Map
   useEffect(() => {
     if (!allBookings || allBookings.length === 0) {
       setTourBookingCounts(new Map());
@@ -427,12 +419,12 @@ const BookingManagement = () => {
     setTourBookingCounts(countsMap);
   }, [allBookings]);
 
-  // Filter and paginate bookings when filters, sort, or page changes
+  // Filter và paginate bookings khi filters, sort, hoặc page thay đổi: gọi filterAndPaginateBookings khi searchQuery, statusFilter, sortBy, currentPage, allBookings thay đổi
   useEffect(() => {
     filterAndPaginateBookings();
   }, [searchQuery, statusFilter, sortBy, currentPage, allBookings]);
 
-  // Resolve modal portal container (modal-root or body)
+  // Resolve modal portal container: tìm modal-root element, nếu không có thì fallback về document.body
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;

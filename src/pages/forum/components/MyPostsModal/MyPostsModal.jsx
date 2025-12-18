@@ -44,10 +44,10 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
         setPosts(data.content || []);
         setTotalPages(data.totalPages || 0);
       } else {
-        // Silently handle failed fetch
+        // Silently handle error
       }
     } catch (error) {
-      // Silently handle error fetching my posts
+      // Silently handle error
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,6 @@ const MyPostsModal = ({ isOpen, onClose, onPostClick }) => {
         alert(t('forum.post.deleteError'));
       }
     } catch (error) {
-      // Silently handle error deleting post
       alert(t('forum.post.deleteError'));
     }
   };

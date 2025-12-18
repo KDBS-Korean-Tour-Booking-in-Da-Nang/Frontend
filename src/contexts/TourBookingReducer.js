@@ -1,6 +1,6 @@
 import { ACTIONS, initialState } from './TourBookingConstants';
 
-// Reducer function
+// Reducer function: xử lý tất cả các action types để cập nhật booking state (contact, plan, members, price, booking status)
 export function bookingReducer(state, action) {
   switch (action.type) {
     case ACTIONS.SET_CONTACT:
@@ -41,13 +41,13 @@ export function bookingReducer(state, action) {
       };
     }
 
+    // Giảm số lượng pax: đảm bảo adult count không bao giờ xuống dưới 1, chỉ giảm nếu > 0
     case ACTIONS.DECREMENT_PAX: {
       const { type: decrementType } = action.payload;
       const updatedPax = { ...state.plan.pax };
       
-      // Ensure adult count never goes below 1
       if (decrementType === 'adult' && updatedPax[decrementType] <= 1) {
-        return state; // No change if trying to go below 1 adult
+        return state;
       }
       
       if (updatedPax[decrementType] > 0) {
@@ -63,12 +63,12 @@ export function bookingReducer(state, action) {
       };
     }
 
+    // Set member info: đảm bảo array có đủ elements cho index (push empty member nếu thiếu), update member tại index với partial data
     case ACTIONS.SET_MEMBER: {
       const { memberType, index, partial } = action.payload;
       const updatedMembers = { ...state.plan.members };
       updatedMembers[memberType] = [...updatedMembers[memberType]];
       
-      // Ensure array has enough elements for the index
       while (updatedMembers[memberType].length <= index) {
         updatedMembers[memberType].push({
           fullName: '',
@@ -93,6 +93,7 @@ export function bookingReducer(state, action) {
       };
     }
 
+    // Rebuild members arrays dựa trên current pax counts: giữ existing members đến target count, thêm empty member mới nếu thiếu
     case ACTIONS.REBUILD_MEMBERS: {
       const { pax } = state.plan;
       const newMembers = {
@@ -101,19 +102,16 @@ export function bookingReducer(state, action) {
         infant: []
       };
 
-      // Rebuild members arrays based on current pax counts
       ['adult', 'child', 'infant'].forEach(type => {
         const currentMembers = state.plan.members[type] || [];
         const targetCount = pax[type];
         
-        // Keep existing members up to target count
         for (let i = 0; i < targetCount; i++) {
           const currentMember = currentMembers[i];
           
           if (currentMember && currentMember !== undefined && currentMember !== null) {
             newMembers[type].push(currentMember);
           } else {
-            // Add new empty member
             newMembers[type].push({
               fullName: '',
               dob: '',
@@ -134,13 +132,12 @@ export function bookingReducer(state, action) {
       };
     }
 
+    // Tính lại tổng tiền: dùng prices từ API nếu có, tính totals chỉ cho non-null prices, tổng = adultTotal + childTotal + infantTotal
     case ACTIONS.RECALC_TOTAL: {
       const { adult, child, infant } = state.plan.pax;
       
-      // Use prices from API if provided, otherwise set to 0
       const prices = action.payload || { adult: null, child: null, infant: null };
       
-      // Calculate totals only for non-null prices
       const adultTotal = prices.adult ? adult * prices.adult : 0;
       const childTotal = prices.child ? child * prices.child : 0;
       const infantTotal = prices.infant ? infant * prices.infant : 0;

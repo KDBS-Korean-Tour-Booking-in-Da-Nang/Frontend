@@ -1439,7 +1439,7 @@ const Step2Details = () => {
       const nameKey = `${memberType}_${index}_fullName`;
       if (touchedFields.has(nameKey) && !member.fullName?.trim()) {
         newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
-      } else if (touchedFields.has(nameKey) && member.fullName && !/^[\p{L}\p{M}\s\-']+$/u.test(member.fullName.trim())) {
+      } else if (touchedFields.has(nameKey) && member.fullName && !/^[\p{L}\p{M}\d\s]+$/u.test(member.fullName.trim())) {
         newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
       }
       
@@ -1517,8 +1517,8 @@ const Step2Details = () => {
         if (!member.fullName?.trim()) {
           newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
         } else {
-          // Validate full name format - only allow letters, spaces, hyphens, apostrophes
-          const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
+          // Validate full name format - only allow letters, numbers, and spaces
+          const nameRegex = /^[\p{L}\p{M}\d\s]+$/u;
           if (!nameRegex.test(member.fullName.trim())) {
             newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
           }
@@ -1594,8 +1594,8 @@ const Step2Details = () => {
         if (!member.fullName?.trim()) {
           newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameRequired');
         } else {
-          // Validate full name format - only allow letters, spaces, hyphens, apostrophes
-          const nameRegex = /^[\p{L}\p{M}\s\-']+$/u;
+          // Validate full name format - only allow letters, numbers, and spaces
+          const nameRegex = /^[\p{L}\p{M}\d\s]+$/u;
           if (!nameRegex.test(member.fullName.trim())) {
             newErrors[`member_${globalIndex}_name`] = t('booking.step2.errors.fullNameInvalid');
           }
@@ -1748,12 +1748,28 @@ const Step2Details = () => {
     
     let processedValue = value;
     
-    // Special handling for full name input - only allow letters, spaces, hyphens, apostrophes
+    // Special handling for full name input - only allow letters, numbers, and spaces
     if (field === 'fullName') {
-      // Remove any characters that are not letters, spaces, hyphens, or apostrophes
-      // This prevents typing numbers and special characters
-      // Supports international names using Unicode properties
-      processedValue = value.replace(/[^\p{L}\p{M}\s\-']/gu, '');
+      // Check if there's at least one letter in the current value
+      const hasLetter = /[\p{L}\p{M}]/u.test(value);
+      
+      // Filter characters: allow letters and spaces always
+      // Allow digits only if there's at least one letter
+      processedValue = value.split('').filter(char => {
+        const isLetter = /[\p{L}\p{M}]/u.test(char);
+        const isDigit = /\d/u.test(char);
+        const isSpace = /\s/u.test(char);
+        
+        // Always allow letters and spaces
+        if (isLetter || isSpace) {
+          return true;
+        }
+        // Allow digits only if there's at least one letter in the value
+        if (isDigit && hasLetter) {
+          return true;
+        }
+        return false;
+      }).join('');
       
       // Additional cleanup: remove multiple consecutive spaces (but keep single spaces)
       processedValue = processedValue.replace(/\s+/g, ' ');

@@ -43,8 +43,6 @@ const DeleteConfirmModal = ({
   useEffect(() => {
     if (isOpen) {
       const t = setTimeout(() => {
-        // Chỉ auto-focus nút xác nhận nếu hiện tại chưa có element nào khác đang được focus
-        // (tránh trường hợp người dùng đã click vào input/textarea trong children, bị giật focus lại)
         if (typeof document !== 'undefined') {
           const activeElement = document.activeElement;
           if (activeElement && activeElement !== document.body) {
@@ -57,7 +55,7 @@ const DeleteConfirmModal = ({
     }
   }, [isOpen]);
 
-  // Resolve portal container once on mount
+  // Xác định portal container khi component mount
   useEffect(() => {
     if (!modalContainerRef.current) {
       const root = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
@@ -65,7 +63,7 @@ const DeleteConfirmModal = ({
     }
   }, []);
 
-  // Lock body scroll while open
+  // Khóa scroll của body khi modal mở
   useEffect(() => {
     if (!modalContainerRef.current || typeof document === 'undefined') return;
     if (isOpen) {

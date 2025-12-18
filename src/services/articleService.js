@@ -7,8 +7,10 @@ class ArticleService {
    * Checks role-specific keys (token_ADMIN, token_STAFF) first, then legacy keys
    * @returns {Object} - Headers object with Authorization
    */
+  // Lấy headers xác thực với Bearer token
+  // Ưu tiên token theo role (ADMIN, STAFF), sau đó mới đến token chung
+  // Kiểm tra sessionStorage trước, sau đó localStorage
   getAuthHeaders() {
-    // Check for role-specific storage first (ADMIN, STAFF), then fallback to legacy keys
     const sessionToken = sessionStorage.getItem('token_ADMIN') || 
                          sessionStorage.getItem('token_STAFF') || 
                          sessionStorage.getItem('token');
@@ -63,10 +65,9 @@ class ArticleService {
       });
 
       if (!response.ok) {
-        // Only auto redirect if explicitly requested (user actions, not background polling)
         const wasHandled = await checkAndHandleApiError(response, autoRedirect);
         if (wasHandled) {
-          return []; // Return empty array instead of undefined to prevent errors
+          return [];
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -77,11 +78,13 @@ class ArticleService {
     }
   }
 
+  // Lấy thông tin article theo ID
+  // Tự động lấy userEmail từ storage để gửi kèm request (để backend tracking)
   async getArticleById(articleId) {
     try {
-      // Get user email from storage (check role-specific keys first)
       let userEmail = '';
       try {
+        // Lấy user từ storage, ưu tiên theo role (ADMIN, STAFF), sau đó user chung
         const sessionUser = sessionStorage.getItem('user_ADMIN') || 
                            sessionStorage.getItem('user_STAFF') || 
                            sessionStorage.getItem('user');
@@ -94,13 +97,13 @@ class ArticleService {
           userEmail = user?.email || '';
         }
       } catch (e) {
-        // Ignore parse errors
       }
 
       const headers = {
         'Content-Type': 'application/json',
       };
       
+      // Thêm User-Email vào headers nếu có để backend tracking
       if (userEmail) {
         headers['User-Email'] = userEmail;
       }
@@ -125,9 +128,9 @@ class ArticleService {
     }
   }
 
+  // Cập nhật trạng thái article (status được truyền qua query parameter, không phải JSON body)
   async updateArticleStatus(articleId, status) {
     try {
-      // Backend expects status as query parameter, not JSON body
       const response = await fetch(`${BaseURL}/api/article/${articleId}/status?status=${status}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),

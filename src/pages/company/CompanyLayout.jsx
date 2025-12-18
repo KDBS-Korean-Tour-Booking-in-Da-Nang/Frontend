@@ -22,7 +22,7 @@ const CompanyLayout = () => {
   const { user } = useAuth();
   const prevLocationRef = useRef(location.pathname);
 
-  // Build sidebar menu items: show Company Info only when status is COMPANY_PENDING
+  // Build sidebar menu items: hiển thị Company Info chỉ khi status là COMPANY_PENDING, các menu items khác (dashboard, tours, bookings, vouchers) luôn hiển thị
   const menuItems = [
     {
       path: '/company/dashboard',
@@ -66,30 +66,27 @@ const CompanyLayout = () => {
     return location.pathname.startsWith(item.path);
   };
 
-  // Toggle sidebar open/closed state
+  // Toggle sidebar open/closed state: đảo ngược giá trị sidebarOpen
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Handle smooth page transitions
+  // Xử lý smooth page transitions: chỉ trigger transition nếu pathname thực sự thay đổi, scroll to top smoothly (ưu tiên contentAreaRef, fallback window), update contentKey để trigger re-render, update prevLocationRef
   useEffect(() => {
-    // Only trigger transition if pathname actually changed
     if (prevLocationRef.current !== location.pathname) {
-      // Scroll to top smoothly
       if (contentAreaRef.current) {
         contentAreaRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      // Update content key to trigger re-render for smooth transition
       setContentKey(prev => prev + 1);
 
       prevLocationRef.current = location.pathname;
     }
   }, [location.pathname]);
 
-  // Close sidebar when navigation item is clicked (mobile)
+  // Đóng sidebar khi navigation item được click (mobile): set sidebarOpen = false
   const handleNavClick = () => {
     setSidebarOpen(false);
   };

@@ -81,15 +81,15 @@ export const normalizeImageUrlsInHtml = (html, imageUrlNormalizer) => {
     if (originalSrc) {
       // Trim dấu / ở đầu nếu có (fix lỗi Backend normalize URL Azure)
       const trimmed = originalSrc.trim();
-      // Check if it's a full URL (with or without leading /)
+      // Kiểm tra xem có phải full URL không (có hoặc không có dấu / ở đầu)
       if (trimmed.startsWith('/https://') || trimmed.startsWith('/http://')) {
-        // Loại bỏ dấu / ở đầu và giữ nguyên URL
+        // Loại bỏ dấu / ở đầu và giữ nguyên URL (fix lỗi Backend)
         img.setAttribute('src', trimmed.substring(1));
       } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-        // Already a full URL, keep it as is
+        // Đã là full URL, giữ nguyên
         img.setAttribute('src', trimmed);
       } else {
-        // Relative path, normalize it
+        // Relative path, normalize bằng imageUrlNormalizer
         const normalizedSrc = imageUrlNormalizer(trimmed);
         img.setAttribute('src', normalizedSrc);
       }

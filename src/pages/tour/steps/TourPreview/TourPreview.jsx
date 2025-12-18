@@ -31,7 +31,6 @@ const TourPreview = () => {
           setIsLoading(false);
         }
       } catch (err) {
-        // Silently handle error loading tour for preview
         if (isMounted) {
           setHasError(true);
           setIsLoading(false);
@@ -46,10 +45,6 @@ const TourPreview = () => {
     };
   }, [tourId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // formatPrice function removed as it's not used in this component
-
-  // Use getTourImageUrl from api.js for consistency with other parts of the app
-  // This ensures proper URL handling in both local and production environments
   const getImageUrl = (imagePath) => {
     return getTourImageUrl(imagePath);
   };
@@ -65,7 +60,6 @@ const TourPreview = () => {
     );
   }
 
-  // Fallback tour data when API fails
   const fallbackTour = {
     id: tourId || 'DNX-TQ3',
     title: 'Tour Lệ Giang Shangrila',
@@ -77,11 +71,9 @@ const TourPreview = () => {
   };
 
   if (hasError || error) {
-    // Show fallback data when API fails
     return (
       <div className="tour-preview">
         <div className="tour-preview-container">
-          {/* Tour Image */}
           <div className="tour-preview-image">
             <div className="tour-placeholder">
               <span className="placeholder-icon">🏞️</span>
@@ -92,7 +84,6 @@ const TourPreview = () => {
             </div>
           </div>
 
-          {/* Tour Details */}
           <div className="tour-preview-details">
             <h3 className="tour-preview-title">{fallbackTour.title}</h3>
             
@@ -155,7 +146,6 @@ const TourPreview = () => {
   return (
     <div className="tour-preview">
       <div className="tour-preview-container">
-        {/* Tour Image */}
         <div className="tour-preview-image">
           {tour.image ? (
             <img 
@@ -174,7 +164,6 @@ const TourPreview = () => {
           )}
         </div>
 
-        {/* Tour Details */}
         <div className="tour-preview-details">
           <h3 className="tour-preview-title">{tour.title}</h3>
           

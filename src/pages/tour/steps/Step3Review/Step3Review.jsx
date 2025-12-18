@@ -68,14 +68,10 @@ const Step3Review = () => {
     );
   };
 
-  // Confirmation is handled by parent component
-
   return (
     <div className="review-form">
-      {/* Tour Preview */}
       <TourPreview />
       
-      {/* Contact Information Review */}
       <div className="review-section">
         <h3 className="review-title">Thông tin liên hệ</h3>
         <div className="review-grid">
@@ -110,7 +106,6 @@ const Step3Review = () => {
         </div>
       </div>
 
-      {/* Tour Details Review */}
       <div className="review-section">
         <h3 className="review-title">Thông tin tour</h3>
         <div className="review-grid">
@@ -139,7 +134,6 @@ const Step3Review = () => {
         </div>
       </div>
 
-      {/* Members List Review */}
       <div className="form-section">
         <h3 className="section-title">Danh sách đoàn</h3>
         {renderMembersTable('adult', plan.members.adult)}
@@ -147,7 +141,6 @@ const Step3Review = () => {
         {renderMembersTable('infant', plan.members.infant)}
       </div>
 
-      {/* Price Summary Review */}
       <div className="price-summary">
         <div className="price-breakdown">
           {plan.pax.adult > 0 && (
@@ -174,12 +167,8 @@ const Step3Review = () => {
           <span className="price-total-value">{formatPrice(plan.price.total)}</span>
         </div>
       </div>
-
-      {/* Navigation is handled by parent component */}
     </div>
   );
 };
-
-// No props needed - navigation handled by parent
 
 export default Step3Review;

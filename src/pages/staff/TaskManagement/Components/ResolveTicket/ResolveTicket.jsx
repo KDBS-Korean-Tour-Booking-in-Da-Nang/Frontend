@@ -27,12 +27,14 @@ const ResolveTicket = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
+  // Placeholder stats: total, resolved, pending (sẽ được thay thế bằng actual API calls)
   const stats = {
     total: 0,
     resolved: 0,
     pending: 0,
   };
 
+  // Filter tickets: filter theo filterStatus (all, pending, resolved), return filtered tickets array
   const filteredTickets = tickets.filter(ticket => {
     if (filterStatus === 'pending') {
       return !ticket.resolved;
@@ -52,7 +54,6 @@ const ResolveTicket = () => {
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
     try {
-      // Handle different field names (createdAt, created_at, createAt)
       const dateValue = value.createdAt || value.created_at || value.createAt || value;
       if (!dateValue) return 'N/A';
       const date = new Date(dateValue);
@@ -63,7 +64,7 @@ const ResolveTicket = () => {
     }
   };
 
-  // Check if user has permission
+  // Kiểm tra user có permission không: nếu user có nhưng không có canManageResolveTicket thì hiển thị Access Denied message
   if (user && !canManageResolveTicket) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fbff] via-[#f6f7fb] to-[#fdfdfc]">
@@ -246,7 +247,6 @@ const ResolveTicket = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            // Navigate to Customer Contact and open chat with user
                             if (ticket.userId) {
                               navigate(`/staff/contact?userId=${ticket.userId}`);
                             }

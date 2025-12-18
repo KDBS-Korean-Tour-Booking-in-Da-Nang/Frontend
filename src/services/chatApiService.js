@@ -1,18 +1,19 @@
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
 import { BaseURL as API_BASE_URL } from '../config/api';
 
+// Service quản lý API chat, sử dụng userId để xác định người dùng
 class ChatApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
   }
 
-  // Encode a value for safe URL path segments
+  // Encode giá trị để an toàn khi dùng trong URL path segments
   encodePath(value) {
     if (value === undefined || value === null) return '';
     return encodeURIComponent(String(value));
   }
 
-  // Get authorization headers
+  // Lấy headers xác thực với Bearer token
   getAuthHeaders() {
     const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
     return {
@@ -21,7 +22,7 @@ class ChatApiService {
     };
   }
 
-  // Get conversation between two users with pagination (using userId)
+  // Lấy cuộc trò chuyện giữa hai user với phân trang (sử dụng userId)
   async getConversation(userId1, userId2, page = 0, size = 25) {
     try {
       const u1 = this.encodePath(userId1);
@@ -35,10 +36,9 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -50,7 +50,7 @@ class ChatApiService {
     }
   }
 
-  // Get conversation between two users (legacy - for backward compatibility, using userId)
+  // Lấy cuộc trò chuyện giữa hai user (legacy - để tương thích ngược, sử dụng userId)
   async getConversationLegacy(userId1, userId2) {
     try {
       const u1 = this.encodePath(userId1);
@@ -64,10 +64,9 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -79,7 +78,6 @@ class ChatApiService {
     }
   }
 
-  // Get all messages from a user (using userId)
   async getAllMessagesFromUser(userId) {
     try {
       const response = await fetch(
@@ -91,10 +89,9 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -106,7 +103,6 @@ class ChatApiService {
     }
   }
 
-  // Send message (using senderId and receiverId)
   async sendMessage(senderId, receiverId, content) {
     try {
       const response = await fetch(
@@ -123,10 +119,9 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -138,7 +133,6 @@ class ChatApiService {
     }
   }
 
-  // Get all users (for chat dropdown)
   async getAllUsers() {
     try {
       const response = await fetch(
@@ -150,23 +144,20 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      // Backend returns data in format: { result: [...users] }
       return data.result || data;
     } catch (error) {
       throw error;
     }
   }
 
-  // Get current user info
   async getCurrentUser() {
     try {
       const response = await fetch(
@@ -178,10 +169,9 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -193,7 +183,6 @@ class ChatApiService {
     }
   }
 
-  // Get user by email
   async getUserByEmail(email) {
     try {
       const encodedEmail = encodeURIComponent(email);
@@ -206,10 +195,9 @@ class ChatApiService {
       );
 
       if (!response.ok) {
-        // Handle 401, 403, 404, 500 with global error handler (auto redirect)
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
-          return; // Đã redirect, không cần xử lý tiếp
+          return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -221,14 +209,12 @@ class ChatApiService {
     }
   }
 
-  // Helper: Get username from userId using allUsers map
   getUsernameFromUserId(userId, allUsers = []) {
     if (!userId) return '';
     const user = allUsers.find(u => (u.userId || u.id) === parseInt(userId));
     return user?.username || user?.userName || user?.name || '';
   }
 
-  // Format message for display (using userId, map to username for display)
   formatMessage(message, currentUser, allUsers = []) {
     const currentUserId = currentUser?.userId || currentUser?.id;
     const isOwn = message.senderId === currentUserId;
@@ -254,7 +240,6 @@ class ChatApiService {
     };
   }
 
-  // Format conversation for display (using userId, map to username for display)
   formatConversation(messages, currentUser, allUsers = []) {
     if (!messages || !Array.isArray(messages)) {
       return [];
@@ -268,7 +253,6 @@ class ChatApiService {
       const senderUsername = this.getUsernameFromUserId(message.senderId, allUsers);
       const receiverUsername = this.getUsernameFromUserId(message.receiverId, allUsers);
       
-      // Ensure we have proper content and timestamp
       const formattedMessage = {
         id: message.messageId || `msg-${index}-${Date.now()}`,
         content: message.content || '',
@@ -290,7 +274,6 @@ class ChatApiService {
     });
   }
 
-  // Get conversations list (grouped by other user, using userId)
   getConversationsList(messages, currentUser, allUsers = []) {
     const conversationsMap = new Map();
     const currentUserId = currentUser?.userId || currentUser?.id;
@@ -325,6 +308,5 @@ class ChatApiService {
   }
 }
 
-// Create singleton instance
 const chatApiService = new ChatApiService();
 export default chatApiService;

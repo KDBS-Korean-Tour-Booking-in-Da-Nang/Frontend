@@ -1,7 +1,8 @@
-// Booking API service
 import { checkAndHandleApiError } from '../utils/apiErrorHandler';
 import { getApiPath, BaseURL } from '../config/api';
 
+// Parse thông báo lỗi từ response
+// Thử parse JSON trước, nếu không được thì trả về text thuần
 const parseErrorMessage = async (response) => {
   try {
     const text = await response.text();
@@ -21,18 +22,18 @@ const parseErrorMessage = async (response) => {
  * Get authentication headers with Bearer token
  * @returns {Object} - Headers object with Authorization
  */
+// Lấy headers xác thực với Bearer token
+// Ưu tiên token theo role (ADMIN, STAFF), sau đó token chung
+// Kiểm tra sessionStorage trước (tab hiện tại), sau đó localStorage (tab khác / session đã lưu)
+// Cuối cùng là accessToken dùng chung cho tất cả roles
 const getAuthHeaders = () => {
-  // Try multiple token keys, including role-specific ones for ADMIN/STAFF
   const token =
-    // Session tokens (current tab, highest priority)
     sessionStorage.getItem('token_ADMIN') ||
     sessionStorage.getItem('token_STAFF') ||
     sessionStorage.getItem('token') ||
-    // Persistent tokens (other tabs / remembered sessions)
     localStorage.getItem('token_ADMIN') ||
     localStorage.getItem('token_STAFF') ||
     localStorage.getItem('token') ||
-    // Fallback shared access token (used across roles)
     localStorage.getItem('accessToken') ||
     sessionStorage.getItem('accessToken');
   const headers = {
@@ -60,10 +61,9 @@ export const createBooking = async (bookingData) => {
     });
 
     if (!response.ok) {
-      // Clone response to read body multiple times if needed
+      // Clone response để có thể đọc body nhiều lần nếu cần
       const responseClone = response.clone();
       
-      // Get error text for logging and parsing
       let errorText = '';
       try {
         errorText = await responseClone.text();
@@ -71,39 +71,36 @@ export const createBooking = async (bookingData) => {
         errorText = '';
       }
 
-      // Handle 500 errors separately - show helpful error message
+      // Xử lý riêng lỗi 500 - hiển thị thông báo lỗi hữu ích
       if (response.status === 500) {
-        // Parse error message from response
         let errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
         try {
           if (errorText) {
             const errorObj = JSON.parse(errorText);
             errorMessage = errorObj?.message || errorMessage;
-            // If it's a runtime exception, provide more helpful message
+            // Nếu là runtime exception, cung cấp thông báo hữu ích hơn
             if (errorMessage.includes('Runtime exception') || errorMessage.includes('Runtime exception occurred')) {
               errorMessage = 'Lỗi xử lý dữ liệu. Vui lòng kiểm tra lại thông tin tour (giá tour có thể chưa được thiết lập) hoặc liên hệ hỗ trợ.';
             }
-            // Check for specific error messages
+            // Kiểm tra lỗi NullPointerException
             if (errorMessage.includes('NullPointerException') || errorMessage.includes('null')) {
               errorMessage = 'Lỗi xử lý dữ liệu. Vui lòng kiểm tra lại thông tin tour (giá tour có thể chưa được thiết lập) hoặc liên hệ hỗ trợ.';
             }
+            // Kiểm tra lỗi liên quan đến voucher
             if (errorMessage.includes('VOUCHER') || errorMessage.includes('voucher')) {
               errorMessage = 'Lỗi khi áp dụng voucher. Vui lòng kiểm tra lại mã voucher hoặc thử lại sau.';
             }
           }
         } catch (e) {
-          // If parsing fails, use default message
         }
         throw new Error(errorMessage);
       }
 
-      // For other errors (401, 403, 404), use global error handler
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
-      // Parse error message for other errors
       const message = await parseErrorMessage(response);
       throw new Error(message);
     }
@@ -122,23 +119,19 @@ export const createBooking = async (bookingData) => {
  */
 export const getBookingById = async (bookingId) => {
   try {
-    // Correct endpoint per backend controller: /api/booking/id/{bookingId}
     const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
-      // Note: For background checks, we might not want to redirect, but for consistency we'll do it
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       const message = await parseErrorMessage(response);
       
-      // 400 often indicates BE mapping error when tour is null; surface friendly text
       if (response.status === 400) {
         throw new Error('Bad Request');
       }
@@ -169,10 +162,9 @@ export const getAllBookings = async (companyId) => {
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       const message = await parseErrorMessage(response);
@@ -206,10 +198,9 @@ export const createVNPayPayment = async (paymentData) => {
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       const message = await parseErrorMessage(response);
@@ -230,22 +221,19 @@ export const createVNPayPayment = async (paymentData) => {
  */
 export const getBookingTotal = async (bookingId) => {
   try {
-    // Always use authentication headers for booking total
     const response = await fetch(`${BaseURL}/api/booking/id/${bookingId}/total`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       const message = await parseErrorMessage(response);
       if (response.status === 400) {
-        // Allow caller to continue without total
         throw new Error('Bad Request');
       }
       throw new Error(message);
@@ -271,10 +259,9 @@ export const getBookingDetails = async (bookingId) => {
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       const errorData = await response.json().catch(() => ({}));
@@ -335,7 +322,6 @@ export const getComplaintsByBookingId = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
 
-      // Handle auth/global errors (may redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
         return [];
@@ -406,10 +392,9 @@ export const previewCancelBooking = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
@@ -437,10 +422,9 @@ export const cancelBooking = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
@@ -468,10 +452,9 @@ export const getBookingsByTourId = async (tourId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
@@ -505,10 +488,9 @@ export const getGuestsByBookingId = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
@@ -535,7 +517,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
       requestBody.message = message;
     }
     
-    // Use getApiPath for consistent URL handling in dev/prod
     const url = getApiPath(`/api/booking/change-status/${bookingId}`);
     
     let response = await fetch(url, {
@@ -544,7 +525,6 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
       body: JSON.stringify(requestBody),
     });
 
-    // Fallback: If 404 in dev mode with relative path, try full URL
     if (!response.ok && response.status === 404 && import.meta.env.DEV && url.startsWith('/')) {
       const fallbackUrl = `${BaseURL}/api/booking/change-status/${bookingId}`;
       
@@ -555,14 +535,12 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
           body: JSON.stringify(requestBody),
         });
       } catch (fallbackError) {
-        // Continue with original response for error handling
       }
     }
 
     if (!response.ok) {
       const errorMessage = await parseErrorMessage(response);
       
-      // Handle 401 - session expired
       if (response.status === 401) {
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
@@ -570,12 +548,10 @@ export const changeBookingStatus = async (bookingId, status, message = null) => 
         }
       }
       
-      // Handle 500 - server error (don't redirect, show error message)
       if (response.status === 500) {
         throw new Error(errorMessage || 'Server error occurred. Please try again later.');
       }
       
-      // Handle 403, 404 with global error handler (auto redirect)
       if (response.status === 403 || response.status === 404) {
         const wasHandled = await checkAndHandleApiError(response, true);
         if (wasHandled) {
@@ -610,10 +586,9 @@ export const updateBooking = async (bookingId, bookingData) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
@@ -642,10 +617,9 @@ export const changeBookingGuestInsuranceStatus = async (guestId, status) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
@@ -673,16 +647,14 @@ export const companyConfirmTourCompletion = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
     }
 
-    // No content response
     return;
   } catch (error) {
     throw error;
@@ -704,16 +676,14 @@ export const userConfirmTourCompletion = async (bookingId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
       
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return; // Đã redirect, không cần xử lý tiếp
+        return;
       }
       
       throw new Error(message);
     }
 
-    // No content response
     return;
   } catch (error) {
     throw error;
@@ -733,10 +703,9 @@ export const getTourCompletionStatus = async (bookingId) => {
     });
 
     if (!response.ok) {
-      // Handle 401, 403, 404, 500 with global error handler (auto redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
-        return false; // Đã redirect, trả về false
+        return false;
       }
 
       const message = await parseErrorMessage(response);
@@ -769,7 +738,6 @@ export const getAllComplaints = async (autoRedirect = false) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
 
-      // Only auto redirect if explicitly requested (user actions, not background polling)
       const wasHandled = await checkAndHandleApiError(response, autoRedirect);
       if (wasHandled) {
         return [];
@@ -803,7 +771,6 @@ export const getComplaintById = async (complaintId) => {
     if (!response.ok) {
       const message = await parseErrorMessage(response);
 
-      // Handle auth/global errors (may redirect)
       const wasHandled = await checkAndHandleApiError(response, true);
       if (wasHandled) {
         return null;

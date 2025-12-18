@@ -11,7 +11,7 @@ const Pagination = ({
   const { t } = useTranslation();
   if (totalPages <= 1) return null;
 
-  // currentPage is 0-based, so we calculate correctly
+  // Tính startIndex và endIndex: currentPage là 0-based nên tính đúng, startIndex = currentPage * itemsPerPage + 1, endIndex = min((currentPage + 1) * itemsPerPage, totalItems)
   const startIndex = currentPage * itemsPerPage + 1;
   const endIndex = Math.min((currentPage + 1) * itemsPerPage, totalItems);
 
@@ -22,50 +22,41 @@ const Pagination = ({
     }
   };
 
-  // Generate page numbers to display
+  // Generate page numbers để hiển thị: nếu totalPages <= 5 hiển thị tất cả, nếu không hiển thị first page, ellipsis, range xung quanh currentPage, ellipsis, last page
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
 
     if (totalPages <= maxVisible) {
-      // Show all pages if total pages <= 5
       for (let i = 0; i < totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Show first page
       pages.push(0);
 
-      // Calculate start and end of visible range
       let start = Math.max(1, currentPage - 1);
       let end = Math.min(totalPages - 2, currentPage + 1);
 
-      // Adjust if near start
       if (currentPage <= 2) {
         end = Math.min(3, totalPages - 2);
       }
 
-      // Adjust if near end
       if (currentPage >= totalPages - 3) {
         start = Math.max(1, totalPages - 4);
       }
 
-      // Add ellipsis before range if needed
       if (start > 1) {
         pages.push('ellipsis-start');
       }
 
-      // Add pages in range
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
 
-      // Add ellipsis after range if needed
       if (end < totalPages - 2) {
         pages.push('ellipsis-end');
       }
 
-      // Show last page
       pages.push(totalPages - 1);
     }
 

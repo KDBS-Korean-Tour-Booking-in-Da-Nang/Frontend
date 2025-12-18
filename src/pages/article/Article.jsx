@@ -21,7 +21,7 @@ const Article = () => {
   const [showCategories, setShowCategories] = useState(false);
   const [sortOrder, setSortOrder] = useState('newest');
 
-  // Prevent background scroll when mobile categories panel is open
+  // Ngăn background scroll khi mobile categories panel mở: set document.body.style.overflow = 'hidden' khi showCategories = true, restore lại khi unmount
   useEffect(() => {
     if (!showCategories) return;
     const original = document.body.style.overflow;
@@ -31,7 +31,7 @@ const Article = () => {
     };
   }, [showCategories]);
 
-  // Sort articles by creation date (newest or oldest first)
+  // Sort articles theo creation date: sort theo articleCreatedDate, newest first nếu order = 'newest', oldest first nếu order = 'oldest'
   const sortArticlesByOrder = (list, order) => {
     const sorted = [...(list || [])];
     sorted.sort((a, b) => {
@@ -42,12 +42,12 @@ const Article = () => {
     return sorted;
   };
 
-  // Reload articles when sort order changes
+  // Reload articles khi sort order thay đổi: gọi loadApprovedArticles khi sortOrder thay đổi
   useEffect(() => {
     loadApprovedArticles();
   }, [sortOrder]);
 
-  // Get localized article field based on current language (fallback to Vietnamese, then English, then Korean)
+  // Lấy localized article field dựa trên current language: fallback Vietnamese -> English -> Korean, kiểm tra lang startsWith để match (en, ko/kr)
   const getLocalizedArticleField = (article, baseField) => {
     if (!article) return '';
     const lang = (i18n.language || 'vi').toLowerCase();
@@ -62,7 +62,7 @@ const Article = () => {
     return vi || en || kr || '';
   };
 
-  // Load approved articles from API and sort them
+  // Load approved articles từ API và sort: gọi articleService.getArticlesByStatus('APPROVED'), sort theo sortOrder, set vào articles state
   const loadApprovedArticles = async () => {
     setLoading(true);
     try {
@@ -76,7 +76,7 @@ const Article = () => {
     }
   };
 
-  // Handle load more button click (currently reloads articles, pagination can be implemented later)
+  // Xử lý load more button click: hiện tại reload articles (pagination có thể implement sau), set loadingMore state
   const handleLoadMore = async () => {
     setLoadingMore(true);
     try {
@@ -122,7 +122,7 @@ const Article = () => {
     cssEase: 'linear'
   };
 
-  // Filter articles by search query (searches in title, description, and content)
+  // Filter articles theo search query: search trong title, description, và content (sử dụng getLocalizedArticleField để lấy localized fields), case-insensitive
   const filteredArticles = (articles || []).filter((article) => {
     const query = (searchQuery || '').trim().toLowerCase();
     if (!query) return true;
