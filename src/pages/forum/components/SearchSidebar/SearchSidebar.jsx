@@ -354,17 +354,6 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
         });
       }
 
-      // Add trending topics if query is short
-      if (q.length <= 2) {
-        const trendingTopics = [
-          { type: 'trending', text: 'Công nghệ AI mới nhất', icon: 'trending' },
-          { type: 'trending', text: 'Startup thành công', icon: 'trending' },
-          { type: 'trending', text: 'Marketing số', icon: 'trending' },
-          { type: 'trending', text: 'Đầu tư tài chính', icon: 'trending' }
-        ];
-        result.push(...trendingTopics);
-      }
-
       // Deduplicate by text
       const seen = new Set();
       const dedup = [];
