@@ -406,9 +406,33 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
 
   // Position dropdown like YouTube (anchored to input, fixed on viewport)
   const updateDropdownPos = () => {
-    if (!inputRef.current) return;
-    const rect = inputRef.current.getBoundingClientRect();
-    setSuggestPos({ left: rect.left, top: rect.bottom + 6, width: rect.width });
+    if (!inputRef.current || !rootRef.current) return;
+    const inputRect = inputRef.current.getBoundingClientRect();
+    const sidebarRect = rootRef.current.getBoundingClientRect();
+    
+    // Calculate width: use input width but don't exceed sidebar width
+    const maxWidth = sidebarRect.width;
+    const dropdownWidth = Math.min(inputRect.width, maxWidth);
+    
+    // Ensure dropdown doesn't overflow viewport
+    let left = inputRect.left;
+    
+    // If dropdown would overflow right side, align it to the right edge of sidebar
+    if (left + dropdownWidth > sidebarRect.right) {
+      left = sidebarRect.right - dropdownWidth;
+    }
+    
+    // Ensure dropdown doesn't go off left edge of viewport
+    if (left < 0) {
+      left = 0;
+    }
+    
+    setSuggestPos({ 
+      left: left, 
+      top: inputRect.bottom + 6, 
+      width: dropdownWidth,
+      maxWidth: maxWidth
+    });
   };
   useEffect(() => {
     updateDropdownPos();
@@ -419,6 +443,13 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
       window.removeEventListener('scroll', updateDropdownPos, true);
     };
   }, []);
+
+  // Update dropdown position when showSuggest changes
+  useEffect(() => {
+    if (showSuggest) {
+      updateDropdownPos();
+    }
+  }, [showSuggest]);
 
   const visibleHashtags = showAllHashtags
     ? popularHashtags
@@ -464,7 +495,7 @@ const SearchSidebar = ({ mode = 'sticky', fixedStyle = {}, onSearch, onHashtagFi
             </button>
           </div>
           {showSuggest && (suggestions.length > 0 || (searchHistory.length > 0 && !searchKeyword.trim())) && createPortal(
-            <div ref={dropdownRef} className={styles['search-suggest']} style={{ position: 'fixed', left: suggestPos.left, top: suggestPos.top, width: suggestPos.width }}>
+            <div ref={dropdownRef} className={styles['search-suggest']} style={{ position: 'fixed', left: suggestPos.left, top: suggestPos.top, width: suggestPos.width, maxWidth: suggestPos.maxWidth || suggestPos.width }}>
               {suggestions.length > 0 ? (
                 // Show suggestions when typing
                 suggestions.map((s, idx) => (

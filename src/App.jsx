@@ -173,6 +173,63 @@ function AppContent() {
     }
   }, [user, loading, location.pathname, navigate]);
 
+  // Route guard: Prevent ADMIN and STAFF from accessing user pages
+  // Redirect them to their respective dashboards if they try to access user pages
+  useEffect(() => {
+    if (loading) return;
+    
+    const role = user?.role;
+    const isAdminOrStaff = role === 'ADMIN' || role === 'STAFF';
+    
+    if (!isAdminOrStaff) return;
+    
+    // Define user pages that admin/staff should not access
+    const userPages = [
+      '/',
+      '/profile',
+      '/user/booking-history',
+      '/user/booking',
+      '/booking/payment',
+      '/booking/payment/checkout',
+      '/transaction-result',
+      '/tour',
+      '/tour/detail',
+      '/tour/booking',
+      '/tour/voucher-list',
+      '/tour/voucher',
+      '/article',
+      '/article/detail',
+      '/about',
+      '/contact',
+      '/company-info',
+      '/pending-page'
+    ];
+    
+    // Check if current path is a user page (but allow forum if accessed from admin/staff)
+    const isUserPage = userPages.some(page => 
+      location.pathname === page || 
+      (page !== '/' && location.pathname.startsWith(page))
+    );
+    
+    // Allow forum if accessed from admin/staff
+    const isForumFromAdminStaff = location.pathname === '/forum' && (fromAdmin || fromStaff);
+    
+    // Allow admin/staff pages
+    const isAdminStaffPage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/staff');
+    
+    // Allow authentication pages
+    const isAuthPage = authenticationPaths.includes(location.pathname);
+    
+    // If admin/staff tries to access user pages, redirect to their dashboard
+    if (isUserPage && !isForumFromAdminStaff && !isAdminStaffPage && !isAuthPage) {
+      if (role === 'ADMIN') {
+        navigate('/admin', { replace: true });
+      } else if (role === 'STAFF') {
+        navigate('/staff', { replace: true });
+      }
+    }
+  }, [user, loading, location.pathname, navigate, fromAdmin, fromStaff]);
+
 
 
   // Kiểm tra xem có nên hiển thị SupportTicketBubble hay không
