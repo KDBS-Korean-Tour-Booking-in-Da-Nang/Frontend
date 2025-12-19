@@ -326,30 +326,17 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.balance-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .balance-amount {
   color: #000000;
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.balance-add {
-  width: 24px;
-  height: 24px;
-  background: #1a8eea;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.balance-add:hover {
-  background: #1471c4;
-  transform: scale(1.1);
 }
 
 /* User Profile */
@@ -1098,10 +1085,9 @@
     font-size: 0.75rem;
   }
   
-  .balance-add {
-    width: 18px;
-    height: 18px;
-    font-size: 0.65rem;
+  .balance-icon {
+    width: 14px;
+    height: 14px;
   }
   
   .user-profile {

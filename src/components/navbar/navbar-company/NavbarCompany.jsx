@@ -10,9 +10,9 @@ import {
   XMarkIcon,
   BellIcon,
   ChatBubbleLeftRightIcon,
-  PlusIcon,
   BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
+import { Wallet } from 'lucide-react';
 import styles from './NavbarCompany.module.css';
 import { NotificationDropdown, ChatBox, ChatDropdown, WebSocketStatus } from '../../';
 import { useNotifications } from '../../../contexts/NotificationContext';
@@ -362,12 +362,10 @@ const NavbarCompany = () => {
                 {/* Balance - Always show for COMPANY users */}
                 {user.role === 'COMPANY' && (
                   <div className={styles['balance-container']}>
+                    <Wallet className={styles['balance-icon']} size={16} style={{ color: '#6b7280' }} />
                     <span className={styles['balance-amount']}>
                       {isLoadingBalance ? '...' : formatBalance(balance)}
                     </span>
-                    <button className={styles['balance-add']} title="Add balance">
-                      <PlusIcon />
-                    </button>
                   </div>
                 )}
 
