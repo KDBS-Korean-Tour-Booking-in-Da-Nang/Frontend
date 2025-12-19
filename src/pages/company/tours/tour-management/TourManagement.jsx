@@ -494,14 +494,16 @@ const TourManagement = () => {
                           <span>{t('tourManagement.actions.delete')}</span>
                         </button>
 
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
-                          className={styles['share-btn']}
-                          title={t('tourCard.share') || 'Chia sẻ'}
-                        >
-                          <LinkIcon className={styles['action-icon']} />
-                          <span>{t('tourCard.share') || 'Chia sẻ'}</span>
-                        </button>
+                        {tour.tourStatus?.toUpperCase() !== 'NOT_APPROVED' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
+                            className={styles['share-btn']}
+                            title={t('tourCard.share') || 'Chia sẻ'}
+                          >
+                            <LinkIcon className={styles['action-icon']} />
+                            <span>{t('tourCard.share') || 'Chia sẻ'}</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
