@@ -312,12 +312,30 @@ export const AuthProvider = ({ children }) => {
       const tokenKey = `token_${role}`;
       
       try {
+        // Clear role-specific storage
         localStorage.removeItem(userKey);
         localStorage.removeItem(tokenKey);
         sessionStorage.removeItem(userKey);
         sessionStorage.removeItem(tokenKey);
+        
+        // Clear all user-related storage to prevent auto-login to user pages
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user_ADMIN');
+        localStorage.removeItem('token_ADMIN');
+        localStorage.removeItem('user_STAFF');
+        localStorage.removeItem('token_STAFF');
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('tokenExpiry');
         localStorage.removeItem('rememberMe');
+        
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user_ADMIN');
+        sessionStorage.removeItem('token_ADMIN');
+        sessionStorage.removeItem('user_STAFF');
+        sessionStorage.removeItem('token_STAFF');
+        
         clearAiChat();
         clearInactivityTimer();
         try {

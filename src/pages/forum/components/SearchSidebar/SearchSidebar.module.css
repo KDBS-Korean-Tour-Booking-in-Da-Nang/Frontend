@@ -104,6 +104,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   backdrop-filter: blur(20px);
+  box-sizing: border-box;
+  min-width: 0;
 }
 .suggest-item {
   width: 100%;
