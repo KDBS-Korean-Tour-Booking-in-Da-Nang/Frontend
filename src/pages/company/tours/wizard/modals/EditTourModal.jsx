@@ -910,12 +910,18 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
     const amount = parseInt(formData.amount);
     const adultPrice = parseFloat(formData.adultPrice);
-    const childrenPrice = parseFloat(formData.childrenPrice);
-    const babyPrice = parseFloat(formData.babyPrice);
+    // childrenPrice and babyPrice are optional - if empty, default to 0
+    const childrenPrice = formData.childrenPrice === '' ? 0 : parseFloat(formData.childrenPrice);
+    const babyPrice = formData.babyPrice === '' ? 0 : parseFloat(formData.babyPrice);
     if (!Number.isFinite(amount) || amount < 1) errors.push(t('tourManagement.edit.basic.fields.amount'));
     if (!Number.isFinite(adultPrice) || adultPrice < 0) errors.push(t('tourManagement.edit.pricing.fields.adultPrice'));
-    if (!Number.isFinite(childrenPrice) || childrenPrice < 0) errors.push(t('tourManagement.edit.pricing.fields.childrenPrice'));
-    if (!Number.isFinite(babyPrice) || babyPrice < 0) errors.push(t('tourManagement.edit.pricing.fields.babyPrice'));
+    // Only validate childrenPrice and babyPrice if they have values (they are optional)
+    if (formData.childrenPrice !== '' && (!Number.isFinite(childrenPrice) || childrenPrice < 0)) {
+      errors.push(t('tourManagement.edit.pricing.fields.childrenPrice'));
+    }
+    if (formData.babyPrice !== '' && (!Number.isFinite(babyPrice) || babyPrice < 0)) {
+      errors.push(t('tourManagement.edit.pricing.fields.babyPrice'));
+    }
 
     // Itinerary validation: only require at least 1 day exists
     if (!Array.isArray(formData.itinerary) || formData.itinerary.length === 0) {
@@ -989,6 +995,16 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
 
       const normalizedMinAdvance = Math.max(0, Math.min(minAdvanceValue, leadDays > 0 ? leadDays - 1 : 0));
 
+      // Parse pricing - childrenPrice and babyPrice default to 0 if empty
+      const parsedChildrenPrice = formData.childrenPrice === '' ? 0 : (() => {
+        const parsed = parseFloat(formData.childrenPrice);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      })();
+      const parsedBabyPrice = formData.babyPrice === '' ? 0 : (() => {
+        const parsed = parseFloat(formData.babyPrice);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      })();
+
       // Prepare tour data - Backend expects: { updatedTour: TourRequest, note: String }
       const tourRequestData = {
         companyEmail: userEmail,
@@ -1007,8 +1023,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         tourExpirationDate: expirationDateValue,
         amount: amount,
         adultPrice: adultPrice,
-        childrenPrice: childrenPrice,
-        babyPrice: babyPrice,
+        childrenPrice: parsedChildrenPrice,
+        babyPrice: parsedBabyPrice,
         tourSchedule: formData.tourSchedule || '',
         contents: (formData.itinerary || []).map((day, index) => ({
           tourContentTitle: day.title || `Ngày ${index + 1}`,
@@ -1575,7 +1591,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       onKeyDown={preventInvalidNumberKeys}
                       onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => setFormData(prev => ({ ...prev, childrenPrice: e.target.value.replace(/[^0-9]/g, '') }))}
-                      required
+                      placeholder="0"
                     />
                   </div>
 
@@ -1590,7 +1606,7 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
                       onKeyDown={preventInvalidNumberKeys}
                       onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => setFormData(prev => ({ ...prev, babyPrice: e.target.value.replace(/[^0-9]/g, '') }))}
-                      required
+                      placeholder="0"
                     />
                   </div>
                 </div>
