@@ -353,45 +353,45 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         // Other roles or no targetId: do nothing
         break;
 
-      // Booking balance success - redirect to booking detail for payment
+      // Booking balance success - redirect to booking history
       case 'BOOKING_BALANCE_SUCCESS':
-        // User: redirect to booking detail to make balance payment
-        if (userRole === 'USER' && targetId) {
-          navigate(`/user/booking?id=${targetId}`);
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
         }
         // Company: redirect to booking management
         else if (userRole === 'COMPANY') {
           navigate('/company/bookings');
         }
-        // Other roles or no targetId: do nothing
+        // Other roles: do nothing
         break;
 
-      // Pending balance payment - redirect to booking detail for payment
+      // Pending balance payment - redirect to booking history
       case 'PENDING_BALANCE_PAYMENT':
       case 'BOOKING_PENDING_BALANCE':
-        // User: redirect to booking detail to make balance payment
-        if (userRole === 'USER' && targetId) {
-          navigate(`/user/booking?id=${targetId}`);
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
         }
         // Company: redirect to booking management
         else if (userRole === 'COMPANY') {
           navigate('/company/bookings');
         }
-        // Other roles or no targetId: do nothing
+        // Other roles: do nothing
         break;
 
-      // Booking success wait for confirmed - redirect to booking detail
+      // Booking success wait for confirmed - redirect to booking history
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
       case 'BOOKING_SUCCESS_WAIT_CONFIRM':
-        // User: redirect to booking detail to confirm completion
-        if (userRole === 'USER' && targetId) {
-          navigate(`/user/booking?id=${targetId}`);
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
         }
         // Company: redirect to booking management
         else if (userRole === 'COMPANY') {
           navigate('/company/bookings');
         }
-        // Other roles or no targetId: do nothing
+        // Other roles: do nothing
         break;
 
       // Booking failed - redirect based on role
