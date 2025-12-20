@@ -5074,6 +5074,10 @@
       "REPLY_COMMENT": {
         "title": "Có phản hồi mới",
         "message": "Ai đó đã trả lời bình luận của bạn."
+      },
+      "PENDING_BALANCE_PAYMENT": {
+        "title": "Chờ thanh toán số dư",
+        "message": "Vui lòng thanh toán số dư còn lại cho booking."
       }
     }
   },

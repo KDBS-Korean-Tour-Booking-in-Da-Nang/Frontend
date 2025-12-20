@@ -4980,6 +4980,10 @@
 			"REPLY_COMMENT": {
 				"title": "새 답글",
 				"message": "누군가가 당신의 댓글에 답글을 남겼습니다."
+			},
+			"PENDING_BALANCE_PAYMENT": {
+				"title": "잔액 결제 대기",
+				"message": "예약에 대한 잔액을 결제해 주세요."
 			}
 		}
 	},

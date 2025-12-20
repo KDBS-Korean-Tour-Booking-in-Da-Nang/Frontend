@@ -211,6 +211,8 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         return t('notifications.types.BOOKING_SUCCESS.title', 'Booking thành công');
       case 'BOOKING_BALANCE_SUCCESS':
         return t('notifications.types.BOOKING_BALANCE_SUCCESS.title', 'Thanh toán thành công');
+      case 'PENDING_BALANCE_PAYMENT':
+        return t('notifications.types.PENDING_BALANCE_PAYMENT.title', 'Chờ thanh toán số dư');
       case 'BOOKING_SUCCESS_PENDING':
         return t('notifications.types.BOOKING_SUCCESS_PENDING.title', 'Booking đang chờ xác nhận');
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
@@ -257,6 +259,8 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         return t('notifications.types.BOOKING_SUCCESS.message', 'Booking của bạn đã hoàn thành thành công.');
       case 'BOOKING_BALANCE_SUCCESS':
         return t('notifications.types.BOOKING_BALANCE_SUCCESS.message', 'Thanh toán số dư đã hoàn tất. Booking của bạn đã được xác nhận.');
+      case 'PENDING_BALANCE_PAYMENT':
+        return t('notifications.types.PENDING_BALANCE_PAYMENT.message', 'Vui lòng thanh toán số dư còn lại cho booking.');
       case 'BOOKING_SUCCESS_PENDING':
         return t('notifications.types.BOOKING_SUCCESS_PENDING.message', 'Booking của bạn đang chờ xác nhận hoàn thành.');
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
@@ -332,6 +336,19 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
 
       // Booking balance success - redirect to booking detail for payment
       case 'BOOKING_BALANCE_SUCCESS':
+        // User: redirect to booking detail to make balance payment
+        if (userRole === 'USER' && targetId) {
+          navigate(`/user/booking?id=${targetId}`);
+        }
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles or no targetId: do nothing
+        break;
+
+      // Pending balance payment - redirect to booking detail for payment
+      case 'PENDING_BALANCE_PAYMENT':
         // User: redirect to booking detail to make balance payment
         if (userRole === 'USER' && targetId) {
           navigate(`/user/booking?id=${targetId}`);
