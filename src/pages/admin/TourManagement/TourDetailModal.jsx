@@ -322,10 +322,24 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
   const formatPrice = (price) => {
     if (!price) return 'N/A';
     const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'VND'
+    const formatted = new Intl.NumberFormat(locale, {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(price);
+    return `${formatted} đ`;
+  };
+
+  // Format price for optional fields (childrenPrice, babyPrice) - show "0đ" instead of "N/A"
+  const formatOptionalPrice = (price) => {
+    const priceNum = price !== undefined && price !== null ? Number(price) : 0;
+    const locale = i18n.language === 'ko' ? 'ko-KR' : i18n.language === 'en' ? 'en-US' : 'vi-VN';
+    const formatted = new Intl.NumberFormat(locale, {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(priceNum);
+    return `${formatted} đ`;
   };
 
   const formatDate = (dateString) => {
@@ -577,25 +591,21 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
               formatValue={formatPrice}
             />
 
-            {(displayTour.childrenPrice !== undefined && displayTour.childrenPrice !== null) && (
-              <FieldWithChange
-                label={t('admin.tourDetailModal.fields.childrenPrice')}
-                value={displayTour.childrenPrice}
-                fieldName="childrenPrice"
-                icon={CurrencyDollarIcon}
-                formatValue={formatPrice}
-              />
-            )}
+            <FieldWithChange
+              label={t('admin.tourDetailModal.fields.childrenPrice')}
+              value={displayTour.childrenPrice ?? 0}
+              fieldName="childrenPrice"
+              icon={CurrencyDollarIcon}
+              formatValue={formatOptionalPrice}
+            />
 
-            {(displayTour.babyPrice !== undefined && displayTour.babyPrice !== null) && (
-              <FieldWithChange
-                label={t('admin.tourDetailModal.fields.babyPrice')}
-                value={displayTour.babyPrice}
-                fieldName="babyPrice"
-                icon={CurrencyDollarIcon}
-                formatValue={formatPrice}
-              />
-            )}
+            <FieldWithChange
+              label={t('admin.tourDetailModal.fields.babyPrice')}
+              value={displayTour.babyPrice ?? 0}
+              fieldName="babyPrice"
+              icon={CurrencyDollarIcon}
+              formatValue={formatOptionalPrice}
+            />
 
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.expirationDate')}
