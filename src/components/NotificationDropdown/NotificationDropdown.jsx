@@ -103,7 +103,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (e) {
+    } catch {
       return '';
     }
   };
@@ -211,6 +211,8 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         return t('notifications.types.BOOKING_SUCCESS.title', 'Booking thành công');
       case 'BOOKING_BALANCE_SUCCESS':
         return t('notifications.types.BOOKING_BALANCE_SUCCESS.title', 'Thanh toán thành công');
+      case 'PENDING_BALANCE_PAYMENT':
+        return t('notifications.types.PENDING_BALANCE_PAYMENT.title', 'Chờ thanh toán số dư');
       case 'BOOKING_SUCCESS_PENDING':
         return t('notifications.types.BOOKING_SUCCESS_PENDING.title', 'Booking đang chờ xác nhận');
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
@@ -257,6 +259,8 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         return t('notifications.types.BOOKING_SUCCESS.message', 'Booking của bạn đã hoàn thành thành công.');
       case 'BOOKING_BALANCE_SUCCESS':
         return t('notifications.types.BOOKING_BALANCE_SUCCESS.message', 'Thanh toán số dư đã hoàn tất. Booking của bạn đã được xác nhận.');
+      case 'PENDING_BALANCE_PAYMENT':
+        return t('notifications.types.PENDING_BALANCE_PAYMENT.message', 'Vui lòng thanh toán số dư còn lại cho booking.');
       case 'BOOKING_SUCCESS_PENDING':
         return t('notifications.types.BOOKING_SUCCESS_PENDING.message', 'Booking của bạn đang chờ xác nhận hoàn thành.');
       case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
@@ -296,6 +300,10 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
       // Company-only notifications - redirect to management pages
       case 'NEW_BOOKING':
       case 'BOOKING_UPDATED_BY_USER':
+      case 'WAITING_FOR_APPROVED':
+      case 'BOOKING_WAITING_APPROVAL':
+      case 'WAITING_FOR_UPDATE':
+      case 'BOOKING_UNDER_COMPLAINT':
         // Only redirect if user is COMPANY
         if (userRole === 'COMPANY') {
           navigate('/company/bookings');
@@ -330,11 +338,78 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
         // Other roles or no targetId: do nothing
         break;
 
+      // Pending payment notifications - redirect to booking detail for payment
+      case 'PENDING_PAYMENT':
+      case 'PENDING_DEPOSIT_PAYMENT':
+      case 'BOOKING_PENDING_DEPOSIT':
+        // User: redirect to booking detail to make payment
+        if (userRole === 'USER' && targetId) {
+          navigate(`/user/booking?id=${targetId}`);
+        }
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles or no targetId: do nothing
+        break;
+
+      // Booking balance success - redirect to booking history
+      case 'BOOKING_BALANCE_SUCCESS':
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
+        }
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles: do nothing
+        break;
+
+      // Pending balance payment - redirect to booking history
+      case 'PENDING_BALANCE_PAYMENT':
+      case 'BOOKING_PENDING_BALANCE':
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
+        }
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles: do nothing
+        break;
+
+      // Booking success wait for confirmed - redirect to booking history
+      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
+      case 'BOOKING_SUCCESS_WAIT_CONFIRM':
+        // User: redirect to booking history
+        if (userRole === 'USER') {
+          navigate('/user/booking-history');
+        }
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles: do nothing
+        break;
+
+      // Booking failed - redirect based on role
+      case 'BOOKING_FAILED':
+        // User: redirect to booking detail to view details
+        if (userRole === 'USER' && targetId) {
+          navigate(`/user/booking?id=${targetId}`);
+        }
+        // Company: redirect to booking management
+        else if (userRole === 'COMPANY') {
+          navigate('/company/bookings');
+        }
+        // Other roles or no targetId: do nothing
+        break;
+
       // Booking success statuses - redirect based on role
       case 'BOOKING_SUCCESS':
-      case 'BOOKING_BALANCE_SUCCESS':
       case 'BOOKING_SUCCESS_PENDING':
-      case 'BOOKING_SUCCESS_WAIT_FOR_CONFIRMED':
       case 'BOOKING_CANCELLED':
         // User: redirect to booking history
         if (userRole === 'USER') {

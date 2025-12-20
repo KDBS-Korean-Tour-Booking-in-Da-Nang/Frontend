@@ -5060,6 +5060,10 @@
 			"REPLY_COMMENT": {
 				"title": "New reply",
 				"message": "Someone replied to your comment."
+			},
+			"PENDING_BALANCE_PAYMENT": {
+				"title": "Pending balance payment",
+				"message": "Please pay the remaining balance for your booking."
 			}
 		}
 	},
