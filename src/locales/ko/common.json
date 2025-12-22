@@ -2314,7 +2314,9 @@
 			"unlikeSuccess": "게시물 좋아요를 취소했습니다",
 			"translate": "내용 번역",
 			"translating": "번역 중...",
-			"hideTranslation": "번역 숨기기"
+			"hideTranslation": "번역 숨기기",
+			"translateError": "내용을 번역할 수 없습니다. 나중에 다시 시도해주세요.",
+			"translateNoContent": "번역할 내용이 없습니다."
 		},
 		"comments": {
 			"placeholder": "댓글을 작성하세요...",
@@ -4543,15 +4545,32 @@
 			"title": "예약 #",
 			"tour": "투어:",
 			"customer": "고객",
+			"phone": "전화번호",
+			"email": "이메일",
 			"status": "상태",
 			"departureDate": "출발일",
 			"tourDuration": "투어 기간",
 			"expectedEndDate": "예상 종료일",
+			"paymentInfo": "결제 정보",
 			"totalAmount": "총 금액",
+			"originalAmount": "원래 금액",
+			"depositAmount": "보증금",
+			"paidAmount": "결제 금액",
+			"remainingAmount": "잔액",
+			"voucherCode": "바우처 코드",
+			"voucherDiscount": "바우처 할인",
+			"depositDiscount": "보증금 할인",
+			"totalDiscount": "총 할인",
 			"createdAt": "생성일",
 			"unknown": "알 수 없음",
 			"day": "일",
-			"days": "일"
+			"days": "일",
+			"tourNotStarted": "투어 시작 전",
+			"tourEnded": "투어 종료",
+			"timeUntilEnd": "남은 시간",
+			"hours": "시간",
+			"minutes": "분",
+			"seconds": "초"
 		}
 	},
 	"companyBookingWizard": {
@@ -5334,6 +5353,96 @@
 			"success": "성공",
 			"failed": "실패",
 			"cancelled": "취소됨"
+		}
+	},
+	"notifications": {
+		"title": "알림",
+		"empty": "알림이 없습니다",
+		"loading": "로딩 중...",
+		"error": "오류가 발생했습니다",
+		"retry": "다시 시도",
+		"markAllRead": "모두 읽음으로 표시",
+		"markRead": "읽음으로 표시",
+		"markUnread": "읽지 않음으로 표시",
+		"delete": "삭제",
+		"more": "더보기",
+		"close": "닫기",
+		"viewAll": "모든 알림 보기",
+		"collapse": "접기",
+		"noTitle": "제목 없음",
+		"justNow": "방금 전",
+		"minutesAgo": "{{count}}분 전",
+		"hoursAgo": "{{count}}시간 전",
+		"daysAgo": "{{count}}일 전",
+		"types": {
+			"LIKE_POST": {
+				"title": "게시물 좋아요",
+				"message": "누군가 당신의 게시물을 좋아합니다."
+			},
+			"LIKE_COMMENT": {
+				"title": "댓글 좋아요",
+				"message": "누군가 당신의 댓글을 좋아합니다."
+			},
+			"COMMENT_POST": {
+				"title": "새 댓글",
+				"message": "누군가 당신의 게시물에 댓글을 달았습니다."
+			},
+			"REPLY_COMMENT": {
+				"title": "댓글 답글",
+				"message": "누군가 당신의 댓글에 답글을 달았습니다."
+			},
+			"NEW_BOOKING": {
+				"title": "새 예약",
+				"message": "처리해야 할 새 예약이 있습니다."
+			},
+			"BOOKING_CONFIRMED": {
+				"title": "예약 확인됨",
+				"message": "예약이 확인되었습니다."
+			},
+			"BOOKING_UPDATE_REQUEST": {
+				"title": "예약 업데이트 요청",
+				"message": "예약 업데이트 요청이 있습니다."
+			},
+			"TOUR_APPROVED": {
+				"title": "투어 승인됨",
+				"message": "투어가 승인되었습니다."
+			},
+			"NEW_RATING": {
+				"title": "새 평가",
+				"message": "투어에 새 평가가 있습니다."
+			},
+			"BOOKING_REJECTED": {
+				"title": "예약 거부됨",
+				"message": "예약이 거부되었습니다."
+			},
+			"BOOKING_UPDATED_BY_USER": {
+				"title": "예약 업데이트됨",
+				"message": "고객이 예약 정보를 업데이트했습니다."
+			},
+			"BOOKING_SUCCESS": {
+				"title": "예약 성공",
+				"message": "예약이 성공적으로 완료되었습니다."
+			},
+			"BOOKING_BALANCE_SUCCESS": {
+				"title": "결제 성공",
+				"message": "잔액 결제가 완료되었습니다. 예약이 확인되었습니다."
+			},
+			"PENDING_BALANCE_PAYMENT": {
+				"title": "잔액 결제 대기",
+				"message": "예약의 나머지 잔액을 결제해주세요."
+			},
+			"BOOKING_SUCCESS_PENDING": {
+				"title": "예약 확인 대기",
+				"message": "예약이 완료 확인을 기다리고 있습니다."
+			},
+			"BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": {
+				"title": "완료 확인 대기",
+				"message": "투어 완료 확인을 기다려주세요."
+			},
+			"BOOKING_CANCELLED": {
+				"title": "예약 취소됨",
+				"message": "예약이 취소되었습니다."
+			}
 		}
 	}
 }

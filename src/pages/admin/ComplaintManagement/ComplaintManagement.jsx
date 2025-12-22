@@ -519,6 +519,24 @@ const ResolutionBadge = ({ resolutionType }) => {
 
 const ComplaintDetailModal = ({ complaint, onClose }) => {
   const { t, i18n } = useTranslation();
+
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    const originalMargin = document.body.style.margin;
+    const originalPadding = document.body.style.padding;
+    const originalOverflow = document.body.style.overflow;
+    
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.margin = originalMargin;
+      document.body.style.padding = originalPadding;
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
     try {
@@ -531,16 +549,17 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      style={{ margin: 0 }}
       onClick={onClose}
     >
       <div 
         className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
-        style={{ borderColor: '#F0F0F0' }}
+        style={{ borderColor: '#F0F0F0', marginTop: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b bg-white" style={{ borderColor: '#F0F0F0', backgroundColor: '#E6F3FF' }}>
+        <div className="px-6 py-5 border-b bg-white" style={{ borderColor: '#F0F0F0', backgroundColor: '#E6F3FF', marginTop: 0 }}>
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-gray-800">{t('admin.complaintManagement.modal.title')}</h2>

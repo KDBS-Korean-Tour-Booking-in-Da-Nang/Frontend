@@ -67,6 +67,25 @@ const ForumManagement = () => {
     }
   }, [searchQuery, statusFilter, sortBy, currentPage, allPosts, showReports]);
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    if (isModalOpen) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isModalOpen]);
+
   const fetchPosts = async () => {
     try {
       setLoading(true);
@@ -666,11 +685,11 @@ const ForumManagement = () => {
 
       {/* Modal */}
       {isModalOpen && selectedPost && !showReports && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div className="fixed top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto" style={{ margin: 0 }} aria-labelledby="modal-title" role="dialog" aria-modal="true">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+            <div className="fixed top-0 left-0 right-0 bottom-0 bg-gray-900 bg-opacity-50 transition-opacity" style={{ margin: 0 }} onClick={() => setIsModalOpen(false)}></div>
 
-            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full" style={{ marginTop: 0 }}>
               {/* Header */}
               <div className="bg-gradient-to-r from-[#4c9dff] to-[#3f85d6] px-6 py-4">
                 <div className="flex items-center justify-between">

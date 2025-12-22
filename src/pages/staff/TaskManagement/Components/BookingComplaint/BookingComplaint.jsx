@@ -603,6 +603,23 @@ const ResolutionBadge = ({ resolutionType }) => {
 };
 
 const ComplaintDetailModal = ({ complaint, onClose }) => {
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    const originalMargin = document.body.style.margin;
+    const originalPadding = document.body.style.padding;
+    const originalOverflow = document.body.style.overflow;
+    
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.margin = originalMargin;
+      document.body.style.padding = originalPadding;
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const formatDateTime = (value) => {
     if (!value) return 'N/A';
     try {
@@ -614,13 +631,13 @@ const ComplaintDetailModal = ({ complaint, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+      className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4"
+      style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
       onClick={onClose}
     >
       <div 
         className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
-        style={{ borderColor: '#F0F0F0' }}
+        style={{ borderColor: '#F0F0F0', marginTop: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -746,19 +763,36 @@ const ResolveComplaintModal = ({
     }
   ];
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    const originalMargin = document.body.style.margin;
+    const originalPadding = document.body.style.padding;
+    const originalOverflow = document.body.style.overflow;
+    
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.margin = originalMargin;
+      document.body.style.padding = originalPadding;
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+      className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4"
+      style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
       onClick={onClose}
     >
       <div 
         className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
-        style={{ borderColor: '#F0F0F0' }}
+        style={{ borderColor: '#F0F0F0', marginTop: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b flex items-center justify-between" style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0' }}>
+        <div className="px-6 py-5 border-b flex items-center justify-between" style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0', marginTop: 0 }}>
           <div>
             <h2 className="text-2xl font-semibold text-gray-800">Resolve Complaint</h2>
             <p className="text-sm mt-1" style={{ color: '#15803D' }}>Complaint ID: #{complaint.complaintId}</p>

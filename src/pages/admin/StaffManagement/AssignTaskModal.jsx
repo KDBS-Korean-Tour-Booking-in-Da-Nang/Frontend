@@ -43,6 +43,25 @@ const AssignTaskModal = ({ isOpen, onClose, staff, onConfirm }) => {
     }
   }, [staff]);
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    if (isOpen) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen || !staff) return null;
 
   const handleSubmit = async () => {
@@ -59,15 +78,17 @@ const AssignTaskModal = ({ isOpen, onClose, staff, onConfirm }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      style={{ margin: 0 }}
       onClick={onClose}
     >
       <div 
         className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+        style={{ marginTop: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-blue-50/30">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-blue-50/30" style={{ marginTop: 0 }}>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-[20px] bg-blue-100 flex items-center justify-center">
               <ClipboardDocumentListIcon className="w-5 h-5 text-blue-600" strokeWidth={1.5} />

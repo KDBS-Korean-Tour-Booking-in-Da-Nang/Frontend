@@ -108,6 +108,40 @@ const ArticleManagement = () => {
     }
   }, [user, canManageArticles, loadArticles]);
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    if (showArticleModal) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [showArticleModal]);
+
+  // Lấy localized article field dựa trên current language: fallback Vietnamese -> English -> Korean, kiểm tra lang startsWith để match (en, ko/kr)
+  const getLocalizedArticleField = (article, baseField) => {
+    if (!article) return '';
+    const lang = (i18n.language || 'vi').toLowerCase();
+
+    const vi = article[baseField];
+    const en = article[`${baseField}EN`] ?? article[`${baseField}En`];
+    const kr = article[`${baseField}KR`] ?? article[`${baseField}Ko`] ?? article[`${baseField}KO`];
+
+    if (lang.startsWith('en') && en) return en;
+    if ((lang.startsWith('ko') || lang.startsWith('kr')) && kr) return kr;
+
+    return vi || en || kr || '';
+  };
+
   // Xử lý article detail modal: gọi getArticleById, set selectedArticle và mở modal, handle error
   const handleViewArticle = async (articleId) => {
     try {
@@ -357,10 +391,13 @@ const ArticleManagement = () => {
 
             <div className="space-y-4">
               {currentArticles.map((article, index) => {
-                const rawThumbnail = article.articleThumbnail || extractFirstImageUrl(article.articleContent || '');
+                const localizedContent = getLocalizedArticleField(article, 'articleContent');
+                const localizedTitle = getLocalizedArticleField(article, 'articleTitle');
+                const localizedDescription = getLocalizedArticleField(article, 'articleDescription');
+                const rawThumbnail = article.articleThumbnail || extractFirstImageUrl(localizedContent || article.articleContent || '');
                 // Normalize thumbnail URL using getImageUrl helper to handle both relative and absolute URLs
                 const thumbnail = rawThumbnail ? getImageUrl(rawThumbnail) : null;
-                const summary = article.articleDescription || getArticleSummary(article.articleContent || '', 100);
+                const summary = localizedDescription || article.articleDescription || getArticleSummary(localizedContent || article.articleContent || '', 100);
                 const isSelected = selectedArticles.includes(article.articleId);
                 
                 return (
@@ -385,7 +422,7 @@ const ArticleManagement = () => {
                         <div className="flex-shrink-0 w-28 h-28 rounded-[26px] overflow-hidden bg-[#f5f1ea]">
                           <img
                             src={thumbnail}
-                            alt={article.articleTitle || 'Thumbnail'}
+                            alt={localizedTitle || article.articleTitle || 'Thumbnail'}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -395,7 +432,7 @@ const ArticleManagement = () => {
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                           <div>
                             <h4 className="text-base font-medium text-[#222] line-clamp-2">
-                              {article.articleTitle}
+                              {localizedTitle || article.articleTitle}
                             </h4>
                             <p className="mt-2 text-sm text-[#6b6f79] line-clamp-2">
                               {summary}
@@ -515,9 +552,9 @@ const ArticleManagement = () => {
       </div>
 
       {showArticleModal && selectedArticle && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/95 rounded-[32px] border border-[#efeae1] shadow-[0_35px_80px_rgba(69,73,87,0.25)] max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-[#f0ece3]">
+        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ margin: 0 }}>
+          <div className="bg-white/95 rounded-[32px] border border-[#efeae1] shadow-[0_35px_80px_rgba(69,73,87,0.25)] max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col" style={{ marginTop: 0 }}>
+            <div className="flex items-center justify-between p-6 border-b border-[#f0ece3]" style={{ marginTop: 0 }}>
               <h3 className="text-xl font-semibold text-[#1f2933]">{t('articleManagement.modal.title')}</h3>
               <button
                 onClick={() => setShowArticleModal(false)}
@@ -530,7 +567,7 @@ const ArticleManagement = () => {
             <div className="p-8 overflow-y-auto flex-1 space-y-6">
               <div>
                 <h2 className="text-3xl font-semibold text-[#21242c] mb-4 leading-tight">
-                  {selectedArticle.articleTitle}
+                  {getLocalizedArticleField(selectedArticle, 'articleTitle') || selectedArticle.articleTitle}
                 </h2>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[#8a8e98]">
                   <span>
@@ -551,9 +588,9 @@ const ArticleManagement = () => {
               </div>
 
               <div className="prose prose-lg max-w-none text-[#4a4f5a] leading-relaxed">
-                {selectedArticle.articleContent && (
+                {(getLocalizedArticleField(selectedArticle, 'articleContent') || selectedArticle.articleContent) && (
                   <div 
-                    dangerouslySetInnerHTML={{ __html: normalizeImageUrlsInHtml(htmlToJsx(selectedArticle.articleContent), getImageUrl) }}
+                    dangerouslySetInnerHTML={{ __html: normalizeImageUrlsInHtml(htmlToJsx(getLocalizedArticleField(selectedArticle, 'articleContent') || selectedArticle.articleContent || ''), getImageUrl) }}
                     className="article-content"
                   />
                 )}
