@@ -786,7 +786,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setShowTranslated(false);
       return;
     }
-    
+
     // Nếu đã có bản dịch nhưng đang ẩn, hiển thị lại
     if (translatedText && !showTranslated) {
       setShowTranslated(true);
@@ -822,7 +822,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       // Lấy response text trước (vì body chỉ đọc được một lần)
       const responseText = await response.text();
       let translatedContent = '';
-      
+
       try {
         // Thử parse JSON trước (Spring thường trả về JSON string)
         const jsonData = JSON.parse(responseText);
@@ -834,8 +834,8 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       // Loại bỏ quotes nếu có (Spring serialize String thành JSON string)
       translatedContent = String(translatedContent).trim();
-      if ((translatedContent.startsWith('"') && translatedContent.endsWith('"')) || 
-          (translatedContent.startsWith("'") && translatedContent.endsWith("'"))) {
+      if ((translatedContent.startsWith('"') && translatedContent.endsWith('"')) ||
+        (translatedContent.startsWith("'") && translatedContent.endsWith("'"))) {
         translatedContent = translatedContent.slice(1, -1).trim();
       }
 
@@ -849,7 +849,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setTranslatedText(translatedContent);
       setShowTranslated(true);
     } catch {
-      setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
+      setTranslateError(t('forum.post.translateError'));
     } finally {
       setIsTranslating(false);
     }
@@ -858,18 +858,18 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
   // Helper function to filter out tour URLs from content
   const filterTourUrlsFromContent = (content) => {
     if (!content) return '';
-    
+
     const escapedBase = FrontendURL.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     // Match format 1: /tour/123 or http://domain/tour/123 (có thể ở đầu hoặc giữa dòng)
     const regexOld = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/\\d+(?:[\\s\\?&#]|$)`, 'gi');
     // Match format 2: /tour/detail?id=123 or http://domain/tour/detail?id=123 (có thể ở đầu hoặc giữa dòng)
     const regexNew = new RegExp(`(?:https?://[^\\s/]+)?(?:${escapedBase})?/tour/detail[?&]id=\\d+(?:[\\s&#]|$)`, 'gi');
-    
+
     let filteredContent = String(content);
-    
+
     // Loại bỏ các tour URL khỏi content
     filteredContent = filteredContent.replace(regexOld, '').replace(regexNew, '');
-    
+
     // Loại bỏ các dòng chỉ chứa URL hoặc rỗng
     return filteredContent
       .split('\n')
@@ -892,7 +892,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setShowTranslated(false);
       return;
     }
-    
+
     // Nếu đã có bản dịch nhưng đang ẩn, hiển thị lại
     if (translatedText && !showTranslated) {
       setShowTranslated(true);
@@ -908,9 +908,9 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       // Filter out tour URLs from content before translating
       const contentToTranslate = filterTourUrlsFromContent(post.content);
-      
+
       if (!contentToTranslate || !contentToTranslate.trim()) {
-        setTranslateError('Không có nội dung để dịch.');
+        setTranslateError(t('forum.post.translateNoContent'));
         setIsTranslating(false);
         return;
       }
@@ -937,7 +937,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       // Lấy response text trước (vì body chỉ đọc được một lần)
       const responseText = await response.text();
       let translatedContent = '';
-      
+
       try {
         // Thử parse JSON trước (Spring thường trả về JSON string)
         const jsonData = JSON.parse(responseText);
@@ -949,13 +949,13 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
 
       // Clean up response - loại bỏ quotes nếu có và trim
       translatedContent = String(translatedContent).trim();
-      
+
       // Loại bỏ quotes ở đầu và cuối nếu response bị wrap trong quotes
-      if ((translatedContent.startsWith('"') && translatedContent.endsWith('"')) || 
-          (translatedContent.startsWith("'") && translatedContent.endsWith("'"))) {
+      if ((translatedContent.startsWith('"') && translatedContent.endsWith('"')) ||
+        (translatedContent.startsWith("'") && translatedContent.endsWith("'"))) {
         translatedContent = translatedContent.slice(1, -1).trim();
       }
-      
+
       // Loại bỏ các escape characters nếu có
       translatedContent = translatedContent.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n').replace(/\\t/g, '\t');
 
@@ -971,7 +971,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       setTranslatedText(translatedContent);
       setShowTranslated(true);
     } catch {
-      setTranslateError('Không thể dịch nội dung. Vui lòng thử lại sau.');
+      setTranslateError(t('forum.post.translateError'));
     } finally {
       setIsTranslating(false);
     }

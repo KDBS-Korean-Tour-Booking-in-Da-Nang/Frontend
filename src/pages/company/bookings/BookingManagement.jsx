@@ -6,10 +6,10 @@ import styles from './BookingManagement.module.css';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS, getImageUrl, createAuthHeaders } from '../../../config/api';
-import { getAllBookings, getBookingsByTourId, getBookingTotal, companyConfirmTourCompletion } from '../../../services/bookingAPI';
+import { getAllBookings, getBookingsByTourId, companyConfirmTourCompletion } from '../../../services/bookingAPI';
 import { checkAndHandle401 } from '../../../utils/apiErrorHandler';
 import { Tooltip } from '../../../components';
-import { 
+import {
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -40,7 +40,7 @@ const BookingManagement = () => {
   const showSuccessRef = useRef(showSuccess);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const [companyId, setCompanyId] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [allBookings, setAllBookings] = useState([]);
@@ -122,9 +122,9 @@ const BookingManagement = () => {
       setApprovingBookingId(bookingItem.bookingId);
       await companyConfirmTourCompletion(bookingItem.bookingId);
       showSuccessRef.current?.(t('companyBookingWizard.success.bookingPending'));
-      
+
       await refreshBookings();
-      
+
       if (user?.email) {
         try {
           const remembered = localStorage.getItem('rememberMe') === 'true';
@@ -203,28 +203,22 @@ const BookingManagement = () => {
     setSearchParams(newSearchParams, { replace: true });
   };
 
-  // Enrich bookings array với totalAmount từ booking total API: gọi getBookingTotal cho mỗi booking, thêm totalAmount vào booking object, fallback về 0 nếu fail
-  const enrichBookingsWithTotals = useCallback(async (bookings = []) => {
-    return Promise.all(
-      bookings.map(async (booking) => {
-        try {
-          const totalResp = await getBookingTotal(booking.bookingId);
-          return {
+  // Normalize bookings array: đảm bảo có id và bookingId, sử dụng dữ liệu đã có trong booking response (không gọi API total nữa)
+  const normalizeBookings = useCallback((bookings = []) => {
+    return bookings.map((booking) => ({
             ...booking,
-            id: booking.bookingId,
-            bookingId: booking.bookingId,
-            totalAmount: totalResp?.totalAmount || 0
-          };
-        } catch (err) {
-          return {
-            ...booking,
-            id: booking.bookingId,
-            bookingId: booking.bookingId,
-            totalAmount: 0
-          };
-        }
-      })
-    );
+      id: booking.bookingId || booking.id,
+      bookingId: booking.bookingId || booking.id,
+      totalAmount: booking.totalAmount ?? 0,
+      payedAmount: booking.payedAmount ?? 0,
+      depositAmount: booking.depositAmount ?? 0,
+      voucherId: booking.voucherId ?? null,
+      voucherCode: booking.voucherCode ?? null,
+      voucherDiscountApplied: booking.voucherDiscountApplied ?? null,
+      depositDiscountAmount: booking.depositDiscountAmount ?? null,
+      totalDiscountAmount: booking.totalDiscountAmount ?? null,
+      refundPercentage: booking.refundPercentage ?? 0
+    }));
   }, []);
 
   const fetchAllBookings = useCallback(async () => {
@@ -249,8 +243,8 @@ const BookingManagement = () => {
       }
 
       const bookings = await getAllBookings(companyId);
-      const bookingsWithTotals = await enrichBookingsWithTotals(bookings);
-      setAllBookings(bookingsWithTotals);
+      const normalizedBookings = normalizeBookings(bookings);
+      setAllBookings(normalizedBookings);
       setCurrentPage(1);
     } catch (e) {
       setAllBookings([]);
@@ -258,9 +252,9 @@ const BookingManagement = () => {
     } finally {
       setBookingsLoading(false);
     }
-  }, [companyId, enrichBookingsWithTotals]);
+  }, [companyId, normalizeBookings]);
 
-  // Fetch bookings cho tour ID cụ thể: gọi getBookingsByTourId, enrich với totals, set vào allBookings và reset currentPage về 1
+  // Fetch bookings cho tour ID cụ thể: gọi getBookingsByTourId, normalize bookings, set vào allBookings và reset currentPage về 1
   const fetchBookingsByTour = useCallback(async (tourId) => {
     if (!tourId) {
       return;
@@ -285,10 +279,10 @@ const BookingManagement = () => {
       const normalizedTourId = Number.isNaN(parsedId) ? tourId : parsedId;
 
       const bookings = await getBookingsByTourId(normalizedTourId);
-      
-      const bookingsWithTotals = await enrichBookingsWithTotals(bookings);
-      
-      setAllBookings(bookingsWithTotals);
+
+      const normalizedBookings = normalizeBookings(bookings);
+
+      setAllBookings(normalizedBookings);
       setCurrentPage(1);
     } catch (e) {
       setAllBookings([]);
@@ -296,20 +290,20 @@ const BookingManagement = () => {
     } finally {
       setBookingsLoading(false);
     }
-  }, [companyId, enrichBookingsWithTotals]);
+  }, [companyId, normalizeBookings]);
 
   // Đồng bộ selectedTourId với URL params và set tour pagination page: lấy tourId từ URL, kiểm tra tour có tồn tại trong tours list không, nếu có thì set selectedTourId và tính page chứa tour đó, nếu không thì clear URL param
   useEffect(() => {
     if (tours.length === 0 || toursLoading) return;
-    
+
     const tourIdFromUrl = searchParams.get('tourId');
-    
+
     if (tourIdFromUrl) {
       const tourExists = tours.some(t => t?.id?.toString() === tourIdFromUrl);
-        if (tourExists) {
-          if (selectedTourId !== tourIdFromUrl) {
-            setSelectedTourId(tourIdFromUrl);
-            const tourIndex = tours.findIndex(t => t?.id?.toString() === tourIdFromUrl);
+      if (tourExists) {
+        if (selectedTourId !== tourIdFromUrl) {
+          setSelectedTourId(tourIdFromUrl);
+          const tourIndex = tours.findIndex(t => t?.id?.toString() === tourIdFromUrl);
           if (tourIndex >= 0) {
             const page = Math.floor(tourIndex / toursPerPage) + 1;
             setCurrentTourPage(page);
@@ -370,14 +364,14 @@ const BookingManagement = () => {
       const res = await fetch(API_ENDPOINTS.TOURS_BY_COMPANY_ID(companyId), {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       // Handle 401 if token expired
       if (!res.ok && res.status === 401) {
         await checkAndHandle401(res);
         setTours([]);
         return;
       }
-      
+
       if (!res.ok) {
         setTours([]);
       } else {
@@ -395,9 +389,9 @@ const BookingManagement = () => {
   }, [companyId]);
 
   // Fetch company tours khi companyId có sẵn: gọi fetchCompanyTours nếu companyId có giá trị
-  useEffect(() => { 
+  useEffect(() => {
     if (companyId) {
-      fetchCompanyTours(); 
+      fetchCompanyTours();
     }
   }, [companyId, fetchCompanyTours]);
 
@@ -517,7 +511,7 @@ const BookingManagement = () => {
   // Get color code for booking status badge
   const getStatusColor = (status) => {
     const normalizedStatus = String(status || '').toUpperCase().replace(/ /g, '_');
-    
+
     const colorMap = {
       PENDING_PAYMENT: '#F97316',              // Orange
       PENDING_DEPOSIT_PAYMENT: '#EA580C',      // Orange darker (riêng biệt)
@@ -533,7 +527,7 @@ const BookingManagement = () => {
       BOOKING_SUCCESS: '#10B981',               // Green
       BOOKING_CANCELLED: '#9CA3AF'              // Gray
     };
-    
+
     return colorMap[normalizedStatus] || '#6B7280';
   };
 
@@ -635,7 +629,7 @@ const BookingManagement = () => {
         return trimmed.substring(urlStartIndex);
       }
     }
-    
+
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
     // Normalize relative paths: handle both "/uploads/..." and filename-only formats
     const normalized = trimmed.startsWith('/uploads')
@@ -653,6 +647,24 @@ const BookingManagement = () => {
     const statusUpper = status.toUpperCase();
     // Chỉ cho phép edit khi status là WAITING_FOR_APPROVED
     return statusUpper === 'WAITING_FOR_APPROVED';
+  };
+
+  // Lấy giá trị total amount để hiển thị: ưu tiên totalDiscountAmount nếu có, không thì dùng totalAmount
+  const getDisplayTotalAmount = (booking) => {
+    if (!booking) return 0;
+    if (booking.totalDiscountAmount !== undefined && booking.totalDiscountAmount !== null && booking.totalDiscountAmount > 0) {
+      return booking.totalDiscountAmount;
+    }
+    return booking.totalAmount || 0;
+  };
+
+  // Lấy giá trị deposit amount để hiển thị: ưu tiên depositDiscountAmount nếu có, không thì dùng depositAmount
+  const getDisplayDepositAmount = (booking) => {
+    if (!booking) return 0;
+    if (booking.depositDiscountAmount !== undefined && booking.depositDiscountAmount !== null && booking.depositDiscountAmount > 0) {
+      return booking.depositDiscountAmount;
+    }
+    return booking.depositAmount || 0;
   };
 
   // Calculate values for booking detail modal
@@ -786,9 +798,9 @@ const BookingManagement = () => {
               <XCircleIcon className={styles['modal-close-icon']} />
             </button>
             <div className={styles['modal-status-header']}>
-              <span 
+              <span
                 className={styles['modal-status-badge']}
-                style={{ 
+                style={{
                   color: getStatusColor(viewingBooking.bookingStatus),
                   backgroundColor: `${getStatusColor(viewingBooking.bookingStatus)}15`,
                   borderColor: `${getStatusColor(viewingBooking.bookingStatus)}30`
@@ -847,65 +859,109 @@ const BookingManagement = () => {
               {modalEndDate ? modalEndDate.toLocaleDateString('vi-VN') : '-'}
             </span>
           </div>
+
           {/* Payment Information Section */}
           <div className={styles['modal-section-divider']} style={{ marginTop: '1rem', marginBottom: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
             <div className={styles['modal-section-title']} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', fontWeight: 600, color: '#374151' }}>
               <CreditCard className={styles['modal-row-icon']} strokeWidth={2} />
-              <span>{t('bookingManagement.modal.paymentInfo', { defaultValue: 'Thông tin thanh toán' })}</span>
+              <span>{t('bookingManagement.modal.paymentInfo')}</span>
             </div>
           </div>
-          
+
+          {/* Hiển thị giá gốc nếu có discount */}
+          {viewingBooking.totalDiscountAmount !== undefined && viewingBooking.totalDiscountAmount !== null && viewingBooking.totalDiscountAmount > 0 && (
           <div className={styles['modal-row']}>
             <div className={styles['modal-row-label']}>
               <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
-              <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.originalAmount')}</span>
             </div>
-            <span className={styles['modal-value']} style={{ color: '#16a34a', fontWeight: 700 }}>
+              <span className={styles['modal-value']} style={{ color: '#6b7280', fontWeight: 500, textDecoration: 'line-through' }}>
               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.totalAmount || 0)}
-            </span>
-          </div>
-          
-          {viewingBooking.depositAmount !== undefined && viewingBooking.depositAmount !== null && (
-            <div className={styles['modal-row']}>
-              <div className={styles['modal-row-label']}>
-                <Wallet className={styles['modal-row-icon']} strokeWidth={2} />
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.depositAmount', { defaultValue: 'Tiền cọc' })}</span>
-              </div>
-              <span className={styles['modal-value']} style={{ color: '#f59e0b', fontWeight: 600 }}>
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.depositAmount || 0)}
               </span>
             </div>
           )}
-          
-          {viewingBooking.payedAmount !== undefined && viewingBooking.payedAmount !== null && (
+
+          {/* Voucher Code and Voucher Discount */}
+          {(viewingBooking.voucherCode || (viewingBooking.voucherDiscountApplied !== undefined && viewingBooking.voucherDiscountApplied !== null && viewingBooking.voucherDiscountApplied > 0)) && (
+            <>
+              {viewingBooking.voucherCode && (
             <div className={styles['modal-row']}>
               <div className={styles['modal-row-label']}>
-                <CreditCard className={styles['modal-row-icon']} strokeWidth={2} />
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.paidAmount', { defaultValue: 'Đã thanh toán' })}</span>
+                    <FileText className={styles['modal-row-icon']} strokeWidth={2} />
+                    <span className={styles['modal-label']}>{t('bookingManagement.modal.voucherCode')}</span>
               </div>
-              <span className={styles['modal-value']} style={{ color: '#10b981', fontWeight: 600 }}>
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.payedAmount || 0)}
+                  <span className={styles['modal-value']} style={{ color: '#7c3aed', fontWeight: 600 }}>
+                    {viewingBooking.voucherCode}
               </span>
             </div>
           )}
-          
-          {viewingBooking.totalAmount !== undefined && viewingBooking.payedAmount !== undefined && (
+
+              {viewingBooking.voucherDiscountApplied !== undefined && viewingBooking.voucherDiscountApplied !== null && viewingBooking.voucherDiscountApplied > 0 && (
             <div className={styles['modal-row']}>
               <div className={styles['modal-row-label']}>
                 <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
-                <span className={styles['modal-label']}>{t('bookingManagement.modal.remainingAmount', { defaultValue: 'Còn lại' })}</span>
+                    <span className={styles['modal-label']}>{t('bookingManagement.modal.voucherDiscount')}</span>
               </div>
-              <span className={styles['modal-value']} style={{ 
-                color: (viewingBooking.totalAmount - (viewingBooking.payedAmount || 0)) > 0 ? '#ef4444' : '#10b981', 
-                fontWeight: 700 
-              }}>
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
-                  Math.max(0, (viewingBooking.totalAmount || 0) - (viewingBooking.payedAmount || 0))
-                )}
+                  <span className={styles['modal-value']} style={{ color: '#dc2626', fontWeight: 600 }}>
+                    -{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.voucherDiscountApplied)}
               </span>
             </div>
           )}
-          
+            </>
+          )}
+
+                <div className={styles['modal-row']}>
+                  <div className={styles['modal-row-label']}>
+              <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
+              <span className={styles['modal-label']}>{t('bookingManagement.modal.totalAmount')}</span>
+                  </div>
+            <span className={styles['modal-value']} style={{ color: '#16a34a', fontWeight: 700 }}>
+              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getDisplayTotalAmount(viewingBooking))}
+                  </span>
+                </div>
+
+          {/* Deposit - hiển thị depositDiscountAmount nếu có, không thì depositAmount */}
+          {(viewingBooking.depositAmount !== undefined && viewingBooking.depositAmount !== null) || (viewingBooking.depositDiscountAmount !== undefined && viewingBooking.depositDiscountAmount !== null && viewingBooking.depositDiscountAmount > 0) ? (
+                <div className={styles['modal-row']}>
+                  <div className={styles['modal-row-label']}>
+                <Wallet className={styles['modal-row-icon']} strokeWidth={2} />
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.depositAmount')}</span>
+                  </div>
+              <span className={styles['modal-value']} style={{ color: '#f59e0b', fontWeight: 600 }}>
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getDisplayDepositAmount(viewingBooking))}
+                  </span>
+                </div>
+          ) : null}
+
+          {viewingBooking.payedAmount !== undefined && viewingBooking.payedAmount !== null && (
+                <div className={styles['modal-row']}>
+                  <div className={styles['modal-row-label']}>
+                <CreditCard className={styles['modal-row-icon']} strokeWidth={2} />
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.paidAmount')}</span>
+                  </div>
+              <span className={styles['modal-value']} style={{ color: '#10b981', fontWeight: 600 }}>
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(viewingBooking.payedAmount || 0)}
+                  </span>
+                </div>
+              )}
+
+          {viewingBooking.payedAmount !== undefined && (
+                <div className={styles['modal-row']}>
+                  <div className={styles['modal-row-label']}>
+                    <DollarSign className={styles['modal-row-icon']} strokeWidth={2} />
+                <span className={styles['modal-label']}>{t('bookingManagement.modal.remainingAmount')}</span>
+                  </div>
+              <span className={styles['modal-value']} style={{
+                color: (getDisplayTotalAmount(viewingBooking) - (viewingBooking.payedAmount || 0)) > 0 ? '#ef4444' : '#10b981',
+                fontWeight: 700
+              }}>
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
+                  Math.max(0, getDisplayTotalAmount(viewingBooking) - (viewingBooking.payedAmount || 0))
+                )}
+                  </span>
+                </div>
+          )}
+
           <div className={styles['modal-row']}>
             <div className={styles['modal-row-label']}>
               <Clock className={styles['modal-row-icon']} strokeWidth={2} />
@@ -923,314 +979,314 @@ const BookingManagement = () => {
   return (
     <>
       <div className={styles['booking-management']}>
-      {/* Header */}
-      <div className={styles['management-header']}>
-        <div className={styles['header-title']}>
-          <h1>{t('bookingManagement.header.title')}</h1>
+        {/* Header */}
+        <div className={styles['management-header']}>
+          <div className={styles['header-title']}>
+            <h1>{t('bookingManagement.header.title')}</h1>
+          </div>
+          <p className={styles['header-subtitle']}>{t('bookingManagement.header.subtitle')}</p>
         </div>
-        <p className={styles['header-subtitle']}>{t('bookingManagement.header.subtitle')}</p>
-      </div>
 
         {/* Tour Cards Selector */}
         <div className={styles['tour-selector-container']}>
-        <h2 className={styles['tour-selector-title']}>{t('bookingManagement.tourSelector.title')}</h2>
-        {toursLoading ? (
-          <div className={styles['empty-state']}>{t('bookingManagement.tourSelector.loading')}</div>
-        ) : tours.length === 0 ? (
-          <div className={styles['empty-state']}>{t('bookingManagement.tourSelector.empty')}</div>
-        ) : (
-          <>
-            {/* Tour Cards - Single Row */}
-            <div className={styles['tour-cards-container']}>
-              {paginatedTours.map((tour) => {
-                const normalizedTourId = tour?.id != null ? tour.id.toString() : '';
-                const isSelected = selectedTourId === normalizedTourId;
-                const bookingCount = tourBookingCounts.get(normalizedTourId) || 0;
+          <h2 className={styles['tour-selector-title']}>{t('bookingManagement.tourSelector.title')}</h2>
+          {toursLoading ? (
+            <div className={styles['empty-state']}>{t('bookingManagement.tourSelector.loading')}</div>
+          ) : tours.length === 0 ? (
+            <div className={styles['empty-state']}>{t('bookingManagement.tourSelector.empty')}</div>
+          ) : (
+            <>
+              {/* Tour Cards - Single Row */}
+              <div className={styles['tour-cards-container']}>
+                {paginatedTours.map((tour) => {
+                  const normalizedTourId = tour?.id != null ? tour.id.toString() : '';
+                  const isSelected = selectedTourId === normalizedTourId;
+                  const bookingCount = tourBookingCounts.get(normalizedTourId) || 0;
 
-                return (
-                  <button
-                    key={tour.id}
-                    className={`${styles['tour-card']} ${isSelected ? styles['selected'] : ''}`}
-                    onClick={() => handleTourSelect(tour.id)}
-                  >
-                    {/* Fixed image height for uniform cards */}
-                    <div style={{ height: 160, background: '#f3f4f6' }}>
-                      {tour.tourImgPath ? (
-                        <img
-                          src={getImageSrc(tour.tourImgPath)}
-                          alt={tour.tourName}
-                          className={styles['tour-card-image']}
-                          onError={(e) => { e.currentTarget.src = '/default-Tour.jpg'; }}
-                        />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>🏞️</div>
-                      )}
-                    </div>
-                    {/* Fixed content height so cards align */}
-                    <div className={styles['tour-card-content']}>
-                      <div className={styles['tour-card-name']} title={tour.tourName || ''}>{tour.tourName}</div>
-                      {/* Booking count - displayed below tour name */}
-                      <div className={styles['tour-card-booking-count']}>
-                        <Users className={styles['booking-count-icon']} strokeWidth={2} />
-                        <span className={styles['booking-count-text']}>
-                          {bookingCount} {t('bookingManagement.tourSelector.bookings', { defaultValue: 'booking' })}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Tour Pagination */}
-            {totalTourPages > 1 && (
-              <div className={styles['tour-pagination']}>
-                <div className={styles['tour-pagination-info']}>
-                  {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentTourPage}</strong> / <strong>{totalTourPages}</strong> {t('bookingManagement.tourSelector.pagination.of')}{' '}
-                  <strong>{tours.length}</strong> {t('bookingManagement.tourSelector.pagination.tours')}
-                </div>
-                <nav className={styles['tour-pagination-nav']} aria-label="Pagination">
-                  <button
-                    onClick={() => handleTourPageChange(currentTourPage - 1)}
-                    disabled={currentTourPage === 1}
-                    className={styles['tour-pagination-btn']}
-                  >
-                    <ChevronLeftIcon className={styles['pagination-icon']} />
-                  </button>
-                  {new Array(totalTourPages).fill(null).map((_, idx) => {
-                    const page = idx + 1;
-                    if (totalTourPages <= 7 || page === 1 || page === totalTourPages || (page >= currentTourPage - 1 && page <= currentTourPage + 1)) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => handleTourPageChange(page)}
-                          className={`${styles['tour-pagination-page']} ${currentTourPage === page ? styles['active'] : ''}`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    } else if (page === currentTourPage - 2 || page === currentTourPage + 2) {
-                      return <span key={page} className={styles['tour-pagination-ellipsis']}>...</span>;
-                    }
-                    return null;
-                  })}
-                  <button
-                    onClick={() => handleTourPageChange(currentTourPage + 1)}
-                    disabled={currentTourPage === totalTourPages}
-                    className={styles['tour-pagination-btn']}
-                  >
-                    <ChevronRightIcon className={styles['pagination-icon']} />
-                  </button>
-                </nav>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className={styles['filters-container']}>
-        <div className={styles['filters-wrapper']}>
-          {/* Search */}
-          <div className={styles['search-box']}>
-            <MagnifyingGlassIcon className={styles['search-icon']} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder={t('bookingManagement.search.placeholder')}
-              className={styles['search-input']}
-            />
-          </div>
-
-          {/* Filters */}
-          <div className={styles['filters-group']}>
-            {/* Status */}
-            <div className={styles['selectWrapper']}>
-              <div className={styles['select-container']}>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-                  className={styles['select-native']}
-                >
-                  <option value="all">{t('bookingManagement.filters.allStatuses')}</option>
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>{formatStatusDisplay(status)}</option>
-                  ))}
-                </select>
-              </div>
-              <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
-                <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
-              </svg>
-            </div>
-
-            {/* Sort */}
-            <div className={styles['selectWrapper']}>
-              <div className={styles['select-container']}>
-                <select
-                  value={sortBy}
-                  onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                  className={styles['select-native']}
-                >
-                  <option value="newest">{t('bookingManagement.filters.sortBy')} {t('bookingManagement.sort.newest')}</option>
-                  <option value="oldest">{t('bookingManagement.filters.sortBy')} {t('bookingManagement.sort.oldest')}</option>
-                  <option value="amount-desc">{t('bookingManagement.sort.amountDesc')}</option>
-                  <option value="amount-asc">{t('bookingManagement.sort.amountAsc')}</option>
-                </select>
-              </div>
-              <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
-                <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className={styles['table-container']}>
-        <div className={styles['table-wrapper']}>
-          <table className={styles['bookings-table']}>
-            <thead>
-              <tr>
-                <th style={{ width: '48px' }}>
-                  <input type="checkbox" style={{ borderRadius: '4px' }} />
-                </th>
-                <th>{t('bookingManagement.table.bookingId')}</th>
-                <th>{t('bookingManagement.table.tour')}</th>
-                <th>{t('bookingManagement.table.customer')}</th>
-                <th>{t('bookingManagement.table.departureDate')}</th>
-                <th>{t('bookingManagement.table.amount')}</th>
-                <th>{t('bookingManagement.table.status')}</th>
-                <th>{t('bookingManagement.table.createdAt')}</th>
-                <th>{t('common.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className={styles['empty-cell']}>{t('bookingManagement.empty.noBookings')}</td>
-                </tr>
-              ) : (
-                bookings.map((b) => {
-                  const isPendingBooking = isPendingStatus(b.bookingStatus);
-                  const isUnderComplaint = b.bookingStatus === 'BOOKING_UNDER_COMPLAINT';
-                  const isCancelled = (b.bookingStatus || '').toUpperCase() === 'BOOKING_CANCELLED';
-                  const canEdit = canEditBooking(b.bookingStatus);
-                  const isCompanyConfirmed = b.companyConfirmedCompletion === true;
-                  const canShowApproveButton = !isUnderComplaint && canApproveFromList(b.bookingStatus);
-                  const isApproving = approvingBookingId === b.bookingId;
                   return (
-                  <tr key={b.id}>
-                    <td>
-                      <input type="checkbox" style={{ borderRadius: '4px' }} />
-                    </td>
-                    <td className={styles['booking-id']}>{b.bookingId}</td>
-                    <td>{b.tourName}</td>
-                    <td>{b.contactName}</td>
-                    <td>{b.departureDate}</td>
-                    <td className={styles['amount-cell']}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(b.totalAmount || 0)}</td>
-                    <td>
-                      <span className={styles['status-badge']} style={{ backgroundColor: `${getStatusColor(b.bookingStatus)}15`, color: getStatusColor(b.bookingStatus) }}>
-                        {formatStatusDisplay(b.bookingStatus)}
-                      </span>
-                    </td>
-                    <td>{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
-                    <td>
-                      <div className={styles['action-group']}>
-                        <Tooltip text={t('bookingManagement.actions.viewQuick')} position="top">
-                          <button
-                            type="button"
-                            onClick={() => handleViewBooking(b)}
-                            className={styles['action-btn']}
-                          >
-                            <EyeIcon className={styles['action-icon']} />
-                          </button>
-                        </Tooltip>
-                        {!isUnderComplaint && !isCancelled && (
-                          <Tooltip 
-                            text={t('bookingManagement.actions.editBooking')} 
-                            position="top"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleEditBooking(b)}
-                              className={`${styles['action-btn']} ${(!canEdit || isPendingBooking) ? styles['action-btn-disabled'] : ''}`}
-                              disabled={!canEdit || isPendingBooking}
-                            >
-                              <PencilSquareIcon className={styles['action-icon']} />
-                            </button>
-                          </Tooltip>
-                        )}
-                        {canShowApproveButton && (
-                          <Tooltip 
-                            text={t('bookingManagement.actions.confirmTourCompletion')} 
-                            position="top"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleApproveBooking(b)}
-                              className={`${styles['action-btn']} ${(isApproving || isCompanyConfirmed) ? styles['action-btn-disabled'] : ''}`}
-                              disabled={isApproving || isCompanyConfirmed}
-                            >
-                              <CheckCircleIcon className={styles['action-icon']} />
-                            </button>
-                          </Tooltip>
+                    <button
+                      key={tour.id}
+                      className={`${styles['tour-card']} ${isSelected ? styles['selected'] : ''}`}
+                      onClick={() => handleTourSelect(tour.id)}
+                    >
+                      {/* Fixed image height for uniform cards */}
+                      <div style={{ height: 160, background: '#f3f4f6' }}>
+                        {tour.tourImgPath ? (
+                          <img
+                            src={getImageSrc(tour.tourImgPath)}
+                            alt={tour.tourName}
+                            className={styles['tour-card-image']}
+                            onError={(e) => { e.currentTarget.src = '/default-Tour.jpg'; }}
+                          />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>🏞️</div>
                         )}
                       </div>
-                    </td>
-                  </tr>
-                );
-              })
+                      {/* Fixed content height so cards align */}
+                      <div className={styles['tour-card-content']}>
+                        <div className={styles['tour-card-name']} title={tour.tourName || ''}>{tour.tourName}</div>
+                        {/* Booking count - displayed below tour name */}
+                        <div className={styles['tour-card-booking-count']}>
+                          <Users className={styles['booking-count-icon']} strokeWidth={2} />
+                          <span className={styles['booking-count-text']}>
+                            {bookingCount} {t('bookingManagement.tourSelector.bookings', { defaultValue: 'booking' })}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Tour Pagination */}
+              {totalTourPages > 1 && (
+                <div className={styles['tour-pagination']}>
+                  <div className={styles['tour-pagination-info']}>
+                    {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentTourPage}</strong> / <strong>{totalTourPages}</strong> {t('bookingManagement.tourSelector.pagination.of')}{' '}
+                    <strong>{tours.length}</strong> {t('bookingManagement.tourSelector.pagination.tours')}
+                  </div>
+                  <nav className={styles['tour-pagination-nav']} aria-label="Pagination">
+                    <button
+                      onClick={() => handleTourPageChange(currentTourPage - 1)}
+                      disabled={currentTourPage === 1}
+                      className={styles['tour-pagination-btn']}
+                    >
+                      <ChevronLeftIcon className={styles['pagination-icon']} />
+                    </button>
+                    {new Array(totalTourPages).fill(null).map((_, idx) => {
+                      const page = idx + 1;
+                      if (totalTourPages <= 7 || page === 1 || page === totalTourPages || (page >= currentTourPage - 1 && page <= currentTourPage + 1)) {
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => handleTourPageChange(page)}
+                            className={`${styles['tour-pagination-page']} ${currentTourPage === page ? styles['active'] : ''}`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      } else if (page === currentTourPage - 2 || page === currentTourPage + 2) {
+                        return <span key={page} className={styles['tour-pagination-ellipsis']}>...</span>;
+                      }
+                      return null;
+                    })}
+                    <button
+                      onClick={() => handleTourPageChange(currentTourPage + 1)}
+                      disabled={currentTourPage === totalTourPages}
+                      className={styles['tour-pagination-btn']}
+                    >
+                      <ChevronRightIcon className={styles['pagination-icon']} />
+                    </button>
+                  </nav>
+                </div>
               )}
-            </tbody>
-          </table>
+            </>
+          )}
         </div>
 
-        {/* Pagination */}
-        <div className={styles['pagination']}>
-          <div className={styles['pagination-info']}>
-            {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> {t('bookingManagement.tourSelector.pagination.of')}{' '}
-            <strong>{totalItems}</strong> {t('bookingManagement.loading', { defaultValue: 'booking' })}
-          </div>
-          <nav className={styles['pagination-nav']} aria-label="Pagination">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={styles['pagination-btn']}
-            >
-              <ChevronLeftIcon className={styles['pagination-icon']} />
-            </button>
-            {new Array(totalPages).fill(null).map((_, idx) => {
-              const page = idx + 1;
-              if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                return (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`${styles['pagination-page']} ${currentPage === page ? styles['active'] : ''}`}
+        {/* Filters */}
+        <div className={styles['filters-container']}>
+          <div className={styles['filters-wrapper']}>
+            {/* Search */}
+            <div className={styles['search-box']}>
+              <MagnifyingGlassIcon className={styles['search-icon']} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder={t('bookingManagement.search.placeholder')}
+                className={styles['search-input']}
+              />
+            </div>
+
+            {/* Filters */}
+            <div className={styles['filters-group']}>
+              {/* Status */}
+              <div className={styles['selectWrapper']}>
+                <div className={styles['select-container']}>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                    className={styles['select-native']}
                   >
-                    {page}
-                  </button>
-                );
-              } else if (page === currentPage - 2 || page === currentPage + 2) {
-                return <span key={page} className={styles['pagination-ellipsis']}>...</span>;
-              }
-              return null;
-            })}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={styles['pagination-btn']}
-            >
-              <ChevronRightIcon className={styles['pagination-icon']} />
-            </button>
-          </nav>
+                    <option value="all">{t('bookingManagement.filters.allStatuses')}</option>
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>{formatStatusDisplay(status)}</option>
+                    ))}
+                  </select>
+                </div>
+                <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
+                </svg>
+              </div>
+
+              {/* Sort */}
+              <div className={styles['selectWrapper']}>
+                <div className={styles['select-container']}>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                    className={styles['select-native']}
+                  >
+                    <option value="newest">{t('bookingManagement.filters.sortBy')} {t('bookingManagement.sort.newest')}</option>
+                    <option value="oldest">{t('bookingManagement.filters.sortBy')} {t('bookingManagement.sort.oldest')}</option>
+                    <option value="amount-desc">{t('bookingManagement.sort.amountDesc')}</option>
+                    <option value="amount-asc">{t('bookingManagement.sort.amountAsc')}</option>
+                  </select>
+                </div>
+                <svg className={styles['select-arrow']} viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M5.25 7.5L10 12.25 14.75 7.5H5.25z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className={styles['table-container']}>
+          <div className={styles['table-wrapper']}>
+            <table className={styles['bookings-table']}>
+              <thead>
+                <tr>
+                  <th style={{ width: '48px' }}>
+                    <input type="checkbox" style={{ borderRadius: '4px' }} />
+                  </th>
+                  <th>{t('bookingManagement.table.bookingId')}</th>
+                  <th>{t('bookingManagement.table.tour')}</th>
+                  <th>{t('bookingManagement.table.customer')}</th>
+                  <th>{t('bookingManagement.table.departureDate')}</th>
+                  <th>{t('bookingManagement.table.amount')}</th>
+                  <th>{t('bookingManagement.table.status')}</th>
+                  <th>{t('bookingManagement.table.createdAt')}</th>
+                  <th>{t('common.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className={styles['empty-cell']}>{t('bookingManagement.empty.noBookings')}</td>
+                  </tr>
+                ) : (
+                  bookings.map((b) => {
+                    const isPendingBooking = isPendingStatus(b.bookingStatus);
+                    const isUnderComplaint = b.bookingStatus === 'BOOKING_UNDER_COMPLAINT';
+                    const isCancelled = (b.bookingStatus || '').toUpperCase() === 'BOOKING_CANCELLED';
+                    const canEdit = canEditBooking(b.bookingStatus);
+                    const isCompanyConfirmed = b.companyConfirmedCompletion === true;
+                    const canShowApproveButton = !isUnderComplaint && canApproveFromList(b.bookingStatus);
+                    const isApproving = approvingBookingId === b.bookingId;
+                    return (
+                      <tr key={b.id}>
+                        <td>
+                          <input type="checkbox" style={{ borderRadius: '4px' }} />
+                        </td>
+                        <td className={styles['booking-id']}>{b.bookingId}</td>
+                        <td>{b.tourName}</td>
+                        <td>{b.contactName}</td>
+                        <td>{b.departureDate}</td>
+                        <td className={styles['amount-cell']}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(getDisplayTotalAmount(b))}</td>
+                        <td>
+                          <span className={styles['status-badge']} style={{ backgroundColor: `${getStatusColor(b.bookingStatus)}15`, color: getStatusColor(b.bookingStatus) }}>
+                            {formatStatusDisplay(b.bookingStatus)}
+                          </span>
+                        </td>
+                        <td>{b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '-'}</td>
+                        <td>
+                          <div className={styles['action-group']}>
+                            <Tooltip text={t('bookingManagement.actions.viewQuick')} position="top">
+                              <button
+                                type="button"
+                                onClick={() => handleViewBooking(b)}
+                                className={styles['action-btn']}
+                              >
+                                <EyeIcon className={styles['action-icon']} />
+                              </button>
+                            </Tooltip>
+                            {!isUnderComplaint && !isCancelled && (
+                              <Tooltip
+                                text={t('bookingManagement.actions.editBooking')}
+                                position="top"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditBooking(b)}
+                                  className={`${styles['action-btn']} ${(!canEdit || isPendingBooking) ? styles['action-btn-disabled'] : ''}`}
+                                  disabled={!canEdit || isPendingBooking}
+                                >
+                                  <PencilSquareIcon className={styles['action-icon']} />
+                                </button>
+                              </Tooltip>
+                            )}
+                            {canShowApproveButton && (
+                              <Tooltip
+                                text={t('bookingManagement.actions.confirmTourCompletion')}
+                                position="top"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveBooking(b)}
+                                  className={`${styles['action-btn']} ${(isApproving || isCompanyConfirmed) ? styles['action-btn-disabled'] : ''}`}
+                                  disabled={isApproving || isCompanyConfirmed}
+                                >
+                                  <CheckCircleIcon className={styles['action-icon']} />
+                                </button>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className={styles['pagination']}>
+            <div className={styles['pagination-info']}>
+              {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> {t('bookingManagement.tourSelector.pagination.of')}{' '}
+              <strong>{totalItems}</strong> {t('bookingManagement.loading', { defaultValue: 'booking' })}
+            </div>
+            <nav className={styles['pagination-nav']} aria-label="Pagination">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={styles['pagination-btn']}
+              >
+                <ChevronLeftIcon className={styles['pagination-icon']} />
+              </button>
+              {new Array(totalPages).fill(null).map((_, idx) => {
+                const page = idx + 1;
+                if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`${styles['pagination-page']} ${currentPage === page ? styles['active'] : ''}`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return <span key={page} className={styles['pagination-ellipsis']}>...</span>;
+                }
+                return null;
+              })}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={styles['pagination-btn']}
+              >
+                <ChevronRightIcon className={styles['pagination-icon']} />
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
-    </div>
       {/* Booking Detail Modal - Rendered outside booking management container */}
       {modalContainerRef.current && modalNode ? createPortal(modalNode, modalContainerRef.current) : modalNode}
     </>

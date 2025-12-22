@@ -2380,7 +2380,9 @@
       "unlikeSuccess": "Đã bỏ thích bài viết",
       "translate": "Dịch nội dung",
       "translating": "Đang dịch...",
-      "hideTranslation": "Ẩn bản dịch"
+      "hideTranslation": "Ẩn bản dịch",
+      "translateError": "Không thể dịch nội dung. Vui lòng thử lại sau.",
+      "translateNoContent": "Không có nội dung để dịch."
     },
     "comments": {
       "placeholder": "Viết bình luận...",
@@ -4632,15 +4634,32 @@
       "title": "Booking #",
       "tour": "Tour:",
       "customer": "Khách hàng",
+      "phone": "Số điện thoại",
+      "email": "Email",
       "status": "Trạng thái",
       "departureDate": "Ngày khởi hành",
       "tourDuration": "Thời lượng tour",
       "expectedEndDate": "Ngày kết thúc dự kiến",
+      "paymentInfo": "Thông tin thanh toán",
       "totalAmount": "Tổng tiền",
+      "originalAmount": "Giá gốc",
+      "depositAmount": "Tiền cọc",
+      "paidAmount": "Đã thanh toán",
+      "remainingAmount": "Còn lại",
+      "voucherCode": "Mã voucher",
+      "voucherDiscount": "Giảm giá voucher",
+      "depositDiscount": "Giảm giá cọc",
+      "totalDiscount": "Tổng giảm giá",
       "createdAt": "Ngày tạo",
       "unknown": "Không rõ",
       "day": "ngày",
-      "days": "ngày"
+      "days": "ngày",
+      "tourNotStarted": "Tour chưa bắt đầu",
+      "tourEnded": "Tour đã kết thúc",
+      "timeUntilEnd": "Còn lại",
+      "hours": "giờ",
+      "minutes": "phút",
+      "seconds": "giây"
     }
   },
   "companyBookingWizard": {
@@ -5346,6 +5365,96 @@
       "zenThree": "Mẫu itinerary bo góc 32px",
       "flowTitle": "Flow",
       "flowCopy": "15 phút lắng nghe, 20 phút phối hợp vibe, 5 phút chốt hành trình."
+    }
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "empty": "Không có thông báo",
+    "loading": "Đang tải...",
+    "error": "Có lỗi xảy ra",
+    "retry": "Thử lại",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "markRead": "Đánh dấu đã đọc",
+    "markUnread": "Đánh dấu chưa đọc",
+    "delete": "Xoá",
+    "more": "Thêm",
+    "close": "Đóng",
+    "viewAll": "Xem tất cả thông báo",
+    "collapse": "Thu gọn",
+    "noTitle": "Không có tiêu đề",
+    "justNow": "Vừa xong",
+    "minutesAgo": "{{count}} phút trước",
+    "hoursAgo": "{{count}} giờ trước",
+    "daysAgo": "{{count}} ngày trước",
+    "types": {
+      "LIKE_POST": {
+        "title": "Bài viết được thíck",
+        "message": "Ai đó đã thích bài viết của bạn."
+      },
+      "LIKE_COMMENT": {
+        "title": "Bình luận được thích",
+        "message": "Ai đó đã thích bình luận của bạn."
+      },
+      "COMMENT_POST": {
+        "title": "Bình luận mới",
+        "message": "Ai đó đã bình luận bài viết của bạn."
+      },
+      "REPLY_COMMENT": {
+        "title": "Trả lời bình luận",
+        "message": "Ai đó đã trả lời bình luận của bạn."
+      },
+      "NEW_BOOKING": {
+        "title": "Đặt tour mới",
+        "message": "Có đơn đặt tour mới cần xử lý."
+      },
+      "BOOKING_CONFIRMED": {
+        "title": "Đặt tour được xác nhận",
+        "message": "Đặt tour của bạn đã được xác nhận."
+      },
+      "BOOKING_UPDATE_REQUEST": {
+        "title": "Yêu cầu cập nhật đặt tour",
+        "message": "Có yêu cầu cập nhật đặt tour."
+      },
+      "TOUR_APPROVED": {
+        "title": "Tour được duyệt",
+        "message": "Tour của bạn đã được phê duyệt."
+      },
+      "NEW_RATING": {
+        "title": "Đánh giá mới",
+        "message": "Có đánh giá mới cho tour của bạn."
+      },
+      "BOOKING_REJECTED": {
+        "title": "Đặt tour bị từ chối",
+        "message": "Đặt tour của bạn đã bị từ chối."
+      },
+      "BOOKING_UPDATED_BY_USER": {
+        "title": "Đặt tour được cập nhật",
+        "message": "Khách hàng đã cập nhật thông tin đặt tour."
+      },
+      "BOOKING_SUCCESS": {
+        "title": "Booking thành công",
+        "message": "Booking của bạn đã hoàn thành thành công."
+      },
+      "BOOKING_BALANCE_SUCCESS": {
+        "title": "Thanh toán thành công",
+        "message": "Thanh toán số dư đã hoàn tất. Booking của bạn đã được xác nhận."
+      },
+      "PENDING_BALANCE_PAYMENT": {
+        "title": "Chờ thanh toán số dư",
+        "message": "Vui lòng thanh toán số dư còn lại cho booking."
+      },
+      "BOOKING_SUCCESS_PENDING": {
+        "title": "Booking đang chờ xác nhận",
+        "message": "Booking của bạn đang chờ xác nhận hoàn thành."
+      },
+      "BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": {
+        "title": "Chờ xác nhận hoàn thành",
+        "message": "Vui lòng chờ xác nhận hoàn thành tour."
+      },
+      "BOOKING_CANCELLED": {
+        "title": "Booking đã bị hủy",
+        "message": "Booking của bạn đã bị hủy."
+      }
     }
   }
 }

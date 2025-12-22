@@ -121,6 +121,29 @@ const TourManagement = () => {
     fetchPendingRequestsCounts();
   }, [getToken]);
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    const isAnyModalOpen = isApproveUpdateModalOpen || isRejectUpdateModalOpen || 
+                          isApproveDeleteModalOpen || isRejectDeleteModalOpen || 
+                          isApproveModalOpen || isRejectModalOpen;
+    
+    if (isAnyModalOpen) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isApproveUpdateModalOpen, isRejectUpdateModalOpen, isApproveDeleteModalOpen, isRejectDeleteModalOpen, isApproveModalOpen, isRejectModalOpen]);
+
   // Filter and sort tours
   const filteredAndSortedTours = useMemo(() => {
     let filtered = [...tours];
@@ -1741,8 +1764,9 @@ const TourManagement = () => {
       {/* Approve Update Request Modal - Minimal Soft Korean Style */}
       {isApproveUpdateModalOpen && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-50 p-4"
           style={{
+            margin: 0,
             background: 'rgba(0, 0, 0, 0.2)',
             backdropFilter: 'blur(10px)',
             WebkitBackdropFilter: 'blur(10px)'
@@ -1751,6 +1775,7 @@ const TourManagement = () => {
           <div
             className="w-full max-w-md overflow-hidden border"
             style={{
+              marginTop: 0,
               backgroundColor: '#FFFFFF',
               borderRadius: '32px',
               boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)',
@@ -1830,8 +1855,8 @@ const TourManagement = () => {
       {/* Reject Update Request Modal - Minimal Soft Korean Style */}
       {isRejectUpdateModalOpen && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-50 p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"
@@ -1881,8 +1906,8 @@ const TourManagement = () => {
       {/* Approve Delete Request Modal - Minimal Soft Korean Style */}
       {isApproveDeleteModalOpen && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-50 p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"
@@ -1932,8 +1957,8 @@ const TourManagement = () => {
       {/* Reject Delete Request Modal - Minimal Soft Korean Style */}
       {isRejectDeleteModalOpen && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-50 p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"

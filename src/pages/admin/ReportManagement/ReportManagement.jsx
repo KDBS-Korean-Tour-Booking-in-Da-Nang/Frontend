@@ -96,6 +96,25 @@ const ReportManagement = () => {
     alert('Report download started!');
   };
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    if (isModalOpen) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isModalOpen]);
+
   // Mock report generation: hiển thị alert thông báo generation started
   const handleGenerateReport = (reportId) => {
     alert('Report generation started! You will be notified when it\'s ready.');
@@ -337,11 +356,11 @@ const ReportManagement = () => {
 
       {/* Report Details Modal */}
       {isModalOpen && selectedReport && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto" style={{ margin: 0 }}>
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+            <div className="fixed top-0 left-0 right-0 bottom-0 bg-gray-500 bg-opacity-75 transition-opacity" style={{ margin: 0 }} onClick={() => setIsModalOpen(false)}></div>
             
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full" style={{ marginTop: 0 }}>
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">

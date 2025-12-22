@@ -133,6 +133,25 @@ const CompanyManagement = () => {
   };
 
   // Fetch companies khi component mount: skip 401 check chỉ trên initial mount để tránh premature logout, sau initial mount luôn check 401 (bao gồm khi gọi từ user actions)
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    if (modalOpen) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [modalOpen]);
+
   useEffect(() => {
     if (canManageCompanies) {
       const skip401Check = isInitialMountRef.current;
@@ -827,10 +846,10 @@ const CompanyManagement = () => {
 
       {/* Modal for viewing company files */}
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
-          <div className="bg-white rounded-[32px] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border" style={{ borderColor: '#F0F0F0' }}>
+        <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center z-50 p-4" style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+          <div className="bg-white rounded-[32px] shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border" style={{ borderColor: '#F0F0F0', marginTop: 0 }}>
             {/* Header */}
-            <div className="sticky top-0 px-8 py-3 flex items-center justify-between z-10 border-b" style={{ backgroundColor: '#E6F3FF', borderColor: '#CCE6FF' }}>
+            <div className="sticky top-0 px-8 py-3 flex items-center justify-between z-10 border-b" style={{ backgroundColor: '#E6F3FF', borderColor: '#CCE6FF', marginTop: 0 }}>
               <div>
                 <h2 className="text-2xl font-semibold text-gray-800">{t('staff.companyManagement.modal.title')}</h2>
                 <p className="text-sm mt-1 font-medium" style={{ color: '#66B3FF' }}>{selectedCompany?.name}</p>

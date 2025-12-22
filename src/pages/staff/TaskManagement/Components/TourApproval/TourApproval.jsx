@@ -151,6 +151,29 @@ const TourApproval = () => {
     fetchPendingRequestsCounts();
   }, [canManageTours, getToken]);
 
+  // Reset body margin và ngăn scroll khi modal mở
+  useEffect(() => {
+    const isAnyModalOpen = isApproveUpdateModalOpen || isRejectUpdateModalOpen || 
+                          isApproveDeleteModalOpen || isRejectDeleteModalOpen || 
+                          isApproveModalOpen || isRejectModalOpen;
+    
+    if (isAnyModalOpen) {
+      const originalMargin = document.body.style.margin;
+      const originalPadding = document.body.style.padding;
+      const originalOverflow = document.body.style.overflow;
+      
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.body.style.margin = originalMargin;
+        document.body.style.padding = originalPadding;
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isApproveUpdateModalOpen, isRejectUpdateModalOpen, isApproveDeleteModalOpen, isRejectDeleteModalOpen, isApproveModalOpen, isRejectModalOpen]);
+
   // Fetch Update Requests: gọi TOUR_UPDATE_REQUESTS_PENDING endpoint, set updateRequests state, handle 401, set loadingUpdateRequests state
   const fetchUpdateRequests = useCallback(async () => {
     try {
@@ -1849,12 +1872,12 @@ const TourApproval = () => {
       {/* Update Request Approve Modal - Minimal Soft Korean Style */}
       {isApproveUpdateModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"
-            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
+            style={{ marginTop: 0, backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
               <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0' }}>
@@ -1902,12 +1925,12 @@ const TourApproval = () => {
       {/* Update Request Reject Modal - Minimal Soft Korean Style */}
       {isRejectUpdateModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"
-            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
+            style={{ marginTop: 0, backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
               <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#FFE6F0', border: '1px solid #FFB3B3' }}>
@@ -1953,12 +1976,12 @@ const TourApproval = () => {
       {/* Delete Request Approve Modal - Minimal Soft Korean Style */}
       {isApproveDeleteModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"
-            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
+            style={{ marginTop: 0, backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
               <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0' }}>
@@ -2004,12 +2027,12 @@ const TourApproval = () => {
       {/* Delete Request Reject Modal - Minimal Soft Korean Style */}
       {isRejectDeleteModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4"
+          style={{ margin: 0, background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
         >
           <div
             className="w-full max-w-md overflow-hidden border"
-            style={{ backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
+            style={{ marginTop: 0, backgroundColor: '#FFFFFF', borderRadius: '32px', boxShadow: '0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.04)', borderColor: '#F0F0F0' }}
           >
             <div style={{ padding: '32px 28px 28px' }}>
               <div className="mx-auto mb-5 flex items-center justify-center" style={{ width: '72px', height: '72px', borderRadius: '24px', backgroundColor: '#FFE6F0', border: '1px solid #FFB3B3' }}>

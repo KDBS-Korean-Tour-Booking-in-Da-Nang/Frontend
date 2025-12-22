@@ -2377,7 +2377,9 @@
 			"unlikeSuccess": "Post unliked",
 			"translate": "Translate content",
 			"translating": "Translating...",
-			"hideTranslation": "Hide translation"
+			"hideTranslation": "Hide translation",
+			"translateError": "Unable to translate content. Please try again later.",
+			"translateNoContent": "No content to translate."
 		},
 		"comments": {
 			"placeholder": "Write a comment...",
@@ -4623,15 +4625,32 @@
 			"title": "Booking #",
 			"tour": "Tour:",
 			"customer": "Customer",
+			"phone": "Phone",
+			"email": "Email",
 			"status": "Status",
 			"departureDate": "Departure Date",
 			"tourDuration": "Tour Duration",
 			"expectedEndDate": "Expected End Date",
+			"paymentInfo": "Payment Information",
 			"totalAmount": "Total Amount",
+			"originalAmount": "Original Amount",
+			"depositAmount": "Deposit",
+			"paidAmount": "Paid Amount",
+			"remainingAmount": "Remaining",
+			"voucherCode": "Voucher Code",
+			"voucherDiscount": "Voucher Discount",
+			"depositDiscount": "Deposit Discount",
+			"totalDiscount": "Total Discount",
 			"createdAt": "Created At",
 			"unknown": "Unknown",
 			"day": "day",
-			"days": "days"
+			"days": "days",
+			"tourNotStarted": "Tour not started",
+			"tourEnded": "Tour ended",
+			"timeUntilEnd": "Remaining",
+			"hours": "hours",
+			"minutes": "minutes",
+			"seconds": "seconds"
 		}
 	},
 	"companyBookingWizard": {
@@ -5414,6 +5433,96 @@
 			"success": "Success",
 			"failed": "Failed",
 			"cancelled": "Cancelled"
+		}
+	},
+	"notifications": {
+		"title": "Notifications",
+		"empty": "No notifications",
+		"loading": "Loading...",
+		"error": "An error occurred",
+		"retry": "Retry",
+		"markAllRead": "Mark all as read",
+		"markRead": "Mark as read",
+		"markUnread": "Mark as unread",
+		"delete": "Delete",
+		"more": "More",
+		"close": "Close",
+		"viewAll": "View all notifications",
+		"collapse": "Collapse",
+		"noTitle": "No title",
+		"justNow": "Just now",
+		"minutesAgo": "{{count}} minutes ago",
+		"hoursAgo": "{{count}} hours ago",
+		"daysAgo": "{{count}} days ago",
+		"types": {
+			"LIKE_POST": {
+				"title": "Post liked",
+				"message": "Someone liked your post."
+			},
+			"LIKE_COMMENT": {
+				"title": "Comment liked",
+				"message": "Someone liked your comment."
+			},
+			"COMMENT_POST": {
+				"title": "New comment",
+				"message": "Someone commented on your post."
+			},
+			"REPLY_COMMENT": {
+				"title": "Comment reply",
+				"message": "Someone replied to your comment."
+			},
+			"NEW_BOOKING": {
+				"title": "New booking",
+				"message": "A new booking needs to be processed."
+			},
+			"BOOKING_CONFIRMED": {
+				"title": "Booking confirmed",
+				"message": "Your booking has been confirmed."
+			},
+			"BOOKING_UPDATE_REQUEST": {
+				"title": "Booking update request",
+				"message": "There is a booking update request."
+			},
+			"TOUR_APPROVED": {
+				"title": "Tour approved",
+				"message": "Your tour has been approved."
+			},
+			"NEW_RATING": {
+				"title": "New rating",
+				"message": "There is a new rating for your tour."
+			},
+			"BOOKING_REJECTED": {
+				"title": "Booking rejected",
+				"message": "Your booking has been rejected."
+			},
+			"BOOKING_UPDATED_BY_USER": {
+				"title": "Booking updated",
+				"message": "Customer has updated the booking information."
+			},
+			"BOOKING_SUCCESS": {
+				"title": "Booking successful",
+				"message": "Your booking has been completed successfully."
+			},
+			"BOOKING_BALANCE_SUCCESS": {
+				"title": "Payment successful",
+				"message": "Balance payment completed. Your booking has been confirmed."
+			},
+			"PENDING_BALANCE_PAYMENT": {
+				"title": "Pending balance payment",
+				"message": "Please pay the remaining balance for your booking."
+			},
+			"BOOKING_SUCCESS_PENDING": {
+				"title": "Booking pending confirmation",
+				"message": "Your booking is pending completion confirmation."
+			},
+			"BOOKING_SUCCESS_WAIT_FOR_CONFIRMED": {
+				"title": "Awaiting completion confirmation",
+				"message": "Please wait for tour completion confirmation."
+			},
+			"BOOKING_CANCELLED": {
+				"title": "Booking cancelled",
+				"message": "Your booking has been cancelled."
+			}
 		}
 	}
 }
