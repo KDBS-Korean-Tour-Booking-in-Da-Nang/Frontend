@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { API_ENDPOINTS } from '../../../config/api';
 import { getBookingTotal } from '../../../services/bookingAPI';
@@ -109,6 +109,7 @@ const normalizeTrx = (trx) => {
 const BookingHistory = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +121,25 @@ const BookingHistory = () => {
   const [allBookings, setAllBookings] = useState([]);
   const itemsPerPage = 3;
   const prevFiltersRef = useRef({ statusFilter, dateFilter });
+  
+  // Kiểm tra xem có nên ẩn button back không
+  // Ẩn button back khi đến từ PaymentResultPage, BookingCheckPaymentPage hoặc các trang khác (trừ TourList)
+  const shouldHideBackButton = () => {
+    const navState = location?.state || {};
+    // Nếu có flag hideBackButton từ state, ẩn button
+    if (navState.hideBackButton === true) {
+      return true;
+    }
+    // Nếu đến từ TourList (có flag fromTourList), hiển thị button back
+    if (navState.fromTourList === true) {
+      return false;
+    }
+    // Mặc định: ẩn button back khi đến từ các trang khác (PaymentResultPage, BookingCheckPaymentPage, etc.)
+    // Chỉ hiển thị khi rõ ràng đến từ TourList
+    return true;
+  };
+  
+  const hideBackButton = shouldHideBackButton();
 
   const fetchBookings = React.useCallback(async () => {
     if (!user) return;
@@ -316,14 +336,16 @@ const BookingHistory = () => {
       <div className={styles['booking-history-wrapper']}>
         {/* Header */}
         <div className={styles['booking-history-header']}>
-          <button 
-            className={styles['back-button']}
-            onClick={() => navigate(-1)}
-            title={t('bookingHistory.backButton')}
-          >
-            <ArrowLeftIcon className={styles['back-icon']} />
-            <span>{t('bookingHistory.backButton')}</span>
-          </button>
+          {!hideBackButton && (
+            <button 
+              className={styles['back-button']}
+              onClick={() => navigate(-1)}
+              title={t('bookingHistory.backButton')}
+            >
+              <ArrowLeftIcon className={styles['back-icon']} />
+              <span>{t('bookingHistory.backButton')}</span>
+            </button>
+          )}
           <h1 className={styles['booking-history-title']}>
             {t('bookingHistory.title')}
           </h1>

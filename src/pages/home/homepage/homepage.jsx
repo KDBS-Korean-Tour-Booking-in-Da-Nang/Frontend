@@ -97,7 +97,7 @@ const Homepage = () => {
       return {
         ...img,
         src: FALLBACK_GALLERY_IMAGE,
-        alt: img.alt || 'Default tour image',
+        alt: img.alt || t('home.gallery.defaultImageAlt', 'Default tour image'),
         loaded: false,
         error: true
       };
@@ -649,7 +649,7 @@ const Homepage = () => {
                     <figure className="relative overflow-hidden rounded-[15px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[1/1.12] mb-4 hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
                       <img
                         src={galleryImages[0]?.src || FALLBACK_GALLERY_IMAGE}
-                        alt={galleryImages[0]?.alt || 'Tour image'}
+                        alt={galleryImages[0]?.alt || t('home.gallery.tourImageAlt', 'Tour image')}
                         className="w-full h-full object-cover block"
                         loading="eager"
                         onLoad={() => handleImageLoad(0)}
@@ -661,7 +661,7 @@ const Homepage = () => {
                     <figure className="relative overflow-hidden rounded-[18px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[16/11] -mt-[4px] sm:-mt-[8px] translate-y-[-15px] sm:translate-y-[-30px] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
                       <img
                         src={galleryImages[1]?.src || FALLBACK_GALLERY_IMAGE}
-                        alt={galleryImages[1]?.alt || 'Tour image'}
+                        alt={galleryImages[1]?.alt || t('home.gallery.tourImageAlt', 'Tour image')}
                         className="w-full h-full object-cover block"
                         loading="eager"
                         onLoad={() => handleImageLoad(1)}
@@ -673,7 +673,7 @@ const Homepage = () => {
                     <figure className="relative overflow-hidden rounded-[15px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[1/1.12] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
                       <img
                         src={galleryImages[2]?.src || FALLBACK_GALLERY_IMAGE}
-                        alt={galleryImages[2]?.alt || 'Tour image'}
+                        alt={galleryImages[2]?.alt || t('home.gallery.tourImageAlt', 'Tour image')}
                         className="w-full h-full object-cover block"
                         loading="eager"
                         onLoad={() => handleImageLoad(2)}
@@ -685,7 +685,7 @@ const Homepage = () => {
                     <figure className="relative overflow-hidden rounded-[18px] shadow-[0_12px_30px_rgba(2,6,23,.12)] bg-[#eef2f7] aspect-[3/4] -mt-[50px] sm:-mt-[35px] translate-y-[-50px] sm:translate-y-[-105px] hover:scale-105 hover:brightness-110 hover:saturate-110 hover:shadow-[0_15px_30px_rgba(0,0,0,0.2)] transition-all duration-300 cursor-pointer">
                       <img
                         src={galleryImages[3]?.src || FALLBACK_GALLERY_IMAGE}
-                        alt={galleryImages[3]?.alt || 'Tour image'}
+                        alt={galleryImages[3]?.alt || t('home.gallery.tourImageAlt', 'Tour image')}
                         className="w-full h-full object-cover block"
                         loading="eager"
                         onLoad={() => handleImageLoad(3)}
@@ -833,7 +833,7 @@ const Homepage = () => {
                               <div className="relative h-64">
                                 <img
                                   src={item?.image || '/default-Tour.jpg'}
-                                  alt={item?.title || 'Tour'}
+                                  alt={item?.title || t('home.destinations.tourAlt', 'Tour')}
                                   className="w-full h-full object-cover"
                                   loading="eager"
                                   onError={(e) => {
@@ -842,7 +842,7 @@ const Homepage = () => {
                                 />
                                 <div className="absolute top-4 left-4">
                                   <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    {item?.tourDeparturePoint || item?.category || 'Tour'}
+                                    {item?.tourDeparturePoint || item?.category || t('home.destinations.tourLabel', 'Tour')}
                                   </span>
                                 </div>
                               </div>
@@ -876,7 +876,7 @@ const Homepage = () => {
                     className="bg-[#1a8eea] hover:bg-[#0f7bd4] text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 inline-flex items-center gap-2"
                     onClick={() => navigate('/tour')}
                   >
-                    See All
+                    {t('home.destinations.seeAll', 'See All')}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
@@ -961,7 +961,7 @@ const Homepage = () => {
                     <div className="relative w-full max-w-[540px] h-[300px] sm:h-[400px] lg:h-[440px] mx-auto lg:ml-auto lg:translate-x-[64px] lg:-translate-y-[120px] group cursor-pointer">
                       <img
                         src="/danang5.jpg"
-                        alt="Colosseum Rome"
+                        alt={t('home.features.image1Alt', 'Da Nang destination')}
                         className="
                       absolute top-[-30px] sm:top-[-40px] left-[5px] sm:left-[10px]
                       w-[140px] h-[180px] sm:w-[200px] sm:h-[260px] lg:w-[260px] lg:h-[340px] object-cover
@@ -975,7 +975,7 @@ const Homepage = () => {
 
                       <img
                         src="/hoian4.jpg"
-                        alt="Dubai City"
+                        alt={t('home.features.image2Alt', 'Hoi An destination')}
                         className="
                       absolute top-[80px] sm:top-[160px] left-[70px] sm:left-[120px]
                       w-[140px] h-[180px] sm:w-[200px] sm:h-[260px] lg:w-[260px] lg:h-[340px] object-cover
@@ -1138,7 +1138,7 @@ const Homepage = () => {
                     <form className="mx-auto max-w-2xl mt-16 md:mt-20 lg:mt-28">
                       <div className="relative">
                         <label className="relative block">
-                          <span className="sr-only">Email</span>
+                          <span className="sr-only">{t('home.newsletter.emailLabel', 'Email')}</span>
                           <span className="pointer-events-none absolute inset-y-0 left-0 pl-4 flex items-center">
                             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"

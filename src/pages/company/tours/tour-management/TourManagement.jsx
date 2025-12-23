@@ -476,23 +476,27 @@ const TourManagement = () => {
                     {/* Controls */}
                     <div className={styles['tour-controls']}>
                       <div className={styles['action-buttons']}>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleEditTour(tour.id); }}
-                          className={styles['edit-btn']}
-                          title={t('tourManagement.actions.edit')}
-                        >
-                          <PencilIcon className={styles['action-icon']} />
-                          <span>{t('tourManagement.actions.edit')}</span>
-                        </button>
+                        {tour.tourStatus?.toUpperCase() !== 'NOT_APPROVED' && tour.tourStatus?.toUpperCase() !== 'PENDING' && (
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleEditTour(tour.id); }}
+                              className={styles['edit-btn']}
+                              title={t('tourManagement.actions.edit')}
+                            >
+                              <PencilIcon className={styles['action-icon']} />
+                              <span>{t('tourManagement.actions.edit')}</span>
+                            </button>
 
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeleteTour(tour.id); }}
-                          className={styles['delete-btn']}
-                          title={t('tourManagement.actions.delete')}
-                        >
-                          <TrashIcon className={styles['action-icon']} />
-                          <span>{t('tourManagement.actions.delete')}</span>
-                        </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDeleteTour(tour.id); }}
+                              className={styles['delete-btn']}
+                              title={t('tourManagement.actions.delete')}
+                            >
+                              <TrashIcon className={styles['action-icon']} />
+                              <span>{t('tourManagement.actions.delete')}</span>
+                            </button>
+                          </>
+                        )}
 
                         {tour.tourStatus?.toUpperCase() !== 'NOT_APPROVED' && (
                           <button

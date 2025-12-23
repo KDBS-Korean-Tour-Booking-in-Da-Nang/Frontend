@@ -100,8 +100,8 @@ const DeleteConfirmModal = ({
   };
 
   const modalNode = (
-    <div className={`${styles['modal-overlay']} ${styles['kdbs-modal']}`} onClick={(e) => { if (e.target === e.currentTarget) handleBackdrop(); }} onKeyDown={handleKey} tabIndex={-1}>
-      <div className={styles['delete-confirm-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div className={`${styles['modal-overlay']} ${styles['kdbs-modal']}`} onClick={(e) => { if (e.target === e.currentTarget) handleBackdrop(); }} onKeyDown={handleKey} tabIndex={-1} style={{ marginTop: 0 }}>
+      <div className={styles['delete-confirm-modal']} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-title" style={{ marginTop: 0 }}>
         <div className={styles['modal-panel']}>
           <button
             type="button"

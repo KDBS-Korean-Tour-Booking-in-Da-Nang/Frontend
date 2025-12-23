@@ -68,7 +68,7 @@ const TourBehaviorSuggestion = () => {
       price: tour.adultPrice ? Number(tour.adultPrice) : 0,
       image: getTourImageUrl(tour.tourImgPath),
       description: tour.tourDescription || '',
-      featured: tour.tourStatus === 'PUBLIC'
+      suggested: true // Tour gợi ý dựa trên hành vi người dùng
     };
   };
 

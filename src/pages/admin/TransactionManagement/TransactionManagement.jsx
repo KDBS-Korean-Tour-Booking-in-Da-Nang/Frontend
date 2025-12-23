@@ -347,7 +347,7 @@ const StatCard = ({ icon: IconComponent, label, value, trend, color = 'text-blue
         <div className="flex items-center justify-between">
           <div className="h-14 w-14 rounded-[20px] flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.6)' }}>
             {IconComponent === CurrencyFormatter ? (
-              <span className="text-2xl font-semibold" style={{ color: colors.iconColor }}>₩</span>
+              <DollarSign className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
             ) : (
               <IconComponent className="h-7 w-7" style={{ color: colors.iconColor }} strokeWidth={1.5} />
             )}

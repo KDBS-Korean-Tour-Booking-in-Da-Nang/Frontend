@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useTourBooking } from '../../../../../hooks/useTourBooking';
@@ -591,7 +592,7 @@ const Step3Review = () => {
         </div>
       </div>
 
-      {isVoucherModalOpen && (
+      {isVoucherModalOpen && createPortal(
         <div className={styles['voucher-modal-overlay']} onClick={() => setIsVoucherModalOpen(false)}>
           <div className={styles['voucher-modal-container']} onClick={(e) => e.stopPropagation()}>
             <div className={styles['voucher-modal-header']}>
@@ -660,7 +661,8 @@ const Step3Review = () => {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

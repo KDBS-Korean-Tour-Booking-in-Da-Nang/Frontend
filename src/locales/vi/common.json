@@ -228,6 +228,10 @@
       "sectionTitle": "ĐIỂM ĐẾN HÀNG ĐẦU",
       "headline": "Khám phá những điểm nổi bật hàng đầu",
       "seeAll": "Xem tất cả",
+      "loading": "Đang tải danh sách tour...",
+      "empty": "Hiện chưa có tour khả dụng, vui lòng quay lại sau.",
+      "tourAlt": "Tour",
+      "tourLabel": "Tour",
       "card1": {
         "location": "Indonesia",
         "title": "Bãi biển Pandawa, Đảo Bali",
@@ -244,10 +248,16 @@
         "rating": "4.9"
       }
     },
+    "gallery": {
+      "defaultImageAlt": "Hình ảnh tour mặc định",
+      "tourImageAlt": "Hình ảnh tour"
+    },
     "features": {
       "sectionTitle": "TÍNH NĂNG CHÍNH",
       "headline": "Chúng tôi cung cấp dịch vụ tốt nhất",
       "desc": "Chào! Travelo ở đây để giúp bạn tìm kỳ nghỉ mơ ước. Dễ dàng, bạn chỉ cần tìm nơi muốn đến và mua vé.",
+      "image1Alt": "Điểm đến Đà Nẵng",
+      "image2Alt": "Điểm đến Hội An",
       "card1": {
         "title": "Chọn nhiều địa điểm",
         "desc": "Chọn địa điểm yêu thích của bạn"
@@ -278,6 +288,7 @@
       "sectionTitle": "ĐĂNG KÝ NHẬN BẢN TIN",
       "headline": "Chuẩn bị bản thân và hãy khám phá vẻ đẹp của thế giới",
       "emailPlaceholder": "Email của bạn",
+      "emailLabel": "Email",
       "btnSubscribe": "Đăng ký"
     }
   },
@@ -3617,6 +3628,7 @@
     },
     "viewDetails": "Xem Chi Tiết",
     "featured": "Nổi bật",
+    "suggested": "Gợi ý",
     "children": "Trẻ em:",
     "baby": "Em bé:",
     "details": "CHI TIẾT",

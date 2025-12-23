@@ -22,7 +22,7 @@ const TourSuggestion = () => {
   const hasFetchedRef = useRef(false);
   const lastArticleIdRef = useRef(null);
 
-  // Transform tour từ backend sang TourCard format: map tourId/id, tourName, tourDuration, adultPrice, tourImgPath (dùng getTourImageUrl), tourDescription, tourStatus === 'PUBLIC' => featured
+  // Transform tour từ backend sang TourCard format: map tourId/id, tourName, tourDuration, adultPrice, tourImgPath (dùng getTourImageUrl), tourDescription, set suggested = true cho tour gợi ý
   const transformTour = (tour) => {
     return {
       id: tour.tourId || tour.id,
@@ -32,7 +32,7 @@ const TourSuggestion = () => {
       price: tour.adultPrice ? Number(tour.adultPrice) : 0,
       image: getTourImageUrl(tour.tourImgPath),
       description: tour.tourDescription || '',
-      featured: tour.tourStatus === 'PUBLIC'
+      suggested: true // Tour gợi ý từ bài viết
     };
   };
 

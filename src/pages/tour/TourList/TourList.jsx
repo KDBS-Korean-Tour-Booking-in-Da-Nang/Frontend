@@ -151,7 +151,7 @@ const TourList = () => {
       navigate("/login");
       return;
     }
-    navigate("/user/booking-history");
+    navigate("/user/booking-history", { state: { fromTourList: true } });
   };
 
   const sliderSettings = {

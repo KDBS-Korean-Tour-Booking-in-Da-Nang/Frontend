@@ -678,11 +678,12 @@ const ResolveComplaintModal = ({
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+      style={{ marginTop: 0 }}
       onClick={onClose}
     >
       <div 
         className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border"
-        style={{ borderColor: '#F0F0F0' }}
+        style={{ borderColor: '#F0F0F0', marginTop: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

@@ -150,7 +150,7 @@ export default function PaymentResultPage() {
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2.5">
               <button
                 type="button"
-                onClick={() => navigate('/user/booking-history')}
+                onClick={() => navigate('/user/booking-history', { state: { hideBackButton: true } })}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-[18px] border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-900 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300 sm:w-[200px]"
               >
                 <History className="h-4 w-4" />
