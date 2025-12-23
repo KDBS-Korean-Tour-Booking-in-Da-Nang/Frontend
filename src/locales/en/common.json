@@ -228,6 +228,10 @@
 			"sectionTitle": "TOP DESTINATIONS",
 			"headline": "Discover the top highlights",
 			"seeAll": "See all",
+			"loading": "Loading tour list...",
+			"empty": "No tours available at the moment. Please check back later.",
+			"tourAlt": "Tour",
+			"tourLabel": "Tour",
 			"card1": {
 				"location": "Indonesia",
 				"title": "Pandawa Beach, Bali Island",
@@ -244,10 +248,16 @@
 				"rating": "4.9"
 			}
 		},
+		"gallery": {
+			"defaultImageAlt": "Default tour image",
+			"tourImageAlt": "Tour image"
+		},
 		"features": {
 			"sectionTitle": "MAIN FEATURES",
 			"headline": "We provide the best service",
 			"desc": "Hello! Travelo is here to help you find your dream vacation. Easy, you just need to find where you want to go and buy tickets.",
+			"image1Alt": "Da Nang destination",
+			"image2Alt": "Hoi An destination",
 			"card1": {
 				"title": "Choose multiple locations",
 				"desc": "Choose your favorite location"
@@ -278,6 +288,7 @@
 			"sectionTitle": "NEWSLETTER SIGNUP",
 			"headline": "Prepare yourself and let's explore the beauty of the world",
 			"emailPlaceholder": "Your email",
+			"emailLabel": "Email",
 			"btnSubscribe": "Subscribe"
 		}
 	},
@@ -3608,6 +3619,7 @@
 		"viewDetails": "View Details",
 		"sampleTitle": "Sample Tour",
 		"featured": "Featured",
+		"suggested": "Suggested",
 		"children": "Children:",
 		"baby": "Baby:",
 		"details": "DETAILS",

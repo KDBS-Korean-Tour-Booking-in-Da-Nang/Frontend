@@ -961,7 +961,7 @@ const BookingCheckPaymentPage = () => {
       confirmLabel: t('payment.checkPayment.actionConfirm.viewHistoryConfirm', {
         defaultValue: 'Đi đến lịch sử booking',
       }),
-      onConfirm: () => navigate('/user/booking-history'),
+      onConfirm: () => navigate('/user/booking-history', { state: { hideBackButton: true } }),
     });
   };
 

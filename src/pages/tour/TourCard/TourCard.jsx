@@ -77,7 +77,12 @@ const TourCard = ({ tour }) => {
             e.target.src = '/default-Tour.jpg';
           }}
         />
-        {tour.featured && (
+        {tour.suggested && (
+          <div className={styles['featured-badge']}>
+            <span>{t('tourCard.suggested')}</span>
+          </div>
+        )}
+        {tour.featured && !tour.suggested && (
           <div className={styles['featured-badge']}>
             <span>{t('tourCard.featured')}</span>
           </div>

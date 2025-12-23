@@ -58,7 +58,7 @@ const TossPaymentPage = () => {
         defaultValue: 'Thanh toán đã bị hủy. Vui lòng tiếp tục thanh toán ở Booking History.',
       })
     );
-    navigate('/user/booking-history', { replace: true });
+    navigate('/user/booking-history', { replace: true, state: { hideBackButton: true } });
   };
 
   const handleError = (error) => {
