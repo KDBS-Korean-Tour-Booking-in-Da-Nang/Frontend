@@ -468,7 +468,16 @@ const ChatBox = ({ isOpen, onClose }) => {
               </div>
             )}
 
-            {state.messages.length === 0 ? (
+            {/* Loading indicator ở giữa khi đang tải dữ liệu ban đầu */}
+            {state.loadingMessages && state.messages.length === 0 ? (
+              <div className={styles.loadingCenter}>
+                <div className={styles.typingIndicator}>
+                  <div className={styles.typingDot}></div>
+                  <div className={styles.typingDot}></div>
+                  <div className={styles.typingDot}></div>
+                </div>
+              </div>
+            ) : state.messages.length === 0 ? (
               <div className={styles.emptyState}>
                 <ChatBubbleLeftRightIcon className={styles.emptyIcon} />
                 <p className={styles.emptyText}>
@@ -524,18 +533,6 @@ const ChatBox = ({ isOpen, onClose }) => {
                   </React.Fragment>
                 );
               })
-            )}
-
-            {state.loadingMessages && (
-              <div className={`${styles.message} ${styles.received}`}>
-                <div className={styles.messageContent}>
-                  <div className={styles.typingIndicator}>
-                    <div className={styles.typingDot}></div>
-                    <div className={styles.typingDot}></div>
-                    <div className={styles.typingDot}></div>
-                  </div>
-                </div>
-              </div>
             )}
 
             <div ref={messagesEndRef} />

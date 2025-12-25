@@ -35,11 +35,12 @@ const getCachedTours = (userId) => {
       }
       }
     } catch {
+      // Bỏ qua lỗi khi parse cache
     }
   return null;
 };
 
-// Lưu tour vào cache với timestamp để kiểm tra thời hạn sau
+  // Lưu tour vào cache với timestamp để kiểm tra thời hạn sau
 const saveToursToCache = (userId, toursData) => {
   try {
     const cacheKey = getCacheKey(userId);
@@ -47,6 +48,7 @@ const saveToursToCache = (userId, toursData) => {
     localStorage.setItem(cacheKey, JSON.stringify(toursData));
     localStorage.setItem(timestampKey, String(Date.now()));
   } catch {
+    // Bỏ qua lỗi khi lưu cache
   }
 };
 
@@ -168,7 +170,7 @@ const TourBehaviorSuggestion = () => {
         const data = await response.json();
         
         const transformedTours = Array.isArray(data) 
-          ? data.slice(0, 3).map(transformTour).filter(tour => tour.id) 
+          ? data.map(transformTour).filter(tour => tour.id) 
           : [];
 
         if (transformedTours.length > 0) {
@@ -194,11 +196,46 @@ const TourBehaviorSuggestion = () => {
     fetchSuggestedTours();
   }, [user, getToken, t]);
 
+  // Kiểm tra xem có đủ tours để scroll không
+  // Desktop: hiển thị 3 tours, cần > 3 tours để scroll
+  // Tablet: hiển thị 2 tours, cần > 2 tours để scroll  
+  // Mobile: hiển thị 1 tour, cần > 1 tour để scroll
+  const [canScroll, setCanScroll] = useState(() => {
+    if (globalThis.window === undefined) return tours.length > 3;
+    if (globalThis.window.innerWidth <= 640) return tours.length > 1;
+    if (globalThis.window.innerWidth <= 900) return tours.length > 2;
+    return tours.length > 3;
+  });
+
+  useEffect(() => {
+    const updateCanScroll = () => {
+      if (globalThis.window === undefined) {
+        setCanScroll(tours.length > 3);
+        return;
+      }
+      if (globalThis.window.innerWidth <= 640) {
+        setCanScroll(tours.length > 1);
+      } else if (globalThis.window.innerWidth <= 900) {
+        setCanScroll(tours.length > 2);
+      } else {
+        setCanScroll(tours.length > 3);
+      }
+    };
+
+    updateCanScroll(); // Cập nhật ngay khi tours.length thay đổi
+
+    const windowObj = globalThis.window;
+    if (windowObj !== undefined) {
+      windowObj.addEventListener('resize', updateCanScroll);
+      return () => windowObj.removeEventListener('resize', updateCanScroll);
+    }
+  }, [tours.length]);
+
   const settings = {
     dots: false,
-    infinite: false, // Không infinite vì chỉ có 3 tours
+    infinite: canScroll, // Chỉ infinite khi có nhiều tours hơn số tours hiển thị
     speed: 500,
-    slidesToShow: 3,
+    slidesToShow: 3, // Luôn hiển thị 3 tours trên desktop
     slidesToScroll: 1,
     arrows: false,
     draggable: false, // Tắt kéo để di chuyển carousel
@@ -208,9 +245,9 @@ const TourBehaviorSuggestion = () => {
       {
         breakpoint: 1200,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 3, // Luôn hiển thị 3 tours
           slidesToScroll: 1,
-          infinite: false,
+          infinite: tours.length > 3, // Chỉ scroll khi có > 3 tours
           draggable: false,
           swipe: false,
           touchMove: false,
@@ -219,9 +256,9 @@ const TourBehaviorSuggestion = () => {
       {
         breakpoint: 900,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: 2, // Tablet: hiển thị 2 tours
           slidesToScroll: 1,
-          infinite: false,
+          infinite: tours.length > 2, // Chỉ scroll khi có > 2 tours
           draggable: false,
           swipe: false,
           touchMove: false,
@@ -230,9 +267,9 @@ const TourBehaviorSuggestion = () => {
       {
         breakpoint: 640,
         settings: {
-          slidesToShow: 1,
+          slidesToShow: 1, // Mobile: hiển thị 1 tour
           slidesToScroll: 1,
-          infinite: false,
+          infinite: tours.length > 1, // Chỉ scroll khi có > 1 tour
           draggable: false,
           swipe: false,
           touchMove: false,
@@ -242,11 +279,15 @@ const TourBehaviorSuggestion = () => {
   };
 
   const goToPrev = () => {
-    sliderRef.current?.slickPrev();
+    if (canScroll) {
+      sliderRef.current?.slickPrev();
+    }
   };
 
   const goToNext = () => {
-    sliderRef.current?.slickNext();
+    if (canScroll) {
+      sliderRef.current?.slickNext();
+    }
   };
 
   if (loading || tours.length === 0) {
@@ -271,10 +312,11 @@ const TourBehaviorSuggestion = () => {
         </div>
 
         <div className={styles.carouselWrapper}>
-          {tours.length > 0 && (
+          {tours.length > 0 && canScroll && (
             <button 
               className={styles.navButtonLeft} 
               onClick={goToPrev}
+              disabled={!canScroll}
               aria-label={t('tourList.behaviorSuggestion.previous')}
             >
               <svg className={styles.navIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,7 +325,7 @@ const TourBehaviorSuggestion = () => {
             </button>
           )}
 
-          <div className={styles.carouselContainer} style={{ zIndex: 1, overflow: 'visible' }}>
+          <div className={styles.carouselContainer} style={{ zIndex: 1 }}>
             <Slider ref={sliderRef} {...settings}>
               {tours.map((tour) => (
                 <div key={tour.id} className={styles.slide}>
@@ -304,10 +346,11 @@ const TourBehaviorSuggestion = () => {
             </Slider>
           </div>
 
-          {tours.length > 0 && (
+          {tours.length > 0 && canScroll && (
             <button 
               className={styles.navButtonRight} 
               onClick={goToNext}
+              disabled={!canScroll}
               aria-label={t('tourList.behaviorSuggestion.next')}
             >
               <svg className={styles.navIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">

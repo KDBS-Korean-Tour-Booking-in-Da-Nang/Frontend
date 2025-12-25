@@ -31,17 +31,18 @@
 
 .carouselContainer {
   position: relative;
-  overflow: visible;
+  overflow: hidden; /* Giới hạn chỉ hiển thị 3 cards, ẩn các cards còn lại */
   padding-top: 60px;
   padding-bottom: 60px;
   margin-top: -60px;
   margin-bottom: -60px;
   background: transparent !important;
   flex: 0 0 auto; /* Không cho flex grow, chỉ đủ cho 3 cards */
-  min-width: 0;
   /* Tính toán width: 3 cards × 332px + 2 gaps × 24px = 996px + 48px = 1044px */
+  /* Giữ nguyên width cố định để tránh xê dịch khi có ít tours */
   width: 1044px;
   max-width: 1044px;
+  min-width: 1044px; /* Đảm bảo không bị thu nhỏ khi có ít tours */
   margin-left: auto;
   margin-right: auto;
 }
@@ -75,6 +76,20 @@
 .navButtonLeft:active,
 .navButtonRight:active {
   transform: scale(1.05);
+}
+
+.navButtonLeft:disabled,
+.navButtonRight:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.navButtonLeft:disabled:hover,
+.navButtonRight:disabled:hover {
+  transform: none;
+  border-color: #9ca3af;
+  background: #ffffff;
 }
 
 .navButtonRight {
@@ -159,7 +174,7 @@
 /* Slick carousel custom styles - giống homepage */
 .carouselContainer :global(.slick-list) {
   margin: 0 -12px;
-  overflow: visible !important; /* Cho phép card hover mở rộng ra ngoài */
+  overflow: hidden !important; /* Ẩn các cards ngoài viewport */
   padding: 40px 0 !important; /* Padding top/bottom để card có không gian */
   background: transparent !important;
   position: relative;
@@ -172,48 +187,33 @@
   align-items: stretch;
 }
 
+/* Đảm bảo card hover không bị đè bởi carousel và có cùng kích thước với grid */
 .carouselContainer :global(.slick-slide) {
   padding: 0;
   overflow: visible !important;
   height: auto;
+  display: flex !important;
+  align-items: stretch;
+  box-sizing: border-box;
 }
 
-/* Đảm bảo card hover không bị đè bởi carousel và có cùng kích thước với grid */
 .carouselContainer :global(.slick-slide > div) {
   padding: 0 12px;
   position: relative;
   z-index: 2;
   overflow: visible !important; /* Cho phép card hover mở rộng ra ngoài */
   height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Đảm bảo TourCard không bị stretch */
-.carouselContainer :global(.slick-slide) {
-  display: flex !important;
-  align-items: stretch;
-}
-
-.carouselContainer :global(.slick-slide > div) {
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-/* Đảm bảo card có cùng kích thước với grid */
-/* Trong grid 4 cột: mỗi card = (100% - 3*24px) / 4 */
-/* Để card trong carousel có cùng kích thước, chúng ta cần giới hạn width của slide */
-.carouselContainer :global(.slick-slide) {
-  /* Slick sẽ tự động tính width dựa trên slidesToShow: 3 */
-  /* Nhưng chúng ta cần đảm bảo card không bị stretch */
 }
 
 /* Giới hạn max-width của card để giống với grid (tính toán: (1400px - 72px) / 4 = 332px) */
 .carouselContainer :global(.slick-slide > div > *) {
-  max-width: 332px; /* Giống với max-width của card trong grid */
+  max-width: 332px !important; /* Giống với max-width của card trong grid - dùng !important để đảm bảo không bị override */
   width: 100%;
   margin: 0 auto; /* Center card trong slide nếu slide rộng hơn */
+  flex-shrink: 0; /* Không cho phép card bị co lại */
 }
 
 .separator {
@@ -247,7 +247,11 @@
   }
   
   .carouselContainer :global(.slick-slide > div > *) {
-    max-width: 300px;
+    max-width: 300px !important; /* Đảm bảo không bị override */
+  }
+  
+  .carouselContainer :global(.slick-slide) {
+    max-width: 324px; /* 300px + 12px padding mỗi bên */
   }
 }
 

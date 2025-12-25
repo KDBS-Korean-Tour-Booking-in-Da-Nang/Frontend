@@ -169,6 +169,7 @@
   flex: 1;
   overflow: hidden;
   background: var(--pastel-white);
+  position: relative;
 }
 
 .messages {
@@ -180,6 +181,7 @@
   gap: 0.5rem;
   background: linear-gradient(180deg, var(--pastel-bg) 0%, var(--pastel-white) 100%);
   scroll-behavior: smooth;
+  position: relative;
 }
 
 /* Message Styles */
@@ -1000,4 +1002,16 @@
   margin: 0.5rem 1rem;
   backdrop-filter: blur(8px);
   border: 1px solid var(--pastel-gray);
+}
+
+/* Loading indicator ở giữa khung chatbox */
+.loadingCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
 }
