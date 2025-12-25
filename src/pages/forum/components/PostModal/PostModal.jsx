@@ -202,7 +202,9 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
   const trimmedContent = content.trim();
   const hasTitle = trimmedTitle.length > 0;
   const hasContent = trimmedContent.length > 0;
-  const isSubmitDisabled = isLoading || (!hasTitle && !hasContent);
+  // Allow submit if has content OR has title OR has link preview (URL detected)
+  const canSubmit = hasTitle || hasContent || linkPreview;
+  const isSubmitDisabled = isLoading || !canSubmit;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -221,7 +223,23 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
       return !trimmed || /^https?:\/\/.+/.test(trimmed);
     });
     
-    if (!hasOnlyLinks && !trimmedTitle) {
+    // Determine final title: use linkPreview title if available, otherwise use user's title or content
+    let finalTitle = trimmedTitle;
+    if (!finalTitle && linkPreview) {
+      // If no title but has link preview, use preview title
+      finalTitle = linkPreview.title || trimmedContent || 'Shared Tour';
+    } else if (!finalTitle && hasOnlyLinks) {
+      // If no title but content is only links, use content as title
+      finalTitle = trimmedContent;
+    } else if (!finalTitle && hasContent) {
+      // If no title but has content, use content as title
+      finalTitle = trimmedContent;
+    } else if (!finalTitle) {
+      // Fallback: should not happen due to validation above
+      finalTitle = 'New Post';
+    }
+    
+    if (!hasOnlyLinks && !trimmedTitle && !linkPreview) {
       setTitleError('Tiêu đề bài viết là bắt buộc');
       return;
     }
@@ -230,8 +248,8 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
     try {
       const formData = new FormData();
       formData.append('userEmail', user.email);
-    formData.append('title', trimmedTitle);
-    formData.append('content', hasContent ? trimmedContent : trimmedTitle);
+      formData.append('title', finalTitle);
+      formData.append('content', hasContent ? trimmedContent : finalTitle);
       
       hashtags.forEach(tag => {
         formData.append('hashtags', tag);
@@ -402,30 +420,7 @@ const PostModal = ({ isOpen, onClose, onPostCreated }) => {
               <span className={styles['form-error']}>{contentError}</span>
             )}
             
-            {/* Render content with clickable links */}
-            {content && (
-              <div className={styles['content-preview']}>
-                {content.split(/(\s+)/).map((part, index) => {
-                  const isUrl = /^https?:\/\/.+/.test(part.trim());
-                  if (isUrl) {
-                    return (
-                      <a 
-                        key={index}
-                        href={part.trim()}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles['content-link']}
-                      >
-                        {part}
-                      </a>
-                    );
-                  }
-                  return <span key={index}>{part}</span>;
-                })}
-              </div>
-            )}
-            
-            {/* Link Preview */}
+            {/* Link Preview - only show when URL is detected in content */}
             {isLoadingPreview && (
               <div className={styles['preview-loading']}>
                 <Loader2 size={16} strokeWidth={1.5} className={styles['loading-icon']} />

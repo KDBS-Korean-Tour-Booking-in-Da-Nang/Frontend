@@ -1092,12 +1092,12 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
       );
     }
 
-    // 3 or more: one big on top, three small below (like collage)
-    const rest = imgs.slice(1, 4);
-    const remaining = count - 4;
+    // 3 or more: one big on top, small images below (like collage)
+    const rest = imgs.slice(1, count === 3 ? 3 : 4); // For 3 images: show 2 small, for 4+: show 3 small
+    const remaining = count - (count === 3 ? 3 : 4);
     const shouldEagerLoad = isFirstPost || imagesInViewport;
     return (
-      <div className={`${styles['pc-images']} ${styles['collage']}`} ref={imageContainerRef}>
+      <div className={`${styles['pc-images']} ${styles['collage']} ${count === 3 ? styles['collage-three'] : ''}`} ref={imageContainerRef}>
         {imgs[0] ? (
           <img
             src={imgs[0]}
@@ -1112,7 +1112,7 @@ const PostCard = memo(({ post, onPostDeleted, onEdit, onHashtagClick, isFirstPos
             }}
           />
         ) : null}
-        <div className={styles['pc-thumbs']}>
+        <div className={`${styles['pc-thumbs']} ${count === 3 ? styles['pc-thumbs-two'] : ''}`}>
           {rest.map((src, idx) => (
             src ? (
               <div key={idx} className={styles['pc-thumb-wrap']}>

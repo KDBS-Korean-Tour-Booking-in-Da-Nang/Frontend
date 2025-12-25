@@ -799,7 +799,7 @@ const Homepage = () => {
                     <div className="text-center py-12 text-gray-500">{t('home.destinations.loading', 'Đang tải danh sách tour...')}</div>
                   ) : totalDisplayTours > 0 ? (
                     <Slider ref={sliderRef} {...sliderSettings} className="destinations-slider">
-                      {displayTours.map((item) => {
+                      {displayTours.map((item, index) => {
                         // Use averageRating from Top Tours calculation first
                         const ratingValue = item?.averageRating != null
                           ? Number(item.averageRating).toFixed(1)
@@ -808,6 +808,15 @@ const Homepage = () => {
                             : item?.rating != null
                               ? Number(item.rating).toFixed(1)
                               : '0.0';
+
+                        // Determine top rank badge (only for top 3)
+                        const topRank = index < 3 ? index + 1 : null;
+                        const getBadgeStyle = (rank) => {
+                          if (rank === 1) return { backgroundColor: '#FFD700', color: '#000', fontWeight: 'bold' }; // Gold
+                          if (rank === 2) return { backgroundColor: '#C0C0C0', color: '#000', fontWeight: 'bold' }; // Silver
+                          if (rank === 3) return { backgroundColor: '#CD7F32', color: '#FFF', fontWeight: 'bold' }; // Bronze
+                          return {};
+                        };
 
                         return (
                           <div key={item.id} className="px-4">
@@ -841,9 +850,21 @@ const Homepage = () => {
                                   }}
                                 />
                                 <div className="absolute top-4 left-4">
-                                  <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    {item?.tourDeparturePoint || item?.category || t('home.destinations.tourLabel', 'Tour')}
-                                  </span>
+                                  {topRank ? (
+                                    <span 
+                                      className="px-4 py-2 rounded-full text-sm font-bold flex items-center justify-center shadow-lg"
+                                      style={getBadgeStyle(topRank)}
+                                    >
+                                      <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                      </svg>
+                                      {t(`home.destinations.top${topRank}`)}
+                                    </span>
+                                  ) : (
+                                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                      {item?.tourDeparturePoint || item?.category || t('home.destinations.tourLabel', 'Tour')}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <div className="p-6">

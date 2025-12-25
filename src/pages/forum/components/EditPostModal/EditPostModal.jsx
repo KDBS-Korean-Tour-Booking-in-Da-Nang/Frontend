@@ -168,15 +168,8 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
     }
   };
 
-  // Function to check if content contains any links
-  const hasLinksInContent = (text) => {
-    if (!text) return false;
-    const urlRegex = /https?:\/\/[^\s]+/gi;
-    return urlRegex.test(text);
-  };
-
   const previewFromMetadataRef = useRef(false);
-
+ 
   // Debounced preview detection: nếu preview được load từ metadata và content chưa thay đổi đáng kể thì không override, chỉ detect new preview nếu content thực sự thay đổi, check nếu content vẫn chứa tour link thì giữ metadata preview, nếu không có preview từ metadata thì detect từ content
   useEffect(() => {
     if (!isOpen) return;
@@ -207,9 +200,6 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Collect all validation errors
-    const errors = [];
-    
     // Clear previous errors
     setTitleError('');
     setContentError('');
@@ -237,7 +227,7 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
         formData.append('hashtags', tag);
       });
 
-      // Add link preview metadata if available
+      // Add link preview metadata if available, or send null to clear metadata if removed
       if (linkPreview) {
         // Normalize thumbnailUrl để đảm bảo không lưu BaseURL vào database
         formData.append('metadata', JSON.stringify({
@@ -248,6 +238,9 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
           thumbnailUrl: normalizeToRelativePath(linkPreview.thumbnailUrl),
           linkUrl: linkPreview.linkUrl
         }));
+      } else if (post.metadata) {
+        // If post had metadata but now linkPreview is null, send null to clear metadata
+        formData.append('metadata', JSON.stringify(null));
       }
 
       const url = API_ENDPOINTS.POST_BY_ID(post.forumPostId);
@@ -279,9 +272,21 @@ const EditPostModal = ({ isOpen, onClose, onPostUpdated, post }) => {
             thumbnailUrl: normalizeToRelativePath(linkPreview.thumbnailUrl),
             linkUrl: linkPreview.linkUrl
           };
+        } else if (!linkPreview) {
+          // If linkPreview was removed, ensure metadata is cleared in result
+          result.metadata = null;
         }
         
-        onPostUpdated(result);
+        // Ensure all fields are properly updated, especially when removing URL
+        const updatedPost = {
+          ...result,
+          title: result.title || title.trim(),
+          content: result.content || content.trim(),
+          hashtags: result.hashtags || hashtags.map(tag => ({ content: tag })),
+          metadata: result.metadata || null
+        };
+        
+        onPostUpdated(updatedPost);
         showSuccess(t('toast.forum.post_update_success'));
         onClose();
         resetForm();

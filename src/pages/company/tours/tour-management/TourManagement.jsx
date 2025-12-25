@@ -11,7 +11,8 @@ import {
   ChevronRightIcon,
   MapPinIcon,
   ClockIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
@@ -464,7 +465,20 @@ const TourManagement = () => {
                       <div className={styles['detail-column']}>
                         <div className={styles['detail-item']}>
                           <UserGroupIcon className={styles['detail-icon']} />
-                          <span className={styles['detail-value']}>{tour.amount || '30'} {t('tourManagement.card.capacityUnit')}</span>
+                          <span className={styles['detail-value']}>
+                            {(tour.amount !== null && tour.amount !== undefined && tour.amount <= 5 && tour.amount > 0) ? (
+                              <>
+                                <span className={styles['detail-value-warning']}>{tour.amount}</span>
+                                {' '}
+                                {t('tourManagement.card.packagesUnit')}
+                                <ExclamationTriangleIcon className={`${styles['detail-icon']} ${styles['warning-icon']}`} />
+                              </>
+                            ) : (
+                              <>
+                                {tour.amount || '0'} {t('tourManagement.card.packagesUnit')}
+                              </>
+                            )}
+                          </span>
                         </div>
                         <div className={styles['detail-item']}>
                           <MapPinIcon className={styles['detail-icon']} />

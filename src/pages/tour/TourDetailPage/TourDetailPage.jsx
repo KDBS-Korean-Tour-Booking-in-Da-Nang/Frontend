@@ -573,14 +573,6 @@ const TourDetailPage = () => {
                           : t("tourPage.detail.overview.free")}
                       </span>
                     </li>
-                    {typeof tour.amount === "number" && (
-                      <li>
-                        <span className={styles["price-label"]}>
-                          {t("tourPage.detail.overview.amount")}:
-                        </span>
-                        <span className={styles["muted"]}>{tour.amount}</span>
-                      </li>
-                    )}
                     {Array.isArray(tour.availableDates) &&
                       tour.availableDates.length > 0 && (
                         <li>

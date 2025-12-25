@@ -12,9 +12,6 @@ import {
   UserIcon, 
   CogIcon, 
   ShieldCheckIcon,
-  HeartIcon,
-  CreditCardIcon,
-  BellIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import styles from './UserProfile.module.css';
@@ -727,10 +724,7 @@ const UserProfile = () => {
   const sidebarMenuItems = [
     { id: 'profile', label: t('profile.sidebar.profile'), icon: UserIcon },
     { id: 'settings', label: t('profile.sidebar.settings'), icon: CogIcon },
-    { id: 'changePassword', label: t('profile.sidebar.changePassword'), icon: ShieldCheckIcon },
-    { id: 'favorites', label: t('profile.sidebar.favorites'), icon: HeartIcon },
-    { id: 'payments', label: t('profile.sidebar.payments'), icon: CreditCardIcon },
-    { id: 'notifications', label: t('profile.sidebar.notifications'), icon: BellIcon }
+    { id: 'changePassword', label: t('profile.sidebar.changePassword'), icon: ShieldCheckIcon }
   ];
 
   const handleEditChange = (e) => {
@@ -1148,49 +1142,6 @@ const UserProfile = () => {
                 </div>
               </form>
             )}
-          </div>
-        );
-      
-      case 'favorites':
-        return (
-          <div className={styles['profile-info']}>
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>{t('profile.favorites.title')}</label>
-              <div className={`${styles['info-value']} ${styles['empty']}`}>
-                {t('profile.favorites.empty')}
-              </div>
-            </div>
-          </div>
-        );
-      
-      case 'payments':
-        return (
-          <div className={styles['profile-info']}>
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>{t('profile.payments.title')}</label>
-              <div className={`${styles['info-value']} ${styles['empty']}`}>
-                {t('profile.payments.empty')}
-              </div>
-            </div>
-          </div>
-        );
-      
-      case 'notifications':
-        return (
-          <div className={styles['profile-info']}>
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>{t('profile.notifications.email')}</label>
-              <div className={styles['info-value']}>
-                {t('profile.notifications.enabled')}
-              </div>
-            </div>
-            
-            <div className={styles['info-group']}>
-              <label className={styles['info-label']}>{t('profile.notifications.push')}</label>
-              <div className={styles['info-value']}>
-                {t('profile.notifications.enabled')}
-              </div>
-            </div>
           </div>
         );
       

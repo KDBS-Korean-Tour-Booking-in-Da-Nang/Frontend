@@ -80,8 +80,8 @@ const ArticleCommentSection = ({ articleId }) => {
     }
   };
 
-  const displayedComments = showAllComments ? comments : comments.slice(0, 3);
-  const hasMoreComments = comments.length > 3;
+  const displayedComments = showAllComments ? comments : comments.slice(0, 5); // Only show 5 parent comments initially
+  const hasMoreComments = comments.length > 5; // Show "View more" if more than 5 parent comments
 
   return (
     <div className={styles['comment-section']}>
@@ -166,26 +166,14 @@ const ArticleCommentSection = ({ articleId }) => {
         </div>
       )}
 
-      {/* Show More Comments */}
-      {hasMoreComments && !showAllComments && (
+      {/* Show More Comments - Only show button when not showing all comments yet */}
+      {!showAllComments && hasMoreComments && (
         <div className={styles['show-more-container']}>
           <button
             onClick={() => setShowAllComments(true)}
             className={styles['show-more-btn']}
           >
-            {t('article.comments.showMore', { defaultValue: 'Xem thêm bình luận' })} ({comments.length - 3})
-          </button>
-        </div>
-      )}
-
-      {/* Show Less Comments */}
-      {showAllComments && hasMoreComments && (
-        <div className={styles['show-more-container']}>
-          <button
-            onClick={() => setShowAllComments(false)}
-            className={styles['show-more-btn']}
-          >
-            {t('article.comments.showLess', { defaultValue: 'Ẩn bớt bình luận' })}
+            {t('article.comments.showMore', { defaultValue: 'Xem thêm bình luận' })} ({comments.length - 5})
           </button>
         </div>
       )}

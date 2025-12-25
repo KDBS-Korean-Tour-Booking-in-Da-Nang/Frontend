@@ -20,6 +20,7 @@ const Article = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [sortOrder, setSortOrder] = useState('newest');
+  const [displayedCount, setDisplayedCount] = useState(5); // Track how many articles are currently displayed
 
   // Ngăn background scroll khi mobile categories panel mở: set document.body.style.overflow = 'hidden' khi showCategories = true, restore lại khi unmount
   useEffect(() => {
@@ -46,6 +47,11 @@ const Article = () => {
   useEffect(() => {
     loadApprovedArticles();
   }, [sortOrder]);
+
+  // Reset displayedCount về 5 khi articles hoặc searchQuery thay đổi
+  useEffect(() => {
+    setDisplayedCount(5);
+  }, [articles.length, searchQuery]);
 
   // Lấy localized article field dựa trên current language: fallback Vietnamese -> English -> Korean, kiểm tra lang startsWith để match (en, ko/kr)
   const getLocalizedArticleField = (article, baseField) => {
@@ -76,15 +82,9 @@ const Article = () => {
     }
   };
 
-  // Xử lý load more button click: hiện tại reload articles (pagination có thể implement sau), set loadingMore state
-  const handleLoadMore = async () => {
-    setLoadingMore(true);
-    try {
-      await loadApprovedArticles();
-    } catch (error) {
-    } finally {
-      setLoadingMore(false);
-    }
+  // Xử lý load more button click: tăng displayedCount lên 5 bài báo tiếp theo
+  const handleLoadMore = () => {
+    setDisplayedCount(prev => prev + 5);
   };
 
   const heroSlides = [
@@ -134,6 +134,10 @@ const Article = () => {
     const haystack = `${localizedTitle} ${localizedDescription} ${localizedContent}`.toLowerCase();
     return haystack.includes(query);
   });
+
+  // Display only first displayedCount articles
+  const displayedArticles = filteredArticles.slice(0, displayedCount);
+  const hasMoreArticles = displayedCount < filteredArticles.length;
 
   return (
     <div className={styles.pageRoot} style={{ marginTop: '5px', paddingTop: '0' }}>
@@ -221,9 +225,9 @@ const Article = () => {
                 <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-200 border-t-primary"></div>
                 <span className="ml-3 text-gray-600">{t('article.loading')}</span>
               </div>
-            ) : filteredArticles.length > 0 ? (
+            ) : displayedArticles.length > 0 ? (
               <div className="space-y-6">
-                {filteredArticles.map((article, index) => {
+                {displayedArticles.map((article, index) => {
                   const localizedContent = getLocalizedArticleField(article, 'articleContent') || article.articleContent || '';
                   const localizedDescription = getLocalizedArticleField(article, 'articleDescription') || article.articleDescription || '';
                   const localizedTitle = getLocalizedArticleField(article, 'articleTitle') || article.articleTitle || '';
@@ -304,7 +308,7 @@ const Article = () => {
                       </div>
                       
                       {/* Separator */}
-                      {index < filteredArticles.length - 1 && (
+                      {index < displayedArticles.length - 1 && (
                         <div className={`${styles.subtleDivider}`}></div>
                       )}
                     </div>
@@ -329,23 +333,24 @@ const Article = () => {
               </div>
             )}
             
-            {/* Load More Button */}
-            {articles.length > 0 && (
+            {/* Load More Button - Only show if there are more articles to display */}
+            {hasMoreArticles && (
               <div className="mt-8 text-center">
                 <button
                   onClick={handleLoadMore}
-                  disabled={loadingMore}
                   className={`${styles.softButton} flex items-center mx-auto`}
                 >
-                  {loadingMore ? (
-                    <>
-                      <ArrowPathIcon className="h-5 w-5 mr-2 animate-spin" />
-                      {t('article.loadingMore')}
-                    </>
-                  ) : (
-                    t('article.loadMore')
-                  )}
+                  {t('article.loadMore')}
                 </button>
+              </div>
+            )}
+
+            {/* No More Articles Message - Show when all articles are displayed */}
+            {!hasMoreArticles && filteredArticles.length > 0 && (
+              <div className="mt-8 text-center">
+                <p className="text-gray-500 text-sm">
+                  {t('article.noMoreArticles')}
+                </p>
               </div>
             )}
           </div>

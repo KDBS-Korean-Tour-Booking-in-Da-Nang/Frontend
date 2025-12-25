@@ -253,18 +253,12 @@ const VoucherManagement = () => {
     }
   }, [companyId, fetchVouchers, hasAttemptedCompanyId, setLoading]);
 
-  // Filter out expired and out-of-stock vouchers for display
+  // Filter out expired vouchers for display (keep out-of-stock vouchers to show "out of stock" message)
   const displayVouchers = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return (vouchers || []).filter((v) => {
-      // Hide vouchers that are out of stock (remainingQuantity <= 0)
-      const remaining = v?.remainingQuantity;
-      if (remaining !== null && remaining !== undefined && remaining <= 0) {
-        return false;
-      }
-
-      // Hide expired vouchers
+      // Hide expired vouchers (but keep out-of-stock vouchers to display "out of stock" message)
       const rawEndDate = v?.endDate;
       if (!rawEndDate) return true; // If no endDate, show the voucher
       const end = new Date(rawEndDate);
@@ -375,8 +369,17 @@ const VoucherManagement = () => {
                             {v.totalQuantity}
                           </span>
                           {v.remainingQuantity !== undefined && (
-                            <span className={styles['remaining-highlight']}>
-                              {' '}({t('voucherManagement.card.remaining')} {v.remainingQuantity})
+                            <span className={
+                              v.remainingQuantity === 0 
+                                ? styles['remaining-out-of-stock']
+                                : v.remainingQuantity <= 5 
+                                  ? styles['remaining-warning']
+                                  : styles['remaining-highlight']
+                            }>
+                              {' '}({v.remainingQuantity === 0 
+                                ? t('voucherManagement.card.outOfStock')
+                                : `${t('voucherManagement.card.remaining')} ${v.remainingQuantity}`
+                              })
                             </span>
                           )}
                         </div>

@@ -224,6 +224,16 @@
   font-weight: 600;
 }
 
+.remaining-warning {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.remaining-out-of-stock {
+  color: #ef4444;
+  font-weight: 600;
+}
+
 /* Tours List */
 .voucher-tours {
   font-size: 13px;

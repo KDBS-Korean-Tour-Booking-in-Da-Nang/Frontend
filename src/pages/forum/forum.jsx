@@ -28,7 +28,13 @@ const upsertPostInCollection = (collection = [], post, maxItems) => {
   const list = Array.isArray(collection) ? [...collection] : [];
   const index = list.findIndex(item => item.forumPostId === post.forumPostId);
   if (index !== -1) {
-    list[index] = { ...list[index], ...post };
+    // Merge post data, ensuring metadata is properly cleared if null
+    const mergedPost = { ...list[index], ...post };
+    // Explicitly set metadata to null if post.metadata is null (to clear existing metadata)
+    if (post.metadata === null || post.metadata === undefined) {
+      mergedPost.metadata = null;
+    }
+    list[index] = mergedPost;
     return maxItems ? list.slice(0, maxItems) : list;
   }
   const updated = [post, ...list];

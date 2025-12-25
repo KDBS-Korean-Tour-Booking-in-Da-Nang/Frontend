@@ -114,7 +114,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       email: user.email,
       name: formData.name,
       phone: formData.phone,
-      avatarFile: avatarFile,
+      avatarFile: isAdminOrStaff ? null : avatarFile,
       currentAvatarUrl: user.avatar
     };
 
@@ -136,7 +136,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       
       try {
         await refreshUser();
-      } catch (refreshError) {
+      } catch {
         const updatedUser = {
           ...user,
           username: formData.name,
@@ -170,6 +170,9 @@ const EditProfileModal = ({ isOpen, onClose }) => {
   };
 
   if (!isOpen) return null;
+
+  // Kiểm tra xem user có phải ADMIN hoặc STAFF không
+  const isAdminOrStaff = user?.role === 'ADMIN' || user?.role === 'STAFF';
 
   const modalNode = (
     <div 
@@ -211,18 +214,21 @@ const EditProfileModal = ({ isOpen, onClose }) => {
                 }}
               />
             </div>
-            <label htmlFor="avatar-upload" className={styles['avatar-upload-label']}>
-              <Upload size={16} strokeWidth={2} />
-              <span>{t('profile.actions.chooseAvatar') || 'Choose Avatar'}</span>
-            </label>
-            <input
-              type="file"
-              id="avatar-upload"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className={styles['avatar-input']}
-              disabled={isUpdating}
-            />
+            {!isAdminOrStaff && (
+              <>
+                <label htmlFor="avatar-upload" className={styles['avatar-upload-label']}>
+                  <Upload size={16} strokeWidth={2} />
+                </label>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className={styles['avatar-input']}
+                  disabled={isUpdating}
+                />
+              </>
+            )}
             {errors.avatar && (
               <div className={styles['error-message']}>{errors.avatar}</div>
             )}

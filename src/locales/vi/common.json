@@ -232,6 +232,9 @@
       "empty": "Hiện chưa có tour khả dụng, vui lòng quay lại sau.",
       "tourAlt": "Tour",
       "tourLabel": "Tour",
+      "top1": "TOP 1",
+      "top2": "TOP 2",
+      "top3": "TOP 3",
       "card1": {
         "location": "Indonesia",
         "title": "Bãi biển Pandawa, Đảo Bali",
@@ -2712,7 +2715,7 @@
         "tourExpirationDate": "Chọn ngày khóa đặt tour",
         "checkDays": "Nhập số ngày kiểm tra/duyệt",
         "balancePaymentDays": "Nhập số ngày thanh toán còn lại",
-        "depositPercentage": "0 - 100",
+        "depositPercentage": "1 - 100",
         "refundFloor": "1 - 100"
       },
       "help": {
@@ -3063,6 +3066,7 @@
       "durationLabel": "THỜI GIAN:",
       "capacityLabel": "SỨC CHỨA:",
       "capacityUnit": "khách",
+      "packagesUnit": "gói tour",
       "departureLabel": "ĐIỂM KHỞI HÀNH:",
       "durationZero": "0 ngày",
       "durationDays": "{{days}} ngày"
@@ -4264,6 +4268,7 @@
     "loading": "Đang tải bài báo...",
     "loadingMore": "Đang tải...",
     "loadMore": "Xem thêm",
+    "noMoreArticles": "Đã hết bài báo",
     "noArticles": "Chưa có bài báo nào",
     "noArticlesDesc": "Hãy quay lại sau để xem các bài báo mới nhất!",
     "noArticlesSearch": "Không tìm thấy bài viết phù hợp với từ khóa này.",
@@ -4916,13 +4921,14 @@
     "empty": {
       "message": "Chưa có voucher nào. Hãy tạo voucher đầu tiên!"
     },
-    "card": {
-      "code": "Mã",
-      "type": "Loại:",
-      "value": "Giá trị:",
-      "quantity": "Số lượng:",
-      "remaining": "Còn lại:",
-      "status": "Trạng thái:",
+		"card": {
+			"code": "Mã",
+			"type": "Loại:",
+			"value": "Giá trị:",
+			"quantity": "Số lượng:",
+			"remaining": "Còn lại:",
+			"outOfStock": "Đã hết",
+			"status": "Trạng thái:",
       "appliedTo": "Áp dụng cho tour:",
       "allTours": "Áp dụng cho tất cả tour",
       "startDate": "Bắt đầu:",

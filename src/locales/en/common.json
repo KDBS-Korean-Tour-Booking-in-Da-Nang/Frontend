@@ -232,6 +232,9 @@
 			"empty": "No tours available at the moment. Please check back later.",
 			"tourAlt": "Tour",
 			"tourLabel": "Tour",
+			"top1": "TOP 1",
+			"top2": "TOP 2",
+			"top3": "TOP 3",
 			"card1": {
 				"location": "Indonesia",
 				"title": "Pandawa Beach, Bali Island",
@@ -2706,7 +2709,7 @@
 				"tourExpirationDate": "Select booking cut-off date",
 				"checkDays": "Enter check days",
 				"balancePaymentDays": "Enter balance payment days",
-				"depositPercentage": "0 - 100",
+				"depositPercentage": "1 - 100",
 				"refundFloor": "1 - 100"
 			},
 			"help": {
@@ -3057,6 +3060,7 @@
 			"durationLabel": "DURATION:",
 			"capacityLabel": "CAPACITY:",
 			"capacityUnit": "guests",
+			"packagesUnit": "tours",
 			"departureLabel": "DEPARTURE:",
 			"durationZero": "0 days",
 			"durationDays": "{{days}} days"
@@ -4247,6 +4251,7 @@
 		"loading": "Loading articles...",
 		"loadingMore": "Loading...",
 		"loadMore": "Load More",
+		"noMoreArticles": "No more articles",
 		"noArticles": "No articles yet",
 		"noArticlesDesc": "Please come back later to see the latest articles!",
 		"noArticlesSearch": "No articles found matching this keyword.",
@@ -4908,6 +4913,7 @@
 			"value": "Value:",
 			"quantity": "Quantity:",
 			"remaining": "Remaining:",
+			"outOfStock": "Out of stock",
 			"status": "Status:",
 			"appliedTo": "Applied to tour:",
 			"allTours": "Apply to all tours",

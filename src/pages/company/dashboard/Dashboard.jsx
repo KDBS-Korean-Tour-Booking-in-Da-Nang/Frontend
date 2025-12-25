@@ -354,11 +354,29 @@ const Dashboard = () => {
 
   // Booking status donut chart: hiển thị tất cả statuses có count > 0, sort theo count descending, map status sang short names (statusShortNames), sử dụng statusColors cho màu sắc
   const bookingStatusMap = stats.bookingStatusMap || {};
-  const statusColors = [
-    '#1a8eea', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-    '#ec4899', '#14b8a6', '#f97316', '#84cc16', '#06b6d4',
-    '#6366f1', '#a855f7', '#eab308', '#22c55e', '#3b82f6'
-  ];
+  
+  // Get color code for booking status badge (matching BookingManagement.jsx)
+  const getStatusColor = (status) => {
+    const normalizedStatus = String(status || '').toUpperCase().replace(/ /g, '_');
+
+    const colorMap = {
+      PENDING_PAYMENT: '#F97316',              // Orange
+      PENDING_DEPOSIT_PAYMENT: '#EA580C',      // Orange darker (riêng biệt)
+      PENDING_BALANCE_PAYMENT: '#F59E0B',       // Amber
+      WAITING_FOR_APPROVED: '#3B82F6',          // Blue
+      WAITING_FOR_UPDATE: '#8B5CF6',            // Purple
+      BOOKING_REJECTED: '#EF4444',              // Red
+      BOOKING_FAILED: '#DC2626',                // Red darker
+      BOOKING_BALANCE_SUCCESS: '#14B8A6',       // Teal
+      BOOKING_SUCCESS_PENDING: '#06B6D4',        // Cyan (riêng biệt)
+      BOOKING_SUCCESS_WAIT_FOR_CONFIRMED: '#2563EB', // Blue darker
+      BOOKING_UNDER_COMPLAINT: '#EAB308',       // Yellow
+      BOOKING_SUCCESS: '#10B981',               // Green
+      BOOKING_CANCELLED: '#9CA3AF'              // Gray
+    };
+
+    return colorMap[normalizedStatus] || '#6B7280';
+  };
   
   // Mapping for short status names
   const statusShortNames = {
@@ -387,12 +405,15 @@ const Dashboard = () => {
   
   const bookingStatusSeries = statusEntries.map(([_, count]) => count);
   
+  // Map each status to its corresponding color
+  const statusColors = statusEntries.map(([status]) => getStatusColor(status));
+  
   const bookingStatusOptions = {
     chart: {
       type: 'donut',
       height: 350
     },
-    colors: statusColors.slice(0, bookingStatusLabels.length),
+    colors: statusColors,
     labels: bookingStatusLabels,
     legend: {
       position: 'bottom',
