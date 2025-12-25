@@ -572,6 +572,10 @@
   gap: 0.5rem;
   height: 6.875rem;
 }
+
+.pc-thumbs-two {
+  grid-template-columns: repeat(2, 1fr);
+}
 .pc-thumb-wrap {
   position: relative;
   height: 100%;

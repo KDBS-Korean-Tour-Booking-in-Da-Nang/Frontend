@@ -298,11 +298,23 @@ const VoucherCreateModal = ({ isOpen, onClose, onSuccess, tours, companyId }) =>
                   }}
                   onChange={(e) => {
                     let value = e.target.value;
-                    if (form.discountType === 'PERCENT' && value !== '') {
-                      const num = Number(value);
-                      if (!isNaN(num)) {
-                        if (num > 80) {
+                    // Allow empty value while typing
+                    if (value === '') {
+                      handleChange('discountValue', value);
+                      return;
+                    }
+                    
+                    const num = Number(value);
+                    if (!isNaN(num)) {
+                      if (form.discountType === 'PERCENT') {
+                        if (num < 1) {
+                          value = '1';
+                        } else if (num > 80) {
                           value = '80';
+                        }
+                      } else if (form.discountType === 'AMOUNT') {
+                        if (num < 1) {
+                          value = '1';
                         }
                       }
                     }

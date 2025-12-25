@@ -366,6 +366,18 @@
   font-weight: 500;
 }
 
+.detail-value-warning {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.warning-icon {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: middle;
+  color: #ef4444;
+}
+
 /* Tour Controls */
 .tour-controls {
   padding-top: 12px;

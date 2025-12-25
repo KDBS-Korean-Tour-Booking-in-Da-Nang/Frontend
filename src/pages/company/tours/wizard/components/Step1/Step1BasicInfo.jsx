@@ -189,6 +189,14 @@ const Step1BasicInfo = () => {
         }
       });
 
+      // Validate depositPercentage range (1-100)
+      if (formData.depositPercentage !== '' && formData.depositPercentage !== undefined && formData.depositPercentage !== null) {
+        const dp = parseInt(formData.depositPercentage, 10);
+        if (Number.isNaN(dp) || dp < 1 || dp > 100) {
+          errors.depositPercentage = t('toast.field_invalid') || 'Giá trị phải từ 1 đến 100';
+        }
+      }
+
       if (formData.allowRefundableAfterBalancePayment) {
         if (formData.refundFloor === '' || formData.refundFloor === undefined || formData.refundFloor === null) {
           errors.refundFloor =
@@ -514,7 +522,7 @@ const Step1BasicInfo = () => {
           updateTourData(updated);
           return;
         } else if (name === 'depositPercentage') {
-          const clamped = Math.max(0, Math.min(100, num));
+          const clamped = Math.max(1, Math.min(100, num));
           nextValue = String(clamped);
           clearFieldError('depositPercentage');
         } else if (name === 'refundFloor') {
@@ -893,10 +901,10 @@ const Step1BasicInfo = () => {
             value={formData.depositPercentage}
             onChange={handleChange}
             onFocus={handleFieldFocus}
-            placeholder={t('tourWizard.step1.placeholders.depositPercentage', '0 - 100')}
+            placeholder={t('tourWizard.step1.placeholders.depositPercentage', '1 - 100')}
             onKeyDown={preventInvalidNumberKeys}
             onWheel={(e) => e.currentTarget.blur()}
-            min="0"
+            min="1"
             max="100"
             className={styles['form-input']}
           />

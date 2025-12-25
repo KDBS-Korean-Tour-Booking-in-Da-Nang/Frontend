@@ -232,6 +232,9 @@
 			"empty": "현재 사용 가능한 투어가 없습니다. 나중에 다시 확인해주세요.",
 			"tourAlt": "투어",
 			"tourLabel": "투어",
+			"top1": "1위",
+			"top2": "2위",
+			"top3": "3위",
 			"card1": {
 				"location": "인도네시아",
 				"title": "판다와 해변, 발리 섬",
@@ -2641,7 +2644,7 @@
 				"tourExpirationDate": "예약 마감일 선택",
 				"checkDays": "확인(승인) 일수 입력",
 				"balancePaymentDays": "잔금 일수 입력",
-				"depositPercentage": "0 - 100",
+				"depositPercentage": "1 - 100",
 				"refundFloor": "1 - 100"
 			},
 			"help": {
@@ -2991,6 +2994,7 @@
 			"durationLabel": "기간:",
 			"capacityLabel": "수용 인원:",
 			"capacityUnit": "명",
+			"packagesUnit": "투어",
 			"departureLabel": "출발지:",
 			"durationZero": "0일",
 			"durationDays": "{{days}}일"
@@ -4184,6 +4188,7 @@
 		"noArticlesSearch": "이 키워드와 일치하는 기사를 찾을 수 없습니다.",
 		"loadingMore": "더 많은 기사 로딩 중...",
 		"loadMore": "더 보기",
+		"noMoreArticles": "더 이상 기사가 없습니다",
 		"sidebar": {
 			"title": "관련 정보",
 			"filterTitle": "필터 및 정렬",
@@ -4828,6 +4833,7 @@
 			"value": "값:",
 			"quantity": "수량:",
 			"remaining": "남은 수량:",
+			"outOfStock": "품절",
 			"status": "상태:",
 			"appliedTo": "적용된 투어:",
 			"allTours": "모든 투어에 적용",

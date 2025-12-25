@@ -60,13 +60,18 @@ const TransactionManagement = () => {
 
       // Map TransactionResponse to frontend format
       const mappedTransactions = transactionsList.map((txn) => {
-        // Map status: SUCCESS -> completed, PENDING -> pending, FAILED -> failed
+        // Map backend status to frontend status:
+        // Backend: SUCCESS -> Frontend: completed
+        // Backend: PENDING -> Frontend: pending
+        // Backend: FAILED -> Frontend: failed
+        // Normalize status to uppercase for comparison
+        const backendStatus = (txn.status || '').toUpperCase().trim();
         let status = 'pending';
-        if (txn.status === 'SUCCESS') {
+        if (backendStatus === 'SUCCESS') {
           status = 'completed';
-        } else if (txn.status === 'FAILED') {
+        } else if (backendStatus === 'FAILED') {
           status = 'failed';
-        } else if (txn.status === 'PENDING') {
+        } else if (backendStatus === 'PENDING') {
           status = 'pending';
         }
 
@@ -130,10 +135,12 @@ const TransactionManagement = () => {
 
   const stats = useMemo(() => {
     const total = transactions.length;
-    const completed = transactions.filter((t) => t.status === 'completed').length;
-    const totalRevenue = transactions
-      .filter((t) => t.status === 'completed')
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    // Only count completed transactions (status === 'completed', which maps from backend SUCCESS)
+    // for completed count and total revenue calculation
+    const completedTransactions = transactions.filter((t) => t.status === 'completed');
+    const completed = completedTransactions.length;
+    // Total revenue: only sum amounts from completed transactions (backend status: SUCCESS)
+    const totalRevenue = completedTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
     const pending = transactions.filter((t) => t.status === 'pending').length;
     return { total, completed, totalRevenue, pending };
   }, [transactions]);

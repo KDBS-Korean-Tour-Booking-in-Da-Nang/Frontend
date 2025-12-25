@@ -248,9 +248,9 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
 
   const displayedComments = showAllComments 
     ? comments
-    : comments.slice(0, 3);
+    : comments.slice(0, 1); // Only show 1 parent comment initially
 
-  const hasMoreComments = comments.length > 3;
+  const hasMoreComments = comments.length > 1; // Show "View more" if more than 1 parent comment
 
   const requestDeleteComment = (comment) => {
     setDeleteTarget(comment);
@@ -361,17 +361,14 @@ const CommentSection = ({ post, onCommentAdded, onCountChange, onLoginRequired, 
         </div>
       )}
 
-      {/* Show More Comments */}
-      {hasMoreComments && (
+      {/* Show More Comments - Only show button when not showing all comments yet */}
+      {!showAllComments && hasMoreComments && (
         <div className={styles['show-more-comments']}>
           <button 
-            onClick={() => setShowAllComments(!showAllComments)}
+            onClick={() => setShowAllComments(true)}
             className={styles['show-more-btn']}
           >
-            {showAllComments 
-              ? t('forum.comments.hideComments') 
-              : `${t('forum.comments.showMore')} ${comments.length - 3} ${t('forum.post.comments')}`
-            }
+            {t('forum.comments.showMore')} {comments.length - 1} {t('forum.post.comments')}
           </button>
         </div>
       )}
