@@ -41,6 +41,8 @@ const TourManagement = () => {
   const [error, setError] = useState('');
   const [companyId, setCompanyId] = useState(null);
   const [deleteNote, setDeleteNote] = useState('');
+  const [sortByDate, setSortByDate] = useState('newest'); // 'newest' or 'oldest'
+  const [filterByStatus, setFilterByStatus] = useState('all'); // 'all', 'PUBLIC', 'NOT_APPROVED', 'OUT_OF_TOUR', etc.
 
   // Check if user has COMPANY role
   const isBusinessUser = user && user.role === 'COMPANY';
@@ -125,15 +127,68 @@ const TourManagement = () => {
     }
   }, [isBusinessUser, companyId, fetchTours]);
 
-  // Calculate paginated tours for current page
+  // Filter, sort and paginate tours
   useEffect(() => {
+    // Filter tours by status
+    let filteredTours = [...allTours];
+    
+    if (filterByStatus !== 'all') {
+      if (filterByStatus === 'OUT_OF_TOUR') {
+        // Filter tours with amount <= 0
+        filteredTours = filteredTours.filter(tour => 
+          tour.amount !== null && tour.amount !== undefined && tour.amount <= 0
+        );
+      } else {
+        // Filter by tourStatus
+        filteredTours = filteredTours.filter(tour => {
+          const status = (tour.tourStatus || '').toUpperCase();
+          return status === filterByStatus.toUpperCase();
+        });
+      }
+    }
+    
+    // Sort tours by date
+    if (sortByDate === 'newest') {
+      // Sort by createdAt (newest first)
+      filteredTours.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA; // Descending (newest first)
+      });
+    } else if (sortByDate === 'oldest') {
+      // Sort by createdAt (oldest first)
+      filteredTours.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB; // Ascending (oldest first)
+      });
+    }
+    
+    // Paginate sorted tours
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const paginatedTours = allTours.slice(startIndex, endIndex);
+    const paginatedTours = filteredTours.slice(startIndex, endIndex);
     setTours(paginatedTours);
-  }, [allTours, currentPage, itemsPerPage]);
+  }, [allTours, currentPage, itemsPerPage, sortByDate, filterByStatus]);
 
-  const totalPages = Math.ceil(allTours.length / itemsPerPage);
+  // Calculate filtered tours count and total pages
+  const getFilteredToursCount = () => {
+    if (filterByStatus === 'all') {
+      return allTours.length;
+    }
+    if (filterByStatus === 'OUT_OF_TOUR') {
+      return allTours.filter(tour => 
+        tour.amount !== null && tour.amount !== undefined && tour.amount <= 0
+      ).length;
+    }
+    return allTours.filter(tour => {
+      const status = (tour.tourStatus || '').toUpperCase();
+      return status === filterByStatus.toUpperCase();
+    }).length;
+  };
+
+  const filteredToursCount = getFilteredToursCount();
+  const totalPages = Math.ceil(filteredToursCount / itemsPerPage);
 
   // Xử lý pagination page change và scroll to top: validate page trong range, set currentPage, scroll window to top với smooth behavior
   const handlePageChange = (page) => {
@@ -141,6 +196,18 @@ const TourManagement = () => {
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  // Handle sort by date change: reset to page 1 when sort changes
+  const handleSortByDateChange = (newSortByDate) => {
+    setSortByDate(newSortByDate);
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
+  // Handle filter by status change: reset to page 1 when filter changes
+  const handleFilterByStatusChange = (newFilterByStatus) => {
+    setFilterByStatus(newFilterByStatus);
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   // Navigate to tour creation wizard
@@ -286,11 +353,24 @@ const TourManagement = () => {
   };
 
   // Get translated status label with fallback to status value
-  const getStatusLabel = (status) => {
+  // If tour amount <= 0, show "OUT_OF_TOUR" status
+  const getStatusLabel = (status, amount) => {
+    // Check if tour is out of stock (amount <= 0)
+    if (amount !== null && amount !== undefined && amount <= 0) {
+      return t('tourManagement.statusBadge.OUT_OF_TOUR');
+    }
     if (!status) return t('tourManagement.statusBadge.UNKNOWN');
     const statusUpper = status.toUpperCase();
     const translationKey = `tourManagement.statusBadge.${statusUpper}`;
     return t(translationKey, { defaultValue: status });
+  };
+
+  // Get status badge class name, considering OUT_OF_TOUR status
+  const getStatusBadgeClass = (status, amount) => {
+    if (amount !== null && amount !== undefined && amount <= 0) {
+      return 'out_of_tour';
+    }
+    return status?.toLowerCase() || 'active';
   };
 
   // Normalize departure point value to localized Da Nang label
@@ -375,13 +455,35 @@ const TourManagement = () => {
             <h1>{t('tourManagement.header.title')}</h1>
             <p className={styles['header-subtitle']}>{t('tourManagement.header.subtitle', { defaultValue: 'Quản lý tất cả các tour của bạn' })}</p>
           </div>
-          <button
-            onClick={handleCreateTour}
-            className={styles['add-tour-btn']}
-          >
-            <PlusIcon className={styles['btn-icon']} />
-            <span>{t('tourManagement.header.addNew')}</span>
-          </button>
+          <div className={styles['header-actions']}>
+            <div className={styles['sort-container']}>
+              <select
+                value={sortByDate}
+                onChange={(e) => handleSortByDateChange(e.target.value)}
+                className={styles['sort-select']}
+              >
+                <option value="newest">{t('tourManagement.sort.newest')}</option>
+                <option value="oldest">{t('tourManagement.sort.oldest')}</option>
+              </select>
+              <select
+                value={filterByStatus}
+                onChange={(e) => handleFilterByStatusChange(e.target.value)}
+                className={styles['sort-select']}
+              >
+                <option value="all">{t('tourManagement.sort.allStatus')}</option>
+                <option value="PUBLIC">{t('tourManagement.statusBadge.PUBLIC')}</option>
+                <option value="NOT_APPROVED">{t('tourManagement.statusBadge.NOT_APPROVED')}</option>
+                <option value="OUT_OF_TOUR">{t('tourManagement.statusBadge.OUT_OF_TOUR')}</option>
+              </select>
+            </div>
+            <button
+              onClick={handleCreateTour}
+              className={styles['add-tour-btn']}
+            >
+              <PlusIcon className={styles['btn-icon']} />
+              <span>{t('tourManagement.header.addNew')}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -429,8 +531,8 @@ const TourManagement = () => {
                     )}
 
                     {/* Status Badge */}
-                    <div className={`${styles['status-badge']} ${styles[tour.tourStatus?.toLowerCase() || 'active']}`}>
-                      {getStatusLabel(tour.tourStatus)}
+                    <div className={`${styles['status-badge']} ${styles[getStatusBadgeClass(tour.tourStatus, tour.amount)]}`}>
+                      {getStatusLabel(tour.tourStatus, tour.amount)}
                     </div>
                   </div>
 
@@ -466,7 +568,14 @@ const TourManagement = () => {
                         <div className={styles['detail-item']}>
                           <UserGroupIcon className={styles['detail-icon']} />
                           <span className={styles['detail-value']}>
-                            {(tour.amount !== null && tour.amount !== undefined && tour.amount <= 5 && tour.amount > 0) ? (
+                            {(tour.amount !== null && tour.amount !== undefined && tour.amount === 0) ? (
+                              <>
+                                <span className={styles['detail-value-warning']}>0</span>
+                                {' '}
+                                {t('tourManagement.card.packagesUnit')}
+                                <ExclamationTriangleIcon className={`${styles['detail-icon']} ${styles['warning-icon']}`} />
+                              </>
+                            ) : (tour.amount !== null && tour.amount !== undefined && tour.amount <= 5 && tour.amount > 0) ? (
                               <>
                                 <span className={styles['detail-value-warning']}>{tour.amount}</span>
                                 {' '}
@@ -512,7 +621,8 @@ const TourManagement = () => {
                           </>
                         )}
 
-                        {tour.tourStatus?.toUpperCase() !== 'NOT_APPROVED' && (
+                        {tour.tourStatus?.toUpperCase() !== 'NOT_APPROVED' && 
+                         tour.amount !== null && tour.amount !== undefined && tour.amount > 0 && (
                           <button
                             onClick={(e) => { e.stopPropagation(); setShareTourId(tour.id); setShareOpen(true); }}
                             className={styles['share-btn']}
@@ -534,7 +644,7 @@ const TourManagement = () => {
               <div className={styles['pagination']}>
                 <div className={styles['pagination-info']}>
                   <span>
-                    {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> ({allTours.length} {t('bookingManagement.tourSelector.pagination.tours')})
+                    {t('bookingManagement.tourSelector.pagination.showing')} <strong>{currentPage}</strong> / <strong>{totalPages}</strong> ({filteredToursCount} {t('bookingManagement.tourSelector.pagination.tours')})
                   </span>
                 </div>
                 <div className={styles['pagination-controls']}>

@@ -1557,6 +1557,9 @@
         "tourType": "Loại tour",
         "amount": "Số lượng",
         "amountPeople": "{{amount}} người",
+        "minGuests": "Số khách tối thiểu",
+        "maxGuests": "Số khách tối đa",
+        "guests": "khách",
         "company": "Công ty",
         "expirationDate": "Ngày hết hạn",
         "checkDays": "Số ngày kiểm tra",
@@ -2874,6 +2877,22 @@
       "title": "Giá & chính sách",
       "subtitle": "Thiết lập giá và chính sách tour",
       "warning": "Nhập giá tiền Việt vì hệ thống đã có xử lý chuyển đổi từ tiền Việt qua tiền Hàn Quốc.",
+      "guestLimits": {
+        "title": "Giới hạn số khách",
+        "minGuests": "Số khách tối thiểu",
+        "maxGuests": "Số khách tối đa",
+        "placeholders": {
+          "minGuests": "Ví dụ: 2",
+          "maxGuests": "Ví dụ: 20"
+        },
+        "errors": {
+          "minInvalid": "Số khách tối thiểu phải lớn hơn hoặc bằng 1",
+          "maxInvalid": "Số khách tối đa phải lớn hơn hoặc bằng 1",
+          "minGreaterThanMax": "Số khách tối thiểu không được lớn hơn số khách tối đa",
+          "maxLessThanMin": "Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu",
+          "maxExceedsLimit": "Số khách tối đa không được vượt quá {{limit}}"
+        }
+      },
       "pricing": {
         "title": "Giá tour",
         "adultPrice": "Giá người lớn (≥ 18 tuổi)",
@@ -2993,6 +3012,11 @@
       "bookingError": "Không thể tạo booking. Vui lòng thử lại sau.",
       "companyNotAllowedError": "Tài khoản doanh nghiệp không thể đặt tour."
     },
+    "tourFullyBookedModal": {
+      "title": "Tour đã hết chỗ",
+      "message": "Tour này đã hết chỗ. Vui lòng chọn tour khác.",
+      "close": "Đóng"
+    },
     "backToWizard": {
       "modal": {
         "title": "Xác nhận quay lại wizard",
@@ -3034,6 +3058,11 @@
       "subtitle": "Quản lý tất cả các tour của bạn",
       "addNew": "Thêm Tour Mới"
     },
+    "sort": {
+      "newest": "Mới nhất",
+      "oldest": "Cũ nhất",
+      "allStatus": "Tất cả trạng thái"
+    },
     "loading": {
       "user": "Đang tải thông tin người dùng...",
       "tours": "Đang tải danh sách tour..."
@@ -3059,6 +3088,7 @@
       "NOT_APPROVED": "CHỜ DUYỆT",
       "DISABLED": "ĐÃ VÔ HIỆU",
       "DRAFT": "BẢN NHÁP",
+      "OUT_OF_TOUR": "HẾT TOUR",
       "UNKNOWN": "KHÔNG XÁC ĐỊNH"
     },
     "card": {
@@ -3275,6 +3305,9 @@
         "includedNote": "Giá đã bao gồm thuế và phí dịch vụ",
         "children": "Trẻ em",
         "baby": "Em bé",
+        "minGuests": "Số khách tối thiểu",
+        "maxGuests": "Số khách tối đa",
+        "guests": "khách",
         "bookNow": "Đặt tour ngay",
         "contact": "Liên hệ tư vấn",
         "infoTitle": "Thông tin đặt tour",
@@ -3705,7 +3738,8 @@
         "adult": "Người lớn",
         "child": "Trẻ em",
         "infant": "Em bé",
-        "adultMinHint": "Cần ít nhất 1 người lớn"
+        "adultMinHint": "Cần ít nhất 1 người lớn",
+        "maxGuestsReached": "Đã đạt số khách tối đa ({{max}} người)"
       },
       "labels": {
         "fullName": "Họ và tên",
@@ -3740,6 +3774,9 @@
       "fields": {
         "date": "Ngày khởi hành",
         "deadlineNotice": "Tour này cần {{days}} ngày để xử lý thủ tục nên vui lòng chọn ngày khởi hành sau {{minDate}}",
+        "guestLimitsNotice": "Tour này cho phép từ {{min}} đến {{max}} khách. Vui lòng chọn số lượng khách trong phạm vi này.",
+        "guestMinNotice": "Tour này yêu cầu tối thiểu {{min}} khách. Vui lòng chọn số lượng khách từ {{min}} người trở lên.",
+        "guestMaxNotice": "Tour này cho phép tối đa {{max}} khách. Vui lòng chọn số lượng khách không vượt quá {{max}} người.",
         "adultPax": "Số lượng người lớn",
         "adultName1": "Tên người lớn 1",
         "adultName2": "Tên người lớn 2",
@@ -3821,7 +3858,9 @@
         "infantTooOld": "Em bé phải < 2 tuổi tại mục em bé.",
         "genderRequired": "Giới tính là bắt buộc",
         "nationalityRequired": "Quốc tịch là bắt buộc",
-        "idRequired": "Số giấy tờ là bắt buộc"
+        "idRequired": "Số giấy tờ là bắt buộc",
+        "totalGuestsBelowMin": "Tổng số khách phải ít nhất {{min}} người",
+        "totalGuestsAboveMax": "Tổng số khách không được vượt quá {{max}} người"
       },
       "validation": {
         "vietnameseId": "Số căn cước/CMND phải có 12 số (CCCD) hoặc 9 số (CMND/CMT). Chỉ được nhập số.",
@@ -3967,7 +4006,7 @@
       "fullNameRequired": "Họ tên là bắt buộc",
       "fullNameInvalid": "Họ tên chỉ được chứa chữ cái, khoảng trắng, dấu gạch ngang và dấu nháy đơn",
       "phoneRequired": "Số điện thoại là bắt buộc",
-      "phoneInvalid": "Số điện thoại không hợp lệ (VD: 0123456789 hoặc +84 705327671)",
+      "phoneInvalid": "Số điện thoại không hợp lệ",
       "emailRequired": "Email là bắt buộc",
       "emailInvalid": "Email không hợp lệ",
       "emailMismatch": "Email không khớp với tài khoản của bạn. Vui lòng sử dụng email đã đăng ký.",

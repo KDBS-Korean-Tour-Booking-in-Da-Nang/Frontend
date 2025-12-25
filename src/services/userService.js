@@ -118,10 +118,11 @@ export const updateUserProfile = async (userData, token) => {
 /**
  * Validate user profile data before sending to API
  * @param {Object} userData - User data to validate
+ * @param {Function} t - Optional translation function for i18n
  * @returns {Object} Validation result with isValid and errors
  */
 // Validate dữ liệu profile người dùng trước khi gửi lên API
-export const validateUserProfile = (userData) => {
+export const validateUserProfile = (userData, t = null) => {
   const errors = {};
   
   // Validate tên (map sang username trong backend)
@@ -160,7 +161,7 @@ export const validateUserProfile = (userData) => {
       if (!vietnameseRegex.test(cleanPhone) && !internationalRegex.test(cleanPhone)) {
         // Chỉ hiển thị lỗi nếu số điện thoại rõ ràng không hợp lệ (quá ngắn hoặc có ký tự không hợp lệ)
         if (cleanPhone.length < 7 || !/^[\d+]+$/.test(cleanPhone)) {
-          errors.phone = 'Số điện thoại không hợp lệ';
+          errors.phone = t ? t('profile.errors.phoneInvalid', 'Số điện thoại không hợp lệ') : 'Số điện thoại không hợp lệ';
         }
         // Nếu không, cho phép (có thể là định dạng hợp lệ mà chúng ta chưa dự đoán)
       }

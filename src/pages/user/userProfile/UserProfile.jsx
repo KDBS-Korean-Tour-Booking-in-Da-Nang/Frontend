@@ -735,6 +735,35 @@ const UserProfile = () => {
     }));
   };
 
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    // Chỉ cho phép số và dấu +
+    const filteredValue = value.replace(/[^0-9+]/g, '');
+    // Đảm bảo dấu + chỉ ở đầu
+    const finalValue = filteredValue.includes('+') 
+      ? '+' + filteredValue.replace(/\+/g, '') 
+      : filteredValue;
+    setEditForm(prev => ({
+      ...prev,
+      phone: finalValue
+    }));
+  };
+
+  const handlePhonePaste = (e) => {
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text');
+    // Chỉ cho phép số và dấu +
+    const filteredValue = paste.replace(/[^0-9+]/g, '');
+    // Đảm bảo dấu + chỉ ở đầu
+    const finalValue = filteredValue.includes('+') 
+      ? '+' + filteredValue.replace(/\+/g, '') 
+      : filteredValue;
+    setEditForm(prev => ({
+      ...prev,
+      phone: finalValue
+    }));
+  };
+
   const isValidUsername = (val) => {
     if (val === undefined || val === null) return false;
     const trimmed = String(val).normalize('NFC').trim();
@@ -864,7 +893,7 @@ const UserProfile = () => {
       ...userData,
       dob: normalizedDob || ''
     };
-    const validation = validateUserProfile(dataForValidation);
+    const validation = validateUserProfile(dataForValidation, t);
     if (!validation.isValid) {
       if (validation.errors.name) setNameError(validation.errors.name);
       if (validation.errors.dob) setDobError(validation.errors.dob);
@@ -1326,7 +1355,8 @@ const UserProfile = () => {
               id="phone"
               name="phone"
               value={editForm.phone}
-              onChange={handleEditChange}
+              onChange={handlePhoneChange}
+              onPaste={handlePhonePaste}
               className={styles['form-input']}
             />
           </div>

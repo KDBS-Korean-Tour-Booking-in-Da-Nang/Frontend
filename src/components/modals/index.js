@@ -16,3 +16,5 @@ export { default as RequestUpdateModal } from './RequestUpdateModal/RequestUpdat
 
 export { default as VoucherListModal } from './VoucherListModal/VoucherListModal';
 
+export { default as TourFullyBookedModal } from './TourFullyBookedModal/TourFullyBookedModal';
+

@@ -53,7 +53,12 @@ const TourList = () => {
 
   useEffect(() => {
     if (!isSearchMode) {
-      const publicTours = (tours || []).filter(tour => tour.tourStatus === 'PUBLIC');
+      const publicTours = (tours || []).filter(tour => 
+        tour.tourStatus === 'PUBLIC' && 
+        tour.amount !== null && 
+        tour.amount !== undefined && 
+        tour.amount > 0
+      );
       setFilteredTours(publicTours);
       setCurrentPage(1); // Reset về trang 1 khi tours thay đổi
     }
@@ -73,7 +78,12 @@ const TourList = () => {
       setIsSearchMode(false);
       setPage(0);
       setTotalPages(0);
-      const publicTours = (tours || []).filter(tour => tour.tourStatus === 'PUBLIC');
+      const publicTours = (tours || []).filter(tour => 
+        tour.tourStatus === 'PUBLIC' && 
+        tour.amount !== null && 
+        tour.amount !== undefined && 
+        tour.amount > 0
+      );
       setFilteredTours(publicTours);
       setCurrentPage(1);
       return;

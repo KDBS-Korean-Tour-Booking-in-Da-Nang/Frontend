@@ -1559,6 +1559,9 @@
 				"tourType": "Tour type",
 				"amount": "Amount",
 				"amountPeople": "{{amount}} people",
+				"minGuests": "Minimum guests",
+				"maxGuests": "Maximum guests",
+				"guests": "guests",
 				"company": "Company",
 				"expirationDate": "Expiration date",
 				"checkDays": "Check days",
@@ -2868,6 +2871,22 @@
 			"title": "Pricing",
 			"subtitle": "Set up tour pricing",
 			"warning": "Enter prices in Vietnamese Dong as the system already handles conversion from VND to Korean Won.",
+			"guestLimits": {
+				"title": "Guest Limits",
+				"minGuests": "Minimum Guests",
+				"maxGuests": "Maximum Guests",
+				"placeholders": {
+					"minGuests": "Example: 2",
+					"maxGuests": "Example: 20"
+				},
+				"errors": {
+					"minInvalid": "Minimum guests must be greater than or equal to 1",
+					"maxInvalid": "Maximum guests must be greater than or equal to 1",
+					"minGreaterThanMax": "Minimum guests cannot be greater than maximum guests",
+					"maxLessThanMin": "Maximum guests must be greater than or equal to minimum guests",
+					"maxExceedsLimit": "Maximum guests must not exceed {{limit}}"
+				}
+			},
 			"pricing": {
 				"title": "Tour Pricing",
 				"adultPrice": "Adult Price (≥ 18 years)",
@@ -2987,6 +3006,11 @@
 			"bookingError": "Unable to create booking. Please try again later.",
 			"companyNotAllowedError": "Company accounts cannot book tours."
 		},
+		"tourFullyBookedModal": {
+			"title": "Tour Fully Booked",
+			"message": "This tour is fully booked. Please select another tour.",
+			"close": "Close"
+		},
 		"backToWizard": {
 			"modal": {
 				"title": "Confirm return to wizard",
@@ -3028,6 +3052,11 @@
 			"subtitle": "Manage all of your tours",
 			"addNew": "Add New Tour"
 		},
+		"sort": {
+			"newest": "Newest",
+			"oldest": "Oldest",
+			"allStatus": "All Status"
+		},
 		"loading": {
 			"user": "Loading user information...",
 			"tours": "Loading tours..."
@@ -3053,6 +3082,7 @@
 			"NOT_APPROVED": "PENDING",
 			"DISABLED": "DISABLED",
 			"DRAFT": "DRAFT",
+			"OUT_OF_TOUR": "OUT OF STOCK",
 			"UNKNOWN": "UNKNOWN"
 		},
 		"card": {
@@ -3269,6 +3299,9 @@
 				"includedNote": "Price includes taxes and service fees",
 				"children": "Children",
 				"baby": "Baby",
+				"minGuests": "Minimum guests",
+				"maxGuests": "Maximum guests",
+				"guests": "guests",
 				"bookNow": "Book now",
 				"contact": "Contact support",
 				"infoTitle": "Booking information",
@@ -3696,7 +3729,8 @@
 				"adult": "Adult",
 				"child": "Children",
 				"infant": "Baby",
-				"adultMinHint": "At least 1 adult is required"
+				"adultMinHint": "At least 1 adult is required",
+				"maxGuestsReached": "Maximum guests reached ({{max}} people)"
 			},
 			"labels": {
 				"fullName": "Full Name",
@@ -3731,6 +3765,9 @@
 			"fields": {
 				"date": "Departure Date",
 				"deadlineNotice": "This tour requires {{days}} days for processing, please select a departure date after {{minDate}}",
+				"guestLimitsNotice": "This tour allows {{min}} to {{max}} guests. Please select the number of guests within this range.",
+				"guestMinNotice": "This tour requires a minimum of {{min}} guests. Please select at least {{min}} guests.",
+				"guestMaxNotice": "This tour allows a maximum of {{max}} guests. Please select no more than {{max}} guests.",
 				"adultPax": "Adult Count",
 				"adultName1": "Adult 1 Name",
 				"adultName2": "Adult 2 Name",
@@ -3812,7 +3849,9 @@
 				"infantTooOld": "Infant must be < 2 years old in the Infant section.",
 				"genderRequired": "Gender is required",
 				"nationalityRequired": "Nationality is required",
-				"idRequired": "ID/Passport number is required"
+				"idRequired": "ID/Passport number is required",
+				"totalGuestsBelowMin": "Total guests must be at least {{min}} people",
+				"totalGuestsAboveMax": "Total guests must not exceed {{max}} people"
 			},
 			"validation": {
 				"vietnameseId": "Vietnamese ID must be 12 digits (CCCD) or 9 digits (CMND/CMT)",
@@ -3949,7 +3988,7 @@
 			"fullNameRequired": "Full name is required",
 			"fullNameInvalid": "Full name can only contain letters, spaces, hyphens and apostrophes",
 			"phoneRequired": "Phone number is required",
-			"phoneInvalid": "Invalid phone number (e.g., 0123456789 or +84 705327671)",
+			"phoneInvalid": "Invalid phone number",
 			"emailRequired": "Email is required",
 			"emailInvalid": "Invalid email",
 			"emailMismatch": "Email does not match your account. Please use the registered email.",
