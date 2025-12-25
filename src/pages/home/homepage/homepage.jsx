@@ -849,8 +849,8 @@ const Homepage = () => {
                                     e.target.src = '/default-Tour.jpg';
                                   }}
                                 />
-                                <div className="absolute top-4 left-4">
-                                  {topRank ? (
+                                {topRank && (
+                                  <div className="absolute top-4 left-4">
                                     <span 
                                       className="px-4 py-2 rounded-full text-sm font-bold flex items-center justify-center shadow-lg"
                                       style={getBadgeStyle(topRank)}
@@ -860,12 +860,8 @@ const Homepage = () => {
                                       </svg>
                                       {t(`home.destinations.top${topRank}`)}
                                     </span>
-                                  ) : (
-                                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                      {item?.tourDeparturePoint || item?.category || t('home.destinations.tourLabel', 'Tour')}
-                                    </span>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
                               </div>
                               <div className="p-6">
                                 <h4 className="text-xl font-bold text-gray-900 mb-2">{item?.title || ''}</h4>

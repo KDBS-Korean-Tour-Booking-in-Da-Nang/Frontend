@@ -71,6 +71,49 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     }
   };
 
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    // Chỉ cho phép số và dấu +
+    const filteredValue = value.replace(/[^0-9+]/g, '');
+    // Đảm bảo dấu + chỉ ở đầu
+    const finalValue = filteredValue.includes('+') 
+      ? '+' + filteredValue.replace(/\+/g, '') 
+      : filteredValue;
+    setFormData(prev => ({
+      ...prev,
+      phone: finalValue
+    }));
+    if (errors.phone) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.phone;
+        return newErrors;
+      });
+    }
+  };
+
+  const handlePhonePaste = (e) => {
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text');
+    // Chỉ cho phép số và dấu +
+    const filteredValue = paste.replace(/[^0-9+]/g, '');
+    // Đảm bảo dấu + chỉ ở đầu
+    const finalValue = filteredValue.includes('+') 
+      ? '+' + filteredValue.replace(/\+/g, '') 
+      : filteredValue;
+    setFormData(prev => ({
+      ...prev,
+      phone: finalValue
+    }));
+    if (errors.phone) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.phone;
+        return newErrors;
+      });
+    }
+  };
+
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -118,7 +161,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       currentAvatarUrl: user.avatar
     };
 
-    const validation = validateUserProfile(userData);
+    const validation = validateUserProfile(userData, t);
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
@@ -266,7 +309,8 @@ const EditProfileModal = ({ isOpen, onClose }) => {
                 id="phone"
                 name="phone"
                 value={formData.phone}
-                onChange={handleInputChange}
+                onChange={handlePhoneChange}
+                onPaste={handlePhonePaste}
                 className={styles['form-input']}
                 disabled={isUpdating}
               />

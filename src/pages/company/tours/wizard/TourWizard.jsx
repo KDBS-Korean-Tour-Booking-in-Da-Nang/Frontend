@@ -405,6 +405,8 @@ const TourWizardContent = () => {
         tourType: tourData.tourType,
         tourSchedule: tourData.tourSchedule || '', // User-defined schedule summary
         amount: parseInt(tourData.maxCapacity) || 30,
+        minGuests: tourData.minGuests ? parseInt(tourData.minGuests, 10) || 0 : 0,
+        maxGuests: tourData.maxGuests ? parseInt(tourData.maxGuests, 10) || 0 : 0,
         adultPrice: parseFloat(tourData.adultPrice) || 0,
         childrenPrice: parseFloat(tourData.childrenPrice) || 0,
         babyPrice: parseFloat(tourData.babyPrice) || 0,

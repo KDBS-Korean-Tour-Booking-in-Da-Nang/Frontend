@@ -893,6 +893,26 @@ const TourDetailPage = () => {
                         : t("tourPage.detail.overview.free")}
                     </span>
                   </div>
+                  {(tour.minGuests !== undefined && tour.minGuests !== null && tour.minGuests > 0) && (
+                    <div className={styles["price-row"]}>
+                      <span className={styles["booking-row-label"]}>
+                        {t("tourPage.detail.booking.minGuests")}
+                      </span>
+                      <span className={styles["booking-guests-value"]}>
+                        {tour.minGuests} {t("tourPage.detail.booking.guests")}
+                      </span>
+                    </div>
+                  )}
+                  {(tour.maxGuests !== undefined && tour.maxGuests !== null && tour.maxGuests > 0) && (
+                    <div className={styles["price-row"]}>
+                      <span className={styles["booking-row-label"]}>
+                        {t("tourPage.detail.booking.maxGuests")}
+                      </span>
+                      <span className={styles["booking-guests-value"]}>
+                        {tour.maxGuests} {t("tourPage.detail.booking.guests")}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles["booking-actions"]}>

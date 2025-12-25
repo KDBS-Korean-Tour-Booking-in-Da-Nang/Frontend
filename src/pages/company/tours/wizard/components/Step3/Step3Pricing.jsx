@@ -81,15 +81,19 @@ const Step3Pricing = () => {
     file_picker_types: 'image'
   });
   const [formData, setFormData] = useState({
+    minGuests: '',
+    maxGuests: '',
     adultPrice: '',
     childrenPrice: '',
     babyPrice: ''
   });
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Update form data khi tourData thay đổi: sync formData (adultPrice, childrenPrice, babyPrice) với tourData
+  // Update form data khi tourData thay đổi: sync formData (minGuests, maxGuests, adultPrice, childrenPrice, babyPrice) với tourData
   useEffect(() => {
     setFormData({
+      minGuests: tourData.minGuests || '',
+      maxGuests: tourData.maxGuests || '',
       adultPrice: tourData.adultPrice || '',
       childrenPrice: tourData.childrenPrice || '',
       babyPrice: tourData.babyPrice || ''
@@ -99,6 +103,8 @@ const Step3Pricing = () => {
   // Lắng nghe validation trigger từ parent (TourWizard): sử dụng latest values từ cả formData và tourData để đảm bảo có most current values, validate tất cả required fields (adultPrice >= 10000, childrenPrice/babyPrice >= 0), notify parent về validation status, scroll to first error field nếu có errors
   useEffect(() => {
     const handleValidateAll = () => {
+      const currentMinGuests = formData.minGuests || tourData.minGuests || '';
+      const currentMaxGuests = formData.maxGuests || tourData.maxGuests || '';
       const currentAdultPrice = formData.adultPrice || tourData.adultPrice || '';
       const currentChildrenPrice = formData.childrenPrice || tourData.childrenPrice || '';
       const currentBabyPrice = formData.babyPrice || tourData.babyPrice || '';
@@ -106,6 +112,40 @@ const Step3Pricing = () => {
       const errors = {};
       const MIN_PRICE_ADULT = 10000;
       const MIN_PRICE_CHILDREN_BABY = 0;
+      
+      // Validate minGuests and maxGuests (optional but if provided must be valid)
+      const MAX_GUESTS_LIMIT = 99;
+      if (currentMinGuests !== null && currentMinGuests !== undefined && String(currentMinGuests).trim() !== '') {
+        const minNum = parseInt(String(currentMinGuests).replace(/[^0-9]/g, ''), 10);
+        if (isNaN(minNum) || minNum < 1) {
+          errors.minGuests = t('tourWizard.step3.guestLimits.errors.minInvalid') || 'Số khách tối thiểu phải lớn hơn hoặc bằng 1';
+        } else {
+          const maxNum = currentMaxGuests ? parseInt(String(currentMaxGuests).replace(/[^0-9]/g, ''), 10) : null;
+          const maxLimit = maxNum !== null && !isNaN(maxNum) ? maxNum : MAX_GUESTS_LIMIT;
+          if (minNum > maxLimit) {
+            errors.minGuests = maxNum !== null && !isNaN(maxNum)
+              ? (t('tourWizard.step3.guestLimits.errors.minGreaterThanMax') || 'Số khách tối thiểu không được lớn hơn số khách tối đa')
+              : (t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối thiểu không được vượt quá ${MAX_GUESTS_LIMIT}`);
+          }
+        }
+      }
+      
+      if (currentMaxGuests !== null && currentMaxGuests !== undefined && String(currentMaxGuests).trim() !== '') {
+        const maxNum = parseInt(String(currentMaxGuests).replace(/[^0-9]/g, ''), 10);
+        if (isNaN(maxNum) || maxNum < 1) {
+          errors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1';
+        } else if (maxNum > MAX_GUESTS_LIMIT) {
+          errors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối đa không được vượt quá ${MAX_GUESTS_LIMIT}`;
+        } else {
+          const minNum = currentMinGuests ? parseInt(String(currentMinGuests).replace(/[^0-9]/g, ''), 10) : null;
+          const minLimit = minNum !== null && !isNaN(minNum) ? minNum : 1;
+          if (maxNum < minLimit) {
+            errors.maxGuests = minNum !== null && !isNaN(minNum)
+              ? (t('tourWizard.step3.guestLimits.errors.maxLessThanMin') || 'Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu')
+              : (t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1');
+          }
+        }
+      }
       
       if (!currentAdultPrice || String(currentAdultPrice).trim() === '') {
         errors.adultPrice = t('toast.required', { field: t('tourWizard.step3.pricing.adultPrice') }) || 'Giá người lớn là bắt buộc';
@@ -189,6 +229,146 @@ const Step3Pricing = () => {
         <div className={styles['warning-message']}>
           <AlertTriangle className={styles['warning-icon']} size={18} strokeWidth={1.5} />
           <span>{t('tourWizard.step3.warning')}</span>
+        </div>
+      </div>
+
+      {/* Guest Limits */}
+      <div className={styles['pricing-section']}>
+        <h3>{t('tourWizard.step3.guestLimits.title')}</h3>
+        <div className={styles['form-grid']} style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div className={styles['form-group']}>
+            <label htmlFor="minGuests" className={styles['form-label']}>
+              <Users className={styles['label-icon']} size={18} />
+              {t('tourWizard.step3.guestLimits.minGuests')}
+              {fieldErrors.minGuests && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+            </label>
+            <input
+              type="number"
+              id="minGuests"
+              name="minGuests"
+              value={formData.minGuests || ''}
+              onKeyDown={(e) => { if(['e','E','+','-','.'].includes(e.key)) e.preventDefault(); }}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const newFormData = { ...formData, minGuests: value };
+                setFormData(newFormData);
+                updateTourData(newFormData);
+                if (fieldErrors.minGuests) {
+                  setFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.minGuests;
+                    delete newErrors.maxGuests;
+                    const hasErrors = Object.keys(newErrors).length > 0;
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 3, hasErrors } 
+                    }));
+                    return newErrors;
+                  });
+                }
+              }}
+              onBlur={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const errors = {};
+                const MAX_GUESTS_LIMIT = 99;
+                if (value && value !== '') {
+                  const minNum = parseInt(value, 10);
+                  if (isNaN(minNum) || minNum < 1) {
+                    errors.minGuests = t('tourWizard.step3.guestLimits.errors.minInvalid') || 'Số khách tối thiểu phải lớn hơn hoặc bằng 1';
+                  } else {
+                    const maxNum = formData.maxGuests ? parseInt(formData.maxGuests.replace(/[^0-9]/g,''), 10) : null;
+                    const maxLimit = maxNum !== null && !isNaN(maxNum) ? maxNum : MAX_GUESTS_LIMIT;
+                    if (minNum > maxLimit) {
+                      errors.minGuests = maxNum !== null && !isNaN(maxNum)
+                        ? (t('tourWizard.step3.guestLimits.errors.minGreaterThanMax') || 'Số khách tối thiểu không được lớn hơn số khách tối đa')
+                        : (t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối thiểu không được vượt quá ${MAX_GUESTS_LIMIT}`);
+                    }
+                  }
+                }
+                if (Object.keys(errors).length > 0) {
+                  setFieldErrors(prev => ({ ...prev, ...errors }));
+                  window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                    detail: { step: 3, hasErrors: true } 
+                  }));
+                }
+              }}
+              className={`${styles['form-input']} ${fieldErrors.minGuests ? styles['error'] : ''}`}
+              placeholder={t('tourWizard.step3.guestLimits.placeholders.minGuests')}
+              min="1"
+              max={formData.maxGuests ? parseInt(formData.maxGuests.replace(/[^0-9]/g,''), 10) || 99 : 99}
+            />
+            {fieldErrors.minGuests && (
+              <div className={styles['error-message']} style={{ marginTop: '0.5rem', color: '#e11d48', fontSize: '0.875rem' }}>
+                {fieldErrors.minGuests}
+              </div>
+            )}
+          </div>
+
+          <div className={styles['form-group']}>
+            <label htmlFor="maxGuests" className={styles['form-label']}>
+              <Users className={styles['label-icon']} size={18} />
+              {t('tourWizard.step3.guestLimits.maxGuests')}
+              {fieldErrors.maxGuests && <span style={{ color: '#e11d48', marginLeft: '0.25rem' }}>*</span>}
+            </label>
+            <input
+              type="number"
+              id="maxGuests"
+              name="maxGuests"
+              value={formData.maxGuests || ''}
+              onKeyDown={(e) => { if(['e','E','+','-','.'].includes(e.key)) e.preventDefault(); }}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const newFormData = { ...formData, maxGuests: value };
+                setFormData(newFormData);
+                updateTourData(newFormData);
+                if (fieldErrors.maxGuests) {
+                  setFieldErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.maxGuests;
+                    delete newErrors.minGuests;
+                    const hasErrors = Object.keys(newErrors).length > 0;
+                    window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                      detail: { step: 3, hasErrors } 
+                    }));
+                    return newErrors;
+                  });
+                }
+              }}
+              onBlur={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g,'');
+                const errors = {};
+                const MAX_GUESTS_LIMIT = 99;
+                if (value && value !== '') {
+                  const maxNum = parseInt(value, 10);
+                  const minNum = formData.minGuests ? parseInt(formData.minGuests.replace(/[^0-9]/g,''), 10) : null;
+                  const minLimit = minNum !== null && !isNaN(minNum) ? minNum : 1;
+                  if (isNaN(maxNum) || maxNum < 1) {
+                    errors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1';
+                  } else if (maxNum > MAX_GUESTS_LIMIT) {
+                    errors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối đa không được vượt quá ${MAX_GUESTS_LIMIT}`;
+                  } else if (maxNum < minLimit) {
+                    errors.maxGuests = minNum !== null && !isNaN(minNum)
+                      ? (t('tourWizard.step3.guestLimits.errors.maxLessThanMin') || 'Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu')
+                      : (t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1');
+                  }
+                }
+                if (Object.keys(errors).length > 0) {
+                  setFieldErrors(prev => ({ ...prev, ...errors }));
+                  window.dispatchEvent(new CustomEvent('stepValidationStatus', { 
+                    detail: { step: 3, hasErrors: true } 
+                  }));
+                }
+              }}
+              className={`${styles['form-input']} ${fieldErrors.maxGuests ? styles['error'] : ''}`}
+              placeholder={t('tourWizard.step3.guestLimits.placeholders.maxGuests')}
+              min={formData.minGuests ? parseInt(formData.minGuests.replace(/[^0-9]/g,''), 10) || 1 : 1}
+              max="99"
+            />
+            {fieldErrors.maxGuests && (
+              <div className={styles['error-message']} style={{ marginTop: '0.5rem', color: '#e11d48', fontSize: '0.875rem' }}>
+                {fieldErrors.maxGuests}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

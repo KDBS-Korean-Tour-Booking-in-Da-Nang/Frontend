@@ -83,7 +83,9 @@ const Step2Details = () => {
     deadlineDays: null,
     expirationDate: null,
     tourCheckDays: null,
-    balancePaymentDays: null
+    balancePaymentDays: null,
+    minGuests: null,
+    maxGuests: null
   });
   const [loading, setLoading] = useState(true);
 
@@ -1103,11 +1105,35 @@ const Step2Details = () => {
       const tourCheckDays = parseTourCheckDays();
       const balancePaymentDays = parseBalancePaymentDays();
 
+      // Parse minGuests and maxGuests
+      const parseMinGuests = () => {
+        const minGuestsValue = tourData.minGuests;
+        if (minGuestsValue === undefined || minGuestsValue === null || minGuestsValue === '') {
+          return null;
+        }
+        const parsed = parseInt(minGuestsValue, 10);
+        return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
+      };
+
+      const parseMaxGuests = () => {
+        const maxGuestsValue = tourData.maxGuests;
+        if (maxGuestsValue === undefined || maxGuestsValue === null || maxGuestsValue === '') {
+          return null;
+        }
+        const parsed = parseInt(maxGuestsValue, 10);
+        return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
+      };
+
+      const minGuests = parseMinGuests();
+      const maxGuests = parseMaxGuests();
+
       setTourMeta({
         deadlineDays: deadlineDays,
         expirationDate: expirationDate,
         tourCheckDays: tourCheckDays,
-        balancePaymentDays: balancePaymentDays
+        balancePaymentDays: balancePaymentDays,
+        minGuests: minGuests,
+        maxGuests: maxGuests
       });
       
       
@@ -1426,6 +1452,27 @@ const Step2Details = () => {
       }
     }
 
+    // Validate total guests against minGuests and maxGuests (always validate if minGuests or maxGuests is set)
+    const totalGuests = (plan.pax?.adult || 0) + (plan.pax?.child || 0) + (plan.pax?.infant || 0);
+    if (tourMeta.minGuests !== null && tourMeta.minGuests !== undefined && tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined) {
+      // Both min and max are set
+      if (totalGuests < tourMeta.minGuests) {
+        newErrors.totalGuests = t('booking.step2.errors.totalGuestsBelowMin', { min: tourMeta.minGuests });
+      } else if (totalGuests > tourMeta.maxGuests) {
+        newErrors.totalGuests = t('booking.step2.errors.totalGuestsAboveMax', { max: tourMeta.maxGuests });
+      }
+    } else if (tourMeta.minGuests !== null && tourMeta.minGuests !== undefined) {
+      // Only min is set
+      if (totalGuests < tourMeta.minGuests) {
+        newErrors.totalGuests = t('booking.step2.errors.totalGuestsBelowMin', { min: tourMeta.minGuests });
+      }
+    } else if (tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined) {
+      // Only max is set
+      if (totalGuests > tourMeta.maxGuests) {
+        newErrors.totalGuests = t('booking.step2.errors.totalGuestsAboveMax', { max: tourMeta.maxGuests });
+      }
+    }
+
     // Check members - validate each type separately
     // Validate all adult members (no representative anymore)
     plan.members.adult.forEach((member, index) => {
@@ -1721,11 +1768,33 @@ const Step2Details = () => {
       
       return updatedErrors;
     });
-  }, [plan.date, plan.members, touchedFields, dateTouched, t, tourMeta.deadlineDays, tourMeta.expirationDate]);
+  }, [plan.date, plan.members, plan.pax, touchedFields, dateTouched, t, tourMeta.deadlineDays, tourMeta.expirationDate, tourMeta.minGuests, tourMeta.maxGuests]);
+
+  // Dispatch validation status event when errors change
+  useEffect(() => {
+    const hasErrors = Object.keys(errors).length > 0;
+    window.dispatchEvent(new CustomEvent('step2ValidationStatus', {
+      detail: { hasErrors, errors }
+    }));
+  }, [errors]);
+
+  // Helper function to check if increment is allowed (check maxGuests limit)
+  const canIncrementPax = () => {
+    const totalGuests = (plan.pax?.adult || 0) + (plan.pax?.child || 0) + (plan.pax?.infant || 0);
+    // If maxGuests is set and totalGuests >= maxGuests, cannot increment
+    if (tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined) {
+      return totalGuests < tourMeta.maxGuests;
+    }
+    return true; // No maxGuests limit, allow increment
+  };
 
   const handlePaxChange = (type, action) => {
     
     if (action === 'increment') {
+      // Check if increment is allowed (maxGuests limit)
+      if (!canIncrementPax()) {
+        return; // Cannot increment, already at max
+      }
       incrementPax(type);
       // Ensure members are rebuilt after incrementing
       setTimeout(() => {
@@ -2922,6 +2991,40 @@ const Step2Details = () => {
           <UsersIcon className={styles['section-icon']} />
           {t('booking.step2.sections.paxTitle')}
         </h3>
+        {/* Warning notice for min/max guests */}
+        {(() => {
+          const hasMinGuests = tourMeta.minGuests !== null && tourMeta.minGuests !== undefined;
+          const hasMaxGuests = tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined;
+          
+          if (hasMinGuests && hasMaxGuests) {
+            return (
+              <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`} style={{ marginBottom: '1rem' }}>
+                {t('booking.step2.fields.guestLimitsNotice', { 
+                  min: tourMeta.minGuests, 
+                  max: tourMeta.maxGuests 
+                })}
+              </div>
+            );
+          } else if (hasMinGuests) {
+            return (
+              <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`} style={{ marginBottom: '1rem' }}>
+                {t('booking.step2.fields.guestMinNotice', { min: tourMeta.minGuests })}
+              </div>
+            );
+          } else if (hasMaxGuests) {
+            return (
+              <div className={`${styles['deadline-notice']} ${styles['deadline-notice--highlight']}`} style={{ marginBottom: '1rem' }}>
+                {t('booking.step2.fields.guestMaxNotice', { max: tourMeta.maxGuests })}
+              </div>
+            );
+          }
+          return null;
+        })()}
+        {errors.totalGuests && (
+          <span className={styles['form-error']} style={{ display: 'block', marginBottom: '1rem' }}>
+            {errors.totalGuests}
+          </span>
+        )}
         <div className={styles['pax-section']}>
            <div className={styles['pax-card']}>
              <div className={styles['pax-title']}>{t('booking.step2.pax.adult')}</div>
@@ -2945,6 +3048,8 @@ const Step2Details = () => {
               <button
                 className={`${styles['pax-button']} ${styles['increment']}`}
                 onClick={() => handlePaxChange('adult', 'increment')}
+                disabled={!canIncrementPax()}
+                title={!canIncrementPax() && tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined ? t('booking.step2.pax.maxGuestsReached', { max: tourMeta.maxGuests }) : ''}
               >
                 +
               </button>
@@ -2972,6 +3077,8 @@ const Step2Details = () => {
               <button
                 className={`${styles['pax-button']} ${styles['increment']}`}
                 onClick={() => handlePaxChange('child', 'increment')}
+                disabled={!canIncrementPax()}
+                title={!canIncrementPax() && tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined ? t('booking.step2.pax.maxGuestsReached', { max: tourMeta.maxGuests }) : ''}
               >
                 +
               </button>
@@ -2999,6 +3106,8 @@ const Step2Details = () => {
               <button
                 className={`${styles['pax-button']} ${styles['increment']}`}
                 onClick={() => handlePaxChange('infant', 'increment')}
+                disabled={!canIncrementPax()}
+                title={!canIncrementPax() && tourMeta.maxGuests !== null && tourMeta.maxGuests !== undefined ? t('booking.step2.pax.maxGuestsReached', { max: tourMeta.maxGuests }) : ''}
               >
                 +
               </button>

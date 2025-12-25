@@ -160,6 +160,9 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
         return original.adultPrice || original.price;
       case 'tourSchedule':
         return original.tourSchedule || original.schedule;
+      case 'minGuests':
+      case 'maxGuests':
+        return original[fieldName];
       default:
         return original[fieldName];
     }
@@ -303,7 +306,7 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
     }
     
     // Handle numeric fields
-    if (fieldName === 'amount' || fieldName === 'tourCheckDays' || fieldName === 'depositPercentage') {
+    if (fieldName === 'amount' || fieldName === 'tourCheckDays' || fieldName === 'depositPercentage' || fieldName === 'minGuests' || fieldName === 'maxGuests') {
       const origNum = originalValue !== null && originalValue !== undefined ? Number(originalValue) : null;
       const updNum = updatedValue !== null && updatedValue !== undefined ? Number(updatedValue) : null;
       if (origNum === null && updNum === null) return false;
@@ -629,6 +632,26 @@ const TourDetailModal = ({ isOpen, onClose, tour, updateRequest = null }) => {
               icon={CurrencyDollarIcon}
               formatValue={formatOptionalPrice}
             />
+
+            {(displayTour.minGuests !== undefined && displayTour.minGuests !== null) && (
+              <FieldWithChange
+                label={t('admin.tourDetailModal.fields.minGuests')}
+                value={displayTour.minGuests}
+                fieldName="minGuests"
+                icon={UsersIcon}
+                formatValue={(v) => `${v} ${t('admin.tourDetailModal.fields.guests')}`}
+              />
+            )}
+
+            {(displayTour.maxGuests !== undefined && displayTour.maxGuests !== null) && (
+              <FieldWithChange
+                label={t('admin.tourDetailModal.fields.maxGuests')}
+                value={displayTour.maxGuests}
+                fieldName="maxGuests"
+                icon={UsersIcon}
+                formatValue={(v) => `${v} ${t('admin.tourDetailModal.fields.guests')}`}
+              />
+            )}
 
             <FieldWithChange
               label={t('admin.tourDetailModal.fields.expirationDate')}

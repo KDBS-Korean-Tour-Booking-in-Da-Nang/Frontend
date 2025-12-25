@@ -1550,7 +1550,6 @@ const Step1Contact = () => {
                 }}
                 className={`${styles['form-input']} ${styles['date-input']} ${errors.dob && touchedFields.has('dob') ? styles['error'] : ''}`}
                 placeholder={getDateFormat()}
-                title={t('booking.step1.placeholders.dateFormat', { format: getDateFormat() })}
               />
               <div className={styles['date-picker-wrapper']}>
                 <button

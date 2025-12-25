@@ -1495,6 +1495,9 @@
 				"tourType": "투어 유형",
 				"amount": "수량",
 				"amountPeople": "{{amount}}명",
+				"minGuests": "최소 인원",
+				"maxGuests": "최대 인원",
+				"guests": "명",
 				"company": "회사",
 				"expirationDate": "만료일",
 				"checkDays": "확인 일수",
@@ -2802,6 +2805,22 @@
 			"title": "가격 & 정책",
 			"subtitle": "투어 가격 및 정책 설정",
 			"warning": "시스템에서 베트남 동을 한국 원으로 자동 변환하므로 베트남 동으로 가격을 입력하세요.",
+			"guestLimits": {
+				"title": "인원 제한",
+				"minGuests": "최소 인원",
+				"maxGuests": "최대 인원",
+				"placeholders": {
+					"minGuests": "예: 2",
+					"maxGuests": "예: 20"
+				},
+				"errors": {
+					"minInvalid": "최소 인원은 1명 이상이어야 합니다",
+					"maxInvalid": "최대 인원은 1명 이상이어야 합니다",
+					"minGreaterThanMax": "최소 인원은 최대 인원보다 클 수 없습니다",
+					"maxLessThanMin": "최대 인원은 최소 인원보다 크거나 같아야 합니다",
+					"maxExceedsLimit": "최대 인원은 {{limit}}명을 초과할 수 없습니다"
+				}
+			},
 			"pricing": {
 				"title": "투어 가격",
 				"adultPrice": "성인 가격 (≥ 18세)",
@@ -2921,6 +2940,11 @@
 			"bookingError": "예약을 생성할 수 없습니다. 나중에 다시 시도해주세요.",
 			"companyNotAllowedError": "회사 계정은 투어를 예약할 수 없습니다."
 		},
+		"tourFullyBookedModal": {
+			"title": "투어 마감",
+			"message": "이 투어는 마감되었습니다. 다른 투어를 선택해주세요.",
+			"close": "닫기"
+		},
 		"backToWizard": {
 			"modal": {
 				"title": "마법사로 돌아가기 확인",
@@ -2962,6 +2986,11 @@
 			"subtitle": "모든 투어를 한 곳에서 관리하세요",
 			"addNew": "새 투어 추가"
 		},
+		"sort": {
+			"newest": "최신순",
+			"oldest": "오래된순",
+			"allStatus": "전체 상태"
+		},
 		"loading": {
 			"user": "사용자 정보를 불러오는 중...",
 			"tours": "투어 목록을 불러오는 중..."
@@ -2987,6 +3016,7 @@
 			"NOT_APPROVED": "대기중",
 			"DISABLED": "비활성화됨",
 			"DRAFT": "임시저장",
+			"OUT_OF_TOUR": "재고 없음",
 			"UNKNOWN": "알 수 없음"
 		},
 		"card": {
@@ -3200,6 +3230,9 @@
 				"includedNote": "가격에는 세금 및 서비스 요금이 포함되어 있습니다",
 				"children": "아동",
 				"baby": "유아",
+				"minGuests": "최소 인원",
+				"maxGuests": "최대 인원",
+				"guests": "명",
 				"bookNow": "지금 예약",
 				"contact": "상담 문의",
 				"infoTitle": "예약 정보",
@@ -3626,7 +3659,8 @@
 				"adult": "성인",
 				"child": "아동",
 				"infant": "유아",
-				"adultMinHint": "성인은 최소 1명 필요"
+				"adultMinHint": "성인은 최소 1명 필요",
+				"maxGuestsReached": "최대 인원 도달 ({{max}}명)"
 			},
 			"labels": {
 				"fullName": "성명",
@@ -3661,6 +3695,9 @@
 			"fields": {
 				"date": "출발일",
 				"deadlineNotice": "이 투어는 {{days}}일의 처리 기간이 필요하므로 {{minDate}} 이후의 출발일을 선택해 주세요",
+				"guestLimitsNotice": "이 투어는 {{min}}명부터 {{max}}명까지 예약 가능합니다. 이 범위 내에서 인원을 선택해 주세요.",
+				"guestMinNotice": "이 투어는 최소 {{min}}명이 필요합니다. 최소 {{min}}명 이상을 선택해 주세요.",
+				"guestMaxNotice": "이 투어는 최대 {{max}}명까지 예약 가능합니다. {{max}}명을 초과하지 않도록 선택해 주세요.",
 				"adultPax": "성인 인원수",
 				"adultName1": "성인 1 이름",
 				"adultName2": "성인 2 이름",
@@ -3742,7 +3779,9 @@
 				"infantTooOld": "유아는 유아 항목에서 만 2세 미만이어야 합니다.",
 				"genderRequired": "성별은 필수입니다",
 				"nationalityRequired": "국적은 필수입니다",
-				"idRequired": "신분증/여권 번호는 필수입니다"
+				"idRequired": "신분증/여권 번호는 필수입니다",
+				"totalGuestsBelowMin": "총 인원은 최소 {{min}}명 이상이어야 합니다",
+				"totalGuestsAboveMax": "총 인원은 {{max}}명을 초과할 수 없습니다"
 			},
 			"validation": {
 				"vietnameseId": "베트남 신분증은 12자리(CCCD) 또는 9자리(CMND/CMT)여야 합니다",
@@ -3879,7 +3918,7 @@
 			"fullNameRequired": "성명은 필수입니다",
 			"fullNameInvalid": "성명은 문자, 공백, 하이픈 및 아포스트로피만 포함할 수 있습니다",
 			"phoneRequired": "전화번호는 필수입니다",
-			"phoneInvalid": "유효하지 않은 전화번호 (예: 0123456789 또는 +84 705327671)",
+			"phoneInvalid": "유효하지 않은 전화번호",
 			"emailRequired": "이메일은 필수입니다",
 			"emailInvalid": "유효하지 않은 이메일",
 			"emailMismatch": "계정 이메일과 일치하지 않습니다. 등록된 이메일을 사용하세요.",

@@ -39,6 +39,8 @@ export const useToursAPI = () => {
     childrenPrice: tour.childrenPrice ? Number(tour.childrenPrice) : 0,
     babyPrice: tour.babyPrice ? Number(tour.babyPrice) : 0,
     amount: tour.amount,
+    minGuests: tour.minGuests != null ? Number(tour.minGuests) : null,
+    maxGuests: tour.maxGuests != null ? Number(tour.maxGuests) : null,
     tourStatus: tour.tourStatus,
     createdAt: tour.createdAt,
     contents: tour.contents || [],
@@ -76,7 +78,12 @@ export const useToursAPI = () => {
 
       const data = await response.json();
 
-      const transformedTours = data.map(transformTour);
+      const transformedTours = data.map(transformTour).filter(tour => 
+        tour.tourStatus === 'PUBLIC' && 
+        tour.amount !== null && 
+        tour.amount !== undefined && 
+        tour.amount > 0
+      );
 
       setTours(transformedTours);
     } catch (err) {
@@ -179,7 +186,12 @@ export const useToursAPI = () => {
       const pageData = await response.json();
       const items = Array.isArray(pageData.content) ? pageData.content.map(transformTour) : [];
 
-      const publicItems = items.filter(tour => tour.tourStatus === 'PUBLIC');
+      const publicItems = items.filter(tour => 
+        tour.tourStatus === 'PUBLIC' && 
+        tour.amount !== null && 
+        tour.amount !== undefined && 
+        tour.amount > 0
+      );
 
       return {
         items: publicItems,

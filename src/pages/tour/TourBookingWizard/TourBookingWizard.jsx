@@ -9,6 +9,7 @@ import { useBookingStepValidation } from '../../../hooks/useBookingStepValidatio
 import { useTranslation } from 'react-i18next';
 import ConfirmLeaveModal from '../../../components/modals/ConfirmLeaveModal/ConfirmLeaveModal';
 import PaymentConfirmModal from '../../../components/modals/PaymentConfirmModal/PaymentConfirmModal';
+import TourFullyBookedModal from '../../../components/modals/TourFullyBookedModal/TourFullyBookedModal';
 import Step1Contact from './steps/Step1Contact/Step1Contact';
 import Step2Details from './steps/Step2Details/Step2Details';
 import Step3Review from './steps/Step3Review/Step3Review';
@@ -53,10 +54,13 @@ const BookingWizardContent = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showTourFullyBookedModal, setShowTourFullyBookedModal] = useState(false);
+  const [tourFullyBookedMessage, setTourFullyBookedMessage] = useState('');
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [hasConfirmedLeave, setHasConfirmedLeave] = useState(false);
   const [step1ValidationAttempted, setStep1ValidationAttempted] = useState(false);
   const [step2ValidationAttempted, setStep2ValidationAttempted] = useState(false);
+  const [step2HasErrors, setStep2HasErrors] = useState(false);
 
   // Tạo key từ contact và plan để theo dõi thay đổi và auto-save
   const contactKey = useMemo(() => contact ? JSON.stringify(contact) : '', [contact]);
@@ -150,6 +154,19 @@ const BookingWizardContent = () => {
       setStep2ValidationAttempted(false);
     }
   }, [currentStep, stepValidations.step2?.isValid]);
+
+  // Listen for step2 validation status events from Step2Details
+  useEffect(() => {
+    const handleStep2ValidationStatus = (event) => {
+      const { hasErrors } = event.detail;
+      setStep2HasErrors(hasErrors);
+    };
+
+    window.addEventListener('step2ValidationStatus', handleStep2ValidationStatus);
+    return () => {
+      window.removeEventListener('step2ValidationStatus', handleStep2ValidationStatus);
+    };
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -308,6 +325,7 @@ const BookingWizardContent = () => {
 
           if (currentStep === 2) {
             setStep2ValidationAttempted(false);
+            setStep2HasErrors(false); // Reset errors when successfully moving to next step
           }
 
           setCurrentStep(currentStep + 1);
@@ -320,6 +338,7 @@ const BookingWizardContent = () => {
     if (currentStep > 1) {
       if (currentStep === 2) {
         setStep2ValidationAttempted(false);
+        setStep2HasErrors(false); // Reset errors when leaving step 2
       } else if (currentStep === 1) {
         setStep1ValidationAttempted(false);
       }
@@ -438,9 +457,18 @@ const BookingWizardContent = () => {
     } catch (error) {
       const message = error?.message || t('bookingWizard.toast.bookingError') || 'Đặt tour thất bại';
 
-      setBookingError(message);
-      if (message === 'Unauthenticated' || message.toLowerCase().includes('unauthenticated')) {
-        navigate('/login');
+      // Check if error is tour fully booked
+      if (message.includes('The tour is fully booked') || 
+          message.includes('fully booked') || 
+          message.toLowerCase().includes('tour is fully booked')) {
+        setTourFullyBookedMessage(message);
+        setShowTourFullyBookedModal(true);
+        setBookingError('');
+      } else {
+        setBookingError(message);
+        if (message === 'Unauthenticated' || message.toLowerCase().includes('unauthenticated')) {
+          navigate('/login');
+        }
       }
     } finally {
       setBookingLoading(false);
@@ -634,11 +662,17 @@ const BookingWizardContent = () => {
                 }
 
                 if (currentStep === 2) {
+                  const currentStepKey = `step${currentStep}`;
+                  const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
+                  // Always check if step2 has errors from Step2Details component (e.g., totalGuests validation)
+                  // If there are errors, disable Next button even if user hasn't attempted validation yet
+                  if (step2HasErrors) {
+                    return true; // Disable button if there are errors
+                  }
+                  // If no errors, check normal validation flow
                   if (!step2ValidationAttempted) {
                     return false;
                   }
-                  const currentStepKey = `step${currentStep}`;
-                  const isCurrentStepValid = stepValidations[currentStepKey]?.isValid;
                   return !isCurrentStepValid;
                 }
 
@@ -683,6 +717,12 @@ const BookingWizardContent = () => {
           onConfirm={handleConfirm}
           modalKey="wizard"
           loading={booking.loading}
+        />
+
+        <TourFullyBookedModal
+          isOpen={showTourFullyBookedModal}
+          onClose={() => setShowTourFullyBookedModal(false)}
+          message={tourFullyBookedMessage}
         />
 
       </div>

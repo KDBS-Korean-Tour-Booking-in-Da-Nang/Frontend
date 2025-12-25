@@ -240,6 +240,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
     depositPercentage: '',
     refundFloor: '',
     tourExpirationDate: '',
+    minGuests: '',
+    maxGuests: '',
     adultPrice: '',
     childrenPrice: '',
     babyPrice: '',
@@ -278,6 +280,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       formData.depositPercentage !== initial.depositPercentage ||
       formData.refundFloor !== initial.refundFloor ||
       formData.tourExpirationDate !== initial.tourExpirationDate ||
+      formData.minGuests !== initial.minGuests ||
+      formData.maxGuests !== initial.maxGuests ||
       formData.adultPrice !== initial.adultPrice ||
       formData.childrenPrice !== initial.childrenPrice ||
       formData.babyPrice !== initial.babyPrice ||
@@ -395,6 +399,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         depositPercentage: tour.depositPercentage !== undefined && tour.depositPercentage !== null ? String(tour.depositPercentage) : '',
         refundFloor: tour.refundFloor !== undefined && tour.refundFloor !== null ? String(tour.refundFloor) : '',
         tourExpirationDate: tour.tourExpirationDate || '',
+        minGuests: tour.minGuests || '',
+        maxGuests: tour.maxGuests || '',
         adultPrice: tour.adultPrice || '',
         childrenPrice: tour.childrenPrice || '',
         babyPrice: tour.babyPrice || '',
@@ -444,6 +450,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         depositPercentage: tour.depositPercentage !== undefined && tour.depositPercentage !== null ? String(tour.depositPercentage) : '',
         refundFloor: tour.refundFloor !== undefined && tour.refundFloor !== null ? String(tour.refundFloor) : '',
         tourExpirationDate: tour.tourExpirationDate || '',
+        minGuests: tour.minGuests || '',
+        maxGuests: tour.maxGuests || '',
         adultPrice: tour.adultPrice || '',
         childrenPrice: tour.childrenPrice || '',
         babyPrice: tour.babyPrice || '',
@@ -737,6 +745,23 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       return;
     }
 
+    if (name === 'minGuests' || name === 'maxGuests') {
+      // Only strip non-digits, allow user to type freely
+      const digitsOnly = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({ ...prev, [name]: digitsOnly }));
+      
+      // Clear errors when user starts typing
+      if (formErrors[name]) {
+        setFormErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          delete newErrors[name === 'minGuests' ? 'maxGuests' : 'minGuests'];
+          return newErrors;
+        });
+      }
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: nextValue
@@ -923,6 +948,50 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
       errors.push(t('tourManagement.edit.pricing.fields.babyPrice'));
     }
 
+    // Validate minGuests and maxGuests (optional but if provided must be valid) with fallback logic
+    const MAX_GUESTS_LIMIT = 99;
+    const guestErrors = {};
+    if (formData.minGuests !== null && formData.minGuests !== undefined && formData.minGuests !== '') {
+      const minNum = parseInt(String(formData.minGuests).replace(/[^0-9]/g, ''), 10);
+      if (isNaN(minNum) || minNum < 1) {
+        guestErrors.minGuests = t('tourWizard.step3.guestLimits.errors.minInvalid') || 'Số khách tối thiểu phải lớn hơn hoặc bằng 1';
+        errors.push(t('tourWizard.step3.guestLimits.minGuests'));
+      } else {
+        const maxNum = formData.maxGuests ? parseInt(String(formData.maxGuests).replace(/[^0-9]/g, ''), 10) : null;
+        const maxLimit = maxNum !== null && !isNaN(maxNum) ? maxNum : MAX_GUESTS_LIMIT;
+        if (minNum > maxLimit) {
+          guestErrors.minGuests = maxNum !== null && !isNaN(maxNum)
+            ? (t('tourWizard.step3.guestLimits.errors.minGreaterThanMax') || 'Số khách tối thiểu không được lớn hơn số khách tối đa')
+            : (t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối thiểu không được vượt quá ${MAX_GUESTS_LIMIT}`);
+          errors.push(t('tourWizard.step3.guestLimits.minGuests'));
+        }
+      }
+    }
+    
+    if (formData.maxGuests !== null && formData.maxGuests !== undefined && formData.maxGuests !== '') {
+      const maxNum = parseInt(String(formData.maxGuests).replace(/[^0-9]/g, ''), 10);
+      if (isNaN(maxNum) || maxNum < 1) {
+        guestErrors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1';
+        errors.push(t('tourWizard.step3.guestLimits.maxGuests'));
+      } else if (maxNum > MAX_GUESTS_LIMIT) {
+        guestErrors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối đa không được vượt quá ${MAX_GUESTS_LIMIT}`;
+        errors.push(t('tourWizard.step3.guestLimits.maxGuests'));
+      } else {
+        const minNum = formData.minGuests ? parseInt(String(formData.minGuests).replace(/[^0-9]/g, ''), 10) : null;
+        const minLimit = minNum !== null && !isNaN(minNum) ? minNum : 1;
+        if (maxNum < minLimit) {
+          guestErrors.maxGuests = minNum !== null && !isNaN(minNum)
+            ? (t('tourWizard.step3.guestLimits.errors.maxLessThanMin') || 'Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu')
+            : (t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1');
+          errors.push(t('tourWizard.step3.guestLimits.maxGuests'));
+        }
+      }
+    }
+
+    if (Object.keys(guestErrors).length > 0) {
+      setFormErrors(prev => ({ ...prev, ...guestErrors }));
+    }
+
     // Itinerary validation: only require at least 1 day exists
     if (!Array.isArray(formData.itinerary) || formData.itinerary.length === 0) {
       errors.push(t('toast.tour.itinerary_required'));
@@ -1022,6 +1091,8 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
         refundFloor: formData.refundFloor === '' ? 0 : parseInt(formData.refundFloor, 10),
         tourExpirationDate: expirationDateValue,
         amount: amount,
+        minGuests: formData.minGuests ? parseInt(formData.minGuests, 10) || 0 : 0,
+        maxGuests: formData.maxGuests ? parseInt(formData.maxGuests, 10) || 0 : 0,
         adultPrice: adultPrice,
         childrenPrice: parsedChildrenPrice,
         babyPrice: parsedBabyPrice,
@@ -1562,6 +1633,114 @@ const EditTourModal = ({ isOpen, onClose, tour, onSave }) => {
             {activeTab === 'pricing' && (
               <div className={styles['form-section']}>
                 <h3>{t('admin.tourManagement.edit.pricing.title')}</h3>
+
+                {/* Guest Limits */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <div className={styles['form-row']} style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                    <div className={styles['form-group']}>
+                      <label htmlFor="minGuests">{t('tourWizard.step3.guestLimits.minGuests')}</label>
+                      <input
+                        type="number"
+                        id="minGuests"
+                        name="minGuests"
+                        value={formData.minGuests}
+                        min="1"
+                        max="99"
+                        onKeyDown={preventInvalidNumberKeys}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onChange={handleInputChange}
+                        onBlur={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          const MAX_GUESTS_LIMIT = 99;
+                          const errors = {};
+                          if (value && value !== '') {
+                            const minNum = parseInt(value, 10);
+                            if (isNaN(minNum) || minNum < 1) {
+                              errors.minGuests = t('tourWizard.step3.guestLimits.errors.minInvalid') || 'Số khách tối thiểu phải lớn hơn hoặc bằng 1';
+                              setFormData(prev => ({ ...prev, minGuests: '' }));
+                            } else {
+                              const maxNum = formData.maxGuests ? parseInt(String(formData.maxGuests).replace(/[^0-9]/g, ''), 10) : null;
+                              const maxLimit = maxNum !== null && !isNaN(maxNum) ? maxNum : MAX_GUESTS_LIMIT;
+                              if (minNum > maxLimit) {
+                                errors.minGuests = maxNum !== null && !isNaN(maxNum)
+                                  ? (t('tourWizard.step3.guestLimits.errors.minGreaterThanMax') || 'Số khách tối thiểu không được lớn hơn số khách tối đa')
+                                  : (t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối thiểu không được vượt quá ${MAX_GUESTS_LIMIT}`);
+                                const clampedValue = Math.min(minNum, maxLimit);
+                                setFormData(prev => ({ ...prev, minGuests: String(clampedValue) }));
+                              }
+                            }
+                          }
+                          if (Object.keys(errors).length > 0) {
+                            setFormErrors(prev => ({ ...prev, ...errors }));
+                          } else {
+                            setFormErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.minGuests;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        placeholder={t('tourWizard.step3.guestLimits.placeholders.minGuests')}
+                      />
+                      {formErrors.minGuests && (
+                        <small style={{ color: '#e11d48', fontSize: '0.875rem' }}>{formErrors.minGuests}</small>
+                      )}
+                    </div>
+
+                    <div className={styles['form-group']}>
+                      <label htmlFor="maxGuests">{t('tourWizard.step3.guestLimits.maxGuests')}</label>
+                      <input
+                        type="number"
+                        id="maxGuests"
+                        name="maxGuests"
+                        value={formData.maxGuests}
+                        min="1"
+                        max="99"
+                        onKeyDown={preventInvalidNumberKeys}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onChange={handleInputChange}
+                        onBlur={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          const MAX_GUESTS_LIMIT = 99;
+                          const errors = {};
+                          if (value && value !== '') {
+                            const maxNum = parseInt(value, 10);
+                            if (isNaN(maxNum) || maxNum < 1) {
+                              errors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1';
+                              setFormData(prev => ({ ...prev, maxGuests: '' }));
+                            } else if (maxNum > MAX_GUESTS_LIMIT) {
+                              errors.maxGuests = t('tourWizard.step3.guestLimits.errors.maxExceedsLimit', { limit: MAX_GUESTS_LIMIT }) || `Số khách tối đa không được vượt quá ${MAX_GUESTS_LIMIT}`;
+                              setFormData(prev => ({ ...prev, maxGuests: String(MAX_GUESTS_LIMIT) }));
+                            } else {
+                              const minNum = formData.minGuests ? parseInt(String(formData.minGuests).replace(/[^0-9]/g, ''), 10) : null;
+                              const minLimit = minNum !== null && !isNaN(minNum) ? minNum : 1;
+                              if (maxNum < minLimit) {
+                                errors.maxGuests = minNum !== null && !isNaN(minNum)
+                                  ? (t('tourWizard.step3.guestLimits.errors.maxLessThanMin') || 'Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu')
+                                  : (t('tourWizard.step3.guestLimits.errors.maxInvalid') || 'Số khách tối đa phải lớn hơn hoặc bằng 1');
+                                const clampedValue = Math.max(maxNum, minLimit);
+                                setFormData(prev => ({ ...prev, maxGuests: String(clampedValue) }));
+                              }
+                            }
+                          }
+                          if (Object.keys(errors).length > 0) {
+                            setFormErrors(prev => ({ ...prev, ...errors }));
+                          } else {
+                            setFormErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.maxGuests;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        placeholder={t('tourWizard.step3.guestLimits.placeholders.maxGuests')}
+                      />
+                      {formErrors.maxGuests && (
+                        <small style={{ color: '#e11d48', fontSize: '0.875rem' }}>{formErrors.maxGuests}</small>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Pricing Fields */}
                 <div className={styles['pricing-grid']}>
